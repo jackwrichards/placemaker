@@ -1,0 +1,10 @@
+{
+  "Placemaker.Issue.CutoutNotZonable": "一个商店地块没有朝向游戏可划分区的道路，因此该处将留给公园使用。",
+  "Placemaker.Issue.BuildingsKept": "有 {0} 栋建筑挡在区域内。这些建筑会被保留，其地块上不会建造任何内容。",
+  "Placemaker.Issue.BuildingsLeftOut": "为避开现有建筑，有 {0} 个部分被排除或缩减。",
+  "Placemaker.Problem.OnlyBuildings": "涂抹范围内只有画笔规则要求避开的对象（建筑、其他项目、分区或水体）。请在其他位置涂抹，或更改规则。",
+  "Placemaker.Hint.BuildingsKept": "选区中的 {0} 栋建筑会保留，其地块上不会建造任何内容。",
+  "Placemaker.Settings.PaintAvoidBuildings": "涂抹：避开建筑",
+  "Placemaker.Settings.PaintAvoidBuildings.Desc": "普通“涂抹区域”会从涂抹范围中挖去建筑地块（涂抹时以红色阴影显示）。关闭后将恢复旧行为：轮廓可以覆盖建筑，但建造时仍会保留这些建筑。",
+  "Placemaker.Why.AreaTooSmall": "需要更大的区域（至少 {0} 平方米）。"
+}

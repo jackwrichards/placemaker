@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "农田地面",
+  "Placemaker.Category.surface.crop.soil": "翻耕土壤地面",
+  "Placemaker.Category.surface.crop.plowed": "犁过的土壤地面",
+  "Placemaker.Category.surface.crop.rows": "成行作物地面",
+  "Placemaker.Category.surface.crop.green": "绿色作物地面",
+  "Placemaker.Category.surface.crop.straw": "秸秆／谷物地面",
+  "Placemaker.Category.surface.crop.flower": "开花作物地面",
+  "Placemaker.Category.surface.crop.lavender": "薰衣草色作物地面",
+  "Placemaker.Category.surface.crop.yellow": "黄色作物地面",
+  "Placemaker.Category.decal.farm": "农场车辙贴花",
+  "Placemaker.GroundCover.Issue.Painted": "未安装农田地面资产，因此田地会改为直接涂在地形上（永久更改）。",
+  "Placemaker.Common.Issue.ObjectBudget": "此设计原本需要 {0} 个物件；为将总数控制在约 {1} 个以内，已减少 {2} 个重复摆件。田地和种植床会改用地面材质绘制。"
+}
