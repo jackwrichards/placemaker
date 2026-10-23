@@ -3742,6 +3742,8 @@ namespace Placemaker.Core.Neighbours
             {
                 var p = a[i];
                 var q = a[(i + 1) % a.Count];
+                // (an edge further than d from the other's bounds is further than d from all of it)
+                if (math.max(p.x, q.x) + d + 0.001f < blo.x || math.min(p.x, q.x) - d - 0.001f > bhi.x || math.max(p.y, q.y) + d + 0.001f < blo.y || math.min(p.y, q.y) - d - 0.001f > bhi.y) continue;
                 for (int j = 0; j < b.Count; j++)
                     if (SegmentDistanceSq(p, q, b[j], b[(j + 1) % b.Count]) <= d2) return true;
             }
@@ -4059,11 +4061,34 @@ namespace Placemaker.Core.Neighbours
             Poly.Bounds(a, out var alo, out var ahi);
             Poly.Bounds(b, out var blo, out var bhi);
             if (ahi.x < blo.x || alo.x > bhi.x || ahi.y < blo.y || alo.y > bhi.y) return false;
-            foreach (var p in a) if (Poly.Contains(b, p)) return true;
-            foreach (var p in b) if (Poly.Contains(a, p)) return true;
+            // (the same answer with less looking: a corner outside the other's bounds is not inside it, and two edges cross
+            // only inside the box both shapes share, so only edges reaching into that box are tried against each other; this
+            // is asked of every lot, garden and road near every pair of gardens)
+            var olo = math.max(alo, blo) - 0.001f;
+            var ohi = math.min(ahi, bhi) + 0.001f;
             for (int i = 0; i < a.Count; i++)
+            {
+                var p = a[i];
+                if (p.x >= blo.x && p.x <= bhi.x && p.y >= blo.y && p.y <= bhi.y && Poly.Contains(b, p)) return true;
+            }
+            for (int j = 0; j < b.Count; j++)
+            {
+                var p = b[j];
+                if (p.x >= alo.x && p.x <= ahi.x && p.y >= alo.y && p.y <= ahi.y && Poly.Contains(a, p)) return true;
+            }
+            for (int i = 0; i < a.Count; i++)
+            {
+                var p = a[i];
+                var q = a[(i + 1) % a.Count];
+                if (math.max(p.x, q.x) < olo.x || math.min(p.x, q.x) > ohi.x || math.max(p.y, q.y) < olo.y || math.min(p.y, q.y) > ohi.y) continue;
                 for (int j = 0; j < b.Count; j++)
-                    if (SegmentsCross(a[i], a[(i + 1) % a.Count], b[j], b[(j + 1) % b.Count])) return true;
+                {
+                    var r = b[j];
+                    var s = b[(j + 1) % b.Count];
+                    if (math.max(r.x, s.x) < olo.x || math.min(r.x, s.x) > ohi.x || math.max(r.y, s.y) < olo.y || math.min(r.y, s.y) > ohi.y) continue;
+                    if (SegmentsCross(p, q, r, s)) return true;
+                }
+            }
             return false;
         }
 

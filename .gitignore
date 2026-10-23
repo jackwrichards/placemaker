@@ -19,3 +19,6 @@ docs/gallery-*/
 
 # Road lab renders (regenerate: dotnet run -c Release --project Tests/Placemaker.RoadLab)
 docs/roadlab/*/
+
+# monohost build (tools/monohost/build.bat)
+tools/monohost/bin/

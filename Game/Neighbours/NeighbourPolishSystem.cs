@@ -376,7 +376,7 @@ namespace Placemaker.Game.Neighbours
                         break;
                     }
                 // (a big plan written this frame: the next patch is gathered on the next, never both on one frame)
-                if (_dirty.Count > 0 && _inFlight.Count < MaxInFlight && finishMs < 6.0) Pass();
+                if (_dirty.Count > 0 && _inFlight.Count < (int)Settings.Knob("maxPlans", MaxInFlight) && finishMs < 6.0) Pass();
                 if (_passes > 0 && (_frame & 255) == 0) Report();
             }
             catch (Exception e)
