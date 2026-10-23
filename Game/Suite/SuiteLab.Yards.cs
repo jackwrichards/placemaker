@@ -5,6 +5,7 @@
 //   {"do":"lab","op":"street","shape":"arc","radius":90,"from":0,"to":180}   a curved (or "straight") street, zoned both sides
 //     ("elevation": 10 lays it that high above the ground: an elevated road, an overpass; [2, 12] a ramp climbing along it;
 //     with "zone":"none")
+//   {"do":"lab","op":"street","shape":"polygon","points":[[x,z],...]}          a closed loop of streets: a block of any shape
 //   {"do":"grow", ...}                                                         houses grow
 //   {"do":"lab","op":"yards","reach":10,"depth":56,"closeups":2}               each house's own lawn grows into the bare land
 // Bare land = inside the street's zoning depth, not road, not under any surface; each piece goes to the nearest lot within
@@ -58,6 +59,20 @@ namespace Placemaker.Game.Suite
                 {
                     float2 p = corners[k], q = corners[(k + 1) % 4];
                     int n = (int)math.ceil(side / 75f);
+                    for (int i = 0; i < n; i++) curves.Add(NetUtils.StraightCurve(P(math.lerp(p, q, i / (float)n)), P(math.lerp(p, q, (i + 1) / (float)n))));
+                }
+            }
+            else if (shape == "polygon")
+            {
+                // a closed loop of streets through the given corners ("points", from the land's middle): a block of any shape,
+                // e.g. one corner cut off by a street at 45 degrees
+                var corners = new List<float2>();
+                if (step["points"] is JArray pts) foreach (var p in pts) corners.Add(Pt(p, b, false));
+                if (corners.Count < 3) { rec["error"] = "lab: a polygon street needs 3 or more points"; yield break; }
+                for (int k = 0; k < corners.Count; k++)
+                {
+                    float2 p = corners[k], q = corners[(k + 1) % corners.Count];
+                    int n = (int)math.ceil(math.distance(p, q) / 75f);
                     for (int i = 0; i < n; i++) curves.Add(NetUtils.StraightCurve(P(math.lerp(p, q, i / (float)n)), P(math.lerp(p, q, (i + 1) / (float)n))));
                 }
             }
