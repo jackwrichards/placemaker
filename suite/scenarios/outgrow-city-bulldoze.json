@@ -1,0 +1,16 @@
+{
+  "_about": "The player's bulldozer with Outgrow's 'game' switches off (levels up, the game changes a building, the game removes a building nearby) in the user's city '123' (read-only: loaded, never saved): the neighbours of the houses it takes must still be planned (the bulldozer step logs what it took and why Outgrow put houses in line), then 20 s running.",
+  "scenarios": [
+    {
+      "id": "city-bulldoze",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "loadCity", "name": "123" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 20, "speed": 1, "outgrow": true, "levelUps": false, "gameChanges": false, "gameRemovals": false },
+        { "do": "lab", "op": "bulldozeHouses", "near": [1181.1, 1792.7], "radius": 45, "every": 3 },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 20, "speed": 1, "outgrow": true }
+      ]
+    }
+  ]
+}

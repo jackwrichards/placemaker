@@ -40,6 +40,24 @@ namespace Placemaker.Game.Neighbours
             Mod.Log.Info($"Placemaker neighbourhood polish: outgrow again when a building levels up {(on ? "on" : "off")} (this city)");
         }
 
+        /// <summary>"Outgrow again when the game changes a building" for this city (saved with it; NeighbourPolishSystem.LevelUps).</summary>
+        public static void SetGameChanges(bool on)
+        {
+            if (PolishGameChanges == on) return;
+            PolishGameChanges = on;
+            s_switchesDirty = true;
+            Mod.Log.Info($"Placemaker neighbourhood polish: outgrow again when the game changes a building {(on ? "on" : "off")} (this city)");
+        }
+
+        /// <summary>"Outgrow again when the game removes a building nearby" for this city (saved with it).</summary>
+        public static void SetGameRemovals(bool on)
+        {
+            if (PolishGameRemovals == on) return;
+            PolishGameRemovals = on;
+            s_switchesDirty = true;
+            Mod.Log.Info($"Placemaker neighbourhood polish: outgrow again when the game removes a building nearby {(on ? "on" : "off")} (this city)");
+        }
+
         /// <summary>The master switch for this city (saved with it): off pauses Outgrow and puts nothing back.</summary>
         public static void SetRunning(bool on)
         {
@@ -71,7 +89,7 @@ namespace Placemaker.Game.Neighbours
             s_switchesDirty = false;
             PolishNew = false;
             Paused = false;
-            PolishLevelUps = true;
+            PolishLevelUps = PolishGameChanges = PolishGameRemovals = true;
         }
 
         /// <summary>Reads the city's switches once after a load, then writes them whenever the player changes one.</summary>
@@ -87,6 +105,8 @@ namespace Placemaker.Game.Neighbours
                         PolishNew = all.Length > 0 && all[0].NewBuildings;
                         Paused = all.Length > 0 && all[0].Paused;
                         PolishLevelUps = all.Length == 0 || all[0].LevelUps;
+                        PolishGameChanges = all.Length == 0 || all[0].GameChanges;
+                        PolishGameRemovals = all.Length == 0 || all[0].GameRemovals;
                         if (all.Length == 0 && !_oldCitySettings.IsEmptyIgnoreFilter)
                             using (var old = _oldCitySettings.ToComponentDataArray<PolishCitySettings>(Allocator.Temp))
                             {
@@ -94,14 +114,14 @@ namespace Placemaker.Game.Neighbours
                                 s_switchesDirty = true;   // written as switches below
                             }
                         if (!_oldCitySettings.IsEmptyIgnoreFilter) EntityManager.DestroyEntity(_oldCitySettings);
-                        Mod.Log.Info($"Placemaker neighbourhood polish: this city's switches {(all.Length > 0 ? "read" : "not saved yet (the defaults)")}: new buildings {(PolishNew ? "on" : "off")}, level-ups {(PolishLevelUps ? "outgrown again" : "keep their gardens")}, Outgrow {(Paused ? "paused" : "running")}");
+                        Mod.Log.Info($"Placemaker neighbourhood polish: this city's switches {(all.Length > 0 ? "read" : "not saved yet (the defaults)")}: new buildings {(PolishNew ? "on" : "off")}, level-ups {(PolishLevelUps ? "outgrown again" : "keep their gardens")}, the game's changes {(PolishGameChanges ? "outgrown again" : "keep their gardens")}, the game's removals {(PolishGameRemovals ? "outgrown again" : "keep the gardens around")}, Outgrow {(Paused ? "paused" : "running")}");
                     }
                     StatusVersion++;
                 }
             }
             if (!s_switchesDirty) return;
             s_switchesDirty = false;
-            var value = new PolishCitySwitches { NewBuildings = PolishNew, Paused = Paused, LevelUps = PolishLevelUps };
+            var value = new PolishCitySwitches { NewBuildings = PolishNew, Paused = Paused, LevelUps = PolishLevelUps, GameChanges = PolishGameChanges, GameRemovals = PolishGameRemovals };
             using (var all = _switches.ToEntityArray(Allocator.Temp))
             {
                 if (all.Length == 0) EntityManager.AddComponentData(EntityManager.CreateEntity(), value);

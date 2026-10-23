@@ -84,6 +84,8 @@ namespace Placemaker.Core.Tool
         public bool NewHouses;
         /// <summary>"Outgrow again when a building levels up", this city's (off: a level-up keeps its garden, nothing planned).</summary>
         public bool LevelUps = true;
+        /// <summary>"Outgrow again when the game changes a building" / "... removes a building nearby", this city's.</summary>
+        public bool GameChanges = true, GameRemovals = true;
         /// <summary>The theme Polish stamps: "zone" (each house by its zone's setting), "garden", "natural", "tidy", "yard".</summary>
         public string Theme = "zone";
         /// <summary>The look Polish gives (saved on each lot it polishes; new buildings get it too): the painted-garden share
@@ -284,7 +286,7 @@ namespace Placemaker.Core.Tool
             {
                 var p = s.Painter;
                 o.Set("painter", JsonValue.Obj().Set("lots", p.Lots).Set("polished", p.Polished)
-                    .Set("featureOn", p.FeatureOn).Set("newHouses", p.NewHouses).Set("levelUps", p.LevelUps).Set("theme", p.Theme ?? "zone")
+                    .Set("featureOn", p.FeatureOn).Set("newHouses", p.NewHouses).Set("levelUps", p.LevelUps).Set("gameChanges", p.GameChanges).Set("gameRemovals", p.GameRemovals).Set("theme", p.Theme ?? "zone")
                     .Set("look", JsonValue.Obj().Set("painted", p.Painted).Set("lawns", p.Lawns).Set("planting", p.Planting).Set("features", p.Features)
                         .Set("paths", p.Paths).Set("rocks", p.Rocks).Set("groundPaint", p.GroundPaint).Set("shopPaving", p.ShopPaving))
                     .Set("city", JsonValue.Obj().Set("homes", p.Homes ?? "garden").Set("shops", p.Shops ?? "tidy").Set("offices", p.Offices ?? "tidy").Set("industry", p.Industry ?? "yard")

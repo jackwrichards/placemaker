@@ -11,6 +11,12 @@
 // one of the old model's stood takes that one's place (where the plan had moved it, hidden, or where the model has it); a new
 // fence the old garden had nowhere is hidden; an old fence no new one lines up with is laid in pieces where it stood.
 //
+// "Outgrow again when the game changes a building" (on by default): off, a building the game marks Updated without another
+// model (abandoned, condemned, its condition) gets its fences back where the last plan put them (the game fits them again to
+// its model), without a plan. "Outgrow again when the game removes a building nearby" (on by default): off, the gardens
+// around a building the game removes (collapsed, condemned, demolished) keep theirs. The player's own bulldozer, painting,
+// types and builds always plan; so does a building site on garden land (else a fence would run through the new building).
+//
 // After a load every outgrown house's model and fences are remembered from where they stand (SeedLaneMemory): before, every
 // fence the game touched in a loaded city was taken for a change and planned again, and a level-up was not told from a fence
 // the game only looked at.
@@ -33,6 +39,14 @@ namespace Placemaker.Game.Neighbours
     {
         /// <summary>"Outgrow again when a building levels up" (this city's; saved with it).</summary>
         public static bool PolishLevelUps = true;
+        /// <summary>"Outgrow again when the game changes a building" otherwise (its model the same: abandoned, condemned, its
+        /// condition; the game fits its fences again): off, its fences are put back where they were (PutBack).</summary>
+        public static bool PolishGameChanges = true;
+        /// <summary>"Outgrow again when the game removes a building nearby" (collapsed, condemned, demolished; not the player's
+        /// bulldozer): off, the gardens around keep theirs.</summary>
+        public static bool PolishGameRemovals = true;
+        /// <summary>For the game runner: fences put back without a plan, removals by the game the gardens around kept theirs.</summary>
+        public static int TotalFencesPutBack, TotalRemovalsKept, TotalNeighbourChangesKept;
 
         // where a plan put each fence of an outgrown house (moved, or hidden), by the lane's place in the model it was put for
         private readonly Dictionary<Entity, (Entity Prefab, Dictionary<int, Bezier4x3> Wants)> _wantOf = new Dictionary<Entity, (Entity, Dictionary<int, Bezier4x3>)>();
@@ -111,6 +125,8 @@ namespace Placemaker.Game.Neighbours
                     var prefab = EntityManager.GetComponentData<PrefabRef>(e).m_Prefab;
                     var t = EntityManager.GetComponentData<global::Game.Objects.Transform>(e);
                     _prefabSeen[e] = prefab;
+                    // (every outgrown house remembered, also one whose fences all stand where its model has them)
+                    if (!_wantOf.ContainsKey(e)) _wantOf[e] = (prefab, new Dictionary<int, Bezier4x3>());
                     foreach (var sl in EntityManager.GetBuffer<global::Game.Net.SubLane>(e, true))
                     {
                         var lane = sl.m_SubLane;
@@ -126,6 +142,53 @@ namespace Placemaker.Game.Neighbours
                 }
             TotalSeeded += seeded;
             Mod.Log.Info($"Placemaker neighbourhood polish: {seeded} fences an earlier session moved or hid remembered where they stand");
+        }
+
+        /// <summary>The game fitted a fence of the house again (marked Updated) without changing its model, and changes of the
+        /// game plan nothing in this city: the fence goes back where the last plan put it (or stays where the model has it, when
+        /// the plan left it there); true when it is accounted for (no plan). False: nothing is known of it (planned again).</summary>
+        private bool PutBack(Entity lane, Entity house, Bezier4x3 now)
+        {
+            if (PolishGameChanges || !IsYes(house) || !SameModel(house) || !EntityManager.HasComponent<Lane>(lane)) return false;
+            var prefab = EntityManager.GetComponentData<PrefabRef>(house).m_Prefab;
+            if (!_wantOf.TryGetValue(house, out var w) || w.Prefab != prefab) return false;
+            int k = LaneIndex(lane);
+            if (!w.Wants.TryGetValue(k, out var want))
+            {
+                // the plan left it where the model has it: is it there?
+                if (!EntityManager.HasComponent<global::Game.Objects.Transform>(house)) return false;
+                if (!OriginalOf(prefab, EntityManager.GetComponentData<global::Game.Objects.Transform>(house), k, out var original) || !IsOriginal(now, original)) return false;
+                _laneCurve[lane] = now;
+                return true;
+            }
+            if (!Same(now, want))
+            {
+                var cur = EntityManager.GetComponentData<Curve>(lane);
+                cur.m_Bezier = want;
+                cur.m_Length = MathUtils.Length(want);
+                EntityManager.SetComponentData(lane, cur);
+                EntityManager.AddComponent<Updated>(lane);
+                TotalFencesPutBack++;
+            }
+            _laneCurve[lane] = want;
+            _written[lane] = want;
+            return true;
+        }
+
+        /// <summary>A fence of a building that is not outgrown changed: the game levelled it up (another model than it was seen
+        /// with) or changed it otherwise, and this city plans nothing for that (true: the outgrown ones around keep theirs). A
+        /// new building (never seen, its lane just made) is not the game changing one: its neighbours are planned.</summary>
+        private bool NeighbourChangeKept(Entity lane, Entity building, Bezier4x3 now)
+        {
+            if (!EntityManager.HasComponent<PrefabRef>(building)) return false;
+            var prefab = EntityManager.GetComponentData<PrefabRef>(building).m_Prefab;
+            bool seen = _prefabSeen.TryGetValue(building, out var was);
+            if (!seen && EntityManager.HasComponent<Created>(lane)) return false;
+            if (seen && was != prefab ? PolishLevelUps : PolishGameChanges) return false;
+            _prefabSeen[building] = prefab;
+            _laneCurve[lane] = now;
+            TotalNeighbourChangesKept++;
+            return true;
         }
 
         /// <summary>The house's model is the one it was last planned with (or remembered with after a load).</summary>
