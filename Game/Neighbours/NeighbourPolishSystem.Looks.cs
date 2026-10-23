@@ -276,19 +276,6 @@ namespace Placemaker.Game.Neighbours
             return r;
         }
 
-        /// <summary>The furthest the gardens of the outgrown lots within <paramref name="radius"/> of a spot reach (what a pass
-        /// started there may edit).</summary>
-        private float ReachNear(float2 at, float radius)
-        {
-            float r = 0f;
-            int cells = (int)math.ceil(radius / Cell);
-            for (int dx = -cells; dx <= cells; dx++)
-                for (int dz = -cells; dz <= cells; dz++)
-                    if (_grid.TryGetValue(Key(at + new float2(dx, dz) * Cell), out var near))
-                        foreach (int j in near)
-                            if (math.distance(_gridHouses[j].T.m_Position.xz, at) <= radius && IsYes(_gridHouses[j].E)) r = math.max(r, LotReach(_gridHouses[j].E));
-            return r;
-        }
 
         /// <summary>The planner's options and theme for a lot: its look (a lot polished before looks: its parts and theme).</summary>
         private (Dictionary<string, float> Options, string Theme) PlannerLook(Entity lot, in PolishedLot f, string zone)

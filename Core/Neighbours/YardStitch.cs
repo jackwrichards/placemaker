@@ -1446,8 +1446,13 @@ namespace Placemaker.Core.Neighbours
                 if (ext.Sum(r => r.Area) < K(h, s, "plantMinExtra", 40f)) continue;
                 var centre = Poly.Centroid(plot);
                 int bushes = 0;
+                // (a line with an end further than 0.8 m off the garden's bounds is further than that off its outline)
+                Poly.Bounds(plot, out var plotLo, out var plotHi);
+                plotLo -= 0.81f;
+                plotHi += 0.81f;
                 foreach (var (id, (a, b)) in drawn)
                 {
+                    if (a.x < plotLo.x || a.y < plotLo.y || a.x > plotHi.x || a.y > plotHi.y || b.x < plotLo.x || b.y < plotLo.y || b.x > plotHi.x || b.y > plotHi.y) continue;
                     float len = math.distance(a, b);
                     if (len < 6f || DistanceToRing(plot, a) > 0.8f || DistanceToRing(plot, b) > 0.8f || DistanceToRing(plot, (a + b) * 0.5f) > 0.8f) continue;
                     uint hash = Hash((ulong)id ^ ((ulong)h.Id * 0x9E3779B97F4A7C15UL));
