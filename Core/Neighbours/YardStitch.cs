@@ -353,6 +353,8 @@ namespace Placemaker.Core.Neighbours
             var steps = new List<(int I, int J, bool AFront, float Deep, uint Hash)>();
             var alleys = new List<(int I, int J)>();
             var edgeBorders = new Dictionary<(int, int), int>();   // side pairs with an unpolished lot: which one
+            // side pairs on their middle line (not a walkway or a step): land left between them later is shared on it (ShareBetween)
+            var sideCuts = new Dictionary<(int, int), Cut>();
             for (int i = 0; i < n; i++)
             {
                 if (right[i] < 0 || !Live(i, right[i])) continue;
@@ -405,6 +407,7 @@ namespace Placemaker.Core.Neighbours
                 }
                 var cut = new Cut { P = f, D = math.normalizesafe(k - f, -a.Forward) };
                 borders[(i, right[i])] = cut;
+                sideCuts[(math.min(i, right[i]), math.max(i, right[i]))] = cut;
                 cuts[i].Add(cut);
                 cuts[right[i]].Add(cut);
                 float frontGap = math.distance(a.FrontRight, b.FrontLeft), backGap = math.distance(BackAt(a, +1, deep), BackAt(b, -1, deep));
@@ -419,8 +422,12 @@ namespace Placemaker.Core.Neighbours
             }
             var deepen = new bool[n];
             var extra = new float[n, 3];
+            // the line each pair that is not side by side shares its land on (facing, back to back): land left between them
+            // later is shared on the same line (ShareBetween)
+            var pairCuts = new Dictionary<(int, int), Cut>();
             foreach (var c in facing)
             {
+                pairCuts[(c.I, c.J)] = c.Cut;
                 if (Pol(c.I)) cuts[c.I].Add(c.Cut);
                 if (Pol(c.J)) cuts[c.J].Add(c.Cut);
                 extra[c.I, c.EI] = math.max(extra[c.I, c.EI], c.Gap + 2f);
@@ -437,6 +444,7 @@ namespace Placemaker.Core.Neighbours
                 // back to back with an unpolished lot: the polished garden reaches that lot's back edge
                 var cut = fx < 0 ? new Cut { P = (backA + backB) * 0.5f, D = math.normalizesafe(a.Right - b.Right, a.Right) }
                     : new Cut { P = fx == i ? backA : backB, D = houses[fx].Right };
+                pairCuts[(i, j)] = cut;
                 if (Pol(i)) cuts[i].Add(cut);
                 if (Pol(j)) cuts[j].Add(cut);
                 deepen[i] = deepen[j] = true;
@@ -660,6 +668,11 @@ namespace Placemaker.Core.Neighbours
             FillGaps(houses, plots, touched, raw, kept, s, plan);
             Stage("gaps");
             FixedGardens(houses, plots, touched, plan);
+            if (s.Knob("shareBetween", 1f) > 0.5f)
+            {
+                foreach (var kv in sideCuts) pairCuts[kv.Key] = kv.Value;
+                ShareBetween(houses, plots, touched, left, right, ringCut, pairCuts, alleys, s, plan);
+            }
             if (s.Knob("separate", 1f) > 0.5f) Separate(houses, plots, touched, plan);
             Stage("fixed");
 
@@ -2909,6 +2922,187 @@ namespace Placemaker.Core.Neighbours
                 area += gap.Area;
             }
             if (filled > 0) plan.Notes.Add($"{filled} strips between gardens ({area:F0} m²) given to the garden beside them");
+        }
+
+        /// <summary>
+        /// Land between two outgrown lots that none of their gardens took, shared between them: each gets its side of the line
+        /// they already share (back to back, facing), else of the middle line between the two lots (all of it when the other
+        /// lot is not outgrown). Lots that stand at an angle (on two streets that meet at 45°, a block's corner, backs on a
+        /// slant) fit none of the joining rules, and their gardens end short of each other (no spikes, paving never into open
+        /// land sideways): with every reach at 500 m a wedge of grass stayed by the street and strips between the works, a
+        /// hedge on each side (the user, 22 Oct: "a nice, clean connection, no jumbledness, no gaps"). Only the land around
+        /// the two lots (their convex hull; a car park or paving's up to its street in front) that no lot, garden, walkway, road,
+        /// path, track, building or water gap takes; only lots within each other's "Block corners" reach (maxFacingGap) with no
+        /// other lot right between them; side by side neighbours on their middle line (the corner of a block where their
+        /// street turns), never across a walkway or a step between them; never a ring's houses (its middle is a shared green).
+        /// </summary>
+        private static void ShareBetween(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, int[] left, int[] right, Cut[] ringCut,
+            Dictionary<(int, int), Cut> pairCuts, List<(int I, int J)> alleys, StitchSettings s, StitchPlan plan)
+        {
+            int n = houses.Count;
+            bool Mine(int i) => houses[i].Edit && houses[i].Polished && !IsFixed(houses[i]) && ringCut[i] == null && plots[i] != null && plots[i].Length >= 3;
+            var lots = new float2[n][];
+            var lo = new float2[n];
+            var hi = new float2[n];
+            for (int k = 0; k < n; k++) { lots[k] = Ccw(Lot(houses[k])); Poly.Bounds(lots[k], out lo[k], out hi[k]); }
+            // the walkways between two houses (paved from the street to the shallower one's back, below): nobody's garden
+            var walkways = alleys.Select(w =>
+            {
+                var a = houses[w.I];
+                var b = houses[w.J];
+                float hz = math.min(a.HalfLot.y, b.HalfLot.y);
+                return Ccw(new[] { a.FrontRight, b.FrontLeft, BackAt(b, -1, hz), BackAt(a, +1, hz) });
+            }).ToList();
+            bool Apart(float2 alo, float2 ahi, float2 blo, float2 bhi, float d) => blo.x > ahi.x + d || bhi.x < alo.x - d || blo.y > ahi.y + d || bhi.y < alo.y - d;
+            var pairs = new List<(float Gap, int I, int J)>();
+            for (int i = 0; i < n; i++)
+                for (int j = i + 1; j < n; j++)
+                {
+                    if (!Mine(i) && !Mine(j) || ringCut[i] != null || ringCut[j] != null) continue;
+                    if (!houses[i].Polished && !houses[j].Polished) continue;
+                    // side by side with a walkway or a step between them: that gap stays as it is
+                    if ((right[i] == j || left[i] == j) && houses[i].Polished && houses[j].Polished && !pairCuts.ContainsKey((i, j))) continue;
+                    float reach = !houses[j].Polished ? K(houses[i], s, "maxFacingGap", 50f)
+                        : !houses[i].Polished ? K(houses[j], s, "maxFacingGap", 50f)
+                        : math.min(K(houses[i], s, "maxFacingGap", 50f), K(houses[j], s, "maxFacingGap", 50f));
+                    if (reach < 1f || Apart(lo[i], hi[i], lo[j], hi[j], reach)) continue;
+                    var (pa, pb) = Closest(lots[i], lots[j]);
+                    float gap = math.distance(pa, pb);
+                    if (gap <= reach) pairs.Add((gap, i, j));
+                }
+            if (pairs.Count == 0) return;
+            float margin = s.Knob("barrierMargin", 0.8f), deck = DeckMargin(s);
+            int given = 0;
+            float area = 0f;
+            // a car park or paving reaches its street in front (as its plot does: frontReach), so the corner two of them leave by
+            // a street is between them too (the land past the street is cut off by it)
+            float2[] Reaching(int k)
+            {
+                var h = houses[k];
+                if (!h.Polished || !HardLand(h, s)) return lots[k];
+                float f = h.HalfLot.y + K(h, s, "frontReach", 15f);
+                return lots[k].Concat(new[] { h.ToWorld(new float2(-h.HalfLot.x, f)), h.ToWorld(new float2(h.HalfLot.x, f)) }).ToArray();
+            }
+            foreach (var (_, i, j) in pairs.OrderBy(p => p.Gap).ThenBy(p => p.I).ThenBy(p => p.J))
+            {
+                var hull = Ccw(Hull(Reaching(i).Concat(Reaching(j)).ToList()));
+                if (hull.Length < 3) continue;
+                Poly.Bounds(hull, out var hlo, out var hhi);
+                // another lot right between them (across the shortest way from one to the other): not neighbours, it shares the
+                // land with each of them
+                // (its lot a little smaller: a lot beside one of them, touching it, is not between)
+                var (sa, sb) = Closest(lots[i], lots[j]);
+                bool between = false;
+                for (int k = 0; k < n && !between; k++)
+                    if (k != i && k != j && !Apart(hlo, hhi, lo[k], hi[k], 0f) && Poly.ClipSegmentIntervals(Inset(lots[k]) ?? lots[k], sa, sb).Any(iv => iv.y - iv.x > 0.01f)) between = true;
+                if (between) continue;
+                // what of it is taken: lots, gardens (a fixed one as it stands), roads, paths, tracks, buildings, decks, water
+                var taken = new List<IReadOnlyList<float2>>();
+                for (int k = 0; k < n; k++)
+                {
+                    if (!Apart(hlo, hhi, lo[k], hi[k], 0f)) taken.Add(lots[k]);
+                    var own = IsFixed(houses[k]) ? houses[k].Garden : plots[k];
+                    if (own == null || own.Length < 3) continue;
+                    Poly.Bounds(own, out var olo, out var ohi);
+                    if (!Apart(hlo, hhi, olo, ohi, 0f)) taken.Add(Ccw(own));
+                }
+                float wet = math.max(margin, math.max(WaterGap(houses[i], s), WaterGap(houses[j], s)));
+                taken.AddRange(GrownBarriersNear(hlo, hhi, margin, deck, wet));
+                taken.AddRange(walkways);
+                // (only what lies in it: a slanted outline's bounds hold many more, and they made the boolean slow)
+                taken = taken.Where(t => Overlaps(hull, t)).ToList();
+                if (!AnyBare(hull, hlo, hhi, taken, new[] { Mine(i) ? plots[i] : null, Mine(j) ? plots[j] : null })) continue;
+                var free = Poly.Boolean(new[] { (IReadOnlyList<float2>)hull }, taken, BoolOp.Difference, FillRule.NonZero).Where(r => r.Area >= 2f).ToList();
+                if (free.Count == 0) continue;
+                // the line they share
+                Cut line;
+                if (!pairCuts.TryGetValue((i, j), out line))
+                {
+                    var (ca, cb) = Closest(lots[i], lots[j]);
+                    bool touching = math.distance(ca, cb) <= 0.05f;
+                    var nrm = touching ? math.normalizesafe(houses[j].Position - houses[i].Position, new float2(1f, 0f)) : math.normalize(cb - ca);
+                    line = new Cut { P = touching ? (houses[i].Position + houses[j].Position) * 0.5f : (ca + cb) * 0.5f, D = new float2(-nrm.y, nrm.x) };
+                }
+                float big = math.length(hhi - hlo) * 2f + 10f;
+                foreach (var (me, other) in new[] { (i, j), (j, i) })
+                {
+                    if (!Mine(me)) continue;
+                    var part = free;
+                    if (houses[other].Polished)
+                    {
+                        // its side of the line: where its house stands
+                        var d = math.normalizesafe(line.D, new float2(1f, 0f));
+                        var side = new float2(-d.y, d.x);
+                        if (math.dot(houses[me].Position - line.P, side) < 0f) side = -side;
+                        var half = Ccw(new[] { line.P - d * big, line.P + d * big, line.P + d * big + side * big, line.P - d * big + side * big });
+                        part = Poly.Boolean(free, new List<Region> { new Region(half) }, BoolOp.Intersection).Where(r => r.Area >= 1f).ToList();
+                    }
+                    if (!HardLand(houses[me], s) && part.Count > 0)
+                    {
+                        // a garden's front stays at its lot's street edge (a driveway reaching it stays open to the street)
+                        var h = houses[me];
+                        var behind = Ccw(new[] { h.ToWorld(new float2(-big, h.HalfLot.y)), h.ToWorld(new float2(-big, -big)), h.ToWorld(new float2(big, -big)), h.ToWorld(new float2(big, h.HalfLot.y)) });
+                        part = Poly.Boolean(part, new List<Region> { new Region(behind) }, BoolOp.Intersection).Where(r => r.Area >= 1f).ToList();
+                    }
+                    if (part.Count == 0) continue;
+                    float was = Math.Abs(Poly.Area(plots[me]));
+                    var merged = Poly.Boolean(new List<Region> { new Region(Ccw(plots[me])) }, part, BoolOp.Union);
+                    var keep = merged.OrderByDescending(r => Poly.Contains(r.Outer, houses[me].Position) ? 1 : 0).ThenByDescending(r => r.Area).FirstOrDefault();
+                    if (keep == null) continue;
+                    var outer = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).First() : keep.Outer;
+                    if (outer == null || outer.Length < 3) continue;
+                    var next = Poly.Simplify(outer, 0.05f);
+                    // nor up a cliff
+                    if (s.Ground != null) next = SlopeCut(houses[me], next, s) ?? next;
+                    // (a part that does not touch its garden, across a road: not its)
+                    float gained = Math.Abs(Poly.Area(next)) - was;
+                    if (gained < 1f) continue;
+                    plots[me] = next;
+                    touched[me] = true;
+                    given++;
+                    area += gained;
+                }
+            }
+            if (given > 0) plan.Notes.Add($"{given} gardens take their side of the land between them and a lot at an angle ({area:F0} m²)");
+        }
+
+        /// <summary>Roads, paths, tracks and other buildings near [lo, hi], grown by the margin (decks by theirs), water by its
+        /// gap: what no garden takes (as FillGaps keeps them out).</summary>
+        private static List<IReadOnlyList<float2>> GrownBarriersNear(float2 lo, float2 hi, float margin, float deck, float wet)
+        {
+            var list = new List<IReadOnlyList<float2>>();
+            if (s_barriers == null) return list;
+            float reach = math.max(math.max(margin, deck) * 4f, wet) + 0.5f;
+            foreach (int k in BarriersIn(lo - reach, hi + reach))
+            {
+                var (blo, bhi, ring) = s_barriers[k];
+                bool water = s_barrierKind[k] == WaterKind;
+                float m = s_barrierKind[k] == DeckKind ? deck : margin;
+                float grow = water ? wet + 0.5f : m * 4f + 0.5f;
+                if (bhi.x + grow < lo.x || blo.x - grow > hi.x || bhi.y + grow < lo.y || blo.y - grow > hi.y) continue;
+                foreach (var g in water ? GrownWater(ring, wet) : Grown(ring, m)) list.Add(Ccw(g));
+            }
+            return list;
+        }
+
+        /// <summary>A quick look: some point of the outline (sampled a few hundred times at most) that nothing here takes, next
+        /// to one of the gardens it could go to (land only across other land is never theirs).</summary>
+        private static bool AnyBare(float2[] ring, float2 lo, float2 hi, List<IReadOnlyList<float2>> taken, float2[][] gardens)
+        {
+            float step = math.max(1.5f, math.sqrt(math.max(1f, (hi.x - lo.x) * (hi.y - lo.y))) / 16f);
+            var boxes = taken.Select(t => { Poly.Bounds(t, out var a, out var b); return (a, b); }).ToList();
+            for (float x = lo.x + step * 0.5f; x < hi.x; x += step)
+                for (float y = lo.y + step * 0.5f; y < hi.y; y += step)
+                {
+                    var p = new float2(x, y);
+                    if (!Poly.Contains(ring, p)) continue;
+                    bool held = false;
+                    for (int k = 0; k < taken.Count && !held; k++)
+                        if (p.x >= boxes[k].a.x && p.x <= boxes[k].b.x && p.y >= boxes[k].a.y && p.y <= boxes[k].b.y && Poly.Contains(taken[k], p)) held = true;
+                    if (held) continue;
+                    foreach (var g in gardens) if (g != null && DistanceToRing(g, p) <= step * 1.5f) return true;
+                }
+            return false;
         }
 
         /// <summary>
