@@ -1,13 +1,12 @@
-// Confirmation dialog: the game's own ConfirmationDialog (cs2/ui) when it exists at runtime, otherwise
-// (or if it throws) a look-alike modal. Either way the player confirms destructive actions explicitly.
-import React, { ReactNode } from "react";
-import * as ui from "cs2/ui";
-import { ErrorBoundary } from "../lib/errorBoundary";
+// Confirmation dialog, in the panel's own style: drawn over the whole panel (its dialog layer, Panel.tsx), centred, the
+// panel dimmed behind it, wherever in the panel it is asked for (a button deep in a scrolling list). The game's own
+// ConfirmationDialog is not used: inside the panel it had no box and no backdrop (its text over the panel's chips, two
+// huge buttons). Outside the panel (no layer) it is drawn where it stands.
+import React, { createContext, ReactNode, useContext } from "react";
+import { createPortal } from "react-dom";
 import { useT } from "../lib/l10n";
 import { Btn } from "./common";
 import s from "./dialog.module.scss";
-
-const Vanilla: any = (ui as any)?.ConfirmationDialog;
 
 type Props = {
     title: ReactNode;
@@ -18,10 +17,13 @@ type Props = {
     onCancel: () => void;
 };
 
+/** The element dialogs are drawn into (the panel's dialog layer); null: where they stand. */
+export const DialogLayerContext = createContext<HTMLElement | null>(null);
+
 export const OwnDialog = ({ title, message, confirm, danger, onConfirm, onCancel }: Props) => {
     const { t } = useT();
     return (
-        <div className={s.backdrop} data-testid="confirm-dialog" onClick={onCancel}>
+        <div className={s.backdrop} data-testid="confirm-dialog" onClick={onCancel} onMouseDown={(e) => e.stopPropagation()}>
             <div className={s.dialog} onClick={(e) => e.stopPropagation()}>
                 <div className={s.title}>{title}</div>
                 <div className={s.message}>{message}</div>
@@ -36,10 +38,7 @@ export const OwnDialog = ({ title, message, confirm, danger, onConfirm, onCancel
 };
 
 export const Confirm = (p: Props) => {
-    if (!Vanilla) return <OwnDialog {...p} />;
-    return (
-        <ErrorBoundary name="dialog" fallback={<OwnDialog {...p} />}>
-            <Vanilla title={p.title} message={p.message} confirm={p.confirm} onConfirm={() => p.onConfirm()} onCancel={p.onCancel} />
-        </ErrorBoundary>
-    );
+    const layer = useContext(DialogLayerContext);
+    const dialog = <OwnDialog {...p} />;
+    return layer ? createPortal(dialog, layer) : dialog;
 };

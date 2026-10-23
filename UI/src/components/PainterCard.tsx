@@ -85,11 +85,11 @@ const GROUPS: { id: string; en: string; icon: string; open?: boolean; knobs: Kno
             { id: "maxFrontGap", en: "Street gap", tip: "Two neighbours this far apart at the street still join (one shared fence or hedge).", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
             { id: "maxBackGap", en: "Back gap", tip: "How far apart their back corners may be (wedges on the outside of a curve).", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
             { id: "maxRearGap", en: "Back to back", tip: "Two gardens back to back this far apart meet in the middle.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
-            { id: "maxFacingGap", en: "Block corners", tip: "A side facing another house's side or back this far away meets it halfway.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
+            { id: "maxFacingGap", en: "Block corners", tip: "Two lots this far apart meet halfway, at any angle (a block's corners, two streets that meet): the land between them is shared on one line.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
             { id: "maxDeepen", en: "Line up backs", tip: "A shallow garden reaches back to its row's deepest by up to this much.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
             { id: "hug", en: "Reach out to roads and buildings", tip: "A side or back nobody else has grows out to a road, path or building near it and hugs it.", kind: "toggle" },
             { id: "hugReach", en: "Reach out", tip: "How far a garden reaches out to a road, path or building. Very large values make the polish slower in big cities.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
-            { id: "openReach", en: "Into open land", tip: "A side or back with nothing near it to meet still grows this far into open land. Very large values fill whole fields (and make the polish slower in big cities).", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
+            { id: "openReach", en: "Into open land", tip: "A side or back with nothing near it to meet still grows this far into open land (a car park or paving: only its back). Very large values fill whole fields (and make the polish slower in big cities).", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
             { id: "wrap", en: "Meet behind a shallow lot", tip: "Two deep gardens meet behind a shallow one between them.", kind: "toggle" },
             { id: "closeBacks", en: "Close open backs", tip: "A garden open at the back closes with a fence or hedge the joining freed.", kind: "toggle" },
         ],
@@ -268,12 +268,13 @@ const LookBar = ({ p }: { p: PainterState }) => {
     const [naming, setNaming] = useState<"saveAs" | "rename" | null>(null);
     const [name, setName] = useState("");
     const [asking, setAsking] = useState(false);
-    // Save and Back to as it ships change every building outgrown with this type: asked first (twice past 20 buildings)
-    const [applying, setApplying] = useState<{ what: "save" | "reset"; step: 1 | 2 } | null>(null);
+    // Save and Back to as it ships change every building outgrown with this type (they are outgrown again with it, a few
+    // at a time): asked first, once
+    const [applying, setApplying] = useState<"save" | "reset" | null>(null);
     const look = p.looks?.find((x) => x.id === p.theme);
     if (!look) return null;
     const using = p.stats?.looks?.[look.id] ?? 0;
-    const apply = (what: "save" | "reset") => (using > 0 ? setApplying({ what, step: 1 }) : act.polishLook(what));
+    const apply = (what: "save" | "reset") => (using > 0 ? setApplying(what) : act.polishLook(what));
     const submit = () => {
         if (naming && name.trim()) act.polishLook(naming, name.trim());
         setNaming(null);
@@ -348,23 +349,19 @@ const LookBar = ({ p }: { p: PainterState }) => {
             {applying ? (
                 <Confirm
                     title={
-                        applying.step === 1
-                            ? t("Placemaker.UI.Polish.ApplyTitle", "Change {0} building(s)?", [num(using)])
-                            : t("Placemaker.UI.Polish.ApplyTitle2", "Really change all {0}?", [num(using)])
+                        applying === "save"
+                            ? t("Placemaker.UI.Polish.SaveTitle", "Save “{0}”?", [display])
+                            : t("Placemaker.UI.Polish.ResetTitle", "Put “{0}” back as it ships?", [display])
                     }
                     message={
-                        applying.step === 1
-                            ? t("Placemaker.UI.Polish.ApplyMessage", "{0} building(s) in this city are outgrown with “{1}”. They are all outgrown again with its new settings, a few at a time in the background.", [num(using), display])
-                            : t("Placemaker.UI.Polish.ApplyMessage2", "That is {0} buildings: every garden, yard and car park of theirs is planned and built again. It cannot be undone in one step (save the old settings as a copy first if you may want them back).", [num(using)])
+                        (applying === "save"
+                            ? t("Placemaker.UI.Polish.SaveMessage", "{0} building(s) use it. They change to the new settings right away, a few at a time.", [num(using)])
+                            : t("Placemaker.UI.Polish.ResetMessage", "{0} building(s) use it. They change back right away, a few at a time.", [num(using)])) +
+                        (using > 20 ? " " + t("Placemaker.UI.Polish.ApplyMany", "To keep the old settings too, cancel and use Copy as new type first.") : "")
                     }
-                    confirm={applying.step === 1 && using > 20 ? t("Placemaker.UI.Polish.ApplyNext", "Yes, continue") : t("Placemaker.UI.Polish.ApplyOk", "Change {0}", [num(using)])}
-                    danger={applying.step === 2}
+                    confirm={applying === "save" ? t("Placemaker.UI.Polish.SaveOk", "Save") : t("Placemaker.UI.Polish.ResetOk", "Put back")}
                     onConfirm={() => {
-                        if (applying.step === 1 && using > 20) {
-                            setApplying({ what: applying.what, step: 2 });
-                            return;
-                        }
-                        act.polishLook(applying.what);
+                        act.polishLook(applying);
                         setApplying(null);
                     }}
                     onCancel={() => setApplying(null)}

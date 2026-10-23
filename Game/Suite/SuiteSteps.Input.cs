@@ -331,6 +331,8 @@ namespace Placemaker.Game.Suite
                     }
                     rec["brush"] = size;
                     yield return Feed(rec, 60f);
+                    // Outgrow's brush picks no area (the buildings it touched are outgrown): nothing more to wait for
+                    if (outgrow) { rec["brushed"] = _tool.LastStamp.Lots; yield break; }
                     break;
                 }
                 case "nodes":

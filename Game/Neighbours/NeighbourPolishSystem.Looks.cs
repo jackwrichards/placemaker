@@ -93,6 +93,7 @@ namespace Placemaker.Game.Neighbours
                 if (same) s_edits.Remove(id); else s_edits[id] = edit;
                 SettingsChanged = true;
                 PersistLooks();
+                RedoLook(id);
                 Mod.Log.Info($"Placemaker polish: built-in look {id} {(same ? "back as it ships" : $"changed ({PolishLooks.Diff(edit.Values(), builtIn.Values()).Count} settings)")}");
                 return id;
             }
@@ -112,8 +113,39 @@ namespace Placemaker.Game.Neighbours
             look.Knobs = PolishLooks.Diff(values, PolishLooks.Defaults);
             SettingsChanged = true;
             PersistLooks();
+            RedoLook(look.Id);
             Mod.Log.Info($"Placemaker polish: look '{look.Name}' ({look.Id}) saved, {look.Knobs.Count} settings of its own");
             return look.Id;
+        }
+
+        /// <summary>Outgrow types saved (or put back as they ship) since the last frame, by hash: every building outgrown with
+        /// one is outgrown again with its new settings (LotsUpdate), first in the line, a patch of town at a time. Saving
+        /// promised it ("they change to the new settings right away"): before, nothing was planned again and the player had
+        /// to erase and paint the buildings to see the change.</summary>
+        private static readonly HashSet<int> s_redoLooks = new HashSet<int>();
+
+        private static void RedoLook(string id)
+        {
+            if (!string.IsNullOrEmpty(id)) s_redoLooks.Add(PolishLooks.Hash(id));
+        }
+
+        /// <summary>The buildings outgrown with a type just saved: planned again (their cached description dropped, so the plan
+        /// reads the type's new settings), before other waiting work.</summary>
+        private void RedoSavedLooks()
+        {
+            int n = 0;
+            using (var all = _flaggedLots.ToEntityArray(Allocator.Temp))
+            using (var flags = _flaggedLots.ToComponentDataArray<PolishedLot>(Allocator.Temp))
+                for (int i = 0; i < all.Length; i++)
+                {
+                    if (!flags[i].Yes || !s_redoLooks.Contains(flags[i].Look)) continue;
+                    _described.Remove(all[i]);
+                    if (_dirty.Add(all[i])) DirtyBy[8]++;
+                    _first.Add(all[i]);
+                    n++;
+                }
+            Mod.Log.Info($"Placemaker neighbourhood polish: {s_redoLooks.Count} outgrow type(s) saved, {n} buildings outgrown with them again{(FeatureEnabled && !Paused ? "" : " (Outgrow is paused: once it runs)")}.");
+            s_redoLooks.Clear();
         }
 
         /// <summary>A look's colour on Global outgrow's map and charts (a built-in look: kept with the player's changes to it).</summary>
@@ -142,6 +174,7 @@ namespace Placemaker.Game.Neighbours
             if (!s_edits.Remove(id)) return false;
             SettingsChanged = true;
             PersistLooks();
+            RedoLook(id);
             Mod.Log.Info($"Placemaker polish: built-in look {id} back as it ships");
             return true;
         }

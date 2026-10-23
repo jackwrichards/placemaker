@@ -45,8 +45,9 @@ namespace Placemaker.Game.Suite
             bool pickOnly = stamp == "pick";   // {"stamp":"pick"}: the painter picked first, the area painted after (as a player does)
             if (!pickOnly && (!_tool.SuiteHasSelection || _tool.Shape == null)) { rec["error"] = "polish: pick the lots with an area step first"; yield break; }
             // the painter is picked in the Make row, which the panel shows in Design
-            if (!_tool.Painter || !_tool.IsActive) yield return OpenPolishTool(st, rec);
-            if (!_tool.Painter) { rec["error"] = "polish: the polish tool did not open"; yield break; }
+            // (the toolbar button opens the panel in its Outgrow mode: enough to click its controls)
+            if (!PolishOpen) yield return OpenPolishTool(st, rec);
+            if (!_tool.Painter && !(pickOnly && _tool.OutgrowMode)) { rec["error"] = "polish: the polish tool did not open"; yield break; }
             if (pickOnly) { rec["painter"] = true; yield break; }
             var (lots, polished) = _tool.PainterCount;
             rec["areaLots"] = lots;
@@ -74,8 +75,8 @@ namespace Placemaker.Game.Suite
         {
             // a Zoning type picked in Placemaker: its own panel (the City window, its groups) is clicked as it is
             bool zoningType = _tool.PolishType && _tool.IsActive;
-            if (!zoningType && (!_tool.Painter || !_tool.IsActive)) yield return OpenPolishTool(st, rec);
-            if (!zoningType && !_tool.Painter) { rec["error"] = "polish: the polish tool did not open"; yield break; }
+            if (!zoningType && !PolishOpen) yield return OpenPolishTool(st, rec);
+            if (!zoningType && !_tool.Painter && !_tool.OutgrowMode) { rec["error"] = "polish: the polish tool did not open"; yield break; }
             var s = ToolRegistration.Settings;
             if (step["theme"] != null)
             {
@@ -170,8 +171,10 @@ namespace Placemaker.Game.Suite
                 string text = (string)step["clickText"];
                 JObject reply = null;
                 // the deepest element showing exactly this text, then its nearest button (the game's own dialog has no test ids)
-                string js = "var want=" + SuiteUiSystem.Q(text) + ";var all=document.querySelectorAll('*');var el=null;"
-                    + "for(var i=0;i<all.length;i++){var n=all[i];if(String(n.textContent||'').trim()===want)el=n;}"
+                // (a trailing * matches the start of the text: a count in a button, "Change *")
+                bool prefix = text.EndsWith("*");
+                string js = "var want=" + SuiteUiSystem.Q(prefix ? text.Substring(0, text.Length - 1) : text) + ";var pre=" + (prefix ? "true" : "false") + ";var all=document.querySelectorAll('*');var el=null;"
+                    + "for(var i=0;i<all.length;i++){var n=all[i];var x=String(n.textContent||'').trim();if(pre?x.indexOf(want)===0:x===want)el=n;}"
                     + "if(!el)return {found:false};var b=el;for(var k=0;k<4&&b&&b.tagName!=='BUTTON';k++)b=b.parentElement;if(!b||b.tagName!=='BUTTON')b=el;"
                     + "try{b.click();}catch(e){var ev=new MouseEvent('click',{bubbles:true,cancelable:true});b.dispatchEvent(ev);}return {found:true,tag:b.tagName};";
                 yield return UiRun(js, r => reply = r);
@@ -183,10 +186,13 @@ namespace Placemaker.Game.Suite
             if (panel != null) rec["panel"] = panel;
         }
 
+        /// <summary>The painter, or the panel in its Outgrow mode, is open (the button pressed again would close it).</summary>
+        private bool PolishOpen => _tool.IsActive && (_tool.Painter || _tool.OutgrowMode);
+
         /// <summary>The polish tool's own button (next to Placemaker's): its trigger, as the button fires it.</summary>
         private IEnumerator OpenPolishTool(ScenarioState st, JObject rec)
         {
-            yield return UiAct(st, rec, "Neighbourhood polish button", null, "togglePolish", null, () => _tool.Painter && _tool.IsActive, () => _tool.TogglePolishTool());
+            yield return UiAct(st, rec, "Neighbourhood polish button", null, "togglePolish", null, () => PolishOpen, () => _tool.TogglePolishTool());
             yield return Frames(6);
         }
 

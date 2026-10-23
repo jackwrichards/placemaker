@@ -183,6 +183,7 @@ namespace Placemaker.Game.Neighbours
             TagNewPieces();
             if (_sweepThemes) SweepThemes();
             if (s_retheme) Retheme();
+            if (s_redoLooks.Count > 0) RedoSavedLooks();
             if (s_polishAll) StartPolishAll();
             ApplyStamps();
             if (s_removeAll) StartRemoveAll();

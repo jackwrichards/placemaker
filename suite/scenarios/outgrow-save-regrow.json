@@ -1,0 +1,312 @@
+{
+  "_about": "Saving an outgrow type redoes the buildings that use it, and lots at an angle join (the user, 22 Oct: a type 'Shops 2' painted on industry, a setting changed and saved, 'Change 8' pressed: nothing changed until the lots were erased and painted again; and with every reach at 500 m, grass gaps and jumbled hedges between neighbouring industrial lots on two streets at 45 degrees). Industry grows on a block with streets all round, Highland Street cutting its top right corner at 45 degrees (the user's block: works facing four streets, their backs and sides meeting at right angles and at 45 degrees). In Outgrow's Edit tab Industry is copied as a new type ('Industry 2'), set to Paved with every reach at 500 m and saved; the brush paints every lot with it (pictures: 'paved'). Then its land is set to Car park and saved: the confirmation is pictured, confirmed, and the same lots are pictured again ('carpark': they must have car parks now, without being painted again). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-save-regrow.json -Who outgrow-save-regrow",
+  "scenarios": [
+    {
+      "id": "save-regrow",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          380
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": false
+        },
+        {
+          "do": "setting",
+          "name": "PolishZoneLooks",
+          "value": ""
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "polygon",
+          "points": [
+            [
+              -130,
+              -100
+            ],
+            [
+              130,
+              -100
+            ],
+            [
+              130,
+              40
+            ],
+            [
+              40,
+              130
+            ],
+            [
+              -130,
+              130
+            ]
+          ],
+          "zone": "Industrial Manufacturing"
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "polish",
+          "stamp": "pick"
+        },
+        {
+          "do": "polish",
+          "click": "polish-city-tab-edit"
+        },
+        {
+          "do": "polish",
+          "click": "polish-theme-industry"
+        },
+        {
+          "do": "polish",
+          "click": "polish-look-saveas"
+        },
+        {
+          "do": "polish",
+          "click": "polish-look-name-ok"
+        },
+        {
+          "do": "polish",
+          "knob": "fill",
+          "value": 3
+        },
+        {
+          "do": "polish",
+          "knob": "sideReach",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxFrontGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxBackGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxRearGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxFacingGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxDeepen",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "hugReach",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "openReach",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "click": "polish-look-save",
+          "shot": "type-saved",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "polish-brush-type"
+        },
+        {
+          "do": "polish",
+          "click": "polish-brush-pick-my-industry2"
+        },
+        {
+          "do": "polish",
+          "click": "polish-brush-paint"
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 80
+        },
+        {
+          "do": "area",
+          "tool": "outgrowBrush",
+          "stroke": [
+            [
+              -95,
+              -65
+            ],
+            [
+              95,
+              -65
+            ],
+            [
+              95,
+              25
+            ],
+            [
+              25,
+              95
+            ],
+            [
+              -95,
+              95
+            ],
+            [
+              -95,
+              -65
+            ],
+            [
+              0,
+              0
+            ]
+          ],
+          "size": 130,
+          "cameraDistance": 700
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 180
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "polishFlags"
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "label": "paved"
+        },
+        {
+          "do": "shot",
+          "name": "paved-top",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 470
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "paved-corner",
+          "camera": {
+            "target": "point",
+            "at": [
+              60,
+              50
+            ],
+            "view": "top",
+            "distance": 200
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "polish",
+          "knob": "fill",
+          "value": 2
+        },
+        {
+          "do": "polish",
+          "click": "polish-look-save",
+          "shot": "confirm",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "clickText": "Yes, continue"
+        },
+        {
+          "do": "polish",
+          "clickText": "Change *"
+        },
+        {
+          "do": "polish",
+          "click": "confirm-ok"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 180
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "polishFlags"
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "label": "carpark"
+        },
+        {
+          "do": "shot",
+          "name": "carpark-top",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 470
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "carpark-corner",
+          "camera": {
+            "target": "point",
+            "at": [
+              60,
+              50
+            ],
+            "view": "top",
+            "distance": 200
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "carpark-ui",
+          "shotMode": "ui"
+        }
+      ]
+    }
+  ]
+}

@@ -29,6 +29,7 @@ import { layoutFor, MAX_SHARE, MIN_REM, NARROW_REM, PanelLayoutContext, WIDE_DEF
 import { AssetPickerCard, PickerContext, PickerRequest } from "./picker";
 import { PolishCityCard, PolishDesign, useLookEditorRequests } from "./PainterCard";
 import { ScrollArea } from "./ScrollArea";
+import { DialogLayerContext } from "./dialog";
 import s from "./panel.module.scss";
 
 const STAGES: { id: Stage; key: string; en: string }[] = [
@@ -676,6 +677,8 @@ export const PlacemakerPanel = () => {
     const rtl = useRtl();
     const { t, tl } = useT();
     const [picker, setPicker] = useState<PickerRequest | null>(null);
+    // the layer over the panel that confirmation dialogs are drawn into (components/dialog)
+    const [dialogLayer, setDialogLayer] = useState<HTMLDivElement | null>(null);
     // Each open is a fresh card (its hover preview ends when it is replaced).
     const pickerSerial = useRef(0);
     const [ack, setAck] = useState(false);
@@ -849,6 +852,7 @@ export const PlacemakerPanel = () => {
         <PickerContext.Provider value={pickerCtx}>
             <TipDirectionContext.Provider value={position.side}>
                 <PanelLayoutContext.Provider value={layout}>
+                <DialogLayerContext.Provider value={dialogLayer}>
                 <div className={classNames(s.dock, { [s.rtl]: rtl })} data-testid="placemaker-dock">
                     {picker ? <div className={s.backdrop} data-testid="picker-backdrop" onMouseDown={closePicker} /> : null}
                     <div
@@ -934,8 +938,10 @@ export const PlacemakerPanel = () => {
                                 </ErrorBoundary>
                             </div>
                         ) : null}
+                        <div ref={setDialogLayer} className={s.dialogLayer} data-testid="dialog-layer" />
                     </div>
                 </div>
+                </DialogLayerContext.Provider>
                 </PanelLayoutContext.Provider>
             </TipDirectionContext.Provider>
         </PickerContext.Provider>
