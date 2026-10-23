@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Colossal.Mathematics;
 using Game.Common;
 using Game.Net;
@@ -169,8 +170,11 @@ namespace Placemaker.Game.Neighbours
         // ───────────── our pieces the game hid ─────────────
 
         private EntityQuery _hiddenPieces;
-        // pieces left hidden on purpose, and when it was decided (looked at again later: what was in the way may be gone)
-        private readonly Dictionary<Entity, int> _keptHidden = new Dictionary<Entity, int>();
+        // pieces left hidden on purpose, when it was decided and where (looked at again later: what was in the way may be gone)
+        private readonly Dictionary<Entity, (int Frame, float2 At)> _keptHidden = new Dictionary<Entity, (int, float2)>();
+        // a kept piece is looked at again once a plan is written around it (LookAgainNear), else after about 30 s, each at its own
+        // frame and a few a frame: all of them on one frame every 2 s was 150 to 200 ms (the user's city: 1 100 kept hidden)
+        private const int KeptLookAgain = 1800, KeptLookSpread = 600, KeptLooksPerFrame = 24;
         // how often each piece was shown again (the log only)
         private readonly Dictionary<Entity, int> _shownTimes = new Dictionary<Entity, int>();
         /// <summary>For the game runner: our pieces shown again after the game hid them, and the ones left hidden.</summary>
@@ -205,16 +209,17 @@ namespace Placemaker.Game.Neighbours
             _goingSoon.Clear();
             foreach (var q in NeighbourDeleteSystem.Queue) _goingSoon.Add(q);
             var show = new List<Entity>();
+            int looks = 0;
             using (var all = _hiddenPieces.ToEntityArray(Allocator.Temp))
                 foreach (var e in all)
                 {
-                    // looked at again every 2 s (what it doubled may be gone: a garden planned again)
-                    if (_keptHidden.TryGetValue(e, out int when) && LotFrame - when < 120) continue;
+                    // one left hidden: looked at again later (what it doubled may be gone), a few a frame
+                    if (_keptHidden.TryGetValue(e, out var kept) && (LotFrame - kept.Frame < KeptLookAgain + (int)((uint)e.Index % KeptLookSpread) || looks++ >= KeptLooksPerFrame)) continue;
                     if (!EntityManager.HasComponent<global::Game.Objects.Object>(e) || !PieceSegment(e, out var a, out var b, out bool fence)) continue;
                     if ((fence && Doubled(e, a, b)) || OnRoadOrBuilding(e, (a + b) * 0.5f))
                     {
                         if (!_keptHidden.ContainsKey(e)) { TotalKeptHidden++; _keptSinceLog++; }
-                        _keptHidden[e] = LotFrame;
+                        _keptHidden[e] = (LotFrame, (a + b) * 0.5f);
                         continue;
                     }
                     show.Add(e);
@@ -252,6 +257,17 @@ namespace Placemaker.Game.Neighbours
                 Mod.Log.Info($"Placemaker neighbourhood polish: {_shownSinceLog} of its own pieces the game hid shown again in the same frame ({_againSinceLog} of them hidden before), {_keptSinceLog} left hidden (along another fence, on a road or in another building's lot)");
                 _shownSinceLog = _keptSinceLog = _againSinceLog = 0;
             }
+        }
+
+        /// <summary>The pieces left hidden in a box looked at again next (a plan was written there: what doubled them or stood
+        /// under them may be gone).</summary>
+        private void LookAgainNear(float2 lo, float2 hi)
+        {
+            if (_keptHidden.Count == 0) return;
+            List<Entity> again = null;
+            foreach (var kv in _keptHidden)
+                if (kv.Value.At.x >= lo.x && kv.Value.At.y >= lo.y && kv.Value.At.x <= hi.x && kv.Value.At.y <= hi.y) (again ??= new List<Entity>()).Add(kv.Key);
+            if (again != null) foreach (var e in again) _keptHidden[e] = (int.MinValue / 2, _keptHidden[e].At);
         }
 
         /// <summary>Other fences or hedges lie along this piece (nearly parallel, within 0.7 m) over nearly all of its length,
@@ -354,6 +370,39 @@ namespace Placemaker.Game.Neighbours
                 + $"{(doubled ? "doubled" : "not doubled")}{(why.Count > 0 ? " [" + string.Join("; ", why) + "]" : "")}{(road ? ", on a road or lot" : "")}";
         }
 
+        // (a building's lot a metre in, and a road piece's surfaces, kept while the building stands where it was and the road's
+        // geometry is the same: looked up for every piece the game hides)
+        private readonly Dictionary<Entity, (float3 At, Entity Prefab, List<float2[]> Inner)> _lotInsets = new Dictionary<Entity, (float3, Entity, List<float2[]>)>();
+        private readonly Dictionary<Entity, RoadShape> _surfaceShapes = new Dictionary<Entity, RoadShape>();
+
+        private List<float2[]> LotInset(Entity building)
+        {
+            var at = EntityManager.HasComponent<global::Game.Objects.Transform>(building) ? EntityManager.GetComponentData<global::Game.Objects.Transform>(building).m_Position : default;
+            var prefab = EntityManager.GetComponentData<PrefabRef>(building).m_Prefab;
+            if (_lotInsets.TryGetValue(building, out var c) && c.At.Equals(at) && c.Prefab == prefab) return c.Inner;
+            BuildingFootprints.Of(EntityManager, building, out var lot, out _);
+            var inner = lot == null || lot.Length < 3 ? new List<float2[]>() : Poly.Offset(Poly.EnsureCcw(lot), 1f);
+            if (_lotInsets.Count > 20000) _lotInsets.Clear();
+            _lotInsets[building] = (at, prefab, inner);
+            return inner;
+        }
+
+        private List<float2[]> SurfaceRings(Entity road, List<(float2[] Ring, bool Round)> pieces)
+        {
+            if (!EntityManager.HasComponent<EdgeGeometry>(road))
+            {
+                pieces.Clear();
+                RoadSurfaces.Pieces(EntityManager, road, pieces);
+                return pieces.Select(x => x.Ring).ToList();
+            }
+            var c = Cached(_surfaceShapes, road, out var now);
+            if (c != null) return c.Rings;
+            pieces.Clear();
+            RoadSurfaces.Pieces(EntityManager, road, pieces);
+            now.Rings = pieces.Select(x => x.Ring).ToList();
+            return now.Rings;
+        }
+
         /// <summary>The point is on a road, path or track surface, or more than a metre inside the lot of a building that is
         /// not the piece's own house.</summary>
         private bool OnRoadOrBuilding(Entity e, float2 p)
@@ -374,10 +423,7 @@ namespace Placemaker.Game.Neighbours
                     {
                         var o = found[i];
                         if (o == owner || !EntityManager.Exists(o) || EntityManager.HasComponent<Deleted>(o) || !BuildingFootprints.IsBuilding(EntityManager, o)) continue;
-                        BuildingFootprints.Of(EntityManager, o, out var lot, out _);
-                        if (lot == null || lot.Length < 3) continue;
-                        var inner = Poly.Offset(Poly.EnsureCcw(lot), 1f);
-                        foreach (var r in inner) if (Poly.Contains(r, p)) return true;
+                        foreach (var r in LotInset(o)) if (Poly.Contains(r, p)) return true;
                     }
                 }
                 found.Clear();
@@ -396,9 +442,7 @@ namespace Placemaker.Game.Neighbours
                         // walked, driven or ridden on (not a pipe or a power line under or over it)
                         var np = EntityManager.GetComponentData<PrefabRef>(n).m_Prefab;
                         if (!EntityManager.HasComponent<Road>(n) && !EntityManager.HasComponent<PathwayData>(np) && !EntityManager.HasComponent<TrainTrack>(n) && !EntityManager.HasComponent<TramTrack>(n)) continue;
-                        pieces.Clear();
-                        RoadSurfaces.Pieces(EntityManager, n, pieces);
-                        foreach (var (ring, _) in pieces) if (Poly.Contains(ring, p)) return true;
+                        foreach (var ring in SurfaceRings(n, pieces)) if (Poly.Contains(ring, p)) return true;
                     }
                 }
             }

@@ -56,12 +56,20 @@ namespace Placemaker.Game.Neighbours
         [Preserve]
         protected override void OnUpdate()
         {
+            // (its main thread time, for the game runner's outgrowFrames)
+            long timed = System.Diagnostics.Stopwatch.GetTimestamp();
+            try { UpdateTimed(); }
+            finally { NeighbourPolishSystem.NoteSystem(3, timed); }
+        }
+
+        private void UpdateTimed()
+        {
             if (Queue.Count == 0) return;
             try
             {
                 if (_byName == null) Index();
                 var heights = _terrain.GetHeightData(true);
-                _centres = null;
+                _centres = new Dictionary<Entity, List<(float2 Centre, float2[] Ring)>>();
                 // a few dozen a frame (each is triangulated by the game)
                 int take = Math.Min(Queue.Count, MaxPerFrame);
                 for (int qi = 0; qi < take; qi++)
@@ -95,39 +103,56 @@ namespace Placemaker.Game.Neighbours
             Queue.RemoveRange(0, Math.Min(Queue.Count, MaxPerFrame));
         }
 
+        // the surfaces made this frame (not in the game's search tree yet), by kind
         private Dictionary<Entity, List<(float2 Centre, float2[] Ring)>> _centres;
         private const int MaxPerFrame = 40;
+        private SearchSystem _areaSearch;
 
-        /// <summary>A surface of this kind already there: with this very outline (a garden's piece: PieceIdentity), or for a
-        /// shared green (ring null) centred here (after a load our in-memory list is empty).</summary>
-        private bool Exists(Entity prefab, float2 centre, float2[] ring)
+        private struct NearIterator : Colossal.Collections.INativeQuadTreeIterator<AreaSearchItem, global::Game.Common.QuadTreeBoundsXZ>
         {
-            if (_centres == null) IndexCentres();
-            if (!_centres.TryGetValue(prefab, out var list)) return false;
-            foreach (var (p, r) in list)
+            public Colossal.Mathematics.Bounds2 Bounds;
+            public NativeList<Entity> Results;
+            public bool Intersect(global::Game.Common.QuadTreeBoundsXZ bounds) => Colossal.Mathematics.MathUtils.Intersect(bounds.m_Bounds.xz, Bounds);
+            public void Iterate(global::Game.Common.QuadTreeBoundsXZ bounds, AreaSearchItem item)
             {
-                if (ring == null) { if (math.distance(p, centre) < 1.5f) return true; continue; }
-                if (r != null && math.distance(p, centre) < 2f && PieceIdentity.SameRing(ring, r)) return true;
+                if (Colossal.Mathematics.MathUtils.Intersect(bounds.m_Bounds.xz, Bounds)) Results.Add(item.m_Area);
             }
-            return false;
         }
 
-        /// <summary>Every surface's centre by kind, once per frame that has requests.</summary>
-        private void IndexCentres()
+        /// <summary>A surface of this kind already there: with this very outline (a garden's piece: PieceIdentity), or for a
+        /// shared green (ring null) centred here. The ones standing are looked for around the spot in the game's area search
+        /// tree: every surface of the city read for each frame with requests was 15 to 80 ms in a city of 15 000.</summary>
+        private bool Exists(Entity prefab, float2 centre, float2[] ring)
         {
-            _centres = new Dictionary<Entity, List<(float2, float2[])>>();
-            using (var q = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<global::Game.Areas.Surface>(), ComponentType.ReadOnly<Node>(), ComponentType.ReadOnly<PrefabRef>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
-            using (var all = q.ToEntityArray(Allocator.Temp))
-                foreach (var e in all)
+            bool Same(float2 p, float2[] r) => ring == null ? math.distance(p, centre) < 1.5f : r != null && math.distance(p, centre) < 2f && PieceIdentity.SameRing(ring, r);
+            if (_centres.TryGetValue(prefab, out var mine))
+                foreach (var (p, r) in mine) if (Same(p, r)) return true;
+            var lo = centre - 2f;
+            var hi = centre + 2f;
+            if (ring != null) foreach (var p in ring) { lo = math.min(lo, p - 2f); hi = math.max(hi, p + 2f); }
+            _areaSearch ??= World.GetOrCreateSystemManaged<SearchSystem>();
+            var found = new NativeList<Entity>(16, Allocator.Temp);
+            try
+            {
+                var tree = _areaSearch.GetSearchTree(true, out var deps);
+                deps.Complete();
+                var it = new NearIterator { Bounds = new Colossal.Mathematics.Bounds2(lo, hi), Results = found };
+                tree.Iterate(ref it);
+                var seen = new HashSet<Entity>();
+                for (int i = 0; i < found.Length; i++)
                 {
-                    var prefab = EntityManager.GetComponentData<PrefabRef>(e).m_Prefab;
+                    var e = found[i];
+                    if (!seen.Add(e) || !EntityManager.Exists(e) || EntityManager.HasComponent<Deleted>(e) || EntityManager.HasComponent<Temp>(e)) continue;
+                    if (!EntityManager.HasComponent<Surface>(e) || !EntityManager.HasBuffer<Node>(e) || EntityManager.GetComponentData<PrefabRef>(e).m_Prefab != prefab) continue;
                     var nodes = EntityManager.GetBuffer<Node>(e, true);
                     if (nodes.Length < 3) continue;
-                    var ring = new float2[nodes.Length];
-                    for (int i = 0; i < ring.Length; i++) ring[i] = nodes[i].m_Position.xz;
-                    if (!_centres.TryGetValue(prefab, out var list)) _centres[prefab] = list = new List<(float2, float2[])>();
-                    list.Add((PieceIdentity.Centre(ring), ring));
+                    var r = new float2[nodes.Length];
+                    for (int k = 0; k < r.Length; k++) r[k] = nodes[k].m_Position.xz;
+                    if (Same(PieceIdentity.Centre(r), r)) return true;
                 }
+            }
+            finally { found.Dispose(); }
+            return false;
         }
 
         private void Index()

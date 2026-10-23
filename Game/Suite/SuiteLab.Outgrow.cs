@@ -55,6 +55,22 @@ namespace Placemaker.Game.Suite
             var b = st.S.Block;
             var lo = new float2(b.X0, b.Z0) - 60f;
             var hi = new float2(b.X1, b.Z1) + 60f;
+            if ((string)step["box"] == "gardens")
+            {
+                // every house Outgrow gave a garden (a loaded city), as fenceMap's "box": "gardens"
+                lo = new float2(float.MaxValue);
+                hi = new float2(float.MinValue);
+                using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<PolishGarden>(), ComponentType.ReadOnly<global::Game.Objects.Transform>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
+                using (var all = q.ToEntityArray(Allocator.Temp))
+                    foreach (var e in all)
+                    {
+                        if (!sys.IsYes(e)) continue;
+                        var p = em.GetComponentData<global::Game.Objects.Transform>(e).m_Position.xz;
+                        lo = math.min(lo, p - 150f);
+                        hi = math.max(hi, p + 150f);
+                    }
+                if (lo.x > hi.x) { rec["error"] = "lab: no Outgrow gardens in the city"; yield break; }
+            }
             bool InBox(float2 a, float2 c) => c.x >= lo.x && c.y >= lo.y && a.x <= hi.x && a.y <= hi.y;
 
             // road, path and track surfaces (exact: the round ends too)
@@ -196,11 +212,26 @@ namespace Placemaker.Game.Suite
                         }
                     }
 
+            // (by 8 m cell: a city has tens of thousands of fences and every garden edge is sampled every half metre)
+            var fenceCells = new Dictionary<long, List<int>>();
+            long FenceCell(int x, int y) => ((long)x << 32) ^ (uint)y;
+            for (int i = 0; i < fences.Count; i++)
+            {
+                var f = fences[i];
+                for (int x = (int)math.floor((f.Lo.x - 1f) / 8f); x <= (int)math.floor((f.Hi.x + 1f) / 8f); x++)
+                    for (int y = (int)math.floor((f.Lo.y - 1f) / 8f); y <= (int)math.floor((f.Hi.y + 1f) / 8f); y++)
+                    {
+                        if (!fenceCells.TryGetValue(FenceCell(x, y), out var list)) fenceCells[FenceCell(x, y)] = list = new List<int>();
+                        list.Add(i);
+                    }
+            }
             float FenceDistance(float2 p, bool hidden)
             {
                 float best = float.MaxValue;
-                foreach (var f in fences)
+                if (!fenceCells.TryGetValue(FenceCell((int)math.floor(p.x / 8f), (int)math.floor(p.y / 8f)), out var inCell)) return best;
+                foreach (int fi in inCell)
                 {
+                    var f = fences[fi];
                     if (f.Hidden != hidden || p.x < f.Lo.x - 1f || p.y < f.Lo.y - 1f || p.x > f.Hi.x + 1f || p.y > f.Hi.y + 1f) continue;
                     for (int i = 0; i + 1 < f.Pts.Length; i++) best = math.min(best, SegmentDistance(p, f.Pts[i], f.Pts[i + 1]));
                 }
@@ -209,16 +240,37 @@ namespace Placemaker.Game.Suite
 
             // each polished house's garden
             var gardens = sys.Gardens.Where(kv => em.Exists(kv.Key) && !em.HasComponent<Deleted>(kv.Key) && sys.IsYes(kv.Key) && kv.Value != null && kv.Value.Length >= 3).ToList();
+            bool city = (string)step["box"] == "gardens";
+            if (city)
+            {
+                // a loaded city: every garden saved with its house (the ones this session wrote are saved with it too)
+                gardens.Clear();
+                using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<PolishGarden>(), ComponentType.ReadOnly<global::Game.Objects.Transform>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
+                using (var all = q.ToEntityArray(Allocator.Temp))
+                    foreach (var e in all)
+                    {
+                        if (!sys.IsYes(e)) continue;
+                        var buf = em.GetBuffer<PolishGarden>(e, true);
+                        if (buf.Length < 3) continue;
+                        var ring = new float2[buf.Length];
+                        for (int i = 0; i < ring.Length; i++) ring[i] = buf[i].Position;
+                        gardens.Add(new KeyValuePair<Entity, float2[]>(e, ring));
+                    }
+            }
             var houses = new JArray();
             float overRoad = 0f, overRound = 0f, open = 0f, hiddenFence = 0f, edge = 0f, bare = 0f, covered = 0f, landPastLot = 0f, underDeck = 0f, underHigh = 0f;
             int overCount = 0, roundCount = 0, misfits = 0, painted = 0, considered = 0, deckCount = 0, highCount = 0;
             var roadSpots = new List<(float2 At, float Area, bool Round)>();
             var gapSpots = new List<(float2 At, float Len)>();
             var bareSpots = new List<(float2 At, float Area)>();
+            int looked = 0;
             foreach (var (house, garden) in gardens)
             {
+                // (a city's thousands of gardens: a frame now and then, the game must not look hung)
+                if (++looked % 150 == 0) yield return null;
+                if (!em.Exists(house) || em.HasComponent<Deleted>(house)) continue;
                 var t = em.GetComponentData<global::Game.Objects.Transform>(house);
-                if (t.m_Position.x < b.X0 || t.m_Position.x > b.X1 || t.m_Position.z < b.Z0 || t.m_Position.z > b.Z1) continue;
+                if (!city && (t.m_Position.x < b.X0 || t.m_Position.x > b.X1 || t.m_Position.z < b.Z0 || t.m_Position.z > b.Z1)) continue;
                 var prefab = em.GetComponentData<PrefabRef>(house).m_Prefab;
                 if (!em.HasComponent<BuildingData>(prefab)) continue;
                 considered++;

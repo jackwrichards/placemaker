@@ -251,6 +251,30 @@ namespace Placemaker.Game.Neighbours
             return cell;
         }
 
+        /// <summary>The surfaces of the streets, paths and tracks on the ground in a box that belong to no building (a house's
+        /// own driveway or a shop's car park lane lies in its lot), from the cells.</summary>
+        private List<float2[]> StreetRingsIn(float2 min, float2 max)
+        {
+            var list = new List<float2[]>();
+            int x0 = (int)math.floor(min.x / BarrierCellSize), x1 = (int)math.floor(max.x / BarrierCellSize), y0 = (int)math.floor(min.y / BarrierCellSize), y1 = (int)math.floor(max.y / BarrierCellSize);
+            int stamp = ++_barrierStamp;
+            for (int x = x0; x <= x1; x++)
+                for (int y = y0; y <= y1; y++)
+                {
+                    long key = CellKey(x, y);
+                    if (!_barrierCells.TryGetValue(key, out var cell)) _barrierCells[key] = cell = ReadBarrierCell(x, y);
+                    foreach (var item in cell)
+                    {
+                        if (item.Category != 0 || item.Stamp == stamp) continue;
+                        item.Stamp = stamp;
+                        if (item.Hi.x < min.x || item.Lo.x > max.x || item.Hi.y < min.y || item.Lo.y > max.y) continue;
+                        if (item.E == Entity.Null || !EntityManager.Exists(item.E) || EntityManager.HasComponent<Owner>(item.E)) continue;
+                        for (int k = 0; k < item.Rings.Count; k++) if (item.Kinds[k] == 0) list.Add(item.Rings[k]);
+                    }
+                }
+            return list;
+        }
+
         /// <summary>The barriers in a box from the cells (read the first time they are asked for): roads, paths, tracks and decks
         /// first, then buildings and pillars, then lot areas and builds, each in the cells' order. A house the pass plans is
         /// left out (unless it is still being built); groups of one get numbers no entity has, as before.</summary>
@@ -287,6 +311,8 @@ namespace Placemaker.Game.Neighbours
                         }
                     }
             }
+            if (list.Count >= MaxBarriers && s_barrierCapLogged++ < 5)
+                Mod.Log.Warn($"Placemaker neighbourhood polish: more than {MaxBarriers} barriers around a pass ({max.x - min.x:F0} x {max.y - min.y:F0} m): the rest left out");
             return list;
         }
     }

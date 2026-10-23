@@ -1,0 +1,16 @@
+{
+  "_about": "Outgrow in the user's city '123' (read-only: loaded, never saved) after the 22 Oct evening fixes, with 'Outgrow again when a building levels up' off: right after the load the outgrown buildings found empty or with a garden over a road are planned again (the heal), then 45 s more running; every garden checked against the roads (outgrowCheck: gardens over roads should be slivers only, a couple of m²). Read each outgrowFrames line (plans, why, frames over 50 / 100 ms, garbage collector; surfacesLost / surfacesKept / ownLawnsKept for the level-ups kept) and the heal's line ('... a garden over a road: planned again').",
+  "scenarios": [
+    {
+      "id": "city-verify",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "loadCity", "name": "123" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true, "levelUps": false },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true, "levelUps": false, "shots": 2 },
+        { "do": "lab", "op": "outgrowCheck", "box": "gardens", "closeups": 4 }
+      ]
+    }
+  ]
+}

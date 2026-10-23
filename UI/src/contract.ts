@@ -159,6 +159,8 @@ export interface PainterState {
   featureOn: boolean;
   /** "Outgrow new buildings", this city's. */
   newHouses: boolean;
+  /** "Outgrow again when a building levels up", this city's (off: a level-up keeps its garden; nothing is planned). */
+  levelUps: boolean;
   /** The theme Polish gives: "zone" (each house by its zone's setting), "garden", "natural", "tidy", "yard". */
   theme: string;
   /** The whole city: each kind's look for new buildings, how many are polished, work left. */
@@ -659,7 +661,7 @@ export const Triggers = {
   buildAndClose: "buildAndClose",           // () — Review's second button: build, then close Placemaker
   polishTheme: "polishTheme",               // (theme: string) — the theme the painter's Polish gives
   polishOption: "polishOption",             // (id: string, value: number) — the painter card's look rows (toggles 1/0, painted 0–100)
-  polishCity: "polishCity",                 // (what: string, value: string) — on / newHouses / homes|shops|offices|industry / polishAll / unpolishAll
+  polishCity: "polishCity",                 // (what: string, value: string) — on / newHouses / levelUps / homes|shops|offices|industry / polishAll / unpolishAll
   polishKnob: "polishKnob",                 // (id: string, value: number) — a setting of the look picked ("theme": base theme index)
   polishLook: "polishLook",                 // (what: string, arg: string) — save / saveAs / rename / delete / revert the look picked
   polishLive: "polishLive",                 // (on: boolean) — the Live switch beside Polish

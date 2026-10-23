@@ -47,6 +47,14 @@ namespace Placemaker.Game.Neighbours
         [Preserve]
         protected override void OnUpdate()
         {
+            // (its main thread time, for the game runner's outgrowFrames)
+            long timed = System.Diagnostics.Stopwatch.GetTimestamp();
+            try { UpdateTimed(); }
+            finally { NeighbourPolishSystem.NoteSystem(2, timed); }
+        }
+
+        private void UpdateTimed()
+        {
             try
             {
                 if (_stamps != null)

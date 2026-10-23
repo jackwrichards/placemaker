@@ -44,6 +44,7 @@ namespace Placemaker.Game.Suite
                 case "zonecells": yield return LabZoneCells(st, step, rec); yield break;
                 case "zonesink": yield return LabZoneSink(step, rec); yield break;
                 case "outgrowaudit": yield return LabOutgrowAudit(st, step, rec); yield break;
+                case "outgrowframes": yield return LabOutgrowFrames(st, step, rec); yield break;
                 case "outgrowrepaint": yield return LabOutgrowRepaint(st, step, rec); yield break;
                 case "yardscheck": LabYardsCheck(rec); yield break;
                 case "anatomy": LabAnatomy(st, rec); yield break;
@@ -257,7 +258,10 @@ namespace Placemaker.Game.Suite
                 {
                     // every pass Outgrow plans from now on written down (its houses, barriers, ground) for the offline benchmark
                     var dir = System.IO.Path.Combine(_out, "passes");
-                    Placemaker.Game.Neighbours.NeighbourPolishSystem.StartPassDump(dir, (int?)step["max"] ?? 40);
+                    // "near": [[x, z], ...] with "radius": only the passes editing a house that close to one of the spots
+                    System.Collections.Generic.List<float2> near = null;
+                    if (step["near"] is JArray spots) near = spots.Select(p => new float2((float)p[0], (float)p[1])).ToList();
+                    Placemaker.Game.Neighbours.NeighbourPolishSystem.StartPassDump(dir, (int?)step["max"] ?? 40, near, (float?)step["radius"] ?? 60f);
                     rec["dir"] = dir;
                     Mod.Log.Info("Placemaker lab: Outgrow passes will be written to " + dir);
                     yield break;
