@@ -204,9 +204,9 @@ namespace Placemaker.Game.Neighbours
         public bool NewBuildings;
         /// <summary>The master switch is off: nothing new outgrows and nothing is planned; nothing is put back either.</summary>
         public bool Paused;
-        /// <summary>"Outgrow again when a building levels up" (version 2; a city saved before has it on).</summary>
+        /// <summary>"Auto outgrow when a building levels up" (version 2; a city saved before has it off).</summary>
         public bool LevelUps;
-        /// <summary>"Outgrow again when the game changes a building" and "... removes a building nearby" (version 3; on before).</summary>
+        /// <summary>"Auto outgrow when a building changes" and "... a building nearby is removed" (version 3; off before).</summary>
         public bool GameChanges, GameRemovals;
 
         public void Serialize<TWriter>(TWriter writer) where TWriter : IWriter
@@ -224,7 +224,7 @@ namespace Placemaker.Game.Neighbours
             reader.Read(out int version);
             reader.Read(out NewBuildings);
             reader.Read(out Paused);
-            LevelUps = GameChanges = GameRemovals = true;
+            LevelUps = GameChanges = GameRemovals = false;
             if (version >= 2) reader.Read(out LevelUps);
             if (version >= 3)
             {

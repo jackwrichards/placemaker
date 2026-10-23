@@ -5,15 +5,15 @@
 // with its whole neighbourhood (150 to 260 houses); in the user's city of 15 000 that was most of what Outgrow planned while
 // nothing was built, and the garbage of those plans stopped the game (about 50 ms each time).
 //
-// "Outgrow again when a building levels up" (this city's switch, on by default) keeps that. Off, the building keeps the
+// "Auto outgrow when a building levels up" (this city's switch, off by default; on, each level-up is planned) keeps that. Off, the building keeps the
 // garden it has and nothing is planned for it: its pieces, lawn, beds and paths are made again where they stood (what lay
 // inside the lot is the new model's ground), and its fences stand as they stood. Each of the new model's fences that lies where
 // one of the old model's stood takes that one's place (where the plan had moved it, hidden, or where the model has it); a new
 // fence the old garden had nowhere is hidden; an old fence no new one lines up with is laid in pieces where it stood.
 //
-// "Outgrow again when the game changes a building" (on by default): off, a building the game marks Updated without another
+// "Auto outgrow when a building changes" (off by default): off, a building the game marks Updated without another
 // model (abandoned, condemned, its condition) gets its fences back where the last plan put them (the game fits them again to
-// its model), without a plan. "Outgrow again when the game removes a building nearby" (on by default): off, the gardens
+// its model), without a plan. "Auto outgrow when a building nearby is removed" (off by default): off, the gardens
 // around a building the game removes (collapsed, condemned, demolished) keep theirs. The player's own bulldozer, painting,
 // types and builds always plan; so does a building site on garden land (else a fence would run through the new building).
 //
@@ -38,13 +38,13 @@ namespace Placemaker.Game.Neighbours
     public sealed partial class NeighbourPolishSystem
     {
         /// <summary>"Outgrow again when a building levels up" (this city's; saved with it).</summary>
-        public static bool PolishLevelUps = true;
+        public static bool PolishLevelUps;
         /// <summary>"Outgrow again when the game changes a building" otherwise (its model the same: abandoned, condemned, its
         /// condition; the game fits its fences again): off, its fences are put back where they were (PutBack).</summary>
-        public static bool PolishGameChanges = true;
+        public static bool PolishGameChanges;
         /// <summary>"Outgrow again when the game removes a building nearby" (collapsed, condemned, demolished; not the player's
         /// bulldozer): off, the gardens around keep theirs.</summary>
-        public static bool PolishGameRemovals = true;
+        public static bool PolishGameRemovals;
         /// <summary>For the game runner: fences put back without a plan, removals by the game the gardens around kept theirs.</summary>
         public static int TotalFencesPutBack, TotalRemovalsKept, TotalNeighbourChangesKept;
 

@@ -301,6 +301,7 @@ namespace Placemaker.Game.Neighbours
             // another city: everything kept in memory names entities of the old one (their indices are reused)
             ForgetCity();
             ForgetSwitches();
+            _newGame = serializationContext.purpose == Colossal.Serialization.Entities.Purpose.NewGame;
             // every outgrown house's model and the fences an earlier session moved, remembered as they stand (NeighbourPolishSystem.LevelUps)
             try { SeedLaneMemory(); }
             catch (Exception e) { if (_errors++ < 5) Mod.Log.Error(e, "Placemaker neighbourhood polish (remembering fences) failed"); }
