@@ -1,8 +1,9 @@
 // Placemaker neighbourhood polish — the city's own Outgrow switches (GPL-3.0).
 //
-// "Outgrow new buildings", "Outgrow again when a building levels up" and the master switch belong to the city, not the mod: they are saved with it (a headless entity
-// with PolishCitySwitches) and read back when it loads. A city without them (a new one, or one saved before) starts with
-// new buildings off and Outgrow running. Nothing ever switches them by itself.
+// "Auto outgrow new buildings", "... when a building levels up", "... when a building changes", "... when a building nearby
+// is removed" and the master switch belong to the city, not the mod: they are saved with it (a headless entity with
+// PolishCitySwitches) and read back when it loads. A new game starts with new buildings outgrown and the rest off; a city
+// saved without them has new buildings off, the rest off and Outgrow running. Nothing ever switches them by itself.
 //
 // The master switch off pauses Outgrow: no building is newly given a look (new buildings, zoned areas), nothing is planned
 // or written, and nothing is put back. What the painter stamps meanwhile is kept and fitted once it is on again.
@@ -89,8 +90,13 @@ namespace Placemaker.Game.Neighbours
             s_switchesDirty = false;
             PolishNew = false;
             Paused = false;
-            PolishLevelUps = PolishGameChanges = PolishGameRemovals = true;
+            PolishLevelUps = PolishGameChanges = PolishGameRemovals = false;
         }
+
+        // the city loaded is a new game (its switches as a new city has them: new buildings outgrown, the rest off)
+        private bool _newGame;
+        /// <summary>A new game starts with "Auto outgrow new buildings" on (the game runner's worlds: off).</summary>
+        public static bool NewGameOutgrowsNewBuildings = true;
 
         /// <summary>Reads the city's switches once after a load, then writes them whenever the player changes one.</summary>
         private void SwitchesUpdate()
@@ -102,11 +108,11 @@ namespace Placemaker.Game.Neighbours
                 {
                     using (var all = _switches.ToComponentDataArray<PolishCitySwitches>(Allocator.Temp))
                     {
-                        PolishNew = all.Length > 0 && all[0].NewBuildings;
+                        PolishNew = all.Length > 0 ? all[0].NewBuildings : _newGame && NewGameOutgrowsNewBuildings;
                         Paused = all.Length > 0 && all[0].Paused;
-                        PolishLevelUps = all.Length == 0 || all[0].LevelUps;
-                        PolishGameChanges = all.Length == 0 || all[0].GameChanges;
-                        PolishGameRemovals = all.Length == 0 || all[0].GameRemovals;
+                        PolishLevelUps = all.Length > 0 && all[0].LevelUps;
+                        PolishGameChanges = all.Length > 0 && all[0].GameChanges;
+                        PolishGameRemovals = all.Length > 0 && all[0].GameRemovals;
                         if (all.Length == 0 && !_oldCitySettings.IsEmptyIgnoreFilter)
                             using (var old = _oldCitySettings.ToComponentDataArray<PolishCitySettings>(Allocator.Temp))
                             {
@@ -114,7 +120,7 @@ namespace Placemaker.Game.Neighbours
                                 s_switchesDirty = true;   // written as switches below
                             }
                         if (!_oldCitySettings.IsEmptyIgnoreFilter) EntityManager.DestroyEntity(_oldCitySettings);
-                        Mod.Log.Info($"Placemaker neighbourhood polish: this city's switches {(all.Length > 0 ? "read" : "not saved yet (the defaults)")}: new buildings {(PolishNew ? "on" : "off")}, level-ups {(PolishLevelUps ? "outgrown again" : "keep their gardens")}, the game's changes {(PolishGameChanges ? "outgrown again" : "keep their gardens")}, the game's removals {(PolishGameRemovals ? "outgrown again" : "keep the gardens around")}, Outgrow {(Paused ? "paused" : "running")}");
+                        Mod.Log.Info($"Placemaker neighbourhood polish: this city's switches {(all.Length > 0 ? "read" : _newGame ? "of a new game" : "not saved yet (the defaults)")}: new buildings {(PolishNew ? "on" : "off")}, level-ups {(PolishLevelUps ? "outgrown again" : "keep their gardens")}, the game's changes {(PolishGameChanges ? "outgrown again" : "keep their gardens")}, the game's removals {(PolishGameRemovals ? "outgrown again" : "keep the gardens around")}, Outgrow {(Paused ? "paused" : "running")}");
                     }
                     StatusVersion++;
                 }

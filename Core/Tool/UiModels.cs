@@ -83,9 +83,9 @@ namespace Placemaker.Core.Tool
         /// <summary>"Outgrow new buildings", this city's.</summary>
         public bool NewHouses;
         /// <summary>"Outgrow again when a building levels up", this city's (off: a level-up keeps its garden, nothing planned).</summary>
-        public bool LevelUps = true;
+        public bool LevelUps;
         /// <summary>"Outgrow again when the game changes a building" / "... removes a building nearby", this city's.</summary>
-        public bool GameChanges = true, GameRemovals = true;
+        public bool GameChanges, GameRemovals;
         /// <summary>The theme Polish stamps: "zone" (each house by its zone's setting), "garden", "natural", "tidy", "yard".</summary>
         public string Theme = "zone";
         /// <summary>The look Polish gives (saved on each lot it polishes; new buildings get it too): the painted-garden share
