@@ -118,25 +118,17 @@
 }
 
 // ── entrances: the section header, then Add (type buttons, crosswalk switch) and Placed (one row each) ──
+// (No "look here" tint: the footer's "Add an entrance" only scrolls here. The user, 22 Oct: "Why does the entire
+// entrances section turn orange or yellow when I pick one of the entrances? That's dumb.")
 .entrances {
     @include col;
     min-width: 0;
-    // a little room round the content, so the "look here" flash never touches it (content stays aligned with the page)
-    margin: 0 -6rem;
-    padding: 0 6rem 4rem 6rem;
-    border-radius: $radius;
-    transition-property: background-color;
-    transition-duration: $t-med;
+    padding-bottom: 4rem;
 }
 
 // a required entrance is missing: the header's badge and note turn the warning colour (SectionHead tone="warn")
 .entrancesMissing {
     background-color: transparent;
-}
-
-// the footer's "Add an entrance" leads here
-.entrancesFlash {
-    background-color: rgba(255, 181, 71, 0.18);
 }
 
 .required {
