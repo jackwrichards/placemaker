@@ -1,0 +1,26 @@
+{
+  "_about": "Outgrow's frame hitches in the user's city '123' (read-only: loaded, never saved) with every 'Auto outgrow' switch on, a plan's gathering and the showing of hidden pieces all on one frame (passBudgetMs 0, showBudgetMs 0: as before) against a few ms a frame (4 and 3, the defaults), in the same game: old, new, old, new. Each: every garden planned again (polishSettings redoes the city; polishIdle: its frames and Outgrow's worst), an outgrow check (gardens changed since the one before: the same city planned again either way), then 45 s running (outgrowFrameMs: frames Outgrow itself took more than 4, 8, 16 ms of). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-city-hitches.json -Who outgrow-city-hitches -Fresh",
+  "scenarios": [
+    {
+      "id": "city-hitches",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "loadCity", "name": "123" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 2, "speed": 1, "outgrow": true, "levelUps": true, "gameChanges": true, "gameRemovals": true },
+        { "do": "lab", "op": "polishSettings", "settings": { "passBudgetMs": 0, "showBudgetMs": 0 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 600, "label": "redo-old-1" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true },
+        { "do": "lab", "op": "polishSettings", "settings": { "passBudgetMs": 4, "showBudgetMs": 3 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 600, "label": "redo-new-1" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true },
+        { "do": "lab", "op": "polishSettings", "settings": { "passBudgetMs": 0, "showBudgetMs": 0 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 600, "label": "redo-old-2" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true },
+        { "do": "lab", "op": "polishSettings", "settings": { "passBudgetMs": 4, "showBudgetMs": 3 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 600, "label": "redo-new-2" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true }
+      ]
+    }
+  ]
+}

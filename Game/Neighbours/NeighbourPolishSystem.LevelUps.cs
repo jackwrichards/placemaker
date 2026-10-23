@@ -91,11 +91,11 @@ namespace Placemaker.Game.Neighbours
         }
 
         /// <summary>The model of each house a pass edits, as it gathers them.</summary>
-        private Dictionary<long, Entity> PrefabsOf(HashSet<long> coreIds)
+        private Dictionary<long, Entity> PrefabsOf(HashSet<long> coreIds, Dictionary<long, Entity> houseOf)
         {
             var of = new Dictionary<long, Entity>();
             foreach (var id in coreIds)
-                if (_houseOf.TryGetValue(id, out var house) && EntityManager.HasComponent<PrefabRef>(house)) of[id] = EntityManager.GetComponentData<PrefabRef>(house).m_Prefab;
+                if (houseOf.TryGetValue(id, out var house) && EntityManager.HasComponent<PrefabRef>(house)) of[id] = EntityManager.GetComponentData<PrefabRef>(house).m_Prefab;
             return of;
         }
 

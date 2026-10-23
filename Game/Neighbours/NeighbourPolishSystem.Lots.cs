@@ -414,6 +414,8 @@ namespace Placemaker.Game.Neighbours
                         if (best < 0) continue;
                         EntityManager.AddComponentData(e, new PolishPiece { Kind = PendingTags[best].Kind });
                         StandingChanged(owner);
+                        if (_placedAt.Count > 20000) _placedAt.Clear();
+                        _placedAt[e] = LotFrame;
                         used[best] = true;
                         TotalTagged++;
                     }
@@ -474,6 +476,7 @@ namespace Placemaker.Game.Neighbours
 
         private void StartRemoveAll()
         {
+            _passBuild = null;
             s_removeAll = false;
             string scope = s_removeScope;
             int was = 0;
@@ -677,6 +680,7 @@ namespace Placemaker.Game.Neighbours
         /// <summary>Another city: nothing in memory may name its entities.</summary>
         private void ForgetCity()
         {
+            _passBuild = null;
             ForgetBarriers();
             _gardenOf.Clear();
             _gardenBox.Clear();
