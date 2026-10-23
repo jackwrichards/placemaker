@@ -20,9 +20,10 @@ namespace Placemaker.Game.Neighbours
         public static int PlansTimed;
         /// <summary>Why houses were put in line to be planned (since the game started): 0 a fence line the game changed, 1 a
         /// building gone nearby, 2 something built nearby, 3 a garden over a new lot, 4 a stamp (Polish), 5 the game rebuilt
-        /// the building (built, levelled up: another model), 6 the game took away surfaces of its own, 7 found empty after a load (NeighbourPolishSystem.Rebuilt).</summary>
-        public static readonly int[] DirtyBy = new int[8];
-        public static readonly string[] DirtyByNames = { "linesChanged", "goneNearby", "builtNearby", "clash", "stamped", "rebuilt", "piecesTaken", "emptyAfterLoad" };
+        /// the building (built, levelled up: another model), 6 the game took away surfaces of its own, 7 found empty after a load (NeighbourPolishSystem.Rebuilt),
+        /// 8 its outgrow type saved with new settings (or put back as it ships).</summary>
+        public static readonly int[] DirtyBy = new int[9];
+        public static readonly string[] DirtyByNames = { "linesChanged", "goneNearby", "builtNearby", "clash", "stamped", "rebuilt", "piecesTaken", "emptyAfterLoad", "typeSaved" };
         public static int DirtySkippedTotal => DirtySkipped;
         /// <summary>A pass's main thread time by part (ms since the game started): 0 grid, 1 picking the patch, 2 describing
         /// houses, 3 looks, gardens and fences of the neighbours (with 2: describing counted apart), 4 barriers, 5 starting the
