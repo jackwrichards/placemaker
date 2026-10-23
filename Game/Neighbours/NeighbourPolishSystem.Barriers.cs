@@ -30,8 +30,11 @@ namespace Placemaker.Game.Neighbours
     {
         private global::Game.Net.SearchSystem _netSearch;
         private global::Game.Objects.SearchSystem _objectSearch;
-        // a road comes as several surfaces (its halves, its ends at the junctions): room for a big patch of town
-        private const int MaxBarriers = 4000;
+        // a road comes as several surfaces (its halves, its ends at the junctions). Only a guard against a runaway box: at 4 000
+        // every pass in the user's city of 15 000 (a patch of 600 m) was cut off in its roads, without the other buildings' lots
+        // and the water, and gardens grew over the streets left out (180 of 2 500)
+        private const int MaxBarriers = 200000;
+        private static int s_barrierCapLogged;
 
         private struct BuildingIterator : INativeQuadTreeIterator<Entity, QuadTreeBoundsXZ>
         {
@@ -181,6 +184,7 @@ namespace Placemaker.Game.Neighbours
         {
             if (_newNearby.IsEmptyIgnoreFilter && _goneNearby.IsEmptyIgnoreFilter) return;
             var boxes = new List<(float2 Min, float2 Max)>();
+            var sites = new List<float2[]>();
             foreach (var query in new[] { _newNearby, _goneNearby })
             {
                 if (query.IsEmptyIgnoreFilter) continue;
@@ -193,6 +197,13 @@ namespace Placemaker.Game.Neighbours
                         if (!EntityManager.HasComponent<global::Game.Objects.Transform>(e)) continue;
                         // new houses: their own pass; a house just started (a building site) moves the gardens off its lot now
                         if (IsGrowable(e) && !EntityManager.HasComponent<global::Game.Objects.UnderConstruction>(e)) continue;
+                        // (only the gardens over its lot: every garden reaching near one row house's site was 252 plans in the
+                        // user's city of 15 000)
+                        if (query == _newNearby && IsGrowable(e))
+                        {
+                            BuildingFootprints.Of(EntityManager, e, out var site, out _);
+                            if (site != null && site.Length >= 3) { sites.Add(site); continue; }
+                        }
                         var p = EntityManager.GetComponentData<global::Game.Objects.Transform>(e).m_Position.xz;
                         boxes.Add((p - 40f, p + 40f));
                         continue;
@@ -217,12 +228,28 @@ namespace Placemaker.Game.Neighbours
                     }
                 }
             }
-            if (boxes.Count == 0) return;
+            int marked = 0;
+            foreach (var site in sites)
+            {
+                Placemaker.Core.Geometry.Poly.Bounds(site, out var slo, out var shi);
+                foreach (var (house, glo, ghi) in GardenBoxes())
+                {
+                    if (ghi.x < slo.x || glo.x > shi.x || ghi.y < slo.y || glo.y > shi.y || !EntityManager.Exists(house) || !IsYes(house)) continue;
+                    var garden = GardenOf(house);
+                    if (garden == null || !Overlap(garden, site)) continue;
+                    if (_dirty.Add(house)) { marked++; DirtyBy[2]++; }
+                    _first.Add(house);
+                }
+            }
+            if (boxes.Count == 0)
+            {
+                if (marked > 0) Mod.Log.Info($"Placemaker neighbourhood polish: a building started on land of {marked} gardens: planned again first");
+                return;
+            }
             EnsureGrid();
             // looked for as far as any garden reaches, each garden then by its own reach (its look's): with the widest reach of
             // any type for all of them, one type at 500 m planned again every outgrown house within 530 m of each new building
             float reach = MostReach() + 30f;
-            int marked = 0;
             foreach (var (bmin, bmax) in boxes)
             {
                 var lo = bmin - reach;

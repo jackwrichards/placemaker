@@ -1,0 +1,20 @@
+{
+  "_about": "Are level-ups what Outgrow keeps planning in a finished city? The user's test (23 Oct): stop the game's own level-ups instead of Outgrow's switch. In their city '123' (read-only: loaded, never saved) every garden is first planned again with this build (Redo; polishIdle: what outgrowing the whole city costs). Then, from that state, Outgrow running with level-ups planned (as it ships) in every stretch: 45 s paused (baseline), 45 s with the game's building upkeep stopped (BuildingUpkeepSystem: nothing levels up), 45 s with it running, 45 s stopped again. Read plansWritten, putInLine, frames over 50 / 100 ms and collections of each.",
+  "scenarios": [
+    {
+      "id": "city-gamelevelups",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "loadCity", "name": "123" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 2, "speed": 1, "outgrow": true, "levelUps": true },
+        { "do": "lab", "op": "polishSettings", "settings": {} },
+        { "do": "lab", "op": "polishIdle", "seconds": 600, "label": "redo-city" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": false },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true, "levelUps": true, "gameLevelUps": false },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true, "levelUps": true, "gameLevelUps": true },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true, "levelUps": true, "gameLevelUps": false }
+      ]
+    }
+  ]
+}

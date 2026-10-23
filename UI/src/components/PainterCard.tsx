@@ -723,7 +723,7 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
     const kindName = (k: (typeof KINDS)[number]) => t("Placemaker.UI.Polish.Kind." + k.city, k.en);
     // what the long tabs show (they are drawn again only when it changes)
     const looksFp = JSON.stringify((p.looks ?? []).map((l) => [l.id, l.name, l.color, l.edited, l.theme]));
-    const zonesFp = tab === "zones" ? JSON.stringify([p.zones, looksFp, st?.zones, st?.kindTotal, st?.kindPolished, picking, p.newHouses]) : "";
+    const zonesFp = tab === "zones" ? JSON.stringify([p.zones, looksFp, st?.zones, st?.kindTotal, st?.kindPolished, picking, p.newHouses, p.levelUps]) : "";
     const editFp = tab === "edit" ? JSON.stringify([p.theme, p.looks, p.values, p.lookValues, p.lookTheme, p.lookSavedTheme, p.modified, p.swatches, st?.looks?.[p.theme ?? ""]]) : "";
     return (
         <div className={s.cityEmbedded} data-testid="polish-city" onMouseDown={(e) => e.stopPropagation()}>
@@ -843,6 +843,15 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                                         </div>
                                     </Tip>
                                     <Switch testId="polish-newHouses" on={p.newHouses} onChange={(v) => act.polishCity("newHouses", v ? "true" : "false")} />
+                                </div>
+                                <div className={classNames(s.newCard, { [s.newCardOn]: p.levelUps })} data-testid="polish-levelups-card">
+                                    <Tip title={L("LevelUps", "Outgrow again when a building levels up (this city)")} description={L("LevelUps.Tip", "A building that levels up becomes another model with its own fences. On: its garden is fitted again with its neighbours. Off: it keeps the garden it has (its fences, plants and lawn stay; the new model's own fences go where the old ones were when they line up, else they stand as the model has them) and nothing is planned, which keeps a busy city smooth. Kept with this city.")}>
+                                        <div className={s.newText}>
+                                            <div className={s.newLabel}>{L("LevelUps", "Outgrow again when a building levels up (this city)")}</div>
+                                            <div className={s.newSub}>{L("LevelUpsSub", "Off: an upgraded building keeps its garden as it is")}</div>
+                                        </div>
+                                    </Tip>
+                                    <Switch testId="polish-levelUps" on={p.levelUps} onChange={(v) => act.polishCity("levelUps", v ? "true" : "false")} />
                                 </div>
                                 <div className={s.zhead}>{L("ZonesHead2", "Each zone type's default outgrow type, and how many of its buildings are outgrown (open a group)")}</div>
                                 {KINDS.map((k, ki) => {

@@ -30,7 +30,7 @@ namespace Placemaker.Game.Neighbours
 {
     public sealed partial class NeighbourPolishSystem
     {
-        private EntityQuery _rebuiltLots, _lostPieces, _standingPieces;
+        private EntityQuery _rebuiltLots, _lostPieces, _standingPieces, _lostLawns;
         private bool _sinkPending;
         // how often a house was refilled lately (frames in which the game took pieces of it): one whose pieces the game takes
         // away frame after frame (it never should: renters come and go a few times) stops being refilled for a while, so it
@@ -47,8 +47,9 @@ namespace Placemaker.Game.Neighbours
         // above (before it was fixed) planned again, behind the player's own work
         private List<Entity> _healQueue;
         private bool _healPending;
-        private int _healLooked, _healFound;
-        private const int HealPerFrame = 300;
+        private int _healLooked, _healFound, _healOverRoads;
+        // (each looked at for a garden over a road too: a few dozen a frame keep it under 10 ms)
+        private const int HealPerFrame = 60;
         /// <summary>For the game runner: outgrown buildings found empty after a load and planned again.</summary>
         public static int TotalHealed;
 
@@ -56,7 +57,7 @@ namespace Placemaker.Game.Neighbours
         {
             _healPending = true;
             _healQueue = null;
-            _healLooked = _healFound = 0;
+            _healLooked = _healFound = _healOverRoads = 0;
             _sinkPending = true;
         }
 
@@ -109,8 +110,12 @@ namespace Placemaker.Game.Neighbours
                 var e = _healQueue[i];
                 if (!EntityManager.Exists(e) || EntityManager.HasComponent<Deleted>(e) || !IsGrowable(e)) continue;
                 _healLooked++;
-                if (EmptyReason(AuditOf(e)) == null) continue;
-                _healFound++;
+                // a garden planned over a road (a build before 22 Oct cut a patch's barriers off at 4 000 in a dense town: gardens
+                // grew over the streets left out) is planned again too
+                bool overRoad = GardenOverRoad(e);
+                if (overRoad) _healOverRoads++;
+                else if (EmptyReason(AuditOf(e)) == null) continue;
+                else _healFound++;
                 _described.Remove(e);
                 if (_dirty.Add(e)) { DirtyBy[7]++; TotalHealed++; }
             }
@@ -118,8 +123,52 @@ namespace Placemaker.Game.Neighbours
             if (_healQueue.Count > 0) return;
             _healPending = false;
             _healQueue = null;
-            Mod.Log.Info($"Placemaker neighbourhood polish: {_healLooked} outgrown buildings looked at after the load, {_healFound} had nothing they should have (no garden, yard or car park): planned again");
+            Mod.Log.Info($"Placemaker neighbourhood polish: {_healLooked} outgrown buildings looked at after the load, {_healFound} had nothing they should have (no garden, yard or car park), {_healOverRoads} a garden over a road: planned again");
         }
+
+        /// <summary>The house's saved garden lies over a street, path or track (10 m² or more; its own driveway in its lot is no
+        /// street).</summary>
+        private bool GardenOverRoad(Entity house)
+        {
+            var garden = GardenOf(house);
+            if (garden == null || garden.Length < 3) return false;
+            Placemaker.Core.Geometry.Poly.Bounds(garden, out var lo, out var hi);
+            var rings = StreetRingsIn(lo, hi);
+            float2[] ccw = null;
+            float area = 0f;
+            for (int i = 0; i < rings.Count; i++)
+            {
+                var r = rings[i];
+                Placemaker.Core.Geometry.Poly.Bounds(r, out var rlo, out var rhi);
+                if (rhi.x < lo.x || rlo.x > hi.x || rhi.y < lo.y || rlo.y > hi.y || !Overlap(garden, r)) continue;
+                ccw ??= Placemaker.Core.Geometry.Poly.EnsureCcw(garden);
+                foreach (var part in Placemaker.Core.Geometry.Poly.Boolean(new[] { (IReadOnlyList<float2>)ccw }, new[] { (IReadOnlyList<float2>)Placemaker.Core.Geometry.Poly.EnsureCcw(r) },
+                    Placemaker.Core.Geometry.BoolOp.Intersection, Placemaker.Core.Geometry.FillRule.NonZero)) area += part.Area;
+                if (area >= 10f) return true;
+            }
+            return false;
+        }
+
+        /// <summary>Two rings overlap: an edge of one crosses an edge of the other, or one holds a corner of the other.</summary>
+        private static bool Overlap(float2[] a, float2[] b)
+        {
+            if (Placemaker.Core.Geometry.Poly.Contains(b, a[0]) || Placemaker.Core.Geometry.Poly.Contains(a, b[0])) return true;
+            for (int i = 0; i < a.Length; i++)
+            {
+                var p = a[i];
+                var q = a[(i + 1) % a.Length];
+                for (int j = 0; j < b.Length; j++)
+                {
+                    var c = b[j];
+                    var d = b[(j + 1) % b.Length];
+                    float d1 = Side(c, d, p), d2 = Side(c, d, q), d3 = Side(p, q, c), d4 = Side(p, q, d);
+                    if (((d1 > 0f && d2 < 0f) || (d1 < 0f && d2 > 0f)) && ((d3 > 0f && d4 < 0f) || (d3 < 0f && d4 > 0f))) return true;
+                }
+            }
+            return false;
+        }
+
+        private static float Side(float2 a, float2 b, float2 p) => (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
 
         private void CreateRebuiltQueries()
         {
@@ -133,6 +182,12 @@ namespace Placemaker.Game.Neighbours
             {
                 All = new[] { ComponentType.ReadOnly<global::Game.Buildings.Building>(), ComponentType.ReadOnly<PolishedLot>(), ComponentType.ReadOnly<PrefabRef>(), ComponentType.ReadOnly<Updated>() },
                 None = new[] { ComponentType.ReadOnly<Temp>(), ComponentType.ReadOnly<Deleted>() },
+            });
+            // a house's own lawns Outgrow grew, deleted this frame (a level-up makes the lot's surfaces again)
+            _lostLawns = GetEntityQuery(new EntityQueryDesc
+            {
+                All = new[] { ComponentType.ReadOnly<global::Game.Areas.Area>(), ComponentType.ReadOnly<Owner>(), ComponentType.ReadOnly<PolishLawnOriginal>(), ComponentType.ReadOnly<Deleted>() },
+                None = new[] { ComponentType.ReadOnly<Temp>(), ComponentType.ReadOnly<PolishPiece>() },
             });
             // our pieces deleted this frame (by us: NeighbourDeleteSystem.Marked; else by the game)
             _lostPieces = GetEntityQuery(new EntityQueryDesc
@@ -150,14 +205,27 @@ namespace Placemaker.Game.Neighbours
                 using (var lots = _rebuiltLots.ToEntityArray(Allocator.Temp))
                     foreach (var e in lots)
                     {
+                        PolishedUpdated++;
                         if (!IsYes(e) || EntityManager.HasComponent<global::Game.Objects.UnderConstruction>(e) || !IsGrowable(e)) continue;
                         var prefab = EntityManager.GetComponentData<PrefabRef>(e).m_Prefab;
                         // planned with this model already: nothing new (its objects, if the game took them, come back below).
                         // Never planned: a building finished this session (it waited in _first since it was flagged); after a
                         // load a polished building is as it was saved, and its pieces the game deletes say so below
                         if (_prefabSeen.TryGetValue(e, out var seen) ? seen == prefab : !_first.Contains(e)) continue;
+                        // levelled up in a city that plans nothing for that: it keeps its garden
+                        if (KeepLevelUp(e)) continue;
                         _described.Remove(e);
                         if (_dirty.Add(e)) { DirtyBy[5]++; TotalRebuilt++; }
+                    }
+            // a kept level-up's old fences no new one took the place of: in pieces where they stood
+            LayOldFences();
+            // a kept level-up's own lawn as Outgrow grew it: what lay past the lot made again as a garden lawn
+            if (!_lostLawns.IsEmptyIgnoreFilter && _keptLevelUps.Count > 0)
+                using (var lawns = _lostLawns.ToEntityArray(Allocator.Temp))
+                    foreach (var lawn in lawns)
+                    {
+                        var owner = EntityManager.GetComponentData<Owner>(lawn).m_Owner;
+                        if (owner != Entity.Null && EntityManager.Exists(owner) && !EntityManager.HasComponent<Deleted>(owner) && IsYes(owner)) KeepSurface(lawn, owner, PolishPieceKind.Garden);
                     }
             if (_lostPieces.IsEmptyIgnoreFilter) return;
             List<(Entity Owner, Entity Prefab, float2 At, float Yaw)> objects = null;
@@ -169,8 +237,10 @@ namespace Placemaker.Game.Neighbours
                     if (owner == Entity.Null || !EntityManager.Exists(owner) || EntityManager.HasComponent<Deleted>(owner) || !EntityManager.HasComponent<global::Game.Buildings.Building>(owner) || !IsYes(owner)) continue;
                     if (EntityManager.HasComponent<global::Game.Areas.Area>(p))
                     {
-                        // a surface: the building was rebuilt (another model, its lot made again): planned again
+                        // a surface: the building was rebuilt (another model, its lot made again): planned again; a level-up
+                        // kept without a plan makes it again where it stood
                         TotalLostAreas++;
+                        if (KeepSurface(p, owner, EntityManager.GetComponentData<PolishPiece>(p).Kind)) continue;
                         _described.Remove(owner);
                         if (_dirty.Add(owner)) DirtyBy[6]++;
                         continue;
@@ -185,15 +255,17 @@ namespace Placemaker.Game.Neighbours
             Entity last = Entity.Null;
             foreach (var (owner, prefab, at, yaw) in objects)
             {
-                // planned again (rebuilt, moved or otherwise changed by the game this frame, already waiting, the polish off):
-                // its plan makes what it wants. Only a building that stayed as it was (people or a company moved in or out)
-                // is refilled where its pieces stood
-                if (!FeatureEnabled || _dirty.Contains(owner) || EntityManager.HasComponent<Updated>(owner))
+                // planned again (another model than it was planned with, already waiting, the polish off): its plan makes what
+                // it wants. A building with the model it was planned with (people or a company moved in or out, the game marked
+                // it Updated, a level-up kept without a plan) is refilled where its pieces stood
+                if (!FeatureEnabled || _dirty.Contains(owner) || (EntityManager.HasComponent<Updated>(owner) && !SameModel(owner)))
                 {
                     _described.Remove(owner);
                     if (_dirty.Add(owner)) DirtyBy[6]++;
                     continue;
                 }
+                // a level-up kept without a plan: what stood inside the lot is the new model's business
+                if (InsideKeptLot(owner, at)) continue;
                 if (owner != last) { owners++; last = owner; }
                 var (since, times, lastFrame) = _remade.TryGetValue(owner, out var r) && LotFrame - r.Since < RemadeWindow ? r : (LotFrame, 0, -1);
                 if (lastFrame != LotFrame)

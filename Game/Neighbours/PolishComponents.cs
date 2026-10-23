@@ -199,17 +199,20 @@ namespace Placemaker.Game.Neighbours
     /// (new, or saved before the switches were per city) has new buildings off and Outgrow running.</summary>
     public struct PolishCitySwitches : IComponentData, IQueryTypeParameter, ISerializable
     {
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;
         /// <summary>"Outgrow new buildings": buildings that grow get their zone's look.</summary>
         public bool NewBuildings;
         /// <summary>The master switch is off: nothing new outgrows and nothing is planned; nothing is put back either.</summary>
         public bool Paused;
+        /// <summary>"Outgrow again when a building levels up" (version 2; a city saved before has it on).</summary>
+        public bool LevelUps;
 
         public void Serialize<TWriter>(TWriter writer) where TWriter : IWriter
         {
             writer.Write(CurrentVersion);
             writer.Write(NewBuildings);
             writer.Write(Paused);
+            writer.Write(LevelUps);
         }
 
         public void Deserialize<TReader>(TReader reader) where TReader : IReader
@@ -217,6 +220,8 @@ namespace Placemaker.Game.Neighbours
             reader.Read(out int version);
             reader.Read(out NewBuildings);
             reader.Read(out Paused);
+            LevelUps = true;
+            if (version >= 2) reader.Read(out LevelUps);
         }
     }
 }

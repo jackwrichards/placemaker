@@ -1,6 +1,6 @@
 // Placemaker neighbourhood polish — the city's own Outgrow switches (GPL-3.0).
 //
-// "Outgrow new buildings" and the master switch belong to the city, not the mod: they are saved with it (a headless entity
+// "Outgrow new buildings", "Outgrow again when a building levels up" and the master switch belong to the city, not the mod: they are saved with it (a headless entity
 // with PolishCitySwitches) and read back when it loads. A city without them (a new one, or one saved before) starts with
 // new buildings off and Outgrow running. Nothing ever switches them by itself.
 //
@@ -29,6 +29,15 @@ namespace Placemaker.Game.Neighbours
             PolishNew = on;
             s_switchesDirty = true;
             Mod.Log.Info($"Placemaker neighbourhood polish: outgrow new buildings {(on ? "on" : "off")} (this city)");
+        }
+
+        /// <summary>"Outgrow again when a building levels up" for this city (saved with it; NeighbourPolishSystem.LevelUps).</summary>
+        public static void SetLevelUps(bool on)
+        {
+            if (PolishLevelUps == on) return;
+            PolishLevelUps = on;
+            s_switchesDirty = true;
+            Mod.Log.Info($"Placemaker neighbourhood polish: outgrow again when a building levels up {(on ? "on" : "off")} (this city)");
         }
 
         /// <summary>The master switch for this city (saved with it): off pauses Outgrow and puts nothing back.</summary>
@@ -62,6 +71,7 @@ namespace Placemaker.Game.Neighbours
             s_switchesDirty = false;
             PolishNew = false;
             Paused = false;
+            PolishLevelUps = true;
         }
 
         /// <summary>Reads the city's switches once after a load, then writes them whenever the player changes one.</summary>
@@ -76,6 +86,7 @@ namespace Placemaker.Game.Neighbours
                     {
                         PolishNew = all.Length > 0 && all[0].NewBuildings;
                         Paused = all.Length > 0 && all[0].Paused;
+                        PolishLevelUps = all.Length == 0 || all[0].LevelUps;
                         if (all.Length == 0 && !_oldCitySettings.IsEmptyIgnoreFilter)
                             using (var old = _oldCitySettings.ToComponentDataArray<PolishCitySettings>(Allocator.Temp))
                             {
@@ -83,14 +94,14 @@ namespace Placemaker.Game.Neighbours
                                 s_switchesDirty = true;   // written as switches below
                             }
                         if (!_oldCitySettings.IsEmptyIgnoreFilter) EntityManager.DestroyEntity(_oldCitySettings);
-                        Mod.Log.Info($"Placemaker neighbourhood polish: this city's switches {(all.Length > 0 ? "read" : "not saved yet (the defaults)")}: new buildings {(PolishNew ? "on" : "off")}, Outgrow {(Paused ? "paused" : "running")}");
+                        Mod.Log.Info($"Placemaker neighbourhood polish: this city's switches {(all.Length > 0 ? "read" : "not saved yet (the defaults)")}: new buildings {(PolishNew ? "on" : "off")}, level-ups {(PolishLevelUps ? "outgrown again" : "keep their gardens")}, Outgrow {(Paused ? "paused" : "running")}");
                     }
                     StatusVersion++;
                 }
             }
             if (!s_switchesDirty) return;
             s_switchesDirty = false;
-            var value = new PolishCitySwitches { NewBuildings = PolishNew, Paused = Paused };
+            var value = new PolishCitySwitches { NewBuildings = PolishNew, Paused = Paused, LevelUps = PolishLevelUps };
             using (var all = _switches.ToEntityArray(Allocator.Temp))
             {
                 if (all.Length == 0) EntityManager.AddComponentData(EntityManager.CreateEntity(), value);

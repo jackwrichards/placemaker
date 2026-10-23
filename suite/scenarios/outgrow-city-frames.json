@@ -1,0 +1,18 @@
+{
+  "_about": "Outgrow in one of the user's own cities (read-only: the save is loaded, never saved or deleted; the user, 22 Oct: stutters in a city of 15 000 with every building outgrown, gone the moment Outgrow is paused; and gardens grown into streets). The city runs at speed 1 for 45 s with Outgrow on, 45 s more, 45 s paused, and 30 s at speed 3 with Outgrow on (outgrowFrames: every frame's time with what Outgrow did around it, the garbage collector, the worst frames); then every garden is checked against the road, path and track surfaces (outgrowCheck, box gardens: gardens over roads, with close-ups). Run with Send-Suite -Fresh -Build; change 'name' for another city.",
+  "scenarios": [
+    {
+      "id": "city-frames",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "loadCity", "name": "123" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": false },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 30, "speed": 3, "outgrow": true },
+        { "do": "lab", "op": "outgrowCheck", "box": "gardens", "closeups": 6 }
+      ]
+    }
+  ]
+}

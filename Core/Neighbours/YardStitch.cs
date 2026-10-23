@@ -2779,6 +2779,18 @@ namespace Placemaker.Core.Neighbours
             return m.Success ? m.Groups[1].Value + "Short" + m.Groups[2].Value : null;
         }
 
+        /// <summary>Pieces end to end along a straight fence line, of the kind matching a line called lineName (a fence of a
+        /// building that levelled up and kept its garden without a plan: the game's NeighbourPolishSystem.LevelUps), laid as
+        /// a garden's runs are.</summary>
+        public static List<(float2 Position, float Yaw, string Name)> PiecesAlong(float2 a, float2 b, string lineName)
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(lineName ?? "", @"^(.*?)(High|Low)(\d+)$");
+            string piece = m.Success ? m.Groups[1].Value + "Piece" + m.Groups[2].Value + m.Groups[3].Value : "HedgePieceLow01";
+            var plan = new StitchPlan();
+            LayRun(new List<float2> { a, b }, new List<bool> { true, true }, 0, piece, plan);
+            return plan.FencePieces.Select(p => (p.Position, p.Yaw, p.Name)).ToList();
+        }
+
         /// <summary>
         /// Pieces end to end along a run: it turns at a corner of more than 25° (a piece ends there), a gentle bend is followed
         /// chord by chord; the last piece of each straight part ends exactly at its end (a short piece where the kind has one),

@@ -285,7 +285,7 @@ namespace Placemaker.Game.Tool
         }
 
         /// <summary>
-        /// The panel's Whole city rows: "on" / "newHouses" (value "true" / "false"), a kind's look for new buildings ("homes",
+        /// The panel's Whole city rows: "on" / "newHouses" / "levelUps" (value "true" / "false"), a kind's look for new buildings ("homes",
         /// "shops", "offices", "industry": "auto" each zone type its own, a look id, off), "polishAll" (every building with the Style picked
         /// and the look; By kind leaves out the kinds set to Off), "unpolishAll" (every garden back as the game made it). The
         /// city-wide two run in the background, a few buildings a frame; the panel asks first.
@@ -300,6 +300,7 @@ namespace Placemaker.Game.Tool
                 // this city's switches (saved with it, never in the settings)
                 case "on": NeighbourPolishSystem.SetRunning(on); Touch(); return;
                 case "newHouses": NeighbourPolishSystem.SetNewBuildings(on); Touch(); return;
+                case "levelUps": NeighbourPolishSystem.SetLevelUps(on); Touch(); return;
                 case "homes": case "shops": case "offices": case "industry":
                     if (value != "off" && value != NeighbourPolishSystem.KindAuto && NeighbourPolishSystem.LookById(value) == null) return;
                     if (what == "homes") s.PolishThemeHomes = value;
@@ -573,7 +574,7 @@ namespace Placemaker.Game.Tool
             var s = global::Placemaker.Game.Tool.ToolRegistration.Settings;
             var v = new PainterView
             {
-                Lots = lots, Polished = yes, FeatureOn = NeighbourPolishSystem.FeatureEnabled && !NeighbourPolishSystem.Paused, NewHouses = NeighbourPolishSystem.PolishNew, Theme = PainterLook,
+                Lots = lots, Polished = yes, FeatureOn = NeighbourPolishSystem.FeatureEnabled && !NeighbourPolishSystem.Paused, NewHouses = NeighbourPolishSystem.PolishNew, LevelUps = NeighbourPolishSystem.PolishLevelUps, Theme = PainterLook,
                 Tool = _painter,
                 CityPolished = NeighbourPolishSystem.StatusPolished, CityTotal = NeighbourPolishSystem.StatusTotal,
                 Waiting = NeighbourPolishSystem.StatusWaiting, Restoring = NeighbourPolishSystem.StatusRestoring,

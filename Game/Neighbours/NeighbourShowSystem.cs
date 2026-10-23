@@ -28,6 +28,14 @@ namespace Placemaker.Game.Neighbours
         [Preserve]
         protected override void OnUpdate()
         {
+            // (its main thread time, for the game runner's outgrowFrames)
+            long timed = System.Diagnostics.Stopwatch.GetTimestamp();
+            try { UpdateTimed(); }
+            finally { NeighbourPolishSystem.NoteSystem(6, timed); }
+        }
+
+        private void UpdateTimed()
+        {
             try { _polish.ShowHiddenPieces(); }
             catch (Exception e) { if (_errors++ < 5) Mod.Log.Error(e, "Placemaker neighbourhood polish (hidden pieces) failed"); }
         }

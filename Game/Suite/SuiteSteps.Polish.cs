@@ -114,6 +114,7 @@ namespace Placemaker.Game.Suite
                 {
                     "on" => () => NeighbourPolishSystem.Paused == (value != "true"),
                     "newHouses" => () => NeighbourPolishSystem.PolishNew == (value == "true"),
+                    "levelUps" => () => NeighbourPolishSystem.PolishLevelUps == (value == "true"),
                     "homes" => () => s.PolishThemeHomes == value,
                     "shops" => () => s.PolishThemeShops == value,
                     "offices" => () => s.PolishThemeOffices == value,
@@ -121,7 +122,7 @@ namespace Placemaker.Game.Suite
                     _ => null,
                 };
                 if (done == null) { rec["error"] = "polish: unknown city row '" + what + "'"; yield break; }
-                string testId = what == "on" || what == "newHouses" ? "polish-" + what : "polish-kind-" + what + "-" + value;
+                string testId = what == "on" || what == "newHouses" || what == "levelUps" ? "polish-" + what : "polish-kind-" + what + "-" + value;
                 yield return UiAct(st, rec, "city " + what, testId, "polishCity", new object[] { what, value }, done, () => _tool.PolishCity(what, value));
             }
             string open = (string)step["open"] ?? (string)step["close"];

@@ -62,7 +62,53 @@ town's passes 163 ms -> 60 ms. Plans exactly the same pass by pass (signatures) 
 * `outgrow-speed.json`; polishIdle reports plans, planner time, plans planned again (`retries`), houses taken (`asked`) and why
   fence lanes put houses in line (`linesHow`). Knobs for tuning in one session: `maxPlans`, `bigPatch`, `coreAll`.
 
-## 5. Left
+## 5. A city of 15 000 (the user's save "123", the same evening)
+
+The user, after the merge: about 10 FPS less with every building outgrown (fine) but stutters (not fine: "there should be no
+stutter whatsoever"), gone the moment Outgrow is paused; and outgrown gardens growing into streets. Measured in the game
+runner on the save itself, loaded read-only (`suite/scenarios/outgrow-city-*.json`; lab op `outgrowFrames`: every frame's time,
+each Outgrow system's main thread time, the garbage collector, why houses were planned).
+
+* **[P] Gardens over streets: a cap.** Every pass took at most 4 000 barriers; in the city every pass had more (a 600 m patch:
+  its roads alone), so the roads read last were left out, and with them every other building's lot and the water. 141 of
+  2 500 saved gardens lay over roads (52 900 m²); planned again with the cap: 180; without it: 68 slivers of 2 m² (156 m²
+  in all). Planning the whole city again took 29 s instead of 26.5. After a load, a garden saved over a road is planned
+  again (`GardenOverRoad`, with the empty ones).
+* **[P] Stutter 1, the garbage collector.** 105 collections in 45 s with Outgrow on (82 ms each frame they ran in), 11 paused.
+  Their cause: about 270 plans every 45 s in a city where nothing was built, each with its whole neighbourhood (60 to 280
+  houses). Why houses were planned (`putInLine`, 30 sampled lanes): level-ups, every one. A level-up swaps in another model at
+  once (BuildingUpkeepSystem, BuildingConstructionSystem.UpdatePrefab): new fence lanes, sub-objects and sub-areas.
+* **[P] A level-up cascade.** The grid of houses keeps each house's model from when it was read; a house that levelled up was
+  described with its old model (its fences, footprint), and every fence the game touched next looked like another level-up: in
+  the save, 49 level-ups made 336 plans in 45 s. The model is now read again for each pass: 107 plans, 43 collections, 32
+  frames over 50 ms (paused: 3, 2 collections; `send-outgrow-city-ab-1022-233110`).
+* **[P] A building site re-planned every garden reaching near it** (one row house: 252 gardens). Only the gardens over its lot
+  are planned again now (they give it back); the rest keep theirs.
+* **[P] What a plan costs.** On 25 plans recorded in the save (`polishPassDump`, OutgrowBench): 38 MB of garbage and 152 ms
+  each on average, though most edit 2 to 6 houses: a plan works out every house of its neighbourhood (60 to 280), and only the
+  edited ones are written. That is what is left of the stutter with level-ups planned.
+* **[P] Stutter 2, hidden pieces judged at once.** About 1 100 of our pieces the game hides were looked at again every 2 s, all
+  on the same frame: 150 to 200 ms. Now each at its own frame after about 30 s, 24 a frame, and at once where a plan was
+  written: 5.5 s -> 1.0 s of 45.
+* **[P] Stutter 3, surfaces.** Each frame that made a lawn, bed or path read every surface of the city to avoid a double: 15
+  to 80 ms. Now looked for around the spot in the area search tree: 2 s -> 0.06 s of 45.
+* **[P] The outgrowCheck itself** compared every fence with every garden edge (hours in a city): fences by 8 m cell.
+* **New switch, "Outgrow again when a building levels up"** (this city's, on by default). Off, a level-up keeps its garden
+  without a plan (`NeighbourPolishSystem.LevelUps`): pieces, beds, paths and the lawn past the lot made again where they stood;
+  each new fence that lines up with an old one takes its place (moved, hidden or as it was), a new fence the old garden had
+  nowhere is hidden, an old fence nothing took the place of is laid in pieces. Compared from the same state (the whole city
+  planned again with this build first: `outgrow-city-ab.json`), 80 level-ups kept: open fence of the city +4 m (29 605 m),
+  hidden fence -2 m, bare lawn ±0; 2 plans in 45 s, 3 frames over 50 ms (paused: 3), 2 collections
+  (`send-outgrow-city-ab-1022-233110`; the run before, 64 kept: open fence ±0, hidden +5 m, bare -5 m²).
+* Comparing runs: the save was outgrown by an older build, so a run that plans more houses changes the city's fence and lawn
+  numbers by itself. Looks are compared within one run, after planning the whole city again (Redo), as differences.
+* After a load every outgrown house's model and fences are remembered as they stand (`SeedLaneMemory`; 3 104 moved fences in
+  the save): a level-up is told from a fence the game only marked.
+
+## 6. Left
+
+* A plan that works out only the houses it edits and what touches them (garbage and time in proportion to the change): what
+  is left of the stutter while level-ups are planned, and what "outgrow a city without a hitch" needs.
 
 * Fence runs as one stretchable lane per run instead of 4 m pieces (fewer objects, perfect joins) is possible
   (researched: LaneSystem keeps no extra lane on a building's update, lanes are fitted to the ground at 4 points, nothing

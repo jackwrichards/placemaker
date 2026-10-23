@@ -695,6 +695,8 @@ namespace Placemaker.Game.Neighbours
             _healQueue = null;
             _laneCurve.Clear();
             _prefabSeen.Clear();
+            _wantOf.Clear();
+            _keptLevelUps.Clear();
             _keptHidden.Clear();
             _shownTimes.Clear();
             _roadShapes.Clear();
