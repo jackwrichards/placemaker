@@ -34,12 +34,12 @@ namespace Placemaker.Core.Geometry
 
         private readonly double2 _origin;
         private readonly double _eps, _eps2, _cell;
-        private readonly List<double2> _pts;
+        private readonly Buf<double2> _pts;
         // vertices by snap cell: the cell's first and last vertex, each vertex's next in its cell (-1: the last), in the order
         // they were made (one table and one list, not a list per cell: the allocations were a big part of every boolean)
         private readonly Dictionary<long, (int Head, int Tail)> _grid;
-        private readonly List<int> _nextInCell;
-        private List<Edge> _edges;
+        private readonly Buf<int> _nextInCell;
+        private Buf<Edge> _edges;
 
         // Built state
         private bool _built;
@@ -54,6 +54,19 @@ namespace Placemaker.Core.Geometry
         // (flat arrays, not a list per vertex and an array per face: in big booleans the allocations and the collector's work
         // they caused were most of the time)
 
+        /// <summary>A growing array read directly (List<T> is a call per element in the game's runtime).</summary>
+        private sealed class Buf<T>
+        {
+            public T[] A;
+            public int N;
+            public Buf(int capacity) { A = new T[System.Math.Max(4, capacity)]; }
+            public void Add(T x)
+            {
+                if (N == A.Length) System.Array.Resize(ref A, A.Length * 2);
+                A[N++] = x;
+            }
+        }
+
         public double2 Origin => _origin;
         public double Eps => _eps;
 
@@ -67,7 +80,7 @@ namespace Placemaker.Core.Geometry
             public int[] Active = new int[64];
             public double[] ActiveMaxX = new double[64], ActiveMinY = new double[64], ActiveMaxY = new double[64];
             public List<int>[] Splits = new List<int>[64];
-            public readonly Dictionary<long, int> Merge = new Dictionary<long, int>();
+            public readonly EdgeMap Merge = new EdgeMap();
             public int[] Deg = new int[64], IncStart = new int[65], IncFlat = new int[128], Fill = new int[64], Parent = new int[64];
             public bool[] Alive = new bool[64], Done = new bool[64];
             public double[] Angle = new double[128], Area = new double[64];
@@ -88,6 +101,52 @@ namespace Placemaker.Core.Geometry
         [ThreadStatic] private static Scratch s_scratch;
         private static Scratch Work => s_scratch ?? (s_scratch = new Scratch());
 
+        /// <summary>
+        /// Edge (its two vertices as one key) → its place in the merged list: an open-addressed table whose slots are made empty
+        /// by a stamp, not by clearing (a dictionary per merge, or one cleared for every merge, was a quarter of every boolean).
+        /// </summary>
+        private sealed class EdgeMap
+        {
+            private long[] _keys = new long[64];
+            private int[] _values = new int[64];
+            private int[] _stamps = new int[64];
+            private int _stamp, _mask;
+
+            /// <summary>Empty, with room for <paramref name="count"/> keys (a table at most half full).</summary>
+            public void Reset(int count)
+            {
+                int size = 64;
+                while (size < count * 2) size *= 2;
+                if (_keys.Length < size) { _keys = new long[size]; _values = new int[size]; _stamps = new int[size]; _stamp = 0; }
+                _mask = size - 1;
+                if (++_stamp == int.MaxValue) { Array.Clear(_stamps, 0, _stamps.Length); _stamp = 1; }
+            }
+
+            private int Slot(long key)
+            {
+                ulong h = (ulong)key * 0x9E3779B97F4A7C15UL;
+                return (int)(h >> 40) & _mask;
+            }
+
+            public bool TryGetValue(long key, out int value)
+            {
+                for (int s = Slot(key); _stamps[s] == _stamp; s = (s + 1) & _mask)
+                    if (_keys[s] == key) { value = _values[s]; return true; }
+                value = 0;
+                return false;
+            }
+
+            /// <summary>Adds a key known not to be in the table.</summary>
+            public void Add(long key, int value)
+            {
+                int s = Slot(key);
+                while (_stamps[s] == _stamp) s = (s + 1) & _mask;
+                _stamps[s] = _stamp;
+                _keys[s] = key;
+                _values[s] = value;
+            }
+        }
+
         /// <summary>Edge indices by their smallest x (the sweep's order).</summary>
         private sealed class MinXOrder : IComparer<int>
         {
@@ -99,10 +158,10 @@ namespace Placemaker.Core.Geometry
         public Arrangement(double2 min, double2 max, int capacity = 0)
         {
             capacity = math.max(capacity, 4);
-            _pts = new List<double2>(capacity);
+            _pts = new Buf<double2>(capacity);
             _grid = new Dictionary<long, (int, int)>(capacity);
-            _nextInCell = new List<int>(capacity);
-            _edges = new List<Edge>(capacity);
+            _nextInCell = new Buf<int>(capacity);
+            _edges = new Buf<Edge>(capacity);
             _origin = (min + max) * 0.5;
             double extent = math.max(math.cmax(math.abs(min)), math.cmax(math.abs(max)));
             // ~4 float ulps at the input's magnitude, never below 0.1 mm.
@@ -144,14 +203,18 @@ namespace Placemaker.Core.Geometry
                 for (long dy = -1; dy <= 1; dy++)
                 {
                     if (!_grid.TryGetValue(Key(ix + dx, iy + dy), out var cell)) continue;
-                    for (int v = cell.Head; v >= 0; v = _nextInCell[v])
-                        if (math.distancesq(_pts[v], p) <= _eps2) return v;
+                    for (int v = cell.Head; v >= 0; v = _nextInCell.A[v])
+                    {
+                        // (math.distancesq(_pts[v], p) written out)
+                        double ex = p.x - _pts.A[v].x, ey = p.y - _pts.A[v].y;
+                        if (ex * ex + ey * ey <= _eps2) return v;
+                    }
                 }
-            int id = _pts.Count;
+            int id = _pts.N;
             _pts.Add(p);
             _nextInCell.Add(-1);
             long k = Key(ix, iy);
-            if (_grid.TryGetValue(k, out var c)) { _nextInCell[c.Tail] = id; _grid[k] = (c.Head, id); }
+            if (_grid.TryGetValue(k, out var c)) { _nextInCell.A[c.Tail] = id; _grid[k] = (c.Head, id); }
             else _grid[k] = (id, id);
             return id;
         }
@@ -208,7 +271,11 @@ namespace Placemaker.Core.Geometry
             for (int round = 0; round < 8; round++)
                 if (!SplitRound()) break;
             // Edges whose windings cancel (shared boundaries of a union) carry no information.
-            _edges.RemoveAll(e => e.DA == 0 && e.DB == 0 && !e.Cut);
+            {
+                int kept = 0;
+                for (int k = 0; k < _edges.N; k++) { var e = _edges.A[k]; if (!(e.DA == 0 && e.DB == 0 && !e.Cut)) _edges.A[kept++] = e; }
+                _edges.N = kept;
+            }
             PruneDangling();
             BuildFaces();
             _built = true;
@@ -217,23 +284,23 @@ namespace Placemaker.Core.Geometry
         private void MergeDuplicates()
         {
             var map = Work.Merge;
-            map.Clear();
-            var merged = new List<Edge>(_edges.Count);
-            foreach (var e0 in _edges)
+            map.Reset(_edges.N);
+            var merged = new Buf<Edge>(_edges.N);
+            for (int q = 0; q < _edges.N; q++)
             {
-                var e = e0;
+                var e = _edges.A[q];
                 if (e.U == e.V) continue;
                 if (e.U > e.V) { int t = e.U; e.U = e.V; e.V = t; e.DA = -e.DA; e.DB = -e.DB; }
                 long k = ((long)e.U << 32) | (uint)e.V;
                 if (map.TryGetValue(k, out int idx))
                 {
-                    var m = merged[idx];
+                    var m = merged.A[idx];
                     m.DA += e.DA; m.DB += e.DB; m.Cut |= e.Cut;
-                    merged[idx] = m;
+                    merged.A[idx] = m;
                 }
                 else
                 {
-                    map[k] = merged.Count;
+                    map.Add(k, merged.N);
                     merged.Add(e);
                 }
             }
@@ -243,13 +310,13 @@ namespace Placemaker.Core.Geometry
         /// <summary>One sweep: split every edge at every crossing / vertex lying on it. True if anything changed.</summary>
         private bool SplitRound()
         {
-            int n = _edges.Count;
+            int n = _edges.N;
             var w = Work;
             var minX = Scratch.Fit(ref w.MinX, n);
             var order = Scratch.Fit(ref w.Order, n);
             for (int i = 0; i < n; i++)
             {
-                minX[i] = math.min(_pts[_edges[i].U].x, _pts[_edges[i].V].x);
+                minX[i] = math.min(_pts.A[_edges.A[i].U].x, _pts.A[_edges.A[i].V].x);
                 order[i] = i;
             }
             w.ByMinX.MinX = minX;
@@ -263,51 +330,67 @@ namespace Placemaker.Core.Geometry
             var activeMinY = Scratch.Fit(ref w.ActiveMinY, n);
             var activeMaxY = Scratch.Fit(ref w.ActiveMaxY, n);
             int activeCount = 0;
+            // the smallest far x among the active edges: while the sweep is left of it, none ends (the scan for ended ones
+            // removed nothing and is not made)
+            double soonest = double.MaxValue;
             bool any = false;
             for (int oi = 0; oi < n; oi++)
             {
                 int i = order[oi];
                 double x0 = minX[i] - _eps;
-                for (int k = activeCount - 1; k >= 0; k--)
+                if (soonest < x0)
                 {
-                    if (activeMaxX[k] < x0)
+                    soonest = double.MaxValue;
+                    for (int k = activeCount - 1; k >= 0; k--)
                     {
-                        int last = --activeCount;
-                        active[k] = active[last];
-                        activeMaxX[k] = activeMaxX[last];
-                        activeMinY[k] = activeMinY[last];
-                        activeMaxY[k] = activeMaxY[last];
+                        if (activeMaxX[k] < x0)
+                        {
+                            int last = --activeCount;
+                            active[k] = active[last];
+                            activeMaxX[k] = activeMaxX[last];
+                            activeMinY[k] = activeMinY[last];
+                            activeMaxY[k] = activeMaxY[last];
+                            if (k < activeCount && activeMaxX[k] < soonest) soonest = activeMaxX[k];
+                        }
+                        else if (activeMaxX[k] < soonest) soonest = activeMaxX[k];
                     }
                 }
-                var e = _edges[i];
-                double2 a = _pts[e.U], b = _pts[e.V];
+                var e = _edges.A[i];
+                double2 a = _pts.A[e.U], b = _pts.A[e.V];
                 double ey0 = math.min(a.y, b.y) - _eps, ey1 = math.max(a.y, b.y) + _eps;
+                // an edge whose two ends both lie clearly on one side of this one's line (further than eps, with a margin for
+                // rounding) neither touches nor crosses it: Intersect would find nothing (most pairs the boxes let through)
+                double abx = b.x - a.x, aby = b.y - a.y;
+                double clear2 = _eps2 * (abx * abx + aby * aby) * 1.0201;
                 for (int k = 0; k < activeCount; k++)
                 {
                     if (activeMaxY[k] < ey0 || activeMinY[k] > ey1) continue;
                     int j = active[k];
-                    var f = _edges[j];
-                    double2 c = _pts[f.U], d = _pts[f.V];
+                    var f = _edges.A[j];
+                    double2 c = _pts.A[f.U], d = _pts.A[f.V];
+                    double sc = abx * (c.y - a.y) - aby * (c.x - a.x), sd = abx * (d.y - a.y) - aby * (d.x - a.x);
+                    if ((sc > 0) == (sd > 0) && sc * sc > clear2 && sd * sd > clear2) continue;
                     any |= Intersect(i, e, a, b, j, f, c, d, splits);
                 }
                 active[activeCount] = i;
                 activeMaxX[activeCount] = math.max(a.x, b.x);
+                if (activeMaxX[activeCount] < soonest) soonest = activeMaxX[activeCount];
                 activeMinY[activeCount] = math.min(a.y, b.y);
                 activeMaxY[activeCount] = math.max(a.y, b.y);
                 activeCount++;
             }
             if (!any) { Array.Clear(splits, 0, n); return false; }
 
-            var result = new List<Edge>(n + 16);
+            var result = new Buf<Edge>(n + 16);
             for (int i = 0; i < n; i++)
             {
-                var e = _edges[i];
+                var e = _edges.A[i];
                 var s = splits[i];
                 if (s == null) { result.Add(e); continue; }
-                double2 a = _pts[e.U], ab = _pts[e.V] - a;
+                double2 a = _pts.A[e.U], ab = _pts.A[e.V] - a;
                 double len2 = math.max(math.lengthsq(ab), 1e-300);
                 var ts = new List<KeyValuePair<double, int>>(s.Count);
-                foreach (int v in s) ts.Add(new KeyValuePair<double, int>(math.dot(_pts[v] - a, ab) / len2, v));
+                foreach (int v in s) ts.Add(new KeyValuePair<double, int>(math.dot(_pts.A[v] - a, ab) / len2, v));
                 ts.Sort((p, q) => p.Key.CompareTo(q.Key));
                 int prev = e.U;
                 foreach (var kv in ts)
@@ -334,17 +417,18 @@ namespace Placemaker.Core.Geometry
             if (e.V != f.U && e.V != f.V && NearInterior(b, c, d)) { AddSplit(splits, j, e.V); any = true; }
             if (e.U == f.U || e.U == f.V || e.V == f.U || e.V == f.V) return any;
 
-            // Proper crossing.
-            double2 r = b - a, s = d - c;
-            double den = Cross(r, s);
+            // Proper crossing. (The vector maths written out, the same operations in the same order: in the game's runtime each
+            // vector operation was a call, and this runs for every pair of edges a boolean meets)
+            double rx = b.x - a.x, ry = b.y - a.y, sx = d.x - c.x, sy = d.y - c.y;
+            double den = rx * sy - ry * sx;
             if (den == 0) return any;
-            double t = Cross(c - a, s) / den, u = Cross(c - a, r) / den;
+            double cax = c.x - a.x, cay = c.y - a.y;
+            double t = (cax * sy - cay * sx) / den, u = (cax * ry - cay * rx) / den;
             if (t <= 0 || t >= 1 || u <= 0 || u >= 1) return any;
-            double2 p = a + r * t;
+            double px = a.x + rx * t, py = a.y + ry * t;
             // Crossings within eps of an endpoint were handled as incidences above.
-            if (math.distancesq(p, a) <= _eps2 || math.distancesq(p, b) <= _eps2 ||
-                math.distancesq(p, c) <= _eps2 || math.distancesq(p, d) <= _eps2) return any;
-            int x = VertexLocal(p);
+            if (DistSq(px, py, a) <= _eps2 || DistSq(px, py, b) <= _eps2 || DistSq(px, py, c) <= _eps2 || DistSq(px, py, d) <= _eps2) return any;
+            int x = VertexLocal(new double2(px, py));
             if (x != e.U && x != e.V) { AddSplit(splits, i, x); any = true; }
             if (x != f.U && x != f.V) { AddSplit(splits, j, x); any = true; }
             return any;
@@ -352,13 +436,22 @@ namespace Placemaker.Core.Geometry
 
         private bool NearInterior(double2 p, double2 a, double2 b)
         {
-            double2 ab = b - a;
-            double len2 = math.lengthsq(ab);
+            double abx = b.x - a.x, aby = b.y - a.y;
+            double len2 = abx * abx + aby * aby;
             if (len2 <= 0) return false;
-            double t = math.dot(p - a, ab) / len2;
+            double t = ((p.x - a.x) * abx + (p.y - a.y) * aby) / len2;
             if (t <= 0 || t >= 1) return false;
-            if (math.distancesq(p, a) <= _eps2 || math.distancesq(p, b) <= _eps2) return false;
-            return math.distancesq(p, a + ab * t) <= _eps2;
+            if (DistSq(p.x, p.y, a) <= _eps2 || DistSq(p.x, p.y, b) <= _eps2) return false;
+            double qx = a.x + abx * t, qy = a.y + aby * t;
+            double dx = qx - p.x, dy = qy - p.y;
+            return dx * dx + dy * dy <= _eps2;
+        }
+
+        /// <summary>math.distancesq((px, py), q), written out (q minus p, squared, the same operations).</summary>
+        private static double DistSq(double px, double py, double2 q)
+        {
+            double dx = q.x - px, dy = q.y - py;
+            return dx * dx + dy * dy;
         }
 
         private static void AddSplit(List<int>[] splits, int edge, int v)
@@ -369,11 +462,11 @@ namespace Placemaker.Core.Geometry
 
         private void PruneDangling()
         {
-            int nv = _pts.Count, ne = _edges.Count;
+            int nv = _pts.N, ne = _edges.N;
             var w = Work;
             var deg = Scratch.Fit(ref w.Deg, nv);
             Array.Clear(deg, 0, nv);
-            foreach (var e in _edges) { deg[e.U]++; deg[e.V]++; }
+            for (int q = 0; q < ne; q++) { deg[_edges.A[q].U]++; deg[_edges.A[q].V]++; }
             var alive = Scratch.Fit(ref w.Alive, ne);
             // each vertex's edges in the order they come (one flat table, not a list per vertex)
             var incStart = Scratch.Fit(ref w.IncStart, nv + 1);
@@ -384,7 +477,7 @@ namespace Placemaker.Core.Geometry
             for (int k = 0; k < ne; k++)
             {
                 alive[k] = true;
-                int u = _edges[k].U, x = _edges[k].V;
+                int u = _edges.A[k].U, x = _edges.A[k].V;
                 incFlat[incStart[u] + fill[u]++] = k;
                 incFlat[incStart[x] + fill[x]++] = k;
             }
@@ -400,20 +493,20 @@ namespace Placemaker.Core.Geometry
                     int k = incFlat[q];
                     if (!alive[k]) continue;
                     alive[k] = false; removed = true;
-                    int o = _edges[k].U == v ? _edges[k].V : _edges[k].U;
+                    int o = _edges.A[k].U == v ? _edges.A[k].V : _edges.A[k].U;
                     deg[v]--; deg[o]--;
                     if (deg[o] == 1) stack.Push(o);
                     break;
                 }
             }
             if (!removed) return;
-            var kept = new List<Edge>(ne);
-            for (int k = 0; k < ne; k++) if (alive[k]) kept.Add(_edges[k]);
+            var kept = new Buf<Edge>(ne);
+            for (int k = 0; k < ne; k++) if (alive[k]) kept.Add(_edges.A[k]);
             _edges = kept;
         }
 
-        private int Org(int h) => (h & 1) == 0 ? _edges[h >> 1].U : _edges[h >> 1].V;
-        private int Dst(int h) => (h & 1) == 0 ? _edges[h >> 1].V : _edges[h >> 1].U;
+        private int Org(int h) => (h & 1) == 0 ? _edges.A[h >> 1].U : _edges.A[h >> 1].V;
+        private int Dst(int h) => (h & 1) == 0 ? _edges.A[h >> 1].V : _edges.A[h >> 1].U;
 
         /// <summary>Half-edges by angle, ties by index: a total order, so every sort gives the one same result.</summary>
         private sealed class ByAngle : IComparer<int>
@@ -424,13 +517,13 @@ namespace Placemaker.Core.Geometry
 
         private void BuildFaces()
         {
-            int nh = _edges.Count * 2, nv = _pts.Count;
+            int nh = _edges.N * 2, nv = _pts.N;
             var w = Work;
             var angle = Scratch.Fit(ref w.Angle, nh);
             _outStart = new int[nv + 1];
             for (int h = 0; h < nh; h++)
             {
-                double2 dvec = _pts[Dst(h)] - _pts[Org(h)];
+                double2 dvec = _pts.A[Dst(h)] - _pts.A[Org(h)];
                 angle[h] = math.atan2(dvec.y, dvec.x);
                 _outStart[Org(h) + 1]++;
             }
@@ -480,13 +573,13 @@ namespace Placemaker.Core.Geometry
             var parent = Scratch.Fit(ref w.Parent, nv);
             for (int i = 0; i < nv; i++) parent[i] = i;
             int Find(int x) { while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
-            foreach (var e in _edges) { int a = Find(e.U), b = Find(e.V); if (a != b) parent[a] = b; }
+            for (int q = 0; q < _edges.N; q++) { int a = Find(_edges.A[q].U), b = Find(_edges.A[q].V); if (a != b) parent[a] = b; }
             var area = Scratch.Fit(ref w.Area, nc);
             var outerOf = new Dictionary<int, int>();
             for (int c = 0; c < nc; c++)
             {
                 double a = 0;
-                for (int k = _cycleStart[c]; k < _cycleStart[c + 1]; k++) { int h = _cycleFlat[k]; a += Cross(_pts[Org(h)], _pts[Dst(h)]); }
+                for (int k = _cycleStart[c]; k < _cycleStart[c + 1]; k++) { int h = _cycleFlat[k]; a += Cross(_pts.A[Org(h)], _pts.A[Dst(h)]); }
                 area[c] = a;
                 int comp = Find(Org(_cycleFlat[_cycleStart[c]]));
                 if (!outerOf.TryGetValue(comp, out int cur0) || a < area[cur0]) outerOf[comp] = c;
@@ -508,7 +601,7 @@ namespace Placemaker.Core.Geometry
                         int h = _cycleFlat[kh];
                         int c2 = _cycleOf[h ^ 1];
                         if (done[c2]) continue;
-                        var e = _edges[h >> 1];
+                        var e = _edges.A[h >> 1];
                         int sgn = (h & 1) == 0 ? 1 : -1;
                         _windA[c2] = _windA[c] - sgn * e.DA;
                         _windB[c2] = _windB[c] - sgn * e.DB;
@@ -536,34 +629,39 @@ namespace Placemaker.Core.Geometry
             for (int k0 = _cycleStart[cycle]; k0 < _cycleStart[cycle + 1]; k0++)
             {
                 int h = _cycleFlat[k0];
-                double l = math.distancesq(_pts[Org(h)], _pts[Dst(h)]);
+                double l = math.distancesq(_pts.A[Org(h)], _pts.A[Dst(h)]);
                 if (l > bestLen) { bestLen = l; best = h; }
             }
-            double2 a = _pts[Org(best)], b = _pts[Dst(best)];
+            double2 a = _pts.A[Org(best)], b = _pts.A[Dst(best)];
             double len = math.sqrt(bestLen);
-            double2 m = (a + b) * 0.5, n = new double2(-(b.y - a.y), b.x - a.x) / len;
+            // (the vector maths written out, the same operations in the same order)
+            double mx = (a.x + b.x) * 0.5, my = (a.y + b.y) * 0.5;
+            double nx = -(b.y - a.y) / len, ny = (b.x - a.x) / len;
             double tMin = len;
             int own = best >> 1;
-            for (int k = 0; k < _edges.Count; k++)
+            for (int k = 0; k < _edges.N; k++)
             {
                 if (k == own) continue;
-                double2 p = _pts[_edges[k].U], q = _pts[_edges[k].V], s = q - p;
-                double den = Cross(n, s);
+                double2 p = _pts.A[_edges.A[k].U], q = _pts.A[_edges.A[k].V];
+                double sx = q.x - p.x, sy = q.y - p.y;
+                double den = nx * sy - ny * sx;
                 if (den == 0) continue;
-                double t = Cross(p - m, s) / den, u = Cross(p - m, n) / den;
+                double pmx = p.x - mx, pmy = p.y - my;
+                double t = (pmx * sy - pmy * sx) / den, u = (pmx * ny - pmy * nx) / den;
                 if (u < 0 || u > 1 || t <= 0) continue;
                 if (t < tMin) tMin = t;
             }
-            return m + n * (tMin * 0.5);
+            return new double2(mx + nx * (tMin * 0.5), my + ny * (tMin * 0.5));
         }
 
         private void Winding(double2 p, out int wa, out int wb)
         {
             wa = 0; wb = 0;
-            foreach (var e in _edges)
+            for (int q = 0; q < _edges.N; q++)
             {
+                var e = _edges.A[q];
                 if (e.DA == 0 && e.DB == 0) continue;
-                double2 a = _pts[e.U], b = _pts[e.V];
+                double2 a = _pts.A[e.U], b = _pts.A[e.V];
                 if ((a.y > p.y) == (b.y > p.y)) continue;
                 double x = a.x + (p.y - a.y) * (b.x - a.x) / (b.y - a.y);
                 if (x <= p.x) continue;
@@ -583,7 +681,7 @@ namespace Placemaker.Core.Geometry
         public List<Region> Extract(Func<int, int, bool> inside, bool splitByCuts = false)
         {
             Build();
-            int nh = _edges.Count * 2;
+            int nh = _edges.N * 2;
             var regions = new List<Region>();
             if (nh == 0) return regions;
             var w = Work;
@@ -597,7 +695,7 @@ namespace Placemaker.Core.Geometry
                 int c = _cycleOf[h], ct = _cycleOf[h ^ 1];
                 if (!sel[c]) continue;
                 if (!sel[ct]) boundary[h] = true;
-                else if (splitByCuts && _edges[h >> 1].Cut && c != ct) boundary[h] = true;
+                else if (splitByCuts && _edges.A[h >> 1].Cut && c != ct) boundary[h] = true;
             }
 
             var used = Scratch.Fit(ref w.Used, nh);
@@ -673,7 +771,7 @@ namespace Placemaker.Core.Geometry
         {
             area = 0;
             var pts = new List<double2>(loop.Count);
-            foreach (int v in loop) pts.Add(_pts[v]);
+            foreach (int v in loop) pts.Add(_pts.A[v]);
             // Drop straight-through vertices introduced by splitting (keeps rings minimal). Linked list
             // with a work stack: O(n) instead of repeated passes.
             int n = pts.Count;

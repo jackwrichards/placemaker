@@ -195,9 +195,9 @@ namespace Placemaker.Game.Neighbours
         // the planner runs off the frame: a pass gathers the houses here, plans on a worker, and is applied when it is done
         // plans worked out on workers at once, each for its own patch of town (patches far enough apart never edit the same house)
         private readonly List<Pending> _inFlight = new List<Pending>();
-        // (a few cores left to the game's own jobs: 4 on 16 threads, where it was 3, and those hardly ever ran at once: passes
-        // kept apart by the widest reach of any type, used or not)
-        private static readonly int MaxInFlight = math.clamp((Environment.ProcessorCount - 4) / 3, 1, 4);
+        // (half the threads less one, the rest left to the game's own jobs: 7 on 16 threads, where it was 3, and those hardly
+        // ever ran at once: passes kept apart by the widest reach of any type, used or not)
+        private static readonly int MaxInFlight = math.clamp(Environment.ProcessorCount / 2 - 1, 1, 7);
         // a patch: a waiting house and every waiting house this near it, planned together with the houses around them; a bigger
         // patch while many wait (a whole town outgrown or redone): fewer plans, and a house is planned again as a neighbour of
         // the next patch less often
@@ -287,6 +287,7 @@ namespace Placemaker.Game.Neighbours
             CreateAreaQueries();
             CreateSwitchesQuery();
             CreateNearbyQuery();
+            CreateBarrierCacheQuery();
             CreateHiddenQuery();
             CreateRebuiltQueries();
         }
@@ -319,6 +320,8 @@ namespace Placemaker.Game.Neighbours
                 SwitchesUpdate();
             }
             catch (Exception e) { if (_errors++ < 5) Mod.Log.Error(e, "Placemaker neighbourhood polish (switches) failed"); }
+            try { DropChangedBarrierCells(); }
+            catch (Exception e) { if (_errors++ < 5) Mod.Log.Error(e, "Placemaker neighbourhood polish (barrier cells) failed"); }
             try
             {
                 // the painter's stamps, "Remove all polish", new lots' flags and our new pieces' tags: also with the polish
@@ -361,9 +364,19 @@ namespace Placemaker.Game.Neighbours
                 Waiting = _dirty.Count;
                 // one finished plan written per frame (writing is the part on the frame), one new patch started per frame
                 StartSampledPlans();
+                double finishMs = 0;
                 for (int k = 0; k < _inFlight.Count; k++)
-                    if (_inFlight[k].Task != null && _inFlight[k].Task.IsCompleted) { var done = _inFlight[k]; _inFlight.RemoveAt(k); Finish(done); break; }
-                if (_dirty.Count > 0 && _inFlight.Count < MaxInFlight) Pass();
+                    if (_inFlight[k].Task != null && _inFlight[k].Task.IsCompleted)
+                    {
+                        var done = _inFlight[k];
+                        _inFlight.RemoveAt(k);
+                        var finishClock = Stopwatch.StartNew();
+                        Finish(done);
+                        finishMs = finishClock.Elapsed.TotalMilliseconds;
+                        break;
+                    }
+                // (a big plan written this frame: the next patch is gathered on the next, never both on one frame)
+                if (_dirty.Count > 0 && _inFlight.Count < MaxInFlight && finishMs < 6.0) Pass();
                 if (_passes > 0 && (_frame & 255) == 0) Report();
             }
             catch (Exception e)
@@ -512,8 +525,7 @@ namespace Placemaker.Game.Neighbours
             var index = _gridIndex;
             bool many = _dirty.Count > ManyWaiting;
             int batch = many ? HousesPerBigPass : HousesPerPass;
-            float patch = many ? BigPatchRadius : PatchRadius;
-            float extent = patch + CoreRadius;
+            float patch = many ? Settings.Knob("bigPatch", BigPatchRadius) : PatchRadius;
 
             // an unpolished lot is never planned itself: a change of it (rebuilt, levelled up, just unpolished) re-plans the
             // polished lots around it
@@ -537,12 +549,40 @@ namespace Placemaker.Game.Neighbours
             // Plans at once: no house is in two of them (their patches and neighbours apart), and the one finishing later is
             // planned again if its gardens come near gardens another wrote meanwhile (CheckWrites): no garden ever lies over
             // another, every fence closes against what really stands. Before, plans kept apart by the reach of both: about
-            // 490 m with the looks as they ship, one plan at a time in a town (on 20 Oct, 190 m and nothing checked)
+            // 490 m with the looks as they ship, one plan at a time in a town (on 20 Oct, 190 m and nothing checked). (Kept
+            // apart by the houses each edits, 30 m, they met far more often: twice the plans in the game runner)
+            float extent = patch + CoreRadius;
             float Gap(float2 at)
             {
                 float gap = float.MaxValue;
                 foreach (var f in _inFlight) gap = math.min(gap, math.distance(f.Seed, at) - f.Extent - extent - 10f);
                 return gap;
+            }
+            // while a whole town waits, a pass edits only waiting houses near its own (knob coreAll 0): the ones planned
+            // already keep their gardens, the patches meet on them
+            bool onlyWaiting = many && Settings.Knob("coreAll", 1f) < 0.5f;
+            // a patch from a seed: the waiting houses near it (done), and every yes house near those (core: only yes lots are
+            // edited)
+            void Patch(int s)
+            {
+                var seedAt0 = houses[s].T.m_Position.xz;
+                int patchCells = (int)math.ceil(patch / Cell);
+                for (int dx = -patchCells; dx <= patchCells; dx++)
+                    for (int dz = -patchCells; dz <= patchCells; dz++)
+                        if (grid.TryGetValue(Key(seedAt0 + new float2(dx, dz) * Cell), out var near0))
+                            foreach (int j in near0)
+                                if (done.Count < batch && _dirty.Contains(houses[j].E) && math.distance(houses[j].T.m_Position.xz, seedAt0) <= patch) done.Add(houses[j].E);
+                if (!done.Contains(houses[s].E)) done.Add(houses[s].E);
+                foreach (var e in done)
+                {
+                    if (!index.TryGetValue(e, out int i)) continue;
+                    var p = houses[i].T.m_Position.xz;
+                    for (int dx = -1; dx <= 1; dx++)
+                        for (int dz = -1; dz <= 1; dz++)
+                            if (grid.TryGetValue(Key(p + new float2(dx, dz) * Cell), out var near))
+                                foreach (int j in near)
+                                    if (math.distance(houses[j].T.m_Position.xz, p) <= CoreRadius && IsYes(houses[j].E) && (!onlyWaiting || _dirty.Contains(houses[j].E))) core.Add(j);
+                }
             }
             // the player's own work first; a house still being built waits in _first until its lanes come (then it is dirty)
             foreach (var e in _first)
@@ -561,29 +601,13 @@ namespace Placemaker.Game.Neighbours
                     if (_inFlight.Count == 0) break;
                 }
             }
+            if (seed >= 0) Patch(seed);
             foreach (var e in unknown) _dirty.Remove(e);
             TotalDropped += unknown.Count;
             if (seed < 0) return;
             var seedAt = houses[seed].T.m_Position.xz;
-            int patchCells = (int)math.ceil(patch / Cell);
-            for (int dx = -patchCells; dx <= patchCells; dx++)
-                for (int dz = -patchCells; dz <= patchCells; dz++)
-                    if (grid.TryGetValue(Key(seedAt + new float2(dx, dz) * Cell), out var near0))
-                        foreach (int j in near0)
-                            if (done.Count < batch && _dirty.Contains(houses[j].E) && math.distance(houses[j].T.m_Position.xz, seedAt) <= patch) done.Add(houses[j].E);
-            if (!done.Contains(houses[seed].E)) done.Add(houses[seed].E);
-            // the houses edited first (only yes lots are), then as far around them as their gardens reach: the pass's own reach,
-            // not the widest of every type in the city (a type at 500 m nobody used made every pass take in 400 m of town)
-            foreach (var e in done)
-            {
-                if (!index.TryGetValue(e, out int i)) continue;
-                var p = houses[i].T.m_Position.xz;
-                for (int dx = -1; dx <= 1; dx++)
-                    for (int dz = -1; dz <= 1; dz++)
-                        if (grid.TryGetValue(Key(p + new float2(dx, dz) * Cell), out var near))
-                            foreach (int j in near)
-                                if (math.distance(houses[j].T.m_Position.xz, p) <= CoreRadius && IsYes(houses[j].E)) core.Add(j);
-            }
+            // (as far around the edited houses as their gardens reach: the pass's own reach, not the widest of every type in
+            // the city: a type at 500 m nobody used made every pass take in 400 m of town)
             float coreReach = 0f;
             foreach (int j in core) coreReach = math.max(coreReach, LotReach(houses[j].E));
             float clusterRadius = math.clamp(coreReach + 60f, ClusterRadiusMin, ClusterRadiusMax);
@@ -831,7 +855,8 @@ namespace Placemaker.Game.Neighbours
             bool logPass = TotalPasses < 6 || s_logPasses > 0;
             if (s_logPasses > 0) s_logPasses--;
             if (logPass)
-                foreach (var note in plan.Notes) Mod.Log.Info("Placemaker neighbourhood polish: " + note);
+                // (one write for all of them: a call per note was most of the frame a big plan was written on)
+                if (plan.Notes.Count > 0) Mod.Log.Info("Placemaker neighbourhood polish: " + string.Join("\nPlacemaker neighbourhood polish: ", plan.Notes));
             if (logPass)
                 Mod.Log.Info($"Placemaker neighbourhood polish pass {TotalPasses + 1}: {asked} houses asked, {clusterCount} in their neighbourhoods ({stitch.Count(h => !h.Polished)} unpolished), {plan.Pairs.Count} pairs ({plan.Pairs.Count(p => p.Edge)} against an unpolished lot), "
                     + $"{plan.MoveLines.Count} lines to move, {plan.HideLines.Count} to hide, {plan.Lawns.Count} lawns{(EditLines ? "" : " (lines off)")}{(EditLawns ? "" : " (lawns off)")}{(skip.Count > 0 ? $", {skip.Count} unpolished meanwhile" : "")}");
