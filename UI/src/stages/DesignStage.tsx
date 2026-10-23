@@ -87,7 +87,7 @@ const MARKER_SHORT: Record<string, [string, string]> = {
     twoway: ["Placemaker.UI.Marker.TwoWayShort", "2-way"],
     entry: ["Placemaker.UI.Marker.EntryShort", "In"],
     exit: ["Placemaker.UI.Marker.ExitShort", "Out"],
-    alley: ["Placemaker.UI.Marker.AlleyShort", "Alley"],
+    alley: ["Placemaker.UI.Marker.AlleyShort", "Driveway"],
     footpath: ["Placemaker.UI.Marker.FootpathShort", "Path"],
     pedestrian: ["Placemaker.UI.Marker.PedestrianShort", "Walk-in"],
     bike: ["Placemaker.UI.Marker.BikeShort", "Bike"],
@@ -211,14 +211,6 @@ const Entrances = ({ step, state }: { step: StepView; state: ToolState }) => {
                         );
                     })}
                 </div>
-                {placing ? (
-                    <div className={s.placingHint} data-testid="marker-placing">
-                        <Icon name="info" size={12} tint="warn" />
-                        <div className={s.placingText}>
-                            {t("Placemaker.UI.Markers.Placing", "Click the outline by a road to place one. Right-click removes one. Esc when done.")}
-                        </div>
-                    </div>
-                ) : null}
             </div>
             {list.length ? (
                 <div className={s.entBlock}>

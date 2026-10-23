@@ -64,20 +64,24 @@ namespace Placemaker.Game.Tool
                 return h;
             }
 
+            int modeHints = h.Count;
             switch (_mode)
             {
                 case SelectionMode.Draw:
                     if (!_draw.Closed)
                     {
                         h.Add(new HintInfo(_draw.Count >= PolygonEditor.MinPoints ? "Placemaker.Hint.DrawAddOrClose" : "Placemaker.Hint.DrawAdd"));
-                        if (_draw.Count > 0) h.Add(new HintInfo("Placemaker.Hint.DrawRemoveLast"));
                         if (_lastSnap.Kind == SnapKind.RoadNode) h.Add(new HintInfo("Placemaker.Hint.DrawNodes"));
                         h.Add(new HintInfo("Placemaker.Hint.DrawNoSnap", "Alt"));
                     }
                     else
                     {
                         if (_gesture == Gesture.DragEdge) h.Add(new HintInfo("Placemaker.Hint.DrawEdgeDragging"));
-                        else if (_hoverPoint >= 0) { h.Add(new HintInfo("Placemaker.Hint.DrawMovePoint")); h.Add(new HintInfo("Placemaker.Hint.DrawRemovePoint")); }
+                        else if (_hoverPoint >= 0)
+                        {
+                            h.Add(new HintInfo("Placemaker.Hint.DrawMovePoint"));
+                            if (_stage != ToolStage.Area) h.Add(new HintInfo("Placemaker.Hint.DrawRemovePoint"));   // choosing the area: right-click starts over
+                        }
                         else if (_hoverEdge >= 0)
                         {
                             h.Add(new HintInfo("Placemaker.Hint.DrawInsertDrag"));
@@ -90,33 +94,33 @@ namespace Placemaker.Game.Tool
                 case SelectionMode.Block:
                     h.Add(new HintInfo(_blocks.Seeds.Count == 0 ? "Placemaker.Hint.BlockPick" : "Placemaker.Hint.BlockReplace"));
                     h.Add(new HintInfo("Placemaker.Hint.BlockAdd", "Shift"));
-                    if (_blocks.Seeds.Count > 0) h.Add(new HintInfo("Placemaker.Hint.BlockRemove"));
                     break;
                 case SelectionMode.Perimeter:
-                    if (_perimeter.Closed) h.Add(new HintInfo("Placemaker.Hint.PerimeterReopen"));
-                    else
+                    if (!_perimeter.Closed)
                     {
                         h.Add(new HintInfo(_perimeter.Nodes.Count >= 2 ? "Placemaker.Hint.PerimeterAddOrClose" : "Placemaker.Hint.PerimeterAdd"));
                         if (_perimeter.Nodes.Count >= 3 && _shape != null) h.Add(new HintInfo("Placemaker.Hint.PerimeterAutoClose"));
-                        if (_perimeter.Nodes.Count > 0) h.Add(new HintInfo("Placemaker.Hint.PerimeterRemoveLast"));
                     }
                     break;
                 case SelectionMode.Paint:
                     if (_stage != ToolStage.Area) break;   // s15: the brush only works in the Area stage
                     h.Add(new HintInfo("Placemaker.Hint.PaintPaint"));
-                    h.Add(new HintInfo("Placemaker.Hint.PaintErase"));
+                    h.Add(new HintInfo("Placemaker.Hint.PaintErase", "Shift"));
                     if (_brushSquare) h.Add(new HintInfo("Placemaker.Hint.PaintRotate", "Shift"));
                     break;
                 case SelectionMode.BlockPaint:
                     if (_stage != ToolStage.Area) break;
                     var rules = BrushRules;
                     h.Add(new HintInfo(!rules.Stops(BrushObstacleKind.Road) ? "Placemaker.Hint.PaintPaint" : !BlockPaintHasTarget ? "Placemaker.Hint.BlockPaintStart" : "Placemaker.Hint.BlockPaintPaint"));
-                    h.Add(new HintInfo("Placemaker.Hint.BlockPaintErase"));
+                    h.Add(new HintInfo("Placemaker.Hint.BlockPaintErase", "Shift"));
                     if (_brushSquare) h.Add(new HintInfo("Placemaker.Hint.PaintRotate", "Shift"));
                     if (BlockPaintCurrent?.Obstacles.Count > 0) h.Add(new HintInfo("Placemaker.Hint.BlockPaintBlocked"));
                     if (BlockPaintHasTarget && rules.Stops(BrushObstacleKind.Road)) h.Add(new HintInfo("Placemaker.Hint.BlockPaintNewBlock"));
                     break;
             }
+            // Every area tool: right-click starts over while choosing the area (RightClickStartsOver); second, so the
+            // footer (which shows the first few) never cuts it off.
+            if (_stage == ToolStage.Area && HasSelection()) h.Insert(System.Math.Min(h.Count, modeHints + 1), new HintInfo("Placemaker.Hint.StartOver"));
             AddBuildingHint(h);
             if (_history.CanUndo) h.Add(new HintInfo("Placemaker.Hint.Undo", "Ctrl", "Z"));
             var p = StageMachine.Primary(_stage, Facts());

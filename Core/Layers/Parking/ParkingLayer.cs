@@ -182,7 +182,7 @@ namespace Placemaker.Core.Layers.Parking
             zt.AssetCategory = AssetCategories.Zone; zt.Cheap = true;
             l.Add(zt);
             l.Add(Slider(ParkingIds.ZoningDepth, ControlTier.More, "zoning", 3, 1, ParkingSettings.MaxZoneDepthCells, 1, "count"));
-            l.Add(Slider(ParkingIds.ZoningPatchWidth, ControlTier.More, "zoning", 4, 1, 10, 1, "count"));
+            // (ZoningPatchWidth has no slider: the building plot marker it sizes is not offered any more, ParkingIds.MarkerKinds.)
 
             // ── Fee ──
             l.Add(Slider(ParkingIds.Fee, ControlTier.More, "fee", 10, 0, 50, 1, "money", cheap: true));

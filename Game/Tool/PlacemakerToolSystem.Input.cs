@@ -80,7 +80,8 @@ namespace Placemaker.Game.Tool
             if (SuiteInputOnly) return HandleSuiteKey();   // a suite run: real keys are ignored, scripted keys take the same path
             var im = InputManager.instance;
             if (im != null && im.hasInputFieldFocus) return false;
-            if (SafePressed(cancelAction)) { Escape(); return true; }
+            var mouse = Mouse.current;
+            if (EscapeFromCancel(SafePressed(cancelAction), mouse != null && mouse.rightButton.wasPressedThisFrame)) { Escape(); return true; }
             if (Performed(_primaryAction)) { Primary(); return true; }
             if (_gesture == Gesture.None)
             {
@@ -89,6 +90,14 @@ namespace Placemaker.Game.Tool
             }
             return false;
         }
+
+        /// <summary>
+        /// The game's tool "Cancel" is Esc, the gamepad's B and the right mouse button (its Tool map binds all three; the
+        /// "Cancel" alias has every device). Only Esc and B step back: a right-click takes back the last thing placed, in
+        /// each mode's own update (2026-10-22, the user: "Right-click goes back to the area mode... Right-click should be
+        /// to remove the last thing that you just did").
+        /// </summary>
+        private static bool EscapeFromCancel(bool cancelPressed, bool rightMouseDown) => cancelPressed && !rightMouseDown;
 
         private static bool Performed(ProxyAction a)
         {
@@ -219,7 +228,7 @@ namespace Placemaker.Game.Tool
         // apply action for named states ("Add Area Node", "Complete Area"…) whose bindings are the
         // same mouse buttons — we do the same so the hints read "Add corner", "Complete area" etc.
 
-        private IProxyAction _hintAddNode, _hintInsertNode, _hintMoveNode, _hintDeleteNode, _hintUndoNode, _hintComplete;
+        private IProxyAction _hintAddNode, _hintInsertNode, _hintMoveNode, _hintDeleteNode, _hintComplete;
         private bool _hintsAvailable;
 
         private void CreateHintActions()
@@ -241,7 +250,6 @@ namespace Placemaker.Game.Tool
                 _hintInsertNode = c.GetActionState("Insert Area Node", owner);
                 _hintMoveNode = c.GetActionState("Move Area Node", owner);
                 _hintDeleteNode = c.GetActionState("Delete Area Node", owner);
-                _hintUndoNode = c.GetActionState("Undo Area Node", owner);
                 _hintComplete = c.GetActionState("Complete Area", owner);
                 _hintsAvailable = true;
             }
@@ -262,12 +270,9 @@ namespace Placemaker.Game.Tool
                 if (_gesture == Gesture.None && _markerKind == null && _mode == SelectionMode.Draw
                     && (_stage == ToolStage.Area || _stage == ToolStage.Design || _stage == ToolStage.Review))
                 {
-                    if (!_draw.Closed)
-                    {
-                        apply = _hoverClose ? _hintComplete : _hintAddNode;
-                        if (_draw.Count > 0) secondary = _hintUndoNode;
-                    }
-                    else if (_hoverPoint >= 0) { apply = _hintMoveNode; secondary = _hintDeleteNode; }
+                    // (Right-click starts over while choosing the area: no vanilla words for that, so no secondary hint then.)
+                    if (!_draw.Closed) apply = _hoverClose ? _hintComplete : _hintAddNode;
+                    else if (_hoverPoint >= 0) { apply = _hintMoveNode; if (_stage != ToolStage.Area) secondary = _hintDeleteNode; }
                     else if (_hoverEdge >= 0) apply = _hintInsertNode;
                 }
                 applyActionOverride = apply;

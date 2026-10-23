@@ -62,10 +62,14 @@ namespace Placemaker.Core.Layers.Parking
         public const string KindBusStop = "busStop";
         public const string KindZoningPatch = "zoningPatch";
 
-        /// <summary>All marker kinds in display order.</summary>
+        /// <summary>
+        /// The marker kinds the panel offers, in display order. Bus stop and building plot are not offered (2026-10-22, the
+        /// user: "doing a bus stop or a building plot for a parking lot... just don't make sense"); designs that have them
+        /// still build them (PlanBuilder).
+        /// </summary>
         public static readonly string[] MarkerKinds =
         {
-            KindEntrance, KindEntry, KindExit, KindAlley, KindAlleyIn, KindAlleyOut, KindFootpath, KindBusStop, KindZoningPatch,
+            KindEntrance, KindEntry, KindExit, KindAlley, KindAlleyIn, KindAlleyOut, KindFootpath,
         };
 
         /// <summary>PLT ParkingLotToolSystem.MaxEntranceCount: one quota shared by all entrance kinds.</summary>

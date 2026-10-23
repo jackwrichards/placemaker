@@ -181,14 +181,15 @@ namespace Placemaker.Game.Tool
                 return;
             }
 
-            if (!_in.HasHit || !(_in.LeftPressed || _in.RightPressed)) return;
+            // Right-click starts over (the area is cleared); Shift+drag erases.
+            if (_in.RightPressed) { CommitBlockPaintStroke(true); RightClickStartsOver(); return; }
+            if (!_in.HasHit || !_in.LeftPressed) return;
             // a new stroke right after the last one: the last one's undo step first
             CommitBlockPaintStroke(true);
-            bool erase = _in.RightPressed || _in.Shift;
-            if (erase)
+            if (_in.Shift)
             {
                 if (_bpMask.IsEmpty) return;
-                BeginBlockPaintGesture(_in.Hit.xz, radius, true, !_in.RightPressed);
+                BeginBlockPaintGesture(_in.Hit.xz, radius, true, true);
                 return;
             }
             // A paint stroke waits (a few frames) for the fill and the fence it paints in, worked out in the background;

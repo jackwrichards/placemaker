@@ -1,0 +1,266 @@
+{
+  "_about": "Right-click never steps back like Esc (the user, 22 Oct: 'Right-click does not remove one. Right-click goes back to the area mode... Right-click should be to remove the last thing that you just did'). The game binds its tool Cancel to the right mouse button too; a scripted right-click presses it as the real one does. Area tools (Points, Paint bucket, Paint area): while choosing the area right-click starts over, the area cleared (the user: 'for the points brush, the paint bucket and the other one, it would just remove your current selection, like kind of start over'); once designing it leaves the area alone. Entrances: the last one placed, the panel's warning line gone, no bus stop or building plot to pick. Also moveEntrance/removeEntrance through the panel's remove button. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/right-click.json -Build -Who <you>",
+  "scenarios": [
+    {
+      "id": "rc-points",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "open": true,
+          "points": [
+            [
+              -40,
+              -30
+            ],
+            [
+              40,
+              -30
+            ],
+            [
+              40,
+              30
+            ]
+          ],
+          "shot": "points-open",
+          "shotMode": "ui"
+        },
+        {
+          "do": "rightClick",
+          "at": [
+            -30,
+            20
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "points-after",
+          "shotMode": "ui"
+        }
+      ]
+    },
+    {
+      "id": "rc-bucket",
+      "note": "Two blocks either side of a street. In Design a right-click leaves the area alone; back in Area (Esc) it starts over.",
+      "land": {
+        "size": [
+          200,
+          160
+        ],
+        "nets": [
+          {
+            "prefab": "Small Road",
+            "points": [
+              [
+                0,
+                -96
+              ],
+              [
+                0,
+                96
+              ]
+            ]
+          }
+        ]
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket",
+          "at": [
+            -50,
+            0
+          ],
+          "shift": [
+            [
+              50,
+              0
+            ]
+          ]
+        },
+        {
+          "do": "rightClick",
+          "at": [
+            -50,
+            0
+          ]
+        },
+        {
+          "do": "key",
+          "key": "esc"
+        },
+        {
+          "do": "rightClick",
+          "at": [
+            -50,
+            0
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "bucket-after",
+          "shotMode": "ui"
+        }
+      ]
+    },
+    {
+      "id": "rc-paint",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "paint"
+        },
+        {
+          "do": "key",
+          "key": "esc",
+          "shot": "paint-area-step",
+          "shotMode": "ui"
+        },
+        {
+          "do": "rightClick",
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "do": "undo"
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "paint-undone",
+          "shotMode": "overlay"
+        }
+      ]
+    },
+    {
+      "id": "rc-parking",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.5,
+          "kind": "entrance"
+        },
+        {
+          "do": "entrance",
+          "side": "east",
+          "t": 0.5,
+          "kind": "entrance"
+        },
+        {
+          "do": "entrance",
+          "side": "north",
+          "t": 0.5,
+          "kind": "footpath"
+        },
+        {
+          "do": "moveEntrance",
+          "index": 0,
+          "side": "west",
+          "t": 0.5
+        },
+        {
+          "do": "removeEntrance",
+          "index": 1
+        },
+        {
+          "do": "rightClick",
+          "placing": true,
+          "kind": "entrance",
+          "at": [
+            0,
+            0
+          ],
+          "shot": "placing-panel",
+          "shotMode": "ui"
+        },
+        {
+          "do": "rightClick",
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "do": "rightClick",
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "do": "key",
+          "key": "esc"
+        },
+        {
+          "do": "rightClick",
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.5,
+          "kind": "entrance"
+        },
+        {
+          "do": "preview",
+          "shot": "plan"
+        }
+      ]
+    },
+    {
+      "id": "rc-stripmall-panel",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "stripMall",
+          "preset": "classic"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.5,
+          "kind": "entrance"
+        },
+        {
+          "do": "rightClick",
+          "placing": true,
+          "kind": "entrance",
+          "at": [
+            0,
+            0
+          ],
+          "shot": "stripmall-panel",
+          "shotMode": "ui"
+        }
+      ]
+    }
+  ]
+}

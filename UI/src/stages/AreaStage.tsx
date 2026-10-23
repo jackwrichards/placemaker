@@ -31,7 +31,7 @@ export function modeOptions(t: TFunc) {
             line: t("Placemaker.UI.Tool.PointsLine", "Click corners"),
             description: t(
                 "Placemaker.UI.Tool.PointsTip2",
-                "Click corners, then the first one to close. Snaps to curbs, right angles and road nodes: two corners on road nodes follow the road between them.",
+                "Click corners, then the first one to close; right-click starts over. Snaps to curbs, right angles and road nodes: two corners on road nodes follow the road between them.",
             ),
         },
         {
@@ -39,14 +39,14 @@ export function modeOptions(t: TFunc) {
             icon: "bucket",
             label: t("Placemaker.UI.Tool.Bucket", "Paint bucket"),
             line: t("Placemaker.UI.Tool.BucketLine", "Click to fill"),
-            description: t("Placemaker.UI.Tool.BucketTip2", "Click to fill the land up to what it stops at. Shift+click adds more, right-click drops one."),
+            description: t("Placemaker.UI.Tool.BucketTip2", "Click to fill the land up to what it stops at. Shift+click adds more, right-click starts over."),
         },
         {
             value: "paint" as Tool,
             icon: "brush",
             label: t("Placemaker.UI.Tool.Paint", "Paint area"),
             line: t("Placemaker.UI.Tool.PaintLine", "Brush it on"),
-            description: t("Placemaker.UI.Tool.PaintTip", "Brush the area on. Right-click erases."),
+            description: t("Placemaker.UI.Tool.PaintTip", "Brush the area on. Shift+drag erases, right-click starts over."),
         },
     ];
 }
@@ -279,7 +279,7 @@ const PaintSettings = ({ state, rules }: { state: ToolState; rules: BrushRules }
 const HOWTO: Record<Tool, [string, string]> = {
     draw: ["Placemaker.UI.Area.HowDraw", "Click corners, then the first one"],
     block: ["Placemaker.UI.Area.HowBlock2", "Click to fill"],
-    paint: ["Placemaker.UI.Area.HowPaint", "Drag to paint, right-drag erases"],
+    paint: ["Placemaker.UI.Area.HowPaint", "Drag to paint, Shift+drag erases"],
 };
 
 /**

@@ -299,15 +299,16 @@ after a failed `area`, `type`, `preview` or `build` the scenario's remaining ste
 
 | step | keys (defaults) | what a person does |
 |---|---|---|
-| `area` | `tool`: `bucket` (default), `points`/`draw`, `land` (the scenario's land, in its shape), `paint` (smart edges), `paintAnything`, `nodes`; `at` `[dx,dz]`; `points` `[[dx,dz],…]` or `rect` `[w,h]`; `stroke` `[[dx,dz],…]` with `size` (m, default 45 % of the block), `square`, `angle`; `nodes` `[[dx,dz],…]` (default the four junctions); `abs`; `cameraDistance` (320) | looks at the block from 320 m, picks the area mode, then: one click (bucket); a click per corner and the first again (points); a brush drag (paint); a click per junction and the first again (nodes). Paint ends with Next |
+| `area` | `tool`: `bucket` (default), `points`/`draw`, `land` (the scenario's land, in its shape), `paint` (smart edges), `paintAnything`, `nodes`; `at` `[dx,dz]`; `points` `[[dx,dz],…]` or `rect` `[w,h]`; `stroke` `[[dx,dz],…]` with `size` (m, default 45 % of the block), `square`, `angle`; `nodes` `[[dx,dz],…]` (default the four junctions); `abs`; `cameraDistance` (320); `open` (points: false; true leaves the outline open) | looks at the block from 320 m, picks the area mode, then: one click (bucket); a click per corner and the first again (points; not the first again with `open`); a brush drag (paint); a click per junction and the first again (nodes). Paint ends with Next |
 | `clear` | – | Clear (in Area) |
 | `type` | `layer`, `preset` (style), `fresh` (true) | the type tile of the Make row, then the style chip; refuses a type the Make row does not offer; lists the valid ids on a typo |
 | `preset` | `layer` (the current type), `preset` | the style chip (Design) |
 | `value` | `path` ("0"), `id`, `value` or `json` | a slider is dragged (previewValue each frame, then setValue and endPreview, clamped and snapped to the control's range); a picker hovered then clicked; a toggle or choice set; refused when the panel greys the control out; the value is read back |
 | `entrance` | `side` (`south`/`east`/`north`/`west`, `t` 0.5 along it west→east or south→north) or `at`; `path`, `kind`; `crosswalk` (true/false: presses the panel's Crosswalk switch first when it is the other way) | presses "Add an entrance" (or picks the marker kind), clicks the outline at the point, Esc. The tool's own (snapped) marker is recorded (`placedKind`: `pedestrian+crosswalk` with a crosswalk) |
 | `entrances` | – | while the button asks for entrances: one on the south street, then east, north, west |
-| `moveEntrance` | `index` (0: the script's n-th entrance, matched by position), `side`/`t`/`at` | in placement mode: right-click the marker, left-click the new spot, Esc |
-| `removeEntrance` | `index` | right-click the marker |
+| `moveEntrance` | `index` (0: the script's n-th entrance, matched by position), `side`/`t`/`at` | the entrance's remove button in the panel, then in placement mode a left-click on the new spot, Esc |
+| `removeEntrance` | `index` | the entrance's remove button in the panel |
+| `rightClick` | `at` `[dx,dz]` (the block's centre), `abs`; `placing` (false; true: an entrance type is pressed first, `path`/`kind` as for `entrance`) | a right-click on the world in whatever the tool is doing (it also presses the game's Cancel, as the real mouse does); records `before` and `after`: stage, area, placing, corners, fills, road nodes, entrances |
 | `preview` | – | Next to Review; waits for the plan and the ghost; records what the Review panel lists |
 | `previewMode` | `mode`: `sketch`/`ghost` | the preview switch |
 | `edit` | `build` (false) | back to Design; with `build: true`: clicks the build (Manage) and Edit |

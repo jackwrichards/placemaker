@@ -54,8 +54,7 @@ namespace Placemaker.Game.Tool
 
             if (_gesture == Gesture.Paint || _gesture == Gesture.Erase)
             {
-                bool held = _gesture == Gesture.Paint ? _in.LeftHeld : _in.RightHeld;
-                if (held)
+                if (_in.LeftHeld)
                 {
                     if (_in.HasHit)
                     {
@@ -88,10 +87,12 @@ namespace Placemaker.Game.Tool
                 return;
             }
 
+            // Right-click starts over (the area is cleared); Shift+drag erases.
+            if (RightClickStartsOver()) return;
             if (!_in.HasHit) return;
-            if (_in.LeftPressed || _in.RightPressed)
+            if (_in.LeftPressed)
             {
-                _gesture = _in.LeftPressed ? Gesture.Paint : Gesture.Erase;
+                _gesture = _in.Shift ? Gesture.Erase : Gesture.Paint;
                 _lastStroke = _in.Hit.xz;
                 if (PaintAvoidsBuildings) EnsurePaintBuildings(_in.Hit.xz, radius, strokeStart: true);
                 _paint.Stamp(_in.Hit.xz, radius, _gesture == Gesture.Erase, _brushSquare, _brushAngle);

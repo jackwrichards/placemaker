@@ -14,7 +14,7 @@
   "Placemaker.Parking.StallAngle.45.Tip": "Strongly slanted spaces. Easiest to drive into, fits the fewest cars.",
 
   "Placemaker.Parking.Control.Entrances": "Entrances",
-  "Placemaker.Parking.Control.Entrances.Tip": "Where cars and people get in and out. We put entrances on the nearest street for you; pick a type, click the outline next to a street to add one, right-click one to remove it.",
+  "Placemaker.Parking.Control.Entrances.Tip": "Where cars and people get in and out. We put entrances on the nearest street for you; pick a type, click the outline next to a street to add one; right-click takes back the last one.",
   "Placemaker.Parking.Marker.Entrance": "Entrance",
   "Placemaker.Parking.Marker.Entrance.Tip": "Cars come in and go out here. Joins the street without changing it.",
   "Placemaker.Parking.Marker.Entry": "Way in",
