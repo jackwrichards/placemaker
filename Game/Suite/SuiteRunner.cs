@@ -620,9 +620,6 @@ namespace Placemaker.Game.Suite
 
             float t0 = Time.realtimeSinceStartup;
             Say($"loading a new game on map {info.displayName}");
-            // a new game outgrows new buildings (the player's); the runner's worlds keep them as the game makes them unless a
-            // scenario says otherwise (its towns are outgrown by its own steps)
-            Placemaker.Game.Neighbours.NeighbourPolishSystem.NewGameOutgrowsNewBuildings = false;
             var task = GameManager.instance.Load(GameMode.Game, Purpose.NewGame, map);
             yield return Until(() => task.IsCompleted, 600f, "new game load task");
             bool ok = task.IsCompleted && !task.IsFaulted && task.Result;
