@@ -413,6 +413,7 @@ namespace Placemaker.Game.Neighbours
                         }
                         if (best < 0) continue;
                         EntityManager.AddComponentData(e, new PolishPiece { Kind = PendingTags[best].Kind });
+                        StandingChanged(owner);
                         used[best] = true;
                         TotalTagged++;
                     }
@@ -525,6 +526,7 @@ namespace Placemaker.Game.Neighbours
         /// </summary>
         private bool Restore(Entity house)
         {
+            StandingChanged(house);
             bool changed = false;
             var writes = new List<(Entity Lane, Bezier4x3 Curve)>();
             MovedLanes(house, writes);
@@ -695,6 +697,7 @@ namespace Placemaker.Game.Neighbours
             _healQueue = null;
             _laneCurve.Clear();
             _prefabSeen.Clear();
+            _standing.Clear();
             _wantOf.Clear();
             _keptLevelUps.Clear();
             _keptHidden.Clear();

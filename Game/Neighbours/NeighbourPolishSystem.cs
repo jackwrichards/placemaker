@@ -420,6 +420,8 @@ namespace Placemaker.Game.Neighbours
             return set;
         }
 
+        private EntityQuery _goneFences, _movedPieces;
+
         /// <summary>Fence lanes the game created or reset (not the ones we wrote): their houses need stitching.</summary>
         private void CollectChanged()
         {
@@ -450,12 +452,32 @@ namespace Placemaker.Game.Neighbours
                     }
                     _gridStale = true;
                 }
+            if (_goneFences == default)
+                _goneFences = GetEntityQuery(new EntityQueryDesc
+                {
+                    All = new[] { ComponentType.ReadOnly<Lane>(), ComponentType.ReadOnly<global::Game.Net.UtilityLane>(), ComponentType.ReadOnly<Owner>(), ComponentType.ReadOnly<Deleted>() },
+                    None = new[] { ComponentType.ReadOnly<Temp>() },
+                });
+            if (!_goneFences.IsEmptyIgnoreFilter)
+                using (var gone = _goneFences.ToComponentDataArray<Owner>(Allocator.Temp))
+                    foreach (var o in gone) StandingChanged(o.m_Owner);
+            // our pieces the game placed again (a piece just made is set on the ground a frame later)
+            if (_movedPieces == default)
+                _movedPieces = GetEntityQuery(new EntityQueryDesc
+                {
+                    All = new[] { ComponentType.ReadOnly<PolishPiece>(), ComponentType.ReadOnly<Owner>(), ComponentType.ReadOnly<Updated>() },
+                    None = new[] { ComponentType.ReadOnly<Temp>(), ComponentType.ReadOnly<Deleted>() },
+                });
+            if (!_movedPieces.IsEmptyIgnoreFilter)
+                using (var moved = _movedPieces.ToComponentDataArray<Owner>(Allocator.Temp))
+                    foreach (var o in moved) StandingChanged(o.m_Owner);
             if (!_changedFences.IsEmptyIgnoreFilter)
             using (var lanes = _changedFences.ToEntityArray(Allocator.Temp))
                 foreach (var lane in lanes)
                 {
                     var owner = EntityManager.GetComponentData<Owner>(lane).m_Owner;
                     if (owner == Entity.Null || !EntityManager.HasComponent<Building>(owner)) continue;
+                    StandingChanged(owner);
                     var curve = EntityManager.GetComponentData<Curve>(lane).m_Bezier;
                     if (_written.TryGetValue(lane, out var w) && Same(curve, w)) continue;
                     if (!IsFence(EntityManager.GetComponentData<PrefabRef>(lane).m_Prefab)) continue;
@@ -886,6 +908,7 @@ namespace Placemaker.Game.Neighbours
             // are planned again
             // (a house the plan left as it was: its garden is its lot)
             _writeSerial++;
+            foreach (var id in coreIds) if (pend.HouseOf.TryGetValue(id, out var written)) StandingChanged(written);
             var writtenLo = new float2(float.MaxValue);
             var writtenHi = new float2(float.MinValue);
             foreach (var id in coreIds)

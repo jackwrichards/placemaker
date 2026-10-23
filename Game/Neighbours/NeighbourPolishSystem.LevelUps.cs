@@ -161,6 +161,7 @@ namespace Placemaker.Game.Neighbours
                 _laneCurve[lane] = now;
                 return true;
             }
+            StandingChanged(house);
             if (!Same(now, want))
             {
                 var cur = EntityManager.GetComponentData<Curve>(lane);
@@ -232,6 +233,7 @@ namespace Placemaker.Game.Neighbours
         /// garden had nowhere is hidden.</summary>
         private void CarryFence(Entity lane, Entity house, Bezier4x3 now)
         {
+            StandingChanged(house);
             _laneCurve[lane] = now;
             _written.Remove(lane);
             if (!_keptLevelUps.TryGetValue(house, out var kept)) return;

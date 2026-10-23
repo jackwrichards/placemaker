@@ -35,7 +35,7 @@ namespace Placemaker.Core.Geometry
             var arr = Arrangement.For(all);
             foreach (var r in subj) arr.AddRing(r, 0);
             foreach (var r in clp) arr.AddRing(r, 1);
-            return arr.Extract((wa, wb) =>
+            var regions = arr.Extract((wa, wb) =>
             {
                 bool a = Inside(wa, rule), b = Inside(wb, rule);
                 switch (op)
@@ -46,6 +46,8 @@ namespace Placemaker.Core.Geometry
                     default: return a != b;
                 }
             });
+            arr.Release();
+            return regions;
         }
 
         public static List<Region> Union(IReadOnlyList<float2> a, IReadOnlyList<float2> b) => Boolean(new[] { a }, new[] { b }, BoolOp.Union);
@@ -125,7 +127,7 @@ namespace Placemaker.Core.Geometry
             int count = 0;
             foreach (var r in rings) { count += r.Count; foreach (var p in r) { mn = math.min(mn, (double2)p); mx = math.max(mx, (double2)p); } }
             double grow = math.max(0, -inward) * math.max(miterLimit, 1.5f) + 1;
-            var arr = new Arrangement(mn - grow, mx + grow, count * 3);
+            var arr = Arrangement.Rent(mn - grow, mx + grow, count * 3);
             double d = inward;
             var cleanedLocal = new List<double2[]>();
             foreach (var r in rings)
@@ -152,6 +154,7 @@ namespace Placemaker.Core.Geometry
                 }
                 if (ok) result.Add(reg);
             }
+            arr.Release();
             return result;
         }
 
@@ -279,7 +282,9 @@ namespace Placemaker.Core.Geometry
             var arr = Arrangement.For(all);
             foreach (var r in rings) arr.AddRing(r, 0);
             if (line != null) arr.AddPolyline(line);
-            return arr.Extract((wa, wb) => wa != 0, splitByCuts: true);
+            var parts = arr.Extract((wa, wb) => wa != 0, splitByCuts: true);
+            arr.Release();
+            return parts;
         }
 
         /// <summary>Splits a ring by an infinite line through point along direction. Part 0 is the left side.</summary>
@@ -372,11 +377,19 @@ namespace Placemaker.Core.Geometry
         // ───────────────────────────── clipping ─────────────────────────────
 
         /// <summary>Parameter intervals (t0, t1) ⊂ [0,1] of segment ab that lie inside the ring (even-odd).</summary>
-        public static List<float2> ClipSegmentIntervals(IReadOnlyList<float2> ring, float2 a, float2 b)
+        public static List<float2> ClipSegmentIntervals(IReadOnlyList<float2> ring, float2 a, float2 b) => ClipSegmentIntervals(ring, a, b, new List<float2>());
+
+        // the crossing parameters ClipSegmentIntervals sorts, kept per thread
+        [ThreadStatic] private static List<double> s_clipTs;
+
+        /// <summary>ClipSegmentIntervals adding to a list of the caller's.</summary>
+        public static List<float2> ClipSegmentIntervals(IReadOnlyList<float2> ring, float2 a, float2 b, List<float2> result)
         {
-            var result = new List<float2>();
             if (ring == null || ring.Count < 3) return result;
-            var ts = new List<double> { 0, 1 };
+            var ts = s_clipTs ??= new List<double>();
+            ts.Clear();
+            ts.Add(0);
+            ts.Add(1);
             double2 pa = a, r = (double2)b - a;
             int n = ring.Count;
             for (int i = 0; i < n; i++)

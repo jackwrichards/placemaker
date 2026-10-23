@@ -140,6 +140,57 @@ namespace Placemaker.Core.Neighbours
         /// Everything a plan decides (not its notes, which carry timings), in a fixed order with every coordinate to the
         /// millimetre: two plans with the same signature are the same plan.
         /// </summary>
+        /// <summary>
+        /// What the game writes of a plan: the houses it edits (their lines moved or hidden, lawns, plots, beds, bushes, fence
+        /// pieces, paths, new lawns), the gardens over a lot it found, the shared greens and the ground paint. A plan of the
+        /// neighbours that are not edited is never written (NeighbourPolishSystem.FinishPlan: the core only), so a planner that
+        /// skips them plans the same when this is the same.
+        /// </summary>
+        public static string EditedSignature(StitchPlan plan, IReadOnlyList<StitchHouse> houses)
+        {
+            var edited = new HashSet<long>(houses.Where(h => h.Edit).Select(h => h.Id));
+            var lineOf = new Dictionary<long, long>();
+            var lawnOf = new Dictionary<long, long>();
+            foreach (var h in houses)
+            {
+                foreach (var l in h.Lines) lineOf[l.Id] = h.Id;
+                foreach (var l in h.Lawns) lawnOf[l.Id] = h.Id;
+            }
+            bool Mine(long house) => edited.Contains(house);
+            bool MyLine(long line) => lineOf.TryGetValue(line, out var h) && edited.Contains(h);
+            var sb = new StringBuilder();
+            void N(float v) => sb.Append(Math.Round(v, 3).ToString("0.000", CultureInfo.InvariantCulture)).Append(' ');
+            void P(float2 p) { N(p.x); N(p.y); }
+            void R(IReadOnlyList<float2> r) { sb.Append('['); if (r != null) foreach (var p in r) P(p); sb.Append("] "); }
+            sb.Append("hide ").Append(string.Join(" ", plan.HideLines.Where(MyLine).OrderBy(x => x))).Append('\n');
+            sb.Append("move\n");
+            foreach (var kv in plan.MoveLines.Where(k => MyLine(k.Key)).OrderBy(k => k.Key)) { sb.Append(kv.Key).Append(' '); P(kv.Value.A); P(kv.Value.B); sb.Append('\n'); }
+            sb.Append("lawns\n");
+            foreach (var kv in plan.Lawns.Where(k => lawnOf.TryGetValue(k.Key, out var h) && edited.Contains(h)).OrderBy(k => k.Key)) { sb.Append(kv.Key).Append(' '); R(kv.Value); sb.Append('\n'); }
+            sb.Append("plots\n");
+            foreach (var kv in plan.Plots.Where(k => Mine(k.Key)).OrderBy(k => k.Key)) { sb.Append(kv.Key).Append(' '); R(kv.Value); sb.Append('\n'); }
+            sb.Append("clashes ").Append(string.Join(" ", plan.GardenClashes.OrderBy(x => x))).Append('\n');
+            sb.Append("newLawns\n");
+            foreach (var (house, ring) in plan.NewLawns.Where(x => Mine(x.Item1))) { sb.Append(house).Append(' '); R(ring); sb.Append('\n'); }
+            sb.Append("beds\n");
+            foreach (var (house, ring) in plan.Beds.Where(x => Mine(x.Item1))) { sb.Append(house).Append(' '); R(ring); sb.Append('\n'); }
+            sb.Append("bushes\n");
+            foreach (var (house, at, yaw, kind) in plan.Bushes.Where(x => Mine(x.Item1))) { sb.Append(house).Append(' '); P(at); N(yaw); sb.Append(kind).Append('\n'); }
+            sb.Append("pieces\n");
+            foreach (var (house, at, yaw, name) in plan.FencePieces.Where(x => Mine(x.Item1))) { sb.Append(house).Append(' '); P(at); N(yaw); sb.Append(name).Append('\n'); }
+            sb.Append("paths\n");
+            foreach (var (house, ring, surface) in plan.Paths.Where(x => Mine(x.Item1))) { sb.Append(house).Append(' ').Append(surface).Append(' '); R(ring); sb.Append('\n'); }
+            sb.Append("commons\n");
+            foreach (var ring in plan.Commons) { R(ring); sb.Append('\n'); }
+            sb.Append("paints\n");
+            foreach (var pt in plan.Paints)
+            {
+                sb.Append(pt.Layer).Append(' '); N(pt.Strength); N(pt.Feather); N(pt.Noise); N(pt.NoiseScale); sb.Append(pt.Seed).Append(' ');
+                sb.Append('['); foreach (var q in pt.Ring) { N(q.x); N(q.z); } sb.Append("]\n");
+            }
+            return sb.ToString();
+        }
+
         public static string Signature(StitchPlan plan)
         {
             var sb = new StringBuilder();

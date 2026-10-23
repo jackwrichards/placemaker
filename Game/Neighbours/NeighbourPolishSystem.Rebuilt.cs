@@ -232,8 +232,9 @@ namespace Placemaker.Game.Neighbours
             using (var pieces = _lostPieces.ToEntityArray(Allocator.Temp))
                 foreach (var p in pieces)
                 {
-                    if (NeighbourDeleteSystem.Marked.Contains(p)) continue;   // ours: a plan no longer wanted it, or the lot was put back
                     var owner = EntityManager.GetComponentData<Owner>(p).m_Owner;
+                    StandingChanged(owner);
+                    if (NeighbourDeleteSystem.Marked.Contains(p)) continue;   // ours: a plan no longer wanted it, or the lot was put back
                     if (owner == Entity.Null || !EntityManager.Exists(owner) || EntityManager.HasComponent<Deleted>(owner) || !EntityManager.HasComponent<global::Game.Buildings.Building>(owner) || !IsYes(owner)) continue;
                     if (EntityManager.HasComponent<global::Game.Areas.Area>(p))
                     {
