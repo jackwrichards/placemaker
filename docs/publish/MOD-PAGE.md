@@ -66,7 +66,8 @@ Yep. Your save still loads without it.
 
    - **Points**: click the corners. It snaps to curbs, buildings, right angles and road nodes.
    - **Paint bucket**: click a city block to fill it. **Shift+click** adds more.
-   - **Paint area**: just brush it on. **Right-click** erases.
+   - **Paint area**: just brush it on. **Shift+drag** erases.
+   - With any of them, **right-click** starts over (Ctrl+Z brings the area back).
 
    You also choose what the selection stops at. Roads, paths, water, buildings, zoning and more.
 

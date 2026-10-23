@@ -99,8 +99,7 @@ namespace Placemaker.Game.Tool
                 Commit("Placemaker.Undo.AddPoint");
                 return;
             }
-            // Right-click takes back the last corner, wherever the cursor is (one rule for every tool: the last thing placed).
-            if (_in.RightPressed && _draw.Count > 0 && _draw.RemoveLast()) { ShapeChanged(); Commit("Placemaker.Undo.RemovePoint"); }
+            RightClickStartsOver();
         }
 
         private void CloseOutline()
@@ -151,6 +150,9 @@ namespace Placemaker.Game.Tool
                 }
                 return;
             }
+            // Choosing the area: right-click starts over. Designing: a right-click on a corner removes that corner (as in the
+            // game's own area tool), anywhere else nothing.
+            if (_stage == ToolStage.Area && RightClickStartsOver()) return;
             if (_in.RightPressed && _hoverPoint >= 0)
             {
                 if (_draw.RemovePoint(_hoverPoint)) { ShapeChanged(); Commit("Placemaker.Undo.RemovePoint"); }

@@ -504,6 +504,19 @@ namespace Placemaker.Game.Tool
         }
 
         /// <summary>
+        /// Right-click with an area tool (Points, Paint bucket, Paint area): start over. While choosing the area (the Area
+        /// stage) it is cleared, undoable; once designing it is left alone (2026-10-22, the user: "for the points brush, the
+        /// paint bucket and the other one, it would just remove your current selection, like kind of start over").
+        /// True when this frame's right-click was taken.
+        /// </summary>
+        private bool RightClickStartsOver()
+        {
+            if (!_in.RightPressed) return false;
+            if (_stage == ToolStage.Area) ClearArea();
+            return true;
+        }
+
+        /// <summary>
         /// The edit of a finished build ends without building: the build stays as it was, and nothing built next replaces it.
         /// <paramref name="forget"/>: the edited build's design and area go too (closing Placemaker; reopening starts fresh).
         /// </summary>

@@ -601,10 +601,11 @@ namespace Placemaker.Game.Suite
             yield return Frames(2);
         }
 
-        /// <summary>What a right-click can take back, for the record: stage, placing or not, corners, fills, road nodes, entrances.</summary>
+        /// <summary>What a right-click can take back, for the record: stage, an area or not, placing or not, corners, fills, road nodes, entrances.</summary>
         private JObject RightClickState() => new JObject
         {
             ["stage"] = _tool.Stage.ToString(),
+            ["area"] = _tool.SuiteHasSelection,
             ["placing"] = _tool.MarkerKind ?? "",
             ["corners"] = _tool.Draw.Count,
             ["closed"] = _tool.Draw.Closed,

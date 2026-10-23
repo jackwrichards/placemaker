@@ -112,26 +112,7 @@ namespace Placemaker.Game.Tool
                 }
                 return;
             }
-            // Right-click takes back the last road (or the closing). Once designing it keeps the loop closed: reopening it
-            // would throw the area away, back to picking.
-            if (_in.RightPressed && _perimeter.Nodes.Count > 0 && !(_perimeter.Closed && _stage != ToolStage.Area))
-            {
-                if (_perimeter.Closed)
-                {
-                    _perimeter.Closed = false;
-                    // The closing may be several road half-edges (or one straight chord): drop all of it.
-                    int keep = System.Math.Max(0, _perimeter.Nodes.Count - 1);
-                    if (_perimeter.Path.Count > keep) _perimeter.Path.RemoveRange(keep, _perimeter.Path.Count - keep);
-                }
-                else
-                {
-                    _perimeter.Nodes.RemoveAt(_perimeter.Nodes.Count - 1);
-                    _perimeter.Positions.RemoveAt(_perimeter.Positions.Count - 1);
-                    if (_perimeter.Path.Count > 0) _perimeter.Path.RemoveAt(_perimeter.Path.Count - 1);
-                }
-                ShapeChanged();
-                Commit("Placemaker.Undo.RemoveNode");
-            }
+            RightClickStartsOver();
         }
 
         /// <summary>

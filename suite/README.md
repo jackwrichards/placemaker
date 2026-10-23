@@ -308,7 +308,7 @@ after a failed `area`, `type`, `preview` or `build` the scenario's remaining ste
 | `entrances` | – | while the button asks for entrances: one on the south street, then east, north, west |
 | `moveEntrance` | `index` (0: the script's n-th entrance, matched by position), `side`/`t`/`at` | the entrance's remove button in the panel, then in placement mode a left-click on the new spot, Esc |
 | `removeEntrance` | `index` | the entrance's remove button in the panel |
-| `rightClick` | `at` `[dx,dz]` (the block's centre), `abs`; `placing` (false; true: an entrance type is pressed first, `path`/`kind` as for `entrance`) | a right-click on the world in whatever the tool is doing (it also presses the game's Cancel, as the real mouse does); records `before` and `after`: stage, placing, corners, fills, road nodes, entrances |
+| `rightClick` | `at` `[dx,dz]` (the block's centre), `abs`; `placing` (false; true: an entrance type is pressed first, `path`/`kind` as for `entrance`) | a right-click on the world in whatever the tool is doing (it also presses the game's Cancel, as the real mouse does); records `before` and `after`: stage, area, placing, corners, fills, road nodes, entrances |
 | `preview` | – | Next to Review; waits for the plan and the ghost; records what the Review panel lists |
 | `previewMode` | `mode`: `sketch`/`ghost` | the preview switch |
 | `edit` | `build` (false) | back to Design; with `build: true`: clicks the build (Manage) and Edit |

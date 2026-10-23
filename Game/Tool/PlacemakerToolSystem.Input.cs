@@ -228,7 +228,7 @@ namespace Placemaker.Game.Tool
         // apply action for named states ("Add Area Node", "Complete Area"…) whose bindings are the
         // same mouse buttons — we do the same so the hints read "Add corner", "Complete area" etc.
 
-        private IProxyAction _hintAddNode, _hintInsertNode, _hintMoveNode, _hintDeleteNode, _hintUndoNode, _hintComplete;
+        private IProxyAction _hintAddNode, _hintInsertNode, _hintMoveNode, _hintDeleteNode, _hintComplete;
         private bool _hintsAvailable;
 
         private void CreateHintActions()
@@ -250,7 +250,6 @@ namespace Placemaker.Game.Tool
                 _hintInsertNode = c.GetActionState("Insert Area Node", owner);
                 _hintMoveNode = c.GetActionState("Move Area Node", owner);
                 _hintDeleteNode = c.GetActionState("Delete Area Node", owner);
-                _hintUndoNode = c.GetActionState("Undo Area Node", owner);
                 _hintComplete = c.GetActionState("Complete Area", owner);
                 _hintsAvailable = true;
             }
@@ -271,12 +270,9 @@ namespace Placemaker.Game.Tool
                 if (_gesture == Gesture.None && _markerKind == null && _mode == SelectionMode.Draw
                     && (_stage == ToolStage.Area || _stage == ToolStage.Design || _stage == ToolStage.Review))
                 {
-                    if (!_draw.Closed)
-                    {
-                        apply = _hoverClose ? _hintComplete : _hintAddNode;
-                        if (_draw.Count > 0) secondary = _hintUndoNode;
-                    }
-                    else if (_hoverPoint >= 0) { apply = _hintMoveNode; secondary = _hintDeleteNode; }
+                    // (Right-click starts over while choosing the area: no vanilla words for that, so no secondary hint then.)
+                    if (!_draw.Closed) apply = _hoverClose ? _hintComplete : _hintAddNode;
+                    else if (_hoverPoint >= 0) { apply = _hintMoveNode; if (_stage != ToolStage.Area) secondary = _hintDeleteNode; }
                     else if (_hoverEdge >= 0) apply = _hintInsertNode;
                 }
                 applyActionOverride = apply;

@@ -101,6 +101,8 @@ namespace Placemaker.Game.Tool
             // the clicked fill keeps its stops, closed gaps and reach on show while the cursor stays in it
             if (_hoverFace?.Fill?.Ring != null && !(_in.HasHit && Poly.Contains(_hoverFace.Fill.Ring, _in.Hit.xz))) _hoverFace = null;
 
+            // Right-click starts over while choosing the area (a fill still on its way is dropped too).
+            if (RightClickStartsOver()) { if (_stage == ToolStage.Area) _bucketClick = null; return; }
             if (_in.LeftPressed && _in.HasHit)
             {
                 _bucketClick = _in.Hit.xz;
@@ -131,9 +133,6 @@ namespace Placemaker.Game.Tool
                 ToggleBlock(pick);
                 return;
             }
-            // Right-click takes back the last fill, wherever the cursor is (one rule for every tool: the last thing placed).
-            // Once designing it keeps the only fill: dropping it would throw the area away, back to picking.
-            if (_in.RightPressed && _blocks.Rings.Count > (_stage == ToolStage.Area ? 0 : 1)) RemoveBlock(_blocks.Rings.Count - 1);
         }
 
         /// <summary>The fill at a click: the hover's when the click is inside it, else filled now.</summary>
