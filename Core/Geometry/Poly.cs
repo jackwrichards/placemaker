@@ -25,10 +25,25 @@ namespace Placemaker.Core.Geometry
         /// <summary>Signed area in double, relative to the first point (exact enough at ±7 km world coordinates).</summary>
         public static double SignedAreaD(IReadOnlyList<float2> ring)
         {
+            if (ring is float2[] arr) return SignedAreaD(arr);
             if (ring == null || ring.Count < 3) return 0;
             double2 o = ring[0];
             double a = 0;
             for (int i = 0, j = ring.Count - 1; i < ring.Count; j = i++)
+            {
+                double2 p = (double2)ring[j] - o, q = (double2)ring[i] - o;
+                a += p.x * q.y - q.x * p.y;
+            }
+            return a * 0.5;
+        }
+
+        /// <summary>The same for an array (read directly, not through the list interface: these run millions of times a plan).</summary>
+        public static double SignedAreaD(float2[] ring)
+        {
+            if (ring == null || ring.Length < 3) return 0;
+            double2 o = ring[0];
+            double a = 0;
+            for (int i = 0, j = ring.Length - 1; i < ring.Length; j = i++)
             {
                 double2 p = (double2)ring[j] - o, q = (double2)ring[i] - o;
                 a += p.x * q.y - q.x * p.y;
@@ -158,8 +173,25 @@ namespace Placemaker.Core.Geometry
         /// <summary>Even-odd point in polygon (boundary points may go either way).</summary>
         public static bool Contains(IReadOnlyList<float2> ring, float2 p) => ContainsD(ring, p);
 
+        public static bool Contains(float2[] ring, float2 p) => ContainsD(ring, p);
+
+        /// <summary>The same for an array (read directly, not through the list interface).</summary>
+        internal static bool ContainsD(float2[] ring, double2 p)
+        {
+            bool inside = false;
+            int n = ring.Length;
+            for (int i = 0, j = n - 1; i < n; j = i++)
+            {
+                double2 a = ring[i], b = ring[j];
+                if ((a.y > p.y) != (b.y > p.y) && p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x)
+                    inside = !inside;
+            }
+            return inside;
+        }
+
         internal static bool ContainsD(IReadOnlyList<float2> ring, double2 p)
         {
+            if (ring is float2[] arr) return ContainsD(arr, p);
             bool inside = false;
             int n = ring.Count;
             for (int i = 0, j = n - 1; i < n; j = i++)
@@ -210,8 +242,16 @@ namespace Placemaker.Core.Geometry
 
         public static void Bounds(IReadOnlyList<float2> ring, out float2 min, out float2 max)
         {
+            if (ring is float2[] arr) { Bounds(arr, out min, out max); return; }
             min = new float2(float.MaxValue); max = new float2(float.MinValue);
             foreach (var p in ring) { min = math.min(min, p); max = math.max(max, p); }
+        }
+
+        /// <summary>The same for an array (no enumerator made).</summary>
+        public static void Bounds(float2[] ring, out float2 min, out float2 max)
+        {
+            min = new float2(float.MaxValue); max = new float2(float.MinValue);
+            for (int i = 0; i < ring.Length; i++) { min = math.min(min, ring[i]); max = math.max(max, ring[i]); }
         }
 
         public static float DistanceToBoundary(IReadOnlyList<float2> ring, float2 p)

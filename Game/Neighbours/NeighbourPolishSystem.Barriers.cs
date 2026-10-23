@@ -327,7 +327,9 @@ namespace Placemaker.Game.Neighbours
             }
             if (boxes.Count == 0) return;
             EnsureGrid();
-            float reach = ReachInUse + 30f;
+            // looked for as far as any garden reaches, each garden then by its own reach (its look's): with the widest reach of
+            // any type for all of them, one type at 500 m planned again every outgrown house within 530 m of each new building
+            float reach = MostReach() + 30f;
             int marked = 0;
             foreach (var (bmin, bmax) in boxes)
             {
@@ -341,6 +343,8 @@ namespace Placemaker.Game.Neighbours
                                 var h = _gridHouses[j];
                                 var p = h.T.m_Position.xz;
                                 if (p.x < lo.x || p.y < lo.y || p.x > hi.x || p.y > hi.y || !EntityManager.Exists(h.E) || !IsYes(h.E)) continue;
+                                float own = LotReach(h.E) + 30f;
+                                if (p.x < bmin.x - own || p.y < bmin.y - own || p.x > bmax.x + own || p.y > bmax.y + own) continue;
                                 if (_dirty.Add(h.E)) { marked++; DirtyBy[2]++; }
                                 _first.Add(h.E);   // the player's build: the gardens it changes go first
                             }

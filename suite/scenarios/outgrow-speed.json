@@ -1,0 +1,282 @@
+{
+  "_about": "Outgrow speed (the user, 22 Oct: 'zone outgrow seems to have some regression in its speed'). Nine blocks of houses grow with Outgrow off; then every lot is outgrown at once (time until Outgrow is idle: 'town'), every outgrown lot is planned again (Redo: 'redo'), and once more after an outgrow type with every reach at 500 m is saved but painted on nothing ('redo-wide': the user's city has such a type, 'Shops 2'). Read each polishIdle line ('Outgrow time': seconds, plans, planWorker, passGather, frames over 33 / 50 / 100 ms) and compare a build before and after. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-speed.json -Who outgrow-speed",
+  "scenarios": [
+    {
+      "id": "outgrow-speed",
+      "land": {
+        "shape": "rect",
+        "size": [
+          760,
+          760
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": false
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": false
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            -220,
+            -220
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            -220,
+            0
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            -220,
+            220
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            0,
+            -220
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            0,
+            220
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            220,
+            -220
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            220,
+            0
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            220,
+            220
+          ]
+        },
+        {
+          "do": "grow",
+          "seconds": 180
+        },
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "polishStamp",
+          "yes": true
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 600,
+          "label": "town"
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 5
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {}
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 600,
+          "label": "redo"
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 5
+        },
+        {
+          "do": "polish",
+          "stamp": "pick"
+        },
+        {
+          "do": "polish",
+          "click": "polish-city-tab-edit"
+        },
+        {
+          "do": "polish",
+          "click": "polish-theme-industry"
+        },
+        {
+          "do": "polish",
+          "click": "polish-look-saveas"
+        },
+        {
+          "do": "polish",
+          "click": "polish-look-name-ok"
+        },
+        {
+          "do": "polish",
+          "knob": "sideReach",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxFrontGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxBackGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxRearGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxFacingGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxDeepen",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "hugReach",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "openReach",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "click": "polish-look-save"
+        },
+        {
+          "do": "polish",
+          "click": "panel-mode-placemaker"
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 5
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {}
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 600,
+          "label": "redo-wide"
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 5
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "label": "speed"
+        },
+        {
+          "do": "shot",
+          "name": "town-top",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 700
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "block-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "oblique",
+            "distance": 220
+          },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

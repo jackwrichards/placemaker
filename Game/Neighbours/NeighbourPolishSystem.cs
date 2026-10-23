@@ -195,7 +195,9 @@ namespace Placemaker.Game.Neighbours
         // the planner runs off the frame: a pass gathers the houses here, plans on a worker, and is applied when it is done
         // plans worked out on workers at once, each for its own patch of town (patches far enough apart never edit the same house)
         private readonly List<Pending> _inFlight = new List<Pending>();
-        private static readonly int MaxInFlight = math.clamp(Environment.ProcessorCount / 4, 1, 3);
+        // (a few cores left to the game's own jobs: 4 on 16 threads, where it was 3, and those hardly ever ran at once: passes
+        // kept apart by the widest reach of any type, used or not)
+        private static readonly int MaxInFlight = math.clamp((Environment.ProcessorCount - 4) / 3, 1, 4);
         // a patch: a waiting house and every waiting house this near it, planned together with the houses around them
         private const float PatchRadius = 50f;
 
@@ -519,8 +521,12 @@ namespace Placemaker.Game.Neighbours
             var unknown = new List<Entity>();
             bool Clear(float2 at)
             {
-                // (and as far again as the gardens of both reach: two plans at once never give the same land to two gardens)
-                foreach (var f in _inFlight) if (math.distance(f.Seed, at) < 2f * (PatchRadius + CoreRadius) + 10f + f.Reach + ReachInUse) return false;
+                // (and as far again as the gardens of both reach: two plans at once never give the same land to two gardens. Each
+                // pass's own reach, the furthest the gardens it may edit reach: with the widest reach of any type in the city,
+                // used or not, one type at 500 m kept every pass 1.2 km from the next, one plan at a time)
+                if (_inFlight.Count == 0) return true;
+                float mine = ReachNear(at, PatchRadius + CoreRadius);
+                foreach (var f in _inFlight) if (math.distance(f.Seed, at) < 2f * (PatchRadius + CoreRadius) + 10f + f.Reach + mine) return false;
                 return true;
             }
             // the player's own work first; a house still being built waits in _first until its lanes come (then it is dirty)
@@ -542,21 +548,31 @@ namespace Placemaker.Game.Neighbours
                         foreach (int j in near0)
                             if (done.Count < batch && _dirty.Contains(houses[j].E) && math.distance(houses[j].T.m_Position.xz, seedAt) <= PatchRadius) done.Add(houses[j].E);
             if (!done.Contains(houses[seed].E)) done.Add(houses[seed].E);
+            // the houses edited first (only yes lots are), then as far around them as their gardens reach: the pass's own reach,
+            // not the widest of every type in the city (a type at 500 m nobody used made every pass take in 400 m of town)
             foreach (var e in done)
             {
                 if (!index.TryGetValue(e, out int i)) continue;
                 var p = houses[i].T.m_Position.xz;
-                float clusterRadius = ClusterRadius;
+                for (int dx = -1; dx <= 1; dx++)
+                    for (int dz = -1; dz <= 1; dz++)
+                        if (grid.TryGetValue(Key(p + new float2(dx, dz) * Cell), out var near))
+                            foreach (int j in near)
+                                if (math.distance(houses[j].T.m_Position.xz, p) <= CoreRadius && IsYes(houses[j].E)) core.Add(j);
+            }
+            float coreReach = 0f;
+            foreach (int j in core) coreReach = math.max(coreReach, LotReach(houses[j].E));
+            float clusterRadius = math.clamp(coreReach + 60f, ClusterRadiusMin, ClusterRadiusMax);
+            foreach (var e in done)
+            {
+                if (!index.TryGetValue(e, out int i)) continue;
+                var p = houses[i].T.m_Position.xz;
                 int cells = (int)math.ceil(clusterRadius / Cell) + 1;
                 for (int dx = -cells; dx <= cells; dx++)
                     for (int dz = -cells; dz <= cells; dz++)
                         if (grid.TryGetValue(Key(p + new float2(dx, dz) * Cell), out var near))
                             foreach (int j in near)
-                            {
-                                float d = math.distance(houses[j].T.m_Position.xz, p);
-                                if (d <= clusterRadius) cluster.Add(j);
-                                if (d <= CoreRadius && IsYes(houses[j].E)) core.Add(j);   // only yes lots are edited
-                            }
+                                if (math.distance(houses[j].T.m_Position.xz, p) <= clusterRadius) cluster.Add(j);
             }
             bool first = false;
             foreach (var e in done) { _dirty.Remove(e); _described.Remove(e); if (_first.Remove(e)) first = true; }
@@ -613,10 +629,8 @@ namespace Placemaker.Game.Neighbours
             // the roads, paths, tracks and other buildings around the patch: never joined across, never reached onto, met
             // around every house as far as any garden here reaches (the looks in use, these lots' own changes, the tool's
             // values), plus a margin: nothing further out changes a plan (it was the whole cluster radius again around each)
-            float reach = ReachInUse;
-            foreach (var h in stitch)
-                if (h.Options != null) foreach (var k in PolishLooks.ReachKnobs) if (h.Options.TryGetValue(k, out var v)) reach = math.max(reach, v);
-            if (Settings.Extra != null) foreach (var k in PolishLooks.ReachKnobs) if (Settings.Extra.TryGetValue(k, out var v)) reach = math.max(reach, v);
+            // (the gardens this pass edits: a neighbour it only plans around keeps the garden it has)
+            float reach = coreReach;
             int nearCount = stitch.Count;
             // polished houses further out whose gardens reach into what this pass may give its houses: fixed for the plan, so
             // the gardens it edits keep off them. A garden reaches further than the cluster radius (up to 500 m), and two big

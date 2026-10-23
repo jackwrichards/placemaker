@@ -25,7 +25,7 @@ namespace Placemaker.OutgrowBench
             if (args.Length == 0) { Console.WriteLine("usage: <passes dir or file> [--repeat N] [--label NAME] [--baseline NAME] [--only N] [--stages] [--parallel N]"); return 2; }
             string input = args[0], label = "now", baseline = null;
             int repeat = 3, only = -1, parallel = 0;
-            bool stages = false;
+            bool stages = false, editAll = false;
             for (int i = 1; i < args.Length; i++)
             {
                 switch (args[i])
@@ -36,6 +36,7 @@ namespace Placemaker.OutgrowBench
                     case "--only": only = int.Parse(args[++i]); break;
                     case "--stages": stages = true; break;
                     case "--parallel": parallel = int.Parse(args[++i]); break;
+                    case "--edit-all": editAll = true; break;
                 }
             }
             YardStitch.AllocatedBytes = GC.GetAllocatedBytesForCurrentThread;
@@ -45,6 +46,11 @@ namespace Placemaker.OutgrowBench
             var sigDir = Path.Combine(dir, "sig-" + label);
             Directory.CreateDirectory(sigDir);
             var passes = files.Select(f => (Name: Path.GetFileNameWithoutExtension(f), Input: StitchDump.Read(File.ReadAllText(f)))).ToList();
+            // every polished house planned at once (what one pass for the whole neighbourhood would cost)
+            if (editAll)
+                foreach (var (_, (houses, _)) in passes)
+                    foreach (var h in houses)
+                        if (h.Polished) { h.Edit = true; h.Garden = null; h.Standing = null; }
             Console.WriteLine($"{passes.Count} passes from {dir}");
             // warm up the JIT on the first pass
             if (passes.Count > 0) YardStitch.Plan(passes[0].Input.Houses, passes[0].Input.Settings);
