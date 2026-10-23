@@ -24,6 +24,10 @@ namespace Placemaker.Game.Neighbours
         /// 8 its outgrow type saved with new settings (or put back as it ships).</summary>
         public static readonly int[] DirtyBy = new int[9];
         public static readonly string[] DirtyByNames = { "linesChanged", "goneNearby", "builtNearby", "clash", "stamped", "rebuilt", "piecesTaken", "emptyAfterLoad", "typeSaved" };
+        /// <summary>Fence lanes the game changed that put their house in line again, by how: 0 a lane not seen before (made
+        /// again), 1 one of ours the game moved, 2 one of the game's own it moved, 3 where it was but on a building that
+        /// changed (another model).</summary>
+        public static readonly int[] LinesChangedHow = new int[4];
         public static int DirtySkippedTotal => DirtySkipped;
         /// <summary>A pass's main thread time by part (ms since the game started): 0 grid, 1 picking the patch, 2 describing
         /// houses, 3 looks, gardens and fences of the neighbours (with 2: describing counted apart), 4 barriers, 5 starting the

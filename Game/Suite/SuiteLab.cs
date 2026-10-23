@@ -271,6 +271,7 @@ namespace Placemaker.Game.Suite
                     int passes0 = Placemaker.Game.Neighbours.NeighbourPolishSystem.TotalPasses;
                     double upd0 = Placemaker.Game.Neighbours.NeighbourPolishSystem.UpdateMs, pass0 = Placemaker.Game.Neighbours.NeighbourPolishSystem.PassMainMs, fin0 = Placemaker.Game.Neighbours.NeighbourPolishSystem.FinishMainMs, plan0 = Placemaker.Game.Neighbours.NeighbourPolishSystem.PlanWorkerMs;
                     int plans0 = Placemaker.Game.Neighbours.NeighbourPolishSystem.PlansTimed;
+                    int retries0 = Placemaker.Game.Neighbours.NeighbourPolishSystem.TotalRetries, taken0 = Placemaker.Game.Neighbours.NeighbourPolishSystem.TotalTaken;
                     Placemaker.Game.Neighbours.NeighbourPolishSystem.ResetWorst();
                     int frames = 0;
                     var ms = new System.Collections.Generic.List<float>();
@@ -288,6 +289,7 @@ namespace Placemaker.Game.Suite
                             ["passGather"] = Math.Round(Placemaker.Game.Neighbours.NeighbourPolishSystem.PassMainMs - pass0, 1), ["passGatherWorst"] = Math.Round(Placemaker.Game.Neighbours.NeighbourPolishSystem.PassMainMaxMs, 1),
                             ["write"] = Math.Round(Placemaker.Game.Neighbours.NeighbourPolishSystem.FinishMainMs - fin0, 1), ["writeWorst"] = Math.Round(Placemaker.Game.Neighbours.NeighbourPolishSystem.FinishMainMaxMs, 1),
                             ["plans"] = plans, ["planWorker"] = Math.Round(Placemaker.Game.Neighbours.NeighbourPolishSystem.PlanWorkerMs - plan0, 1), ["planWorst"] = Math.Round(Placemaker.Game.Neighbours.NeighbourPolishSystem.PlanWorkerMaxMs, 1),
+                            ["retries"] = Placemaker.Game.Neighbours.NeighbourPolishSystem.TotalRetries - retries0, ["asked"] = Placemaker.Game.Neighbours.NeighbourPolishSystem.TotalTaken - taken0,
                         };
                         var parts = new JObject();
                         for (int k = 0; k < Placemaker.Game.Neighbours.NeighbourPolishSystem.PassPartMs.Length; k++) parts[Placemaker.Game.Neighbours.NeighbourPolishSystem.PassPartNames[k]] = Math.Round(Placemaker.Game.Neighbours.NeighbourPolishSystem.PassPartMs[k], 1);
@@ -296,6 +298,8 @@ namespace Placemaker.Game.Suite
                         var why = new JObject();
                         for (int k = 0; k < Placemaker.Game.Neighbours.NeighbourPolishSystem.DirtyBy.Length; k++) why[Placemaker.Game.Neighbours.NeighbourPolishSystem.DirtyByNames[k]] = Placemaker.Game.Neighbours.NeighbourPolishSystem.DirtyBy[k];
                         why["linesUnmovedSkipped"] = Placemaker.Game.Neighbours.NeighbourPolishSystem.DirtySkipped;
+                        var how = Placemaker.Game.Neighbours.NeighbourPolishSystem.LinesChangedHow;
+                        why["linesHow"] = $"new {how[0]}, ours moved {how[1]}, game's moved {how[2]}, other model {how[3]}";
                         rec["outgrowMs"]["dirtyBy"] = why;
                         Mod.Log.Info("Placemaker lab: Outgrow time " + rec["outgrowMs"].ToString(Newtonsoft.Json.Formatting.None));
                     }

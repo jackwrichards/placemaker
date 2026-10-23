@@ -19,6 +19,7 @@ using Placemaker.Core.Tool;
 using Placemaker.Game.Settings;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace Placemaker.Game.Neighbours
 {
@@ -199,21 +200,82 @@ namespace Placemaker.Game.Neighbours
             return true;
         }
 
+        // each look's values (and how far its gardens reach), worked out once per version of the looks and shared by every lot
+        // with that look and no changes of its own (read only: the planner never writes them). A dictionary of every knob made
+        // for every house of every pass was most of a pass's time on the frame
+        private static readonly Dictionary<PolishLook, (Dictionary<string, float> Values, float Reach)> s_lookValues = new Dictionary<PolishLook, (Dictionary<string, float>, float)>();
+        private static int s_lookValuesVersion = -1;
+
+        private static (Dictionary<string, float> Values, float Reach) ValuesOf(PolishLook look)
+        {
+            if (s_lookValuesVersion != LooksVersion) { s_lookValues.Clear(); s_lookValuesVersion = LooksVersion; }
+            if (!s_lookValues.TryGetValue(look, out var have))
+            {
+                var values = look.Values();
+                s_lookValues[look] = have = (values, ReachOf(values));
+            }
+            return have;
+        }
+
+        /// <summary>The biggest reach setting among these values (PolishLooks.ReachKnobs).</summary>
+        private static float ReachOf(IReadOnlyDictionary<string, float> values)
+        {
+            float r = 0f;
+            foreach (var k in PolishLooks.ReachKnobs) if (values.TryGetValue(k, out var v)) r = Math.Max(r, v);
+            return r;
+        }
+
+        private static PolishLook LookOfLot(in PolishedLot f) =>
+            LookByHash(f.Look) ?? LookById(f.Theme > 0 && f.Theme < ThemeNames.Length ? ThemeNames[f.Theme] : "garden") ?? PolishLooks.BuiltIn[0];
+
         /// <summary>A look's values for a lot: the look's, then the changes it was polished with. Its theme too.</summary>
         private Dictionary<string, float> LookValues(Entity lot, in PolishedLot f, out string theme)
         {
-            var look = LookByHash(f.Look) ?? LookById(f.Theme > 0 && f.Theme < ThemeNames.Length ? ThemeNames[f.Theme] : "garden") ?? PolishLooks.BuiltIn[0];
-            var values = look.Values();
+            var look = LookOfLot(f);
+            var values = ValuesOf(look).Values;
             theme = look.Theme;
             if (EntityManager.HasBuffer<PolishLookOverride>(lot))
-                foreach (var o in EntityManager.GetBuffer<PolishLookOverride>(lot, true))
+            {
+                var changes = EntityManager.GetBuffer<PolishLookOverride>(lot, true);
+                if (changes.Length > 0) values = new Dictionary<string, float>(values);
+                foreach (var o in changes)
                 {
                     if (!s_knobOfHash.TryGetValue(o.Knob, out var knob)) continue;
                     if (knob == "theme") { int t = (int)Math.Round(o.Value); if (t >= 0 && t < PolishLooks.Themes.Length) theme = PolishLooks.Themes[t]; }
                     else values[knob] = o.Value;
                 }
+            }
             return values;
         }
+
+        /// <summary>How far a lot's garden may reach: the biggest reach setting of its look with its own changes (a lot outgrown
+        /// before looks: the settings').</summary>
+        private float LotReach(Entity lot)
+        {
+            if (!EntityManager.HasComponent<PolishedLot>(lot)) return BaseReach();
+            var f = EntityManager.GetComponentData<PolishedLot>(lot);
+            if (f.Look == 0) return BaseReach();
+            if (!EntityManager.HasBuffer<PolishLookOverride>(lot) || EntityManager.GetBuffer<PolishLookOverride>(lot, true).Length == 0) return ValuesOf(LookOfLot(f)).Reach;
+            return ReachOf(LookValues(lot, f, out _));
+        }
+
+        /// <summary>The reach of a lot with no look of its own: the settings', else the looks' defaults.</summary>
+        private static float BaseReach()
+        {
+            float r = 0f;
+            foreach (var k in PolishLooks.ReachKnobs) r = Math.Max(r, Settings.Extra != null && Settings.Extra.TryGetValue(k, out var v) ? v : PolishLooks.Defaults[k]);
+            return r;
+        }
+
+        /// <summary>The furthest any garden may reach (every look, the tool's values): how far around something built to look
+        /// for gardens it may change.</summary>
+        private static float MostReach()
+        {
+            float r = Math.Max(ReachInUse, BaseReach());
+            foreach (var look in Looks) r = Math.Max(r, ValuesOf(look).Reach);
+            return r;
+        }
+
 
         /// <summary>The planner's options and theme for a lot: its look (a lot polished before looks: its parts and theme).</summary>
         private (Dictionary<string, float> Options, string Theme) PlannerLook(Entity lot, in PolishedLot f, string zone)

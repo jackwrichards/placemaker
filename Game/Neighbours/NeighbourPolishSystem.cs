@@ -195,9 +195,14 @@ namespace Placemaker.Game.Neighbours
         // the planner runs off the frame: a pass gathers the houses here, plans on a worker, and is applied when it is done
         // plans worked out on workers at once, each for its own patch of town (patches far enough apart never edit the same house)
         private readonly List<Pending> _inFlight = new List<Pending>();
-        private static readonly int MaxInFlight = math.clamp(Environment.ProcessorCount / 4, 1, 3);
-        // a patch: a waiting house and every waiting house this near it, planned together with the houses around them
-        private const float PatchRadius = 50f;
+        // (half the threads less one, the rest left to the game's own jobs: 7 on 16 threads, where it was 3, and those hardly
+        // ever ran at once: passes kept apart by the widest reach of any type, used or not)
+        private static readonly int MaxInFlight = math.clamp(Environment.ProcessorCount / 2 - 1, 1, 7);
+        // a patch: a waiting house and every waiting house this near it, planned together with the houses around them; a bigger
+        // patch while many wait (a whole town outgrown or redone): fewer plans, and a house is planned again as a neighbour of
+        // the next patch less often
+        private const float PatchRadius = 50f, BigPatchRadius = 110f;
+        private const int ManyWaiting = 60;
 
         /// <summary>A house's fence lane with its place as the game made it (the prefab's curve on the house).</summary>
         private struct LaneRef
@@ -217,7 +222,8 @@ namespace Placemaker.Game.Neighbours
             /// <summary>Lane and lawn id → the id of the house they belong to (a house unpolished meanwhile is left alone).</summary>
             public Dictionary<long, long> OwnerOf;
             public HashSet<long> CoreIds;
-            /// <summary>The houses this pass was asked for (the rest of the core are neighbours it re-plans).</summary>
+            /// <summary>The houses this pass took from the waiting ones (asked, and waiting neighbours it edits anyway; the rest of
+            /// the core are neighbours it re-plans).</summary>
             public HashSet<long> DoneIds;
             public Dictionary<long, Entity> HouseOf;
             public Dictionary<long, Entity> LawnPrefabOf;
@@ -230,8 +236,14 @@ namespace Placemaker.Game.Neighbours
             /// <summary>Until its samples are in (Task null): what the plan starts with.</summary>
             public Sampling Samples;
             public StitchSettings Settings;
-            /// <summary>How far the gardens of this pass reach (another pass at once keeps this much further away).</summary>
+            /// <summary>How far the gardens of this pass reach.</summary>
             public float Reach;
+            /// <summary>How far from its seed the houses it edits may stand (its patch and their neighbours): another pass at
+            /// once keeps its own that far again away, so no house is in two plans at once.</summary>
+            public float Extent;
+            /// <summary>The gardens written when it gathered its houses (_writeSerial): what other plans wrote after that, it
+            /// did not see (CheckWrites).</summary>
+            public int StartSerial;
             public Func<IReadOnlyList<StitchHouse>, StitchSettings, StitchPlan> Planner;
         }
         private int _frame, _errors;
@@ -275,6 +287,7 @@ namespace Placemaker.Game.Neighbours
             CreateAreaQueries();
             CreateSwitchesQuery();
             CreateNearbyQuery();
+            CreateBarrierCacheQuery();
             CreateHiddenQuery();
             CreateRebuiltQueries();
         }
@@ -307,6 +320,8 @@ namespace Placemaker.Game.Neighbours
                 SwitchesUpdate();
             }
             catch (Exception e) { if (_errors++ < 5) Mod.Log.Error(e, "Placemaker neighbourhood polish (switches) failed"); }
+            try { DropChangedBarrierCells(); }
+            catch (Exception e) { if (_errors++ < 5) Mod.Log.Error(e, "Placemaker neighbourhood polish (barrier cells) failed"); }
             try
             {
                 // the painter's stamps, "Remove all polish", new lots' flags and our new pieces' tags: also with the polish
@@ -349,9 +364,19 @@ namespace Placemaker.Game.Neighbours
                 Waiting = _dirty.Count;
                 // one finished plan written per frame (writing is the part on the frame), one new patch started per frame
                 StartSampledPlans();
+                double finishMs = 0;
                 for (int k = 0; k < _inFlight.Count; k++)
-                    if (_inFlight[k].Task != null && _inFlight[k].Task.IsCompleted) { var done = _inFlight[k]; _inFlight.RemoveAt(k); Finish(done); break; }
-                if (_dirty.Count > 0 && _inFlight.Count < MaxInFlight) Pass();
+                    if (_inFlight[k].Task != null && _inFlight[k].Task.IsCompleted)
+                    {
+                        var done = _inFlight[k];
+                        _inFlight.RemoveAt(k);
+                        var finishClock = Stopwatch.StartNew();
+                        Finish(done);
+                        finishMs = finishClock.Elapsed.TotalMilliseconds;
+                        break;
+                    }
+                // (a big plan written this frame: the next patch is gathered on the next, never both on one frame)
+                if (_dirty.Count > 0 && _inFlight.Count < (int)Settings.Knob("maxPlans", MaxInFlight) && finishMs < 6.0) Pass();
                 if (_passes > 0 && (_frame & 255) == 0) Report();
             }
             catch (Exception e)
@@ -403,6 +428,8 @@ namespace Placemaker.Game.Neighbours
                     if (_laneCurve.TryGetValue(lane, out var known) && SameXZ(curve, known)
                         && _prefabSeen.TryGetValue(owner, out var seenPrefab) && seenPrefab == EntityManager.GetComponentData<PrefabRef>(owner).m_Prefab)
                     { DirtySkipped++; continue; }
+                    // (why, for the game runner: a lane never seen, one the game moved, or one where it was on another building)
+                    LinesChangedHow[!_laneCurve.TryGetValue(lane, out var seen) ? 0 : !SameXZ(curve, seen) ? (_written.ContainsKey(lane) ? 1 : 2) : 3]++;
                     _written.Remove(lane);
                     if (_dirty.Add(owner)) DirtyBy[0]++;
                 }
@@ -496,7 +523,9 @@ namespace Placemaker.Game.Neighbours
             var houses = _gridHouses;
             var grid = _grid;
             var index = _gridIndex;
-            int batch = _dirty.Count > 200 ? HousesPerBigPass : HousesPerPass;
+            bool many = _dirty.Count > ManyWaiting;
+            int batch = many ? HousesPerBigPass : HousesPerPass;
+            float patch = many ? Settings.Knob("bigPatch", BigPatchRadius) : PatchRadius;
 
             // an unpolished lot is never planned itself: a change of it (rebuilt, levelled up, just unpolished) re-plans the
             // polished lots around it
@@ -517,50 +546,89 @@ namespace Placemaker.Game.Neighbours
             var done = new List<Entity>();
             int seed = -1;
             var unknown = new List<Entity>();
-            bool Clear(float2 at)
+            // Plans at once: no house is in two of them (their patches and neighbours apart), and the one finishing later is
+            // planned again if its gardens come near gardens another wrote meanwhile (CheckWrites): no garden ever lies over
+            // another, every fence closes against what really stands. Before, plans kept apart by the reach of both: about
+            // 490 m with the looks as they ship, one plan at a time in a town (on 20 Oct, 190 m and nothing checked). (Kept
+            // apart by the houses each edits, 30 m, they met far more often: twice the plans in the game runner)
+            float extent = patch + CoreRadius;
+            float Gap(float2 at)
             {
-                // (and as far again as the gardens of both reach: two plans at once never give the same land to two gardens)
-                foreach (var f in _inFlight) if (math.distance(f.Seed, at) < 2f * (PatchRadius + CoreRadius) + 10f + f.Reach + ReachInUse) return false;
-                return true;
+                float gap = float.MaxValue;
+                foreach (var f in _inFlight) gap = math.min(gap, math.distance(f.Seed, at) - f.Extent - extent - 10f);
+                return gap;
+            }
+            // while a whole town waits, a pass edits only waiting houses near its own (knob coreAll 0): the ones planned
+            // already keep their gardens, the patches meet on them
+            bool onlyWaiting = many && Settings.Knob("coreAll", 1f) < 0.5f;
+            // a patch from a seed: the waiting houses near it (done), and every yes house near those (core: only yes lots are
+            // edited)
+            void Patch(int s)
+            {
+                var seedAt0 = houses[s].T.m_Position.xz;
+                int patchCells = (int)math.ceil(patch / Cell);
+                for (int dx = -patchCells; dx <= patchCells; dx++)
+                    for (int dz = -patchCells; dz <= patchCells; dz++)
+                        if (grid.TryGetValue(Key(seedAt0 + new float2(dx, dz) * Cell), out var near0))
+                            foreach (int j in near0)
+                                if (done.Count < batch && _dirty.Contains(houses[j].E) && math.distance(houses[j].T.m_Position.xz, seedAt0) <= patch) done.Add(houses[j].E);
+                if (!done.Contains(houses[s].E)) done.Add(houses[s].E);
+                foreach (var e in done)
+                {
+                    if (!index.TryGetValue(e, out int i)) continue;
+                    var p = houses[i].T.m_Position.xz;
+                    for (int dx = -1; dx <= 1; dx++)
+                        for (int dz = -1; dz <= 1; dz++)
+                            if (grid.TryGetValue(Key(p + new float2(dx, dz) * Cell), out var near))
+                                foreach (int j in near)
+                                    if (math.distance(houses[j].T.m_Position.xz, p) <= CoreRadius && IsYes(houses[j].E) && (!onlyWaiting || _dirty.Contains(houses[j].E))) core.Add(j);
+                }
             }
             // the player's own work first; a house still being built waits in _first until its lanes come (then it is dirty)
             foreach (var e in _first)
-                if (_dirty.Contains(e) && index.TryGetValue(e, out int i) && Clear(houses[i].T.m_Position.xz)) { seed = i; break; }
+                if (_dirty.Contains(e) && index.TryGetValue(e, out int i) && Gap(houses[i].T.m_Position.xz) >= 0f) { seed = i; break; }
             if (seed < 0)
+            {
+                // then, while others are planned, the waiting house furthest from them (their gardens seldom meet)
+                float best = -1f;
                 foreach (var e in _dirty)
                 {
                     if (!index.TryGetValue(e, out int i)) { unknown.Add(e); continue; }   // gone, or still being built: its lanes come back as Created later
-                    if (Clear(houses[i].T.m_Position.xz)) { seed = i; break; }
+                    float gap = Gap(houses[i].T.m_Position.xz);
+                    if (gap < 0f || gap <= best) continue;
+                    seed = i;
+                    best = gap;
+                    if (_inFlight.Count == 0) break;
                 }
+            }
+            if (seed >= 0) Patch(seed);
             foreach (var e in unknown) _dirty.Remove(e);
             TotalDropped += unknown.Count;
             if (seed < 0) return;
             var seedAt = houses[seed].T.m_Position.xz;
-            for (int dx = -1; dx <= 1; dx++)
-                for (int dz = -1; dz <= 1; dz++)
-                    if (grid.TryGetValue(Key(seedAt + new float2(dx, dz) * Cell), out var near0))
-                        foreach (int j in near0)
-                            if (done.Count < batch && _dirty.Contains(houses[j].E) && math.distance(houses[j].T.m_Position.xz, seedAt) <= PatchRadius) done.Add(houses[j].E);
-            if (!done.Contains(houses[seed].E)) done.Add(houses[seed].E);
+            // (as far around the edited houses as their gardens reach: the pass's own reach, not the widest of every type in
+            // the city: a type at 500 m nobody used made every pass take in 400 m of town)
+            float coreReach = 0f;
+            foreach (int j in core) coreReach = math.max(coreReach, LotReach(houses[j].E));
+            float clusterRadius = math.clamp(coreReach + 60f, ClusterRadiusMin, ClusterRadiusMax);
             foreach (var e in done)
             {
                 if (!index.TryGetValue(e, out int i)) continue;
                 var p = houses[i].T.m_Position.xz;
-                float clusterRadius = ClusterRadius;
                 int cells = (int)math.ceil(clusterRadius / Cell) + 1;
                 for (int dx = -cells; dx <= cells; dx++)
                     for (int dz = -cells; dz <= cells; dz++)
                         if (grid.TryGetValue(Key(p + new float2(dx, dz) * Cell), out var near))
                             foreach (int j in near)
-                            {
-                                float d = math.distance(houses[j].T.m_Position.xz, p);
-                                if (d <= clusterRadius) cluster.Add(j);
-                                if (d <= CoreRadius && IsYes(houses[j].E)) core.Add(j);   // only yes lots are edited
-                            }
+                                if (math.distance(houses[j].T.m_Position.xz, p) <= clusterRadius) cluster.Add(j);
             }
+            // a waiting house this plan edits anyway (a neighbour of the asked ones) is planned now, not again on its own later:
+            // a town outgrown at once planned most houses twice or more, once as a neighbour and once asked
+            var taken = new List<Entity>(done);
+            foreach (int j in core) if (_dirty.Contains(houses[j].E) && !done.Contains(houses[j].E)) taken.Add(houses[j].E);
             bool first = false;
-            foreach (var e in done) { _dirty.Remove(e); _described.Remove(e); if (_first.Remove(e)) first = true; }
-            TotalTaken += done.Count;
+            foreach (var e in taken) { _dirty.Remove(e); _described.Remove(e); if (_first.Remove(e)) first = true; }
+            TotalTaken += taken.Count;
             PassPart(1, sw);
             if (cluster.Count == 0) return;
 
@@ -613,10 +681,8 @@ namespace Placemaker.Game.Neighbours
             // the roads, paths, tracks and other buildings around the patch: never joined across, never reached onto, met
             // around every house as far as any garden here reaches (the looks in use, these lots' own changes, the tool's
             // values), plus a margin: nothing further out changes a plan (it was the whole cluster radius again around each)
-            float reach = ReachInUse;
-            foreach (var h in stitch)
-                if (h.Options != null) foreach (var k in PolishLooks.ReachKnobs) if (h.Options.TryGetValue(k, out var v)) reach = math.max(reach, v);
-            if (Settings.Extra != null) foreach (var k in PolishLooks.ReachKnobs) if (Settings.Extra.TryGetValue(k, out var v)) reach = math.max(reach, v);
+            // (the gardens this pass edits: a neighbour it only plans around keeps the garden it has)
+            float reach = coreReach;
             int nearCount = stitch.Count;
             // polished houses further out whose gardens reach into what this pass may give its houses: fixed for the plan, so
             // the gardens it edits keep off them. A garden reaches further than the cluster radius (up to 500 m), and two big
@@ -670,9 +736,9 @@ namespace Placemaker.Game.Neighbours
             // they are done (StartSampledPlans)
             var pend = new Pending
             {
-                Stitch = stitch, LanesOf = lanesOf, LawnsOf = lawnsOf, OwnerOf = ownerOf, CoreIds = coreIds, DoneIds = new HashSet<long>(done.Select(Id)), HouseOf = new Dictionary<long, Entity>(_houseOf),
+                Stitch = stitch, LanesOf = lanesOf, LawnsOf = lawnsOf, OwnerOf = ownerOf, CoreIds = coreIds, DoneIds = new HashSet<long>(taken.Select(Id)), HouseOf = new Dictionary<long, Entity>(_houseOf),
                 LawnPrefabOf = new Dictionary<long, Entity>(_lawnPrefabOf), Asked = done.Count, Cluster = cluster.Count, Clock = sw, First = first, Seed = seedAt,
-                Settings = settings, Planner = planner, Reach = reach, Samples = StartSampling(lo, hi, math.clamp(wetGap, 0f, 300f) + 4f),
+                Settings = settings, Planner = planner, Reach = reach, Extent = extent, StartSerial = _writeSerial, Samples = StartSampling(lo, hi, math.clamp(wetGap, 0f, 300f) + 4f),
             };
             PassPart(5, sw);
             _inFlight.Add(pend);
@@ -752,14 +818,19 @@ namespace Placemaker.Game.Neighbours
             var lanesOf = pend.LanesOf;
             var lawnsOf = pend.LawnsOf;
             var coreIds = pend.CoreIds;
+            // gardens another plan wrote meanwhile near these: planned again, nothing of this plan written
+            if (!CheckWrites(pend, plan)) return;
             // the gardens written now are the ones the next passes keep off; neighbours whose garden lies over a lot here
             // are planned again
             // (a house the plan left as it was: its garden is its lot)
+            _writeSerial++;
             foreach (var id in coreIds)
                 if (pend.HouseOf.TryGetValue(id, out var he) && EntityManager.Exists(he) && !EntityManager.HasComponent<Deleted>(he) && IsYes(he))
                 {
                     var garden = plan.Plots.TryGetValue(id, out var plotNow) ? plotNow : LotRing(stitch.Find(h => h.Id == id));
-                    if (garden != null) KeepGarden(he, garden);
+                    if (garden == null) continue;
+                    NoteWrite(id, GardenOf(he) ?? LotRing(stitch.Find(h => h.Id == id)), garden);
+                    KeepGarden(he, garden);
                 }
             int clashes = 0;
             foreach (var id in plan.GardenClashes)
@@ -784,7 +855,8 @@ namespace Placemaker.Game.Neighbours
             bool logPass = TotalPasses < 6 || s_logPasses > 0;
             if (s_logPasses > 0) s_logPasses--;
             if (logPass)
-                foreach (var note in plan.Notes) Mod.Log.Info("Placemaker neighbourhood polish: " + note);
+                // (one write for all of them: a call per note was most of the frame a big plan was written on)
+                if (plan.Notes.Count > 0) Mod.Log.Info("Placemaker neighbourhood polish: " + string.Join("\nPlacemaker neighbourhood polish: ", plan.Notes));
             if (logPass)
                 Mod.Log.Info($"Placemaker neighbourhood polish pass {TotalPasses + 1}: {asked} houses asked, {clusterCount} in their neighbourhoods ({stitch.Count(h => !h.Polished)} unpolished), {plan.Pairs.Count} pairs ({plan.Pairs.Count(p => p.Edge)} against an unpolished lot), "
                     + $"{plan.MoveLines.Count} lines to move, {plan.HideLines.Count} to hide, {plan.Lawns.Count} lawns{(EditLines ? "" : " (lines off)")}{(EditLawns ? "" : " (lawns off)")}{(skip.Count > 0 ? $", {skip.Count} unpolished meanwhile" : "")}");
