@@ -130,3 +130,24 @@ each Outgrow system's main thread time, the garbage collector, why houses were p
   0 of 10 657 had changed unseen (once pieces the game sets down a frame later are counted).
 * Left: a plan's gathering is still on one frame (up to about 30 ms), hidden pieces shown again after a plan (bursts of about
   20 ms), the barrier cells dropped when many buildings update at once (8 to 12 ms), ground paint (2 to 5 ms a stamp).
+
+## 8. The fewest neighbours a change plans again (23 Oct)
+
+The user's pillars: Outgrow fast, little memory, off the main frame, and a change plans again only the neighbours it must.
+
+* **[P] A building removed** (or a lot unpolished, or an unpolished one rebuilt) gives its land only to the gardens that touch
+  it (NeighbourPolishSystem.Removals: TouchingDirty), zoned or not. Before: every house within 70 m, and every unpolished
+  one among them every polished house within 70 m of itself. 4 houses bulldozed in the game runner: 28 gardens planned again,
+  now 8, and none across the street (outgrow-removals.json).
+* **[P] A removed house's own surfaces and paths** (its driveway, its lawn) no longer plan again every garden within reach of
+  them as "something bulldozed nearby" (CollectNewNearby: what a building removed this frame took with it is its own). This
+  was most of the user's 20 lots across the street.
+* **[P] A plan never takes along a house across a road, path or track** from the ones it is asked for (RoadBetween; knob
+  coreAcrossRoads 1: as before). Every house planned again with and without it: 0 of 76 gardens changed.
+* **[P] A level-up of the same lot size** (its garden comes out the same) takes along only the gardens touching it (knob
+  coreTouching 0: as before). The model a house was last planned with is kept apart from the one last read
+  (_plannedModel): a street levelling up at once read every neighbour's new model in the first plan (1 of 32 level-ups
+  recognised; now 15 of 16). In the runner's suburb the 40 m was already only touching houses once roads are left out; the
+  user's denser city gains more.
+* Tried and dropped (the user: too much nuance): keeping a plot still zoned for the next building. It worked (nothing planned,
+  the new house outgrown once) but left the gardens beside it open meanwhile, and zoning that shrinks or goes needed more.

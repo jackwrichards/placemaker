@@ -1,0 +1,189 @@
+{
+  "_about": "Houses bulldozed in an outgrown suburb (the user, 23 Oct: 4 bulldozed, 20 lots across the street planned again). Two streets, houses on both sides, back to back between them; 4 neighbours bulldozed: only the gardens touching them are planned again (put in line), they take the land (zoned or not); nothing across the street. Then a plan's houses across a road left out (coreAcrossRoads 0) against as before (1), every house planned again each time: the gardens must come out the same. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-removals.json -Who outgrow-removals",
+  "scenarios": [
+    {
+      "id": "removals",
+      "land": {
+        "shape": "rect",
+        "size": [
+          360,
+          260
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "polish",
+          "city": "newHouses",
+          "value": "true"
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "at": [
+            -60,
+            0
+          ],
+          "yaw": 90,
+          "length": 230
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "at": [
+            60,
+            0
+          ],
+          "yaw": 90,
+          "length": 230
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "wait",
+          "seconds": 5
+        },
+        {
+          "op": "polishIdle",
+          "do": "lab",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck"
+        },
+        {
+          "do": "shot",
+          "name": "outgrown-top",
+          "camera": {
+            "target": "area",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            -40,
+            0
+          ],
+          "rel": true,
+          "radius": 70,
+          "nearest": 4
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 60
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck"
+        },
+        {
+          "do": "shot",
+          "name": "bulldozed-top",
+          "camera": {
+            "target": "area",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "bulldozed-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              -40,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 120
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "bulldozed-45-close",
+          "camera": {
+            "target": "point",
+            "at": [
+              -40,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 55,
+            "distance": 70
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "coreAcrossRoads": 1
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "coreAcrossRoads": 1
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "coreAcrossRoads": 0
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck"
+        }
+      ]
+    }
+  ]
+}

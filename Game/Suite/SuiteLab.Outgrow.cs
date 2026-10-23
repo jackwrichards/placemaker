@@ -38,12 +38,41 @@ namespace Placemaker.Game.Suite
             public float2 Lo, Hi;
         }
 
+        // the gardens at the last outgrowCheck: the next one says how many changed since (a change that must leave them as they are)
+        private static Dictionary<Entity, float2[]> s_checkedGardens;
+
         private IEnumerator LabOutgrowCheck(ScenarioState st, JObject step, JObject rec)
         {
             yield return Frames(30);
             var em = _world.EntityManager;
             var sys = _world.GetExistingSystemManaged<NeighbourPolishSystem>();
             if (sys == null) { rec["error"] = "lab: Outgrow is not registered"; yield break; }
+            {
+                int changed = 0, same = 0;
+                var now = new Dictionary<Entity, float2[]>();
+                foreach (var kv in sys.Gardens) if (kv.Value != null && kv.Value.Length >= 3 && em.Exists(kv.Key)) now[kv.Key] = kv.Value;
+                if (s_checkedGardens != null)
+                {
+                    foreach (var kv in now)
+                    {
+                        if (!s_checkedGardens.TryGetValue(kv.Key, out var was) || was.Length != kv.Value.Length) { changed++; continue; }
+                        bool moved = false;
+                        for (int i = 0; i < was.Length && !moved; i++) moved = math.distance(was[i], kv.Value[i]) > 0.1f;
+                        if (moved) changed++; else same++;
+                    }
+                    foreach (var k in s_checkedGardens.Keys) if (!now.ContainsKey(k) && em.Exists(k)) changed++;
+                    rec["gardensChangedSinceLastCheck"] = changed;
+                    rec["gardensSameSinceLastCheck"] = same;
+                    Mod.Log.Info($"Placemaker lab: outgrow check: since the last check {changed} garden(s) changed, {same} the same");
+                }
+                s_checkedGardens = now;
+                rec["coreAcrossRoad"] = NeighbourPolishSystem.CoreAcrossRoad;
+                rec["coreNotTouching"] = NeighbourPolishSystem.CoreNotTouching;
+                rec["coreEdited"] = NeighbourPolishSystem.CoreEdited;
+                rec["levelUpChecks"] = string.Join(" ", NeighbourPolishSystem.LevelUpChecks);
+                rec["sameLandPlans"] = NeighbourPolishSystem.SameLandPlans;
+                rec["passes"] = NeighbourPolishSystem.TotalPasses;
+            }
             var prefabs = _world.GetOrCreateSystemManaged<PrefabSystem>();
             var names = new Dictionary<Entity, string>();
             string NameOf(Entity p)

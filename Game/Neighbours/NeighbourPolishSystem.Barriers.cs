@@ -180,11 +180,42 @@ namespace Placemaker.Game.Neighbours
         /// within reach of it are planned again, so they give that land back (they never grow into a build). Something
         /// bulldozed there likewise: they may take the land it leaves. Both are the player's own work: planned first.
         /// </summary>
+        /// <summary>The top of the entity's owners (itself when it has none).</summary>
+        private Entity TopOwner(Entity e)
+        {
+            var top = e;
+            for (int k = 0; k < 8 && EntityManager.HasComponent<Owner>(top); k++)
+            {
+                var o = EntityManager.GetComponentData<Owner>(top).m_Owner;
+                if (o == Entity.Null || !EntityManager.Exists(o)) break;
+                top = o;
+            }
+            return top;
+        }
+
         private void CollectNewNearby()
         {
             if (_newNearby.IsEmptyIgnoreFilter && _goneNearby.IsEmptyIgnoreFilter) return;
             var boxes = new List<(float2 Min, float2 Max)>();
             var sites = new List<float2[]>();
+            // the lots of the buildings removed this frame: what goes with them (their driveways, lawns, paths) is theirs, and
+            // their land goes only to the gardens that touch it (CollectGone). Before, each of their surfaces planned again
+            // every garden within reach of it, across the street too (29 for 4 houses bulldozed in the game runner)
+            List<float2[]> goneLots = null;
+            if (!_goneNearby.IsEmptyIgnoreFilter && !_goneHouses.IsEmptyIgnoreFilter)
+                using (var gone = _goneHouses.ToEntityArray(Allocator.Temp))
+                    foreach (var g in gone)
+                    {
+                        BuildingFootprints.Of(EntityManager, g, out var lot, out _);
+                        if (lot != null && lot.Length >= 3) (goneLots ??= new List<float2[]>()).Add(lot);
+                    }
+            bool InGoneLot(float2 lo, float2 hi)
+            {
+                if (goneLots == null) return false;
+                var mid = (lo + hi) * 0.5f;
+                foreach (var lot in goneLots) if (Placemaker.Core.Geometry.Poly.Contains(lot, mid)) return true;
+                return false;
+            }
             foreach (var query in new[] { _newNearby, _goneNearby })
             {
                 if (query.IsEmptyIgnoreFilter) continue;
@@ -195,6 +226,8 @@ namespace Placemaker.Game.Neighbours
                     if (EntityManager.HasComponent<global::Game.Buildings.Building>(e))
                     {
                         if (!EntityManager.HasComponent<global::Game.Objects.Transform>(e)) continue;
+                        // a building removed: the gardens that touch it (CollectGone), not every garden within reach of it
+                        if (query == _goneNearby) continue;
                         // new houses: their own pass; a house just started (a building site) moves the gardens off its lot now
                         if (IsGrowable(e) && !EntityManager.HasComponent<global::Game.Objects.UnderConstruction>(e)) continue;
                         // (only the gardens over its lot: every garden reaching near one row house's site was 252 plans in the
@@ -208,14 +241,14 @@ namespace Placemaker.Game.Neighbours
                         boxes.Add((p - 40f, p + 40f));
                         continue;
                     }
-                    if (EntityManager.HasComponent<Owner>(e))
-                    {
-                        var owner = EntityManager.GetComponentData<Owner>(e).m_Owner;
-                        if (owner != Entity.Null && EntityManager.HasComponent<global::Game.Buildings.Building>(owner) && IsGrowable(owner)) continue;   // a house's own lawn or lot
-                    }
+                    // a building's own lawn, lot, surface or path (also through one of its parts): a house's own, or one a
+                    // building removed this frame took with it
+                    var top = TopOwner(e);
+                    if (top != e && EntityManager.HasComponent<global::Game.Buildings.Building>(top) && (IsGrowable(top) || query == _goneNearby)) continue;
                     if (EntityManager.HasComponent<Curve>(e))
                     {
                         var b = MathUtils.Bounds(EntityManager.GetComponentData<Curve>(e).m_Bezier);
+                        if (query == _goneNearby && InGoneLot(b.min.xz, b.max.xz)) continue;
                         boxes.Add((b.min.xz, b.max.xz));
                     }
                     else if (EntityManager.HasBuffer<global::Game.Areas.Node>(e))
@@ -224,6 +257,7 @@ namespace Placemaker.Game.Neighbours
                         if (nodes.Length == 0) continue;
                         float2 lo = new float2(float.MaxValue), hi = new float2(float.MinValue);
                         for (int k = 0; k < nodes.Length; k++) { lo = math.min(lo, nodes[k].m_Position.xz); hi = math.max(hi, nodes[k].m_Position.xz); }
+                        if (query == _goneNearby && InGoneLot(lo, hi)) continue;
                         boxes.Add((lo, hi));
                     }
                 }

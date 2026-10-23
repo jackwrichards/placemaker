@@ -1,0 +1,33 @@
+{
+  "_about": "Level-ups with the plan's houses as before (every yes house within 40 m, knob coreTouching 0) and only the gardens touching the levelled-up house (coreTouching 1, the user, 23 Oct: 'lot upgrades don't change lot sizes'). An outgrown suburb on two streets; each half of the houses levels up once under each rule: gardens changed since the check before (must be none or the same few), houses the plans edited (coreEdited) and left out (coreNotTouching). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-levelup-touching.json -Who outgrow-levelup-touching",
+  "scenarios": [
+    {
+      "id": "levelup-touching",
+      "land": { "shape": "rect", "size": [360, 260], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "polish", "city": "newHouses", "value": "true" },
+        { "do": "polish", "city": "levelUps", "value": "true" },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [-60, 0], "yaw": 90, "length": 230 },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [60, 0], "yaw": 90, "length": 230 },
+        { "do": "grow", "seconds": 150 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "polishSettings", "settings": { "coreTouching": 0 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowCheck" },
+        { "do": "lab", "op": "levelUp", "share": 0.5 },
+        { "do": "grow", "seconds": 10 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowCheck" },
+        { "do": "lab", "op": "polishSettings", "settings": { "coreTouching": 1 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowCheck" },
+        { "do": "lab", "op": "levelUp", "share": 0.5 },
+        { "do": "grow", "seconds": 10 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowCheck" },
+        { "do": "shot", "name": "after-levelups-top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

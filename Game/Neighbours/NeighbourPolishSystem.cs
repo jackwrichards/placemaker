@@ -174,7 +174,6 @@ namespace Placemaker.Game.Neighbours
         private static float ClusterRadius => math.clamp(ReachInUse + 60f, ClusterRadiusMin, ClusterRadiusMax);
         private const float CoreRadius = 40f;
         // a bulldozed house: the houses this near it are planned again (a neighbour's line on the shared side goes back)
-        private const float GoneRadius = 70f;
         private const float Cell = 64f;
 
         private EntityQuery _changedFences;
@@ -427,31 +426,12 @@ namespace Placemaker.Game.Neighbours
         {
             try { CollectNewNearby(); }
             catch (Exception e) { if (_errors++ < 5) Mod.Log.Error(e, "Placemaker neighbourhood polish (new things nearby) failed"); }
+            // removed buildings: their land to the gardens that touch it
             if (!_goneHouses.IsEmptyIgnoreFilter)
-                using (var gone = _goneHouses.ToEntityArray(Allocator.Temp))
-                {
-                    EnsureGrid();
-                    var byTool = BulldozedByPlayer();
-                    foreach (var g in gone)
-                    {
-                        var at = EntityManager.GetComponentData<global::Game.Objects.Transform>(g).m_Position.xz;
-                        _dirty.Remove(g);
-                        _first.Remove(g);
-                        _described.Remove(g);
-                        // removed by the game (collapsed, condemned, demolished) in a city that plans nothing for that: the
-                        // gardens around keep theirs (the player's bulldozer always plans)
-                        if (!PolishGameRemovals && IsGrowable(g) && !byTool.Contains(g)) { TotalRemovalsKept++; continue; }
-                        for (int dx = -2; dx <= 2; dx++)
-                            for (int dz = -2; dz <= 2; dz++)
-                                if (_grid.TryGetValue(Key(at + new float2(dx, dz) * Cell), out var near))
-                                    foreach (int j in near)
-                                    {
-                                        var h = _gridHouses[j];
-                                        if (h.E != g && math.distance(h.T.m_Position.xz, at) < GoneRadius && EntityManager.Exists(h.E)) { if (_dirty.Add(h.E)) DirtyBy[1]++; _first.Add(h.E); }
-                                    }
-                    }
-                    _gridStale = true;
-                }
+            {
+                EnsureGrid();
+                CollectGone();
+            }
             if (_goneFences == default)
                 _goneFences = GetEntityQuery(new EntityQueryDesc
                 {
@@ -605,7 +585,7 @@ namespace Placemaker.Game.Neighbours
                 {
                     _dirty.Remove(e);
                     _described.Remove(e);
-                    NeighboursDirty(e, houses[index[e]].T.m_Position.xz, _first.Remove(e));
+                    NeighboursDirty(e, LandOf(e), _first.Remove(e));
                 }
 
             // this pass: one patch of town. A waiting house far enough from the patches still being planned, and every
@@ -630,6 +610,12 @@ namespace Placemaker.Game.Neighbours
             // while a whole town waits, a pass edits only waiting houses near its own (knob coreAll 0): the ones planned
             // already keep their gardens, the patches meet on them
             bool onlyWaiting = many && Settings.Knob("coreAll", 1f) < 0.5f;
+            // a house across a road, path or track from an asked one is not edited with it: two gardens never join across one,
+            // so its plan came out the same (knob coreAcrossRoads 1: as before, every yes house within 40 m)
+            bool acrossRoads = Settings.Knob("coreAcrossRoads", 0f) >= 0.5f;
+            // a house levelled up (the same lot, the same type) takes along only the gardens that touch it (knob coreTouching 0:
+            // every yes house within 40 m, as before)
+            bool touchingOnly = Settings.Knob("coreTouching", 1f) >= 0.5f;
             // a patch from a seed: the waiting houses near it (done), and every yes house near those (core: only yes lots are
             // edited)
             void Patch(int s)
@@ -646,11 +632,21 @@ namespace Placemaker.Game.Neighbours
                 {
                     if (!index.TryGetValue(e, out int i)) continue;
                     var p = houses[i].T.m_Position.xz;
+                    var sameLand = touchingOnly && LevelUpSameLand(e) ? LandOf(e) : null;
+                    if (sameLand != null) SameLandPlans++;
                     for (int dx = -1; dx <= 1; dx++)
                         for (int dz = -1; dz <= 1; dz++)
                             if (grid.TryGetValue(Key(p + new float2(dx, dz) * Cell), out var near))
                                 foreach (int j in near)
-                                    if (math.distance(houses[j].T.m_Position.xz, p) <= CoreRadius && IsYes(houses[j].E) && (!onlyWaiting || _dirty.Contains(houses[j].E))) core.Add(j);
+                                    if (math.distance(houses[j].T.m_Position.xz, p) <= CoreRadius && IsYes(houses[j].E) && (!onlyWaiting || _dirty.Contains(houses[j].E)))
+                                    {
+                                        if (j != i && !core.Contains(j))
+                                        {
+                                            if (sameLand != null && !Touches(sameLand, LandOf(houses[j].E), TouchGap)) { CoreNotTouching++; continue; }
+                                            if (!acrossRoads && RoadBetween(p, houses[j].T.m_Position.xz)) { CoreAcrossRoad++; continue; }
+                                        }
+                                        core.Add(j);
+                                    }
                 }
             }
             // the player's own work first; a house still being built waits in _first until its lanes come (then it is dirty)
@@ -697,6 +693,7 @@ namespace Placemaker.Game.Neighbours
             foreach (int j in core) if (_dirty.Contains(houses[j].E) && !done.Contains(houses[j].E)) taken.Add(houses[j].E);
             bool first = false;
             foreach (var e in taken) { _dirty.Remove(e); _described.Remove(e); if (_first.Remove(e)) first = true; }
+            CoreEdited += core.Count;
             TotalTaken += taken.Count;
             PassPart(1, sw);
             if (cluster.Count == 0) return;
@@ -741,6 +738,7 @@ namespace Placemaker.Game.Neighbours
                     PassPartMs[2] += describeClock.Elapsed.TotalMilliseconds;
                 }
                 bool isCore = core.Contains(i);
+                if (isCore) _plannedModel[e] = houses[i].Prefab;
                 _houseOf[d.House.Id] = e;
                 if (d.LawnPrefab != Entity.Null) _lawnPrefabOf[d.House.Id] = d.LawnPrefab;
                 if (isCore)

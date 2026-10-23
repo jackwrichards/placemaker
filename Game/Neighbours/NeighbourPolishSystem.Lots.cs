@@ -447,10 +447,12 @@ namespace Placemaker.Game.Neighbours
                 }
                 else
                 {
+                    // (its garden, read before it is its lot again: the gardens that touch it take the land)
+                    var land = LandOf(lot);
                     if (Restore(lot)) restored++;
                     _dirty.Remove(lot);
                     _first.Remove(lot);
-                    NeighboursDirty(lot, EntityManager.GetComponentData<global::Game.Objects.Transform>(lot).m_Position.xz, true);
+                    NeighboursDirty(lot, land, true);
                     no++;
                 }
             }
@@ -465,23 +467,10 @@ namespace Placemaker.Game.Neighbours
             _stampYes = _stampNo = _stampRestored = 0;
         }
 
-        /// <summary>The polished lots near a lot that changed (unpolished, rebuilt): planned again (first: before other waiting houses).</summary>
-        private void NeighboursDirty(Entity lot, float2 at, bool first = false)
-        {
-            EnsureGrid();
-            for (int dx = -2; dx <= 2; dx++)
-                for (int dz = -2; dz <= 2; dz++)
-                    if (_grid.TryGetValue(Key(at + new float2(dx, dz) * Cell), out var near))
-                        foreach (int j in near)
-                        {
-                            var h = _gridHouses[j];
-                            if (h.E != lot && math.distance(h.T.m_Position.xz, at) < GoneRadius && EntityManager.Exists(h.E) && IsYes(h.E))
-                            {
-                                _dirty.Add(h.E);
-                                if (first) _first.Add(h.E);
-                            }
-                        }
-        }
+        /// <summary>The polished lots whose gardens touch a lot that changed (unpolished, rebuilt; land: its garden or lot):
+        /// planned again (first: before other waiting houses). Not the ones across a street: every polished lot within 70 m
+        /// was planned again before (NeighbourPolishSystem.Removals).</summary>
+        private void NeighboursDirty(Entity lot, float2[] land, bool first = false) => TouchingDirty(lot, land, first, -1);
 
         private void StartRemoveAll()
         {
@@ -697,6 +686,7 @@ namespace Placemaker.Game.Neighbours
             _healQueue = null;
             _laneCurve.Clear();
             _prefabSeen.Clear();
+            _plannedModel.Clear();
             _standing.Clear();
             _wantOf.Clear();
             _keptLevelUps.Clear();
