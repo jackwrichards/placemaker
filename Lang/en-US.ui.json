@@ -126,7 +126,7 @@
   "Placemaker.UI.Markers.Active": "Done ({0})",
   "Placemaker.UI.Markers.BannerFor": "Placing {0} — click on the outline. Right-click takes back the last one.",
   "Placemaker.UI.Markers.Clear": "Remove all",
-  "Placemaker.UI.Markers.Crosswalk": "Crosswalk",
+  "Placemaker.UI.Markers.Crosswalk": "Place with crosswalk",
   "Placemaker.UI.Markers.CrosswalkItemTip": "On: a crosswalk across the street here. Off: the path stops at the sidewalk.",
   "Placemaker.UI.Markers.CrosswalkOff": "Crosswalk: off",
   "Placemaker.UI.Markers.CrosswalkOn": "Crosswalk: on",
