@@ -27,8 +27,11 @@ water, buildings, lots, my builds, and zoning as one choice (ignore / built / zo
   Tests: `Tests/Placemaker.Tests/GeometryAreaFillTests.cs`.
 * **Paint bucket** (`PlacemakerToolSystem.Block`): the fill under the cursor, worked out on a worker thread after a
   click (`Game/Selection/AreaFillRunner`; not on hover since 2026-10-21: lag spikes) and taken when it is back; Shift+click adds a fill next to it (the street between two is taken
-  along), right-click takes back the last one (not the only one once designing). Outlines along curbs for most of their length are `AreaSource.Block` (no perimeter
-  road, junction anchors), like the old block pick.
+  along), right-click while choosing the area starts over (the area is cleared; Ctrl+Z brings it back). Outlines along curbs for most of their length are `AreaSource.Block` (no perimeter
+  road, junction anchors), like the old block pick. While choosing the area the cursor carries the **Reach** as one
+  dashed circle (bright with a dark rim, laid on the ground, the same width on screen near and far; nothing worked out,
+  just the setting's radius; 2026-10-22, the user: "the reach should be shown in like a dotted outline as I move my
+  mouse around"). Test: `suite/scenarios/area-reach.json`.
 * **Paint area** (`PlacemakerToolSystem.BlockPaint`): with One block on, the brush is fenced to the fill where the
   stroke starts; off, to a 600 m box with every stop fenced out. 2 m cells (were 4). A stroke waits a few frames for its fill and fence
   (both on a worker; the mouse path is painted when it starts); the box grows and the fence is re-read in the background.

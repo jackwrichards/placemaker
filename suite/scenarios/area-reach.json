@@ -1,0 +1,20 @@
+{
+  "_note": "The Paint bucket's reach as a dashed circle at the cursor (2026-10-22): hilly open land with a street through it; the circle at 120 m and at 300 m, from above, at an angle, far and close; after a click (Design) it is gone.",
+  "scenarios": [
+    {
+      "id": "area-reach-cursor",
+      "note": "The bucket's reach circle follows the cursor, its radius the Reach setting, lying on the hills and the street; hidden once the click took the fill.",
+      "land": { "size": [700, 700], "roads": "none", "ground": "hills", "nets": [{ "prefab": "Small Road", "points": [[-350, 40], [350, 40]] }] },
+      "steps": [
+        { "do": "setting", "name": "AreaReach", "value": 120 },
+        { "do": "hover", "tool": "bucket", "at": [0, 0], "camera": { "target": "block", "view": "top" }, "shot": "reach120-top", "shotMode": "overlay" },
+        { "do": "hover", "tool": "bucket", "at": [120, -100], "camera": { "target": "block", "view": "oblique" }, "shot": "reach120-moved", "shotMode": "overlay" },
+        { "do": "setting", "name": "AreaReach", "value": 300 },
+        { "do": "hover", "tool": "bucket", "at": [0, 0], "camera": { "target": "point", "at": [0, 0], "view": "oblique", "distance": 1800 }, "shot": "reach300-far", "shotMode": "overlay" },
+        { "do": "hover", "tool": "bucket", "at": [0, -280], "camera": { "target": "point", "at": [0, 0], "view": "closeup" }, "shot": "reach300-close", "shotMode": "overlay" },
+        { "do": "area", "tool": "bucket", "at": [0, -150] },
+        { "do": "camera", "target": "block", "view": "top", "shot": "after-click", "shotMode": "overlay" }
+      ]
+    }
+  ]
+}
