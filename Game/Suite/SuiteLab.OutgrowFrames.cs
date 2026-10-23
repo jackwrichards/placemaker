@@ -177,7 +177,11 @@ namespace Placemaker.Game.Suite
                 worst.Add(o);
             }
             rec["worstFrames"] = worst;
-            Mod.Log.Info("Placemaker lab: outgrow frames " + new JObject { ["outgrow"] = rec["outgrow"], ["levelUps"] = rec["levelUps"], ["gameChanges"] = rec["gameChanges"], ["gameRemovals"] = rec["gameRemovals"], ["gameLevelUps"] = rec["gameLevelUps"], ["seconds"] = rec["seconds"], ["simFrames"] = rec["simFrames"], ["frameMs"] = rec["frameMs"], ["outgrowMsPerFrame"] = rec["outgrowMsPerFrame"], ["outgrowFrameMs"] = rec["outgrowFrameMs"], ["outgrowInAll"] = rec["outgrowInAll"], ["putInLine"] = rec["putInLine"], ["gc"] = rec["gc"] }.ToString(Newtonsoft.Json.Formatting.None));
+            // a pass's gathering over its frame budget: the step it spent the slice in (all so far, this session)
+            rec["longPassSlices"] = string.Join(", ", NeighbourPolishSystem.PassSegNames.Select((n, k) => $"{n} {NeighbourPolishSystem.LongSlices[k]} (worst {NeighbourPolishSystem.LongSliceWorstMs[k]:F1} ms)"));
+            rec["passSlicesLeft"] = NeighbourPolishSystem.PassSlicesLeft;
+            rec["showLeftOver"] = NeighbourPolishSystem.ShowLeftOver;
+            Mod.Log.Info("Placemaker lab: outgrow frames " + new JObject { ["outgrow"] = rec["outgrow"], ["levelUps"] = rec["levelUps"], ["gameChanges"] = rec["gameChanges"], ["gameRemovals"] = rec["gameRemovals"], ["gameLevelUps"] = rec["gameLevelUps"], ["seconds"] = rec["seconds"], ["simFrames"] = rec["simFrames"], ["frameMs"] = rec["frameMs"], ["outgrowMsPerFrame"] = rec["outgrowMsPerFrame"], ["outgrowFrameMs"] = rec["outgrowFrameMs"], ["outgrowInAll"] = rec["outgrowInAll"], ["putInLine"] = rec["putInLine"], ["gc"] = rec["gc"], ["longPassSlices"] = rec["longPassSlices"] }.ToString(Newtonsoft.Json.Formatting.None));
             foreach (var w in worst) Mod.Log.Info("Placemaker lab: outgrow frames, a worst frame " + w.ToString(Newtonsoft.Json.Formatting.None));
             // "shots": close-ups of that many buildings that levelled up and kept their gardens in this stretch
             int shots = (int?)step["shots"] ?? 0;

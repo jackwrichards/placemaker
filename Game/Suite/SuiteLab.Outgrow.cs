@@ -71,6 +71,9 @@ namespace Placemaker.Game.Suite
                 rec["coreEdited"] = NeighbourPolishSystem.CoreEdited;
                 rec["levelUpChecks"] = string.Join(" ", NeighbourPolishSystem.LevelUpChecks);
                 rec["sameLandPlans"] = NeighbourPolishSystem.SameLandPlans;
+                rec["longPassSlices"] = string.Join(", ", NeighbourPolishSystem.PassSegNames.Select((n, k) => $"{n} {NeighbourPolishSystem.LongSlices[k]} (worst {NeighbourPolishSystem.LongSliceWorstMs[k]:F1} ms)"));
+                rec["showLeftOver"] = NeighbourPolishSystem.ShowLeftOver;
+                rec["passSlicesLeft"] = NeighbourPolishSystem.PassSlicesLeft;
                 rec["passes"] = NeighbourPolishSystem.TotalPasses;
             }
             var prefabs = _world.GetOrCreateSystemManaged<PrefabSystem>();

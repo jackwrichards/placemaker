@@ -151,3 +151,21 @@ The user's pillars: Outgrow fast, little memory, off the main frame, and a chang
   user's denser city gains more.
 * Tried and dropped (the user: too much nuance): keeping a plot still zoned for the next building. It worked (nothing planned,
   the new house outgrown once) but left the gardens beside it open meanwhile, and zoning that shrinks or goes needed more.
+
+## 9. A pass's gathering and the hidden pieces, a few ms a frame (23 Oct)
+
+* **[P] A pass's gathering** (PassSteps: describing its houses, their looks and fences, the far gardens, the barrier cells not
+  read yet) goes on to the next frame once it has spent passBudgetMs (4) of this one; one is gathered at a time, with its own
+  house and lawn maps (a plan written between two of its frames sets the shared ones), its CheckWrites serial from its start.
+  RoadBetween reads no barrier cell (a cell not read yet can not tell: the house is taken along). The step a slice over twice
+  its budget spent its time in is counted (outgrowFrames longPassSlices): in the user's city about 9 slices in all over 8 ms,
+  each one house's own description (up to 25 ms).
+* **[P] Hidden pieces shown again** a showBudgetMs (3) a frame, the ones that stood first, the ones a plan just placed (2 s)
+  after: the rest stay hidden a frame or two (never seen yet).
+* The user's city '123', every switch on, the same game, old (both budgets 0) against new, twice each
+  (send-outgrow-city-hitches-1023-135120 and -135931): the whole city planned again: frames over 50 ms 51 / 32 / 62 / 13
+  -> 17 / 3 / 29 / 7, worst 123 / 117 / 111 / 81 -> 65 / 68 / 79 / 70 ms, Outgrow's worst frame 37 / 40 / 54 / 36 -> 23 /
+  27 / 28 / 24 ms; 45 s running: Outgrow's worst frame 56 / 42 / 53 / 44 -> 18 / 28 / 18 / 26 ms. Planned again either way,
+  the city's gardens change by the same noise (84 to 99 of 2 500 between two redos).
+* Left: the collections (6 to 9 in 45 s, 35 to 55 ms each) are now the biggest hitches; writing a finished plan (Finish, up
+  to about 25 ms); a house whose description alone is 20 ms.

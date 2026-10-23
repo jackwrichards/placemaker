@@ -144,7 +144,8 @@ namespace Placemaker.Game.Neighbours
         public static int CoreAcrossRoad;
 
         /// <summary>A road, path or track on the ground (not one a building or build owns) lies across the straight line between
-        /// two points: two lots it parts never share a border.</summary>
+        /// two points: two lots it parts never share a border. Only the barrier cells read already (reading one is a few ms, on
+        /// the frame that picks a patch): where one is not, it can not tell (false: the house is taken along, as before).</summary>
         private bool RoadBetween(float2 a, float2 b)
         {
             var lo = math.min(a, b);
@@ -153,8 +154,7 @@ namespace Placemaker.Game.Neighbours
             for (int x = x0; x <= x1; x++)
                 for (int y = y0; y <= y1; y++)
                 {
-                    long key = CellKey(x, y);
-                    if (!_barrierCells.TryGetValue(key, out var cell)) _barrierCells[key] = cell = ReadBarrierCell(x, y);
+                    if (!_barrierCells.TryGetValue(CellKey(x, y), out var cell)) return false;
                     foreach (var item in cell)
                     {
                         if (item.Category != 0 || item.Hi.x < lo.x || item.Lo.x > hi.x || item.Hi.y < lo.y || item.Lo.y > hi.y) continue;

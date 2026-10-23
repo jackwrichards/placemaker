@@ -233,8 +233,11 @@ namespace Placemaker.Game.Neighbours
         private const int KeptLookAgain = 1800, KeptLookSpread = 600, KeptLooksPerFrame = 24;
         // how often each piece was shown again (the log only)
         private readonly Dictionary<Entity, int> _shownTimes = new Dictionary<Entity, int>();
-        /// <summary>For the game runner: our pieces shown again after the game hid them, and the ones left hidden.</summary>
-        public static int TotalShownAgain, TotalKeptHidden;
+        // when each of our pieces was placed (TagNewPieces): the ones a plan just placed are judged after the ones that stood
+        private readonly Dictionary<Entity, int> _placedAt = new Dictionary<Entity, int>();
+        /// <summary>For the game runner: our pieces shown again after the game hid them, and the ones left hidden; hidden pieces
+        /// left for the next frame (the frame's budget spent).</summary>
+        public static int TotalShownAgain, TotalKeptHidden, ShowLeftOver;
         private int _shownSinceLog, _keptSinceLog, _againSinceLog;
         // pieces queued for deletion (NeighbourDeleteSystem, next frame's PostTool)
         private readonly HashSet<Entity> _goingSoon = new HashSet<Entity>();
@@ -266,20 +269,30 @@ namespace Placemaker.Game.Neighbours
             foreach (var q in NeighbourDeleteSystem.Queue) _goingSoon.Add(q);
             var show = new List<Entity>();
             int looks = 0;
+            // a few ms a frame (knob showBudgetMs, 0: all in one frame, as before): a plan written makes the game hide hundreds
+            // of pieces at once, and judging them all was 20 ms bursts. The ones shown before (they stood visible) first, so
+            // they never stay hidden; ones a plan just placed left over wait a frame or two still hidden (never seen yet). The
+            // ones not judged stay hidden, and the query finds them again next frame
+            float budget = Settings.Knob("showBudgetMs", 3f);
+            long stop = budget > 0f ? System.Diagnostics.Stopwatch.GetTimestamp() + (long)(budget * 0.001 * System.Diagnostics.Stopwatch.Frequency) : long.MaxValue;
             using (var all = _hiddenPieces.ToEntityArray(Allocator.Temp))
-                foreach (var e in all)
-                {
-                    // one left hidden: looked at again later (what it doubled may be gone), a few a frame
-                    if (_keptHidden.TryGetValue(e, out var kept) && (LotFrame - kept.Frame < KeptLookAgain + (int)((uint)e.Index % KeptLookSpread) || looks++ >= KeptLooksPerFrame)) continue;
-                    if (!EntityManager.HasComponent<global::Game.Objects.Object>(e) || !PieceSegment(e, out var a, out var b, out bool fence)) continue;
-                    if ((fence && Doubled(e, a, b)) || OnRoadOrBuilding(e, (a + b) * 0.5f))
+                for (int round = 0; round < 2; round++)
+                    foreach (var e in all)
                     {
-                        if (!_keptHidden.ContainsKey(e)) { TotalKeptHidden++; _keptSinceLog++; }
-                        _keptHidden[e] = (LotFrame, (a + b) * 0.5f);
-                        continue;
+                        bool fresh = _placedAt.TryGetValue(e, out int placed) && LotFrame - placed < 120;
+                        if (fresh != (round == 1)) continue;
+                        // one left hidden: looked at again later (what it doubled may be gone), a few a frame
+                        if (_keptHidden.TryGetValue(e, out var kept) && (LotFrame - kept.Frame < KeptLookAgain + (int)((uint)e.Index % KeptLookSpread) || looks++ >= KeptLooksPerFrame)) continue;
+                        if (System.Diagnostics.Stopwatch.GetTimestamp() > stop) { ShowLeftOver++; continue; }
+                        if (!EntityManager.HasComponent<global::Game.Objects.Object>(e) || !PieceSegment(e, out var a, out var b, out bool fence)) continue;
+                        if ((fence && Doubled(e, a, b)) || OnRoadOrBuilding(e, (a + b) * 0.5f))
+                        {
+                            if (!_keptHidden.ContainsKey(e)) { TotalKeptHidden++; _keptSinceLog++; }
+                            _keptHidden[e] = (LotFrame, (a + b) * 0.5f);
+                            continue;
+                        }
+                        show.Add(e);
                     }
-                    show.Add(e);
-                }
             if (show.Count == 0) return;
             if (_shownTimes.Count > 50000) _shownTimes.Clear();
             foreach (var e in show)
