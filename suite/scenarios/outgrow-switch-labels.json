@@ -1,0 +1,13 @@
+{
+  "_about": "Outgrow's four city switches (Defaults tab): their labels alone, no line under them. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-switch-labels.json -Who outgrow-switch-labels",
+  "scenarios": [
+    {
+      "id": "outgrow-switch-labels",
+      "land": { "shape": "rect", "size": [200, 160], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "polish", "stamp": "pick" },
+        { "do": "polish", "click": "panel-mode-outgrow", "shot": "switches", "shotMode": "ui" }
+      ]
+    }
+  ]
+}

@@ -10,6 +10,8 @@
 //     --knob NAME=VALUE a planner knob for every pass (e.g. nearOnly=0: every house worked out, as before)
 //     --edited          signatures of what the game writes only (the edited houses' outputs: StitchDump.EditedSignature)
 //     --alloc-types     what the garbage is made of (the runtime's allocation samples, about one per 100 KB, by type)
+//     --svg             each pass drawn to <passes dir>\svg-NAME\pass-NNN.svg (Svg.Draw): roads and lots, each house's lot
+//                       and garden (edited ones filled), the fence lines as the plan leaves them, its fence pieces
 
 using System;
 using System.Collections.Generic;
@@ -28,7 +30,7 @@ namespace Placemaker.OutgrowBench
             if (args.Length == 0) { Console.WriteLine("usage: <passes dir or file> [--repeat N] [--label NAME] [--baseline NAME] [--only N] [--stages] [--parallel N]"); return 2; }
             string input = args[0], label = "now", baseline = null;
             int repeat = 3, only = -1, parallel = 0;
-            bool stages = false, editAll = false, editedSig = false, allocTypes = false;
+            bool stages = false, editAll = false, editedSig = false, allocTypes = false, svg = false;
             var knobs = new Dictionary<string, float>();
             for (int i = 1; i < args.Length; i++)
             {
@@ -43,6 +45,7 @@ namespace Placemaker.OutgrowBench
                     case "--edit-all": editAll = true; break;
                     case "--edited": editedSig = true; break;
                     case "--alloc-types": allocTypes = true; break;
+                    case "--svg": svg = true; break;
                     case "--knob": { var kv = args[++i].Split('='); knobs[kv[0]] = float.Parse(kv[1], System.Globalization.CultureInfo.InvariantCulture); break; }
                 }
             }
@@ -87,6 +90,12 @@ namespace Placemaker.OutgrowBench
                 worst = Math.Max(worst, best);
                 var sig = editedSig ? StitchDump.EditedSignature(plan, houses) : StitchDump.Signature(plan);
                 File.WriteAllText(Path.Combine(sigDir, name + ".txt"), sig);
+                if (svg)
+                {
+                    var svgDir = Path.Combine(dir, "svg-" + label);
+                    Directory.CreateDirectory(svgDir);
+                    File.WriteAllText(Path.Combine(svgDir, name + ".svg"), Svg.Draw(houses, settings, plan));
+                }
                 string same = "";
                 if (baseline != null)
                 {

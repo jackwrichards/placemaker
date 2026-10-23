@@ -200,13 +200,16 @@ namespace Placemaker.Game.Suite
                 {
                     // the player bulldozes some houses (every n-th in the land): the polish must give their neighbours their
                     // own fences back and leave nothing of theirs standing
-                    // ("near": [x, z] with "radius": the houses that close instead, in a loaded city)
+                    // ("near": [x, z] with "radius": the houses that close instead, in a loaded city; "nearest": n — the n houses
+                    // nearest to "near" (a row of neighbours))
                     var b = st.S.Block;
                     float bx0 = b.X0, bx1 = b.X1, bz0 = b.Z0, bz1 = b.Z1;
-                    if (step["near"] is JArray nearAt)
+                    // ("rel": true — "near" from the land's middle, else in the map)
+                    var nearC = step["near"] is JArray nearAt ? new float2((float)nearAt[0], (float)nearAt[1]) + ((bool?)step["rel"] == true ? b.Center : float2.zero) : float2.zero;
+                    if (step["near"] is JArray)
                     {
                         float r = (float?)step["radius"] ?? 40f;
-                        bx0 = (float)nearAt[0] - r; bx1 = (float)nearAt[0] + r; bz0 = (float)nearAt[1] - r; bz1 = (float)nearAt[1] + r;
+                        bx0 = nearC.x - r; bx1 = nearC.x + r; bz0 = nearC.y - r; bz1 = nearC.y + r;
                     }
                     int every = math.max(2, (int?)step["every"] ?? 4);
                     var em = _world.EntityManager;
@@ -218,14 +221,21 @@ namespace Placemaker.Game.Suite
                             .OrderBy(e => em.GetComponentData<global::Game.Objects.Transform>(e).m_Position.x).ThenBy(e => em.GetComponentData<global::Game.Objects.Transform>(e).m_Position.z).ToList();
                         // "keep": n — only every n-th house stays (houses far apart); else every n-th goes
                         int keep = (int?)step["keep"] ?? 0;
-                        if (keep > 1) { for (int i = 0; i < inLand.Count; i++) if (i % keep != 0) victims.Add(inLand[i]); }
+                        int nearest = (int?)step["nearest"] ?? 0;
+                        if (nearest > 0 && step["near"] is JArray)
+                        {
+                            var c = nearC;
+                            victims.AddRange(inLand.Where(e => em.HasComponent<global::Game.Prefabs.SpawnableBuildingData>(em.GetComponentData<global::Game.Prefabs.PrefabRef>(e).m_Prefab))
+                                .OrderBy(e => math.distance(em.GetComponentData<global::Game.Objects.Transform>(e).m_Position.xz, c)).Take(nearest));
+                        }
+                        else if (keep > 1) { for (int i = 0; i < inLand.Count; i++) if (i % keep != 0) victims.Add(inLand[i]); }
                         else for (int i = 1; i < inLand.Count; i += every) victims.Add(inLand[i]);
                     }
                     var dirty0 = (int[])Placemaker.Game.Neighbours.NeighbourPolishSystem.DirtyBy.Clone();
                     int kept0 = Placemaker.Game.Neighbours.NeighbourPolishSystem.TotalRemovalsKept;
                     // (what goes: outgrown or not, a growable or not)
                     var sysP = _world.GetExistingSystemManaged<Placemaker.Game.Neighbours.NeighbourPolishSystem>();
-                    var what = string.Join(", ", victims.Select(v => $"{v.Index} ({(em.HasComponent<global::Game.Prefabs.SpawnableBuildingData>(em.GetComponentData<global::Game.Prefabs.PrefabRef>(v).m_Prefab) ? "growable" : "not growable")}, {(sysP != null && sysP.IsYes(v) ? "outgrown" : "not outgrown")})"));
+                    var what = string.Join(", ", victims.Select(v => $"{v.Index} at ({(em.GetComponentData<global::Game.Objects.Transform>(v).m_Position.x):F0}, {(em.GetComponentData<global::Game.Objects.Transform>(v).m_Position.z):F0}) ({(em.HasComponent<global::Game.Prefabs.SpawnableBuildingData>(em.GetComponentData<global::Game.Prefabs.PrefabRef>(v).m_Prefab) ? "growable" : "not growable")}, {(sysP != null && sysP.IsYes(v) ? "outgrown" : "not outgrown")})"));
                     yield return ApplyWithFixtureTool(t =>
                     {
                         foreach (var v in victims)
@@ -281,7 +291,9 @@ namespace Placemaker.Game.Suite
                     var dir = System.IO.Path.Combine(_out, "passes");
                     // "near": [[x, z], ...] with "radius": only the passes editing a house that close to one of the spots
                     System.Collections.Generic.List<float2> near = null;
-                    if (step["near"] is JArray spots) near = spots.Select(p => new float2((float)p[0], (float)p[1])).ToList();
+                    // ("rel": true — the spots from the land's middle)
+                    var spotOrigin = (bool?)step["rel"] == true ? st.S.Block.Center : float2.zero;
+                    if (step["near"] is JArray spots) near = spots.Select(p => new float2((float)p[0], (float)p[1]) + spotOrigin).ToList();
                     Placemaker.Game.Neighbours.NeighbourPolishSystem.StartPassDump(dir, (int?)step["max"] ?? 40, near, (float?)step["radius"] ?? 60f);
                     rec["dir"] = dir;
                     Mod.Log.Info("Placemaker lab: Outgrow passes will be written to " + dir);

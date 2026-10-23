@@ -836,37 +836,33 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                             <Frozen fp={zonesFp}>
                             <div data-testid="polish-city-zones">
                                 <div className={classNames(s.newCard, { [s.newCardOn]: p.newHouses })} data-testid="polish-new-card">
-                                    <Tip title={L("AutoNew", "Auto outgrow new buildings")} description={L("AutoNew.Tip", "Buildings that grow get outgrown. Kept with this city.")}>
+                                    <Tip title={L("AutoNew", "Auto outgrow new buildings")} description={L("AutoNew.Tip", "New buildings get their zone type's outgrow type (below). Kept with this city.")}>
                                         <div className={s.newText}>
                                             <div className={s.newLabel}>{L("AutoNew", "Auto outgrow new buildings")}</div>
-                                            <div className={s.newSub}>{L("AutoNew.Sub", "Each with its zone type, below")}</div>
                                         </div>
                                     </Tip>
                                     <Switch testId="polish-newHouses" on={p.newHouses} onChange={(v) => act.polishCity("newHouses", v ? "true" : "false")} />
                                 </div>
                                 <div className={classNames(s.newCard, { [s.newCardOn]: p.levelUps })} data-testid="polish-levelups-card">
-                                    <Tip title={L("AutoLevelUps", "Auto outgrow when a building levels up")} description={L("AutoLevelUps.Tip", "Off: an upgraded building keeps its garden as it is.")}>
+                                    <Tip title={L("AutoLevelUps", "Auto outgrow when a building levels up")} description={L("AutoLevelUps.Tip", "Off: an upgraded building keeps its outgrow as it is.")}>
                                         <div className={s.newText}>
                                             <div className={s.newLabel}>{L("AutoLevelUps", "Auto outgrow when a building levels up")}</div>
-                                            <div className={s.newSub}>{L("AutoLevelUps.Sub", "Off: it keeps its garden")}</div>
                                         </div>
                                     </Tip>
                                     <Switch testId="polish-levelUps" on={p.levelUps} onChange={(v) => act.polishCity("levelUps", v ? "true" : "false")} />
                                 </div>
                                 <div className={classNames(s.newCard, { [s.newCardOn]: p.gameChanges })} data-testid="polish-gamechanges-card">
-                                    <Tip title={L("AutoChanges", "Auto outgrow when a building changes")} description={L("AutoChanges.Tip", "Off: its garden stays as it is.")}>
+                                    <Tip title={L("AutoChanges", "Auto outgrow when a building changes")} description={L("AutoChanges.Tip", "Abandoned, burned or condemned. Off: its outgrow stays as it is.")}>
                                         <div className={s.newText}>
                                             <div className={s.newLabel}>{L("AutoChanges", "Auto outgrow when a building changes")}</div>
-                                            <div className={s.newSub}>{L("AutoChanges.Sub", "Abandoned, burned, condemned")}</div>
                                         </div>
                                     </Tip>
                                     <Switch testId="polish-gameChanges" on={p.gameChanges} onChange={(v) => act.polishCity("gameChanges", v ? "true" : "false")} />
                                 </div>
                                 <div className={classNames(s.newCard, { [s.newCardOn]: p.gameRemovals })} data-testid="polish-gameremovals-card">
-                                    <Tip title={L("AutoRemovals", "Auto outgrow when a building nearby is removed")} description={L("AutoRemovals.Tip", "When the game clears a building, the gardens around take its land. Off: they stay as they are. Your own bulldozing always counts.")}>
+                                    <Tip title={L("AutoRemovals", "Auto outgrow when a building nearby is removed")} description={L("AutoRemovals.Tip", "When the game clears a building, the outgrows around it take its land. Off: they stay as they are. Your own bulldozing always counts.")}>
                                         <div className={s.newText}>
                                             <div className={s.newLabel}>{L("AutoRemovals", "Auto outgrow when a building nearby is removed")}</div>
-                                            <div className={s.newSub}>{L("AutoRemovals.Sub", "Gardens grow into the empty lot")}</div>
                                         </div>
                                     </Tip>
                                     <Switch testId="polish-gameRemovals" on={p.gameRemovals} onChange={(v) => act.polishCity("gameRemovals", v ? "true" : "false")} />

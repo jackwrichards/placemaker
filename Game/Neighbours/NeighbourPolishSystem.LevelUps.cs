@@ -125,6 +125,7 @@ namespace Placemaker.Game.Neighbours
                     var prefab = EntityManager.GetComponentData<PrefabRef>(e).m_Prefab;
                     var t = EntityManager.GetComponentData<global::Game.Objects.Transform>(e);
                     _prefabSeen[e] = prefab;
+                    _plannedModel[e] = prefab;
                     // (every outgrown house remembered, also one whose fences all stand where its model has them)
                     if (!_wantOf.ContainsKey(e)) _wantOf[e] = (prefab, new Dictionary<int, Bezier4x3>());
                     foreach (var sl in EntityManager.GetBuffer<global::Game.Net.SubLane>(e, true))
