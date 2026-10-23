@@ -18,10 +18,7 @@ export function useGroupActions(id: number, displayName: string) {
     const ungroupDialog = ungrouping ? (
         <Confirm
             title={t("Placemaker.UI.Manage.UngroupTitle", "Ungroup {0}?", [displayName])}
-            message={t(
-                "Placemaker.UI.Manage.UngroupText",
-                "Its pieces become separate: click any tree, bench, path or surface to change it or bulldoze it on its own. The bulldozer then removes one piece at a time, so removing all of it gets hard: use Remove in a piece's info panel for that. You can group it again there."
-            )}
+            message={t("Placemaker.UI.Manage.UngroupText", "Each piece can then be changed or bulldozed on its own. Group it again from a piece's info panel.")}
             confirm={t("Placemaker.UI.Manage.UngroupConfirm", "Ungroup")}
             onConfirm={() => {
                 setUngrouping(false);
@@ -33,7 +30,7 @@ export function useGroupActions(id: number, displayName: string) {
     const dialog = ungroupDialog ?? (confirming ? (
         <Confirm
             title={t("Placemaker.UI.Manage.RemoveTitle", "Remove {0}?", [displayName])}
-            message={t("Placemaker.UI.Manage.RemoveText", "Everything Placemaker built here (paths, surfaces, objects, roads it added) is bulldozed. Buildings that grew next to it stay.")}
+            message={t("Placemaker.UI.Manage.RemoveText", "Everything Placemaker built here is bulldozed.")}
             confirm={t("Placemaker.UI.Manage.RemoveConfirm", "Remove")}
             danger
             onConfirm={() => {

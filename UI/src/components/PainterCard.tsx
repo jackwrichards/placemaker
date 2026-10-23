@@ -353,12 +353,7 @@ const LookBar = ({ p }: { p: PainterState }) => {
                             ? t("Placemaker.UI.Polish.SaveTitle", "Save “{0}”?", [display])
                             : t("Placemaker.UI.Polish.ResetTitle", "Put “{0}” back as it ships?", [display])
                     }
-                    message={
-                        (applying === "save"
-                            ? t("Placemaker.UI.Polish.SaveMessage", "{0} building(s) use it. They change to the new settings right away, a few at a time.", [num(using)])
-                            : t("Placemaker.UI.Polish.ResetMessage", "{0} building(s) use it. They change back right away, a few at a time.", [num(using)])) +
-                        (using > 20 ? " " + t("Placemaker.UI.Polish.ApplyMany", "To keep the old settings too, cancel and use Copy as new type first.") : "")
-                    }
+                    message={t("Placemaker.UI.Polish.SaveMessage", "{0} building(s) use it. They update right away.", [num(using)])}
                     confirm={applying === "save" ? t("Placemaker.UI.Polish.SaveOk", "Save") : t("Placemaker.UI.Polish.ResetOk", "Put back")}
                     onConfirm={() => {
                         act.polishLook(applying);
@@ -370,7 +365,7 @@ const LookBar = ({ p }: { p: PainterState }) => {
             {asking ? (
                 <Confirm
                     title={t("Placemaker.UI.Polish.DeleteTitle2", "Delete this outgrow type?")}
-                    message={t("Placemaker.UI.Polish.DeleteMessage2", "Buildings outgrown with “{0}” keep how they look until they are outgrown again; zones that used it go back to their own.", [look.name])}
+                    message={t("Placemaker.UI.Polish.DeleteMessage2", "Its buildings keep their look until they are outgrown again.")}
                     confirm={t("Placemaker.UI.Polish.DeleteOk", "Delete")}
                     danger
                     onConfirm={() => {
@@ -945,8 +940,8 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                     }
                     message={
                         ask.what === "polishAll" || ask.what === "polishSome"
-                            ? t("Placemaker.UI.Polish.PolishAll.ByZone3", "Every building is outgrown with its zone type's default outgrow type, also the ones you brushed another type onto (zone types set to Off are left out). It runs in the background a few buildings at a time, so the game keeps running smoothly.")
-                            : t("Placemaker.UI.Polish.UnpolishAll.Message2", "The outgrown buildings go back to how the game made them: fences, hedges and lawns back, the beds, paths, bushes and paving taken away (ground paint stays). It runs in the background a few hundred at a time.")
+                            ? t("Placemaker.UI.Polish.PolishAll.ByZone3", "Every building gets its zone's default outgrow type.")
+                            : t("Placemaker.UI.Polish.UnpolishAll.Message2", "Gardens go back to how the game made them.")
                     }
                     confirm={ask.what === "polishAll" || ask.what === "polishSome" ? L("OutgrowAll.Ok2", "Set to defaults") : L("RemoveAll.Ok", "Remove all")}
                     danger={ask.what === "unpolishAll" || ask.what === "unpolishSome"}
