@@ -31,7 +31,7 @@ export function modeOptions(t: TFunc) {
             line: t("Placemaker.UI.Tool.PointsLine", "Click corners"),
             description: t(
                 "Placemaker.UI.Tool.PointsTip2",
-                "Click corners, then the first one to close. Snaps to curbs, right angles and road nodes: two corners on road nodes follow the road between them.",
+                "Click corners, then the first one to close; right-click takes back the last one. Snaps to curbs, right angles and road nodes: two corners on road nodes follow the road between them.",
             ),
         },
         {
@@ -39,7 +39,7 @@ export function modeOptions(t: TFunc) {
             icon: "bucket",
             label: t("Placemaker.UI.Tool.Bucket", "Paint bucket"),
             line: t("Placemaker.UI.Tool.BucketLine", "Click to fill"),
-            description: t("Placemaker.UI.Tool.BucketTip2", "Click to fill the land up to what it stops at. Shift+click adds more, right-click drops one."),
+            description: t("Placemaker.UI.Tool.BucketTip2", "Click to fill the land up to what it stops at. Shift+click adds more, right-click takes back the last one."),
         },
         {
             value: "paint" as Tool,

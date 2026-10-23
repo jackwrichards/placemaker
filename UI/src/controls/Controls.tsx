@@ -527,7 +527,7 @@ const MarkersEditor = ({ c, ctx }: { c: ControlEx; ctx: RowCtx }) => {
                                     ? t("Placemaker.UI.Markers.PlaceN", "Place ({0})", [count])
                                     : t("Placemaker.UI.Markers.Place", "Place")
                             }
-                            description={t("Placemaker.UI.Markers.Hint", "Click the outline to add; right-click one to remove.")}
+                            description={t("Placemaker.UI.Markers.Hint", "Click the outline to add; right-click takes back the last one.")}
                             onClick={() => (active ? act.endMarkers() : act.startMarkers(ctx.step.path, kind))}
                         />
                         {count > 0 && !active ? (

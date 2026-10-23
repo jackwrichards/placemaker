@@ -409,6 +409,15 @@ namespace Placemaker.Core.Tool
             return true;
         }
 
+        /// <summary>Removes the marker placed last (markers are kept in the order they were placed).</summary>
+        public bool RemoveLastMarker(Recipe recipe, string path)
+        {
+            var step = RecipePaths.Resolve(recipe, path);
+            if (step == null || step.Markers.Count == 0) return false;
+            step.Markers.RemoveAt(step.Markers.Count - 1);
+            return true;
+        }
+
         public bool ClearMarkers(Recipe recipe, string path, string kind)
         {
             var step = RecipePaths.Resolve(recipe, path);

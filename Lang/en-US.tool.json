@@ -66,7 +66,7 @@
   "Placemaker.Problem.WouldEncloseHole": "Areas cannot have holes: that would enclose a block you did not pick.",
   "Placemaker.Problem.WouldSplit": "Removing that block would split the selection in two.",
   "Placemaker.Problem.ClickANode": "Click on a road intersection.",
-  "Placemaker.Problem.PerimeterClosed": "The loop is closed. Right-click to reopen it.",
+  "Placemaker.Problem.PerimeterClosed": "The loop is closed. Undo (Ctrl+Z) reopens it.",
   "Placemaker.Problem.NoRoadPath": "These intersections are not connected by roads.",
   "Placemaker.Problem.NodeAlreadyUsed": "The loop already passes through there.",
   "Placemaker.Problem.UnknownRecipe": "That design is not available.",

@@ -86,6 +86,9 @@ namespace Placemaker.Tests
             var c = gen.Controls.First(x => x.Id == ShopEntrances.ControlId);
             Assert.Equal(ControlKind.Markers, c.Kind);
             foreach (var k in ShopEntrances.Kinds) Assert.Contains(k, c.MarkerKinds);
+            // A bus stop is not offered, but one already in a design is still a shops marker.
+            Assert.DoesNotContain(ShopEntrances.BusStop, c.MarkerKinds);
+            Assert.True(ShopEntrances.IsKind(ShopEntrances.BusStop));
         }
 
         // ───────────── nothing joins a street but the placed entrances ─────────────

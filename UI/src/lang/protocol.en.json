@@ -1,6 +1,6 @@
 {
   "_comment": "English for keys the UI resolves itself but that are not literal t() calls (region tags, control groups). Keys C# sends (Placemaker.Primary/Reason/Hint/Undo/Problem/Permanent.*) live in Lang/en-US.tool.json, owned by the tool workstream.",
-  "Placemaker.UI.Markers.BannerFor": "Placing {0} — click on the outline. Right-click one to remove it.",
+  "Placemaker.UI.Markers.BannerFor": "Placing {0} — click on the outline. Right-click takes back the last one.",
   "Placemaker.UI.Literal": "{0}",
   "Placemaker.UI.Feature.NoRoom": "No room for it in this area.",
   "Placemaker.UI.Feature.SomeMissing": "Fits in {0} of {1} places.",

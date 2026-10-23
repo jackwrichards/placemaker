@@ -253,13 +253,16 @@ namespace Placemaker.Game.Suite
                         var c = Pt(step["at"], b, abs);
                         pts.Add(c + new float2(-w / 2, -h / 2)); pts.Add(c + new float2(w / 2, -h / 2)); pts.Add(c + new float2(w / 2, h / 2)); pts.Add(c + new float2(-w / 2, h / 2));
                     }
-                    foreach (var p in pts.Concat(new[] { pts[0] }))   // the first corner again closes the outline
+                    // the first corner again closes the outline ("open": true leaves it open, the corners still being drawn)
+                    bool open = (bool?)step["open"] ?? false;
+                    foreach (var p in open ? pts : pts.Concat(new[] { pts[0] }))
                     {
                         RaycastHit? hit = null;
                         yield return Press(st, rec, P3(p), false, h => hit = h);
                         if (!hit.HasValue) { st.Result["status"] = "no-outline"; yield break; }
                     }
-                    rec["clicks"] = pts.Count + 1;
+                    rec["clicks"] = pts.Count + (open ? 0 : 1);
+                    if (open) { rec["corners"] = _tool.Draw.Count; yield break; }
                     break;
                 }
                 case "land":
@@ -525,7 +528,10 @@ namespace Placemaker.Game.Suite
             rec["asked"] = placed.Count;
         }
 
-        /// <summary>Move = the UI's way: in placement mode right-click the marker (removes), left-click the new spot. Markers are matched by position.</summary>
+        /// <summary>
+        /// Move = the UI's way: the placed entrance's remove button in the panel, then in placement mode a left-click on the new
+        /// spot (a right-click only takes back the last one placed). Markers are matched by position.
+        /// </summary>
         private IEnumerator StepMoveEntrance(ScenarioState st, JObject step, JObject rec, bool removeOnly)
         {
             yield return EnsureDesign(st, rec, "Entrances");
@@ -547,20 +553,21 @@ namespace Placemaker.Game.Suite
             else { rec["error"] = $"no entrance {index} (script placed {st.Markers.Count}, design has {markers.Count})"; yield break; }
             int count0 = markers.Count;
             string mk = MarkerVariants.BaseKind(m.Kind);
-            yield return UiAct(st, rec, "marker kind", "marker-kind-" + mk, "setMarkerKind", new object[] { m.Path, mk }, () => _tool.MarkerKind != null, () => _tool.SetMarkerKind(m.Path, mk));
-            yield return Frames(2);
-            RaycastHit? hit = null;
-            yield return Press(st, rec, m.At, true, h => hit = h);
-            if (!hit.HasValue) { yield return KeyPress("esc"); yield break; }
+            // its index in its step's list (StepView.markerList: the panel's rows and their remove buttons)
+            int li = markers.IndexOf(m), idx = markers.Take(li).Count(x => x.Path == m.Path);
+            yield return UiAct(st, rec, "remove entrance", "marker-remove-" + idx, "removeMarker", new object[] { m.Path, (double)idx }, () => _tool.SuiteMarkers().Count < count0, () => _tool.RemoveMarker(m.Path, idx));
+            if (rec["error"] != null) yield break;
             float3 to = default;
             if (!removeOnly)
             {
+                yield return UiAct(st, rec, "marker kind", "marker-kind-" + mk, "setMarkerKind", new object[] { m.Path, mk }, () => _tool.MarkerKind != null, () => _tool.SetMarkerKind(m.Path, mk));
+                yield return Frames(2);
                 to = OnOutline(EntranceTarget(step, st.S.Block));
                 RaycastHit? hit2 = null;
                 yield return Press(st, rec, to, false, h => hit2 = h);
                 if (!hit2.HasValue) { yield return KeyPress("esc"); yield break; }
+                yield return KeyPress("esc");
             }
-            yield return KeyPress("esc");
             var after = _tool.SuiteMarkers();
             rec["from"] = new JArray(Math.Round(m.At.x, 1), Math.Round(m.At.z, 1));
             if (!removeOnly) rec["to"] = new JArray(Math.Round(to.x, 1), Math.Round(to.z, 1));
@@ -592,6 +599,40 @@ namespace Placemaker.Game.Suite
             float until = Time.realtimeSinceStartup + 5f;
             while (PlacemakerToolSystem.SuiteKeyPending && Time.realtimeSinceStartup < until) yield return null;
             yield return Frames(2);
+        }
+
+        /// <summary>What a right-click can take back, for the record: stage, placing or not, corners, fills, road nodes, entrances.</summary>
+        private JObject RightClickState() => new JObject
+        {
+            ["stage"] = _tool.Stage.ToString(),
+            ["placing"] = _tool.MarkerKind ?? "",
+            ["corners"] = _tool.Draw.Count,
+            ["closed"] = _tool.Draw.Closed,
+            ["fills"] = _tool.Blocks.Rings.Count,
+            ["roadNodes"] = _tool.Perimeter.Nodes.Count,
+            ["entrances"] = _tool.SuiteMarkers().Count,
+        };
+
+        /// <summary>
+        /// A right-click on the world in whatever the tool is doing (at: a point, default the block's centre; placing: an
+        /// entrance type is pressed first, as for "entrance"). A scripted right-click also presses the game's Cancel, as the
+        /// real mouse does. rec: the state before and after.
+        /// </summary>
+        private IEnumerator StepRightClick(ScenarioState st, JObject step, JObject rec)
+        {
+            var b = st.S.Block;
+            bool abs = (bool?)step["abs"] ?? false;
+            if ((bool?)step["placing"] ?? false)
+            {
+                yield return StartPlacement(st, step, rec);
+                if (_tool.MarkerKind == null) { rec["error"] = "entrance placement did not start"; yield break; }
+                yield return Frames(2);
+            }
+            rec["before"] = RightClickState();
+            RaycastHit? hit = null;
+            yield return Press(st, rec, P3(Pt(step["at"], b, abs)), true, h => hit = h);
+            yield return Frames(3);
+            rec["after"] = RightClickState();
         }
 
         private IEnumerator StepKey(ScenarioState st, JObject step, JObject rec)

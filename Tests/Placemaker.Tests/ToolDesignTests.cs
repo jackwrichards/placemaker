@@ -182,6 +182,20 @@ namespace Placemaker.Tests
         }
 
         [Fact]
+        public void RightClickTakesBackTheLastMarkerPlaced()
+        {
+            var e = Editor();
+            var r = NewRecipe();
+            Assert.False(e.RemoveLastMarker(r, "0"));
+            e.AddMarker(r, "0", new EdgeMarker { Kind = "exit", Position = new float3(50, 0, 0) });
+            e.AddMarker(r, "0", new EdgeMarker { Kind = "entrance", Position = new float3(5, 0, 0) });
+            Assert.True(e.RemoveLastMarker(r, "0"));
+            Assert.Equal("exit", Assert.Single(r.Root.Markers).Kind);
+            Assert.True(e.RemoveLastMarker(r, "0"));
+            Assert.Empty(r.Root.Markers);
+        }
+
+        [Fact]
         public void FirstUnreadyFindsMarkerStep()
         {
             _gen.NeedsEntrance = true;

@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.2.0+577aa4eb-dirty",
+  "assembly": "0.2.0+f851771f-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -8523,9 +8523,7 @@
             "alley",
             "alleyIn",
             "alleyOut",
-            "footpath",
-            "busStop",
-            "zoningPatch"
+            "footpath"
           ]
         },
         {
@@ -8730,15 +8728,6 @@
           "step": 1.0,
           "unit": "count",
           "default": 3.0
-        },
-        {
-          "id": "zoningPatchWidth",
-          "kind": "Slider",
-          "min": 1.0,
-          "max": 10.0,
-          "step": 1.0,
-          "unit": "count",
-          "default": 4.0
         },
         {
           "id": "fee",
@@ -13032,8 +13021,7 @@
             "alley",
             "alleyIn",
             "alleyOut",
-            "footpath",
-            "busStop"
+            "footpath"
           ]
         },
         {
@@ -15547,8 +15535,7 @@
             "alley",
             "alleyIn",
             "alleyOut",
-            "footpath",
-            "busStop"
+            "footpath"
           ]
         },
         {
@@ -16751,8 +16738,7 @@
             "alley",
             "alleyIn",
             "alleyOut",
-            "footpath",
-            "busStop"
+            "footpath"
           ]
         },
         {

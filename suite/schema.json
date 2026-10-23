@@ -15,7 +15,7 @@
   "commonStepKeys": ["do", "shot", "camera", "shotMode", "labels", "zones", "note"],
   "commonEnums": { "shotMode": ["render", "overlay", "ui", "grab"] },
   "steps": {
-    "area": { "keys": ["tool", "at", "shift", "points", "rect", "stroke", "size", "square", "angle", "nodes", "abs", "cameraDistance"], "enums": { "tool": ["bucket", "block", "points", "draw", "land", "paint", "paintAnything", "outgrowBrush", "nodes", "perimeter"] } },
+    "area": { "keys": ["tool", "at", "shift", "points", "rect", "stroke", "size", "square", "angle", "nodes", "abs", "cameraDistance", "open"], "enums": { "tool": ["bucket", "block", "points", "draw", "land", "paint", "paintAnything", "outgrowBrush", "nodes", "perimeter"] } },
     "clear": { "keys": [] },
     "hover": { "keys": ["tool", "at", "abs", "seconds"], "enums": { "tool": ["bucket", "block", "paint", "points", "draw"] } },
     "type": { "keys": ["layer", "preset", "fresh"] },
@@ -43,6 +43,7 @@
     "undo": { "keys": ["via"], "enums": { "via": ["key", "panel"] } },
     "redo": { "keys": ["via"], "enums": { "via": ["key", "panel"] } },
     "key": { "keys": ["key"], "enums": { "key": ["enter", "esc", "undo", "redo"] } },
+    "rightClick": { "keys": ["at", "abs", "placing", "path", "kind"] },
     "anarchy": { "keys": ["on"] },
     "group": { "keys": ["on"] },
     "setting": { "keys": ["name", "value"] },

@@ -112,6 +112,8 @@ namespace Placemaker.Game.Tool
         /// <summary>HandleKeys for a suite run: the scripted key, with the same guards as the real key path.</summary>
         private bool HandleSuiteKey()
         {
+            // A scripted right-click also presses the game's Cancel (bound to the right mouse button), as a real one does.
+            if (EscapeFromCancel(_in.RightPressed, _in.RightPressed)) { Escape(); return true; }
             var k = s_suiteKey;
             if (k == null) return false;
             s_suiteKey = null;

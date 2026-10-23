@@ -27,7 +27,7 @@ water, buildings, lots, my builds, and zoning as one choice (ignore / built / zo
   Tests: `Tests/Placemaker.Tests/GeometryAreaFillTests.cs`.
 * **Paint bucket** (`PlacemakerToolSystem.Block`): the fill under the cursor, worked out on a worker thread after a
   click (`Game/Selection/AreaFillRunner`; not on hover since 2026-10-21: lag spikes) and taken when it is back; Shift+click adds a fill next to it (the street between two is taken
-  along), right-click drops one. Outlines along curbs for most of their length are `AreaSource.Block` (no perimeter
+  along), right-click takes back the last one (not the only one once designing). Outlines along curbs for most of their length are `AreaSource.Block` (no perimeter
   road, junction anchors), like the old block pick.
 * **Paint area** (`PlacemakerToolSystem.BlockPaint`): with One block on, the brush is fenced to the fill where the
   stroke starts; off, to a 600 m box with every stop fenced out. 2 m cells (were 4). A stroke waits a few frames for its fill and fence

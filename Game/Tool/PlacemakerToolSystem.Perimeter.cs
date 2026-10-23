@@ -112,7 +112,9 @@ namespace Placemaker.Game.Tool
                 }
                 return;
             }
-            if (_in.RightPressed && _perimeter.Nodes.Count > 0)
+            // Right-click takes back the last road (or the closing). Once designing it keeps the loop closed: reopening it
+            // would throw the area away, back to picking.
+            if (_in.RightPressed && _perimeter.Nodes.Count > 0 && !(_perimeter.Closed && _stage != ToolStage.Area))
             {
                 if (_perimeter.Closed)
                 {

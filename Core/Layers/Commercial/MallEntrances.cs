@@ -21,11 +21,11 @@ namespace Placemaker.Core.Layers.Commercial
     {
         public const string ControlId = "entrances";
         public const string TwoWay = "entrance", Entry = "entry", Exit = "exit", Alley = "alley", AlleyIn = "alleyIn", AlleyOut = "alleyOut", Footpath = "footpath", BusStop = "busStop";
-        /// <summary>Marker kinds in display order.</summary>
-        public static readonly string[] Kinds = { TwoWay, Entry, Exit, Alley, AlleyIn, AlleyOut, Footpath, BusStop };
+        /// <summary>The marker kinds the panel offers, in display order. Bus stop is not offered (as for parking, ParkingIds.MarkerKinds); designs that have one still build it.</summary>
+        public static readonly string[] Kinds = { TwoWay, Entry, Exit, Alley, AlleyIn, AlleyOut, Footpath };
         private const string K = "Placemaker.Commercial.";
 
-        public static bool IsKind(string k) => System.Array.IndexOf(Kinds, k) >= 0;
+        public static bool IsKind(string k) => k == BusStop || System.Array.IndexOf(Kinds, k) >= 0;
         public static bool ForCars(string k) => IsKind(k) && k != Footpath && k != BusStop;
         public static bool IsAlley(string k) => k == Alley || k == AlleyIn || k == AlleyOut;
         public static bool OneWay(string k) => k == Entry || k == Exit || k == AlleyIn || k == AlleyOut;

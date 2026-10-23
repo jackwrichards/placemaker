@@ -63,7 +63,7 @@ namespace Placemaker.Tests
                 double v = d.Num(c.Id, double.NaN);
                 Assert.InRange(v, c.Min, c.Max);
             }
-            Assert.Contains(g.Controls, c => c.Kind == ControlKind.Markers && c.MarkerKinds.SequenceEqual(new[] { "entrance", "entry", "exit", "alley", "alleyIn", "alleyOut", "footpath", "busStop", "zoningPatch" }));
+            Assert.Contains(g.Controls, c => c.Kind == ControlKind.Markers && c.MarkerKinds.SequenceEqual(new[] { "entrance", "entry", "exit", "alley", "alleyIn", "alleyOut", "footpath" }));
             Assert.Equal(4, g.Controls.Count(c => c.Tier == ControlTier.Essential));
             Assert.Equal("rowAngleMode=fixed", g.Controls.Single(c => c.Id == "rowAngle").VisibleWhen);
         }

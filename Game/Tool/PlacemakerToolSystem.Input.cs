@@ -80,7 +80,8 @@ namespace Placemaker.Game.Tool
             if (SuiteInputOnly) return HandleSuiteKey();   // a suite run: real keys are ignored, scripted keys take the same path
             var im = InputManager.instance;
             if (im != null && im.hasInputFieldFocus) return false;
-            if (SafePressed(cancelAction)) { Escape(); return true; }
+            var mouse = Mouse.current;
+            if (EscapeFromCancel(SafePressed(cancelAction), mouse != null && mouse.rightButton.wasPressedThisFrame)) { Escape(); return true; }
             if (Performed(_primaryAction)) { Primary(); return true; }
             if (_gesture == Gesture.None)
             {
@@ -89,6 +90,14 @@ namespace Placemaker.Game.Tool
             }
             return false;
         }
+
+        /// <summary>
+        /// The game's tool "Cancel" is Esc, the gamepad's B and the right mouse button (its Tool map binds all three; the
+        /// "Cancel" alias has every device). Only Esc and B step back: a right-click takes back the last thing placed, in
+        /// each mode's own update (2026-10-22, the user: "Right-click goes back to the area mode... Right-click should be
+        /// to remove the last thing that you just did").
+        /// </summary>
+        private static bool EscapeFromCancel(bool cancelPressed, bool rightMouseDown) => cancelPressed && !rightMouseDown;
 
         private static bool Performed(ProxyAction a)
         {

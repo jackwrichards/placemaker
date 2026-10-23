@@ -1,5 +1,5 @@
 // Marker placement (entrances, access points, split lines…): click on the outline to place a
-// marker of the requested kind for one recipe step, right-click near one to remove it, Esc or
+// marker of the requested kind for one recipe step, right-click takes back the last one placed, Esc or
 // the main button when done. Markers live in the recipe step (so they are undoable with the
 // design) and are re-projected onto each region's outline by the composer.
 
@@ -135,8 +135,9 @@ namespace Placemaker.Game.Tool
             }
             if (_in.RightPressed)
             {
-                // Right-click removes the nearest marker of this step, whatever its kind (one rule: right-click removes).
-                if (_editor.RemoveMarkerNear(_recipe, _markerPath, _in.Hit.xz, radius))
+                // Right-click takes back the last marker of this step, whatever its kind and wherever the cursor is (one rule:
+                // right-click takes back the last thing placed); the panel's list removes any other one.
+                if (_editor.RemoveLastMarker(_recipe, _markerPath))
                 {
                     MarkMarkersEdited(_markerPath);
                     DesignChanged();

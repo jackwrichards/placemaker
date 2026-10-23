@@ -99,11 +99,8 @@ namespace Placemaker.Game.Tool
                 Commit("Placemaker.Undo.AddPoint");
                 return;
             }
-            if (_in.RightPressed && _draw.Count > 0)
-            {
-                bool removed = _hoverPoint >= 0 ? _draw.RemovePoint(_hoverPoint) : _draw.RemoveLast();
-                if (removed) { ShapeChanged(); Commit("Placemaker.Undo.RemovePoint"); }
-            }
+            // Right-click takes back the last corner, wherever the cursor is (one rule for every tool: the last thing placed).
+            if (_in.RightPressed && _draw.Count > 0 && _draw.RemoveLast()) { ShapeChanged(); Commit("Placemaker.Undo.RemovePoint"); }
         }
 
         private void CloseOutline()

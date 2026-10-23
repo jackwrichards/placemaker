@@ -122,11 +122,9 @@ namespace Placemaker.Game.Tool
                 ToggleBlock(pick);
                 return;
             }
-            if (_in.RightPressed && _in.HasHit)
-            {
-                int idx = IndexOfFill(_in.Hit.xz);
-                if (idx >= 0) RemoveBlock(idx);
-            }
+            // Right-click takes back the last fill, wherever the cursor is (one rule for every tool: the last thing placed).
+            // Once designing it keeps the only fill: dropping it would throw the area away, back to picking.
+            if (_in.RightPressed && _blocks.Rings.Count > (_stage == ToolStage.Area ? 0 : 1)) RemoveBlock(_blocks.Rings.Count - 1);
         }
 
         /// <summary>The fill at a click: the hover's when the click is inside it, else filled now.</summary>

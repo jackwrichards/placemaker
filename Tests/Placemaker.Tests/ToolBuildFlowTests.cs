@@ -120,8 +120,10 @@ namespace Placemaker.Tests
                 Assert.StartsWith("Placemaker.Parking.Marker.", k.LabelKey);
                 Assert.True(seenColours.Add(MarkerKinds.ColorFor(k.Kind)), k.Kind);
             }
-            Assert.Contains(kinds, k => k.Kind == "busStop" && k.Icon == "Media/Game/Icons/BusStop.svg");
-            Assert.Contains(kinds, k => k.Kind == "zoningPatch" && k.Icon == "Media/Game/Icons/Zones.svg");
+            // Bus stop and building plot are not offered (they made no sense for a lot); the icons stay for old designs.
+            Assert.DoesNotContain(kinds, k => k.Kind == "busStop" || k.Kind == "zoningPatch");
+            Assert.Equal("Media/Game/Icons/BusStop.svg", MarkerKinds.IconFor("busStop"));
+            Assert.Equal("Media/Game/Icons/Zones.svg", MarkerKinds.IconFor("zoningPatch"));
         }
 
         [Fact]

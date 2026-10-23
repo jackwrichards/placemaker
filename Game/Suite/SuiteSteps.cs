@@ -310,6 +310,7 @@ namespace Placemaker.Game.Suite
                 case "undo": yield return StepUndoRedo(st, step, rec, true); break;
                 case "redo": yield return StepUndoRedo(st, step, rec, false); break;
                 case "key": yield return StepKey(st, step, rec); break;
+                case "rightClick": yield return StepRightClick(st, step, rec); break;
                 case "anarchy": yield return StepAnarchy(st, step, rec); break;
                 case "group": yield return StepGroupSwitch(st, step, rec); break;
                 case "setting": yield return StepSetting(st, step, rec); break;

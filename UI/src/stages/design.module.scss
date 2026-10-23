@@ -219,23 +219,6 @@
     white-space: nowrap;
 }
 
-// while placing: what to click
-.placingHint {
-    @include row;
-    min-width: 0;
-    margin-bottom: 5rem;
-    padding: 4rem 8rem;
-    border-radius: $radius-s;
-    background-color: rgba(255, 181, 71, 0.12);
-}
-
-.placingText {
-    margin-left: 6rem;
-    font-size: $fs-s;
-    color: #ffe2b3;
-    white-space: normal;
-}
-
 // the placed entrances: two columns of short rows
 .placedList {
     @include row;
