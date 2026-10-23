@@ -1,0 +1,59 @@
+{
+  "current_commit": "f851771faca8d672986e5aab4aec4f5ed3f24437",
+  "current": {
+    "files": 60,
+    "entries": 7754,
+    "unique_keys": 7729
+  },
+  "our_submission": {
+    "files": 60,
+    "entries": 7754,
+    "unique_keys": 7729,
+    "missing_keys": 0,
+    "extra_keys": 0,
+    "placeholder_errors": 0,
+    "provenance": {
+      "own_key_translation": 4897,
+      "own_shared_english_translation": 2678,
+      "context_specific_override": 15,
+      "existing_upstream_translation": 128,
+      "latest_source_translation": 36
+    },
+    "existing_upstream_entries_preserved": 128
+  },
+  "pr4": {
+    "files": 55,
+    "entries": 6959,
+    "unique_keys": 6934,
+    "current_keys_covered": 6919,
+    "missing_current_keys": 810,
+    "obsolete_keys": 15,
+    "changed_english_values": 14,
+    "different_translations_on_current_shared_keys": 3741
+  },
+  "new_files_vs_pr4": [
+    "zh-HANS.carYard.json",
+    "zh-HANS.containerYard.json",
+    "zh-HANS.industrialWorks.json",
+    "zh-HANS.junkYard.json",
+    "zh-HANS.polish.json"
+  ],
+  "context_overrides": {
+    "Placemaker.Field.Pitch.stands": "看台",
+    "Placemaker.Field.Pitch.standAsset": "看台",
+    "Placemaker.Field.Baseball.stands": "看台",
+    "Placemaker.Field.Baseball.standAsset": "看台",
+    "Placemaker.Field.Track.stands": "看台",
+    "Placemaker.Field.Track.standAsset": "看台",
+    "Placemaker.Field.Basketball.stands": "看台",
+    "Placemaker.Field.Basketball.standAsset": "看台",
+    "Placemaker.Field.Cricket.standAsset": "看台",
+    "Placemaker.AddOn.Shops.count": "餐饮摊位数量",
+    "Placemaker.AddOn.Shops.assets": "餐饮摊位",
+    "Placemaker.Quarry.levels": "开采台阶",
+    "Placemaker.UI.Group.benches": "开采台阶",
+    "Placemaker.UI.Group.hives": "蜂箱"
+  },
+  "pr4_commit": "0c61e87941879ebf488294ce962c7fdda94a2397",
+  "supplemental_ui_keys": 239
+}
