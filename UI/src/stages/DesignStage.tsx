@@ -115,7 +115,7 @@ const MARKER_TIPS: Record<string, [string, string]> = {
 };
 
 /**
- * Entrances: the section header (count, or "Add one to build"; at its end the Crosswalk switch for the entrances placed
+ * Entrances: the section header ("Add one to build" while one is needed; at its end the "Place with crosswalk" switch for the entrances placed
  * next, when people walk in through any type), one button per entrance type (the lit one is being placed; click it again
  * to stop) and, while placing, what to click; then the placed entrances in two columns, each with its own Crosswalk switch,
  * show on the map and remove.
@@ -149,7 +149,7 @@ const Entrances = ({ step, state }: { step: StepView; state: ToolState }) => {
     return (
         <div
             ref={ref}
-            className={classNames(s.entrances, { [s.entrancesFlash]: flash, [s.entrancesMissing]: missing })}
+            className={classNames(s.entrances, { [s.entrancesMissing]: missing })}
             data-testid={`entrances-wrap-${step.path}`}
             data-flash={flash ? "true" : "false"}
         >
@@ -159,7 +159,6 @@ const Entrances = ({ step, state }: { step: StepView; state: ToolState }) => {
                 tip={t("Placemaker.UI.Markers.Note", "Pick a type, then click the outline by a road.")}
                 testId={`entrances-${step.path}`}
                 tone={missing ? "warn" : undefined}
-                count={missing ? undefined : have}
                 sub={
                     missing ? (
                         <div className={s.required} data-testid="entrance-required">
@@ -172,15 +171,15 @@ const Entrances = ({ step, state }: { step: StepView; state: ToolState }) => {
                 right={
                     walks ? (
                         <Tip
-                            title={t("Placemaker.UI.Markers.Crosswalk", "Crosswalk")}
+                            title={t("Placemaker.UI.Markers.Crosswalk", "Place with crosswalk")}
                             description={t(
                                 "Placemaker.UI.Markers.CrosswalkTip",
                                 "On: the entrances you place next get a crosswalk across the street (the path joins the road at a new junction). Off: the path stops at the sidewalk and the game joins it, with no crosswalk and no cut in the road. Each placed entrance has its own switch below."
                             )}
                         >
                             <div className={s.headCross} data-testid="marker-crosswalk-wrap" data-on={crossing ? "true" : "false"}>
-                                <Icon name="crosswalk" size={14} tint={crossing ? "light" : "dim"} />
-                                <div className={s.headCrossLabel}>{t("Placemaker.UI.Markers.Crosswalk", "Crosswalk")}</div>
+                                <Icon name="crosswalk" size={17} tint={crossing ? "light" : "dim"} />
+                                <div className={s.headCrossLabel}>{t("Placemaker.UI.Markers.Crosswalk", "Place with crosswalk")}</div>
                                 <Switch testId="marker-crosswalk" on={crossing} onChange={(v) => act.setMarkerCrosswalk(step.path, -1, v)} />
                             </div>
                         </Tip>
@@ -230,7 +229,7 @@ const Entrances = ({ step, state }: { step: StepView; state: ToolState }) => {
                                             description={t("Placemaker.UI.Markers.CrosswalkItemTip", "On: a crosswalk across the street here. Off: the path stops at the sidewalk.")}
                                         >
                                             <div className={s.placedCross}>
-                                                <Icon name="crosswalk" size={12} tint={m.crosswalk ? "light" : "dim"} />
+                                                <Icon name="crosswalk" size={15} tint={m.crosswalk ? "light" : "dim"} />
                                                 <Switch testId={`marker-crosswalk-${m.index}`} on={!!m.crosswalk} onChange={(v) => act.setMarkerCrosswalk(step.path, m.index, v)} />
                                             </div>
                                         </Tip>
