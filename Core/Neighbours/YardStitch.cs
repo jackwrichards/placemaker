@@ -3250,9 +3250,18 @@ namespace Placemaker.Core.Neighbours
             }
             var taken = new List<IReadOnlyList<float2>>();
             var grownNear = new List<IReadOnlyList<float2>>();
+            // two lots on one grid (parallel or at right angles, within 2°): the land between them is a box on that grid and the
+            // line they share runs along it. Their hull and the line square to their shortest way (corner to corner) cut gardens
+            // slanted, with notches where two such lines met (the user, 23 Oct: "It should be square ... minimal turns"; four
+            // houses bulldozed in a grid suburb). Lots at another angle keep the hull and the slanted line (knob shareGrid 0: all
+            // of them, as before)
+            bool gridKnob = s.Knob("shareGrid", 1f) >= 0.5f;
             foreach (var (_, i, j) in pairs.OrderBy(p => p.Gap).ThenBy(p => p.I).ThenBy(p => p.J))
             {
-                var hull = Ccw(Hull(Reaching(i).Concat(Reaching(j)).ToList()));
+                var gu = new float2(0f);
+                var gv = new float2(0f);
+                bool grid = gridKnob && OnOneGrid(houses[i], houses[j], out gu, out gv);
+                var hull = grid ? GridBox(Reaching(i).Concat(Reaching(j)), gu, gv) : Ccw(Hull(Reaching(i).Concat(Reaching(j)).ToList()));
                 if (hull.Length < 3) continue;
                 Poly.Bounds(hull, out var hlo, out var hhi);
                 // another lot right between them (across the shortest way from one to the other): not neighbours, it shares the
@@ -3288,6 +3297,8 @@ namespace Placemaker.Core.Neighbours
                     var (ca, cb) = Closest(lots[i], lots[j]);
                     bool touching = math.distance(ca, cb) <= 0.05f;
                     var nrm = touching ? math.normalizesafe(houses[j].Position - houses[i].Position, new float2(1f, 0f)) : math.normalize(cb - ca);
+                    // (on one grid: along the grid's axis nearest it)
+                    if (grid) nrm = math.abs(math.dot(nrm, gu)) >= math.abs(math.dot(nrm, gv)) ? gu * math.sign(math.dot(nrm, gu)) : gv * math.sign(math.dot(nrm, gv));
                     line = new Cut { P = touching ? (houses[i].Position + houses[j].Position) * 0.5f : (ca + cb) * 0.5f, D = new float2(-nrm.y, nrm.x) };
                 }
                 float big = math.length(hhi - hlo) * 2f + 10f;
@@ -3332,6 +3343,32 @@ namespace Placemaker.Core.Neighbours
                 }
             }
             if (given > 0) plan.Notes.Add($"{given} gardens take their side of the land between them and a lot at an angle ({area:F0} m²)");
+        }
+
+        /// <summary>The two lots stand on one grid (their streets parallel or at right angles, within 2°): its axes (u across
+        /// the first lot, v along its forward).</summary>
+        private static bool OnOneGrid(StitchHouse a, StitchHouse b, out float2 u, out float2 v)
+        {
+            v = math.normalizesafe(a.Forward, new float2(0f, 1f));
+            u = new float2(v.y, -v.x);
+            var f = math.normalizesafe(b.Forward, v);
+            float c = math.abs(math.dot(f, v)), d = math.abs(math.dot(f, u));
+            // (2°: a straight street and the ones square to it; lots side by side on a curve differ by a few degrees and keep the hull)
+            const float cos2 = 0.99939f;
+            return c >= cos2 || d >= cos2;
+        }
+
+        /// <summary>The box on the grid (u, v) around the points, counter-clockwise.</summary>
+        private static float2[] GridBox(IEnumerable<float2> pts, float2 u, float2 v)
+        {
+            float u0 = float.MaxValue, u1 = float.MinValue, v0 = float.MaxValue, v1 = float.MinValue;
+            foreach (var p in pts)
+            {
+                float a = math.dot(p, u), b = math.dot(p, v);
+                u0 = math.min(u0, a); u1 = math.max(u1, a);
+                v0 = math.min(v0, b); v1 = math.max(v1, b);
+            }
+            return Ccw(new[] { u * u0 + v * v0, u * u1 + v * v0, u * u1 + v * v1, u * u0 + v * v1 });
         }
 
         /// <summary>Roads, paths, tracks and other buildings near [lo, hi], grown by the margin (decks by theirs), water by its

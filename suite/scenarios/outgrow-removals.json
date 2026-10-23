@@ -78,6 +78,19 @@
         },
         {
           "do": "lab",
+          "op": "polishPassDump",
+          "near": [
+            [
+              -40,
+              0
+            ]
+          ],
+          "rel": true,
+          "radius": 70,
+          "max": 30
+        },
+        {
+          "do": "lab",
           "op": "bulldozeHouses",
           "near": [
             -40,

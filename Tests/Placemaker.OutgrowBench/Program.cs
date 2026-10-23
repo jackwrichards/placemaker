@@ -95,6 +95,7 @@ namespace Placemaker.OutgrowBench
                     var svgDir = Path.Combine(dir, "svg-" + label);
                     Directory.CreateDirectory(svgDir);
                     File.WriteAllText(Path.Combine(svgDir, name + ".svg"), Svg.Draw(houses, settings, plan));
+                    File.WriteAllText(Path.Combine(svgDir, name + ".txt"), string.Join("\n", plan.Notes));
                 }
                 string same = "";
                 if (baseline != null)

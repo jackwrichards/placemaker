@@ -169,3 +169,15 @@ The user's pillars: Outgrow fast, little memory, off the main frame, and a chang
   the city's gardens change by the same noise (84 to 99 of 2 500 between two redos).
 * Left: the collections (6 to 9 in 45 s, 35 to 55 ms each) are now the biggest hitches; writing a finished plan (Finish, up
   to about 25 ms); a house whose description alone is 20 ms.
+
+## 10. Square splits on a grid (23 Oct)
+
+* **[P] ShareBetween** (land between two lots no joining rule fits) took the two lots' hull and split it square to their
+  shortest way. Two lots on one grid meeting only at a corner (a back neighbour and a side neighbour of land freed in a grid
+  suburb) made a slanted hull and a diagonal line, and notches where two such lines met (the user's jagged fences after 4
+  houses bulldozed, 23 Oct: "It should be square ... minimal turns"). Lots on one grid (parallel or at right angles within
+  2°) now share a box on that grid, split along its nearest axis (OnOneGrid, GridBox; knob shareGrid 0: as before). Lots at
+  another angle keep the hull. The bulldozed suburb in the game runner: the gardens behind take the land as rectangles to the
+  street (send-outgrow-removals-1023-142445). At 5°, lots side by side on a curve counted as one grid and land on curves was
+  left unshared; 2° keeps curves as they were.
+* OutgrowBench --svg also writes each pass's notes; the 1 431 recorded plans replayed with and without (gridab).
