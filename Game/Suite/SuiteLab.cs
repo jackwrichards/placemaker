@@ -200,20 +200,32 @@ namespace Placemaker.Game.Suite
                 {
                     // the player bulldozes some houses (every n-th in the land): the polish must give their neighbours their
                     // own fences back and leave nothing of theirs standing
+                    // ("near": [x, z] with "radius": the houses that close instead, in a loaded city)
                     var b = st.S.Block;
+                    float bx0 = b.X0, bx1 = b.X1, bz0 = b.Z0, bz1 = b.Z1;
+                    if (step["near"] is JArray nearAt)
+                    {
+                        float r = (float?)step["radius"] ?? 40f;
+                        bx0 = (float)nearAt[0] - r; bx1 = (float)nearAt[0] + r; bz0 = (float)nearAt[1] - r; bz1 = (float)nearAt[1] + r;
+                    }
                     int every = math.max(2, (int?)step["every"] ?? 4);
                     var em = _world.EntityManager;
                     var victims = new System.Collections.Generic.List<Entity>();
                     using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<global::Game.Buildings.Building>(), ComponentType.ReadOnly<global::Game.Objects.Transform>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
                     using (var all = q.ToEntityArray(Allocator.Temp))
                     {
-                        var inLand = all.Where(e => { var p = em.GetComponentData<global::Game.Objects.Transform>(e).m_Position; return p.x >= b.X0 && p.x <= b.X1 && p.z >= b.Z0 && p.z <= b.Z1; })
+                        var inLand = all.Where(e => { var p = em.GetComponentData<global::Game.Objects.Transform>(e).m_Position; return p.x >= bx0 && p.x <= bx1 && p.z >= bz0 && p.z <= bz1; })
                             .OrderBy(e => em.GetComponentData<global::Game.Objects.Transform>(e).m_Position.x).ThenBy(e => em.GetComponentData<global::Game.Objects.Transform>(e).m_Position.z).ToList();
                         // "keep": n — only every n-th house stays (houses far apart); else every n-th goes
                         int keep = (int?)step["keep"] ?? 0;
                         if (keep > 1) { for (int i = 0; i < inLand.Count; i++) if (i % keep != 0) victims.Add(inLand[i]); }
                         else for (int i = 1; i < inLand.Count; i += every) victims.Add(inLand[i]);
                     }
+                    var dirty0 = (int[])Placemaker.Game.Neighbours.NeighbourPolishSystem.DirtyBy.Clone();
+                    int kept0 = Placemaker.Game.Neighbours.NeighbourPolishSystem.TotalRemovalsKept;
+                    // (what goes: outgrown or not, a growable or not)
+                    var sysP = _world.GetExistingSystemManaged<Placemaker.Game.Neighbours.NeighbourPolishSystem>();
+                    var what = string.Join(", ", victims.Select(v => $"{v.Index} ({(em.HasComponent<global::Game.Prefabs.SpawnableBuildingData>(em.GetComponentData<global::Game.Prefabs.PrefabRef>(v).m_Prefab) ? "growable" : "not growable")}, {(sysP != null && sysP.IsYes(v) ? "outgrown" : "not outgrown")})"));
                     yield return ApplyWithFixtureTool(t =>
                     {
                         foreach (var v in victims)
@@ -227,8 +239,17 @@ namespace Placemaker.Game.Suite
                         return victims.Count;
                     }, "bulldoze houses");
                     rec["bulldozed"] = victims.Count;
-                    Mod.Log.Info($"Placemaker lab: {victims.Count} houses bulldozed");
                     yield return Frames(30);
+                    // (the neighbours Outgrow put in line for it, and removals it took for the game's)
+                    var why = new JObject();
+                    for (int k = 0; k < dirty0.Length; k++)
+                    {
+                        int d = Placemaker.Game.Neighbours.NeighbourPolishSystem.DirtyBy[k] - dirty0[k];
+                        if (d != 0) why[Placemaker.Game.Neighbours.NeighbourPolishSystem.DirtyByNames[k]] = d;
+                    }
+                    rec["putInLine"] = why;
+                    rec["takenForTheGames"] = Placemaker.Game.Neighbours.NeighbourPolishSystem.TotalRemovalsKept - kept0;
+                    Mod.Log.Info($"Placemaker lab: {victims.Count} houses bulldozed ({what}); Outgrow put in line {why.ToString(Newtonsoft.Json.Formatting.None)}, took {rec["takenForTheGames"]} for removals by the game");
                     yield break;
                 }
                 case "outgrowquiet":

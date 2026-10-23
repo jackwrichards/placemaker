@@ -29,7 +29,9 @@ namespace Placemaker.Game.Suite
             public int OwnerUpdated = NeighbourPolishSystem.LinesOwnerUpdated, PolishedUpdated = NeighbourPolishSystem.PolishedUpdated, LevelUpsKept = NeighbourPolishSystem.TotalLevelUpsKept, Carried = NeighbourPolishSystem.TotalFencesCarried,
                 Hidden = NeighbourPolishSystem.TotalFencesHidden, Laid = NeighbourPolishSystem.TotalFencesLaid,
                 SurfacesKept = NeighbourPolishSystem.TotalSurfacesKept, LawnsKept = NeighbourPolishSystem.TotalLawnsKept, SurfacePieces = NeighbourPolishSystem.TotalSurfacePiecesKept,
-                LostAreas = NeighbourPolishSystem.TotalLostAreas;
+                LostAreas = NeighbourPolishSystem.TotalLostAreas,
+                PutBack = NeighbourPolishSystem.TotalFencesPutBack, RemovalsKept = NeighbourPolishSystem.TotalRemovalsKept,
+                NeighbourKept = NeighbourPolishSystem.TotalNeighbourChangesKept;
             public int Gc = GC.CollectionCount(0);
             public int Passes = NeighbourPolishSystem.TotalPasses;
             public int Objects = NeighbourObjectSystem.TotalMade;
@@ -81,6 +83,8 @@ namespace Placemaker.Game.Suite
             float speed = (float?)step["speed"] ?? 1f;
             if (step["outgrow"] != null) NeighbourPolishSystem.SetRunning((bool)step["outgrow"]);
             if (step["levelUps"] != null) NeighbourPolishSystem.SetLevelUps((bool)step["levelUps"]);
+            if (step["gameChanges"] != null) NeighbourPolishSystem.SetGameChanges((bool)step["gameChanges"]);
+            if (step["gameRemovals"] != null) NeighbourPolishSystem.SetGameRemovals((bool)step["gameRemovals"]);
             // "gameLevelUps": false stops the game's own building upkeep (Simulation.BuildingUpkeepSystem: no building levels up,
             // none is abandoned), true runs it again: whether level-ups are what Outgrow plans in a finished city
             var upkeep = _world.GetExistingSystemManaged<global::Game.Simulation.BuildingUpkeepSystem>();
@@ -109,6 +113,8 @@ namespace Placemaker.Game.Suite
             float P(float q) => ms.Count == 0 ? 0f : ms[Math.Min(ms.Count - 1, (int)(ms.Count * q))];
             rec["seconds"] = Math.Round(clock.Elapsed.TotalSeconds, 1);
             rec["levelUps"] = NeighbourPolishSystem.PolishLevelUps;
+            rec["gameChanges"] = NeighbourPolishSystem.PolishGameChanges;
+            rec["gameRemovals"] = NeighbourPolishSystem.PolishGameRemovals;
             rec["gameLevelUps"] = upkeep == null || upkeep.Enabled;
             rec["outgrow"] = !NeighbourPolishSystem.Paused;
             rec["simFrames"] = sim.frameIndex - simFrame0;
@@ -137,6 +143,9 @@ namespace Placemaker.Game.Suite
             why["surfacesKept"] = prev.SurfacesKept - start.SurfacesKept;
             why["ownLawnsKept"] = prev.LawnsKept - start.LawnsKept;
             why["surfacePiecesMade"] = prev.SurfacePieces - start.SurfacePieces;
+            why["fencesPutBack"] = prev.PutBack - start.PutBack;
+            why["removalsKept"] = prev.RemovalsKept - start.RemovalsKept;
+            why["notOutgrownChangesKept"] = prev.NeighbourKept - start.NeighbourKept;
             rec["putInLine"] = why;
             // the garbage collector: how often, and how long the frames it ran in (or next to) took
             var gcFrames = new List<int>();
@@ -159,7 +168,7 @@ namespace Placemaker.Game.Suite
                 worst.Add(o);
             }
             rec["worstFrames"] = worst;
-            Mod.Log.Info("Placemaker lab: outgrow frames " + new JObject { ["outgrow"] = rec["outgrow"], ["levelUps"] = rec["levelUps"], ["gameLevelUps"] = rec["gameLevelUps"], ["seconds"] = rec["seconds"], ["simFrames"] = rec["simFrames"], ["frameMs"] = rec["frameMs"], ["outgrowMsPerFrame"] = rec["outgrowMsPerFrame"], ["outgrowInAll"] = rec["outgrowInAll"], ["putInLine"] = rec["putInLine"], ["gc"] = rec["gc"] }.ToString(Newtonsoft.Json.Formatting.None));
+            Mod.Log.Info("Placemaker lab: outgrow frames " + new JObject { ["outgrow"] = rec["outgrow"], ["levelUps"] = rec["levelUps"], ["gameChanges"] = rec["gameChanges"], ["gameRemovals"] = rec["gameRemovals"], ["gameLevelUps"] = rec["gameLevelUps"], ["seconds"] = rec["seconds"], ["simFrames"] = rec["simFrames"], ["frameMs"] = rec["frameMs"], ["outgrowMsPerFrame"] = rec["outgrowMsPerFrame"], ["outgrowInAll"] = rec["outgrowInAll"], ["putInLine"] = rec["putInLine"], ["gc"] = rec["gc"] }.ToString(Newtonsoft.Json.Formatting.None));
             foreach (var w in worst) Mod.Log.Info("Placemaker lab: outgrow frames, a worst frame " + w.ToString(Newtonsoft.Json.Formatting.None));
             // "shots": close-ups of that many buildings that levelled up and kept their gardens in this stretch
             int shots = (int?)step["shots"] ?? 0;

@@ -1,0 +1,23 @@
+{
+  "_about": "Every reason Outgrow plans a house that the game causes, switched off (the user, 23 Oct: 'what are all the reasons we would outgrow a building for? We should just have toggles for all of that'; 'on a city where you're not building and there's no empty zoning, nothing should be outgrowing'). In their city '123' (read-only: loaded, never saved; 'Outgrow new buildings' off as saved) every garden is first planned again with this build (Redo) and checked (outgrowCheck A). Then with 'levels up', 'the game changes a building' and 'the game removes a building nearby' off: 45 s paused (baseline; set first, so nothing waits for the running stretches), 45 s and 45 s running (close-ups of two level-ups kept), check B; then the player's bulldozer takes some houses near a garden (their neighbours must still be planned: the bulldozer step logs how many it put in line) and 20 s more. Read plansWritten and putInLine of each stretch (nothing should be planned but a building site on garden land or a clash), frames over 50 / 100 ms and collections against the paused stretch, and the checks A->B (open and hidden fence, bare lawn).",
+  "scenarios": [
+    {
+      "id": "city-switches",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "loadCity", "name": "123" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 2, "speed": 1, "outgrow": true, "levelUps": true, "gameChanges": true, "gameRemovals": true },
+        { "do": "lab", "op": "polishSettings", "settings": {} },
+        { "do": "lab", "op": "polishIdle", "seconds": 600, "label": "redo-city" },
+        { "do": "lab", "op": "outgrowCheck", "box": "gardens", "closeups": 0 },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": false, "levelUps": false, "gameChanges": false, "gameRemovals": false },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true, "shots": 2 },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true },
+        { "do": "lab", "op": "outgrowCheck", "box": "gardens", "closeups": 0 },
+        { "do": "lab", "op": "bulldozeHouses", "near": [1181.1, 1792.7], "radius": 45, "every": 3 },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 20, "speed": 1, "outgrow": true }
+      ]
+    }
+  ]
+}

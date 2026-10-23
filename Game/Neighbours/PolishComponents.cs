@@ -136,7 +136,7 @@ namespace Placemaker.Game.Neighbours
     /// <summary>An area zoned with a look: buildings that grow in it get it (NeighbourPolishSystem.Areas).</summary>
     public struct PolishLookArea : IComponentData, IQueryTypeParameter, ISerializable
     {
-        public const int CurrentVersion = 2;
+        public const int CurrentVersion = 3;
         /// <summary>PolishLooks.Hash of the look's id.</summary>
         public int Look;
         /// <summary>Newer areas win where they overlap.</summary>
@@ -206,6 +206,8 @@ namespace Placemaker.Game.Neighbours
         public bool Paused;
         /// <summary>"Outgrow again when a building levels up" (version 2; a city saved before has it on).</summary>
         public bool LevelUps;
+        /// <summary>"Outgrow again when the game changes a building" and "... removes a building nearby" (version 3; on before).</summary>
+        public bool GameChanges, GameRemovals;
 
         public void Serialize<TWriter>(TWriter writer) where TWriter : IWriter
         {
@@ -213,6 +215,8 @@ namespace Placemaker.Game.Neighbours
             writer.Write(NewBuildings);
             writer.Write(Paused);
             writer.Write(LevelUps);
+            writer.Write(GameChanges);
+            writer.Write(GameRemovals);
         }
 
         public void Deserialize<TReader>(TReader reader) where TReader : IReader
@@ -220,8 +224,13 @@ namespace Placemaker.Game.Neighbours
             reader.Read(out int version);
             reader.Read(out NewBuildings);
             reader.Read(out Paused);
-            LevelUps = true;
+            LevelUps = GameChanges = GameRemovals = true;
             if (version >= 2) reader.Read(out LevelUps);
+            if (version >= 3)
+            {
+                reader.Read(out GameChanges);
+                reader.Read(out GameRemovals);
+            }
         }
     }
 }

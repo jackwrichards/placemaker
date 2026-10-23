@@ -404,6 +404,22 @@ namespace Placemaker.Game.Neighbours
             }
         }
 
+        private EntityQuery _deletedTemps;
+
+        /// <summary>The buildings the player's tools delete this frame (the bulldozer's temporary copies name them, deleted with
+        /// them when the tool applies).</summary>
+        private HashSet<Entity> BulldozedByPlayer()
+        {
+            var set = new HashSet<Entity>();
+            if (_deletedTemps == default)
+                _deletedTemps = GetEntityQuery(new EntityQueryDesc { All = new[] { ComponentType.ReadOnly<Temp>(), ComponentType.ReadOnly<Deleted>() } });
+            if (_deletedTemps.IsEmptyIgnoreFilter) return set;
+            using (var temps = _deletedTemps.ToComponentDataArray<Temp>(Allocator.Temp))
+                foreach (var t in temps)
+                    if (t.m_Original != Entity.Null && (t.m_Flags & TempFlags.Delete) != 0) set.Add(t.m_Original);
+            return set;
+        }
+
         /// <summary>Fence lanes the game created or reset (not the ones we wrote): their houses need stitching.</summary>
         private void CollectChanged()
         {
@@ -413,12 +429,16 @@ namespace Placemaker.Game.Neighbours
                 using (var gone = _goneHouses.ToEntityArray(Allocator.Temp))
                 {
                     EnsureGrid();
+                    var byTool = BulldozedByPlayer();
                     foreach (var g in gone)
                     {
                         var at = EntityManager.GetComponentData<global::Game.Objects.Transform>(g).m_Position.xz;
                         _dirty.Remove(g);
                         _first.Remove(g);
                         _described.Remove(g);
+                        // removed by the game (collapsed, condemned, demolished) in a city that plans nothing for that: the
+                        // gardens around keep theirs (the player's bulldozer always plans)
+                        if (!PolishGameRemovals && IsGrowable(g) && !byTool.Contains(g)) { TotalRemovalsKept++; continue; }
                         for (int dx = -2; dx <= 2; dx++)
                             for (int dz = -2; dz <= 2; dz++)
                                 if (_grid.TryGetValue(Key(at + new float2(dx, dz) * Cell), out var near))
@@ -448,6 +468,12 @@ namespace Placemaker.Game.Neighbours
                     { DirtySkipped++; continue; }
                     // a level-up kept without a plan (this city's switch off): its new fences carried over where they line up
                     if (KeepLevelUp(owner)) { CarryFence(lane, owner, curve); continue; }
+                    // the game fitted it again on a building it changed otherwise, in a city that plans nothing for that: back
+                    // where it was
+                    if (PutBack(lane, owner, curve)) continue;
+                    // a building that is not outgrown the game levelled up or changed: the outgrown ones around it keep their
+                    // gardens in a city that plans nothing for that
+                    if (!IsYes(owner) && NeighbourChangeKept(lane, owner, curve)) continue;
                     // (why, for the game runner: a lane never seen, one the game moved, or one where it was on another building)
                     LinesChangedHow[!_laneCurve.TryGetValue(lane, out var seen) ? 0 : !SameXZ(curve, seen) ? (_written.ContainsKey(lane) ? 1 : 2) : 3]++;
                     if (EntityManager.HasComponent<Updated>(owner)) LinesOwnerUpdated++;
