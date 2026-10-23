@@ -7,6 +7,9 @@
 //     --only N          only pass N (pass-NNN.json)
 //     --stages          print each pass's stage times (the planner's own "time (ms)" note)
 //     --parallel N      also time N passes planned at once (as the game does: up to 3 workers)
+//     --knob NAME=VALUE a planner knob for every pass (e.g. nearOnly=0: every house worked out, as before)
+//     --edited          signatures of what the game writes only (the edited houses' outputs: StitchDump.EditedSignature)
+//     --alloc-types     what the garbage is made of (the runtime's allocation samples, about one per 100 KB, by type)
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +28,8 @@ namespace Placemaker.OutgrowBench
             if (args.Length == 0) { Console.WriteLine("usage: <passes dir or file> [--repeat N] [--label NAME] [--baseline NAME] [--only N] [--stages] [--parallel N]"); return 2; }
             string input = args[0], label = "now", baseline = null;
             int repeat = 3, only = -1, parallel = 0;
-            bool stages = false, editAll = false;
+            bool stages = false, editAll = false, editedSig = false, allocTypes = false;
+            var knobs = new Dictionary<string, float>();
             for (int i = 1; i < args.Length; i++)
             {
                 switch (args[i])
@@ -37,6 +41,9 @@ namespace Placemaker.OutgrowBench
                     case "--stages": stages = true; break;
                     case "--parallel": parallel = int.Parse(args[++i]); break;
                     case "--edit-all": editAll = true; break;
+                    case "--edited": editedSig = true; break;
+                    case "--alloc-types": allocTypes = true; break;
+                    case "--knob": { var kv = args[++i].Split('='); knobs[kv[0]] = float.Parse(kv[1], System.Globalization.CultureInfo.InvariantCulture); break; }
                 }
             }
             YardStitch.AllocatedBytes = GC.GetAllocatedBytesForCurrentThread;
@@ -46,6 +53,8 @@ namespace Placemaker.OutgrowBench
             var sigDir = Path.Combine(dir, "sig-" + label);
             Directory.CreateDirectory(sigDir);
             var passes = files.Select(f => (Name: Path.GetFileNameWithoutExtension(f), Input: StitchDump.Read(File.ReadAllText(f)))).ToList();
+            foreach (var (_, (_, settings)) in passes)
+                foreach (var kv in knobs) { settings.Extra ??= new Dictionary<string, float>(); settings.Extra[kv.Key] = kv.Value; }
             // every polished house planned at once (what one pass for the whole neighbourhood would cost)
             if (editAll)
                 foreach (var (_, (houses, _)) in passes)
@@ -54,6 +63,7 @@ namespace Placemaker.OutgrowBench
             Console.WriteLine($"{passes.Count} passes from {dir}");
             // warm up the JIT on the first pass
             if (passes.Count > 0) YardStitch.Plan(passes[0].Input.Houses, passes[0].Input.Settings);
+            using var allocListener = allocTypes ? new AllocListener() : null;
             double total = 0, worst = 0;
             long totalBytes = 0;
             var stageTotals = new Dictionary<string, double>();
@@ -75,7 +85,7 @@ namespace Placemaker.OutgrowBench
                 total += best;
                 totalBytes += bytes;
                 worst = Math.Max(worst, best);
-                var sig = StitchDump.Signature(plan);
+                var sig = editedSig ? StitchDump.EditedSignature(plan, houses) : StitchDump.Signature(plan);
                 File.WriteAllText(Path.Combine(sigDir, name + ".txt"), sig);
                 string same = "";
                 if (baseline != null)
@@ -122,10 +132,38 @@ namespace Placemaker.OutgrowBench
                 Parallel.ForEach(passes, new ParallelOptions { MaxDegreeOfParallelism = parallel }, p => YardStitch.Plan(p.Input.Houses, p.Input.Settings));
                 Console.WriteLine($"all passes, {parallel} at once: {clock.Elapsed.TotalMilliseconds:F0} ms");
             }
+            if (allocListener != null)
+            {
+                long all = allocListener.ByType.Values.Sum();
+                Console.WriteLine($"garbage by type (sampled, {all / 1048576.0:F0} MB):");
+                foreach (var kv in allocListener.ByType.OrderByDescending(k => k.Value).Take(25)) Console.WriteLine($"  {kv.Value / 1048576.0,8:F1} MB  {kv.Key}");
+            }
             if (baseline != null) Console.WriteLine(differ == 0 ? "every pass plans the same as " + baseline : $"{differ} passes plan differently from {baseline}");
             return differ == 0 ? 0 : 1;
         }
 
         private static string Trim(string s) => s.Length > 300 ? s.Substring(0, 300) + "..." : s;
+
+        /// <summary>The runtime's allocation samples (GC AllocationTick: one about every 100 KB, with its type and size), summed
+        /// by type.</summary>
+        private sealed class AllocListener : System.Diagnostics.Tracing.EventListener
+        {
+            public readonly System.Collections.Concurrent.ConcurrentDictionary<string, long> ByType = new System.Collections.Concurrent.ConcurrentDictionary<string, long>();
+
+            protected override void OnEventSourceCreated(System.Diagnostics.Tracing.EventSource source)
+            {
+                if (source.Name == "Microsoft-Windows-DotNETRuntime") EnableEvents(source, System.Diagnostics.Tracing.EventLevel.Verbose, (System.Diagnostics.Tracing.EventKeywords)0x1);
+            }
+
+            protected override void OnEventWritten(System.Diagnostics.Tracing.EventWrittenEventArgs e)
+            {
+                if (e.EventName == null || !e.EventName.StartsWith("GCAllocationTick")) return;
+                int ti = e.PayloadNames.IndexOf("TypeName"), ai = e.PayloadNames.IndexOf("AllocationAmount64");
+                if (ai < 0) ai = e.PayloadNames.IndexOf("AllocationAmount");
+                string type = ti >= 0 ? e.Payload[ti] as string ?? "?" : "?";
+                long amount = ai >= 0 ? Convert.ToInt64(e.Payload[ai]) : 100000;
+                ByType.AddOrUpdate(type, amount, (_, v) => v + amount);
+            }
+        }
     }
 }

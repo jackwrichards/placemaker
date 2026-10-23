@@ -31,7 +31,8 @@ namespace Placemaker.Game.Suite
                 SurfacesKept = NeighbourPolishSystem.TotalSurfacesKept, LawnsKept = NeighbourPolishSystem.TotalLawnsKept, SurfacePieces = NeighbourPolishSystem.TotalSurfacePiecesKept,
                 LostAreas = NeighbourPolishSystem.TotalLostAreas,
                 PutBack = NeighbourPolishSystem.TotalFencesPutBack, RemovalsKept = NeighbourPolishSystem.TotalRemovalsKept,
-                NeighbourKept = NeighbourPolishSystem.TotalNeighbourChangesKept;
+                NeighbourKept = NeighbourPolishSystem.TotalNeighbourChangesKept,
+                StandingChecked = NeighbourPolishSystem.StandingChecked, StandingMismatches = NeighbourPolishSystem.StandingMismatches;
             public int Gc = GC.CollectionCount(0);
             public int Passes = NeighbourPolishSystem.TotalPasses;
             public int Objects = NeighbourObjectSystem.TotalMade;
@@ -129,6 +130,13 @@ namespace Placemaker.Game.Suite
             total.Remove("ms");
             rec["outgrowInAll"] = total;
             rec["outgrowMsPerFrame"] = frames.Count > 0 ? Math.Round(all.Outgrow / frames.Count, 2) : 0;
+            // Outgrow's own time on the frame (its systems' main thread time), whatever else the machine does: how many frames it
+            // took more than 4, 8 and 16 ms of, and its most
+            rec["outgrowFrameMs"] = new JObject
+            {
+                ["over4"] = frames.Count(f => f.Outgrow > 4.0), ["over8"] = frames.Count(f => f.Outgrow > 8.0), ["over16"] = frames.Count(f => f.Outgrow > 16.0),
+                ["worst"] = frames.Count > 0 ? Math.Round(frames.Max(f => f.Outgrow), 1) : 0,
+            };
             var why = new JObject();
             for (int k = 0; k < NeighbourPolishSystem.DirtyBy.Length; k++)
                 if (prev.DirtyBy[k] != start.DirtyBy[k]) why[NeighbourPolishSystem.DirtyByNames[k]] = prev.DirtyBy[k] - start.DirtyBy[k];
@@ -146,6 +154,7 @@ namespace Placemaker.Game.Suite
             why["fencesPutBack"] = prev.PutBack - start.PutBack;
             why["removalsKept"] = prev.RemovalsKept - start.RemovalsKept;
             why["notOutgrownChangesKept"] = prev.NeighbourKept - start.NeighbourKept;
+            if (prev.StandingChecked != start.StandingChecked) why["standingFences"] = $"{prev.StandingChecked - start.StandingChecked} remembered read again, {prev.StandingMismatches - start.StandingMismatches} had changed";
             rec["putInLine"] = why;
             // the garbage collector: how often, and how long the frames it ran in (or next to) took
             var gcFrames = new List<int>();
@@ -168,7 +177,7 @@ namespace Placemaker.Game.Suite
                 worst.Add(o);
             }
             rec["worstFrames"] = worst;
-            Mod.Log.Info("Placemaker lab: outgrow frames " + new JObject { ["outgrow"] = rec["outgrow"], ["levelUps"] = rec["levelUps"], ["gameChanges"] = rec["gameChanges"], ["gameRemovals"] = rec["gameRemovals"], ["gameLevelUps"] = rec["gameLevelUps"], ["seconds"] = rec["seconds"], ["simFrames"] = rec["simFrames"], ["frameMs"] = rec["frameMs"], ["outgrowMsPerFrame"] = rec["outgrowMsPerFrame"], ["outgrowInAll"] = rec["outgrowInAll"], ["putInLine"] = rec["putInLine"], ["gc"] = rec["gc"] }.ToString(Newtonsoft.Json.Formatting.None));
+            Mod.Log.Info("Placemaker lab: outgrow frames " + new JObject { ["outgrow"] = rec["outgrow"], ["levelUps"] = rec["levelUps"], ["gameChanges"] = rec["gameChanges"], ["gameRemovals"] = rec["gameRemovals"], ["gameLevelUps"] = rec["gameLevelUps"], ["seconds"] = rec["seconds"], ["simFrames"] = rec["simFrames"], ["frameMs"] = rec["frameMs"], ["outgrowMsPerFrame"] = rec["outgrowMsPerFrame"], ["outgrowFrameMs"] = rec["outgrowFrameMs"], ["outgrowInAll"] = rec["outgrowInAll"], ["putInLine"] = rec["putInLine"], ["gc"] = rec["gc"] }.ToString(Newtonsoft.Json.Formatting.None));
             foreach (var w in worst) Mod.Log.Info("Placemaker lab: outgrow frames, a worst frame " + w.ToString(Newtonsoft.Json.Formatting.None));
             // "shots": close-ups of that many buildings that levelled up and kept their gardens in this stretch
             int shots = (int?)step["shots"] ?? 0;

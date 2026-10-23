@@ -115,3 +115,18 @@ each Outgrow system's main thread time, the garbage collector, why houses were p
   hides them under a later road); not done.
 * About 1 s for the town needs the planner about twice as fast again: the engine is half of a plan in Mono, the rest is the
   per-garden steps (fence closing, lawns, land between angled lots, planting).
+
+## 7. The stutter with every switch on (23 Oct)
+
+* **[P] The planner's garbage, 38.4 -> 13.2 MB a plan** (the user's city; 2.5 to 4.6x less on every recorded set, about 1 400
+  plans, every one planned exactly the same in .NET and in the game's Mono: 51 -> 16 collections for the city's 25). By type
+  (OutgrowBench --alloc-types): the polygon engine's arrays made for every boolean (now its instances and arrays kept per
+  thread: Arrangement.Rent/Release), a delegate for every vertex's sort (sorted in place), IsSimple's arrays, min/max helpers,
+  line grids per plan, barriers copied and filed again to trim fences (now looked up in their own grid), text for every
+  neighbour turned down.
+* **[P] In the game, everything on:** collections 43 to 49 -> 7 to 16 in 45 s.
+* **[P] Standing fences remembered** (NeighbourPolishSystem.StandingOf) until a lane or piece of the house is made, moved,
+  placed again or deleted: gathering a whole city's plans 1 349 -> 488 ms. Knob checkStanding reads them again and compares:
+  0 of 10 657 had changed unseen (once pieces the game sets down a frame later are counted).
+* Left: a plan's gathering is still on one frame (up to about 30 ms), hidden pieces shown again after a plan (bursts of about
+  20 ms), the barrier cells dropped when many buildings update at once (8 to 12 ms), ground paint (2 to 5 ms a stamp).

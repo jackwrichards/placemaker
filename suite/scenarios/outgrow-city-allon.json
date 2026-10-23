@@ -1,0 +1,19 @@
+{
+  "_about": "Outgrow with every 'Auto outgrow' switch on in the user's city '123' (read-only: loaded, never saved): the stutter left while level-ups, the game's changes and removals are all planned (the user, 23 Oct: 'when everything is turned on, why does the game stutter? ... let's do everything we can to get this stutter down'). Every garden is first planned again with this build (Redo; polishIdle: the whole city's time and frames), then 45 s paused (baseline) and 2 x 45 s running. Read plansWritten, frames over 33 / 50 / 100 ms and collections (and gc frameMsMean) of each against the paused one; compare with send-outgrow-city-switches-1023-085848 (all on: 121 plans, 48 frames over 50 ms, 49 collections) and send-outgrow-city-ab-1022-233110 (107 plans, 32, 43).",
+  "scenarios": [
+    {
+      "id": "city-allon",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "loadCity", "name": "123" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 2, "speed": 1, "outgrow": true, "levelUps": true, "gameChanges": true, "gameRemovals": true },
+        { "do": "lab", "op": "polishSettings", "settings": {} },
+        { "do": "lab", "op": "polishIdle", "seconds": 600, "label": "redo-city" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": false },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true }
+      ]
+    }
+  ]
+}

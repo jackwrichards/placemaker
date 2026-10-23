@@ -327,7 +327,7 @@ namespace Placemaker.Core.Neighbours
             const float W = 3.3f, D = 6f, Aisle = 6.5f;
             // rows along the land's longer side (in the house's frame)
             var local = land.Outer.Select(h.ToLocal).ToArray();
-            float2 lo = local.Aggregate(new float2(float.MaxValue), math.min), hi = local.Aggregate(new float2(float.MinValue), math.max);
+            float2 lo = MinOf(local), hi = MaxOf(local);
             bool rowsAlongX = hi.x - lo.x >= hi.y - lo.y;
             var rAxis = rowsAlongX ? h.Right : h.Forward;     // along a row
             var dAxis = rowsAlongX ? h.Forward : h.Right;     // across rows (a bay's depth)

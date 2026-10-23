@@ -1,0 +1,17 @@
+{
+  "_about": "Proof for the standing-fence memory (NeighbourPolishSystem.StandingOf: each house's fences and pieces as last read, until one of them changes): in the user's city '123' (read-only: loaded, never saved), with every 'Auto outgrow' switch on and knob checkStanding (every remembered house read again and compared), the whole city planned again and 90 s running. outgrowFrames' putInLine.standingFences says how many remembered houses were read again and how many had changed unseen (0 for the memory to be right); a warning line names the first ten.",
+  "scenarios": [
+    {
+      "id": "city-standing",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "loadCity", "name": "123" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 2, "speed": 1, "outgrow": true, "levelUps": true, "gameChanges": true, "gameRemovals": true },
+        { "do": "lab", "op": "polishSettings", "settings": { "checkStanding": 1 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 600, "label": "redo-city" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 45, "speed": 1, "outgrow": true }
+      ]
+    }
+  ]
+}

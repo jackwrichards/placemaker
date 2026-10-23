@@ -333,13 +333,34 @@ namespace Placemaker.Core.Geometry
         /// edges do not fold back onto each other and the area is not zero. Sweep over x: about
         /// O(n log n) for ordinary rings (O(n²) only for pathological all-overlapping inputs).
         /// </summary>
+        // IsSimple's working arrays, kept per thread (it runs for every outline a plan prepares: in a city its arrays and
+        // the sort's comparer were a tenth of a plan's garbage)
+        private sealed class SimpleScratch
+        {
+            public double2[] P = new double2[64];
+            public double[] MinX = new double[64];
+            public int[] Order = new int[64];
+            public readonly List<int> Active = new List<int>();
+            public readonly ByMinX Cmp = new ByMinX();
+        }
+
+        private sealed class ByMinX : IComparer<int>
+        {
+            public double[] MinX;
+            public int Compare(int x, int y) => MinX[x].CompareTo(MinX[y]);
+        }
+
+        [ThreadStatic] private static SimpleScratch s_simple;
+
         public static bool IsSimple(IReadOnlyList<float2> ring)
         {
             if (ring == null) return false;
             int n = ring.Count;
             if (n < 3) return false;
             double2 o = ring[0];
-            var p = new double2[n];
+            var w = s_simple ??= new SimpleScratch();
+            if (w.P.Length < n) { w.P = new double2[n * 2]; w.MinX = new double[n * 2]; w.Order = new int[n * 2]; }
+            var p = w.P;
             for (int i = 0; i < n; i++)
             {
                 if (!IsFinite(ring[i])) return false;
@@ -358,14 +379,17 @@ namespace Placemaker.Core.Geometry
             if (area == 0) return false;
             if (n == 3) return true;
 
-            var minX = new double[n];
-            var order = new int[n];
+            var minX = w.MinX;
+            var order = w.Order;
             for (int i = 0; i < n; i++) { minX[i] = math.min(p[i].x, p[(i + 1) % n].x); order[i] = i; }
-            Array.Sort(order, (x, y) => minX[x].CompareTo(minX[y]));
+            w.Cmp.MinX = minX;
+            Array.Sort(order, 0, n, w.Cmp);
             const double touch = 1e-6;
-            var active = new List<int>();
-            foreach (int i in order)
+            var active = w.Active;
+            active.Clear();
+            for (int oi = 0; oi < n; oi++)
             {
+                int i = order[oi];
                 double2 a = p[i], b = p[(i + 1) % n];
                 for (int k = active.Count - 1; k >= 0; k--)
                 {

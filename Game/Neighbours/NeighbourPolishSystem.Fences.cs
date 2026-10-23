@@ -90,9 +90,65 @@ namespace Placemaker.Game.Neighbours
             }
         }
 
+        // each house's standing fences as last read, until one of its fence lanes or pieces changes (StandingChanged): read
+        // again for every neighbour of every plan, they were most of a plan's time on the frame (10 to 36 ms in a city of 15 000)
+        private readonly Dictionary<Entity, List<(float2 A, float2 B)>> _standing = new Dictionary<Entity, List<(float2, float2)>>();
+
+        /// <summary>A fence lane or piece of the house was made, moved, hidden or taken away: its standing fences are read
+        /// again when next asked for.</summary>
+        private void StandingChanged(Entity house) => _standing.Remove(house);
+
         /// <summary>The house's fence and hedge lines where they stand now (a line collapsed to nothing left out) and the closing
-        /// pieces it has, as segments.</summary>
+        /// pieces it has, as segments (a list never changed once given: plans on other threads read it).</summary>
         private List<(float2 A, float2 B)> StandingOf(Entity house)
+        {
+            if (_standing.TryGetValue(house, out var known))
+            {
+                // knob checkStanding (the game runner): read again anyway and compare (a change no StandingChanged saw)
+                if (Settings.Knob("checkStanding", 0f) < 0.5f) return known;
+                var fresh = ReadStanding(house);
+                StandingChecked++;
+                if (SameSegments(known, fresh)) return known;
+                StandingMismatches++;
+                if (s_standingLogged++ < 10) Mod.Log.Warn($"Placemaker neighbourhood polish: house {house.Index}'s standing fences changed unseen ({known.Count} remembered, {fresh.Count} standing; {StandingDiff(known, fresh)})");
+                _standing[house] = fresh;
+                return fresh;
+            }
+            var list = ReadStanding(house);
+            if (_standing.Count > 20000) _standing.Clear();
+            _standing[house] = list;
+            return list;
+        }
+
+        /// <summary>For the game runner (knob checkStanding): remembered standing fences read again, and how many had changed.</summary>
+        public static int StandingChecked, StandingMismatches;
+        private static int s_standingLogged;
+
+        /// <summary>For the check's log: the same segments in another order, or how far the furthest one moved.</summary>
+        private static string StandingDiff(List<(float2 A, float2 B)> a, List<(float2 A, float2 B)> b)
+        {
+            string Key((float2 A, float2 B) x) => $"{x.A.x:R},{x.A.y:R},{x.B.x:R},{x.B.y:R}";
+            var sa = a.Select(Key).OrderBy(k => k, StringComparer.Ordinal).ToList();
+            var sb = b.Select(Key).OrderBy(k => k, StringComparer.Ordinal).ToList();
+            if (sa.SequenceEqual(sb)) return "the same, in another order";
+            float worst = 0f;
+            foreach (var x in b)
+            {
+                float best = float.MaxValue;
+                foreach (var y in a) best = math.min(best, math.distance(x.A, y.A) + math.distance(x.B, y.B));
+                worst = math.max(worst, best);
+            }
+            return $"moved up to {worst:F4} m";
+        }
+
+        private static bool SameSegments(List<(float2 A, float2 B)> a, List<(float2 A, float2 B)> b)
+        {
+            if (a.Count != b.Count) return false;
+            for (int i = 0; i < a.Count; i++) if (!a[i].A.Equals(b[i].A) || !a[i].B.Equals(b[i].B)) return false;
+            return true;
+        }
+
+        private List<(float2 A, float2 B)> ReadStanding(Entity house)
         {
             var list = new List<(float2 A, float2 B)>();
             if (EntityManager.HasBuffer<global::Game.Net.SubLane>(house))

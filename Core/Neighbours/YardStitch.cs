@@ -168,7 +168,11 @@ namespace Placemaker.Core.Neighbours
             for (int i = 0; i < n; i++)
             {
                 var a = houses[i];
-                string why = null;
+                // why the nearest candidate was no neighbour, written out only when the house is left without one (a string
+                // for every candidate turned down was garbage for nothing): 1 street edges apart, 2 gaps, 3 something between
+                int whyKind = 0;
+                long whyId = 0;
+                float whyA = 0f, whyB = 0f;
                 for (int j = 0; j < n; j++)
                 {
                     var b = houses[j];
@@ -187,15 +191,15 @@ namespace Placemaker.Core.Neighbours
                     if (fg > maxFgAll) continue;
                     float deep = Deep(a, b);
                     float bg = math.distance(BackAt(a, +1, deep), BackAt(b, -1, deep));
-                    if (offset > s.MaxFrontOffset) { why = why ?? $"{b.Id}: street edges {offset:F1} m apart"; continue; }
+                    if (offset > s.MaxFrontOffset) { if (whyKind == 0) { whyKind = 1; whyId = b.Id; whyA = offset; } continue; }
                     float maxFg = math.min(K(a, s, "maxFrontGap", s.MaxFrontGap), K(b, s, "maxFrontGap", s.MaxFrontGap));
                     float maxBg = bend ? s.Knob("bendBackGap", 130f) : math.min(K(a, s, "maxBackGap", s.MaxBackGap), K(b, s, "maxBackGap", s.MaxBackGap));
-                    if (fg > maxFg || bg > maxBg) { why = $"{b.Id}: gap {fg:F1} m at the street, {bg:F1} m at the back"; continue; }
+                    if (fg > maxFg || bg > maxBg) { whyKind = 2; whyId = b.Id; whyA = fg; whyB = bg; continue; }
                     // the land between them (from just behind the street to the shallower one's back) is open: no road, path,
                     // track or other building runs through it
                     float shallow = math.min(a.HalfLot.y, b.HalfLot.y);
                     if (Blocked(new[] { a.FrontRight - a.Forward * 2f, b.FrontLeft - b.Forward * 2f, BackAt(b, -1, shallow), BackAt(a, +1, shallow) }))
-                    { why = $"{b.Id}: a road, path or building between"; continue; }
+                    { whyKind = 3; whyId = b.Id; continue; }
                     if (fg >= rightGap[i]) continue;
                     // one left neighbour per house: the nearer claim wins
                     int other = left[j];
@@ -206,8 +210,13 @@ namespace Placemaker.Core.Neighbours
                     left[j] = i;
                     rightGap[i] = fg;
                 }
-                if (right[i] < 0 && why != null) plan.Notes.Add($"{a.Id} has no right neighbour: nearest {why}");
+                if (right[i] < 0 && whyKind != 0)
+                {
+                    string why = whyKind == 1 ? $"{whyId}: street edges {whyA:F1} m apart" : whyKind == 2 ? $"{whyId}: gap {whyA:F1} m at the street, {whyB:F1} m at the back" : $"{whyId}: a road, path or building between";
+                    plan.Notes.Add($"{a.Id} has no right neighbour: nearest {why}");
+                }
             }
+            Stage("sides");
             // a row (houses joined side by side) shares one back line: a shallow lot's garden reaches back to the row's
             // deepest lot (at most maxDeepen further), so back fences line up and a ring's middle is an even shape
             var rowDeepen = new float[n];
@@ -261,6 +270,7 @@ namespace Placemaker.Core.Neighbours
                 foreach (int k in row) rowDeepen[k] = HardLand(houses[k], s) ? 0f : ring ? 2f * (depth - houses[k].HalfLot.y) : math.min(2f * (depth - houses[k].HalfLot.y), K(houses[k], s, "maxDeepen", 60f));
             }
 
+            Stage("rows");
             float maxRear = n > 0 ? houses.Max(h => K(h, s, "maxRearGap", 60f)) : 24f;
             var rear = Enumerable.Repeat(-1, n).ToArray();
             for (int i = 0; i < n; i++)
@@ -274,6 +284,7 @@ namespace Placemaker.Core.Neighbours
                     if (gap < best) { best = gap; rear[i] = j; }
                 }
             }
+            Stage("rear");
             // the player's per-lot flag: an unpolished lot never changes; next to a polished one it is that one's edge; two
             // unpolished neighbours are left alone (no pair at all)
             bool Pol(int k) => houses[k].Polished;
@@ -532,8 +543,8 @@ namespace Placemaker.Core.Neighbours
             for (int i = 0; i < n; i++)
             {
                 IReadOnlyList<float2> r = raw[i] ?? (IReadOnlyList<float2>)kept[i];
-                rawLo[i] = r.Aggregate(new float2(float.MaxValue), math.min);
-                rawHi[i] = r.Aggregate(new float2(float.MinValue), math.max);
+                rawLo[i] = MinOf(r);
+                rawHi[i] = MaxOf(r);
             }
             for (int i = 0; i < n; i++)
             {
@@ -668,11 +679,13 @@ namespace Placemaker.Core.Neighbours
             FillGaps(houses, plots, touched, raw, kept, s, plan);
             Stage("gaps");
             FixedGardens(houses, plots, touched, plan);
+            Stage("fixedGardens");
             if (s.Knob("shareBetween", 1f) > 0.5f)
             {
                 foreach (var kv in sideCuts) pairCuts[kv.Key] = kv.Value;
                 ShareBetween(houses, plots, touched, left, right, ringCut, pairCuts, alleys, s, plan);
             }
+            Stage("share");
             if (s.Knob("separate", 1f) > 0.5f) Separate(houses, plots, touched, plan);
             Stage("fixed");
 
@@ -945,9 +958,12 @@ namespace Placemaker.Core.Neighbours
             // a moved line never runs through a house, a shed, a pool or a deck, nor across a driveway: it stops there
             Stage("fences");
             TrimAtObstacles(houses, plan, moved, s);
+            Stage("trimObstacles");
             LinesOnEdges(houses, plots, touched, plan, moved, s);
+            Stage("linesOnEdges");
             // no two lines on one another before the open edges are closed: a line taken away after that left a gap
             Dedupe(houses, touched, plan, moved, s);
+            Stage("dedupe2");
             CloseGardens(houses, plots, touched, plan, moved, s);
             Stage("trim");
 
@@ -1522,15 +1538,15 @@ namespace Placemaker.Core.Neighbours
                     {
                         if (r == null || r.Length < 3) continue;
                         var ring = Ccw(r);
-                        _all.Add((ring.Aggregate(new float2(float.MaxValue), math.min), ring.Aggregate(new float2(float.MinValue), math.max), new Region(ring)));
+                        _all.Add((MinOf(ring), MaxOf(ring), new Region(ring)));
                     }
             }
 
             /// <summary>The obstacles whose bounds meet the bounds of these points.</summary>
             public List<Region> Near(IReadOnlyList<float2> pts)
             {
-                var lo = pts.Aggregate(new float2(float.MaxValue), math.min);
-                var hi = pts.Aggregate(new float2(float.MinValue), math.max);
+                var lo = MinOf(pts);
+                var hi = MaxOf(pts);
                 var list = new List<Region>();
                 foreach (var (min, max, r) in _all)
                     if (min.x <= hi.x && max.x >= lo.x && min.y <= hi.y && max.y >= lo.y) list.Add(r);
@@ -1575,8 +1591,8 @@ namespace Placemaker.Core.Neighbours
                 // fences and hedges (its own, its neighbours', the closing pieces): a feature keeps 2.5 m clear of them
                 if (fenceLines != null)
                 {
-                    var plo = plot.Aggregate(new float2(float.MaxValue), math.min) - 3f;
-                    var phi = plot.Aggregate(new float2(float.MinValue), math.max) + 3f;
+                    var plo = MinOf(plot) - 3f;
+                    var phi = MaxOf(plot) + 3f;
                     foreach (var (fa, fb) in fenceLines)
                     {
                         if (math.max(fa.x, fb.x) < plo.x || math.min(fa.x, fb.x) > phi.x || math.max(fa.y, fb.y) < plo.y || math.min(fa.y, fb.y) > phi.y) continue;
@@ -1596,8 +1612,8 @@ namespace Placemaker.Core.Neighbours
                 float room = 0f, bestScore = float.MinValue;
                 foreach (var r in land)
                 {
-                    var lo = r.Outer.Aggregate(new float2(float.MaxValue), math.min);
-                    var hi = r.Outer.Aggregate(new float2(float.MinValue), math.max);
+                    var lo = MinOf(r.Outer);
+                    var hi = MaxOf(r.Outer);
                     float cell = math.max(1f, math.sqrt(math.max(1f, (hi.x - lo.x) * (hi.y - lo.y))) / 50f);
                     // (the same spot as a look at every grid point would find, with less looking: a point that could not beat the
                     // best so far even with all the room there is, or as soon as it is too near an edge, is passed by, and a hole
@@ -1912,13 +1928,24 @@ namespace Placemaker.Core.Neighbours
         /// segment within the margin of it, in the order they were added.</summary>
         private sealed class LineGrid
         {
-            private readonly float _cell, _margin;
+            private float _cell, _margin;
             private readonly Dictionary<long, List<(float2 A, float2 B)>> _cells = new Dictionary<long, List<(float2, float2)>>();
             private static readonly List<(float2 A, float2 B)> None = new List<(float2, float2)>();
             /// <summary>Lines too big to file by cell: every point looks at them too.</summary>
             public readonly List<(float2 A, float2 B)> Big = new List<(float2, float2)>();
 
             public LineGrid(float cell, float margin) { _cell = cell; _margin = margin; }
+
+            /// <summary>Empty again, its cells' lists kept (a grid per plan was a twentieth of its garbage).</summary>
+            public LineGrid Reset(float cell, float margin)
+            {
+                _cell = cell;
+                _margin = margin;
+                Big.Clear();
+                if (_cells.Count > 8192) _cells.Clear();
+                else foreach (var l in _cells.Values) l.Clear();
+                return this;
+            }
 
             private static long Key(int x, int y) => ((long)x << 32) ^ (uint)y;
 
@@ -1940,6 +1967,9 @@ namespace Placemaker.Core.Neighbours
 
             public List<(float2 A, float2 B)> At(float2 p) => _cells.TryGetValue(Key((int)math.floor(p.x / _cell), (int)math.floor(p.y / _cell)), out var l) ? l : None;
         }
+
+        // the line grids CloseGardens and JoinEnds file the lines in, kept per thread
+        [ThreadStatic] private static LineGrid s_closeGrid, s_joinGrid;
 
         private static float DistanceToSegment(float2 p, float2 a, float2 b)
         {
@@ -2128,17 +2158,23 @@ namespace Placemaker.Core.Neighbours
 
         private static void TrimAtObstacles(IReadOnlyList<StitchHouse> houses, StitchPlan plan, Dictionary<long, (float2 A, float2 B)> moved, StitchSettings s)
         {
+            // the houses' own (their footprints, sheds, paving) first, then the barriers in their order (looked up in the
+            // barriers' own grid, BarriersIn: every road and building of the patch copied and filed again for every plan was
+            // most of this step's garbage). The numbering is as one list: houses' 0.., barriers' after them
             var footprints = Obstacles(houses);
-            foreach (var (_, _, ring) in s_barriers) footprints.Add(ring);
-            var fpLo = new float2[footprints.Count];
-            var fpHi = new float2[footprints.Count];
-            for (int f = 0; f < footprints.Count; f++) Poly.Bounds(footprints[f], out fpLo[f], out fpHi[f]);
+            int own = footprints.Count;
+            var fpLo = new float2[own];
+            var fpHi = new float2[own];
+            for (int f = 0; f < own; f++) Poly.Bounds(footprints[f], out fpLo[f], out fpHi[f]);
+            float2 Lo(int f) => f < own ? fpLo[f] : s_barriers[f - own].Item1;
+            float2 Hi(int f) => f < own ? fpHi[f] : s_barriers[f - own].Item2;
+            float2[] Ring(int f) => f < own ? footprints[f] : s_barriers[f - own].Item3;
             // filed by 16 m cell (a line only looks at the ones in its cells, in their order: every line against every house,
             // shed, road and building of the patch was a tenth of a plan in the game's runtime)
             const float TrimCell = 16f;
             var fpCells = new Dictionary<long, List<int>>();
             var fpBig = new List<int>();
-            for (int f = 0; f < footprints.Count; f++)
+            for (int f = 0; f < own; f++)
             {
                 int cx0 = (int)math.floor(fpLo[f].x / TrimCell), cx1 = (int)math.floor(fpHi[f].x / TrimCell), cy0 = (int)math.floor(fpLo[f].y / TrimCell), cy1 = (int)math.floor(fpHi[f].y / TrimCell);
                 if ((long)(cx1 - cx0 + 1) * (cy1 - cy0 + 1) > 4096) { fpBig.Add(f); continue; }   // (very big: looked at by every line)
@@ -2150,9 +2186,11 @@ namespace Placemaker.Core.Neighbours
                         l.Add(f);
                     }
             }
-            var fpSeen = new int[footprints.Count];
+            var fpSeen = new int[own];
             int fpStamp = 0;
             var fpNear = new List<int>();
+            var barriersNear = new List<int>();
+            var inside = new List<float2>();
             int trimmed = 0, dropped = 0;
             foreach (var id in moved.Keys.ToList())
             {
@@ -2160,7 +2198,7 @@ namespace Placemaker.Core.Neighbours
                 var m = moved[id];
                 float len = math.distance(m.A, m.B);
                 if (len < 0.5f) continue;
-                var inside = new List<float2>();
+                inside.Clear();
                 var mlo = math.min(m.A, m.B);
                 var mhi = math.max(m.A, m.B);
                 fpNear.Clear();
@@ -2170,11 +2208,15 @@ namespace Placemaker.Core.Neighbours
                         if (fpCells.TryGetValue(((long)x << 32) ^ (uint)y, out var l))
                             foreach (int f in l) if (fpSeen[f] != fpStamp) { fpSeen[f] = fpStamp; fpNear.Add(f); }
                 fpNear.AddRange(fpBig);
+                BarriersIn(mlo, mhi, barriersNear);
+                foreach (int k in barriersNear) fpNear.Add(own + k);
                 fpNear.Sort();
                 foreach (int f in fpNear)
                 {
-                    if (fpHi[f].x < mlo.x || fpLo[f].x > mhi.x || fpHi[f].y < mlo.y || fpLo[f].y > mhi.y) continue;
-                    inside.AddRange(Poly.ClipSegmentIntervals(footprints[f], m.A, m.B));
+                    var flo = Lo(f);
+                    var fhi = Hi(f);
+                    if (fhi.x < mlo.x || flo.x > mhi.x || fhi.y < mlo.y || flo.y > mhi.y) continue;
+                    Poly.ClipSegmentIntervals(Ring(f), m.A, m.B, inside);
                 }
                 if (inside.Sum(iv => iv.y - iv.x) * len < 0.3f) continue;
                 // the clear stretches between the houses' intervals; keep the longest
@@ -2541,7 +2583,7 @@ namespace Placemaker.Core.Neighbours
             var wallHi = new float2[walls.Count];
             for (int w = 0; w < walls.Count; w++) Poly.Bounds(walls[w], out wallLo[w], out wallHi[w]);
             // the lines (drawn, and the pieces placed so far) by 4 m cell: a point only looks at the lines in its own cell
-            var near = new LineGrid(4f, 1f);
+            var near = (s_closeGrid ??= new LineGrid(4f, 1f)).Reset(4f, 1f);
             foreach (var l in drawn) near.Add(l.A, l.B);
             bool Covered(float2 p, float2 dir)
             {
@@ -2957,7 +2999,7 @@ namespace Placemaker.Core.Neighbours
                 var d = new float2(math.sin(yaw), math.cos(yaw)) * ((name.IndexOf("Short", StringComparison.Ordinal) >= 0 ? PieceShort : PieceLong) * 0.5f);
                 bits.Add((at - d, at + d, W(name), true, byHouse.TryGetValue(house, out var hi) ? hi : -1));
             }
-            var grid = new LineGrid(4f, 1.5f);
+            var grid = (s_joinGrid ??= new LineGrid(4f, 1.5f)).Reset(4f, 1.5f);
             foreach (var b in bits) grid.Add(b.A, b.B);
             var widthOf = new Dictionary<(float2, float2), float>();
             foreach (var b in bits) widthOf[(b.A, b.B)] = b.W;
@@ -3452,6 +3494,22 @@ namespace Placemaker.Core.Neighbours
         /// <summary>A polished garden this plan does not edit and whose garden another pass wrote (StitchHouse.Garden): fixed.</summary>
         private static bool IsFixed(StitchHouse h) => !h.Edit && h.Polished && h.Garden != null && h.Garden.Length >= 3;
 
+        // the smallest and largest x and y of some points (Aggregate with math.min made a delegate each time: 19 MB of a city's
+        // 25 plans)
+        private static float2 MinOf(IReadOnlyList<float2> pts)
+        {
+            var m = new float2(float.MaxValue);
+            for (int i = 0; i < pts.Count; i++) m = math.min(m, pts[i]);
+            return m;
+        }
+
+        private static float2 MaxOf(IReadOnlyList<float2> pts)
+        {
+            var m = new float2(float.MinValue);
+            for (int i = 0; i < pts.Count; i++) m = math.max(m, pts[i]);
+            return m;
+        }
+
         private static float OverlapArea(IReadOnlyList<float2> a, IReadOnlyList<float2> b)
         {
             // (shapes whose bounds lie apart share nothing: no boolean for them, asked for every garden against every other)
@@ -3588,8 +3646,8 @@ namespace Placemaker.Core.Neighbours
                     {
                         uint hk = Hash((ulong)h.Id * 0x51ED27UL + (ulong)k * 0x9E37UL);
                         if (hk % 100 >= (uint)chance) continue;
-                        var lo = plot.Aggregate(new float2(float.MaxValue), math.min);
-                        var hi = plot.Aggregate(new float2(float.MinValue), math.max);
+                        var lo = MinOf(plot);
+                        var hi = MaxOf(plot);
                         var at = new float2(math.lerp(lo.x, hi.x, ((hk >> 8) & 1023) / 1023f), math.lerp(lo.y, hi.y, ((hk >> 18) & 1023) / 1023f));
                         if (!Poly.Contains(plot, at) || Poly.Contains(lot, at) || DistanceToRing(plot, at) < 2.5f) continue;
                         float r = 1.8f + ((hk >> 4) & 15) / 15f * 2.5f;
@@ -3602,8 +3660,8 @@ namespace Placemaker.Core.Neighbours
                 if (roadLayer > 0 && width > 0.3f && s_barriers.Count > 0)
                 {
                     var near = new List<float2[]>();
-                    var plo = plot.Aggregate(new float2(float.MaxValue), math.min) - width;
-                    var phi = plot.Aggregate(new float2(float.MinValue), math.max) + width;
+                    var plo = MinOf(plot) - width;
+                    var phi = MaxOf(plot) + width;
                     foreach (int b in BarriersIn(plo, phi))
                     {
                         if (s_barrierKind != null && b < s_barrierKind.Count && s_barrierKind[b] != 0) continue;
@@ -3792,8 +3850,8 @@ namespace Placemaker.Core.Neighbours
                 var r = s.Barriers[k];
                 if (r == null || r.Length < 3 || Poly.Area(r) < 0.5f) continue;
                 var ring = Ccw(r);
-                var lo = ring.Aggregate(new float2(float.MaxValue), math.min);
-                var hi = ring.Aggregate(new float2(float.MinValue), math.max);
+                var lo = MinOf(ring);
+                var hi = MaxOf(ring);
                 if (s.BarrierKinds != null && k < s.BarrierKinds.Count && s.BarrierKinds[k] == DeckKind)
                 {
                     s_decks.Add((lo, hi, ring));
@@ -3837,9 +3895,12 @@ namespace Placemaker.Core.Neighbours
         [ThreadStatic] private static int s_barrierQuery;
 
         /// <summary>The barriers whose bounds meet [lo, hi], in the order they were given (as a scan of all of them finds them).</summary>
-        private static List<int> BarriersIn(float2 lo, float2 hi)
+        private static List<int> BarriersIn(float2 lo, float2 hi) => BarriersIn(lo, hi, new List<int>());
+
+        /// <summary>BarriersIn into a list of the caller's (cleared first).</summary>
+        private static List<int> BarriersIn(float2 lo, float2 hi, List<int> found)
         {
-            var found = new List<int>();
+            found.Clear();
             if (s_barrierCells == null || s_barriers.Count == 0) return found;
             int stamp = ++s_barrierQuery;
             int x0 = (int)math.floor(lo.x / BarrierCell), x1 = (int)math.floor(hi.x / BarrierCell), y0 = (int)math.floor(lo.y / BarrierCell), y1 = (int)math.floor(hi.y / BarrierCell);
@@ -3857,6 +3918,24 @@ namespace Placemaker.Core.Neighbours
                 }
             found.Sort();
             return found;
+        }
+
+        /// <summary>Some barrier's bounds meet the box (BarriersIn's test, nothing gathered or sorted).</summary>
+        private static bool AnyBarrierIn(float2 lo, float2 hi)
+        {
+            if (s_barrierCells == null || s_barriers.Count == 0) return false;
+            int x0 = (int)math.floor(lo.x / BarrierCell), x1 = (int)math.floor(hi.x / BarrierCell), y0 = (int)math.floor(lo.y / BarrierCell), y1 = (int)math.floor(hi.y / BarrierCell);
+            for (int x = x0; x <= x1; x++)
+                for (int y = y0; y <= y1; y++)
+                {
+                    if (!s_barrierCells.TryGetValue(((long)x << 32) ^ (uint)y, out var l)) continue;
+                    foreach (int k in l)
+                    {
+                        var (mn, mx, _) = s_barriers[k];
+                        if (mn.x <= hi.x && mx.x >= lo.x && mn.y <= hi.y && mx.y >= lo.y) return true;
+                    }
+                }
+            return false;
         }
 
         /// <summary>A barrier holds the point.</summary>
@@ -3901,8 +3980,8 @@ namespace Placemaker.Core.Neighbours
         private static List<float2[]> BarriersNear(IReadOnlyList<float2> pts, float grow)
         {
             if (s_barriers == null || pts == null || pts.Count == 0) return new List<float2[]>();
-            var lo = pts.Aggregate(new float2(float.MaxValue), math.min) - grow;
-            var hi = pts.Aggregate(new float2(float.MinValue), math.max) + grow;
+            var lo = MinOf(pts) - grow;
+            var hi = MaxOf(pts) + grow;
             var found = BarriersIn(lo, hi);
             var list = new List<float2[]>(found.Count);
             foreach (int k in found) list.Add(s_barriers[k].Ring);
@@ -3915,7 +3994,7 @@ namespace Placemaker.Core.Neighbours
         {
             if (s_barriers == null || s_barriers.Count == 0 || region == null || region.Count < 3) return false;
             Poly.Bounds(region, out var rlo, out var rhi);
-            if (BarriersIn(rlo, rhi).Count == 0) return false;
+            if (!AnyBarrierIn(rlo, rhi)) return false;
             var ring = Ccw(region.ToArray());
             var inner = Math.Abs(Poly.Area(ring)) > 4f ? Poly.Offset(ring, 0.5f).OrderByDescending(r => Poly.Area(r)).FirstOrDefault() : null;
             var test = inner != null && inner.Length >= 3 ? inner : ring;

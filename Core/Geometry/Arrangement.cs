@@ -32,16 +32,19 @@ namespace Placemaker.Core.Geometry
             public bool Cut;     // a split line (no winding change) that separates output pieces
         }
 
-        private readonly double2 _origin;
-        private readonly double _eps, _eps2, _cell;
-        private readonly Buf<double2> _pts;
+        private double2 _origin;
+        private double _eps, _eps2, _cell;
+        private readonly Buf<double2> _pts = new Buf<double2>(64);
         // vertices by snap cell: the cell's first and last vertex, each vertex's next in its cell (-1: the last), in the order
         // they were made (one table and one list, not a list per cell: the allocations were a big part of every boolean)
-        private readonly Dictionary<long, (int Head, int Tail)> _grid;
-        private readonly Buf<int> _nextInCell;
-        private Buf<Edge> _edges;
+        private readonly GridMap _grid = new GridMap();
+        private readonly Buf<int> _nextInCell = new Buf<int>(64);
+        private Buf<Edge> _edges = new Buf<Edge>(64);
+        // the edges' other buffer: merging, splitting and pruning write the new list into it and the two swap
+        private Buf<Edge> _spare = new Buf<Edge>(64);
+        private readonly List<int> _starts = new List<int>();
 
-        // Built state
+        // Built state (its arrays kept with the instance and filled again by every build: Rent)
         private bool _built;
         private int[] _cycleOf;          // half-edge → cycle
         private int _cycleCount;
@@ -60,6 +63,7 @@ namespace Placemaker.Core.Geometry
             public T[] A;
             public int N;
             public Buf(int capacity) { A = new T[System.Math.Max(4, capacity)]; }
+            public void Clear() => N = 0;
             public void Add(T x)
             {
                 if (N == A.Length) System.Array.Resize(ref A, A.Length * 2);
@@ -90,10 +94,42 @@ namespace Placemaker.Core.Geometry
             public readonly Dictionary<int, int> RepeatAt = new Dictionary<int, int>();
             public readonly MinXOrder ByMinX = new MinXOrder();
             public readonly ByAngle ByAngle = new ByAngle();
+            // (what a build or an extraction makes and drops again, reused: a list per split edge, the split points' order, a
+            // ring's points while it is traced, the loops found)
+            public readonly List<List<int>> SplitLists = new List<List<int>>();
+            public int SplitUsed;
+            public readonly List<KeyValuePair<double, int>> Ts = new List<KeyValuePair<double, int>>();
+            public readonly ListStack<int> Stack = new ListStack<int>();
+            public readonly ListQueue<int> Queue = new ListQueue<int>();
+            public readonly Dictionary<int, int> OuterOf = new Dictionary<int, int>();
+            public readonly List<double2> Local = new List<double2>();
+            public readonly List<double2> RingPts = new List<double2>(), RingKept = new List<double2>();
+            public readonly List<float2> RingOut = new List<float2>();
+            public readonly List<List<int>> LoopLists = new List<List<int>>();
+            public int LoopUsed;
+            public readonly List<List<int>> Loops = new List<List<int>>();
+            public readonly List<KeyValuePair<double, float2[]>> Outers = new List<KeyValuePair<double, float2[]>>();
+            public readonly List<float2[]> Holes = new List<float2[]>();
+
+            public List<int> SplitList()
+            {
+                if (SplitUsed == SplitLists.Count) SplitLists.Add(new List<int>(2));
+                var l = SplitLists[SplitUsed++];
+                l.Clear();
+                return l;
+            }
+
+            public List<int> LoopList()
+            {
+                if (LoopUsed == LoopLists.Count) LoopLists.Add(new List<int>());
+                var l = LoopLists[LoopUsed++];
+                l.Clear();
+                return l;
+            }
 
             public static T[] Fit<T>(ref T[] a, int n)
             {
-                if (a.Length < n) a = new T[math.max(n, a.Length * 2)];
+                if (a == null || a.Length < n) a = new T[a == null ? math.max(n, 64) : math.max(n, a.Length * 2)];
                 return a;
             }
         }
@@ -154,14 +190,96 @@ namespace Placemaker.Core.Geometry
             public int Compare(int a, int b) => MinX[a].CompareTo(MinX[b]);
         }
 
+        /// <summary>
+        /// Snap cell → its first and last vertex: an open-addressed table emptied by a stamp, grown when half full (a
+        /// dictionary per boolean was a twentieth of a plan's garbage). Only looked up, never walked: its order is nobody's.
+        /// </summary>
+        private sealed class GridMap
+        {
+            private long[] _keys = new long[64];
+            private int[] _heads = new int[64], _tails = new int[64], _stamps = new int[64];
+            private int _stamp, _count;
+
+            public void Reset(int count)
+            {
+                int size = 64;
+                while (size < count * 2) size *= 2;
+                if (_keys.Length < size) { _keys = new long[size]; _heads = new int[size]; _tails = new int[size]; _stamps = new int[size]; _stamp = 0; }
+                if (++_stamp == int.MaxValue) { Array.Clear(_stamps, 0, _stamps.Length); _stamp = 1; }
+                _count = 0;
+            }
+
+            private int Slot(long key) => (int)(((ulong)key * 0x9E3779B97F4A7C15UL) >> 40) & (_keys.Length - 1);
+
+            public bool TryGetValue(long key, out (int Head, int Tail) cell)
+            {
+                int mask = _keys.Length - 1;
+                for (int i = Slot(key); _stamps[i] == _stamp; i = (i + 1) & mask)
+                    if (_keys[i] == key) { cell = (_heads[i], _tails[i]); return true; }
+                cell = default;
+                return false;
+            }
+
+            public (int Head, int Tail) this[long key]
+            {
+                set
+                {
+                    int mask = _keys.Length - 1;
+                    int i = Slot(key);
+                    for (; _stamps[i] == _stamp; i = (i + 1) & mask)
+                        if (_keys[i] == key) { _heads[i] = value.Head; _tails[i] = value.Tail; return; }
+                    if ((_count + 1) * 2 > _keys.Length) { Grow(); this[key] = value; return; }
+                    _stamps[i] = _stamp; _keys[i] = key; _heads[i] = value.Head; _tails[i] = value.Tail;
+                    _count++;
+                }
+            }
+
+            private void Grow()
+            {
+                var keys = _keys; var heads = _heads; var tails = _tails; var stamps = _stamps; int stamp = _stamp;
+                int size = keys.Length * 2;
+                _keys = new long[size]; _heads = new int[size]; _tails = new int[size]; _stamps = new int[size];
+                _stamp = 1;
+                _count = 0;
+                for (int i = 0; i < keys.Length; i++) if (stamps[i] == stamp) this[keys[i]] = (heads[i], tails[i]);
+            }
+        }
+
+        // the arrangements this thread has finished with (Release), kept with their arrays for the next boolean
+        [ThreadStatic] private static List<Arrangement> s_free;
+
+        private Arrangement() { }
+
+        /// <summary>An empty arrangement for this box (one this thread finished with, its arrays kept). Release it when its
+        /// regions are out.</summary>
         /// <param name="capacity">How many vertices the input has (the tables are made that big at once).</param>
-        public Arrangement(double2 min, double2 max, int capacity = 0)
+        public static Arrangement Rent(double2 min, double2 max, int capacity = 0)
+        {
+            var free = s_free ??= new List<Arrangement>();
+            Arrangement a;
+            if (free.Count > 0) { a = free[free.Count - 1]; free.RemoveAt(free.Count - 1); }
+            else a = new Arrangement();
+            a.Init(min, max, capacity);
+            return a;
+        }
+
+        /// <summary>Done with: the regions it gave are the caller's (new arrays), its own arrays go to the next one.</summary>
+        public void Release()
+        {
+            var free = s_free ??= new List<Arrangement>();
+            if (free.Count < 16) free.Add(this);
+        }
+
+        private void Init(double2 min, double2 max, int capacity)
         {
             capacity = math.max(capacity, 4);
-            _pts = new Buf<double2>(capacity);
-            _grid = new Dictionary<long, (int, int)>(capacity);
-            _nextInCell = new Buf<int>(capacity);
-            _edges = new Buf<Edge>(capacity);
+            _pts.Clear();
+            _grid.Reset(capacity);
+            _nextInCell.Clear();
+            _edges.Clear();
+            _spare.Clear();
+            _built = false;
+            _cycleCount = 0;
             _origin = (min + max) * 0.5;
             double extent = math.max(math.cmax(math.abs(min)), math.cmax(math.abs(max)));
             // ~4 float ulps at the input's magnitude, never below 0.1 mm.
@@ -179,14 +297,16 @@ namespace Placemaker.Core.Geometry
             {
                 if (r == null) continue;
                 count += r.Count;
-                foreach (var p in r)
+                // (by index: a foreach over an array seen as a list made an enumerator each time)
+                for (int i = 0; i < r.Count; i++)
                 {
+                    var p = r[i];
                     if (!Poly.IsFinite(p)) continue;
                     mn = math.min(mn, (double2)p); mx = math.max(mx, (double2)p); any = true;
                 }
             }
             if (!any) { mn = double2.zero; mx = double2.zero; }
-            return new Arrangement(mn, mx, count + count / 4);
+            return Rent(mn, mx, count + count / 4);
         }
 
         public double2 ToLocal(float2 p) => (double2)p - _origin;
@@ -222,8 +342,9 @@ namespace Placemaker.Core.Geometry
         public void AddRing(IReadOnlyList<float2> ring, int operand, int weight = 1)
         {
             if (ring == null || ring.Count < 3) return;
-            var local = new List<double2>(ring.Count);
-            foreach (var p in ring) if (Poly.IsFinite(p)) local.Add(ToLocal(p));
+            var local = Work.Local;
+            local.Clear();
+            for (int i = 0; i < ring.Count; i++) if (Poly.IsFinite(ring[i])) local.Add(ToLocal(ring[i]));
             AddRingLocal(local, operand, weight);
         }
 
@@ -285,7 +406,8 @@ namespace Placemaker.Core.Geometry
         {
             var map = Work.Merge;
             map.Reset(_edges.N);
-            var merged = new Buf<Edge>(_edges.N);
+            var merged = _spare;
+            merged.Clear();
             for (int q = 0; q < _edges.N; q++)
             {
                 var e = _edges.A[q];
@@ -304,6 +426,7 @@ namespace Placemaker.Core.Geometry
                     merged.Add(e);
                 }
             }
+            _spare = _edges;
             _edges = merged;
         }
 
@@ -323,6 +446,7 @@ namespace Placemaker.Core.Geometry
             Array.Sort(order, 0, n, w.ByMinX);
             var splits = Scratch.Fit(ref w.Splits, n);
             Array.Clear(splits, 0, n);
+            w.SplitUsed = 0;
             // the edges the sweep line crosses, with what the scan asks of each (its far x, its y range) beside it: the same
             // list in the same order as before, read without going through the edge and its two points every time
             var active = Scratch.Fit(ref w.Active, n);
@@ -381,7 +505,9 @@ namespace Placemaker.Core.Geometry
             }
             if (!any) { Array.Clear(splits, 0, n); return false; }
 
-            var result = new Buf<Edge>(n + 16);
+            var result = _spare;
+            result.Clear();
+            var ts = w.Ts;
             for (int i = 0; i < n; i++)
             {
                 var e = _edges.A[i];
@@ -389,7 +515,7 @@ namespace Placemaker.Core.Geometry
                 if (s == null) { result.Add(e); continue; }
                 double2 a = _pts.A[e.U], ab = _pts.A[e.V] - a;
                 double len2 = math.max(math.lengthsq(ab), 1e-300);
-                var ts = new List<KeyValuePair<double, int>>(s.Count);
+                ts.Clear();
                 foreach (int v in s) ts.Add(new KeyValuePair<double, int>(math.dot(_pts.A[v] - a, ab) / len2, v));
                 ts.Sort((p, q) => p.Key.CompareTo(q.Key));
                 int prev = e.U;
@@ -402,6 +528,7 @@ namespace Placemaker.Core.Geometry
                 if (prev != e.V) result.Add(new Edge { U = prev, V = e.V, DA = e.DA, DB = e.DB, Cut = e.Cut });
             }
             Array.Clear(splits, 0, n);
+            _spare = _edges;
             _edges = result;
             MergeDuplicates();
             return true;
@@ -456,7 +583,7 @@ namespace Placemaker.Core.Geometry
 
         private static void AddSplit(List<int>[] splits, int edge, int v)
         {
-            var l = splits[edge] ?? (splits[edge] = new List<int>(2));
+            var l = splits[edge] ?? (splits[edge] = Work.SplitList());
             if (!l.Contains(v)) l.Add(v);
         }
 
@@ -481,7 +608,8 @@ namespace Placemaker.Core.Geometry
                 incFlat[incStart[u] + fill[u]++] = k;
                 incFlat[incStart[x] + fill[x]++] = k;
             }
-            var stack = new ListStack<int>();
+            var stack = w.Stack;
+            stack.Clear();
             for (int v = 0; v < nv; v++) if (deg[v] == 1) stack.Push(v);
             bool removed = false;
             while (stack.Count > 0)
@@ -500,8 +628,10 @@ namespace Placemaker.Core.Geometry
                 }
             }
             if (!removed) return;
-            var kept = new Buf<Edge>(ne);
+            var kept = _spare;
+            kept.Clear();
             for (int k = 0; k < ne; k++) if (alive[k]) kept.Add(_edges.A[k]);
+            _spare = _edges;
             _edges = kept;
         }
 
@@ -520,7 +650,8 @@ namespace Placemaker.Core.Geometry
             int nh = _edges.N * 2, nv = _pts.N;
             var w = Work;
             var angle = Scratch.Fit(ref w.Angle, nh);
-            _outStart = new int[nv + 1];
+            Scratch.Fit(ref _outStart, nv + 1);
+            Array.Clear(_outStart, 0, nv + 1);
             for (int h = 0; h < nh; h++)
             {
                 double2 dvec = _pts.A[Dst(h)] - _pts.A[Org(h)];
@@ -528,24 +659,34 @@ namespace Placemaker.Core.Geometry
                 _outStart[Org(h) + 1]++;
             }
             for (int v = 0; v < nv; v++) _outStart[v + 1] += _outStart[v];
-            _outFlat = new int[nh];
+            Scratch.Fit(ref _outFlat, nh);
             var fill = Scratch.Fit(ref w.Fill, nv);
             Array.Clear(fill, 0, nv);
             for (int h = 0; h < nh; h++) { int o = Org(h); _outFlat[_outStart[o] + fill[o]++] = h; }
-            _posInOut = new int[nh];
+            Scratch.Fit(ref _posInOut, nh);
             var byAngle = w.ByAngle;
             byAngle.Angle = angle;
             for (int v = 0; v < nv; v++)
             {
                 int s = _outStart[v], count = _outStart[v + 1] - s;
-                if (count > 1) Array.Sort(_outFlat, s, count, byAngle);
+                // (by angle, ties by index: a total order, so any sort gives the one result. A vertex has a few edges: sorted in
+                // place; Array.Sort with a comparer made a delegate each time, a vertex at a time)
+                if (count > 16) Array.Sort(_outFlat, s, count, byAngle);
+                else
+                    for (int i = s + 1; i < s + count; i++)
+                    {
+                        int x = _outFlat[i], j = i - 1;
+                        while (j >= s && byAngle.Compare(_outFlat[j], x) > 0) { _outFlat[j + 1] = _outFlat[j]; j--; }
+                        _outFlat[j + 1] = x;
+                    }
                 for (int k = 0; k < count; k++) _posInOut[_outFlat[s + k]] = k;
             }
 
-            _cycleOf = new int[nh];
+            Scratch.Fit(ref _cycleOf, nh);
             for (int h = 0; h < nh; h++) _cycleOf[h] = -1;
-            _cycleFlat = new int[nh];
-            var starts = new List<int>(nh / 2 + 2);
+            Scratch.Fit(ref _cycleFlat, nh);
+            var starts = _starts;
+            starts.Clear();
             int at = 0;
             _cycleCount = 0;
             for (int h0 = 0; h0 < nh; h0++)
@@ -562,20 +703,24 @@ namespace Placemaker.Core.Geometry
                 _cycleCount++;
             }
             starts.Add(at);
-            _cycleStart = starts.ToArray();
+            Scratch.Fit(ref _cycleStart, starts.Count);
+            starts.CopyTo(_cycleStart);
 
             // Windings: measured once per connected component (at its outer boundary, whose left side
             // is the face containing the component), then propagated across edges:
             // winding(right of h) = winding(left of h) − delta(h). O(E) instead of O(F·E).
             int nc = _cycleCount;
-            _windA = new int[nc];
-            _windB = new int[nc];
+            Scratch.Fit(ref _windA, nc);
+            Scratch.Fit(ref _windB, nc);
+            Array.Clear(_windA, 0, nc);
+            Array.Clear(_windB, 0, nc);
             var parent = Scratch.Fit(ref w.Parent, nv);
             for (int i = 0; i < nv; i++) parent[i] = i;
             int Find(int x) { while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
             for (int q = 0; q < _edges.N; q++) { int a = Find(_edges.A[q].U), b = Find(_edges.A[q].V); if (a != b) parent[a] = b; }
             var area = Scratch.Fit(ref w.Area, nc);
-            var outerOf = new Dictionary<int, int>();
+            var outerOf = w.OuterOf;
+            outerOf.Clear();
             for (int c = 0; c < nc; c++)
             {
                 double a = 0;
@@ -586,7 +731,8 @@ namespace Placemaker.Core.Geometry
             }
             var done = Scratch.Fit(ref w.Done, nc);
             Array.Clear(done, 0, nc);
-            var queue = new ListQueue<int>();
+            var queue = w.Queue;
+            queue.Clear();
             foreach (var kv in outerOf)
             {
                 int c0 = kv.Value;
@@ -700,7 +846,9 @@ namespace Placemaker.Core.Geometry
 
             var used = Scratch.Fit(ref w.Used, nh);
             Array.Clear(used, 0, nh);
-            var loops = new List<List<int>>();
+            var loops = w.Loops;
+            loops.Clear();
+            w.LoopUsed = 0;
             var verts = w.Verts;
             for (int h0 = 0; h0 < nh; h0++)
             {
@@ -717,8 +865,10 @@ namespace Placemaker.Core.Geometry
                 SplitAtRepeats(verts, loops);
             }
 
-            var outers = new List<KeyValuePair<double, float2[]>>();
-            var holes = new List<float2[]>();
+            var outers = w.Outers;
+            var holes = w.Holes;
+            outers.Clear();
+            holes.Clear();
             foreach (var loop in loops)
             {
                 var ring = ToWorldRing(loop, out double area);
@@ -729,6 +879,9 @@ namespace Placemaker.Core.Geometry
             outers.Sort((p, q) => q.Key.CompareTo(p.Key));
             foreach (var o in outers) regions.Add(new Region(o.Value));
             if (holes.Count > 0) AssignHoles(regions, outers, holes);
+            outers.Clear();
+            holes.Clear();
+            loops.Clear();
             return regions;
         }
 
@@ -746,14 +899,16 @@ namespace Placemaker.Core.Geometry
 
         private static void SplitAtRepeats(List<int> verts, List<List<int>> loops)
         {
-            var stack = new List<int>(verts.Count);
-            var pos = Work.RepeatAt;
+            var w = Work;
+            var stack = w.LoopList();
+            var pos = w.RepeatAt;
             pos.Clear();
             foreach (int v in verts)
             {
                 if (pos.TryGetValue(v, out int p))
                 {
-                    var sub = stack.GetRange(p, stack.Count - p);
+                    var sub = w.LoopList();
+                    for (int k = p; k < stack.Count; k++) sub.Add(stack[k]);
                     for (int k = p + 1; k < stack.Count; k++) pos.Remove(stack[k]);
                     stack.RemoveRange(p + 1, stack.Count - p - 1);
                     if (sub.Count >= 3) loops.Add(sub);
@@ -770,16 +925,18 @@ namespace Placemaker.Core.Geometry
         private float2[] ToWorldRing(List<int> loop, out double area)
         {
             area = 0;
-            var pts = new List<double2>(loop.Count);
+            var work = Work;
+            var pts = work.RingPts;
+            pts.Clear();
             foreach (int v in loop) pts.Add(_pts.A[v]);
             // Drop straight-through vertices introduced by splitting (keeps rings minimal). Linked list
             // with a work stack: O(n) instead of repeated passes.
             int n = pts.Count;
-            var work = Work;
             var prev = Scratch.Fit(ref work.RingPrev, n);
             var next = Scratch.Fit(ref work.RingNext, n);
             var alive = Scratch.Fit(ref work.RingAlive, n);
-            var stack = new ListStack<int>(n);
+            var stack = work.Stack;
+            stack.Clear();
             for (int i = 0; i < n; i++) { prev[i] = (i - 1 + n) % n; next[i] = (i + 1) % n; alive[i] = true; stack.Push(i); }
             int count = n;
             while (stack.Count > 0 && count > 3)
@@ -797,14 +954,16 @@ namespace Placemaker.Core.Geometry
             }
             if (count < n)
             {
-                var kept = new List<double2>(count);
+                var kept = work.RingKept;
+                kept.Clear();
                 int s0 = 0;
                 while (!alive[s0]) s0++;
                 int k = s0;
                 do { kept.Add(pts[k]); k = next[k]; } while (k != s0);
                 pts = kept;
             }
-            var ring = new List<float2>(pts.Count);
+            var ring = work.RingOut;
+            ring.Clear();
             foreach (var p in pts)
             {
                 var w = ToWorld(p);
