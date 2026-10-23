@@ -1,5 +1,5 @@
 {
-  "_about": "Outgrow's city switches in the panel (the user, 23 Oct: 'Auto outgrow new buildings', '... when a building levels up', '... when a building changes', '... when a building nearby is removed', short words): the Outgrow panel's zones view with the four cards, in the runner's new game (new buildings kept off for the runner, the rest off as a new city has them); the log line 'this city's switches of a new game: ...' says what they start as.",
+  "_about": "Outgrow's city switches in the panel (the user, 23 Oct: 'Auto outgrow new buildings', '... when a building levels up', '... when a building changes', '... when a building nearby is removed', short words): the Outgrow panel's zones view with the four cards, in the runner's new game (all four off, as a new city has them); the log line 'this city's switches not saved yet (the defaults): ...' says what they start as.",
   "scenarios": [
     {
       "id": "outgrow-panel-switches",
