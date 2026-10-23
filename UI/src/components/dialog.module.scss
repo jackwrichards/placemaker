@@ -1,5 +1,6 @@
 @use "../styles/tokens" as *;
 
+// Over the whole panel (or what holds it): the panel dimmed, the box in the middle.
 .backdrop {
     @include row;
     justify-content: center;
@@ -8,36 +9,43 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.45);
+    padding-left: 14rem;
+    padding-right: 14rem;
+    border-radius: $radius-l;
+    background-color: rgba(4, 7, 10, 0.62);
     pointer-events: auto;
     z-index: 100;
 }
 
+// The panel's own surface (Panel: .panel), a little more opaque so nothing behind it shows through the text.
 .dialog {
     @include col;
-    width: 420rem;
-    padding: 18rem 20rem 16rem 20rem;
+    flex: 1 1 auto;
+    max-width: 380rem;
+    padding: 16rem 18rem 14rem 18rem;
     border-radius: $radius-l;
-    background-color: var(--panelColorNormal);
-    backdrop-filter: var(--panelBlur);
+    background-color: rgba(16, 23, 29, 0.97);
     @include border(1rem, $c-line-strong);
+    box-shadow: 0 12rem 36rem rgba(0, 0, 0, 0.55);
+    color: var(--menuText1Normal);
 }
 
 .title {
-    @include text(var(--fontSizeL));
+    font-size: 15rem;
     font-weight: bold;
+    line-height: 1.3;
     margin-bottom: 8rem;
 }
 
 .message {
-    @include text(var(--fontSizeS));
-    line-height: 1.4;
+    font-size: $fs;
+    line-height: 1.45;
     color: $c-text-dim;
 }
 
 .buttons {
     @include row;
-    margin-top: 18rem;
+    margin-top: 16rem;
 }
 
 .spacer {
