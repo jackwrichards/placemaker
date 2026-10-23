@@ -343,6 +343,32 @@ namespace Placemaker.Game.Overlay
                 }
                 DrawFillExtras(buffer, w, hover);
             }
+            if (_tool.BucketReachLive) DrawBucketReach(buffer);
+        }
+
+        // The bucket's reach at the cursor: one dashed circle, bright with a dark rim, lying on the ground (projected). Its dashes
+        // are a fixed share of the circle and each is a fixed width on screen, so the far side reads as well as the near one.
+        private static readonly Color ReachRim = new Color(0.02f, 0.06f, 0.12f, 0.9f);
+        private static readonly Color ReachCursor = new Color(0.6f, 0.92f, 1f, 1f);
+        private const int ReachDashes = 72;
+        private const float ReachPixels = 12f;
+
+        private void DrawBucketReach(OverlayRenderSystem.Buffer buffer)
+        {
+            var cam = Camera.main;
+            if (cam == null) return;
+            float3 eye = cam.transform.position, c = _tool.Cursor;
+            float r = _tool.BucketReach;
+            float perPx = 2f * math.tan(math.radians(cam.fieldOfView) * 0.5f) / math.max(Screen.height, 1);   // m per pixel, 1 m away
+            float step = 2f * math.PI / ReachDashes;
+            for (int i = 0; i < ReachDashes; i++)
+            {
+                float a = i * step, b = a + step * 0.55f;
+                var p = new float3(c.x + r * math.cos(a), c.y, c.z + r * math.sin(a));
+                var q = new float3(c.x + r * math.cos(b), c.y, c.z + r * math.sin(b));
+                float width = math.max(math.distance(eye, (p + q) * 0.5f) * perPx * ReachPixels, 0.3f);
+                buffer.DrawLine(ReachRim, ReachCursor, width * 0.25f, OverlayRenderSystem.StyleFlags.Projected, new Line3.Segment(p, q), width, new float2(1f, 1f));
+            }
         }
 
         private void DrawPerimeterMode(OverlayRenderSystem.Buffer buffer, float w, AreaShape shape)
