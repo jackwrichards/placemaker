@@ -103,6 +103,33 @@ namespace Placemaker.Game.Suite
                     }
                 if (lo.x > hi.x) { rec["error"] = "lab: no Outgrow gardens in the city"; yield break; }
             }
+            else if (!string.IsNullOrEmpty((string)step["street"]))
+            {
+                // around a street (its name as the game shows it), as fenceMap's "street"
+                string street = (string)step["street"];
+                var nameSystem = _world.GetOrCreateSystemManaged<global::Game.UI.NameSystem>();
+                lo = new float2(float.MaxValue);
+                hi = new float2(float.MinValue);
+                var named = new Dictionary<Entity, string>();
+                using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<Aggregated>(), ComponentType.ReadOnly<Edge>(), ComponentType.ReadOnly<Curve>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
+                using (var all = q.ToEntityArray(Allocator.Temp))
+                    foreach (var e in all)
+                    {
+                        var agg = em.GetComponentData<Aggregated>(e).m_Aggregate;
+                        if (agg == Entity.Null) continue;
+                        if (!named.TryGetValue(agg, out var nm)) { try { nm = nameSystem.GetRenderedLabelName(agg); } catch (Exception) { nm = ""; } named[agg] = nm; }
+                        if (!string.Equals(nm, street, StringComparison.OrdinalIgnoreCase)) continue;
+                        var cb = MathUtils.Bounds(em.GetComponentData<Curve>(e).m_Bezier);
+                        lo = math.min(lo, cb.min.xz);
+                        hi = math.max(hi, cb.max.xz);
+                    }
+                if (lo.x > hi.x) { rec["error"] = $"lab: no street named '{street}'"; yield break; }
+                float margin = (float?)step["margin"] ?? 60f;
+                lo -= margin;
+                hi += margin;
+                rec["street"] = street;
+                rec["box"] = new JArray(Math.Round(lo.x, 1), Math.Round(lo.y, 1), Math.Round(hi.x, 1), Math.Round(hi.y, 1));
+            }
             bool InBox(float2 a, float2 c) => c.x >= lo.x && c.y >= lo.y && a.x <= hi.x && a.y <= hi.y;
 
             // road, path and track surfaces (exact: the round ends too)
@@ -206,7 +233,7 @@ namespace Placemaker.Game.Suite
                     bool ours = em.HasComponent<PolishPiece>(e);
                     piecesAll++;
                     if (hidden) { piecesHidden++; hiddenAt.Add(t.m_Position.xz); }
-                    if (ours) { ourPieces++; if (hidden) { ourPiecesHidden++; if (whyHidden.Count < 40) whyHidden.Add(sys.WhyHidden(e)); } }
+                    if (ours) { ourPieces++; if (hidden) { ourPiecesHidden++; if (whyHidden.Count < ((int?)step["whyMax"] ?? 40)) whyHidden.Add(sys.WhyHidden(e)); } }
                     fences.Add(new OutgrowFence { Pts = new[] { a, c }, Hidden = hidden, Lo = math.min(a, c), Hi = math.max(a, c) });
                 }
 

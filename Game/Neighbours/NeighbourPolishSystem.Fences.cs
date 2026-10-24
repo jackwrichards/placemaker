@@ -437,10 +437,13 @@ namespace Placemaker.Game.Neighbours
             if (!PieceSegment(e, out var a, out var b, out bool fence)) return "no shape";
             var why = new List<string>();
             bool doubled = fence && Doubled(e, a, b, why);
-            bool road = OnRoadOrBuilding(e, (a + b) * 0.5f);
+            var under = new List<string>();
+            bool road = OnRoadOrBuilding(e, (a + b) * 0.5f, under);
             string name = NameOf(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab);
-            return $"{name} ({math.distance(a, b):F1} m) at ({(a.x + b.x) * 0.5f:F1}, {(a.y + b.y) * 0.5f:F1}): {(_keptHidden.ContainsKey(e) ? "kept hidden" : "not judged yet")}, "
-                + $"{(doubled ? "doubled" : "not doubled")}{(why.Count > 0 ? " [" + string.Join("; ", why) + "]" : "")}{(road ? ", on a road or lot" : "")}";
+            var owner = EntityManager.HasComponent<Owner>(e) ? EntityManager.GetComponentData<Owner>(e).m_Owner : Entity.Null;
+            string whose = owner == Entity.Null || !EntityManager.Exists(owner) ? "no owner" : $"owner #{owner.Index} {NameOf(EntityManager.GetComponentData<PrefabRef>(owner).m_Prefab)}";
+            return $"{name} ({math.distance(a, b):F1} m) at ({(a.x + b.x) * 0.5f:F1}, {(a.y + b.y) * 0.5f:F1}), {whose}: {(_keptHidden.ContainsKey(e) ? "kept hidden" : "not judged yet")}, "
+                + $"{(doubled ? "doubled" : "not doubled")}{(why.Count > 0 ? " [" + string.Join("; ", why) + "]" : "")}{(road ? ", on " + string.Join(", ", under) : "")}";
         }
 
         // (a building's lot a metre in, and a road piece's surfaces, kept while the building stands where it was and the road's
@@ -478,7 +481,7 @@ namespace Placemaker.Game.Neighbours
 
         /// <summary>The point is on a road, path or track surface, or more than a metre inside the lot of a building that is
         /// not the piece's own house.</summary>
-        private bool OnRoadOrBuilding(Entity e, float2 p)
+        private bool OnRoadOrBuilding(Entity e, float2 p, List<string> what = null)
         {
             var owner = EntityManager.HasComponent<Owner>(e) ? EntityManager.GetComponentData<Owner>(e).m_Owner : Entity.Null;
             var found = new NativeList<Entity>(16, Allocator.Temp);
@@ -496,7 +499,12 @@ namespace Placemaker.Game.Neighbours
                     {
                         var o = found[i];
                         if (o == owner || !EntityManager.Exists(o) || EntityManager.HasComponent<Deleted>(o) || !BuildingFootprints.IsBuilding(EntityManager, o)) continue;
-                        foreach (var r in LotInset(o)) if (Poly.Contains(r, p)) return true;
+                        foreach (var r in LotInset(o))
+                            if (Poly.Contains(r, p))
+                            {
+                                what?.Add($"the lot of #{o.Index} {NameOf(EntityManager.GetComponentData<PrefabRef>(o).m_Prefab)}{(IsYes(o) ? " (outgrown)" : "")}");
+                                return true;
+                            }
                     }
                 }
                 found.Clear();
@@ -515,7 +523,12 @@ namespace Placemaker.Game.Neighbours
                         // walked, driven or ridden on (not a pipe or a power line under or over it)
                         var np = EntityManager.GetComponentData<PrefabRef>(n).m_Prefab;
                         if (!EntityManager.HasComponent<Road>(n) && !EntityManager.HasComponent<PathwayData>(np) && !EntityManager.HasComponent<TrainTrack>(n) && !EntityManager.HasComponent<TramTrack>(n)) continue;
-                        foreach (var ring in SurfaceRings(n, pieces)) if (Poly.Contains(ring, p)) return true;
+                        foreach (var ring in SurfaceRings(n, pieces))
+                            if (Poly.Contains(ring, p))
+                            {
+                                what?.Add($"the road #{n.Index} {NameOf(np)}");
+                                return true;
+                            }
                     }
                 }
             }

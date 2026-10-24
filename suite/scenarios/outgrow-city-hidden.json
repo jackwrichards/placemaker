@@ -1,14 +1,45 @@
 {
-  "_about": "Outgrow's pieces the game hid and Outgrow left hidden, in the user's city '123' (read-only: loaded, never saved). The user, 23 Oct: 'no fence at all there, and then I hover and then there's a fence' (311 Kingsgate Street: most of a garden's hedge drawn only when the house was hovered). After the load and 30 s running (every hidden piece judged), outgrowCheck over the gardens: whyHidden says for up to 40 of the hidden pieces why (doubled: what lies along it; a road or a lot under it), close-ups of the hidden spots first. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-city-hidden.json -Who outgrow-city-hidden -Fresh",
+  "_about": "Outgrow's pieces the game hid and Outgrow left hidden, in the user's city '123' (read-only: loaded, never saved). The user, 23 Oct: 'no fence at all there, and then I hover and then there's a fence' (311 Kingsgate Street: most of a garden's hedge drawn only when the house was hovered). After the load and 30 s running (every hidden piece judged), outgrowCheck over the gardens: whyHidden says for up to 40 of the hidden pieces why (doubled: what lies along it; a road or a lot under it), close-ups of the hidden spots first. Then the same around Kingsgate Street (311 Kingsgate Street: the garden the user hovered), each hidden piece named with its owner and the lot or road it stands on. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-city-hidden.json -Who outgrow-city-hidden -Fresh",
   "scenarios": [
     {
       "id": "city-hidden",
       "site": "flat",
       "steps": [
-        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
-        { "do": "lab", "op": "loadCity", "name": "123" },
-        { "do": "lab", "op": "outgrowFrames", "seconds": 30, "speed": 1, "outgrow": true, "levelUps": false },
-        { "do": "lab", "op": "outgrowCheck", "box": "gardens", "closeups": 6, "hiddenFirst": true }
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "loadCity",
+          "name": "123"
+        },
+        {
+          "do": "lab",
+          "op": "outgrowFrames",
+          "seconds": 30,
+          "speed": 1,
+          "outgrow": true,
+          "levelUps": false
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "box": "gardens",
+          "closeups": 3,
+          "hiddenFirst": true,
+          "whyMax": 200
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "street": "Kingsgate Street",
+          "margin": 60,
+          "closeups": 4,
+          "hiddenFirst": true,
+          "whyMax": 120
+        }
       ]
     }
   ]
