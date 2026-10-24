@@ -110,7 +110,7 @@ namespace Placemaker.OutgrowBench
             {
                 var fin = stages[stages.Count - 1].Plots;
                 var mine = Enumerable.Range(0, sorted.Count).Where(k => sorted[k].Edit && k < fin.Length && fin[k] != null).ToList();
-                if (mine.Count > 0) txt.Append($"\ngardens: {mine.Count}, corners {mine.Average(k => fin[k].Length):F1} on average, {mine.Max(k => fin[k].Length)} at most, area {mine.Sum(k => Poly.Area(fin[k])):F0} m² in all\n");
+                if (mine.Count > 0) txt.Append($"\ngardens: {mine.Count}, corners {mine.Average(k => fin[k].Length):F1} on average, {mine.Max(k => fin[k].Length)} at most, area {mine.Sum(k => Poly.Area(fin[k])):F0} m² in all, outlines {mine.Sum(k => Poly.Perimeter(fin[k])):F0} m; fence pieces {plan.FencePieces.Count}, lines moved {plan.MoveLines.Count}, hidden {plan.HideLines.Count}\n");
             }
             txt.Append("\nnotes\n");
             foreach (var n in plan.Notes) txt.Append("  " + n + "\n");

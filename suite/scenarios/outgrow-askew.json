@@ -1,5 +1,5 @@
 {
-  "_about": "The fast loop for outgrown rows meeting at the back at an angle (the user, 24 Oct: 'jagged edges ... steal land from each other'). Loads 'PM Askew Corner' (saved by outgrow-askew-make.json: it holds all five cases, the same buildings every time: angle at x 2096, curve 2688, curves 3280, cul-de-sac 3872, corner 4464), plans every garden again the old way (emergent 0) and then the new way (emergent 1), every pass written down (passes/old/, passes/new/, for OutgrowBench --explain <dir> --at x,z) and Outgrow timed (polishIdle), maps the fences (fenceMap: node tools/suite/FenceMap.js <json> --at x,z --size 200) and pictures each case from the top. No growing. Try planner knobs in polishSettings' settings. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-askew.json -Who outgrow-askew",
+  "_about": "The fast loop for outgrown rows meeting at the back at an angle (the user, 24 Oct: 'jagged edges ... steal land from each other'). Loads 'PM Askew Corner' (saved by outgrow-askew-make.json: it holds all five cases, the same buildings every time: angle at x 2096, curve 2688, curves 3280, cul-de-sac 3872, corner 4464), plans every garden again the old way (emergent 0), twice (the second time against gardens of the same way), and then the new way (emergent 1), twice, every pass written down (passes/old/, passes/new/, for OutgrowBench --explain <dir> --at x,z) and Outgrow timed (polishIdle), maps the fences (fenceMap: node tools/suite/FenceMap.js <json> --at x,z --size 200) and pictures each case from the top. No growing. Try planner knobs in polishSettings' settings. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-askew.json -Who outgrow-askew",
   "scenarios": [
     {
       "id": "askew",
@@ -25,6 +25,18 @@
           "op": "polishPassDump",
           "max": 400,
           "label": "old"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 0
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
         },
         {
           "do": "lab",
@@ -127,6 +139,18 @@
           "op": "polishPassDump",
           "max": 400,
           "label": "new"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 1
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
         },
         {
           "do": "lab",

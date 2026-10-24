@@ -139,6 +139,9 @@ namespace Placemaker.Core.Neighbours
             /// <summary>The line two joined houses share their land on (side by side, back to back, facing): the emergent split
             /// (knob emergent) shares the land by nearness instead.</summary>
             public bool Pair;
+            /// <summary>Of those, the middle line two side neighbours share: the emergent split keeps it (their side fences are
+            /// laid on it; nearness gives the same line, only less exactly).</summary>
+            public bool Side;
         }
 
         public static StitchPlan Plan(IReadOnlyList<StitchHouse> houses, StitchSettings s = null)
@@ -454,6 +457,7 @@ namespace Placemaker.Core.Neighbours
                     else if (Clear(second, Lot(second == alongA ? b : a))) cut = second;
                 }
                 cut.Pair = true;
+                cut.Side = true;
                 borders[(i, right[i])] = cut;
                 sideCuts[(math.min(i, right[i]), math.max(i, right[i]))] = cut;
                 cuts[i].Add(cut);
@@ -582,12 +586,12 @@ namespace Placemaker.Core.Neighbours
                     float gapE = K(h, s, "maxRearGap", 60f);
                     if (!deepen[i] && LotBehind(houses, i, gapE, left[i], right[i])) zbE = math.min(zb, -h.HalfLot.y - gapE);
                     var r = new List<float2> { h.ToWorld(new float2(xlE, zbE)), h.ToWorld(new float2(xrE, zbE)), h.ToWorld(new float2(xrE, zf)), h.ToWorld(new float2(xlE, zf)) };
-                    foreach (var c in cuts[i]) if (!c.Pair) r = ClipHalfPlane(r, c.P, c.D, c.Keep ?? FrontMid(h));
+                    foreach (var c in cuts[i]) if (!c.Pair || c.Side) r = ClipHalfPlane(r, c.P, c.D, c.Keep ?? FrontMid(h));
                     reachR[i] = r;
                     TraceWhy?.Invoke($"reach {h.Id} back {-zbE - h.HalfLot.y:F0} (rear {deepen[i]}, behind {!deepen[i] && zbE < zb}, extra {extra[i, 2]:F0}, row {rowDeepen[i]:F0}, hug {backHug[i] != null}) sides {-xlE - h.HalfLot.x:F0}/{xrE - h.HalfLot.x:F0}");
                     float xlw = math.min(xlE, -h.HalfLot.x - gw), xrw = math.max(xrE, h.HalfLot.x + gw), zbw = zbE;   // (sideways only: two side neighbours both reaching back would take the open land behind a row)
                     var wide = new List<float2> { h.ToWorld(new float2(xlw, zbw)), h.ToWorld(new float2(xrw, zbw)), h.ToWorld(new float2(xrw, zf)), h.ToWorld(new float2(xlw, zf)) };
-                    foreach (var c in cuts[i]) if (!c.Pair) wide = ClipHalfPlane(wide, c.P, c.D, c.Keep ?? FrontMid(h));
+                    foreach (var c in cuts[i]) if (!c.Pair || c.Side) wide = ClipHalfPlane(wide, c.P, c.D, c.Keep ?? FrontMid(h));
                     reachW[i] = wide;
                 }
                 if (!streetEnd || backHug[i] == null) continue;
@@ -2843,7 +2847,7 @@ namespace Placemaker.Core.Neighbours
                 int before = plan.FencePieces.Count;
                 if (runs)
                 {
-                    CloseRuns(h, ring, piece, plan, near, InWall, OpenFrontFrom(h, s));
+                    CloseRuns(h, ring, piece, plan, near, InWall, OpenFrontFrom(h, s), s.Knob("emergent", 0f) > 0.5f);
                     if (plan.FencePieces.Count > before) { gardens++; pieces += plan.FencePieces.Count - before; }
                     continue;
                 }
@@ -2923,8 +2927,17 @@ namespace Placemaker.Core.Neighbours
         /// were gaps), and a piece whose middle touched a driveway or a road left out whole (a 4 m gap). A run's end against a
         /// line goes onto that line's end (no step where they meet).
         /// </summary>
-        private static void CloseRuns(StitchHouse h, float2[] ring, string piece, StitchPlan plan, LineGrid near, Func<float2, bool> inWall, float openFrom = float.MaxValue)
+        private static void CloseRuns(StitchHouse h, float2[] ring, string piece, StitchPlan plan, LineGrid near, Func<float2, bool> inWall, float openFrom = float.MaxValue, bool openSideStreet = false)
         {
+            // (openSideStreet: a side yard along a street stays open like the front, beside the lot within its depth; a garden
+            // past the house's back is fenced along a street. The emergent split gives a corner lot the strip beside it at the
+            // street, which the lot's own edge kept open before)
+            bool SideStreet(float2 p)
+            {
+                if (!openSideStreet) return false;
+                var l = h.ToLocal(p);
+                return l.y >= -h.HalfLot.y - 0.5f && math.abs(l.x) >= h.HalfLot.x - 0.5f && RoadNear(p, 2.5f);
+            }
             // what a point along an edge going in direction dir is: open, along a line (and which), in a wall, the street front
             (EdgeState State, float2 A, float2 B) At(float2 p, float2 dir, bool front)
             {
@@ -2963,7 +2976,7 @@ namespace Placemaker.Core.Neighbours
                 {
                     var p = a + dir * (len * st / steps);
                     pts.Add(p);
-                    states.Add(At(p, dir, front || h.ToLocal(p).y > openFrom));
+                    states.Add(At(p, dir, front || h.ToLocal(p).y > openFrom || SideStreet(p)));
                     corner.Add(st == 0);
                 }
             }
@@ -4474,6 +4487,29 @@ namespace Placemaker.Core.Neighbours
                     foreach (int k in l)
                     {
                         if (s_barrierSeen[k] == stamp) continue;
+                        s_barrierSeen[k] = stamp;
+                        var (mn, mx, ring) = s_barriers[k];
+                        if (mn.x <= hi.x && mx.x >= lo.x && mn.y <= hi.y && mx.y >= lo.y && (Poly.Contains(ring, p) || DistanceToRing(ring, p) < d)) return true;
+                    }
+                }
+            return false;
+        }
+
+        /// <summary>A road, path or track (not a lot, building or water) holds the point or comes within <paramref name="d"/> of it.</summary>
+        private static bool RoadNear(float2 p, float d)
+        {
+            if (s_barrierCells == null || s_barriers.Count == 0) return false;
+            var lo = p - d;
+            var hi = p + d;
+            int stamp = ++s_barrierQuery;
+            int x0 = (int)math.floor(lo.x / BarrierCell), x1 = (int)math.floor(hi.x / BarrierCell), y0 = (int)math.floor(lo.y / BarrierCell), y1 = (int)math.floor(hi.y / BarrierCell);
+            for (int x = x0; x <= x1; x++)
+                for (int y = y0; y <= y1; y++)
+                {
+                    if (!s_barrierCells.TryGetValue(((long)x << 32) ^ (uint)y, out var l)) continue;
+                    foreach (int k in l)
+                    {
+                        if (s_barrierSeen[k] == stamp || s_barrierKind[k] != 0) continue;
                         s_barrierSeen[k] = stamp;
                         var (mn, mx, ring) = s_barriers[k];
                         if (mn.x <= hi.x && mx.x >= lo.x && mn.y <= hi.y && mx.y >= lo.y && (Poly.Contains(ring, p) || DistanceToRing(ring, p) < d)) return true;
