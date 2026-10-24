@@ -181,3 +181,31 @@ The user's pillars: Outgrow fast, little memory, off the main frame, and a chang
   street (send-outgrow-removals-1023-142445). At 5°, lots side by side on a curve counted as one grid and land on curves was
   left unshared; 2° keeps curves as they were.
 * OutgrowBench --svg also writes each pass's notes; the 1 431 recorded plans replayed with and without (gridab).
+
+## 11. Gardens that meet (23 Oct)
+
+The user graded the shapes by pictures of recorded plans (OutgrowBench --serve, --score, the tuner page): cracks between
+gardens, steps where neighbours end at different depths, strips running into cracks, all at once in some places ("these
+cracks just don't go away"). What changed (each a knob, as before at the other value):
+
+* **[P] FillGaps after the sharing** (fillGapsLate 1): land some garden reached but none got is filled once the land round a
+  block's corner is shared (before, the land of an open crossing went to the strips first). **Shared out** (fillGapsSplit 1):
+  a gap two or more gardens border is cut where it passes from one to the next (halfway along a stretch no garden runs along),
+  each taking its stretch up to the line between those points (two) or the gap's middle (three and more): four gardens round
+  a crossing meet at one point. **Never more crooked** (fillGapsTidy 1): a piece that adds more than one corner to its garden
+  (a hook into open land) is left; a gap one garden borders goes to it only if it adds no corner. Lots are never filled (a gap
+  reached into a lot the kept part of it left out: 4 m² over a lot, FenceContinuityTests).
+* **[P] Slope** (slopeJoined 0): a side joined to its neighbour is never cut for slope; the land between them stays one
+  (the user: "very inclined to have continuity ... even if it slightly means breaking their own rule set on steepness").
+* **[P] StraightBacks** (straightBacks 1, maxBackTrim 4): a row's open backs run straight between the points each garden
+  shares with its neighbours (the shallower end on their side line): the shore's zigzag (each back on its own reach line or
+  water margin) is one line. Only taken off, at most 4 m deep; a garden at a row's end or sharing its back keeps it.
+* **[P] TrimSlivers** (trimSlivers 1, sliverWidth 3): parts of a garden narrower than 3 m past its lot (an opening: shrunk and
+  grown back) are taken off and shared by the gardens beside them (a strip into a crack between two others).
+* **[P] CapNarrow** (capNarrow 1): a garden behind its lot that becomes a neck narrower than minGardenWidth and widens again,
+  or splits into prongs, ends straight across there; one that only tapers to its end (a street behind it at an angle) keeps
+  its end (the test "no grass triangle left").
+* Tried and dropped: a raster split (each spot to the nearest house; wobbly edges) and a "balloon" grid split (every garden
+  from its claim in one pass over squares; no cracks, the inside of a loop filled, the shaping a third faster, but staircase
+  and Tetris-like joins even straightened; the user: "connect with the minimal amount of edges"). The straight-line idea left
+  for later: every edge a line chosen once (side lines, the middle between two streets), no squares.

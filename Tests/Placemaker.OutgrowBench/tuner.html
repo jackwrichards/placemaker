@@ -1,0 +1,156 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Outgrow tuner</title>
+<style>
+  body { margin: 0; font: 13px system-ui, sans-serif; background: #f4f4f1; color: #222; display: flex; height: 100vh; }
+  #side { width: 290px; padding: 10px; overflow-y: auto; background: #fff; border-right: 1px solid #ddd; box-sizing: border-box; }
+  #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #panes { flex: 1; display: flex; gap: 6px; padding: 6px; min-height: 0; }
+  .pane { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #fff; border: 1px solid #ddd; }
+  .pane h3 { margin: 0; padding: 4px 8px; font-size: 13px; background: #eee; display: flex; justify-content: space-between; }
+  .view { flex: 1; overflow: hidden; position: relative; cursor: grab; }
+  .view svg { width: 100%; height: 100%; display: block; }
+  .notes { font-size: 11px; color: #555; padding: 4px 8px; max-height: 70px; overflow-y: auto; border-top: 1px solid #eee; }
+  .group { margin: 10px 0 4px; font-weight: 600; color: #555; text-transform: uppercase; font-size: 11px; }
+  .knob { margin: 4px 0; }
+  .knob label { display: flex; justify-content: space-between; }
+  .knob input[type=range] { width: 100%; }
+  .knob.changed label { color: #b4400a; font-weight: 600; }
+  #grade { padding: 6px; background: #fff; border-top: 1px solid #ddd; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  #grade button.g { width: 34px; }
+  #grade button.g.on { background: #2a6; color: #fff; }
+  textarea { width: 360px; height: 34px; }
+  .hint { color: #777; font-size: 11px; }
+  select { width: 100%; }
+  #draw.on { background: #c22; color: #fff; }
+</style></head>
+<body>
+<div id="side">
+  <div><b>Plan</b> <select id="pass"></select></div>
+  <div class="hint">Left: the planner with its default settings. Right: with the settings below. Scroll to zoom, drag to move (both pictures together).</div>
+  <div style="margin-top:6px"><button id="reset">Reset settings</button></div>
+  <div id="knobs"></div>
+</div>
+<div id="main">
+  <div id="panes">
+    <div class="pane"><h3><span>Default settings (this build)</span><span id="msL"></span></h3><div class="view" id="vL"></div><div class="notes" id="nL"></div></div>
+    <div class="pane"><h3><span>With your settings</span><span id="msR"></span></h3><div class="view" id="vR"></div><div class="notes" id="nR"></div></div>
+  </div>
+  <div id="grade">
+    <button id="draw" title="Draw circles on either picture">Circle</button>
+    <button id="clear">Clear circles</button>
+    <span>Grade:</span>
+    <span id="grades"></span>
+    <textarea id="note" placeholder="What looks wrong or right"></textarea>
+    <button id="save"><b>Save grade</b></button>
+    <span id="saved" class="hint"></span>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+let knobs = [], values = {}, passes = [], view = null, drawing = false, timer = null;
+const gradeList = ['A', 'B', 'C', 'D', 'F'];
+let grade = null;
+for (const g of gradeList) { const b = document.createElement('button'); b.className = 'g'; b.textContent = g; b.onclick = () => { grade = g; document.querySelectorAll('button.g').forEach(x => x.classList.toggle('on', x.textContent === g)); }; $('grades').appendChild(b); }
+
+async function init() {
+  passes = await (await fetch('/api/passes')).json();
+  for (const p of passes) { const o = document.createElement('option'); o.value = p.i; o.textContent = p.label; $('pass').appendChild(o); }
+  knobs = await (await fetch('/api/knobs')).json();
+  let group = null;
+  for (const k of knobs) {
+    if (k.group !== group) { group = k.group; const g = document.createElement('div'); g.className = 'group'; g.textContent = group; $('knobs').appendChild(g); }
+    const d = document.createElement('div'); d.className = 'knob'; d.id = 'k-' + k.id; d.title = k.tip;
+    if (k.kind === 'toggle') {
+      d.innerHTML = `<label><span>${k.id}</span><input type="checkbox" ${k.def >= 0.5 ? 'checked' : ''}></label><div class="hint">${k.tip}</div>`;
+      d.querySelector('input').onchange = e => set(k, e.target.checked ? 1 : 0);
+    } else {
+      d.innerHTML = `<label><span>${k.id}</span><span class="v">${k.def}</span></label><input type="range" min="${k.min}" max="${k.max}" step="${k.step}" value="${k.def}"><div class="hint">${k.tip}</div>`;
+      d.querySelector('input').oninput = e => { d.querySelector('.v').textContent = e.target.value; set(k, +e.target.value); };
+    }
+    $('knobs').appendChild(d);
+  }
+  $('pass').onchange = () => { view = null; plan(true); };
+  $('reset').onclick = () => { values = {}; $('knobs').innerHTML = ''; init2(); };
+  plan(true);
+}
+function init2() { $('pass').innerHTML = ''; init(); }
+function set(k, v) {
+  if (Math.abs(v - k.def) < 1e-6) delete values[k.id]; else values[k.id] = v;
+  $('k-' + k.id).classList.toggle('changed', values[k.id] !== undefined);
+  clearTimeout(timer); timer = setTimeout(() => plan(false), 250);
+}
+async function get(knobsObj) {
+  const r = await fetch('/api/plan?pass=' + $('pass').value + '&knobs=' + encodeURIComponent(JSON.stringify(knobsObj)));
+  return r.json();
+}
+async function plan(both) {
+  const jobs = [get(values)];
+  if (both) jobs.push(get({}));
+  const [right, left] = await Promise.all(jobs);
+  show('vR', 'nR', 'msR', right);
+  if (left) show('vL', 'nL', 'msL', left);
+}
+function show(viewId, notesId, msId, res) {
+  const v = $(viewId);
+  const keepCircles = [...v.querySelectorAll('path.circle')];
+  v.innerHTML = res.svg;
+  const svg = v.querySelector('svg');
+  svg.removeAttribute('width'); svg.removeAttribute('height');
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  if (!view) { const vb = svg.getAttribute('viewBox').split(' ').map(Number); view = { x: vb[0], y: vb[1], w: vb[2], h: vb[3] }; }
+  for (const c of keepCircles) svg.appendChild(c);
+  apply();
+  $(notesId).textContent = res.notes.join(' · ');
+  $(msId).textContent = res.ms + ' ms';
+  hook(v);
+}
+function apply() { for (const id of ['vL', 'vR']) { const s = $(id).querySelector('svg'); if (s) s.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`); } }
+function pt(svg, e) { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+function hook(v) {
+  if (v.hooked) return; v.hooked = true;
+  v.addEventListener('wheel', e => {
+    e.preventDefault(); const svg = v.querySelector('svg'); if (!svg) return;
+    const p = pt(svg, e); const f = e.deltaY > 0 ? 1.15 : 1 / 1.15;
+    view = { x: p.x - (p.x - view.x) * f, y: p.y - (p.y - view.y) * f, w: view.w * f, h: view.h * f }; apply();
+  }, { passive: false });
+  let drag = null, path = null;
+  v.addEventListener('mousedown', e => {
+    const svg = v.querySelector('svg'); if (!svg) return;
+    if (drawing) {
+      path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('class', 'circle'); path.setAttribute('fill', 'none'); path.setAttribute('stroke', '#e01010');
+      path.setAttribute('stroke-width', String(view.w / 250)); path.setAttribute('stroke-linecap', 'round');
+      const p = pt(svg, e); path.d = `M${p.x},${p.y}`; path.setAttribute('d', path.d); svg.appendChild(path);
+    } else drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, s: view.w / v.clientWidth };
+  });
+  window.addEventListener('mousemove', e => {
+    const svg = v.querySelector('svg');
+    if (path && svg) { const p = pt(svg, e); path.d += ` L${p.x},${p.y}`; path.setAttribute('d', path.d); }
+    else if (drag) { const s = Math.max(view.w / v.clientWidth, view.h / v.clientHeight); view.x = drag.vx - (e.clientX - drag.x) * s; view.y = drag.vy - (e.clientY - drag.y) * s; apply(); }
+  });
+  window.addEventListener('mouseup', () => { drag = null; path = null; });
+}
+$('draw').onclick = () => { drawing = !drawing; $('draw').classList.toggle('on', drawing); document.querySelectorAll('.view').forEach(v => v.style.cursor = drawing ? 'crosshair' : 'grab'); };
+$('clear').onclick = () => document.querySelectorAll('path.circle').forEach(p => p.remove());
+async function png() {
+  // both pictures as they are on screen (zoom and circles), side by side
+  const w = 900, h = Math.round(900 * view.h / view.w), c = document.createElement('canvas');
+  c.width = w * 2 + 10; c.height = h + 24; const g = c.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.fillStyle = '#000'; g.font = '16px sans-serif';
+  g.fillText('Default settings', 6, 18); g.fillText('With your settings', w + 16, 18);
+  let x = 0;
+  for (const id of ['vL', 'vR']) {
+    const svg = $(id).querySelector('svg').cloneNode(true); svg.setAttribute('width', w); svg.setAttribute('height', h);
+    const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' }));
+    const img = new Image(); await new Promise(r => { img.onload = r; img.src = url; }); g.drawImage(img, x, 24, w, h); x += w + 10;
+  }
+  return c.toDataURL('image/png');
+}
+$('save').onclick = async () => {
+  const body = { pass: passes[$('pass').value].label, settings: values, grade, note: $('note').value, view, png: await png() };
+  const r = await (await fetch('/api/grade', { method: 'POST', body: JSON.stringify(body) })).json();
+  $('saved').textContent = 'saved ' + r.saved;
+};
+init();
+</script>
+</body></html>

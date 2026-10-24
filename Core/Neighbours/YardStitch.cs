@@ -364,6 +364,7 @@ namespace Placemaker.Core.Neighbours
             var steps = new List<(int I, int J, bool AFront, float Deep, uint Hash)>();
             var alleys = new List<(int I, int J)>();
             var edgeBorders = new Dictionary<(int, int), int>();   // side pairs with an unpolished lot: which one
+            bool squareSplits = s.Knob("squareSplits", 1f) > 0.5f;
             // side pairs on their middle line (not a walkway or a step): land left between them later is shared on it (ShareBetween)
             var sideCuts = new Dictionary<(int, int), Cut>();
             for (int i = 0; i < n; i++)
@@ -417,6 +418,23 @@ namespace Placemaker.Core.Neighbours
                     }
                 }
                 var cut = new Cut { P = f, D = math.normalizesafe(k - f, -a.Forward) };
+                // two lots on one grid at right angles (round a block's corner): split along one of their own side lines instead
+                // of the 45° middle line of their wedge (knob squareCorners 1). Off: the 45° line shares the corner fairly, both
+                // backyards get half (the user, 23 Oct: "that's ideal ... they both perfectly share that corner of the block";
+                // with the side line one of them took the whole corner); their long thin ends are capped (CapNarrow)
+                if (s.Knob("squareCorners", 0f) > 0.5f && math.abs(math.dot(a.Forward, b.Forward)) < 0.5f && OnOneGrid(a, b, out _, out _))
+                {
+                    // the land between them goes to the house whose back faces it (its garden just grows straight back, up to
+                    // the other's side line); the other keeps to its own side line
+                    var alongB = new Cut { P = b.FrontLeft, D = b.Forward };
+                    var alongA = new Cut { P = a.FrontRight, D = a.Forward };
+                    var gap = (f + k) * 0.5f;
+                    float behindA = math.dot(a.Position - gap, a.Forward), behindB = math.dot(b.Position - gap, b.Forward);
+                    var first = behindB >= behindA ? alongA : alongB;
+                    var second = behindB >= behindA ? alongB : alongA;
+                    if (Clear(first, Lot(first == alongA ? b : a))) cut = first;
+                    else if (Clear(second, Lot(second == alongA ? b : a))) cut = second;
+                }
                 borders[(i, right[i])] = cut;
                 sideCuts[(math.min(i, right[i]), math.max(i, right[i]))] = cut;
                 cuts[i].Add(cut);
@@ -565,6 +583,11 @@ namespace Placemaker.Core.Neighbours
                     var mid = (pa + pb) * 0.5f;
                     var nrm = math.distance(pa, pb) > 0.05f ? math.normalize(pb - pa) : math.normalizesafe(o.Position - h.Position);
                     if (math.distance(pa, pb) <= 0.05f) mid = (h.Position + o.Position) * 0.5f;
+                    // two lots on one grid meeting at a corner: split along the grid's axis nearest the way between them, not
+                    // square to it (a slanted middle line made the 45° tapers of gardens growing into an open square from
+                    // two sides; the user, 23 Oct: "they taper off and then they flatten out"; knob squareSplits 0: as before)
+                    if (squareSplits && OnOneGrid(h, o, out var gu, out var gv))
+                        nrm = math.abs(math.dot(nrm, gu)) >= math.abs(math.dot(nrm, gv)) ? gu * math.sign(math.dot(nrm, gu)) : gv * math.sign(math.dot(nrm, gv));
                     poly = ClipHalfPlane(poly, mid, new float2(-nrm.y, nrm.x), h.Position);
                     if (unended[i] != null) unended[i] = ClipHalfPlane(unended[i], mid, new float2(-nrm.y, nrm.x), h.Position);
                 }
@@ -598,7 +621,10 @@ namespace Placemaker.Core.Neighbours
                 for (int i = 0; i < n; i++)
                 {
                     if (!touched[i] || plots[i] == null) continue;
-                    var cut = SlopeCut(houses[i], plots[i], s);
+                    // (a side joined to its neighbour is not cut: the land between them stays one, steep or not; the user, 23 Oct: "very
+                    // inclined to have continuity ... even if it slightly means breaking their own rule set on ... steepness")
+                    bool joinedOn = s.Knob("slopeJoined", 0f) > 0.5f;
+                    var cut = SlopeCut(houses[i], plots[i], s, joinedOn || left[i] < 0, joinedOn || right[i] < 0);
                     if (cut == null) continue;
                     plots[i] = cut;
                     if (raw[i] != null) raw[i] = ClipToPlot(raw[i], houses[i], cut);
@@ -676,7 +702,10 @@ namespace Placemaker.Core.Neighbours
                 if (clipped > 0) plan.Notes.Add($"{clipped} gardens cut back clear of roads, paths, buildings and water");
             }
             Stage("clear");
-            FillGaps(houses, plots, touched, raw, kept, s, plan);
+            // (fillGapsLate: the gaps are filled once the gardens round a block's corner have shared their land, below; filled
+            // here, the land between them went in spokes to every garden around it)
+            bool gapsLate = s.Knob("fillGapsLate", 1f) > 0.5f;
+            if (!gapsLate && s.Knob("fillGaps", 1f) > 0.5f) FillGaps(houses, plots, touched, raw, kept, s, plan);
             Stage("gaps");
             FixedGardens(houses, plots, touched, plan);
             Stage("fixedGardens");
@@ -687,6 +716,17 @@ namespace Placemaker.Core.Neighbours
             }
             Stage("share");
             if (s.Knob("separate", 1f) > 0.5f) Separate(houses, plots, touched, plan);
+            if (s.Knob("trimSlivers", 1f) > 0.5f) TrimSlivers(houses, plots, touched, s, plan);
+            if (gapsLate && s.Knob("fillGaps", 1f) > 0.5f) FillGaps(houses, plots, touched, raw, kept, s, plan);
+            if (s.Knob("capNarrow", 1f) > 0.5f) CapNarrow(houses, plots, touched, s, plan);
+            if (s.Knob("straightBacks", 1f) > 0.5f)
+            {
+                // (a garden that shares its back or front with another lot keeps that line)
+                var sharesEnd = new bool[n];
+                foreach (var key in pairCuts.Keys) if (!sideCuts.ContainsKey((math.min(key.Item1, key.Item2), math.max(key.Item1, key.Item2)))) { sharesEnd[key.Item1] = true; sharesEnd[key.Item2] = true; }
+                for (int i = 0; i < n; i++) if (deepen[i] || ringCut[i] != null) sharesEnd[i] = true;
+                StraightBacks(houses, plots, touched, left, right, sideCuts, sharesEnd, s, plan);
+            }
             Stage("fixed");
 
             // ── 3. fences on plot edges ──
@@ -2390,8 +2430,10 @@ namespace Placemaker.Core.Neighbours
         /// Going back from the back of the house's lot, the first depth (local z) where the garden is narrower than minW across
         /// (and stays so for 3 m: a fence corner is no spike); null when it never gets that narrow.
         /// </summary>
-        private static float? NarrowsAt(IReadOnlyList<float2> plot, StitchHouse h, float minW, float until = float.MinValue)
+        private static float? NarrowsAt(IReadOnlyList<float2> plot, StitchHouse h, float minW, float until = float.MinValue, bool pieces = false)
         {
+            // (pieces: the widest single piece across counts, not the whole span: two prongs side by side are narrow)
+            var xs = pieces ? new List<float>() : null;
             // (until: no further back than this, the house's local z: where the garden really ends)
             float zMin = float.MaxValue;
             var local = new float2[plot.Count];
@@ -2408,6 +2450,7 @@ namespace Placemaker.Core.Neighbours
             for (float z = z0; z > zMin; z -= 1f)
             {
                 float lo = float.MaxValue, hi = float.MinValue;
+                xs?.Clear();
                 for (int k = 0; k < local.Length; k++)
                 {
                     var a = local[k];
@@ -2416,13 +2459,86 @@ namespace Placemaker.Core.Neighbours
                     float x = math.lerp(a.x, b.x, (z - a.y) / (b.y - a.y));
                     lo = math.min(lo, x);
                     hi = math.max(hi, x);
+                    xs?.Add(x);
                 }
-                bool narrow = hi - lo < minW;
+                float width = hi - lo;
+                if (xs != null && xs.Count >= 2)
+                {
+                    xs.Sort();
+                    width = 0f;
+                    for (int k = 0; k + 1 < xs.Count; k += 2) width = math.max(width, xs[k + 1] - xs[k]);
+                }
+                bool narrow = width < minW;
                 if (!narrow) { start = null; continue; }
                 start ??= z;
                 if (start.Value - z >= 3f) return start;
             }
             return start;
+        }
+
+        /// <summary>Behind depth z (the house's local z) the garden is one piece across that only gets narrower (by more than half a
+        /// metre never wider) to its end.</summary>
+        private static bool TapersToEnd(float2[] plot, StitchHouse h, float z)
+        {
+            var local = new float2[plot.Length];
+            float zMin = float.MaxValue;
+            for (int k = 0; k < plot.Length; k++)
+            {
+                var d = plot[k] - h.Position;
+                local[k] = new float2(math.dot(d, h.Right), math.dot(d, h.Forward));
+                zMin = math.min(zMin, local[k].y);
+            }
+            var xs = new List<float>();
+            float last = float.MaxValue;
+            for (float at = z; at > zMin + 0.25f; at -= 1f)
+            {
+                xs.Clear();
+                for (int k = 0; k < local.Length; k++)
+                {
+                    var a = local[k];
+                    var b = local[(k + 1) % local.Length];
+                    if ((a.y - at) * (b.y - at) > 0f || a.y == b.y) continue;
+                    xs.Add(math.lerp(a.x, b.x, (at - a.y) / (b.y - a.y)));
+                }
+                if (xs.Count > 2) return false;   // prongs
+                if (xs.Count < 2) continue;
+                float width = math.abs(xs[1] - xs[0]);
+                if (width > last + 0.5f) return false;   // wider again
+                last = math.min(last, width);
+            }
+            return true;
+        }
+
+        /// <summary>A garden that, behind its lot, splits into prongs or runs on narrower than minGardenWidth (half its lot at
+        /// least) ends straight across there, after every cut at roads, lots and gardens and the land shared later: squeezed
+        /// between two roads at an angle it ran on in a neck or two prongs (the user, 23 Oct: "cap that gap off and just be
+        /// done there"; knob capNarrow 0: as before).</summary>
+        private static void CapNarrow(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchSettings s, StitchPlan plan)
+        {
+            int capped = 0;
+            for (int i = 0; i < houses.Count; i++)
+            {
+                var h = houses[i];
+                if (!touched[i] || !h.Edit || !h.Polished || IsFixed(h) || plots[i] == null || plots[i].Length < 3) continue;
+                float minW = math.max(K(h, s, "minGardenWidth", 8f), h.HalfLot.x);
+                float? z = NarrowsAt(plots[i], h, minW, float.MinValue, true);
+                if (z == null) continue;
+                // a garden that only tapers to its end (a street behind it at an angle, a neighbour's slanted line) ends there as it
+                // is: capped, a grass triangle stayed between its fence and the kerb (the test "no grass triangle left"); only a neck
+                // that widens again or prongs are capped
+                if (TapersToEnd(plots[i], h, z.Value)) continue;
+                // the part in front of the line across (the house's side)
+                const float big = 2000f;
+                var front = Ccw(new[] { h.ToWorld(new float2(-big, z.Value)), h.ToWorld(new float2(big, z.Value)), h.ToWorld(new float2(big, big)), h.ToWorld(new float2(-big, big)) });
+                var parts = Poly.Boolean(new[] { (IReadOnlyList<float2>)Ccw(plots[i]) }, new[] { (IReadOnlyList<float2>)front }, BoolOp.Intersection, FillRule.NonZero);
+                var keep = parts.OrderByDescending(r => Poly.Contains(r.Outer, h.Position) ? 1 : 0).ThenByDescending(r => r.Area).FirstOrDefault();
+                if (keep == null) continue;
+                var outer = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).First() : keep.Outer;
+                if (outer == null || outer.Length < 3 || Poly.Area(outer) < 1f) continue;
+                plots[i] = Poly.Simplify(outer, 0.05f);
+                capped++;
+            }
+            if (capped > 0) plan.Notes.Add($"{capped} gardens end straight across where they get narrow or split (capped)");
         }
 
         private static List<float2> ClipHalfPlane(List<float2> poly, float2 p, float2 d, float2 keep)
@@ -3121,6 +3237,8 @@ namespace Placemaker.Core.Neighbours
                 var own = IsFixed(houses[i]) ? houses[i].Garden : plots[i];
                 if (own != null) { var c = Ccw(own); if (Meets(c)) taken.Add(c); }
                 if (kept[i] != null) { var c = Ccw(kept[i]); if (Meets(c)) taken.Add(c); }
+                // (and the whole lot: filled after the gardens are kept off lots, a gap reached into one: 4 m² over a lot)
+                { var c = Ccw(Lot(houses[i])); if (Meets(c)) taken.Add(c); }
             }
             float margin = s.Knob("barrierMargin", 0.8f), deck = DeckMargin(s);
             // water: kept the widest water gap of these gardens off
@@ -3139,11 +3257,20 @@ namespace Placemaker.Core.Neighbours
                     foreach (var g in water ? GrownWater(ring, wet) : Grown(ring, m)) { var c = Ccw(g); if (Meets(c)) taken.Add(c); }
                 }
             var gaps = Poly.Boolean(RingsOf(reached), taken, BoolOp.Difference, FillRule.NonZero);
-            int filled = 0;
+            int filled = 0, refused = 0;
             float area = 0f;
+            bool tidy = s.Knob("fillGapsTidy", 1f) > 0.5f;
+            bool split = s.Knob("fillGapsSplit", 1f) > 0.5f;
+            int shared = 0;
             foreach (var gap in gaps.OrderByDescending(g => g.Area))
             {
                 if (gap.Area < 2f) continue;
+                if (split)
+                {
+                    int got = SplitGap(houses, plots, want, gap);
+                    if (got > 1) { shared++; area += gap.Area; continue; }
+                    if (got < 0) continue;
+                }
                 // the garden it borders most (its outline sampled every metre, near which garden's edge)
                 var ring = gap.Outer;
                 var score = new Dictionary<int, int>();
@@ -3160,17 +3287,235 @@ namespace Placemaker.Core.Neighbours
                     }
                 }
                 if (score.Count == 0) continue;
-                int best = score.OrderByDescending(kv => kv.Value).First().Key;
-                var merged = Poly.Boolean(new List<Region> { new Region(Ccw(plots[best])) }, new List<Region> { gap }, BoolOp.Union);
-                var keep = merged.OrderByDescending(r => Poly.Contains(r.Outer, houses[best].Position) ? 1 : 0).ThenByDescending(r => r.Area).FirstOrDefault();
-                if (keep == null) continue;
-                var outer = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).First() : keep.Outer;
-                if (outer == null || outer.Length < 3) continue;
-                plots[best] = Poly.Simplify(outer, 0.05f);
-                filled++;
-                area += gap.Area;
+                // the garden it borders most whose outline it does not make more crooked: it fills a notch, it is not a prong
+                // into land between other gardens (the user: a strip down the middle of an open crossing looked bad; a wedge
+                // left beside a garden looked worse)
+                foreach (int best in score.OrderByDescending(kv => kv.Value).Select(kv => kv.Key))
+                {
+                    var merged = Poly.Boolean(new List<Region> { new Region(Ccw(plots[best])) }, new List<Region> { gap }, BoolOp.Union);
+                    var keep = merged.OrderByDescending(r => Poly.Contains(r.Outer, houses[best].Position) ? 1 : 0).ThenByDescending(r => r.Area).FirstOrDefault();
+                    if (keep == null) continue;
+                    var outer = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).First() : keep.Outer;
+                    if (outer == null || outer.Length < 3) continue;
+                    var grown = Poly.Simplify(outer, 0.05f);
+                    if (tidy && Corners(grown) > Corners(plots[best])) { refused++; continue; }
+                    plots[best] = grown;
+                    filled++;
+                    area += gap.Area;
+                    break;
+                }
             }
-            if (filled > 0) plan.Notes.Add($"{filled} strips between gardens ({area:F0} m²) given to the garden beside them");
+            if (filled > 0) plan.Notes.Add($"{filled} strips between gardens given to the garden beside them");
+            if (shared > 0) plan.Notes.Add($"{shared} strips between gardens shared out by the gardens around them");
+            if (filled + shared > 0) plan.Notes.Add($"(gaps between gardens filled: {area:F0} m²)");
+            if (refused > 0) plan.Notes.Add($"{refused} strips between gardens not given to a garden they would make more crooked");
+        }
+
+        /// <summary>
+        /// The thin parts of a garden past its lot taken off: a strip narrower than sliverWidth (m) running into a crack between
+        /// two other gardens (the user, 23 Oct, at an open crossing: "the top left green one found its way in that little
+        /// crack"). Its land goes to the gardens on either side of it (FillGaps, next). Only gardens crooked enough to have one
+        /// (more than 5 corners) are looked at; the lot is never touched.
+        /// </summary>
+        private static void TrimSlivers(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchSettings s, StitchPlan plan)
+        {
+            float half = s.Knob("sliverWidth", 3f) * 0.5f;
+            if (half <= 0f) return;
+            int trimmed = 0;
+            for (int i = 0; i < houses.Count; i++)
+            {
+                var h = houses[i];
+                if (!touched[i] || plots[i] == null || !h.Edit || !h.Polished || IsFixed(h) || Corners(plots[i]) <= 5) continue;
+                var ring = Ccw(plots[i]);
+                // what is left of it after shrinking by half the width and growing back (square corners kept), and the lot
+                var opened = new List<Region>();
+                foreach (var r in Poly.Offset(ring, half, OffsetJoin.Miter)) opened.AddRange(Poly.Offset(r, -half, OffsetJoin.Miter));
+                opened.Add(new Region(Ccw(Lot(h))));
+                // the thin parts: the garden less that, real pieces only (the outline itself is kept exactly)
+                var thin = Poly.Boolean(new List<Region> { new Region(ring) }, opened, BoolOp.Difference).Where(r => r.Area > 1.5f).ToList();
+                if (thin.Count == 0) continue;
+                var left = Poly.Boolean(new List<Region> { new Region(ring) }, thin, BoolOp.Difference);
+                var keep = left.OrderByDescending(x => Poly.Contains(x.Outer, h.Position) ? 1 : 0).ThenByDescending(x => x.Area).FirstOrDefault();
+                if (keep == null || keep.Outer.Length < 3) continue;
+                var outer = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(x => Poly.Area(x)).First() : keep.Outer;
+                if (outer == null || outer.Length < 3) continue;
+                plots[i] = Poly.Simplify(outer, 0.05f);
+                trimmed++;
+            }
+            if (trimmed > 0) plan.Notes.Add($"{trimmed} gardens' thin strips (under {half * 2f:F0} m) taken off");
+        }
+
+        /// <summary>
+        /// The open backs of a row (open land, a shore) in one line: each garden's back runs straight between the points where
+        /// its side lines end, the same points its neighbours' backs run to (the shallower of the two gardens' ends on the line
+        /// they share). Before, each back ended on its own: a straight reach line at its lot's angle, a water margin, a slope,
+        /// and the row's outline zigzagged with a spike at every lot (the user, 23 Oct: "spikes because they don't want to meet
+        /// up on their true edges"). Only taken away (never onto land past the old back), at most maxBackTrim (m) deep, the lot
+        /// never touched; a garden at a row's end, or sharing its back with another lot, keeps its back.
+        /// </summary>
+        private static void StraightBacks(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, int[] left, int[] right,
+            Dictionary<(int, int), Cut> sideCuts, bool[] sharesEnd, StitchSettings s, StitchPlan plan)
+        {
+            // the furthest back a plot reaches along a side line (its corner there)
+            static bool End(float2[] plot, Cut c, out float2 end)
+            {
+                end = default;
+                float best = float.MinValue;
+                foreach (var v in plot)
+                {
+                    var o = v - c.P;
+                    if (math.abs(c.D.x * o.y - c.D.y * o.x) > 0.25f) continue;
+                    float t = math.dot(o, c.D);
+                    if (t > best) { best = t; end = v; }
+                }
+                return best > float.MinValue;
+            }
+            var junction = new Dictionary<(int, int), float2>();
+            foreach (var kv in sideCuts)
+            {
+                var (i, j) = kv.Key;
+                var c = kv.Value;
+                if (plots[i] == null || plots[j] == null) continue;
+                if (!End(plots[i], c, out var ei) || !End(plots[j], c, out var ej)) continue;
+                junction[kv.Key] = math.dot(ei - c.P, c.D) <= math.dot(ej - c.P, c.D) ? ei : ej;
+            }
+            float maxTrim = s.Knob("maxBackTrim", 4f);
+            int straightened = 0;
+            for (int i = 0; i < houses.Count; i++)
+            {
+                var h = houses[i];
+                if (!touched[i] || plots[i] == null || !h.Edit || !h.Polished || IsFixed(h) || sharesEnd[i] || left[i] < 0 || right[i] < 0) continue;
+                if (!junction.TryGetValue((math.min(i, left[i]), math.max(i, left[i])), out var jl)) continue;
+                if (!junction.TryGetValue((math.min(i, right[i]), math.max(i, right[i])), out var jr)) continue;
+                // both behind the lot, apart
+                if (Local(h, jl).y > -h.HalfLot.y + 0.5f || Local(h, jr).y > -h.HalfLot.y + 0.5f || math.distance(jl, jr) < 1f) continue;
+                var d = math.normalize(jr - jl);
+                float Side(float2 p) { var o = p - jl; return d.x * o.y - d.y * o.x; }
+                float home = math.sign(Side(h.Position));
+                if (home == 0f || Lot(h).Any(p => Side(p) * home < -0.05f)) continue;
+                // only a little off the back
+                if (plots[i].Any(p => Side(p) * home < -maxTrim)) continue;
+                var cut = ClipHalfPlane(plots[i].ToList(), jl, d, h.Position);
+                if (cut.Count < 3 || Poly.Area(plots[i]) - Poly.Area(cut) < 0.3f) continue;
+                plots[i] = cut.ToArray();
+                straightened++;
+            }
+            if (straightened > 0) plan.Notes.Add($"{straightened} gardens' backs straightened to their neighbours' (one line along the row)");
+        }
+
+        /// <summary>
+        /// A gap between gardens shared by the gardens along its edge (the user, 23 Oct: "very inclined to have continuity",
+        /// four gardens round an open crossing "should all have met up there"): its outline split where it passes from one
+        /// garden to the next (halfway along a stretch no garden runs along), each garden taking its stretch and the land
+        /// up to the line between those points (two gardens), or up to the gap's middle (three and more). Returns how many
+        /// gardens it went to; 1: one garden only borders it (the caller decides), 0: none, -1: it could not be split.
+        /// </summary>
+        private static int SplitGap(IReadOnlyList<StitchHouse> houses, float2[][] plots, List<int> want, Region gap)
+        {
+            var ring = gap.Outer;
+            Poly.Bounds(ring, out var glo, out var ghi);
+            var near = want.Where(i =>
+            {
+                Poly.Bounds(plots[i], out var lo, out var hi);
+                return !(hi.x < glo.x - 1f || lo.x > ghi.x + 1f || hi.y < glo.y - 1f || lo.y > ghi.y + 1f);
+            }).ToList();
+            if (near.Count == 0) return 0;
+            // the outline every half metre (its corners kept), and the garden each point lies along
+            var pts = new List<float2>();
+            var who = new List<int>();
+            for (int k = 0; k < ring.Length; k++)
+            {
+                var a = ring[k];
+                var b = ring[(k + 1) % ring.Length];
+                int steps = math.max(1, (int)(math.distance(a, b) / 0.5f));
+                for (int t = 0; t < steps; t++)
+                {
+                    var p = math.lerp(a, b, t / (float)steps);
+                    int w = -1;
+                    float bd = 0.6f;
+                    foreach (int i in near)
+                    {
+                        float d = DistanceToRing(plots[i], p);
+                        if (d < bd) { bd = d; w = i; }
+                    }
+                    pts.Add(p);
+                    who.Add(w);
+                }
+            }
+            int m = pts.Count;
+            if (m < 4) return -1;
+            // a garden touching it at a point only (under a metre) is not along it
+            for (int pass = 0; pass < 2; pass++)
+                for (int k = 0; k < m; k++)
+                {
+                    if (who[k] < 0) continue;
+                    int len = 1;
+                    while (len < 3 && who[(k + len) % m] == who[k]) len++;
+                    int back = 1;
+                    while (back < 3 && who[(k - back + m) % m] == who[k]) back++;
+                    if (len + back - 1 < 3) who[k] = -1;
+                }
+            var labels = who.Where(w => w >= 0).Distinct().ToList();
+            if (labels.Count <= 1) return labels.Count;
+            // the stretches along one garden, in order round the outline (starting where one begins)
+            int start = -1;
+            for (int k = 0; k < m; k++) if (who[k] >= 0 && who[(k - 1 + m) % m] != who[k]) { start = k; break; }
+            if (start < 0) return -1;
+            var runs = new List<(int Who, int From, int To)>();   // indexes from start, To inclusive
+            for (int k = 0; k < m;)
+            {
+                int w = who[(start + k) % m];
+                int e = k;
+                while (e + 1 < m && who[(start + e + 1) % m] == w) e++;
+                if (w >= 0) runs.Add((w, k, e));
+                k = e + 1;
+            }
+            // where one stretch ends and the next begins: halfway along the land between them, else where they meet
+            int r = runs.Count;
+            var cut = new int[r];   // cut[j]: the point between run j-1 and run j
+            for (int j = 0; j < r; j++)
+            {
+                var prev = runs[(j - 1 + r) % r];
+                int from = prev.To + 1, to = runs[j].From;
+                if (j == 0) from -= m;   // (the land before the first stretch is at the end of the outline)
+                cut[j] = to > from ? (from + to) / 2 : to;
+            }
+            float2 P(int k) => pts[((start + k) % m + m) % m];
+            float2 centre = float2.zero;
+            if (r > 2)
+            {
+                for (int j = 0; j < r; j++) centre += P(cut[j]);
+                centre /= r;
+                if (!Poly.Contains(ring, centre)) return -1;
+            }
+            var pieces = new List<(int Who, float2[] Ring)>();
+            for (int j = 0; j < r; j++)
+            {
+                int a = cut[j], b = j + 1 < r ? cut[j + 1] : cut[0] + m;
+                var piece = new List<float2>();
+                for (int k = a; k <= b; k++) piece.Add(P(k));
+                if (r > 2) piece.Add(centre);
+                if (piece.Count < 3) continue;
+                pieces.Add((runs[j].Who, piece.ToArray()));
+            }
+            // each piece kept inside the gap (a line between the points could cross out of a crooked one), joined to its garden
+            int given = 0;
+            foreach (var (w, piece) in pieces)
+            {
+                var inside = Poly.Boolean(new List<Region> { new Region(Ccw(piece)) }, new List<Region> { gap }, BoolOp.Intersection);
+                if (inside.Count == 0) continue;
+                var merged = Poly.Boolean(new List<Region> { new Region(Ccw(plots[w])) }, inside, BoolOp.Union);
+                var keep = merged.OrderByDescending(x => Poly.Contains(x.Outer, houses[w].Position) ? 1 : 0).ThenByDescending(x => x.Area).FirstOrDefault();
+                if (keep == null) continue;
+                var outer = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(x => Poly.Area(x)).First() : keep.Outer;
+                if (outer == null || outer.Length < 3) continue;
+                var grown = Poly.Simplify(outer, 0.05f);
+                // a piece that makes its garden crooked (more than one new corner: a hook out into open land) is left
+                if (Corners(grown) > Corners(plots[w]) + 1) continue;
+                plots[w] = grown;
+                given++;
+            }
+            return given;
         }
 
         /// <summary>
@@ -3343,6 +3688,18 @@ namespace Placemaker.Core.Neighbours
                 }
             }
             if (given > 0) plan.Notes.Add($"{given} gardens take their side of the land between them and a lot at an angle ({area:F0} m²)");
+        }
+
+        /// <summary>The line runs clear of the ring (every corner on one side, or on it).</summary>
+        private static bool Clear(Cut c, float2[] ring)
+        {
+            int pos = 0, neg = 0;
+            foreach (var p in ring)
+            {
+                float side = c.D.x * (p.y - c.P.y) - c.D.y * (p.x - c.P.x);
+                if (side > 0.3f) pos++; else if (side < -0.3f) neg++;
+            }
+            return pos == 0 || neg == 0;
         }
 
         /// <summary>The two lots stand on one grid (their streets parallel or at right angles, within 2°): its axes (u across
@@ -3572,7 +3929,7 @@ namespace Placemaker.Core.Neighbours
         /// maxRise (m) above or below the house: on each side (left, right, back), stepping out from the lot edge, the first
         /// line across the plot where the ground fails ends it there (null: nothing to cut).
         /// </summary>
-        private static float2[] SlopeCut(StitchHouse h, float2[] plot, StitchSettings s)
+        private static float2[] SlopeCut(StitchHouse h, float2[] plot, StitchSettings s, bool cutLeft = true, bool cutRight = true)
         {
             float maxSlope = K(h, s, "maxSlope", 80f) / 100f, maxRise = K(h, s, "maxRise", 0f);
             if (maxSlope <= 0f && maxRise <= 0f) return null;
@@ -3614,6 +3971,7 @@ namespace Placemaker.Core.Neighbours
             }
             for (int side = -1; side <= 1; side += 2)
             {
+                if (side < 0 ? !cutLeft : !cutRight) continue;
                 float edge = hx, far = side < 0 ? -xMin : xMax;
                 for (float t = edge + Step; t < far + 0.01f; t += Step)
                 {
@@ -4294,5 +4652,19 @@ namespace Placemaker.Core.Neighbours
 
         private static float2[] Ccw(float2[] r) => Poly.IsCcw(r) ? r : Enumerable.Reverse(r).ToArray();   // (not the span Reverse a newer C# picks)
         private static float2[] Ccw(List<float2> r) => Ccw(r.ToArray());
+
+        /// <summary>The corners of an outline that turn more than 10° (wiggles under 30 cm left out).</summary>
+        private static int Corners(float2[] ring)
+        {
+            var r = Poly.Simplify(ring, 0.3f);
+            int n = r.Length, c = 0;
+            for (int k = 0; k < n; k++)
+            {
+                var d1 = math.normalizesafe(r[k] - r[(k + n - 1) % n]);
+                var d2 = math.normalizesafe(r[(k + 1) % n] - r[k]);
+                if (math.dot(d1, d2) < 0.985f) c++;
+            }
+            return c;
+        }
     }
 }

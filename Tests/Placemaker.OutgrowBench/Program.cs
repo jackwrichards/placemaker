@@ -10,6 +10,7 @@
 //     --knob NAME=VALUE a planner knob for every pass (e.g. nearOnly=0: every house worked out, as before)
 //     --edited          signatures of what the game writes only (the edited houses' outputs: StitchDump.EditedSignature)
 //     --alloc-types     what the garbage is made of (the runtime's allocation samples, about one per 100 KB, by type)
+//     --serve PORT label=pass.json ...   the tuner page (Serve.cs)
 //     --svg             each pass drawn to <passes dir>\svg-NAME\pass-NNN.svg (Svg.Draw): roads and lots, each house's lot
 //                       and garden (edited ones filled), the fence lines as the plan leaves them, its fence pieces
 
@@ -48,6 +49,16 @@ namespace Placemaker.OutgrowBench
                     case "--svg": svg = true; break;
                     case "--knob": { var kv = args[++i].Split('='); knobs[kv[0]] = float.Parse(kv[1], System.Globalization.CultureInfo.InvariantCulture); break; }
                 }
+            }
+            // the neighbours a plan joined: --pairs pass.json knobs [ids...] (Pairs.cs)
+            if (args[0] == "--pairs") return Pairs.Run(args[1], args.Skip(3).ToArray(), args[2]);
+            // garden shapes scored with two sets of settings: --score A B dir ... (Score.cs)
+            if (args[0] == "--score") return Score.Run(args[1], args[2], args.Skip(3).ToList());
+            // the tuner: --serve PORT label=pass.json ... (Serve.cs)
+            if (args[0] == "--serve")
+            {
+                var list = args.Skip(2).Select(x => { int eq = x.IndexOf('='); return (Label: x.Substring(0, eq), Path: x.Substring(eq + 1)); }).ToList();
+                return Serve.Run(int.Parse(args[1]), list, Environment.GetEnvironmentVariable("PM_GRADES") ?? Path.Combine(Environment.CurrentDirectory, ".forensics", "grades"));
             }
             YardStitch.AllocatedBytes = GC.GetAllocatedBytesForCurrentThread;
             var files = Directory.Exists(input) ? Directory.GetFiles(input, "pass-*.json").OrderBy(f => f, StringComparer.Ordinal).ToList() : new List<string> { input };
