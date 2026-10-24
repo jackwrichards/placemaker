@@ -1,0 +1,581 @@
+{
+  "_about": "The Outgrow boot camp town (the user, 24 Oct: \"a test city with unorthodox angles, almost a random-like grid ... more spaced out than you would think ... circles, roundabouts, curves, straight blocks, big blocks, small blocks, tiny wedges, tiny triangles, huge triangles\"). Written by tools/suite/bootcamp.js (edit it there, not here): six lands, grid (a crooked grid: four streets at odd angles crossing, blocks of every shape), circles (a ring road and a roundabout with three spokes), curves (an S bend, and a curve backing onto a straight street at an angle), blocks (a big block turned 23 degrees and a small one turned -35), triangles (a huge triangle and a tiny one), wedges (a tiny wedge (a long thin triangle) and two streets meeting at 18 degrees). Each land laid, zoned (low density homes), grown with Outgrow on new buildings, pictured from the top; the town saved as 'PM Bootcamp' after the last. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-bootcamp-make.json -Who outgrow-bootcamp",
+  "scenarios": [
+    {
+      "id": "grid",
+      "land": {
+        "shape": "rect",
+        "size": [
+          520,
+          520
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "zone": "NA Residential Low",
+          "at": [
+            0,
+            95
+          ],
+          "yaw": 8,
+          "length": 470
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "zone": "NA Residential Low",
+          "at": [
+            0,
+            -85
+          ],
+          "yaw": -13,
+          "length": 470
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "zone": "NA Residential Low",
+          "at": [
+            -120,
+            0
+          ],
+          "yaw": 76,
+          "length": 470
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "zone": "NA Residential Low",
+          "at": [
+            115,
+            0
+          ],
+          "yaw": 104,
+          "length": 470
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "shot",
+          "name": "grid",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 470
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "circles",
+      "land": {
+        "shape": "rect",
+        "size": [
+          520,
+          520
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "circle",
+          "zone": "NA Residential Low",
+          "at": [
+            -110,
+            -95
+          ],
+          "radius": 85
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "circle",
+          "zone": "NA Residential Low",
+          "at": [
+            110,
+            115
+          ],
+          "radius": 22
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "zone": "NA Residential Low",
+          "at": [
+            180.5,
+            140.7
+          ],
+          "yaw": 20,
+          "length": 106
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "zone": "NA Residential Low",
+          "at": [
+            48.6,
+            158
+          ],
+          "yaw": 145,
+          "length": 106
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "zone": "NA Residential Low",
+          "at": [
+            99.6,
+            40.7
+          ],
+          "yaw": 262,
+          "length": 106
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "shot",
+          "name": "circles",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 470
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "curves",
+      "land": {
+        "shape": "rect",
+        "size": [
+          520,
+          520
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "arc",
+          "zone": "NA Residential Low",
+          "at": [
+            -60,
+            160
+          ],
+          "radius": 130,
+          "from": 200,
+          "to": 290
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "arc",
+          "zone": "NA Residential Low",
+          "at": [
+            28.9,
+            -84.3
+          ],
+          "radius": 130,
+          "from": 110,
+          "to": 30
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "arc",
+          "zone": "NA Residential Low",
+          "at": [
+            150,
+            -260
+          ],
+          "radius": 200,
+          "from": 95,
+          "to": 145
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "zone": "NA Residential Low",
+          "at": [
+            40,
+            -215
+          ],
+          "yaw": -10,
+          "length": 300
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "shot",
+          "name": "curves",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 470
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "blocks",
+      "land": {
+        "shape": "rect",
+        "size": [
+          520,
+          520
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "polygon",
+          "zone": "NA Residential Low",
+          "points": [
+            [
+              -144,
+              -105.5
+            ],
+            [
+              86.1,
+              -7.8
+            ],
+            [
+              4,
+              185.5
+            ],
+            [
+              -226.1,
+              87.8
+            ]
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "polygon",
+          "zone": "NA Residential Low",
+          "points": [
+            [
+              96.6,
+              -184.2
+            ],
+            [
+              170.3,
+              -235.9
+            ],
+            [
+              233.4,
+              -145.8
+            ],
+            [
+              159.7,
+              -94.1
+            ]
+          ]
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "shot",
+          "name": "blocks",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 470
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "triangles",
+      "land": {
+        "shape": "rect",
+        "size": [
+          520,
+          520
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "polygon",
+          "zone": "NA Residential Low",
+          "points": [
+            [
+              -215,
+              -170
+            ],
+            [
+              135,
+              -150
+            ],
+            [
+              -60,
+              175
+            ]
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "polygon",
+          "zone": "NA Residential Low",
+          "points": [
+            [
+              150,
+              110
+            ],
+            [
+              222,
+              128
+            ],
+            [
+              176,
+              182
+            ]
+          ]
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "shot",
+          "name": "triangles",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 470
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "wedges",
+      "land": {
+        "shape": "rect",
+        "size": [
+          520,
+          520
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "polygon",
+          "zone": "NA Residential Low",
+          "points": [
+            [
+              -210,
+              150
+            ],
+            [
+              -30,
+              180
+            ],
+            [
+              -210,
+              110
+            ]
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "zone": "NA Residential Low",
+          "at": [
+            40,
+            -120
+          ],
+          "yaw": 0,
+          "length": 300
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "zone": "NA Residential Low",
+          "at": [
+            40,
+            -73.6
+          ],
+          "yaw": 18,
+          "length": 300
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "saveCity",
+          "name": "PM Bootcamp"
+        },
+        {
+          "do": "shot",
+          "name": "wedges",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 470
+          },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}
