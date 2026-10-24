@@ -598,6 +598,8 @@ namespace Placemaker.Game.Suite
             Pick("gap", gapSpots.OrderByDescending(g => g.Len).Select(g => g.At), 2);
             Pick("hidden", hiddenAt, 1);
             Pick("bare", bareSpots.OrderByDescending(x => x.Area).Select(x => x.At), 2);
+            // ("addressShot": the building looked up by its address first, the way the player looks at it)
+            if ((bool?)step["addressShot"] == true && rec["at"] is JArray atAddr) focus.Insert(0, ("address", new float2((float)atAddr[0], (float)atAddr[1])));
             var shots = new JArray();
             for (int i = 0; i < focus.Count; i++)
             {

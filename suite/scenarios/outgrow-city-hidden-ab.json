@@ -5,22 +5,98 @@
       "id": "before",
       "site": "flat",
       "steps": [
-        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
-        { "do": "lab", "op": "polishSettings", "settings": { "hiddenDoubles": 0, "misplaced": 0 }, "redo": false },
-        { "do": "lab", "op": "loadCity", "name": "123" },
-        { "do": "lab", "op": "outgrowFrames", "seconds": 60, "speed": 1, "outgrow": true, "levelUps": false },
-        { "do": "lab", "op": "outgrowCheck", "box": "gardens", "closeups": 0, "whyMax": 0 }
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "hiddenDoubles": 0,
+            "misplaced": 0
+          },
+          "redo": false
+        },
+        {
+          "do": "lab",
+          "op": "loadCity",
+          "name": "123"
+        },
+        {
+          "do": "lab",
+          "op": "outgrowFrames",
+          "seconds": 60,
+          "speed": 1,
+          "outgrow": true,
+          "levelUps": false
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "box": "gardens",
+          "closeups": 0,
+          "whyMax": 0
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "address": "311 Kingsgate Street",
+          "margin": 45,
+          "closeups": 1,
+          "addressShot": true,
+          "whyMax": 0
+        }
       ]
     },
     {
       "id": "now",
       "site": "flat",
       "steps": [
-        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
-        { "do": "lab", "op": "polishSettings", "settings": { "hiddenDoubles": 1, "misplaced": 1 }, "redo": false },
-        { "do": "lab", "op": "loadCity", "name": "123" },
-        { "do": "lab", "op": "outgrowFrames", "seconds": 60, "speed": 1, "outgrow": true, "levelUps": false },
-        { "do": "lab", "op": "outgrowCheck", "box": "gardens", "closeups": 0, "whyMax": 0 }
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "hiddenDoubles": 1,
+            "misplaced": 1
+          },
+          "redo": false
+        },
+        {
+          "do": "lab",
+          "op": "loadCity",
+          "name": "123"
+        },
+        {
+          "do": "lab",
+          "op": "outgrowFrames",
+          "seconds": 60,
+          "speed": 1,
+          "outgrow": true,
+          "levelUps": false
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "box": "gardens",
+          "closeups": 0,
+          "whyMax": 0
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "address": "311 Kingsgate Street",
+          "margin": 45,
+          "closeups": 1,
+          "addressShot": true,
+          "whyMax": 0
+        }
       ]
     }
   ]
