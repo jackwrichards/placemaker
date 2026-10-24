@@ -54,6 +54,8 @@ namespace Placemaker.OutgrowBench
             if (args[0] == "--pairs") return Pairs.Run(args[1], args.Skip(3).ToArray(), args[2]);
             // garden shapes scored with two sets of settings: --score A B dir ... (Score.cs)
             if (args[0] == "--front") return Front.Run(args.Skip(1).ToList());
+            // how each garden came to be: --explain <pass or dir> [--at x,z] [--size m] (Explain.cs)
+            if (args[0] == "--explain") return Explain.Run(args.Skip(1).ToList());
             if (args[0] == "--score") return Score.Run(args[1], args[2], args.Skip(3).ToList());
             // the tuner: --serve PORT label=pass.json ... (Serve.cs)
             if (args[0] == "--serve")

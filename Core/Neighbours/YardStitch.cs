@@ -57,6 +57,11 @@ namespace Placemaker.Core.Neighbours
         /// the plan's notes. Null in the game.</summary>
         public static Func<long> AllocatedBytes;
 
+        /// <summary>How each garden came to be, for the offline replay (OutgrowBench --explain): every garden (by house index)
+        /// after each step that shapes it, and why the planner joined or split two houses. Null in the game (nothing is copied).</summary>
+        public static Action<string, float2[][]> Trace;
+        public static Action<string> TraceWhy;
+
         public static string ThemeOf(StitchHouse h) =>
             !string.IsNullOrEmpty(h.Theme) && Array.IndexOf(Themes, h.Theme) >= 0 ? h.Theme : "garden";
 
@@ -282,8 +287,11 @@ namespace Placemaker.Core.Neighbours
                     if (!RearGap(houses[i], houses[j], out float gap, out float overlap) || gap > math.min(K(houses[i], s, "maxRearGap", 60f), K(houses[j], s, "maxRearGap", 60f)) || overlap < s.Knob("minRearOverlap", 6f)) continue;
                     if (gap > 0.5f && Blocked(Hull(new[] { houses[i].BackLeft, houses[i].BackRight, houses[j].BackLeft, houses[j].BackRight }))) continue;
                     if (gap < best) { best = gap; rear[i] = j; }
+                    TraceWhy?.Invoke($"rear-candidate {houses[i].Id} {houses[j].Id} gap {gap:F1} overlap {overlap:F1} angle {math.degrees(math.acos(math.clamp(-math.dot(houses[i].Forward, houses[j].Forward), -1f, 1f))):F0}");
                 }
             }
+            if (TraceWhy != null)
+                for (int i = 0; i < n; i++) if (rear[i] >= 0) TraceWhy($"rear {houses[i].Id} {houses[rear[i]].Id}");
             Stage("rear");
             // the player's per-lot flag: an unpolished lot never changes; next to a polished one it is that one's edge; two
             // unpolished neighbours are left alone (no pair at all)
@@ -337,7 +345,10 @@ namespace Placemaker.Core.Neighbours
                 paired.Add((c.I, c.J));
                 touched[c.I] = touched[c.J] = true;
                 facing.Add(c);
+                TraceWhy?.Invoke($"facing {houses[c.I].Id} {"lrb"[c.EI]} {houses[c.J].Id} {"lrb"[c.EJ]} gap {c.Gap:F1}");
             }
+            if (TraceWhy != null)
+                for (int i = 0; i < n; i++) if (right[i] >= 0) TraceWhy($"side {houses[i].Id} {houses[right[i]].Id}");
             // an unpolished lot keeps its lot as its plot and nothing of it is edited
             for (int k = 0; k < n; k++) if (!Pol(k)) touched[k] = false;
 
@@ -590,8 +601,14 @@ namespace Placemaker.Core.Neighbours
                         nrm = math.abs(math.dot(nrm, gu)) >= math.abs(math.dot(nrm, gv)) ? gu * math.sign(math.dot(nrm, gu)) : gv * math.sign(math.dot(nrm, gv));
                     poly = ClipHalfPlane(poly, mid, new float2(-nrm.y, nrm.x), h.Position);
                     if (unended[i] != null) unended[i] = ClipHalfPlane(unended[i], mid, new float2(-nrm.y, nrm.x), h.Position);
+                    TraceWhy?.Invoke($"split {h.Id} {o.Id} at {mid.x:F1},{mid.y:F1} line {math.degrees(math.atan2(-nrm.y, nrm.x)):F0}° (closest {pa.x:F1},{pa.y:F1} - {pb.x:F1},{pb.y:F1})");
                 }
                 plots[i] = poly.Count >= 3 && Poly.Area(poly) > 1f ? poly.ToArray() : lot;
+            }
+            if (Trace != null)
+            {
+                Trace("grown", raw.Select(r => r?.ToArray()).ToArray());
+                Trace("split", plots.Select(p => p?.ToArray()).ToArray());
             }
             // a garden never runs out into a spike (on the inside of a curve its sides close in behind it): it ends where it has
             // become narrower than half its lot (at least minGardenWidth); the land past that is nobody's (FillGaps never sees it).
@@ -631,6 +648,8 @@ namespace Placemaker.Core.Neighbours
                     sloped++;
                 }
             if (sloped > 0) plan.Notes.Add($"{sloped} gardens end where the land gets too steep or too high");
+            void T(string name) { if (Trace != null) Trace(name, plots.Select(p => p?.ToArray()).ToArray()); }
+            T("narrow+slope");
             var stepSplits = new List<(int I, int J, bool AFront, float2 Pa, float2 Pb, float2 S, float2 Inward, uint Hash)>();
             foreach (var (si, sj, aFront, deep, ph) in steps)
             {
@@ -653,6 +672,7 @@ namespace Placemaker.Core.Neighbours
                 stepSplits.Add((si, sj, aFront, pa, pb, split, -m, ph));
             }
 
+            T("steps");
             Stage("plots");
             foreach (var (l, m, r, ext) in wraps)
             {
@@ -701,6 +721,7 @@ namespace Placemaker.Core.Neighbours
                 }
                 if (clipped > 0) plan.Notes.Add($"{clipped} gardens cut back clear of roads, paths, buildings and water");
             }
+            T("clear");
             Stage("clear");
             // (fillGapsLate: the gaps are filled once the gardens round a block's corner have shared their land, below; filled
             // here, the land between them went in spokes to every garden around it)
@@ -708,17 +729,23 @@ namespace Placemaker.Core.Neighbours
             if (!gapsLate && s.Knob("fillGaps", 1f) > 0.5f) FillGaps(houses, plots, touched, raw, kept, s, plan);
             Stage("gaps");
             FixedGardens(houses, plots, touched, plan);
+            T("gaps+fixedGardens");
             Stage("fixedGardens");
             if (s.Knob("shareBetween", 1f) > 0.5f)
             {
                 foreach (var kv in sideCuts) pairCuts[kv.Key] = kv.Value;
                 ShareBetween(houses, plots, touched, left, right, ringCut, pairCuts, alleys, s, plan);
             }
+            T("share");
             Stage("share");
             if (s.Knob("separate", 1f) > 0.5f) Separate(houses, plots, touched, plan);
+            T("separate");
             if (s.Knob("trimSlivers", 1f) > 0.5f) TrimSlivers(houses, plots, touched, s, plan);
+            T("trimSlivers");
             if (gapsLate && s.Knob("fillGaps", 1f) > 0.5f) FillGaps(houses, plots, touched, raw, kept, s, plan);
+            T("fillGaps");
             if (s.Knob("capNarrow", 1f) > 0.5f) CapNarrow(houses, plots, touched, s, plan);
+            T("capNarrow");
             if (s.Knob("straightBacks", 1f) > 0.5f)
             {
                 // (a garden that shares its back or front with another lot keeps that line)
@@ -727,6 +754,7 @@ namespace Placemaker.Core.Neighbours
                 for (int i = 0; i < n; i++) if (deepen[i] || ringCut[i] != null) sharesEnd[i] = true;
                 StraightBacks(houses, plots, touched, left, right, sideCuts, sharesEnd, s, plan);
             }
+            T("straightBacks");
             Stage("fixed");
 
             // ── 3. fences on plot edges ──
