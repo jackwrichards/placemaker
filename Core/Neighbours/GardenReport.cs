@@ -241,7 +241,7 @@ namespace Placemaker.Core.Neighbours
         /// lot deep), and land those bands enclose (a block's, a triangle's, a ring's middle), not the roads themselves; and how
         /// much of it lies in a garden. Open land past the band is not expected: covering it scores nothing.
         /// </summary>
-        public static List<Cover> Coverage(IReadOnlyList<Place> places, IReadOnlyList<float2[]> roads, IReadOnlyList<float2[]> gardens, float band = 40f, float cell = 1f)
+        public static List<Cover> Coverage(IReadOnlyList<Place> places, IReadOnlyList<float2[]> roads, IReadOnlyList<float2[]> gardens, IReadOnlyList<float2[]> lots = null, float band = 40f, float nearLot = 20f, float cell = 1f)
         {
             var result = new List<Cover>();
             foreach (var place in places)
@@ -279,8 +279,10 @@ namespace Placemaker.Core.Neighbours
                         }
                     }
                 float bandCells = band / cell;
+                // (and near a lot: the land past a street's last house, round its end, is nobody's to cover)
+                var lotNear = lots == null ? null : Near(lots, w, h, place.Lo, cell, nearLot / cell);
                 var inBand = new bool[w * h];
-                for (int i = 0; i < d.Length; i++) inBand[i] = !road[i] && d[i] <= bandCells;
+                for (int i = 0; i < d.Length; i++) inBand[i] = !road[i] && d[i] <= bandCells && (lotNear == null || lotNear[i]);
                 // land the bands enclose: not reached from the place's border without crossing a band or a road
                 var outside = new bool[w * h];
                 var stack = new Stack<int>();
@@ -310,6 +312,33 @@ namespace Placemaker.Core.Neighbours
                 result.Add(new Cover { Place = place.Name, Origin = place.Lo, Cell = cell, W = w, H = h, Expected = expected, Covered = cov, Mask = new string(mask) });
             }
             return result;
+        }
+
+        /// <summary>The cells within <paramref name="cells"/> of any of the rings (8-way distance).</summary>
+        private static bool[] Near(IReadOnlyList<float2[]> rings, int w, int h, float2 lo, float cell, float cells)
+        {
+            var inside = new bool[w * h];
+            foreach (var r in rings) Fill(inside, w, h, lo, cell, r);
+            var d = new float[w * h];
+            for (int i = 0; i < d.Length; i++) d[i] = inside[i] ? 0f : float.MaxValue;
+            const float Diag = 1.41421f;
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    int i = y * w + x;
+                    if (x > 0) d[i] = math.min(d[i], d[i - 1] + 1f);
+                    if (y > 0) { d[i] = math.min(d[i], d[i - w] + 1f); if (x > 0) d[i] = math.min(d[i], d[i - w - 1] + Diag); if (x < w - 1) d[i] = math.min(d[i], d[i - w + 1] + Diag); }
+                }
+            for (int y = h - 1; y >= 0; y--)
+                for (int x = w - 1; x >= 0; x--)
+                {
+                    int i = y * w + x;
+                    if (x < w - 1) d[i] = math.min(d[i], d[i + 1] + 1f);
+                    if (y < h - 1) { d[i] = math.min(d[i], d[i + w] + 1f); if (x < w - 1) d[i] = math.min(d[i], d[i + w + 1] + Diag); if (x > 0) d[i] = math.min(d[i], d[i + w - 1] + Diag); }
+                }
+            var near = new bool[w * h];
+            for (int i = 0; i < d.Length; i++) near[i] = d[i] <= cells;
+            return near;
         }
 
         /// <summary>Marks the cells whose middle lies inside a ring (even-odd, by rows).</summary>
@@ -344,7 +373,7 @@ namespace Placemaker.Core.Neighbours
         public static string CoverText(List<Cover> covers)
         {
             if (covers.Count == 0) return "";
-            var sb = new StringBuilder("coverage (expected: within 40 m of a road and the land that encloses; open land past it not counted):\n");
+            var sb = new StringBuilder("coverage (expected: within 40 m of a road and 20 m of a lot, and the land that encloses; open land past it not counted):\n");
             foreach (var c in covers) sb.Append($"  {c.Place,-12} {c.Percent,5:F1}%  ({c.Covered * c.Cell * c.Cell:F0} of {c.Expected * c.Cell * c.Cell:F0} m², {(c.Expected - c.Covered) * c.Cell * c.Cell:F0} m² uncovered)\n");
             long e = covers.Sum(c => (long)c.Expected), v = covers.Sum(c => (long)c.Covered);
             sb.Append($"  {"all",-12} {(e > 0 ? 100f * v / e : 0f),5:F1}%\n");
