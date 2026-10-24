@@ -35,6 +35,8 @@ namespace Placemaker.Game.Suite
         {
             public float2[] Pts;
             public bool Hidden;
+            public bool Ours;
+            public Entity Owner;
             public float2 Lo, Hi;
         }
 
@@ -268,7 +270,7 @@ namespace Placemaker.Game.Suite
                     piecesAll++;
                     if (hidden) { piecesHidden++; hiddenAt.Add(t.m_Position.xz); }
                     if (ours) { ourPieces++; if (hidden) { ourPiecesHidden++; if (whyHidden.Count < ((int?)step["whyMax"] ?? 40)) whyHidden.Add(sys.WhyHidden(e)); } }
-                    fences.Add(new OutgrowFence { Pts = new[] { a, c }, Hidden = hidden, Lo = math.min(a, c), Hi = math.max(a, c) });
+                    fences.Add(new OutgrowFence { Pts = new[] { a, c }, Hidden = hidden, Lo = math.min(a, c), Hi = math.max(a, c), Ours = ours, Owner = em.HasComponent<Owner>(e) ? em.GetComponentData<Owner>(e).m_Owner : Entity.Null });
                 }
 
             // Outgrow's pieces (bushes, trees, rocks, props, fence pieces) standing in a crack (under a deck too low to grow
@@ -490,6 +492,65 @@ namespace Placemaker.Game.Suite
             rec["fenceEdgeM"] = Math.Round(edge, 0);
             rec["openFenceM"] = Math.Round(open, 1);
             rec["hiddenFenceM"] = Math.Round(hiddenFence, 1);
+            {
+                // Outgrow's visible pieces with another visible fence or hedge (another house's, or a lane) along most of them:
+                // within 0.7 m a doubled border, 0.7 to 2 m two hedges side by side
+                int doubledVisible = 0, sideBySide = 0;
+                var sbsAt = new List<float2>();
+                var grid = new Dictionary<long, List<int>>();
+                const float GC = 8f;
+                for (int i = 0; i < fences.Count; i++)
+                {
+                    var f = fences[i];
+                    if (f.Hidden) continue;
+                    for (int x = (int)math.floor((f.Lo.x - 2f) / GC); x <= (int)math.floor((f.Hi.x + 2f) / GC); x++)
+                        for (int y = (int)math.floor((f.Lo.y - 2f) / GC); y <= (int)math.floor((f.Hi.y + 2f) / GC); y++)
+                        {
+                            long key = ((long)x << 32) ^ (uint)y;
+                            if (!grid.TryGetValue(key, out var l)) grid[key] = l = new List<int>();
+                            l.Add(i);
+                        }
+                }
+                var seen = new HashSet<int>();
+                for (int i = 0; i < fences.Count; i++)
+                {
+                    var f = fences[i];
+                    if (f.Hidden || !f.Ours || f.Pts.Length != 2) continue;
+                    var a = f.Pts[0];
+                    var c = f.Pts[1];
+                    float len = math.distance(a, c);
+                    if (len < 1f) continue;
+                    var d = (c - a) / len;
+                    var nrm = new float2(-d.y, d.x);
+                    float near = 0f, side = 0f;
+                    seen.Clear();
+                    var mid = (a + c) * 0.5f;
+                    if (!grid.TryGetValue(((long)(int)math.floor(mid.x / GC) << 32) ^ (uint)(int)math.floor(mid.y / GC), out var cell)) continue;
+                    foreach (int j in cell)
+                    {
+                        if (j == i || !seen.Add(j)) continue;
+                        var o = fences[j];
+                        if (o.Ours && o.Owner == f.Owner) continue;
+                        for (int k = 0; k + 1 < o.Pts.Length; k++)
+                        {
+                            var p = o.Pts[k];
+                            var q = o.Pts[k + 1];
+                            float l2 = math.distance(p, q);
+                            if (l2 < 0.3f || math.abs(math.dot((q - p) / l2, d)) < 0.95f) continue;
+                            float off = math.abs(math.dot((p + q) * 0.5f - a, nrm));
+                            if (off > 2f) continue;
+                            float t0 = math.clamp(math.min(math.dot(p - a, d), math.dot(q - a, d)), 0f, len);
+                            float t1 = math.clamp(math.max(math.dot(p - a, d), math.dot(q - a, d)), 0f, len);
+                            if (off <= 0.7f) near += t1 - t0; else side += t1 - t0;
+                        }
+                    }
+                    if (near >= 0.5f * len) doubledVisible++;
+                    else if (side >= 0.5f * len) { sideBySide++; if (sbsAt.Count < 12) sbsAt.Add(mid); }
+                }
+                rec["doubledVisible"] = doubledVisible;
+                rec["sideBySideVisible"] = sideBySide;
+                rec["sideBySideAt"] = new JArray(sbsAt.Select(p => new JArray(Math.Round(p.x, 1), Math.Round(p.y, 1))));
+            }
             rec["fenceLanes"] = lanes;
             rec["fenceLanesHidden"] = lanesHidden;
             rec["fencePieces"] = piecesAll;

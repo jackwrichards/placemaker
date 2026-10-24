@@ -289,7 +289,7 @@ namespace Placemaker.Game.Neighbours
                         bool misplaced = !doubled && OnRoadOrBuilding(e, (a + b) * 0.5f);
                         // on a road or in another building's lot: its garden is wrong (an older build planned it over that land),
                         // not the piece; kept hidden it stood there unseen, drawn only when its house was hovered (the user, 23 Oct)
-                        if (misplaced && Misplaced(e, fence)) continue;
+                        if (misplaced && Settings.Knob("misplaced", 1f) > 0.5f && Misplaced(e, fence)) continue;
                         if (doubled || misplaced)
                         {
                             if (!_keptHidden.ContainsKey(e)) { TotalKeptHidden++; _keptSinceLog++; }
@@ -334,7 +334,7 @@ namespace Placemaker.Game.Neighbours
         }
 
         // houses planned again for a piece of theirs on a road or in another building's lot (once each per city loaded)
-        private readonly HashSet<Entity> _replannedForMisplaced = new HashSet<Entity>();
+        private readonly Dictionary<Entity, int> _replannedForMisplaced = new Dictionary<Entity, int>();
         /// <summary>For the game runner: gardens planned again for a misplaced piece, and misplaced pieces removed.</summary>
         public static int TotalMisplacedReplans, TotalMisplacedRemoved, TotalMisplacedFencesRemoved;
         public static readonly List<string> MisplacedSamples = new List<string>();
@@ -349,9 +349,12 @@ namespace Placemaker.Game.Neighbours
         private bool Misplaced(Entity piece, bool fence)
         {
             var owner = EntityManager.HasComponent<Owner>(piece) ? EntityManager.GetComponentData<Owner>(piece).m_Owner : Entity.Null;
-            if (fence && owner != Entity.Null && EntityManager.Exists(owner) && !EntityManager.HasComponent<Deleted>(owner) && IsYes(owner) && IsGrowable(owner)
-                && _replannedForMisplaced.Add(owner))
+            bool replannable = fence && owner != Entity.Null && EntityManager.Exists(owner) && !EntityManager.HasComponent<Deleted>(owner) && IsYes(owner) && IsGrowable(owner);
+            // (its house's other pieces there wait for the plan too: the plan writes over them; one still there 5 s on is removed)
+            if (replannable && _replannedForMisplaced.TryGetValue(owner, out int asked) && LotFrame - asked < 300) return false;
+            if (replannable && !_replannedForMisplaced.ContainsKey(owner))
             {
+                _replannedForMisplaced[owner] = LotFrame;
                 _described.Remove(owner);
                 if (_dirty.Add(owner)) DirtyBy[7]++;
                 TotalMisplacedReplans++;
@@ -447,7 +450,7 @@ namespace Placemaker.Game.Neighbours
                         // of ours left hidden for its own reason, is never drawn: counted, ours was left hidden as its double and
                         // neither stood there, ours only seen when the house was hovered (the user, 23 Oct: "there's no fence at
                         // all there, and then I hover and then there's a fence")
-                        if (EntityManager.HasComponent<Overridden>(o) && (o.Index > e.Index || !EntityManager.HasComponent<PolishPiece>(o) || _keptHidden.ContainsKey(o))) continue;
+                        if (EntityManager.HasComponent<Overridden>(o) && (o.Index > e.Index || Settings.Knob("hiddenDoubles", 1f) > 0.5f && (!EntityManager.HasComponent<PolishPiece>(o) || _keptHidden.ContainsKey(o)))) continue;
                         if (Along(p, q, o)) return true;
                     }
                 }

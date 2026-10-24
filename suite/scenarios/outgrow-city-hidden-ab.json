@@ -1,0 +1,27 @@
+{
+  "_about": "The user's city '123' (read-only), Outgrow's hidden pieces as before (hiddenDoubles 0: a hidden fence counts as the double of ours; misplaced 0: a piece on a road or another building's lot kept hidden) against now (both 1), in two games from the load: how many of Outgrow's pieces stay hidden, and how many visible ones lie along another visible fence or hedge (doubledVisible: within 0.7 m, sideBySideVisible: 0.7 to 2 m: the user, 23 Oct, 'is this fences doubling up'). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-city-hidden-ab.json -Who outgrow-city-hidden-ab -Fresh",
+  "scenarios": [
+    {
+      "id": "before",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishSettings", "settings": { "hiddenDoubles": 0, "misplaced": 0 }, "redo": false },
+        { "do": "lab", "op": "loadCity", "name": "123" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 60, "speed": 1, "outgrow": true, "levelUps": false },
+        { "do": "lab", "op": "outgrowCheck", "box": "gardens", "closeups": 0, "whyMax": 0 }
+      ]
+    },
+    {
+      "id": "now",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishSettings", "settings": { "hiddenDoubles": 1, "misplaced": 1 }, "redo": false },
+        { "do": "lab", "op": "loadCity", "name": "123" },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 60, "speed": 1, "outgrow": true, "levelUps": false },
+        { "do": "lab", "op": "outgrowCheck", "box": "gardens", "closeups": 0, "whyMax": 0 }
+      ]
+    }
+  ]
+}

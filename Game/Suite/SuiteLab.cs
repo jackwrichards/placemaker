@@ -106,6 +106,8 @@ namespace Placemaker.Game.Suite
                             applied[p.Name] = p.Value;
                         }
                     rec["settings"] = applied;
+                    // ("redo": false: the rules only, nothing planned again: a setting the game reads as it runs)
+                    if ((bool?)step["redo"] == false) { Mod.Log.Info("Placemaker lab: stitching rules " + applied.ToString(Newtonsoft.Json.Formatting.None)); yield break; }
                     Placemaker.Game.Neighbours.NeighbourPolishSystem.Redo();
                     Mod.Log.Info("Placemaker lab: stitching rules " + applied.ToString(Newtonsoft.Json.Formatting.None) + ", every house again");
                     yield return Frames(20);
