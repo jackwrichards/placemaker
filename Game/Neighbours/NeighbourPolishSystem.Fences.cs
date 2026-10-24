@@ -337,6 +337,7 @@ namespace Placemaker.Game.Neighbours
         private readonly HashSet<Entity> _replannedForMisplaced = new HashSet<Entity>();
         /// <summary>For the game runner: gardens planned again for a misplaced piece, and misplaced pieces removed.</summary>
         public static int TotalMisplacedReplans, TotalMisplacedRemoved;
+        public static readonly List<string> MisplacedSamples = new List<string>();
 
         /// <summary>
         /// One of our pieces stands on a road or inside another building's lot: its house is planned again (today's planner
@@ -356,6 +357,12 @@ namespace Placemaker.Game.Neighbours
                 return false;
             }
             if (_goingSoon.Contains(piece)) return true;
+            if (MisplacedSamples.Count < 60 && PieceSegment(piece, out var pa, out var pb, out _))
+            {
+                var under = new List<string>();
+                OnRoadOrBuilding(piece, (pa + pb) * 0.5f, under);
+                MisplacedSamples.Add($"{NameOf(EntityManager.GetComponentData<PrefabRef>(piece).m_Prefab)} at ({(pa.x + pb.x) * 0.5f:F1}, {(pa.y + pb.y) * 0.5f:F1}) of #{owner.Index}{(owner != Entity.Null && EntityManager.Exists(owner) ? " " + NameOf(EntityManager.GetComponentData<PrefabRef>(owner).m_Prefab) : "")} on {string.Join(", ", under)}");
+            }
             NeighbourDeleteSystem.Queue.Add(piece);
             _goingSoon.Add(piece);
             _keptHidden.Remove(piece);

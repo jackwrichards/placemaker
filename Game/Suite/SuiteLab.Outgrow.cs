@@ -75,6 +75,7 @@ namespace Placemaker.Game.Suite
                 rec["showLeftOver"] = NeighbourPolishSystem.ShowLeftOver;
                 rec["misplacedReplans"] = NeighbourPolishSystem.TotalMisplacedReplans;
                 rec["misplacedRemoved"] = NeighbourPolishSystem.TotalMisplacedRemoved;
+                rec["misplacedSamples"] = new JArray(NeighbourPolishSystem.MisplacedSamples);
                 rec["passSlicesLeft"] = NeighbourPolishSystem.PassSlicesLeft;
                 rec["passes"] = NeighbourPolishSystem.TotalPasses;
             }
