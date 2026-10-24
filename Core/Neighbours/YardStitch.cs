@@ -363,7 +363,7 @@ namespace Placemaker.Core.Neighbours
             var wraps = new List<(int L, int M, int R, float Ext)>();
             // the emergent split (YardStitch.Emergent): the land shared by nearness, each shared edge straightened, instead of the
             // lines below and the steps that patch them up after (wraps, walkways meeting, sharing the rest, slivers, caps)
-            bool emergent = s.Knob("emergent", 0f) > 0.5f;
+            bool emergent = s.Knob("emergent", 1f) > 0.5f;
             if (!emergent && houses.Any(h => K(h, s, "wrap", 1f) > 0.5f))
                 for (int m = 0; m < n; m++)
                 {
@@ -2847,7 +2847,7 @@ namespace Placemaker.Core.Neighbours
                 int before = plan.FencePieces.Count;
                 if (runs)
                 {
-                    CloseRuns(h, ring, piece, plan, near, InWall, OpenFrontFrom(h, s), s.Knob("emergent", 0f) > 0.5f);
+                    CloseRuns(h, ring, piece, plan, near, InWall, OpenFrontFrom(h, s), s.Knob("emergent", 1f) > 0.5f);
                     if (plan.FencePieces.Count > before) { gardens++; pieces += plan.FencePieces.Count - before; }
                     continue;
                 }
