@@ -26,13 +26,19 @@ namespace Placemaker.OutgrowBench
             float2? at = null;
             float size = 140f;
             var knobs = new Dictionary<string, float>();
+            bool editAll = false, finalOnly = false;
+            string tag = "";
             for (int i = 1; i < args.Count; i++)
             {
                 switch (args[i])
                 {
                     case "--at": { var p = args[++i].Split(','); at = new float2(float.Parse(p[0], CultureInfo.InvariantCulture), float.Parse(p[1], CultureInfo.InvariantCulture)); break; }
                     case "--size": size = float.Parse(args[++i], CultureInfo.InvariantCulture); break;
-                    case "--knob": { var kv = args[++i].Split('='); knobs[kv[0]] = float.Parse(kv[1], CultureInfo.InvariantCulture); break; }
+                    case "--knob": { var kv = args[++i].Split('='); knobs[kv[0]] = float.Parse(kv[1], CultureInfo.InvariantCulture); tag += "-" + kv[0] + kv[1]; break; }
+                    // every polished house planned at once (a whole neighbourhood outgrown again), not only the pass's own
+                    case "--edit-all": editAll = true; tag += "-all"; break;
+                    // only the gardens as planned (one picture)
+                    case "--final": finalOnly = true; break;
                 }
             }
             string file = input;
@@ -48,6 +54,7 @@ namespace Placemaker.OutgrowBench
             }
             var (houses, settings) = StitchDump.Read(File.ReadAllText(file));
             foreach (var kv in knobs) { settings.Extra ??= new Dictionary<string, float>(); settings.Extra[kv.Key] = kv.Value; }
+            if (editAll) foreach (var h in houses) if (h.Polished) { h.Edit = true; h.Garden = null; h.Standing = null; }
             // the planner's own order (Plan sorts its houses by id): the traced gardens are indexed so
             var sorted = houses.OrderBy(h => h.Id).ToList();
             var stages = new List<(string Name, float2[][] Plots)>();
@@ -55,8 +62,10 @@ namespace Placemaker.OutgrowBench
             YardStitch.Trace = (name, plots) => stages.Add((name, plots));
             YardStitch.TraceWhy = why.Add;
             StitchPlan plan;
+            var clock = System.Diagnostics.Stopwatch.StartNew();
             try { plan = YardStitch.Plan(houses, settings); }
             finally { YardStitch.Trace = null; YardStitch.TraceWhy = null; }
+            clock.Stop();
             stages.Add(("final", sorted.Select(h => plan.Plots.TryGetValue(h.Id, out var g) ? g : null).ToArray()));
 
             var centre = at ?? sorted.Where(h => h.Edit).Select(h => h.Position).Aggregate(float2.zero, (a, p) => a + p) / math.max(1, sorted.Count(h => h.Edit));
@@ -68,7 +77,7 @@ namespace Placemaker.OutgrowBench
             string Short(long id) => (id % 10000).ToString(CultureInfo.InvariantCulture);
 
             var txt = new StringBuilder();
-            txt.Append($"pass {Path.GetFileName(file)}: {houses.Count} houses ({houses.Count(h => h.Edit)} edited), around {F(centre.x)},{F(centre.y)} ({F(size)} m)\n\n");
+            txt.Append($"pass {Path.GetFileName(file)}{tag}: {houses.Count} houses ({houses.Count(h => h.Edit)} edited) planned in {clock.Elapsed.TotalMilliseconds:F0} ms (traced), around {F(centre.x)},{F(centre.y)} ({F(size)} m)\n\n");
             txt.Append("houses here (id: position, facing, lot w x d, edited)\n");
             foreach (var h in sorted.Where(h => near.Contains(h.Id)))
                 txt.Append($"  {Short(h.Id)}: {F(h.Position.x)},{F(h.Position.y)} facing {F(math.degrees(math.atan2(h.Forward.x, h.Forward.y)))}°, lot {F(2 * h.HalfLot.x)} x {F(2 * h.HalfLot.y)}, {(h.Edit ? "edited" : "fixed")}\n");
@@ -98,6 +107,11 @@ namespace Placemaker.OutgrowBench
                 }
                 txt.Append("\n");
             }
+            {
+                var fin = stages[stages.Count - 1].Plots;
+                var mine = Enumerable.Range(0, sorted.Count).Where(k => sorted[k].Edit && k < fin.Length && fin[k] != null).ToList();
+                if (mine.Count > 0) txt.Append($"\ngardens: {mine.Count}, corners {mine.Average(k => fin[k].Length):F1} on average, {mine.Max(k => fin[k].Length)} at most, area {mine.Sum(k => Poly.Area(fin[k])):F0} m² in all\n");
+            }
             txt.Append("\nnotes\n");
             foreach (var n in plan.Notes) txt.Append("  " + n + "\n");
 
@@ -108,7 +122,7 @@ namespace Placemaker.OutgrowBench
                 + "figcaption{padding:4px 8px;font-weight:600}pre{background:#fff;border:1px solid #ddd;padding:8px;white-space:pre-wrap}</style>\n");
             html.Append($"<h3>{Path.GetFileName(file)} around {F(centre.x)}, {F(centre.y)}</h3><div class=g>\n");
             float2[][] prev = null;
-            foreach (var (name, plots) in stages)
+            foreach (var (name, plots) in finalOnly ? stages.Where(st => st.Name == "final").ToList() : stages)
             {
                 html.Append($"<figure><figcaption>{name}</figcaption>");
                 html.Append(Picture(sorted, settings, plots, prev, lo, hi, name == "final" ? plan : null, In));
@@ -117,14 +131,14 @@ namespace Placemaker.OutgrowBench
             }
             html.Append("</div><pre>" + System.Net.WebUtility.HtmlEncode(txt.ToString()) + "</pre>\n");
             var outDir = Path.GetDirectoryName(Path.GetFullPath(file));
-            var stem = Path.GetFileNameWithoutExtension(file);
+            var stem = Path.GetFileNameWithoutExtension(file) + tag + (finalOnly ? "-final" : "");
             File.WriteAllText(Path.Combine(outDir, stem + "-explain.html"), html.ToString());
             File.WriteAllText(Path.Combine(outDir, stem + "-explain.txt"), txt.ToString());
             Console.Write(txt.ToString());
             Console.WriteLine($"\n{Path.Combine(outDir, stem + "-explain.html")}");
             // a picture of the page (Edge, headless), for sending on
             var png = Path.Combine(outDir, stem + "-explain.png");
-            if (Shoot(Path.Combine(outDir, stem + "-explain.html"), png, 1500, (stages.Count + 2) / 3 * 450 + 120)) Console.WriteLine(png);
+            if (Shoot(Path.Combine(outDir, stem + "-explain.html"), png, finalOnly ? 640 : 1500, finalOnly ? 700 : (stages.Count + 2) / 3 * 540 + 140)) Console.WriteLine(png);
             return 0;
         }
 

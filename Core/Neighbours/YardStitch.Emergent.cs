@@ -1,0 +1,410 @@
+// Placemaker neighbourhood polish — the emergent split of the land between gardens (pure geometry, engine-free).
+//
+// Two ideas instead of a rule per situation (the user, 24 Oct: rows meeting at the back at an angle "take jagged edges and steal
+// land from each other"; "the minimum amount of turns to make the full space covered, while also letting every zone have roughly
+// an equal piece of the pie ... think of how a real architect would do it"):
+//   1. Fair: every bit of open land within a garden's reach goes to the lot nearest to it (distance to the lot, not to the house:
+//      two rows' back edges meet on the line half way between them, however the rows are angled).
+//   2. Straight: each edge two gardens share is drawn with as few straight pieces as stay within a tolerance of that line. Both
+//      gardens draw it from the same points, so they meet exactly: no gaps, no overlaps, no notches.
+// The land is looked at on a grid aligned to the world (the same cells in every pass), only around the gardens the plan edits.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Placemaker.Core.Geometry;
+using Unity.Mathematics;
+
+namespace Placemaker.Core.Neighbours
+{
+    public static partial class YardStitch
+    {
+        /// <summary>
+        /// Each edited garden's plot: the cells nearest its lot (within <paramref name="reach"/>, its convex reach), outlined and
+        /// straightened (knobs emergentCell, the grid's cell in metres, and emergentTol, how far a straightened edge may stray).
+        /// </summary>
+        private static void Emergent(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, List<float2>[] reach,
+            List<float2>[] wide, List<(int I, int J)> alleys, StitchSettings s, StitchPlan plan)
+        {
+            int n = houses.Count;
+            var clock = AllocatedBytes != null ? System.Diagnostics.Stopwatch.StartNew() : null;
+            var times = clock != null ? new List<string>() : null;
+            void Lap(string what) { if (clock == null) return; times.Add($"{what} {clock.Elapsed.TotalMilliseconds:F2}"); clock.Restart(); }
+            float cell = math.clamp(s.Knob("emergentCell", 1f), 0.25f, 4f);
+            float tol = math.max(0f, s.Knob("emergentTol", 1.5f));
+            // near to what: the lot's street front (1: the land between two rows backing onto each other is split half way between
+            // their streets, one line however deep each lot is, as plots are laid out) or the lot itself (0)
+            bool fromFront = s.Knob("emergentFront", 1f) > 0.5f;
+            // a lot comes with a strip of its own all round (m): the gaps between two lots' corners on a curve are theirs, not a
+            // tooth of the garden across the way
+            float apron = math.max(0f, s.Knob("emergentApron", 3f));
+            float apronSq = apron * apron;
+            // the edited gardens (a fixed one keeps the garden it has; FixedGardens)
+            var edit = new List<int>();
+            for (int i = 0; i < n; i++) if (touched[i] && houses[i].Edit && houses[i].Polished && reach[i] != null && reach[i].Count >= 3) edit.Add(i);
+            if (edit.Count == 0) return;
+            var lo = new float2(float.MaxValue);
+            var hi = new float2(float.MinValue);
+            foreach (int i in edit) { lo = math.min(lo, MinOf(wide[i])); hi = math.max(hi, MaxOf(wide[i])); }
+            // (on the world's grid: a pass next door sees the very same cells)
+            lo = math.floor(lo / cell) * cell - cell;
+            hi = math.ceil(hi / cell) * cell + cell;
+            int w = (int)math.round((hi.x - lo.x) / cell), h = (int)math.round((hi.y - lo.y) / cell);
+            if (w <= 0 || h <= 0 || (long)w * h > 4_000_000) { plan.Notes.Add($"emergent: {w} x {h} cells, too many: the old split"); return; }
+
+            // the houses that compete for this land: polished ones by their reach (their lot only when they have none), an
+            // unpolished lot is nobody's land (the polished garden beside it reaches its edge)
+            // (each by two reaches: its own, where it grows on its own, and a wider one, where it grows only into land another
+            // garden reaches too: the land between houses is shared, the open land past a row's last house is nobody's)
+            var seeds = new List<int>();
+            var seedPoly = new List<float2[]>();
+            var seedWide = new List<float2[]>();
+            for (int j = 0; j < n; j++)
+            {
+                if (!houses[j].Polished) continue;
+                bool grows = touched[j] && reach[j] != null && reach[j].Count >= 3;
+                var r = Ccw(grows ? reach[j].ToArray() : Lot(houses[j]));
+                var wr = grows && wide[j] != null && wide[j].Count >= 3 ? Ccw(wide[j].ToArray()) : r;
+                var rlo = MinOf(wr);
+                var rhi = MaxOf(wr);
+                if (rhi.x < lo.x || rlo.x > hi.x || rhi.y < lo.y || rlo.y > hi.y) continue;
+                seeds.Add(j);
+                seedPoly.Add(r);
+                seedWide.Add(wr);
+            }
+            // filed by 16 m buckets
+            const float bucket = 16f;
+            int bw = (int)math.ceil(w * cell / bucket), bh = (int)math.ceil(h * cell / bucket);
+            var buckets = new List<int>[bw * bh];
+            for (int k = 0; k < seeds.Count; k++)
+            {
+                var r = seedWide[k];
+                var rlo = math.max(MinOf(r), lo);
+                var rhi = math.min(MaxOf(r), hi);
+                if (rhi.x < rlo.x || rhi.y < rlo.y) continue;
+                int x0 = (int)((rlo.x - lo.x) / bucket), x1 = math.min(bw - 1, (int)((rhi.x - lo.x) / bucket));
+                int y0 = (int)((rlo.y - lo.y) / bucket), y1 = math.min(bh - 1, (int)((rhi.y - lo.y) / bucket));
+                for (int by = y0; by <= y1; by++)
+                    for (int bx = x0; bx <= x1; bx++)
+                        (buckets[by * bw + bx] ??= new List<int>()).Add(k);
+            }
+            // land nobody gets: roads, paths, tracks, buildings, water, other lots (the barriers), walkways, unpolished lots
+            var blocked = new bool[w * h];
+            foreach (var b in s_barriers)
+                if (!(b.Max.x < lo.x || b.Min.x > hi.x || b.Max.y < lo.y || b.Min.y > hi.y)) Fill(blocked, w, h, lo, cell, b.Ring);
+            foreach (var (ai, bi) in alleys)
+            {
+                var a = houses[ai];
+                var b = houses[bi];
+                float hz = math.min(a.HalfLot.y, b.HalfLot.y);
+                Fill(blocked, w, h, lo, cell, new[] { a.FrontRight, b.FrontLeft, BackAt(b, -1, hz), BackAt(a, +1, hz) });
+            }
+            for (int j = 0; j < n; j++) if (!houses[j].Polished) Fill(blocked, w, h, lo, cell, Lot(houses[j]));
+
+            Lap("setup");
+            // only the land an edited garden may reach is worked out, and a cell round it (its outline's neighbours)
+            var need = new bool[w * h];
+            foreach (int i in edit) Fill(need, w, h, lo, cell, wide[i]);
+            var near = new bool[w * h];
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                    if (need[y * w + x])
+                        for (int yy = math.max(0, y - 1); yy <= math.min(h - 1, y + 1); yy++)
+                            for (int xx = math.max(0, x - 1); xx <= math.min(w - 1, x + 1); xx++) near[yy * w + xx] = true;
+
+            Lap("need");
+            // ── 1. fair: each cell to the nearest lot that reaches it ──
+            var label = new int[w * h];
+            // each owner's cells' box (its outline is looked for there only)
+            var box = new int4[n];
+            for (int k = 0; k < n; k++) box[k] = new int4(int.MaxValue, int.MaxValue, int.MinValue, int.MinValue);
+            for (int y = 0; y < h; y++)
+            {
+                int by = math.min(bh - 1, (int)((y + 0.5f) * cell / bucket));
+                for (int x = 0; x < w; x++)
+                {
+                    if (!near[y * w + x]) { label[y * w + x] = -3; continue; }
+                    var p = lo + new float2(x + 0.5f, y + 0.5f) * cell;
+                    var list = buckets[by * bw + math.min(bw - 1, (int)((x + 0.5f) * cell / bucket))];
+                    int best = -1, bestK = -1, reachers = 0;
+                    float bestD = float.MaxValue;
+                    if (list != null)
+                        foreach (int k in list)
+                        {
+                            var hk = houses[seeds[k]];
+                            var l = hk.ToLocal(p);
+                            float ex = math.max(0f, math.abs(l.x) - hk.HalfLot.x), ez = math.max(0f, math.abs(l.y) - hk.HalfLot.y);
+                            float d = ex * ex + ez * ez;
+                            // (a lot always holds its own land; elsewhere a barrier holds it)
+                            if (d > 0f && blocked[y * w + x]) continue;
+                            // (from its street front: depth from the street and how far past its side)
+                            if (d > apronSq && fromFront) d = apronSq + 1f + ex * ex + (l.y - hk.HalfLot.y) * (l.y - hk.HalfLot.y);
+                            if (d > 0f && !InConvex(seedWide[k], p)) continue;
+                            reachers++;
+                            if (d >= bestD) continue;
+                            bestD = d;
+                            best = seeds[k];
+                            bestK = k;
+                        }
+                    // (its lot, land between it and another, or land it reaches on its own)
+                    if (best >= 0 && bestD > 0f && reachers < 2 && !InConvex(seedPoly[bestK], p)) best = -1;
+                    label[y * w + x] = best;
+                    if (best >= 0) box[best] = new int4(math.min(box[best].x, x), math.min(box[best].y, y), math.max(box[best].z, x), math.max(box[best].w, y));
+                }
+            }
+            Lap("label");
+            int L(int x, int y) => x < 0 || y < 0 || x >= w || y >= h ? -2 : label[y * w + x];
+            // where three or more owners meet (nobody's land counts as one), or two touch corner to corner: the points every
+            // garden's outline keeps, so the edges between them are drawn the same by both sides
+            bool Node(int gx, int gy)
+            {
+                int a = L(gx - 1, gy - 1), b = L(gx, gy - 1), c = L(gx, gy), d = L(gx - 1, gy);
+                int distinct = 1 + (b != a ? 1 : 0) + (c != a && c != b ? 1 : 0) + (d != a && d != b && d != c ? 1 : 0);
+                return distinct >= 3 || distinct == 2 && a == c && b == d && a != b;
+            }
+
+            // ── 2. straight: each edited garden's outline, its shared edges straightened between the nodes ──
+            int made = 0;
+            foreach (int i in edit)
+            {
+                if (box[i].x > box[i].z) continue;
+                var ring = Outline(label, w, h, i, houses[i], lo, cell, box[i]);
+                if (ring == null) continue;
+                Lap("outline");
+                var pts = Straighten(ring, Node, tol / cell);
+                Lap("straighten");
+                if (pts.Count < 3) continue;
+                var world = pts.Select(g => lo + new float2(g.x, g.y) * cell).ToList();
+                if (!Poly.IsCcw(world)) world.Reverse();
+                // never past its reach (its street front, a ring's middle, a street it hugs: exact lines), and its lot whole
+                foreach (var (p, d) in Edges(Ccw((wide[i] ?? reach[i]).ToArray()))) world = ClipHalfPlane(world, p, d, p + new float2(-d.y, d.x));
+                if (world.Count < 3) continue;
+                var withLot = Poly.Boolean(new[] { (IReadOnlyList<float2>)Ccw(world) }, new[] { (IReadOnlyList<float2>)Ccw(Lot(houses[i])) }, BoolOp.Union, FillRule.NonZero);
+                var keep = withLot.OrderByDescending(r => Poly.Contains(r.Outer, houses[i].Position) ? 1 : 0).ThenByDescending(r => r.Area).FirstOrDefault();
+                if (keep == null) continue;
+                var outer = Poly.RemoveCollinear(keep.Outer, 1e-3f);
+                if (outer.Length < 3 || Poly.Area(outer) < 1f) continue;
+                plots[i] = outer;
+                made++;
+                Lap("finish");
+            }
+            if (times != null) plan.Notes.Add("emergent (ms): " + string.Join(", ", times.GroupBy(x => x.Split(' ')[0]).Select(g => $"{g.Key} {g.Sum(x => double.Parse(x.Split(' ')[1], System.Globalization.CultureInfo.InvariantCulture)):F1}")));
+            plan.Notes.Add($"emergent: {made} gardens shared by nearness on {w} x {h} cells of {cell:0.##} m, {seeds.Count} lots competing");
+        }
+
+        /// <summary>The edges of a convex counter-clockwise ring as (start, direction).</summary>
+        private static IEnumerable<(float2 P, float2 D)> Edges(float2[] ring)
+        {
+            for (int k = 0; k < ring.Length; k++)
+            {
+                var d = ring[(k + 1) % ring.Length] - ring[k];
+                if (math.lengthsq(d) > 1e-8f) yield return (ring[k], d);
+            }
+        }
+
+        /// <summary>Another house's lot lies behind this one's within <paramref name="gap"/> (m).</summary>
+        private static bool LotBehind(IReadOnlyList<StitchHouse> houses, int i, float gap)
+        {
+            var h = houses[i];
+            var box = new[] { h.ToWorld(new float2(-h.HalfLot.x, -h.HalfLot.y - gap)), h.ToWorld(new float2(h.HalfLot.x, -h.HalfLot.y - gap)), h.BackRight, h.BackLeft };
+            float reach = math.length(h.HalfLot) + gap;
+            for (int j = 0; j < houses.Count; j++)
+            {
+                if (j == i || math.distance(houses[j].Position, h.Position) > reach + math.length(houses[j].HalfLot)) continue;
+                if (Overlaps(box, Lot(houses[j]))) return true;
+            }
+            return false;
+        }
+
+        /// <summary>Squared distance from a point to a house's lot (0 inside).</summary>
+        private static float LotDistanceSq(StitchHouse h, float2 p)
+        {
+            var l = h.ToLocal(p);
+            float dx = math.max(0f, math.abs(l.x) - h.HalfLot.x), dz = math.max(0f, math.abs(l.y) - h.HalfLot.y);
+            return dx * dx + dz * dz;
+        }
+
+        /// <summary>Squared distance from a point to a house's street front (its lot's front edge).</summary>
+        private static float FrontDistanceSq(StitchHouse h, float2 p)
+        {
+            var l = h.ToLocal(p);
+            float dx = math.max(0f, math.abs(l.x) - h.HalfLot.x), dz = l.y - h.HalfLot.y;
+            return dx * dx + dz * dz;
+        }
+
+        /// <summary>Inside a convex counter-clockwise ring (its edges included).</summary>
+        private static bool InConvex(float2[] r, float2 p)
+        {
+            for (int k = 0; k < r.Length; k++)
+            {
+                var a = r[k];
+                var b = r[(k + 1) % r.Length];
+                if ((b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x) < -1e-3f) return false;
+            }
+            return true;
+        }
+
+        /// <summary>Marks the cells whose middle lies inside a ring (even-odd, by rows).</summary>
+        private static void Fill(bool[] mask, int w, int h, float2 lo, float cell, IReadOnlyList<float2> ring)
+        {
+            if (ring == null || ring.Count < 3) return;
+            var rlo = MinOf(ring);
+            var rhi = MaxOf(ring);
+            int y0 = math.max(0, (int)math.floor((rlo.y - lo.y) / cell - 0.5f)), y1 = math.min(h - 1, (int)math.ceil((rhi.y - lo.y) / cell - 0.5f));
+            var xs = new List<float>();
+            for (int y = y0; y <= y1; y++)
+            {
+                float py = lo.y + (y + 0.5f) * cell;
+                xs.Clear();
+                for (int k = 0; k < ring.Count; k++)
+                {
+                    var a = ring[k];
+                    var b = ring[(k + 1) % ring.Count];
+                    if ((a.y > py) == (b.y > py)) continue;
+                    xs.Add(a.x + (py - a.y) / (b.y - a.y) * (b.x - a.x));
+                }
+                xs.Sort();
+                for (int k = 0; k + 1 < xs.Count; k += 2)
+                {
+                    int x0 = math.max(0, (int)math.ceil((xs[k] - lo.x) / cell - 0.5f)), x1 = math.min(w - 1, (int)math.floor((xs[k + 1] - lo.x) / cell - 0.5f));
+                    for (int x = x0; x <= x1; x++) mask[y * w + x] = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The outline of one owner's cells (counter-clockwise, grid corners), the piece holding its house (else its biggest):
+        /// cell edges with the owner on the left, followed round, turning left first where two pieces touch corner to corner.
+        /// </summary>
+        private static List<int2> Outline(int[] label, int w, int h, int owner, StitchHouse house, float2 lo, float cell, int4 box)
+        {
+            // out of each corner: the edges leaving it (at most two)
+            var outs = new Dictionary<int, (int2 A, int2 B)>();
+            var second = new Dictionary<int, int2>();
+            int Key(int2 g) => g.y * (w + 1) + g.x;
+            bool Mine(int x, int y) => x >= 0 && y >= 0 && x < w && y < h && label[y * w + x] == owner;
+            void Add(int2 a, int2 b)
+            {
+                int k = Key(a);
+                if (outs.TryGetValue(k, out var was)) second[k] = b; else outs[k] = (b, default);
+            }
+            for (int y = box.y; y <= box.w; y++)
+                for (int x = box.x; x <= box.z; x++)
+                {
+                    if (label[y * w + x] != owner) continue;
+                    if (!Mine(x, y - 1)) Add(new int2(x, y), new int2(x + 1, y));
+                    if (!Mine(x + 1, y)) Add(new int2(x + 1, y), new int2(x + 1, y + 1));
+                    if (!Mine(x, y + 1)) Add(new int2(x + 1, y + 1), new int2(x, y + 1));
+                    if (!Mine(x - 1, y)) Add(new int2(x, y + 1), new int2(x, y));
+                }
+            if (outs.Count == 0) return null;
+            var used = new HashSet<(int, int)>();
+            List<int2> best = null;
+            double bestScore = double.MinValue;
+            var hp = (house.Position - lo) / cell;
+            foreach (var start in outs.Keys.ToList())
+            {
+                foreach (var first in second.TryGetValue(start, out var s2) ? new[] { outs[start].A, s2 } : new[] { outs[start].A })
+                {
+                    var a0 = new int2(start % (w + 1), start / (w + 1));
+                    if (used.Contains((start, Key(first)))) continue;
+                    var loop = new List<int2> { a0 };
+                    var cur = a0;
+                    var next = first;
+                    int guard = 0;
+                    while (guard++ < 4 * (w + 1) * (h + 1))
+                    {
+                        used.Add((Key(cur), Key(next)));
+                        var dir = next - cur;
+                        cur = next;
+                        if (cur.Equals(a0)) break;
+                        loop.Add(cur);
+                        int k = Key(cur);
+                        if (!outs.TryGetValue(k, out var o)) break;
+                        if (second.TryGetValue(k, out var alt))
+                        {
+                            // two ways on: the left turn (dir rotated +90°) keeps to this piece
+                            var left = new int2(-dir.y, dir.x);
+                            next = (o.A - cur).Equals(left) ? o.A : (alt - cur).Equals(left) ? alt : o.A;
+                            if (used.Contains((k, Key(next)))) next = next.Equals(o.A) ? alt : o.A;
+                        }
+                        else next = o.A;
+                    }
+                    if (loop.Count < 4) continue;
+                    double area = 0;
+                    for (int q = 0; q < loop.Count; q++) { var p = loop[q]; var r = loop[(q + 1) % loop.Count]; area += (double)p.x * r.y - (double)r.x * p.y; }
+                    if (area <= 0) continue;   // a hole
+                    bool holds = Poly.Contains(loop.Select(g => new float2(g.x, g.y)).ToArray(), hp);
+                    double score = (holds ? 1e12 : 0) + area;
+                    if (score > bestScore) { bestScore = score; best = loop; }
+                }
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// A grid outline with each run between two nodes straightened (Douglas–Peucker, ties broken by position, so the
+        /// garden on the other side straightens the same run to the same points); straight runs of cells are corners only.
+        /// </summary>
+        private static List<int2> Straighten(List<int2> ring, Func<int, int, bool> node, float tol)
+        {
+            int m = ring.Count;
+            var keep = new bool[m];
+            int nodes = 0;
+            for (int k = 0; k < m; k++) if (node(ring[k].x, ring[k].y)) { keep[k] = true; nodes++; }
+            if (nodes == 0)
+            {
+                // nobody shares any of it: from its lowest corner and the corner farthest from it
+                int a = 0;
+                for (int k = 1; k < m; k++) if (ring[k].x < ring[a].x || ring[k].x == ring[a].x && ring[k].y < ring[a].y) a = k;
+                int b = a;
+                long far = -1;
+                for (int k = 0; k < m; k++) { var d = ring[k] - ring[a]; long dd = (long)d.x * d.x + (long)d.y * d.y; if (dd > far) { far = dd; b = k; } }
+                keep[a] = keep[b] = true;
+            }
+            // each run from one kept corner to the next
+            var starts = Enumerable.Range(0, m).Where(k => keep[k]).ToList();
+            var outKeep = (bool[])keep.Clone();
+            for (int q = 0; q < starts.Count; q++)
+            {
+                int a = starts[q], b = starts[(q + 1) % starts.Count];
+                int len = (b - a + m) % m;
+                if (len == 0) len = m;
+                Dp(ring, a, len, tol, outKeep);
+            }
+            var result = new List<int2>();
+            for (int k = 0; k < m; k++) if (outKeep[k]) result.Add(ring[k]);
+            return result;
+        }
+
+        private static void Dp(List<int2> ring, int a, int len, float tol, bool[] keep)
+        {
+            if (len < 2) return;
+            int m = ring.Count;
+            var pa = new float2(ring[a].x, ring[a].y);
+            var pb = new float2(ring[(a + len) % m].x, ring[(a + len) % m].y);
+            var d = pb - pa;
+            float dl = math.length(d);
+            int best = -1;
+            float bestD = tol;
+            int2 bestP = default;
+            for (int t = 1; t < len; t++)
+            {
+                var g = ring[(a + t) % m];
+                var p = new float2(g.x, g.y);
+                float dist = dl > 1e-6f ? math.abs(d.x * (p.y - pa.y) - d.y * (p.x - pa.x)) / dl : math.distance(p, pa);
+                // (ties by position: the same corner from either side)
+                if (dist > bestD + 1e-4f || best >= 0 && math.abs(dist - bestD) <= 1e-4f && (g.x < bestP.x || g.x == bestP.x && g.y < bestP.y))
+                {
+                    best = t;
+                    bestD = dist;
+                    bestP = g;
+                }
+            }
+            if (best < 0) return;
+            keep[(a + best) % m] = true;
+            Dp(ring, a, best, tol, keep);
+            Dp(ring, (a + best) % m, len - best, tol, keep);
+        }
+    }
+}

@@ -136,6 +136,9 @@ namespace Placemaker.Core.Neighbours
             public float2 P, D;
             /// <summary>When set, the side kept (else the house's own front middle).</summary>
             public float2? Keep;
+            /// <summary>The line two joined houses share their land on (side by side, back to back, facing): the emergent split
+            /// (knob emergent) shares the land by nearness instead.</summary>
+            public bool Pair;
         }
 
         public static StitchPlan Plan(IReadOnlyList<StitchHouse> houses, StitchSettings s = null)
@@ -355,7 +358,10 @@ namespace Placemaker.Core.Neighbours
             // a shallow lot between two much deeper ones (on a straight bit of street): it keeps its own depth, and the land
             // behind it goes to the deep neighbours, split down its middle (they meet behind it, around it)
             var wraps = new List<(int L, int M, int R, float Ext)>();
-            if (houses.Any(h => K(h, s, "wrap", 1f) > 0.5f))
+            // the emergent split (YardStitch.Emergent): the land shared by nearness, each shared edge straightened, instead of the
+            // lines below and the steps that patch them up after (wraps, walkways meeting, sharing the rest, slivers, caps)
+            bool emergent = s.Knob("emergent", 0f) > 0.5f;
+            if (!emergent && houses.Any(h => K(h, s, "wrap", 1f) > 0.5f))
                 for (int m = 0; m < n; m++)
                 {
                     int l = left[m], r = right[m];
@@ -421,6 +427,7 @@ namespace Placemaker.Core.Neighbours
                         // its own (an alley)
                         var ca = step ? new Cut { P = b.FrontLeft, D = b.Forward, Keep = a.Position } : new Cut { P = a.FrontRight, D = a.Forward, Keep = a.Position };
                         var cb = step ? new Cut { P = a.FrontRight, D = a.Forward, Keep = b.Position } : new Cut { P = b.FrontLeft, D = b.Forward, Keep = b.Position };
+                        ca.Pair = cb.Pair = !step;   // (the emergent split keeps the walkway itself free instead)
                         cuts[i].Add(ca);
                         cuts[right[i]].Add(cb);
                         if (step) steps.Add((i, right[i], (ph >> 4 & 1) == 0, deep, ph));
@@ -446,6 +453,7 @@ namespace Placemaker.Core.Neighbours
                     if (Clear(first, Lot(first == alongA ? b : a))) cut = first;
                     else if (Clear(second, Lot(second == alongA ? b : a))) cut = second;
                 }
+                cut.Pair = true;
                 borders[(i, right[i])] = cut;
                 sideCuts[(math.min(i, right[i]), math.max(i, right[i]))] = cut;
                 cuts[i].Add(cut);
@@ -468,6 +476,7 @@ namespace Placemaker.Core.Neighbours
             foreach (var c in facing)
             {
                 pairCuts[(c.I, c.J)] = c.Cut;
+                c.Cut.Pair = Fixed(c.I, c.J) < 0;
                 if (Pol(c.I)) cuts[c.I].Add(c.Cut);
                 if (Pol(c.J)) cuts[c.J].Add(c.Cut);
                 extra[c.I, c.EI] = math.max(extra[c.I, c.EI], c.Gap + 2f);
@@ -484,6 +493,7 @@ namespace Placemaker.Core.Neighbours
                 // back to back with an unpolished lot: the polished garden reaches that lot's back edge
                 var cut = fx < 0 ? new Cut { P = (backA + backB) * 0.5f, D = math.normalizesafe(a.Right - b.Right, a.Right) }
                     : new Cut { P = fx == i ? backA : backB, D = houses[fx].Right };
+                cut.Pair = fx < 0;
                 pairCuts[(i, j)] = cut;
                 if (Pol(i)) cuts[i].Add(cut);
                 if (Pol(j)) cuts[j].Add(cut);
@@ -537,6 +547,10 @@ namespace Placemaker.Core.Neighbours
             var plots = new float2[n][];
             // first every garden as far as it reaches (its neighbours' middle lines cut it already)
             var raw = new List<float2>[n];
+            // each garden's reach for the emergent split: as far as it may grow, cut only by what is no neighbour's line
+            var reachR = emergent ? new List<float2>[n] : null;
+            // and as far as it may grow into land another garden reaches too (land between houses is shared, wherever it is)
+            var reachW = emergent ? new List<float2>[n] : null;
             // the same garden not ended by the street behind it: what the spike test below measures (a street at an angle to the
             // lot's back narrows the garden toward its end, which is no spike)
             var unended = new List<float2>[n];
@@ -559,6 +573,22 @@ namespace Placemaker.Core.Neighbours
                 var poly = rect;
                 foreach (var c in cuts[i]) poly = ClipHalfPlane(poly, c.P, c.D, c.Keep ?? FrontMid(h));
                 raw[i] = poly;
+                if (emergent)
+                {
+                    // (a side with a neighbour: the land between is shared by nearness, emergentReach is plenty; back as far as
+                    // another lot behind it, met or not: whoever is nearer takes the land between)
+                    float gw = K(h, s, "emergentReach", 40f);
+                    float xlE = left[i] >= 0 ? -h.HalfLot.x - gw : xl, xrE = right[i] >= 0 ? h.HalfLot.x + gw : xr, zbE = zb;
+                    float gapE = K(h, s, "maxRearGap", 60f);
+                    if (!deepen[i] && LotBehind(houses, i, gapE)) zbE = math.min(zb, -h.HalfLot.y - gapE);
+                    var r = new List<float2> { h.ToWorld(new float2(xlE, zbE)), h.ToWorld(new float2(xrE, zbE)), h.ToWorld(new float2(xrE, zf)), h.ToWorld(new float2(xlE, zf)) };
+                    foreach (var c in cuts[i]) if (!c.Pair) r = ClipHalfPlane(r, c.P, c.D, c.Keep ?? FrontMid(h));
+                    reachR[i] = r;
+                    float xlw = math.min(xlE, -h.HalfLot.x - gw), xrw = math.max(xrE, h.HalfLot.x + gw), zbw = math.min(zbE, -h.HalfLot.y - gw);
+                    var wide = new List<float2> { h.ToWorld(new float2(xlw, zbw)), h.ToWorld(new float2(xrw, zbw)), h.ToWorld(new float2(xrw, zf)), h.ToWorld(new float2(xlw, zf)) };
+                    foreach (var c in cuts[i]) if (!c.Pair) wide = ClipHalfPlane(wide, c.P, c.D, c.Keep ?? FrontMid(h));
+                    reachW[i] = wide;
+                }
                 if (!streetEnd || backHug[i] == null) continue;
                 // (a free side hugging the same street: a row's end lot meets it with its side and its back)
                 var o = rect;
@@ -605,6 +635,7 @@ namespace Placemaker.Core.Neighbours
                 }
                 plots[i] = poly.Count >= 3 && Poly.Area(poly) > 1f ? poly.ToArray() : lot;
             }
+            if (emergent) Emergent(houses, plots, touched, reachR, reachW, alleys, s, plan);
             if (Trace != null)
             {
                 Trace("grown", raw.Select(r => r?.ToArray()).ToArray());
@@ -618,7 +649,7 @@ namespace Placemaker.Core.Neighbours
             int narrowed = 0;
             for (int i = 0; i < n; i++)
             {
-                if (!touched[i] || plots[i] == null || raw[i] == null) continue;
+                if (!touched[i] || plots[i] == null || raw[i] == null || emergent) continue;
                 var h = houses[i];
                 float minW = math.max(K(h, s, "minGardenWidth", 8f), h.HalfLot.x);
                 float? z = unended[i] != null && unended[i].Count >= 3 ? NarrowsAt(unended[i], h, minW, plots[i].Min(p => math.dot(p - h.Position, h.Forward))) : NarrowsAt(plots[i], h, minW);
@@ -688,7 +719,7 @@ namespace Placemaker.Core.Neighbours
             // side neighbours do (the user, 22 Oct: their hedges ran on side by side down to the back street, a grass strip
             // between, "who would want two fences running parallel to each other?")
             var walkwayEnds = new List<(int I, int J, float Hz)>();
-            foreach (var (ai, bi) in s.Knob("walkwayMeet", 1f) > 0.5f ? alleys : new List<(int, int)>())
+            foreach (var (ai, bi) in s.Knob("walkwayMeet", 1f) > 0.5f && !emergent ? alleys : new List<(int, int)>())
             {
                 var a = houses[ai];
                 var b = houses[bi];
@@ -731,7 +762,7 @@ namespace Placemaker.Core.Neighbours
             FixedGardens(houses, plots, touched, plan);
             T("gaps+fixedGardens");
             Stage("fixedGardens");
-            if (s.Knob("shareBetween", 1f) > 0.5f)
+            if (s.Knob("shareBetween", 1f) > 0.5f && !emergent)
             {
                 foreach (var kv in sideCuts) pairCuts[kv.Key] = kv.Value;
                 ShareBetween(houses, plots, touched, left, right, ringCut, pairCuts, alleys, s, plan);
@@ -740,13 +771,13 @@ namespace Placemaker.Core.Neighbours
             Stage("share");
             if (s.Knob("separate", 1f) > 0.5f) Separate(houses, plots, touched, plan);
             T("separate");
-            if (s.Knob("trimSlivers", 1f) > 0.5f) TrimSlivers(houses, plots, touched, s, plan);
+            if (s.Knob("trimSlivers", 1f) > 0.5f && !emergent) TrimSlivers(houses, plots, touched, s, plan);
             T("trimSlivers");
-            if (gapsLate && s.Knob("fillGaps", 1f) > 0.5f) FillGaps(houses, plots, touched, raw, kept, s, plan);
+            if (gapsLate && s.Knob("fillGaps", 1f) > 0.5f && !emergent) FillGaps(houses, plots, touched, raw, kept, s, plan);
             T("fillGaps");
-            if (s.Knob("capNarrow", 1f) > 0.5f) CapNarrow(houses, plots, touched, s, plan);
+            if (s.Knob("capNarrow", 1f) > 0.5f && !emergent) CapNarrow(houses, plots, touched, s, plan);
             T("capNarrow");
-            if (s.Knob("straightBacks", 1f) > 0.5f)
+            if (s.Knob("straightBacks", 1f) > 0.5f && !emergent)
             {
                 // (a garden that shares its back or front with another lot keeps that line)
                 var sharesEnd = new bool[n];
@@ -1046,10 +1077,13 @@ namespace Placemaker.Core.Neighbours
                 var built = new Obstacle(houses);
                 foreach (var (hi, a, b, inward) in stepBeds) if (houses[hi].Edit && K(houses[hi], s, "plant", 1f) > 0.5f) StepRow(houses[hi], plots[hi], a, b, inward, plan, beds[hi], built, s);
                 Plant(houses, plots, touched, plan, moved, beds, built, s);
+                Stage("beds");
                 var fenceLines = DrawnLines(houses, plan, moved)
                     .Concat(plan.FencePieces.Select(p => { var d = new float2(math.sin(p.Yaw), math.cos(p.Yaw)) * 2.1f; return (p.Position - d, p.Position + d); })).ToList();
                 Features(houses, plots, touched, plan, beds, reserved, built, s, fenceLines);
+                Stage("features");
                 Paths(houses, plots, touched, left, right, plan, beds, built, s);
+                Stage("paths");
                 Rocks(houses, plots, plan, moved, built, s);
             }
 
@@ -1635,6 +1669,7 @@ namespace Placemaker.Core.Neighbours
         {
             // each garden's land past its lot, worked out once for all its features (it is the same for each)
             var landOf = new Dictionary<int, List<Region>>();
+            var clearOf = new Dictionary<int, (List<Region> Land, int Reserved)>();
             var slots = new List<(int I, int Slot)>();
             for (int i = 0; i < houses.Count; i++)
             {
@@ -1655,6 +1690,15 @@ namespace Placemaker.Core.Neighbours
                 var plot = Ccw(plots[i]);
                 if (!landOf.TryGetValue(i, out var land)) landOf[i] = land = Poly.Boolean(new[] { new Region(plot) }, new[] { new Region(Ccw(Lot(h))) }, BoolOp.Difference);
                 if (land.Sum(r => r.Area) < K(h, s, "featureMinLand", 100f)) continue;
+                // the land clear of what stands, beds and fences, worked out once per garden (it was again for each of up to six
+                // features, every fence near a big garden a hole cut each time); each feature then only keeps off the ones before
+                if (clearOf.TryGetValue(i, out var cleared))
+                {
+                    var since = reserved[i].Skip(cleared.Reserved).ToList();
+                    foreach (var (fh, fat) in Feature) if (fh == h.Id) since.Add(new Region(Ccw(Blob(fat, 7f, hash, 10))));
+                    land = since.Count > 0 ? Poly.Boolean(cleared.Land, since, BoolOp.Difference) : cleared.Land;
+                    goto search;
+                }
                 var keepOff = built.Near(plot).Concat(beds[i]).Concat(reserved[i]).ToList();
                 // fences and hedges (its own, its neighbours', the closing pieces): a feature keeps 2.5 m clear of them
                 if (fenceLines != null)
@@ -1670,9 +1714,15 @@ namespace Placemaker.Core.Neighbours
                         keepOff.Add(new Region(Ccw(new[] { fa - fd * 2.5f - fnrm, fb + fd * 2.5f - fnrm, fb + fd * 2.5f + fnrm, fa - fd * 2.5f + fnrm })));
                     }
                 }
-                // the features this garden has already: the next one goes elsewhere
-                foreach (var (fh, fat) in Feature) if (fh == h.Id) keepOff.Add(new Region(Ccw(Blob(fat, 7f, hash, 10))));
                 if (keepOff.Count > 0) land = Poly.Boolean(land, keepOff, BoolOp.Difference);
+                clearOf[i] = (land, reserved[i].Count);
+                // the features this garden has already: the next one goes elsewhere
+                {
+                    var had = new List<Region>();
+                    foreach (var (fh, fat) in Feature) if (fh == h.Id) had.Add(new Region(Ccw(Blob(fat, 7f, hash, 10))));
+                    if (had.Count > 0) land = Poly.Boolean(land, had, BoolOp.Difference);
+                }
+            search:
                 // the roomiest spot: the grid point farthest from the land's edge
                 // a roomy spot, nearer the house the better (a garden reaching far keeps its features where people are); the grid
                 // coarser in big land, so a huge garden is searched as quickly as a small one
