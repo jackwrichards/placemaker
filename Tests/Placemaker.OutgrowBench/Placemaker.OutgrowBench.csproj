@@ -22,6 +22,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(CoreDir)\**\*.cs" Link="Core\%(RecursiveDir)%(Filename)%(Extension)" />
+    <None Include="tuner.html" CopyToOutputDirectory="PreserveNewest" />
     <Reference Include="Unity.Mathematics"><HintPath>$(ManagedPath)\Unity.Mathematics.dll</HintPath></Reference>
   </ItemGroup>
 </Project>

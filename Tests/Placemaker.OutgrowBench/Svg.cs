@@ -46,13 +46,19 @@ namespace Placemaker.OutgrowBench
                     sb.Append($"<polygon points=\"{Pts(r)}\" fill=\"{(kind == 0 ? "#9a9a9a" : kind == 2 ? "#9cc3e6" : "#cfcfcf")}\" stroke=\"none\"/>\n");
                 }
             // gardens: edited filled in their colour, fixed ones outlined
-            string Colour(long id) { uint x = (uint)(id * 2654435761L); return $"hsl({x % 360},55%,{55 + (x >> 9) % 20}%)"; }
+            // (the ids differ mostly in their high bits: mixed, or neighbours came out the same colour)
+            string Colour(long id)
+            {
+                ulong z = (ulong)id;
+                z ^= z >> 33; z *= 0xff51afd7ed558ccdUL; z ^= z >> 33; z *= 0xc4ceb9fe1a85ec53UL; z ^= z >> 33;
+                return $"hsl({z % 360},55%,{55 + (z >> 20) % 20}%)";
+            }
             foreach (var h in houses)
             {
                 var g = h.Edit && plan.Plots.TryGetValue(h.Id, out var planned) ? planned : h.Garden;
                 if (g == null || !In(g)) continue;
                 sb.Append(h.Edit
-                    ? $"<polygon points=\"{Pts(g)}\" fill=\"{Colour(h.Id)}\" fill-opacity=\"0.45\" stroke=\"{Colour(h.Id)}\" stroke-width=\"0.4\"/>\n"
+                    ? $"<polygon data-id=\"{h.Id % 1000}\" points=\"{Pts(g)}\" fill=\"{Colour(h.Id)}\" fill-opacity=\"0.45\" stroke=\"{Colour(h.Id)}\" stroke-width=\"0.4\"/>\n"
                     : $"<polygon points=\"{Pts(g)}\" fill=\"none\" stroke=\"#6d8f5a\" stroke-width=\"0.3\" stroke-dasharray=\"1,1\"/>\n");
             }
             // lots, with an arrow to the street and the house id's last digits
