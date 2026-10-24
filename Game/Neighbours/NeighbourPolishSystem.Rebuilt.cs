@@ -58,6 +58,7 @@ namespace Placemaker.Game.Neighbours
             _healPending = true;
             _healQueue = null;
             _healLooked = _healFound = _healOverRoads = 0;
+            _replannedForMisplaced.Clear();
             _sinkPending = true;
         }
 

@@ -73,6 +73,8 @@ namespace Placemaker.Game.Suite
                 rec["sameLandPlans"] = NeighbourPolishSystem.SameLandPlans;
                 rec["longPassSlices"] = string.Join(", ", NeighbourPolishSystem.PassSegNames.Select((n, k) => $"{n} {NeighbourPolishSystem.LongSlices[k]} (worst {NeighbourPolishSystem.LongSliceWorstMs[k]:F1} ms)"));
                 rec["showLeftOver"] = NeighbourPolishSystem.ShowLeftOver;
+                rec["misplacedReplans"] = NeighbourPolishSystem.TotalMisplacedReplans;
+                rec["misplacedRemoved"] = NeighbourPolishSystem.TotalMisplacedRemoved;
                 rec["passSlicesLeft"] = NeighbourPolishSystem.PassSlicesLeft;
                 rec["passes"] = NeighbourPolishSystem.TotalPasses;
             }

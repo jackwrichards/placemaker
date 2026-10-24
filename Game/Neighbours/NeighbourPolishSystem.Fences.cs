@@ -285,7 +285,12 @@ namespace Placemaker.Game.Neighbours
                         if (_keptHidden.TryGetValue(e, out var kept) && (LotFrame - kept.Frame < KeptLookAgain + (int)((uint)e.Index % KeptLookSpread) || looks++ >= KeptLooksPerFrame)) continue;
                         if (System.Diagnostics.Stopwatch.GetTimestamp() > stop) { ShowLeftOver++; continue; }
                         if (!EntityManager.HasComponent<global::Game.Objects.Object>(e) || !PieceSegment(e, out var a, out var b, out bool fence)) continue;
-                        if ((fence && Doubled(e, a, b)) || OnRoadOrBuilding(e, (a + b) * 0.5f))
+                        bool doubled = fence && Doubled(e, a, b);
+                        bool misplaced = !doubled && OnRoadOrBuilding(e, (a + b) * 0.5f);
+                        // on a road or in another building's lot: its garden is wrong (an older build planned it over that land),
+                        // not the piece; kept hidden it stood there unseen, drawn only when its house was hovered (the user, 23 Oct)
+                        if (misplaced && Misplaced(e)) continue;
+                        if (doubled || misplaced)
                         {
                             if (!_keptHidden.ContainsKey(e)) { TotalKeptHidden++; _keptSinceLog++; }
                             _keptHidden[e] = (LotFrame, (a + b) * 0.5f);
@@ -326,6 +331,36 @@ namespace Placemaker.Game.Neighbours
                 Mod.Log.Info($"Placemaker neighbourhood polish: {_shownSinceLog} of its own pieces the game hid shown again in the same frame ({_againSinceLog} of them hidden before), {_keptSinceLog} left hidden (along another fence, on a road or in another building's lot)");
                 _shownSinceLog = _keptSinceLog = _againSinceLog = 0;
             }
+        }
+
+        // houses planned again for a piece of theirs on a road or in another building's lot (once each per city loaded)
+        private readonly HashSet<Entity> _replannedForMisplaced = new HashSet<Entity>();
+        /// <summary>For the game runner: gardens planned again for a misplaced piece, and misplaced pieces removed.</summary>
+        public static int TotalMisplacedReplans, TotalMisplacedRemoved;
+
+        /// <summary>
+        /// One of our pieces stands on a road or inside another building's lot: its house is planned again (today's planner
+        /// keeps gardens off both: a town planned by it has none; a city saved by an older build had hundreds), the piece kept
+        /// hidden until the new plan replaces it. A house planned again already that still has one: the piece is removed
+        /// (hidden, it showed only when its house was hovered). True when the piece goes.
+        /// </summary>
+        private bool Misplaced(Entity piece)
+        {
+            var owner = EntityManager.HasComponent<Owner>(piece) ? EntityManager.GetComponentData<Owner>(piece).m_Owner : Entity.Null;
+            if (owner != Entity.Null && EntityManager.Exists(owner) && !EntityManager.HasComponent<Deleted>(owner) && IsYes(owner) && IsGrowable(owner)
+                && _replannedForMisplaced.Add(owner))
+            {
+                _described.Remove(owner);
+                if (_dirty.Add(owner)) DirtyBy[7]++;
+                TotalMisplacedReplans++;
+                return false;
+            }
+            if (_goingSoon.Contains(piece)) return true;
+            NeighbourDeleteSystem.Queue.Add(piece);
+            _goingSoon.Add(piece);
+            _keptHidden.Remove(piece);
+            TotalMisplacedRemoved++;
+            return true;
         }
 
         /// <summary>The pieces left hidden in a box looked at again next (a plan was written there: what doubled them or stood
