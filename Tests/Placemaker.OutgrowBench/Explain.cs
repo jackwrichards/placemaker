@@ -122,7 +122,31 @@ namespace Placemaker.OutgrowBench
             File.WriteAllText(Path.Combine(outDir, stem + "-explain.txt"), txt.ToString());
             Console.Write(txt.ToString());
             Console.WriteLine($"\n{Path.Combine(outDir, stem + "-explain.html")}");
+            // a picture of the page (Edge, headless), for sending on
+            var png = Path.Combine(outDir, stem + "-explain.png");
+            if (Shoot(Path.Combine(outDir, stem + "-explain.html"), png, 1500, (stages.Count + 2) / 3 * 450 + 120)) Console.WriteLine(png);
             return 0;
+        }
+
+        private static bool Shoot(string html, string png, int w, int h)
+        {
+            var edge = new[] { Environment.GetEnvironmentVariable("ProgramFiles(x86)"), Environment.GetEnvironmentVariable("ProgramFiles") }
+                .Where(p => p != null).Select(p => Path.Combine(p, "Microsoft", "Edge", "Application", "msedge.exe")).FirstOrDefault(File.Exists);
+            if (edge == null) return false;
+            try
+            {
+                File.Delete(png);
+                var psi = new System.Diagnostics.ProcessStartInfo(edge) { UseShellExecute = false, CreateNoWindow = true };
+                foreach (var a in new[] { "--headless=new", "--disable-gpu", "--hide-scrollbars", $"--window-size={w},{h}", $"--screenshot={png}",
+                    "--user-data-dir=" + Path.Combine(Path.GetTempPath(), "pm-explain-edge"), "file:///" + html.Replace('\\', '/') })
+                    psi.ArgumentList.Add(a);
+                using var p = System.Diagnostics.Process.Start(psi);
+                p.WaitForExit(30000);
+                // (the page is drawn by a child process that can outlive the one started)
+                for (int k = 0; k < 50 && !File.Exists(png); k++) System.Threading.Thread.Sleep(200);
+                return File.Exists(png);
+            }
+            catch { return false; }
         }
 
         private static float2[] Lot(StitchHouse h) => new[] { h.BackLeft, h.BackRight, h.FrontRight, h.FrontLeft };
