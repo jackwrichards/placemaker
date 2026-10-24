@@ -290,8 +290,8 @@ namespace Placemaker.Game.Suite
                 case "polishpassdump":
                 {
                     // every pass Outgrow plans from now on written down (its houses, barriers, ground) for the offline benchmark
-                    // ("dir": a folder of its own under passes/, one per scenario of a file: else they write over each other)
-                    var dir = System.IO.Path.Combine(_out, "passes", (string)step["dir"] ?? "");
+                    // ("label": a folder of its own under passes/, one per scenario of a file: else they write over each other)
+                    var dir = System.IO.Path.Combine(_out, "passes", (string)step["label"] ?? "");
                     // "near": [[x, z], ...] with "radius": only the passes editing a house that close to one of the spots
                     System.Collections.Generic.List<float2> near = null;
                     // ("rel": true — the spots from the land's middle)
