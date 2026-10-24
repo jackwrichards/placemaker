@@ -23,7 +23,7 @@ namespace Placemaker.OutgrowBench
 {
     internal static class Fences
     {
-        private sealed class Bit { public long House; public bool Piece; public float2 A, B; public float W; }
+        public sealed class Bit { public long House; public bool Piece; public float2 A, B; public float W; }
 
         public sealed class Tally
         {
@@ -61,7 +61,7 @@ namespace Placemaker.OutgrowBench
             return 0;
         }
 
-        private static float W(string name) => name != null && name.IndexOf("Hedge", StringComparison.OrdinalIgnoreCase) >= 0 ? 1.1f : 0.2f;
+        public static float W(string name) => name != null && name.IndexOf("Hedge", StringComparison.OrdinalIgnoreCase) >= 0 ? 1.1f : 0.2f;
 
         public static Tally Check(IReadOnlyList<StitchHouse> houses, StitchPlan plan, StitchSettings s)
         {
@@ -88,6 +88,13 @@ namespace Placemaker.OutgrowBench
                 bits.Add(new Bit { House = house, Piece = true, A = at - d, B = at + d, W = W(name) });
             }
             var gardens = houses.Where(h => h.Edit && h.Polished && plan.Plots.ContainsKey(h.Id)).Select(h => (H: h, P: plan.Plots[h.Id])).ToList();
+            return CheckBits(houses, bits, gardens, s?.Barriers, t);
+        }
+
+        /// <summary>The checks on fences as they stand (bits) near the given gardens: one plan's, or a whole town's.</summary>
+        public static Tally CheckBits(IReadOnlyList<StitchHouse> houses, List<Bit> bits, List<(StitchHouse H, float2[] P)> gardens, List<float2[]> barrierRings, Tally t = null)
+        {
+            t ??= new Tally();
             var gLo = gardens.Select(g => g.P.Aggregate(new float2(float.MaxValue), math.min) - 3f).ToList();
             var gHi = gardens.Select(g => g.P.Aggregate(new float2(float.MinValue), math.max) + 3f).ToList();
             bool Near(float2 p)
@@ -103,7 +110,7 @@ namespace Placemaker.OutgrowBench
                 walls.AddRange(h.Props.Where(p => p != null && p.Length >= 3));
                 walls.AddRange(h.Hard.Where(p => p != null && p.Length >= 3));
             }
-            var barriers = (s?.Barriers ?? new List<float2[]>()).Where(b => b != null && b.Length >= 3).ToList();
+            var barriers = (barrierRings ?? new List<float2[]>()).Where(b => b != null && b.Length >= 3).ToList();
             var barLo = barriers.Select(b => b.Aggregate(new float2(float.MaxValue), math.min)).ToList();
             var barHi = barriers.Select(b => b.Aggregate(new float2(float.MinValue), math.max)).ToList();
             bool NearBarrier(float2 p, float d)

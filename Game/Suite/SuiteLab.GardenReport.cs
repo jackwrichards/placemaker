@@ -92,6 +92,8 @@ namespace Placemaker.Game.Suite
                 File.WriteAllText(Path.Combine(_out, $"gardens-{label}.json"), GardenReport.Json(gardens));
                 File.WriteAllText(Path.Combine(_out, $"gardens-{label}.txt"), text);
                 if (covers.Count > 0) File.WriteAllText(Path.Combine(_out, $"coverage-{label}.json"), GardenReport.CoverJson(covers));
+                // (the road surfaces it measured from: the offline score, OutgrowBench --bootcamp, measures from the same)
+                if (roads.Count > 0) File.WriteAllText(Path.Combine(_out, $"roads-{label}.json"), "[" + string.Join(",", roads.ConvertAll(r => "[" + string.Join(",", Array.ConvertAll(r, p => $"[{p.x.ToString(System.Globalization.CultureInfo.InvariantCulture)},{p.y.ToString(System.Globalization.CultureInfo.InvariantCulture)}]")) + "]")) + "]");
             }
             catch (Exception ex) { rec["error"] = "lab: garden report not written: " + ex.Message; }
             rec["gardens"] = gardens.Count;

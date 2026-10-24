@@ -58,6 +58,8 @@ namespace Placemaker.OutgrowBench
             if (args[0] == "--explain") return Explain.Run(args.Skip(1).ToList());
             // the fences recorded passes leave, checked: --fences <passes dir or file> [--knob NAME=VALUE] [--every] (Fences.cs)
             if (args[0] == "--fences") return Fences.Run(args.Skip(1).ToList());
+            // the boot camp score, the recorded passes replayed in the game's order: --bootcamp <passes dir> [--rounds N] [--knob k=v] [--game <folder>] (Bootcamp.cs)
+            if (args[0] == "--bootcamp") return Bootcamp.Run(args.Skip(1).ToList());
             if (args[0] == "--score") return Score.Run(args[1], args[2], args.Skip(3).ToList());
             // the tuner: --serve PORT label=pass.json ... (Serve.cs)
             if (args[0] == "--serve")
