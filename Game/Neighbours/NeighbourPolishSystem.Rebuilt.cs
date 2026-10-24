@@ -59,6 +59,10 @@ namespace Placemaker.Game.Neighbours
             _healQueue = null;
             _healLooked = _healFound = _healOverRoads = 0;
             _replannedForMisplaced.Clear();
+            // (pieces judged in the city before: a new city's entities can have the same numbers)
+            _keptHidden.Clear();
+            _placedAt.Clear();
+            _shownTimes.Clear();
             _sinkPending = true;
         }
 
