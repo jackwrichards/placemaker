@@ -1,0 +1,47 @@
+{
+  "_about": "Two rows of outgrown houses back to back at an angle (the user, 24 Oct: where two outgrown rows that are askew to each other meet at the back, the gardens 'take jagged edges and steal land from each other and shoot out in weird ways'; a designer would use as few bends as possible). Makes two towns and saves each, so outgrow-askew.json can load the very same buildings every time: 'PM Askew Straight' (a street behind another at 15 degrees, the rows closing in toward one end) and 'PM Askew Curve' (a straight street with a curved one behind it). Each town grows with Outgrow on, is saved, then every garden is planned again with every pass written down (passes/, for the offline replay: OutgrowBench --explain) and mapped (fenceMap). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-askew-make.json -Build -Who outgrow-askew",
+  "scenarios": [
+    {
+      "id": "askew-straight",
+      "land": { "shape": "rect", "size": [420, 400], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [0, 62], "yaw": 0, "length": 280, "zone": "NA Residential Low" },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [0, -52], "yaw": 15, "length": 280, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 180 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "saveCity", "name": "PM Askew Straight" },
+        { "do": "lab", "op": "polishPassDump", "max": 200 },
+        { "do": "lab", "op": "polishSettings", "settings": {} },
+        { "do": "lab", "op": "polishIdle", "seconds": 240 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 5 },
+        { "do": "lab", "op": "fenceMap", "box": "gardens", "label": "straight", "closeups": 2, "junctions": 6, "edges": 0 },
+        { "do": "shot", "name": "straight-top", "camera": { "target": "point", "at": [0, 0], "view": "top", "distance": 300 }, "shotMode": "render" },
+        { "do": "shot", "name": "straight-top-east", "camera": { "target": "point", "at": [80, 15], "view": "top", "distance": 170 }, "shotMode": "render" },
+        { "do": "shot", "name": "straight-top-west", "camera": { "target": "point", "at": [-80, 0], "view": "top", "distance": 170 }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "askew-curve",
+      "land": { "shape": "rect", "size": [420, 400], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [0, 72], "yaw": 0, "length": 280, "zone": "NA Residential Low" },
+        { "do": "lab", "op": "street", "shape": "arc", "at": [0, -200], "radius": 165, "from": 40, "to": 140, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 180 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "saveCity", "name": "PM Askew Curve" },
+        { "do": "lab", "op": "polishPassDump", "max": 200 },
+        { "do": "lab", "op": "polishSettings", "settings": {} },
+        { "do": "lab", "op": "polishIdle", "seconds": 240 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 5 },
+        { "do": "lab", "op": "fenceMap", "box": "gardens", "label": "curve", "closeups": 2, "junctions": 6, "edges": 0 },
+        { "do": "shot", "name": "curve-top", "camera": { "target": "point", "at": [0, 5], "view": "top", "distance": 300 }, "shotMode": "render" },
+        { "do": "shot", "name": "curve-top-east", "camera": { "target": "point", "at": [75, 5], "view": "top", "distance": 170 }, "shotMode": "render" },
+        { "do": "shot", "name": "curve-top-west", "camera": { "target": "point", "at": [-75, 5], "view": "top", "distance": 170 }, "shotMode": "render" }
+      ]
+    }
+  ]
+}
