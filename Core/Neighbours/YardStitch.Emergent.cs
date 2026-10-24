@@ -431,10 +431,11 @@ namespace Placemaker.Core.Neighbours
             float reach = s.Knob("joinReach", 2.5f);
             if (reach <= 0f) return;
             var segs = new List<(long Line, int Piece, float2 A, float2 B, bool Mine)>();
+            var segHouse = new List<long>();   // (whose it is)
             for (int i = 0; i < houses.Count; i++)
             {
                 var h = houses[i];
-                if (h.Polished && !h.Edit && h.Standing != null) { foreach (var (a, b) in h.Standing) segs.Add((-1, -1, a, b, false)); continue; }
+                if (h.Polished && !h.Edit && h.Standing != null) { foreach (var (a, b) in h.Standing) { segs.Add((-1, -1, a, b, false)); segHouse.Add(h.Id); } continue; }
                 bool mine = touched[i] && h.Edit && h.Polished;
                 foreach (var l in h.Lines)
                 {
@@ -442,6 +443,7 @@ namespace Placemaker.Core.Neighbours
                     var (a, b) = moved.TryGetValue(l.Id, out var m) ? m : (l.A, l.B);
                     if (math.distance(a, b) < 0.3f) continue;
                     segs.Add((l.Id, -1, a, b, mine));
+                    segHouse.Add(h.Id);
                 }
             }
             int pieceCount = plan.FencePieces.Count;
@@ -450,7 +452,10 @@ namespace Placemaker.Core.Neighbours
                 var (_, at, yaw, name) = plan.FencePieces[k];
                 var d = new float2(math.sin(yaw), math.cos(yaw)) * (name != null && name.IndexOf("Short", StringComparison.Ordinal) >= 0 ? PieceShort * 0.5f : PieceLong * 0.5f);
                 segs.Add((-1, k, at - d, at + d, true));
+                segHouse.Add(plan.FencePieces[k].House);
             }
+            var pieceOf = new Dictionary<long, string>();
+            foreach (var hh in houses) if (hh.Edit && hh.Polished) pieceOf[hh.Id] = PieceFor(hh, (int)K(hh, s, "fenceKind", 0f));
             if (segs.Count == 0) return;
             // filed by 8 m cell
             const float Cell = 8f;
@@ -487,7 +492,9 @@ namespace Placemaker.Core.Neighbours
             int lines = 0, pieces = 0;
             for (int i = 0; i < segs.Count; i++)
             {
-                if (!segs[i].Mine) continue;
+                // (this plan's fences, and a fence another pass laid: its loose end is met by a piece of the garden planned now)
+                bool standing = !segs[i].Mine && segs[i].Line < 0 && segs[i].Piece < 0;
+                if (!segs[i].Mine && !standing) continue;
                 for (int end = 0; end < 2; end++)
                 {
                     var (line, piece, a, b, _) = segs[i];
@@ -510,6 +517,18 @@ namespace Placemaker.Core.Neighbours
                     if (touches || best < 0 || Against(p)) continue;
                     // (across a house, a shed or a road: a way through, left open)
                     if (Against((p + bestQ) * 0.5f)) continue;
+                    if (standing)
+                    {
+                        // (only to this plan's fence, by a piece of its garden)
+                        if (!segs[best].Mine || !pieceOf.TryGetValue(segHouse[best], out var kind)) continue;
+                        var gap = bestQ - p;
+                        plan.FencePieces.Add((segHouse[best], (p + bestQ) * 0.5f, math.atan2(gap.x, gap.y), bestD <= PieceShort + 0.2f ? ShortPiece(kind) : kind));
+                        segs.Add((-1, plan.FencePieces.Count - 1, p, bestQ, false));
+                        segHouse.Add(segHouse[best]);
+                        File(segs.Count - 1);
+                        pieces++;
+                        continue;
+                    }
                     if (line >= 0)
                     {
                         var na = end == 0 ? bestQ : a;
@@ -526,12 +545,97 @@ namespace Placemaker.Core.Neighbours
                         var mid = (p + bestQ) * 0.5f;
                         plan.FencePieces.Add((house, mid, math.atan2(gap.x, gap.y), bridge));
                         segs.Add((-1, plan.FencePieces.Count - 1, p, bestQ, false));
+                        segHouse.Add(house);
                         File(segs.Count - 1);
                         pieces++;
                     }
                 }
             }
             if (lines + pieces > 0) plan.Notes.Add($"emergent: {lines} line ends and {pieces} piece runs carried on to the fence beside them");
+
+            // one border drawn twice, crossing at a shallow angle (a garden's edge and a neighbour's fence another pass laid, a
+            // little apart): this plan's piece there goes, its line ends where they cross (the longer part kept)
+            var dropPieces = new HashSet<int>();
+            int cut = 0;
+            for (int i = 0; i < segs.Count; i++)
+            {
+                if (!segs[i].Mine) continue;
+                var (line, piece, a, b, _) = segs[i];
+                var cand = Near((a + b) * 0.5f);
+                if (cand == null) continue;
+                var di = math.normalizesafe(b - a);
+                foreach (int j in cand)
+                {
+                    if (j == i) continue;
+                    var (oa, ob) = (segs[j].A, segs[j].B);
+                    var dj = math.normalizesafe(ob - oa);
+                    float along = math.abs(math.dot(di, dj));
+                    if (along > 0.9995f) continue;
+                    if (!Poly.SegmentIntersection(a, b, oa, ob, out var x, out float ta, out float tb)) continue;
+                    if (ta < 0.05f || ta > 0.95f || tb < 0.02f || tb > 0.98f) continue;
+                    // (its own piece run, end to end: no crossing)
+                    if (piece >= 0 && segs[j].Piece >= 0 && plan.FencePieces[segs[j].Piece].House == plan.FencePieces[piece].House) continue;
+                    float len = math.distance(a, b);
+                    if (along < math.cos(math.radians(20f)))
+                    {
+                        // across it: a run\x27s last piece overshooting the fence it meets (a piece is 4 m whatever is left) slides
+                        // back along itself to end on it; a line ends on it; crossing it in the middle is left alone
+                        float over = math.min(ta, 1f - ta) * len;
+                        if (over > 2.2f) continue;
+                        var shift = di * (ta >= 0.5f ? -(1f - ta) * len : ta * len);
+                        if (piece >= 0)
+                        {
+                            var (house, at, yaw, name) = plan.FencePieces[piece];
+                            plan.FencePieces[piece] = (house, at + shift, yaw, name);
+                            segs[i] = (line, piece, a + shift, b + shift, true);
+                            (a, b) = (a + shift, b + shift);
+                            cut++;
+                        }
+                        else if (line >= 0)
+                        {
+                            var (na, nb) = ta >= 0.5f ? (a, x) : (x, b);
+                            moved[line] = (na, nb);
+                            segs[i] = (line, piece, na, nb, true);
+                            (a, b) = (na, nb);
+                            cut++;
+                        }
+                        continue;
+                    }
+                    if (piece >= 0) { dropPieces.Add(piece); break; }
+                    if (line >= 0)
+                    {
+                        var (na, nb) = ta >= 0.5f ? (a, x) : (x, b);
+                        moved[line] = (na, nb);
+                        segs[i] = (line, piece, na, nb, true);
+                        (a, b) = (na, nb);
+                        cut++;
+                    }
+                }
+            }
+            if (dropPieces.Count > 0)
+            {
+                var keep = new List<(long, float2, float, string)>(plan.FencePieces.Count);
+                for (int k = 0; k < plan.FencePieces.Count; k++) if (!dropPieces.Contains(k)) keep.Add(plan.FencePieces[k]);
+                plan.FencePieces.Clear();
+                plan.FencePieces.AddRange(keep);
+            }
+            // a scrap of a house's own line (under 1.5 m) touching nothing at either end goes
+            int scraps = 0;
+            for (int i = 0; i < segs.Count; i++)
+            {
+                var (line, _, a, b, mine) = segs[i];
+                if (!mine || line < 0 || math.distance(a, b) >= 1.5f) continue;
+                bool Meets(float2 p)
+                {
+                    var cand = Near(p);
+                    if (cand != null) foreach (int j in cand) if (j != i && SegDist(segs[j].A, segs[j].B, p, out _) <= 0.6f) return true;
+                    return Against(p);
+                }
+                if (Meets(a) || Meets(b)) continue;
+                plan.HideLines.Add(line);
+                scraps++;
+            }
+            if (dropPieces.Count + cut + scraps > 0) plan.Notes.Add($"emergent: {dropPieces.Count} pieces and {cut} line ends off a fence they crossed along, {scraps} scraps of lines gone");
         }
 
         /// <summary>The edges of a convex counter-clockwise ring as (start, direction).</summary>

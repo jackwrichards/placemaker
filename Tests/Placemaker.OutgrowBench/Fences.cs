@@ -149,6 +149,7 @@ namespace Placemaker.OutgrowBench
                 used.Add(best);
                 t.Gaps++;
                 t.GapLengths.Add(bestD);
+                if (Environment.GetEnvironmentVariable("PM_FENCE_WHY") != null) { bool fe = houses.Any(h => h.Id == f.House && h.Edit), ge = houses.Any(h => h.Id == g.House && h.Edit); Console.WriteLine($"  gap {bestD:F1} m at {(p + q) * 0.5f}: {(f.Piece ? "piece" : "line")} of {f.House % 10000}{(fe ? "" : " (standing)")} and {(g.Piece ? "piece" : "line")} of {g.House % 10000}{(ge ? "" : " (standing)")}"); }
                 t.Marks.Add(((p + q) * 0.5f, "gap"));
             }
             // crossings and doubles
@@ -173,7 +174,7 @@ namespace Placemaker.OutgrowBench
                         continue;
                     }
                     if (!Hit(f.A, f.B, g.A, g.B, out float tf, out float tg)) continue;
-                    if (math.min(tf, 1f - tf) * lf > 1f + g.W * 0.5f && math.min(tg, 1f - tg) * lg > 1f + f.W * 0.5f) { t.Crossings++; t.Marks.Add((math.lerp(f.A, f.B, tf), "crossing")); }
+                    if (math.min(tf, 1f - tf) * lf > 1f + g.W * 0.5f && math.min(tg, 1f - tg) * lg > 1f + f.W * 0.5f) { t.Crossings++; t.Marks.Add((math.lerp(f.A, f.B, tf), "crossing")); if (Environment.GetEnvironmentVariable("PM_FENCE_WHY") != null) Console.WriteLine($"  crossing at {math.lerp(f.A, f.B, tf)}: {(f.Piece ? "piece" : "line")} of {f.House % 10000} ({f.A}-{f.B}) and {(g.Piece ? "piece" : "line")} of {g.House % 10000} ({g.A}-{g.B}), {math.degrees(math.acos(math.abs(math.dot(d1, d2)))):F0} deg"); }
                 }
             // inside a garden, away from its edges
             foreach (var b in mine)
