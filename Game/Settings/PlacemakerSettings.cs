@@ -55,6 +55,11 @@ namespace Placemaker.Game.Settings
         [SettingsUISection(SectionMain, GroupGeneral)]
         public PreviewDetail PreviewDetail { get; set; }
 
+        /// <summary>Outgrow's gardens drawn on the city (OutgrowDebugOverlaySystem): every outgrown building's garden as its last
+        /// plan wrote it, its corners, edges under 2 m red, its lot.</summary>
+        [SettingsUISection(SectionMain, GroupGeneral)]
+        public bool ShowGardenOutlines { get; set; }
+
         /// <summary>Sketch preview: planned surfaces get a faint tint (on) or only their outline (off).</summary>
         [SettingsUISection(SectionMain, GroupGeneral)]
         public bool SketchSurfaceFill { get; set; }
