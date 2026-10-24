@@ -1,0 +1,216 @@
+{
+  "_about": "The Outgrow boot camp: loads 'PM Bootcamp' (outgrow-bootcamp-make.json: six lands of odd angles, circles, curves, blocks, triangles, wedges) and plans every garden again twice the old way (emergent 0) and twice the current way (emergent 1); after each second round the garden report (gardens-<way>.txt/.json: edges per garden with shared ones counted by each, corner angles, flags, the worst) and coverage (coverage-<way>.json: the land within 40 m of a road and what that encloses, how much of it is in a garden), the fence map, and the passes (passes/<way>/, OutgrowBench). Draw it with node tools/suite/GardenMap.js <run folder> <way>. No growing: the same buildings every time. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-bootcamp.json -Who outgrow-bootcamp",
+  "scenarios": [
+    {
+      "id": "bootcamp",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "loadCity",
+          "name": "PM Bootcamp"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 60
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 0
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 600,
+          "label": "old"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 0
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "gardenReport",
+          "label": "old",
+          "max": 8,
+          "places": [
+            {
+              "name": "grid",
+              "at": [
+                2206,
+                -10
+              ],
+              "size": 520
+            },
+            {
+              "name": "circles",
+              "at": [
+                3018,
+                -10
+              ],
+              "size": 520
+            },
+            {
+              "name": "curves",
+              "at": [
+                3830,
+                -10
+              ],
+              "size": 520
+            },
+            {
+              "name": "blocks",
+              "at": [
+                4642,
+                -10
+              ],
+              "size": 520
+            },
+            {
+              "name": "triangles",
+              "at": [
+                5454,
+                -10
+              ],
+              "size": 520
+            },
+            {
+              "name": "wedges",
+              "at": [
+                6266,
+                -10
+              ],
+              "size": 520
+            }
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "box": "gardens",
+          "label": "old",
+          "closeups": 0,
+          "junctions": 0,
+          "edges": 0
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 1
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 600,
+          "label": "now"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 1
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "gardenReport",
+          "label": "now",
+          "max": 8,
+          "places": [
+            {
+              "name": "grid",
+              "at": [
+                2206,
+                -10
+              ],
+              "size": 520
+            },
+            {
+              "name": "circles",
+              "at": [
+                3018,
+                -10
+              ],
+              "size": 520
+            },
+            {
+              "name": "curves",
+              "at": [
+                3830,
+                -10
+              ],
+              "size": 520
+            },
+            {
+              "name": "blocks",
+              "at": [
+                4642,
+                -10
+              ],
+              "size": 520
+            },
+            {
+              "name": "triangles",
+              "at": [
+                5454,
+                -10
+              ],
+              "size": 520
+            },
+            {
+              "name": "wedges",
+              "at": [
+                6266,
+                -10
+              ],
+              "size": 520
+            }
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "box": "gardens",
+          "label": "now",
+          "closeups": 0,
+          "junctions": 0,
+          "edges": 0
+        }
+      ]
+    }
+  ]
+}
