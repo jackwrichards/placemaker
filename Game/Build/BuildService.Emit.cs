@@ -365,7 +365,10 @@ namespace Placemaker.Game.Build
                 if (string.IsNullOrWhiteSpace(raw)) continue;
                 var name = raw.Trim();
                 string side = null;
+                // Roads write "Left.SecondaryBeautification" (RoadsSchema.Upgrades), lanes "left:ZonesDisabled" (LaneSides):
+                // both are side + flag. With ':' alone every street upgrade (trees, grass, bike lanes) was dropped.
                 int colon = name.IndexOf(':');
+                if (colon < 0) colon = name.IndexOf('.');
                 if (colon > 0) { side = name.Substring(0, colon).ToLowerInvariant(); name = name.Substring(colon + 1); }
                 if (side == null || side == "general")
                 {
