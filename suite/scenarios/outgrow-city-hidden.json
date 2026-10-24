@@ -17,6 +17,15 @@
         },
         {
           "do": "lab",
+          "op": "outgrowCheck",
+          "address": "311 Kingsgate Street",
+          "margin": 45,
+          "closeups": 2,
+          "hiddenFirst": true,
+          "whyMax": 80
+        },
+        {
+          "do": "lab",
           "op": "outgrowFrames",
           "seconds": 30,
           "speed": 1,
@@ -54,6 +63,15 @@
           "closeups": 4,
           "hiddenFirst": true,
           "whyMax": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "address": "311 Kingsgate Street",
+          "margin": 45,
+          "closeups": 2,
+          "hiddenFirst": true,
+          "whyMax": 80
         }
       ]
     }

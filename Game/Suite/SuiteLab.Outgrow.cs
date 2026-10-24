@@ -75,6 +75,7 @@ namespace Placemaker.Game.Suite
                 rec["showLeftOver"] = NeighbourPolishSystem.ShowLeftOver;
                 rec["misplacedReplans"] = NeighbourPolishSystem.TotalMisplacedReplans;
                 rec["misplacedRemoved"] = NeighbourPolishSystem.TotalMisplacedRemoved;
+                rec["misplacedFencesRemoved"] = NeighbourPolishSystem.TotalMisplacedFencesRemoved;
                 rec["misplacedSamples"] = new JArray(NeighbourPolishSystem.MisplacedSamples);
                 rec["passSlicesLeft"] = NeighbourPolishSystem.PassSlicesLeft;
                 rec["passes"] = NeighbourPolishSystem.TotalPasses;
@@ -105,6 +106,36 @@ namespace Placemaker.Game.Suite
                         hi = math.max(hi, p + 150f);
                     }
                 if (lo.x > hi.x) { rec["error"] = "lab: no Outgrow gardens in the city"; yield break; }
+            }
+            else if (!string.IsNullOrEmpty((string)step["address"]))
+            {
+                // around one outgrown building, by its address as the game shows it ("311 Kingsgate Street")
+                string address = ((string)step["address"]).Trim();
+                int space = address.IndexOf(' ');
+                int.TryParse(space > 0 ? address.Substring(0, space) : "", out int number);
+                string roadName = space > 0 ? address.Substring(space + 1) : address;
+                var nameSystem = _world.GetOrCreateSystemManaged<global::Game.UI.NameSystem>();
+                var roadNames = new Dictionary<Entity, string>();
+                Entity found = Entity.Null;
+                using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<PolishGarden>(), ComponentType.ReadOnly<global::Game.Objects.Transform>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
+                using (var all = q.ToEntityArray(Allocator.Temp))
+                    foreach (var e in all)
+                    {
+                        if (!global::Game.Buildings.BuildingUtils.GetAddress(em, e, out var road, out int num) || num != number || road == Entity.Null) continue;
+                        if (!roadNames.TryGetValue(road, out var rn)) { try { rn = nameSystem.GetRenderedLabelName(road); } catch (Exception) { rn = ""; } roadNames[road] = rn; }
+                        if (!string.Equals(rn, roadName, StringComparison.OrdinalIgnoreCase)) continue;
+                        found = e;
+                        break;
+                    }
+                if (found == Entity.Null) { rec["error"] = $"lab: no outgrown building at '{address}'"; yield break; }
+                var at = em.GetComponentData<global::Game.Objects.Transform>(found).m_Position.xz;
+                float margin = (float?)step["margin"] ?? 40f;
+                lo = at - margin;
+                hi = at + margin;
+                rec["address"] = address;
+                rec["building"] = found.Index;
+                rec["at"] = new JArray(Math.Round(at.x, 1), Math.Round(at.y, 1));
+                rec["gardenOf"] = sys.GardenOf(found) is float2[] g ? new JArray(g.Select(p => new JArray(Math.Round(p.x, 1), Math.Round(p.y, 1)))) : null;
             }
             else if (!string.IsNullOrEmpty((string)step["street"]))
             {

@@ -37,7 +37,7 @@ namespace Placemaker.Game.Neighbours
         // ───────────── gardens kept with their houses ─────────────
 
         /// <summary>The house's garden as its last plan wrote it (this session, else the one saved with it); null: unknown.</summary>
-        private float2[] GardenOf(Entity house)
+        internal float2[] GardenOf(Entity house)
         {
             if (_gardenOf.TryGetValue(house, out var g)) return g;
             if (!EntityManager.HasBuffer<PolishGarden>(house)) return null;
@@ -289,7 +289,7 @@ namespace Placemaker.Game.Neighbours
                         bool misplaced = !doubled && OnRoadOrBuilding(e, (a + b) * 0.5f);
                         // on a road or in another building's lot: its garden is wrong (an older build planned it over that land),
                         // not the piece; kept hidden it stood there unseen, drawn only when its house was hovered (the user, 23 Oct)
-                        if (misplaced && Misplaced(e)) continue;
+                        if (misplaced && Misplaced(e, fence)) continue;
                         if (doubled || misplaced)
                         {
                             if (!_keptHidden.ContainsKey(e)) { TotalKeptHidden++; _keptSinceLog++; }
@@ -336,19 +336,20 @@ namespace Placemaker.Game.Neighbours
         // houses planned again for a piece of theirs on a road or in another building's lot (once each per city loaded)
         private readonly HashSet<Entity> _replannedForMisplaced = new HashSet<Entity>();
         /// <summary>For the game runner: gardens planned again for a misplaced piece, and misplaced pieces removed.</summary>
-        public static int TotalMisplacedReplans, TotalMisplacedRemoved;
+        public static int TotalMisplacedReplans, TotalMisplacedRemoved, TotalMisplacedFencesRemoved;
         public static readonly List<string> MisplacedSamples = new List<string>();
 
         /// <summary>
-        /// One of our pieces stands on a road or inside another building's lot: its house is planned again (today's planner
-        /// keeps gardens off both: a town planned by it has none; a city saved by an older build had hundreds), the piece kept
-        /// hidden until the new plan replaces it. A house planned again already that still has one: the piece is removed
-        /// (hidden, it showed only when its house was hovered). True when the piece goes.
+        /// One of our pieces stands on a road or inside another building's lot. A fence or hedge: its garden's edge is wrong
+        /// (an older build planned it over that land; today's planner keeps gardens off both: a town planned by it has none, a
+        /// city saved by an older build had hundreds), so its house is planned again and the piece kept hidden until the new
+        /// plan replaces it; one still there after that is removed. A bush, bed, rock or tree there is removed. Hidden, either
+        /// showed only when its house was hovered. True when the piece goes.
         /// </summary>
-        private bool Misplaced(Entity piece)
+        private bool Misplaced(Entity piece, bool fence)
         {
             var owner = EntityManager.HasComponent<Owner>(piece) ? EntityManager.GetComponentData<Owner>(piece).m_Owner : Entity.Null;
-            if (owner != Entity.Null && EntityManager.Exists(owner) && !EntityManager.HasComponent<Deleted>(owner) && IsYes(owner) && IsGrowable(owner)
+            if (fence && owner != Entity.Null && EntityManager.Exists(owner) && !EntityManager.HasComponent<Deleted>(owner) && IsYes(owner) && IsGrowable(owner)
                 && _replannedForMisplaced.Add(owner))
             {
                 _described.Remove(owner);
@@ -367,6 +368,7 @@ namespace Placemaker.Game.Neighbours
             _goingSoon.Add(piece);
             _keptHidden.Remove(piece);
             TotalMisplacedRemoved++;
+            if (fence) TotalMisplacedFencesRemoved++;
             return true;
         }
 
