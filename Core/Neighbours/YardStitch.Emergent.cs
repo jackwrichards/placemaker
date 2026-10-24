@@ -34,7 +34,7 @@ namespace Placemaker.Core.Neighbours
             float tol = math.max(0f, s.Knob("emergentTol", 1.5f));
             // near to what: the lot's street front (1: the land between two rows backing onto each other is split half way between
             // their streets, one line however deep each lot is, as plots are laid out) or the lot itself (0)
-            bool fromFront = s.Knob("emergentFront", 1f) > 0.5f;
+            float frontShare = math.saturate(s.Knob("emergentFront", 1f));
             // a lot comes with a strip of its own all round (m): the gaps between two lots' corners on a curve are theirs, not a
             // tooth of the garden across the way
             float apron = math.max(0f, s.Knob("emergentApron", 3f));
@@ -115,6 +115,8 @@ namespace Placemaker.Core.Neighbours
             Lap("need");
             // ── 1. fair: each cell to the nearest lot that reaches it ──
             var label = new int[w * h];
+            // the cells in a lot or its strip all round (never shaved off a garden, never moved to the other row)
+            var own = new bool[w * h];
             // (the way to each reaching lot from the cell: land between houses has houses on opposite sides of it)
             var ways = new float2[64];
             // each owner's cells' box (its outline is looked for there only)
@@ -143,8 +145,14 @@ namespace Placemaker.Core.Neighbours
                             float d = ex * ex + ez * ez;
                             // (a lot always holds its own land; elsewhere a barrier holds it)
                             if (d > 0f && blocked[y * w + x]) continue;
-                            // (from its street front: depth from the street and how far past its side)
-                            if (d > apronSq && fromFront) d = apronSq + 1f + ex * ex + (l.y - hk.HalfLot.y) * (l.y - hk.HalfLot.y);
+                            // (from its street front: depth from the street and how far past its side; or a share of each: the
+                            // whole lot is fair to a deep lot, the street gives one line where lots differ in depth)
+                            if (d > apronSq && frontShare > 0f)
+                            {
+                                float fd = math.sqrt(ex * ex + (l.y - hk.HalfLot.y) * (l.y - hk.HalfLot.y));
+                                float mixed = math.lerp(math.sqrt(d), fd, frontShare);
+                                d = apronSq + 1f + mixed * mixed;
+                            }
                             if (d > 0f && !InConvex(seedWide[k], p)) continue;
                             if (reachers < ways.Length) ways[reachers] = math.normalizesafe(way);
                             if (!inPlay && (d == 0f || InConvex(seedPoly[k], p))) inPlay = true;
@@ -164,10 +172,27 @@ namespace Placemaker.Core.Neighbours
                         if (!between) best = -1;
                     }
                     label[y * w + x] = best;
+                    own[y * w + x] = best >= 0 && bestD <= apronSq;
                     if (best >= 0) box[best] = new int4(math.min(box[best].x, x), math.min(box[best].y, y), math.max(box[best].z, x), math.max(box[best].w, y));
                 }
             }
             Lap("label");
+            void Take(int x, int y, int to)
+            {
+                label[y * w + x] = to;
+                if (to >= 0) box[to] = new int4(math.min(box[to].x, x), math.min(box[to].y, y), math.max(box[to].z, x), math.max(box[to].w, y));
+            }
+            // ── no yard narrower than a yard is any use: strips under emergentMinWidth (m) past a lot's own strip go to the
+            // garden round them, else to nobody ──
+            float minWidth = s.Knob("emergentMinWidth", 0f);
+            if (minWidth > 0f)
+            {
+                var seedIndex = new Dictionary<int, int>();
+                for (int k = 0; k < seeds.Count; k++) seedIndex[seeds[k]] = k;
+                Narrows(label, own, w, h, (int)math.round(minWidth * 0.5f / cell),
+                    (x, y, to) => seedIndex.TryGetValue(to, out int k) && InConvex(seedWide[k], lo + new float2(x + 0.5f, y + 0.5f) * cell), Take, plan);
+            }
+            Lap("shape");
             int L(int x, int y) => x < 0 || y < 0 || x >= w || y >= h ? -2 : label[y * w + x];
             // where three or more owners meet (nobody's land counts as one), or two touch corner to corner: the points every
             // garden's outline keeps, so the edges between them are drawn the same by both sides
@@ -205,6 +230,95 @@ namespace Placemaker.Core.Neighbours
             }
             if (times != null) plan.Notes.Add("emergent (ms): " + string.Join(", ", times.GroupBy(x => x.Split(' ')[0]).Select(g => $"{g.Key} {g.Sum(x => double.Parse(x.Split(' ')[1], System.Globalization.CultureInfo.InvariantCulture)):F1}")));
             plan.Notes.Add($"emergent: {made} gardens shared by nearness on {w} x {h} cells of {cell:0.##} m, {seeds.Count} lots competing");
+        }
+
+        /// <summary>
+        /// Strips of a garden narrower than 2·r cells past its lot's own strip: what stays when every cell nearer than r to another
+        /// owner goes and the rest grows back r (an opening). A strip that goes is given to the garden round it that reaches it
+        /// (the one it touches most), else to nobody.
+        /// </summary>
+        private static void Narrows(int[] label, bool[] own, int w, int h, int r, Func<int, int, int, bool> reaches, Action<int, int, int> take, StitchPlan plan)
+        {
+            if (r < 1) return;
+            int count = w * h;
+            const int Far = 1 << 20;
+            // distance in cells (8 ways) to the nearest cell of another owner
+            var d = new int[count];
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                {
+                    int i = y * w + x, l = label[i];
+                    bool edge = l < 0 || x == 0 || y == 0 || x == w - 1 || y == h - 1
+                        || label[i - 1] != l || label[i + 1] != l || label[i - w] != l || label[i + w] != l;
+                    d[i] = edge ? 0 : Far;
+                }
+            for (int y = 1; y < h; y++)
+                for (int x = 1; x < w - 1; x++)
+                {
+                    int i = y * w + x;
+                    d[i] = math.min(d[i], math.min(math.min(d[i - 1], d[i - w]), math.min(d[i - w - 1], d[i - w + 1])) + 1);
+                }
+            for (int y = h - 2; y >= 0; y--)
+                for (int x = w - 2; x >= 1; x--)
+                {
+                    int i = y * w + x;
+                    d[i] = math.min(d[i], math.min(math.min(d[i + 1], d[i + w]), math.min(d[i + w + 1], d[i + w - 1])) + 1);
+                }
+            // grown back r cells from the core (r or more from another owner, or a lot's own strip), within the same owner
+            var back = new int[count];
+            var queue = new Queue<int>();
+            for (int i = 0; i < count; i++)
+            {
+                back[i] = Far;
+                if (label[i] >= 0 && (d[i] >= r || own[i])) { back[i] = 0; queue.Enqueue(i); }
+            }
+            while (queue.Count > 0)
+            {
+                int i = queue.Dequeue();
+                if (back[i] >= r) continue;
+                int x = i % w, y = i / w;
+                for (int dy = -1; dy <= 1; dy++)
+                    for (int dx = -1; dx <= 1; dx++)
+                    {
+                        int nx = x + dx, ny = y + dy;
+                        if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+                        int j = ny * w + nx;
+                        if (label[j] != label[i] || back[j] <= back[i] + 1) continue;
+                        back[j] = back[i] + 1;
+                        queue.Enqueue(j);
+                    }
+            }
+            var lost = new List<int>();
+            for (int i = 0; i < count; i++) if (label[i] >= 0 && back[i] > r) lost.Add(i);
+            if (lost.Count == 0) return;
+            const int Open = -4;   // (nobody's while the gardens round it grow in)
+            var was = new Dictionary<int, int>(lost.Count);
+            foreach (int i in lost) { was[i] = label[i]; label[i] = Open; }
+            int given = 0;
+            for (int round = 0; round <= r; round++)
+            {
+                var gets = new List<(int I, int To)>();
+                foreach (int i in lost)
+                {
+                    if (label[i] != Open) continue;
+                    int x = i % w, y = i / w;
+                    int a = x > 0 ? label[i - 1] : -1, b = x < w - 1 ? label[i + 1] : -1, c = y > 0 ? label[i - w] : -1, e = y < h - 1 ? label[i + w] : -1;
+                    int best = -1, bestCount = 0;
+                    foreach (int cand in new[] { a, b, c, e })
+                    {
+                        if (cand < 0 || cand == was[i]) continue;   // (another garden: its own is what it was shaved off)
+                        int n = (a == cand ? 1 : 0) + (b == cand ? 1 : 0) + (c == cand ? 1 : 0) + (e == cand ? 1 : 0);
+                        if (n > bestCount || n == bestCount && cand < best) { best = cand; bestCount = n; }
+                    }
+                    if (best >= 0 && reaches(x, y, best)) gets.Add((i, best));
+                }
+                if (gets.Count == 0) break;
+                foreach (var (i, to) in gets) { take(i % w, i / w, to); given++; }
+            }
+            // (a strip no garden round it reaches stays its own garden's: shaved off, it was a gap between fences)
+            int kept = 0;
+            foreach (int i in lost) if (label[i] == Open) { label[i] = was[i]; kept++; }
+            plan.Notes.Add($"emergent: {lost.Count} cells of strips under {2 * r} cells wide: {given} to the garden round them, {kept} kept");
         }
 
         /// <summary>The edges of a convex counter-clockwise ring as (start, direction).</summary>

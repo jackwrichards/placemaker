@@ -1,5 +1,5 @@
 {
-  "_about": "The fast loop for outgrown rows meeting at the back at an angle (the user, 24 Oct: 'jagged edges ... steal land from each other'). Loads 'PM Askew Corner' (saved by outgrow-askew-make.json: it holds all five cases, the same buildings every time: angle at x 2096, curve 2688, curves 3280, cul-de-sac 3872, corner 4464), plans every garden again the old way (emergent 0), twice (the second time against gardens of the same way), and then the new way (emergent 1), twice, every pass written down (passes/old/, passes/new/, for OutgrowBench --explain <dir> --at x,z) and Outgrow timed (polishIdle), maps the fences (fenceMap: node tools/suite/FenceMap.js <json> --at x,z --size 200) and pictures each case from the top. No growing. Try planner knobs in polishSettings' settings. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-askew.json -Who outgrow-askew",
+  "_about": "The fast loop for outgrown rows meeting at the back at an angle (the user, 24 Oct: \"jagged edges ... steal land from each other\"). Loads PM Askew Corner (saved by outgrow-askew-make.json: all five cases, the same buildings every time: angle at x 2096, curve 2688, curves 3280, cul-de-sac 3872, corner 4464) and plans every garden again in each way, twice (the second time against gardens of the same way): the old rules (emergent 0), the emergent split measured from the street (emergentFront 1), half from the street and half from the lot (0.5) and from the lot (0), the last two without yard strips under 6 m. Every pass is written down (passes/<way>/, for OutgrowBench --explain <dir> --at x,z), the fences mapped (fenceMap) and each case pictured from the top. No growing. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-askew.json -Who outgrow-askew",
   "scenarios": [
     {
       "id": "askew",
@@ -138,13 +138,15 @@
           "do": "lab",
           "op": "polishPassDump",
           "max": 400,
-          "label": "new"
+          "label": "street"
         },
         {
           "do": "lab",
           "op": "polishSettings",
           "settings": {
-            "emergent": 1
+            "emergent": 1,
+            "emergentFront": 1,
+            "emergentMinWidth": 0
           }
         },
         {
@@ -156,7 +158,9 @@
           "do": "lab",
           "op": "polishSettings",
           "settings": {
-            "emergent": 1
+            "emergent": 1,
+            "emergentFront": 1,
+            "emergentMinWidth": 0
           }
         },
         {
@@ -168,14 +172,14 @@
           "do": "lab",
           "op": "fenceMap",
           "box": "gardens",
-          "label": "new",
+          "label": "street",
           "closeups": 0,
           "junctions": 0,
           "edges": 0
         },
         {
           "do": "shot",
-          "name": "new-angle",
+          "name": "street-angle",
           "camera": {
             "target": "point",
             "at": [
@@ -190,7 +194,7 @@
         },
         {
           "do": "shot",
-          "name": "new-curve",
+          "name": "street-curve",
           "camera": {
             "target": "point",
             "at": [
@@ -205,7 +209,7 @@
         },
         {
           "do": "shot",
-          "name": "new-curves",
+          "name": "street-curves",
           "camera": {
             "target": "point",
             "at": [
@@ -220,7 +224,7 @@
         },
         {
           "do": "shot",
-          "name": "new-culdesac",
+          "name": "street-culdesac",
           "camera": {
             "target": "point",
             "at": [
@@ -235,7 +239,243 @@
         },
         {
           "do": "shot",
-          "name": "new-corner",
+          "name": "street-corner",
+          "camera": {
+            "target": "point",
+            "at": [
+              4464,
+              -10
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 400,
+          "label": "half"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 1,
+            "emergentFront": 0.5,
+            "emergentMinWidth": 6
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 1,
+            "emergentFront": 0.5,
+            "emergentMinWidth": 6
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "box": "gardens",
+          "label": "half",
+          "closeups": 0,
+          "junctions": 0,
+          "edges": 0
+        },
+        {
+          "do": "shot",
+          "name": "half-angle",
+          "camera": {
+            "target": "point",
+            "at": [
+              2096,
+              -6
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "half-curve",
+          "camera": {
+            "target": "point",
+            "at": [
+              2688,
+              -10
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "half-curves",
+          "camera": {
+            "target": "point",
+            "at": [
+              3280,
+              -15
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "half-culdesac",
+          "camera": {
+            "target": "point",
+            "at": [
+              3872,
+              0
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "half-corner",
+          "camera": {
+            "target": "point",
+            "at": [
+              4464,
+              -10
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 400,
+          "label": "lot"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 1,
+            "emergentFront": 0,
+            "emergentMinWidth": 6
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 1,
+            "emergentFront": 0,
+            "emergentMinWidth": 6
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "box": "gardens",
+          "label": "lot",
+          "closeups": 0,
+          "junctions": 0,
+          "edges": 0
+        },
+        {
+          "do": "shot",
+          "name": "lot-angle",
+          "camera": {
+            "target": "point",
+            "at": [
+              2096,
+              -6
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "lot-curve",
+          "camera": {
+            "target": "point",
+            "at": [
+              2688,
+              -10
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "lot-curves",
+          "camera": {
+            "target": "point",
+            "at": [
+              3280,
+              -15
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "lot-culdesac",
+          "camera": {
+            "target": "point",
+            "at": [
+              3872,
+              0
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "lot-corner",
           "camera": {
             "target": "point",
             "at": [
