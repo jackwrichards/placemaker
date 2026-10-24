@@ -22,12 +22,6 @@
         },
         {
           "do": "lab",
-          "op": "polishPassDump",
-          "max": 400,
-          "label": "old"
-        },
-        {
-          "do": "lab",
           "op": "polishSettings",
           "settings": {
             "emergent": 0
@@ -37,6 +31,12 @@
           "do": "lab",
           "op": "polishIdle",
           "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 400,
+          "label": "old"
         },
         {
           "do": "lab",
@@ -136,17 +136,9 @@
         },
         {
           "do": "lab",
-          "op": "polishPassDump",
-          "max": 400,
-          "label": "street"
-        },
-        {
-          "do": "lab",
           "op": "polishSettings",
           "settings": {
-            "emergent": 1,
-            "emergentFront": 1,
-            "emergentMinWidth": 0
+            "emergent": 1
           }
         },
         {
@@ -156,11 +148,15 @@
         },
         {
           "do": "lab",
+          "op": "polishPassDump",
+          "max": 400,
+          "label": "new"
+        },
+        {
+          "do": "lab",
           "op": "polishSettings",
           "settings": {
-            "emergent": 1,
-            "emergentFront": 1,
-            "emergentMinWidth": 0
+            "emergent": 1
           }
         },
         {
@@ -172,14 +168,14 @@
           "do": "lab",
           "op": "fenceMap",
           "box": "gardens",
-          "label": "street",
+          "label": "new",
           "closeups": 0,
           "junctions": 0,
           "edges": 0
         },
         {
           "do": "shot",
-          "name": "street-angle",
+          "name": "new-angle",
           "camera": {
             "target": "point",
             "at": [
@@ -194,7 +190,7 @@
         },
         {
           "do": "shot",
-          "name": "street-curve",
+          "name": "new-curve",
           "camera": {
             "target": "point",
             "at": [
@@ -209,7 +205,7 @@
         },
         {
           "do": "shot",
-          "name": "street-curves",
+          "name": "new-curves",
           "camera": {
             "target": "point",
             "at": [
@@ -224,7 +220,7 @@
         },
         {
           "do": "shot",
-          "name": "street-culdesac",
+          "name": "new-culdesac",
           "camera": {
             "target": "point",
             "at": [
@@ -239,243 +235,7 @@
         },
         {
           "do": "shot",
-          "name": "street-corner",
-          "camera": {
-            "target": "point",
-            "at": [
-              4464,
-              -10
-            ],
-            "abs": true,
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        },
-        {
-          "do": "lab",
-          "op": "polishPassDump",
-          "max": 400,
-          "label": "half"
-        },
-        {
-          "do": "lab",
-          "op": "polishSettings",
-          "settings": {
-            "emergent": 1,
-            "emergentFront": 0.5,
-            "emergentMinWidth": 6
-          }
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 120
-        },
-        {
-          "do": "lab",
-          "op": "polishSettings",
-          "settings": {
-            "emergent": 1,
-            "emergentFront": 0.5,
-            "emergentMinWidth": 6
-          }
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 120
-        },
-        {
-          "do": "lab",
-          "op": "fenceMap",
-          "box": "gardens",
-          "label": "half",
-          "closeups": 0,
-          "junctions": 0,
-          "edges": 0
-        },
-        {
-          "do": "shot",
-          "name": "half-angle",
-          "camera": {
-            "target": "point",
-            "at": [
-              2096,
-              -6
-            ],
-            "abs": true,
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        },
-        {
-          "do": "shot",
-          "name": "half-curve",
-          "camera": {
-            "target": "point",
-            "at": [
-              2688,
-              -10
-            ],
-            "abs": true,
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        },
-        {
-          "do": "shot",
-          "name": "half-curves",
-          "camera": {
-            "target": "point",
-            "at": [
-              3280,
-              -15
-            ],
-            "abs": true,
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        },
-        {
-          "do": "shot",
-          "name": "half-culdesac",
-          "camera": {
-            "target": "point",
-            "at": [
-              3872,
-              0
-            ],
-            "abs": true,
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        },
-        {
-          "do": "shot",
-          "name": "half-corner",
-          "camera": {
-            "target": "point",
-            "at": [
-              4464,
-              -10
-            ],
-            "abs": true,
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        },
-        {
-          "do": "lab",
-          "op": "polishPassDump",
-          "max": 400,
-          "label": "lot"
-        },
-        {
-          "do": "lab",
-          "op": "polishSettings",
-          "settings": {
-            "emergent": 1,
-            "emergentFront": 0,
-            "emergentMinWidth": 6
-          }
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 120
-        },
-        {
-          "do": "lab",
-          "op": "polishSettings",
-          "settings": {
-            "emergent": 1,
-            "emergentFront": 0,
-            "emergentMinWidth": 6
-          }
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 120
-        },
-        {
-          "do": "lab",
-          "op": "fenceMap",
-          "box": "gardens",
-          "label": "lot",
-          "closeups": 0,
-          "junctions": 0,
-          "edges": 0
-        },
-        {
-          "do": "shot",
-          "name": "lot-angle",
-          "camera": {
-            "target": "point",
-            "at": [
-              2096,
-              -6
-            ],
-            "abs": true,
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        },
-        {
-          "do": "shot",
-          "name": "lot-curve",
-          "camera": {
-            "target": "point",
-            "at": [
-              2688,
-              -10
-            ],
-            "abs": true,
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        },
-        {
-          "do": "shot",
-          "name": "lot-curves",
-          "camera": {
-            "target": "point",
-            "at": [
-              3280,
-              -15
-            ],
-            "abs": true,
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        },
-        {
-          "do": "shot",
-          "name": "lot-culdesac",
-          "camera": {
-            "target": "point",
-            "at": [
-              3872,
-              0
-            ],
-            "abs": true,
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        },
-        {
-          "do": "shot",
-          "name": "lot-corner",
+          "name": "new-corner",
           "camera": {
             "target": "point",
             "at": [

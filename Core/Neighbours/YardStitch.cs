@@ -1072,6 +1072,7 @@ namespace Placemaker.Core.Neighbours
             Dedupe(houses, touched, plan, moved, s);
             Stage("dedupe2");
             CloseGardens(houses, plots, touched, plan, moved, s);
+            if (emergent) JoinLooseEnds(houses, touched, plan, moved, s);
             Stage("trim");
 
             // planted beds with bushes along the new fences and hedges of extended gardens

@@ -31,8 +31,9 @@ namespace Placemaker.OutgrowBench
             public float Open, Fenced;
             /// <summary>Where each problem is (for a picture): gap, double, inside, open, stub, short.</summary>
             public readonly List<(float2 At, string Kind)> Marks = new List<(float2, string)>();
-            public void Add(Tally t) { Passes += t.Passes; Pieces += t.Pieces; Gaps += t.Gaps; Crossings += t.Crossings; Doubles += t.Doubles; Inside += t.Inside; Stubs += t.Stubs; Short += t.Short; Open += t.Open; Fenced += t.Fenced; }
-            public override string ToString() => $"{Passes} passes: {Pieces} pieces, {Fenced:F0} m of fences; gaps {Gaps}, crossings {Crossings}, doubles {Doubles}, inside {Inside}, open {Open:F0} m, stubs {Stubs}, short {Short}";
+            public readonly List<float> GapLengths = new List<float>();
+            public void Add(Tally t) { Passes += t.Passes; Pieces += t.Pieces; Gaps += t.Gaps; Crossings += t.Crossings; Doubles += t.Doubles; Inside += t.Inside; Stubs += t.Stubs; Short += t.Short; Open += t.Open; Fenced += t.Fenced; GapLengths.AddRange(t.GapLengths); }
+            public override string ToString() => $"{Passes} passes: {Pieces} pieces, {Fenced:F0} m of fences; gaps {Gaps}, crossings {Crossings}, doubles {Doubles}, inside {Inside}, open {Open:F0} m, stubs {Stubs}, short {Short}" + (GapLengths.Count > 0 ? $" (gaps: {GapLengths.Count(g => g < 1.5f)} under 1.5 m, {GapLengths.Count(g => g >= 1.5f && g < 3f)} 1.5-3 m, {GapLengths.Count(g => g >= 3f)} 3-8 m)" : "");
         }
 
         public static int Run(List<string> args)
@@ -147,6 +148,7 @@ namespace Placemaker.OutgrowBench
                 used.Add(i);
                 used.Add(best);
                 t.Gaps++;
+                t.GapLengths.Add(bestD);
                 t.Marks.Add(((p + q) * 0.5f, "gap"));
             }
             // crossings and doubles
