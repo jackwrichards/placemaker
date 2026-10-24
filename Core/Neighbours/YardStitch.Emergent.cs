@@ -426,7 +426,7 @@ namespace Placemaker.Core.Neighbours
         /// carried on to it, a piece run gets a piece across the gap. (The emergent split's gardens meet at junctions the old
         /// joining steps never saw: three gardens and a lot another pass planned, a side line short of the street.)
         /// </summary>
-        private static void JoinLooseEnds(IReadOnlyList<StitchHouse> houses, bool[] touched, StitchPlan plan, Dictionary<long, (float2 A, float2 B)> moved, StitchSettings s)
+        private static void JoinLooseEnds(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchPlan plan, Dictionary<long, (float2 A, float2 B)> moved, StitchSettings s)
         {
             float reach = s.Knob("joinReach", 2.5f);
             if (reach <= 0f) return;
@@ -482,6 +482,16 @@ namespace Placemaker.Core.Neighbours
                 foreach (var w in walls) if (Poly.Contains(w, p) || DistanceToRing(w, p) < 0.6f) return true;
                 return false;
             }
+            // (a join runs along a garden's edge, never across a garden)
+            var rings = new List<(float2[] Ring, float2 Lo, float2 Hi)>();
+            for (int i = 0; i < houses.Count; i++)
+                if (touched[i] && plots[i] != null && plots[i].Length >= 3) rings.Add((plots[i], MinOf(plots[i]) - 1.5f, MaxOf(plots[i]) + 1.5f));
+            bool OnAnEdge(float2 p)
+            {
+                foreach (var (r, rlo, rhi) in rings)
+                    if (p.x >= rlo.x && p.y >= rlo.y && p.x <= rhi.x && p.y <= rhi.y && DistanceToRing(r, p) <= 1f) return true;
+                return false;
+            }
             float SegDist(float2 a, float2 b, float2 p, out float2 q)
             {
                 var ab = b - a;
@@ -515,8 +525,8 @@ namespace Placemaker.Core.Neighbours
                         if (dj < bestD && math.dot(math.normalizesafe(q - p), outDir) > -0.2f) { bestD = dj; best = j; bestQ = q; }
                     }
                     if (touches || best < 0 || Against(p)) continue;
-                    // (across a house, a shed or a road: a way through, left open)
-                    if (Against((p + bestQ) * 0.5f)) continue;
+                    // (across a house, a shed or a road: a way through, left open; across a garden: not a garden's border)
+                    if (Against((p + bestQ) * 0.5f) || !OnAnEdge((p + bestQ) * 0.5f)) continue;
                     if (standing)
                     {
                         // (only to this plan's fence, by a piece of its garden)
@@ -582,6 +592,14 @@ namespace Placemaker.Core.Neighbours
                         // back along itself to end on it; a line ends on it; crossing it in the middle is left alone
                         float over = math.min(ta, 1f - ta) * len;
                         if (over > 2.2f) continue;
+                        // (only an end that runs on loose past it: in a run another fence crosses, the piece stays)
+                        {
+                            var past = ta >= 0.5f ? b : a;
+                            bool continues = false;
+                            var pc = Near(past);
+                            if (pc != null) foreach (int q2 in pc) if (q2 != i && q2 != j && SegDist(segs[q2].A, segs[q2].B, past, out _) <= 0.6f) { continues = true; break; }
+                            if (continues) continue;
+                        }
                         var shift = di * (ta >= 0.5f ? -(1f - ta) * len : ta * len);
                         if (piece >= 0)
                         {
