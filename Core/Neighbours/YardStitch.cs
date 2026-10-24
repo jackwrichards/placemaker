@@ -580,11 +580,12 @@ namespace Placemaker.Core.Neighbours
                     float gw = K(h, s, "emergentReach", 40f);
                     float xlE = left[i] >= 0 ? -h.HalfLot.x - gw : xl, xrE = right[i] >= 0 ? h.HalfLot.x + gw : xr, zbE = zb;
                     float gapE = K(h, s, "maxRearGap", 60f);
-                    if (!deepen[i] && LotBehind(houses, i, gapE)) zbE = math.min(zb, -h.HalfLot.y - gapE);
+                    if (!deepen[i] && LotBehind(houses, i, gapE, left[i], right[i])) zbE = math.min(zb, -h.HalfLot.y - gapE);
                     var r = new List<float2> { h.ToWorld(new float2(xlE, zbE)), h.ToWorld(new float2(xrE, zbE)), h.ToWorld(new float2(xrE, zf)), h.ToWorld(new float2(xlE, zf)) };
                     foreach (var c in cuts[i]) if (!c.Pair) r = ClipHalfPlane(r, c.P, c.D, c.Keep ?? FrontMid(h));
                     reachR[i] = r;
-                    float xlw = math.min(xlE, -h.HalfLot.x - gw), xrw = math.max(xrE, h.HalfLot.x + gw), zbw = math.min(zbE, -h.HalfLot.y - gw);
+                    TraceWhy?.Invoke($"reach {h.Id} back {-zbE - h.HalfLot.y:F0} (rear {deepen[i]}, behind {!deepen[i] && zbE < zb}, extra {extra[i, 2]:F0}, row {rowDeepen[i]:F0}, hug {backHug[i] != null}) sides {-xlE - h.HalfLot.x:F0}/{xrE - h.HalfLot.x:F0}");
+                    float xlw = math.min(xlE, -h.HalfLot.x - gw), xrw = math.max(xrE, h.HalfLot.x + gw), zbw = zbE;   // (sideways only: two side neighbours both reaching back would take the open land behind a row)
                     var wide = new List<float2> { h.ToWorld(new float2(xlw, zbw)), h.ToWorld(new float2(xrw, zbw)), h.ToWorld(new float2(xrw, zf)), h.ToWorld(new float2(xlw, zf)) };
                     foreach (var c in cuts[i]) if (!c.Pair) wide = ClipHalfPlane(wide, c.P, c.D, c.Keep ?? FrontMid(h));
                     reachW[i] = wide;

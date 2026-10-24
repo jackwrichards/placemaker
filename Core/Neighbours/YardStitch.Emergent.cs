@@ -202,15 +202,17 @@ namespace Placemaker.Core.Neighbours
             }
         }
 
-        /// <summary>Another house's lot lies behind this one's within <paramref name="gap"/> (m).</summary>
-        private static bool LotBehind(IReadOnlyList<StitchHouse> houses, int i, float gap)
+        /// <summary>Another house's lot lies behind this one's within <paramref name="gap"/> (m): not a side neighbour (a deeper one
+        /// beside it reaches past its back), and well within its width.</summary>
+        private static bool LotBehind(IReadOnlyList<StitchHouse> houses, int i, float gap, int left, int right)
         {
             var h = houses[i];
-            var box = new[] { h.ToWorld(new float2(-h.HalfLot.x, -h.HalfLot.y - gap)), h.ToWorld(new float2(h.HalfLot.x, -h.HalfLot.y - gap)), h.BackRight, h.BackLeft };
+            float hx = math.max(0.5f, h.HalfLot.x - 2f), z0 = -h.HalfLot.y - 1f;
+            var box = new[] { h.ToWorld(new float2(-hx, -h.HalfLot.y - gap)), h.ToWorld(new float2(hx, -h.HalfLot.y - gap)), h.ToWorld(new float2(hx, z0)), h.ToWorld(new float2(-hx, z0)) };
             float reach = math.length(h.HalfLot) + gap;
             for (int j = 0; j < houses.Count; j++)
             {
-                if (j == i || math.distance(houses[j].Position, h.Position) > reach + math.length(houses[j].HalfLot)) continue;
+                if (j == i || j == left || j == right || math.distance(houses[j].Position, h.Position) > reach + math.length(houses[j].HalfLot)) continue;
                 if (Overlaps(box, Lot(houses[j]))) return true;
             }
             return false;

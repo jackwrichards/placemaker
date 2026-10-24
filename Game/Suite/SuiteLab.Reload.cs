@@ -110,6 +110,8 @@ namespace Placemaker.Game.Suite
             rec["loaded"] = load.IsCompleted && !load.IsFaulted && load.Result;
             yield return Frames(60);
             _world.GetOrCreateSystemManaged<global::Game.Simulation.SimulationSystem>().selectedSpeed = 0f;
+            // the save brings its own time of day (the pictures came out at dusk): the runner's light again
+            _look?.Apply(Say);
             Event("load");
             rec["oldDecalsRemoved"] = OldDecalCleanupSystem.LastRemoved;
             rec["oldDecalCleanup"] = !OldDecalCleanupSystem.SuiteSkip;
