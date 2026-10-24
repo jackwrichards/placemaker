@@ -1,46 +1,94 @@
 {
-  "_about": "Two rows of outgrown houses back to back at an angle (the user, 24 Oct: where two outgrown rows that are askew to each other meet at the back, the gardens 'take jagged edges and steal land from each other and shoot out in weird ways'; a designer would use as few bends as possible). Makes two towns and saves each, so outgrow-askew.json can load the very same buildings every time: 'PM Askew Straight' (a street behind another at 15 degrees, the rows closing in toward one end) and 'PM Askew Curve' (a straight street with a curved one behind it). Each town grows with Outgrow on, is saved, then every garden is planned again with every pass written down (passes/, for the offline replay: OutgrowBench --explain) and mapped (fenceMap). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-askew-make.json -Build -Who outgrow-askew",
+  "_about": "Outgrown rows that meet at the back at an angle (the user, 24 Oct: where two outgrown rows askew to each other meet, the gardens 'take jagged edges and steal land from each other'; a designer would use as few bends as possible). Five small cases, each grown once with Outgrow on and saved, so outgrow-askew.json loads the very same buildings every time: 'PM Askew Angle' (two straight streets at 15 degrees, the rows closing in), 'PM Askew Curve' (a straight street, a curved one behind it), 'PM Askew Curves' (two curves bulging toward each other), 'PM Askew Culdesac' (a turning circle backing onto a straight street), 'PM Askew Corner' (two straight streets at 35 degrees). After the save every garden is planned again with every pass written down (passes/, for OutgrowBench --explain) and mapped (fenceMap), one picture each. The waits are limits: growth stops 8 s after the last building, polishIdle as soon as Outgrow is idle. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-askew-make.json -Who outgrow-askew",
   "scenarios": [
     {
-      "id": "askew-straight",
-      "land": { "shape": "rect", "size": [420, 400], "ground": "flat", "roads": "none" },
+      "id": "angle",
+      "land": { "shape": "rect", "size": [300, 260], "ground": "flat", "roads": "none" },
       "steps": [
         { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
         { "do": "setting", "name": "PolishNewHouses", "value": true },
-        { "do": "lab", "op": "street", "shape": "straight", "at": [0, 62], "yaw": 0, "length": 280, "zone": "NA Residential Low" },
-        { "do": "lab", "op": "street", "shape": "straight", "at": [0, -52], "yaw": 15, "length": 280, "zone": "NA Residential Low" },
-        { "do": "grow", "seconds": 180 },
-        { "do": "lab", "op": "polishIdle", "seconds": 120 },
-        { "do": "lab", "op": "saveCity", "name": "PM Askew Straight" },
-        { "do": "lab", "op": "polishPassDump", "max": 200 },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [0, 58], "yaw": 0, "length": 170, "zone": "NA Residential Low" },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [0, -50], "yaw": 15, "length": 170, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
+        { "do": "lab", "op": "saveCity", "name": "PM Askew Angle" },
+        { "do": "lab", "op": "polishPassDump", "max": 200, "dir": "angle" },
         { "do": "lab", "op": "polishSettings", "settings": {} },
-        { "do": "lab", "op": "polishIdle", "seconds": 240 },
-        { "do": "lab", "op": "outgrowQuiet", "seconds": 5 },
-        { "do": "lab", "op": "fenceMap", "box": "gardens", "label": "straight", "closeups": 2, "junctions": 6, "edges": 0 },
-        { "do": "shot", "name": "straight-top", "camera": { "target": "point", "at": [0, 0], "view": "top", "distance": 300 }, "shotMode": "render" },
-        { "do": "shot", "name": "straight-top-east", "camera": { "target": "point", "at": [80, 15], "view": "top", "distance": 170 }, "shotMode": "render" },
-        { "do": "shot", "name": "straight-top-west", "camera": { "target": "point", "at": [-80, 0], "view": "top", "distance": 170 }, "shotMode": "render" }
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
+        { "do": "lab", "op": "fenceMap", "box": "gardens", "label": "angle", "closeups": 0, "junctions": 0, "edges": 0 },
+        { "do": "shot", "name": "angle", "camera": { "target": "point", "at": [0, 4], "view": "top", "distance": 210 }, "shotMode": "render" }
       ]
     },
     {
-      "id": "askew-curve",
-      "land": { "shape": "rect", "size": [420, 400], "ground": "flat", "roads": "none" },
+      "id": "curve",
+      "land": { "shape": "rect", "size": [300, 260], "ground": "flat", "roads": "none" },
       "steps": [
         { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
         { "do": "setting", "name": "PolishNewHouses", "value": true },
-        { "do": "lab", "op": "street", "shape": "straight", "at": [0, 72], "yaw": 0, "length": 280, "zone": "NA Residential Low" },
-        { "do": "lab", "op": "street", "shape": "arc", "at": [0, -200], "radius": 165, "from": 40, "to": 140, "zone": "NA Residential Low" },
-        { "do": "grow", "seconds": 180 },
-        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [0, 62], "yaw": 0, "length": 170, "zone": "NA Residential Low" },
+        { "do": "lab", "op": "street", "shape": "arc", "at": [0, -190], "radius": 150, "from": 55, "to": 125, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
         { "do": "lab", "op": "saveCity", "name": "PM Askew Curve" },
-        { "do": "lab", "op": "polishPassDump", "max": 200 },
+        { "do": "lab", "op": "polishPassDump", "max": 200, "dir": "curve" },
         { "do": "lab", "op": "polishSettings", "settings": {} },
-        { "do": "lab", "op": "polishIdle", "seconds": 240 },
-        { "do": "lab", "op": "outgrowQuiet", "seconds": 5 },
-        { "do": "lab", "op": "fenceMap", "box": "gardens", "label": "curve", "closeups": 2, "junctions": 6, "edges": 0 },
-        { "do": "shot", "name": "curve-top", "camera": { "target": "point", "at": [0, 5], "view": "top", "distance": 300 }, "shotMode": "render" },
-        { "do": "shot", "name": "curve-top-east", "camera": { "target": "point", "at": [75, 5], "view": "top", "distance": 170 }, "shotMode": "render" },
-        { "do": "shot", "name": "curve-top-west", "camera": { "target": "point", "at": [-75, 5], "view": "top", "distance": 170 }, "shotMode": "render" }
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
+        { "do": "lab", "op": "fenceMap", "box": "gardens", "label": "curve", "closeups": 0, "junctions": 0, "edges": 0 },
+        { "do": "shot", "name": "curve", "camera": { "target": "point", "at": [0, 0], "view": "top", "distance": 210 }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "curves",
+      "land": { "shape": "rect", "size": [300, 280], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "arc", "at": [0, -150], "radius": 200, "from": 63, "to": 117, "zone": "NA Residential Low" },
+        { "do": "lab", "op": "street", "shape": "arc", "at": [0, 140], "radius": 200, "from": 243, "to": 297, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
+        { "do": "lab", "op": "saveCity", "name": "PM Askew Curves" },
+        { "do": "lab", "op": "polishPassDump", "max": 200, "dir": "curves" },
+        { "do": "lab", "op": "polishSettings", "settings": {} },
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
+        { "do": "lab", "op": "fenceMap", "box": "gardens", "label": "curves", "closeups": 0, "junctions": 0, "edges": 0 },
+        { "do": "shot", "name": "curves", "camera": { "target": "point", "at": [0, -5], "view": "top", "distance": 210 }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "culdesac",
+      "land": { "shape": "rect", "size": [300, 280], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [0, 70], "yaw": 0, "length": 170, "zone": "NA Residential Low" },
+        { "do": "lab", "op": "street", "shape": "culdesac", "at": [0, -55], "yaw": 90, "length": 80, "cross": 170, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
+        { "do": "lab", "op": "saveCity", "name": "PM Askew Culdesac" },
+        { "do": "lab", "op": "polishPassDump", "max": 200, "dir": "culdesac" },
+        { "do": "lab", "op": "polishSettings", "settings": {} },
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
+        { "do": "lab", "op": "fenceMap", "box": "gardens", "label": "culdesac", "closeups": 0, "junctions": 0, "edges": 0 },
+        { "do": "shot", "name": "culdesac", "camera": { "target": "point", "at": [0, 10], "view": "top", "distance": 210 }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "corner",
+      "land": { "shape": "rect", "size": [300, 280], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [0, 62], "yaw": 0, "length": 170, "zone": "NA Residential Low" },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [10, -62], "yaw": 35, "length": 170, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
+        { "do": "lab", "op": "saveCity", "name": "PM Askew Corner" },
+        { "do": "lab", "op": "polishPassDump", "max": 200, "dir": "corner" },
+        { "do": "lab", "op": "polishSettings", "settings": {} },
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
+        { "do": "lab", "op": "fenceMap", "box": "gardens", "label": "corner", "closeups": 0, "junctions": 0, "edges": 0 },
+        { "do": "shot", "name": "corner", "camera": { "target": "point", "at": [0, 0], "view": "top", "distance": 210 }, "shotMode": "render" }
       ]
     }
   ]
