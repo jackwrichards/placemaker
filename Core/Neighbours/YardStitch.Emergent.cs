@@ -115,6 +115,8 @@ namespace Placemaker.Core.Neighbours
             Lap("need");
             // ── 1. fair: each cell to the nearest lot that reaches it ──
             var label = new int[w * h];
+            // (the way to each reaching lot from the cell: land between houses has houses on opposite sides of it)
+            var ways = new float2[64];
             // each owner's cells' box (its outline is looked for there only)
             var box = new int4[n];
             for (int k = 0; k < n; k++) box[k] = new int4(int.MaxValue, int.MaxValue, int.MinValue, int.MinValue);
@@ -127,6 +129,8 @@ namespace Placemaker.Core.Neighbours
                     var p = lo + new float2(x + 0.5f, y + 0.5f) * cell;
                     var list = buckets[by * bw + math.min(bw - 1, (int)((x + 0.5f) * cell / bucket))];
                     int best = -1, bestK = -1, reachers = 0;
+                    float2 bestWay = default;
+                    bool inPlay = false;
                     float bestD = float.MaxValue;
                     if (list != null)
                         foreach (int k in list)
@@ -134,20 +138,31 @@ namespace Placemaker.Core.Neighbours
                             var hk = houses[seeds[k]];
                             var l = hk.ToLocal(p);
                             float ex = math.max(0f, math.abs(l.x) - hk.HalfLot.x), ez = math.max(0f, math.abs(l.y) - hk.HalfLot.y);
+                            // (towards the lot's nearest point, in its own frame: only how two of them turn from each other counts)
+                            var way = hk.Right * (math.clamp(l.x, -hk.HalfLot.x, hk.HalfLot.x) - l.x) + hk.Forward * (math.clamp(l.y, -hk.HalfLot.y, hk.HalfLot.y) - l.y);
                             float d = ex * ex + ez * ez;
                             // (a lot always holds its own land; elsewhere a barrier holds it)
                             if (d > 0f && blocked[y * w + x]) continue;
                             // (from its street front: depth from the street and how far past its side)
                             if (d > apronSq && fromFront) d = apronSq + 1f + ex * ex + (l.y - hk.HalfLot.y) * (l.y - hk.HalfLot.y);
                             if (d > 0f && !InConvex(seedWide[k], p)) continue;
+                            if (reachers < ways.Length) ways[reachers] = math.normalizesafe(way);
+                            if (!inPlay && (d == 0f || InConvex(seedPoly[k], p))) inPlay = true;
                             reachers++;
                             if (d >= bestD) continue;
                             bestD = d;
                             best = seeds[k];
                             bestK = k;
+                            bestWay = math.normalizesafe(way);
                         }
-                    // (its lot, land between it and another, or land it reaches on its own)
-                    if (best >= 0 && bestD > 0f && reachers < 2 && !InConvex(seedPoly[bestK], p)) best = -1;
+                    // (land in play: a garden reaches it on its own, or it lies between two houses, a lot the other way more than
+                    // 120° round from the way to the nearest; then the nearest takes it)
+                    if (best >= 0 && bestD > 0f && !inPlay)
+                    {
+                        bool between = false;
+                        for (int q = 0; q < math.min(reachers, ways.Length) && !between; q++) between = math.dot(ways[q], bestWay) < -0.5f;
+                        if (!between) best = -1;
+                    }
                     label[y * w + x] = best;
                     if (best >= 0) box[best] = new int4(math.min(box[best].x, x), math.min(box[best].y, y), math.max(box[best].z, x), math.max(box[best].w, y));
                 }
