@@ -37,7 +37,7 @@ namespace Placemaker.Game.Neighbours
         // ───────────── gardens kept with their houses ─────────────
 
         /// <summary>The house's garden as its last plan wrote it (this session, else the one saved with it); null: unknown.</summary>
-        private float2[] GardenOf(Entity house)
+        internal float2[] GardenOf(Entity house)
         {
             if (_gardenOf.TryGetValue(house, out var g)) return g;
             if (!EntityManager.HasBuffer<PolishGarden>(house)) return null;
@@ -285,7 +285,12 @@ namespace Placemaker.Game.Neighbours
                         if (_keptHidden.TryGetValue(e, out var kept) && (LotFrame - kept.Frame < KeptLookAgain + (int)((uint)e.Index % KeptLookSpread) || looks++ >= KeptLooksPerFrame)) continue;
                         if (System.Diagnostics.Stopwatch.GetTimestamp() > stop) { ShowLeftOver++; continue; }
                         if (!EntityManager.HasComponent<global::Game.Objects.Object>(e) || !PieceSegment(e, out var a, out var b, out bool fence)) continue;
-                        if ((fence && Doubled(e, a, b)) || OnRoadOrBuilding(e, (a + b) * 0.5f))
+                        bool doubled = fence && Doubled(e, a, b);
+                        bool misplaced = !doubled && OnRoadOrBuilding(e, (a + b) * 0.5f);
+                        // on a road or in another building's lot: its garden is wrong (an older build planned it over that land),
+                        // not the piece; kept hidden it stood there unseen, drawn only when its house was hovered (the user, 23 Oct)
+                        if (misplaced && Settings.Knob("misplaced", 1f) > 0.5f && Misplaced(e, fence)) continue;
+                        if (doubled || misplaced)
                         {
                             if (!_keptHidden.ContainsKey(e)) { TotalKeptHidden++; _keptSinceLog++; }
                             _keptHidden[e] = (LotFrame, (a + b) * 0.5f);
@@ -326,6 +331,48 @@ namespace Placemaker.Game.Neighbours
                 Mod.Log.Info($"Placemaker neighbourhood polish: {_shownSinceLog} of its own pieces the game hid shown again in the same frame ({_againSinceLog} of them hidden before), {_keptSinceLog} left hidden (along another fence, on a road or in another building's lot)");
                 _shownSinceLog = _keptSinceLog = _againSinceLog = 0;
             }
+        }
+
+        // houses planned again for a piece of theirs on a road or in another building's lot (once each per city loaded)
+        private readonly Dictionary<Entity, int> _replannedForMisplaced = new Dictionary<Entity, int>();
+        /// <summary>For the game runner: gardens planned again for a misplaced piece, and misplaced pieces removed.</summary>
+        public static int TotalMisplacedReplans, TotalMisplacedRemoved, TotalMisplacedFencesRemoved;
+        public static readonly List<string> MisplacedSamples = new List<string>();
+
+        /// <summary>
+        /// One of our pieces stands on a road or inside another building's lot. A fence or hedge: its garden's edge is wrong
+        /// (an older build planned it over that land; today's planner keeps gardens off both: a town planned by it has none, a
+        /// city saved by an older build had hundreds), so its house is planned again and the piece kept hidden until the new
+        /// plan replaces it; one still there after that is removed. A bush, bed, rock or tree there is removed. Hidden, either
+        /// showed only when its house was hovered. True when the piece goes.
+        /// </summary>
+        private bool Misplaced(Entity piece, bool fence)
+        {
+            var owner = EntityManager.HasComponent<Owner>(piece) ? EntityManager.GetComponentData<Owner>(piece).m_Owner : Entity.Null;
+            bool replannable = fence && owner != Entity.Null && EntityManager.Exists(owner) && !EntityManager.HasComponent<Deleted>(owner) && IsYes(owner) && IsGrowable(owner);
+            // (its house's other pieces there wait for the plan too: the plan writes over them; one still there 5 s on is removed)
+            if (replannable && _replannedForMisplaced.TryGetValue(owner, out int asked) && LotFrame - asked < 300) return false;
+            if (replannable && !_replannedForMisplaced.ContainsKey(owner))
+            {
+                _replannedForMisplaced[owner] = LotFrame;
+                _described.Remove(owner);
+                if (_dirty.Add(owner)) DirtyBy[7]++;
+                TotalMisplacedReplans++;
+                return false;
+            }
+            if (_goingSoon.Contains(piece)) return true;
+            if (MisplacedSamples.Count < 60 && PieceSegment(piece, out var pa, out var pb, out _))
+            {
+                var under = new List<string>();
+                OnRoadOrBuilding(piece, (pa + pb) * 0.5f, under);
+                MisplacedSamples.Add($"{NameOf(EntityManager.GetComponentData<PrefabRef>(piece).m_Prefab)} at ({(pa.x + pb.x) * 0.5f:F1}, {(pa.y + pb.y) * 0.5f:F1}) of #{owner.Index}{(owner != Entity.Null && EntityManager.Exists(owner) ? " " + NameOf(EntityManager.GetComponentData<PrefabRef>(owner).m_Prefab) : "")} on {string.Join(", ", under)}");
+            }
+            NeighbourDeleteSystem.Queue.Add(piece);
+            _goingSoon.Add(piece);
+            _keptHidden.Remove(piece);
+            TotalMisplacedRemoved++;
+            if (fence) TotalMisplacedFencesRemoved++;
+            return true;
         }
 
         /// <summary>The pieces left hidden in a box looked at again next (a plan was written there: what doubled them or stood
@@ -403,7 +450,7 @@ namespace Placemaker.Game.Neighbours
                         // of ours left hidden for its own reason, is never drawn: counted, ours was left hidden as its double and
                         // neither stood there, ours only seen when the house was hovered (the user, 23 Oct: "there's no fence at
                         // all there, and then I hover and then there's a fence")
-                        if (EntityManager.HasComponent<Overridden>(o) && (o.Index > e.Index || !EntityManager.HasComponent<PolishPiece>(o) || _keptHidden.ContainsKey(o))) continue;
+                        if (EntityManager.HasComponent<Overridden>(o) && (o.Index > e.Index || Settings.Knob("hiddenDoubles", 1f) > 0.5f && (!EntityManager.HasComponent<PolishPiece>(o) || _keptHidden.ContainsKey(o)))) continue;
                         if (Along(p, q, o)) return true;
                     }
                 }
@@ -437,10 +484,13 @@ namespace Placemaker.Game.Neighbours
             if (!PieceSegment(e, out var a, out var b, out bool fence)) return "no shape";
             var why = new List<string>();
             bool doubled = fence && Doubled(e, a, b, why);
-            bool road = OnRoadOrBuilding(e, (a + b) * 0.5f);
+            var under = new List<string>();
+            bool road = OnRoadOrBuilding(e, (a + b) * 0.5f, under);
             string name = NameOf(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab);
-            return $"{name} ({math.distance(a, b):F1} m) at ({(a.x + b.x) * 0.5f:F1}, {(a.y + b.y) * 0.5f:F1}): {(_keptHidden.ContainsKey(e) ? "kept hidden" : "not judged yet")}, "
-                + $"{(doubled ? "doubled" : "not doubled")}{(why.Count > 0 ? " [" + string.Join("; ", why) + "]" : "")}{(road ? ", on a road or lot" : "")}";
+            var owner = EntityManager.HasComponent<Owner>(e) ? EntityManager.GetComponentData<Owner>(e).m_Owner : Entity.Null;
+            string whose = owner == Entity.Null || !EntityManager.Exists(owner) ? "no owner" : $"owner #{owner.Index} {NameOf(EntityManager.GetComponentData<PrefabRef>(owner).m_Prefab)}";
+            return $"{name} ({math.distance(a, b):F1} m) at ({(a.x + b.x) * 0.5f:F1}, {(a.y + b.y) * 0.5f:F1}), {whose}: {(_keptHidden.ContainsKey(e) ? "kept hidden" : "not judged yet")}, "
+                + $"{(doubled ? "doubled" : "not doubled")}{(why.Count > 0 ? " [" + string.Join("; ", why) + "]" : "")}{(road ? ", on " + string.Join(", ", under) : "")}";
         }
 
         // (a building's lot a metre in, and a road piece's surfaces, kept while the building stands where it was and the road's
@@ -478,7 +528,7 @@ namespace Placemaker.Game.Neighbours
 
         /// <summary>The point is on a road, path or track surface, or more than a metre inside the lot of a building that is
         /// not the piece's own house.</summary>
-        private bool OnRoadOrBuilding(Entity e, float2 p)
+        private bool OnRoadOrBuilding(Entity e, float2 p, List<string> what = null)
         {
             var owner = EntityManager.HasComponent<Owner>(e) ? EntityManager.GetComponentData<Owner>(e).m_Owner : Entity.Null;
             var found = new NativeList<Entity>(16, Allocator.Temp);
@@ -496,7 +546,12 @@ namespace Placemaker.Game.Neighbours
                     {
                         var o = found[i];
                         if (o == owner || !EntityManager.Exists(o) || EntityManager.HasComponent<Deleted>(o) || !BuildingFootprints.IsBuilding(EntityManager, o)) continue;
-                        foreach (var r in LotInset(o)) if (Poly.Contains(r, p)) return true;
+                        foreach (var r in LotInset(o))
+                            if (Poly.Contains(r, p))
+                            {
+                                what?.Add($"the lot of #{o.Index} {NameOf(EntityManager.GetComponentData<PrefabRef>(o).m_Prefab)}{(IsYes(o) ? " (outgrown)" : "")}");
+                                return true;
+                            }
                     }
                 }
                 found.Clear();
@@ -515,7 +570,12 @@ namespace Placemaker.Game.Neighbours
                         // walked, driven or ridden on (not a pipe or a power line under or over it)
                         var np = EntityManager.GetComponentData<PrefabRef>(n).m_Prefab;
                         if (!EntityManager.HasComponent<Road>(n) && !EntityManager.HasComponent<PathwayData>(np) && !EntityManager.HasComponent<TrainTrack>(n) && !EntityManager.HasComponent<TramTrack>(n)) continue;
-                        foreach (var ring in SurfaceRings(n, pieces)) if (Poly.Contains(ring, p)) return true;
+                        foreach (var ring in SurfaceRings(n, pieces))
+                            if (Poly.Contains(ring, p))
+                            {
+                                what?.Add($"the road #{n.Index} {NameOf(np)}");
+                                return true;
+                            }
                     }
                 }
             }

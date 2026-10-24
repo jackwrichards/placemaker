@@ -35,6 +35,8 @@ namespace Placemaker.Game.Suite
         {
             public float2[] Pts;
             public bool Hidden;
+            public bool Ours;
+            public Entity Owner;
             public float2 Lo, Hi;
         }
 
@@ -73,6 +75,10 @@ namespace Placemaker.Game.Suite
                 rec["sameLandPlans"] = NeighbourPolishSystem.SameLandPlans;
                 rec["longPassSlices"] = string.Join(", ", NeighbourPolishSystem.PassSegNames.Select((n, k) => $"{n} {NeighbourPolishSystem.LongSlices[k]} (worst {NeighbourPolishSystem.LongSliceWorstMs[k]:F1} ms)"));
                 rec["showLeftOver"] = NeighbourPolishSystem.ShowLeftOver;
+                rec["misplacedReplans"] = NeighbourPolishSystem.TotalMisplacedReplans;
+                rec["misplacedRemoved"] = NeighbourPolishSystem.TotalMisplacedRemoved;
+                rec["misplacedFencesRemoved"] = NeighbourPolishSystem.TotalMisplacedFencesRemoved;
+                rec["misplacedSamples"] = new JArray(NeighbourPolishSystem.MisplacedSamples);
                 rec["passSlicesLeft"] = NeighbourPolishSystem.PassSlicesLeft;
                 rec["passes"] = NeighbourPolishSystem.TotalPasses;
             }
@@ -102,6 +108,63 @@ namespace Placemaker.Game.Suite
                         hi = math.max(hi, p + 150f);
                     }
                 if (lo.x > hi.x) { rec["error"] = "lab: no Outgrow gardens in the city"; yield break; }
+            }
+            else if (!string.IsNullOrEmpty((string)step["address"]))
+            {
+                // around one outgrown building, by its address as the game shows it ("311 Kingsgate Street")
+                string address = ((string)step["address"]).Trim();
+                int space = address.IndexOf(' ');
+                int.TryParse(space > 0 ? address.Substring(0, space) : "", out int number);
+                string roadName = space > 0 ? address.Substring(space + 1) : address;
+                var nameSystem = _world.GetOrCreateSystemManaged<global::Game.UI.NameSystem>();
+                var roadNames = new Dictionary<Entity, string>();
+                Entity found = Entity.Null;
+                using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<PolishGarden>(), ComponentType.ReadOnly<global::Game.Objects.Transform>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
+                using (var all = q.ToEntityArray(Allocator.Temp))
+                    foreach (var e in all)
+                    {
+                        if (!global::Game.Buildings.BuildingUtils.GetAddress(em, e, out var road, out int num) || num != number || road == Entity.Null) continue;
+                        if (!roadNames.TryGetValue(road, out var rn)) { try { rn = nameSystem.GetRenderedLabelName(road); } catch (Exception) { rn = ""; } roadNames[road] = rn; }
+                        if (!string.Equals(rn, roadName, StringComparison.OrdinalIgnoreCase)) continue;
+                        found = e;
+                        break;
+                    }
+                if (found == Entity.Null) { rec["error"] = $"lab: no outgrown building at '{address}'"; yield break; }
+                var at = em.GetComponentData<global::Game.Objects.Transform>(found).m_Position.xz;
+                float margin = (float?)step["margin"] ?? 40f;
+                lo = at - margin;
+                hi = at + margin;
+                rec["address"] = address;
+                rec["building"] = found.Index;
+                rec["at"] = new JArray(Math.Round(at.x, 1), Math.Round(at.y, 1));
+                rec["gardenOf"] = sys.GardenOf(found) is float2[] g ? new JArray(g.Select(p => new JArray(Math.Round(p.x, 1), Math.Round(p.y, 1)))) : null;
+            }
+            else if (!string.IsNullOrEmpty((string)step["street"]))
+            {
+                // around a street (its name as the game shows it), as fenceMap's "street"
+                string street = (string)step["street"];
+                var nameSystem = _world.GetOrCreateSystemManaged<global::Game.UI.NameSystem>();
+                lo = new float2(float.MaxValue);
+                hi = new float2(float.MinValue);
+                var named = new Dictionary<Entity, string>();
+                using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<Aggregated>(), ComponentType.ReadOnly<Edge>(), ComponentType.ReadOnly<Curve>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
+                using (var all = q.ToEntityArray(Allocator.Temp))
+                    foreach (var e in all)
+                    {
+                        var agg = em.GetComponentData<Aggregated>(e).m_Aggregate;
+                        if (agg == Entity.Null) continue;
+                        if (!named.TryGetValue(agg, out var nm)) { try { nm = nameSystem.GetRenderedLabelName(agg); } catch (Exception) { nm = ""; } named[agg] = nm; }
+                        if (!string.Equals(nm, street, StringComparison.OrdinalIgnoreCase)) continue;
+                        var cb = MathUtils.Bounds(em.GetComponentData<Curve>(e).m_Bezier);
+                        lo = math.min(lo, cb.min.xz);
+                        hi = math.max(hi, cb.max.xz);
+                    }
+                if (lo.x > hi.x) { rec["error"] = $"lab: no street named '{street}'"; yield break; }
+                float margin = (float?)step["margin"] ?? 60f;
+                lo -= margin;
+                hi += margin;
+                rec["street"] = street;
+                rec["box"] = new JArray(Math.Round(lo.x, 1), Math.Round(lo.y, 1), Math.Round(hi.x, 1), Math.Round(hi.y, 1));
             }
             bool InBox(float2 a, float2 c) => c.x >= lo.x && c.y >= lo.y && a.x <= hi.x && a.y <= hi.y;
 
@@ -206,8 +269,8 @@ namespace Placemaker.Game.Suite
                     bool ours = em.HasComponent<PolishPiece>(e);
                     piecesAll++;
                     if (hidden) { piecesHidden++; hiddenAt.Add(t.m_Position.xz); }
-                    if (ours) { ourPieces++; if (hidden) { ourPiecesHidden++; if (whyHidden.Count < 40) whyHidden.Add(sys.WhyHidden(e)); } }
-                    fences.Add(new OutgrowFence { Pts = new[] { a, c }, Hidden = hidden, Lo = math.min(a, c), Hi = math.max(a, c) });
+                    if (ours) { ourPieces++; if (hidden) { ourPiecesHidden++; if (whyHidden.Count < ((int?)step["whyMax"] ?? 40)) whyHidden.Add(sys.WhyHidden(e)); } }
+                    fences.Add(new OutgrowFence { Pts = new[] { a, c }, Hidden = hidden, Lo = math.min(a, c), Hi = math.max(a, c), Ours = ours, Owner = em.HasComponent<Owner>(e) ? em.GetComponentData<Owner>(e).m_Owner : Entity.Null });
                 }
 
             // Outgrow's pieces (bushes, trees, rocks, props, fence pieces) standing in a crack (under a deck too low to grow
@@ -429,6 +492,65 @@ namespace Placemaker.Game.Suite
             rec["fenceEdgeM"] = Math.Round(edge, 0);
             rec["openFenceM"] = Math.Round(open, 1);
             rec["hiddenFenceM"] = Math.Round(hiddenFence, 1);
+            {
+                // Outgrow's visible pieces with another visible fence or hedge (another house's, or a lane) along most of them:
+                // within 0.7 m a doubled border, 0.7 to 2 m two hedges side by side
+                int doubledVisible = 0, sideBySide = 0;
+                var sbsAt = new List<float2>();
+                var grid = new Dictionary<long, List<int>>();
+                const float GC = 8f;
+                for (int i = 0; i < fences.Count; i++)
+                {
+                    var f = fences[i];
+                    if (f.Hidden) continue;
+                    for (int x = (int)math.floor((f.Lo.x - 2f) / GC); x <= (int)math.floor((f.Hi.x + 2f) / GC); x++)
+                        for (int y = (int)math.floor((f.Lo.y - 2f) / GC); y <= (int)math.floor((f.Hi.y + 2f) / GC); y++)
+                        {
+                            long key = ((long)x << 32) ^ (uint)y;
+                            if (!grid.TryGetValue(key, out var l)) grid[key] = l = new List<int>();
+                            l.Add(i);
+                        }
+                }
+                var seen = new HashSet<int>();
+                for (int i = 0; i < fences.Count; i++)
+                {
+                    var f = fences[i];
+                    if (f.Hidden || !f.Ours || f.Pts.Length != 2) continue;
+                    var a = f.Pts[0];
+                    var c = f.Pts[1];
+                    float len = math.distance(a, c);
+                    if (len < 1f) continue;
+                    var d = (c - a) / len;
+                    var nrm = new float2(-d.y, d.x);
+                    float near = 0f, side = 0f;
+                    seen.Clear();
+                    var mid = (a + c) * 0.5f;
+                    if (!grid.TryGetValue(((long)(int)math.floor(mid.x / GC) << 32) ^ (uint)(int)math.floor(mid.y / GC), out var cell)) continue;
+                    foreach (int j in cell)
+                    {
+                        if (j == i || !seen.Add(j)) continue;
+                        var o = fences[j];
+                        if (o.Ours && o.Owner == f.Owner) continue;
+                        for (int k = 0; k + 1 < o.Pts.Length; k++)
+                        {
+                            var p = o.Pts[k];
+                            var q = o.Pts[k + 1];
+                            float l2 = math.distance(p, q);
+                            if (l2 < 0.3f || math.abs(math.dot((q - p) / l2, d)) < 0.95f) continue;
+                            float off = math.abs(math.dot((p + q) * 0.5f - a, nrm));
+                            if (off > 2f) continue;
+                            float t0 = math.clamp(math.min(math.dot(p - a, d), math.dot(q - a, d)), 0f, len);
+                            float t1 = math.clamp(math.max(math.dot(p - a, d), math.dot(q - a, d)), 0f, len);
+                            if (off <= 0.7f) near += t1 - t0; else side += t1 - t0;
+                        }
+                    }
+                    if (near >= 0.5f * len) doubledVisible++;
+                    else if (side >= 0.5f * len) { sideBySide++; if (sbsAt.Count < 12) sbsAt.Add(mid); }
+                }
+                rec["doubledVisible"] = doubledVisible;
+                rec["sideBySideVisible"] = sideBySide;
+                rec["sideBySideAt"] = new JArray(sbsAt.Select(p => new JArray(Math.Round(p.x, 1), Math.Round(p.y, 1))));
+            }
             rec["fenceLanes"] = lanes;
             rec["fenceLanesHidden"] = lanesHidden;
             rec["fencePieces"] = piecesAll;
@@ -476,6 +598,8 @@ namespace Placemaker.Game.Suite
             Pick("gap", gapSpots.OrderByDescending(g => g.Len).Select(g => g.At), 2);
             Pick("hidden", hiddenAt, 1);
             Pick("bare", bareSpots.OrderByDescending(x => x.Area).Select(x => x.At), 2);
+            // ("addressShot": the building looked up by its address first, the way the player looks at it)
+            if ((bool?)step["addressShot"] == true && rec["at"] is JArray atAddr) focus.Insert(0, ("address", new float2((float)atAddr[0], (float)atAddr[1])));
             var shots = new JArray();
             for (int i = 0; i < focus.Count; i++)
             {
