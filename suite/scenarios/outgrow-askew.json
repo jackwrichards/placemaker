@@ -1,248 +1,8 @@
 {
-  "_about": "The fast loop for outgrown rows meeting at the back at an angle: each case saved by outgrow-askew-make.json is loaded (the same buildings every time), every garden planned again with every pass written down (passes/<case>/, for OutgrowBench --explain), mapped (fenceMap) and pictured from the top. No growing. 'settings' in polishSettings tries planner knobs. Cut it to one case by deleting the others. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-askew.json -Who outgrow-askew",
+  "_about": "The fast loop for outgrown rows meeting at the back at an angle (the user, 24 Oct: 'jagged edges ... steal land from each other'). Loads 'PM Askew Corner' (saved by outgrow-askew-make.json: it holds all five cases, the same buildings every time: angle at x 2096, curve 2688, curves 3280, cul-de-sac 3872, corner 4464), plans every garden again with every pass written down (passes/all/, for OutgrowBench --explain <dir> --at x,z), maps the fences (fenceMap: node tools/suite/FenceMap.js <json> --at x,z --size 200) and pictures each case from the top. No growing. Try planner knobs in polishSettings' settings. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-askew.json -Who outgrow-askew",
   "scenarios": [
     {
-      "id": "angle",
-      "site": "flat",
-      "steps": [
-        {
-          "do": "setting",
-          "name": "NeighbourhoodPolish",
-          "value": true
-        },
-        {
-          "do": "lab",
-          "op": "loadCity",
-          "name": "PM Askew Angle"
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 60
-        },
-        {
-          "do": "lab",
-          "op": "polishPassDump",
-          "max": 200,
-          "label": "angle"
-        },
-        {
-          "do": "lab",
-          "op": "polishSettings",
-          "settings": {}
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 90
-        },
-        {
-          "do": "lab",
-          "op": "fenceMap",
-          "box": "gardens",
-          "label": "angle",
-          "closeups": 0,
-          "junctions": 0,
-          "edges": 0
-        },
-        {
-          "do": "shot",
-          "name": "angle",
-          "camera": {
-            "target": "point",
-            "at": [
-              0,
-              4
-            ],
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        }
-      ]
-    },
-    {
-      "id": "curve",
-      "site": "flat",
-      "steps": [
-        {
-          "do": "setting",
-          "name": "NeighbourhoodPolish",
-          "value": true
-        },
-        {
-          "do": "lab",
-          "op": "loadCity",
-          "name": "PM Askew Curve"
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 60
-        },
-        {
-          "do": "lab",
-          "op": "polishPassDump",
-          "max": 200,
-          "label": "curve"
-        },
-        {
-          "do": "lab",
-          "op": "polishSettings",
-          "settings": {}
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 90
-        },
-        {
-          "do": "lab",
-          "op": "fenceMap",
-          "box": "gardens",
-          "label": "curve",
-          "closeups": 0,
-          "junctions": 0,
-          "edges": 0
-        },
-        {
-          "do": "shot",
-          "name": "curve",
-          "camera": {
-            "target": "point",
-            "at": [
-              0,
-              0
-            ],
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        }
-      ]
-    },
-    {
-      "id": "curves",
-      "site": "flat",
-      "steps": [
-        {
-          "do": "setting",
-          "name": "NeighbourhoodPolish",
-          "value": true
-        },
-        {
-          "do": "lab",
-          "op": "loadCity",
-          "name": "PM Askew Curves"
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 60
-        },
-        {
-          "do": "lab",
-          "op": "polishPassDump",
-          "max": 200,
-          "label": "curves"
-        },
-        {
-          "do": "lab",
-          "op": "polishSettings",
-          "settings": {}
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 90
-        },
-        {
-          "do": "lab",
-          "op": "fenceMap",
-          "box": "gardens",
-          "label": "curves",
-          "closeups": 0,
-          "junctions": 0,
-          "edges": 0
-        },
-        {
-          "do": "shot",
-          "name": "curves",
-          "camera": {
-            "target": "point",
-            "at": [
-              0,
-              -5
-            ],
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        }
-      ]
-    },
-    {
-      "id": "culdesac",
-      "site": "flat",
-      "steps": [
-        {
-          "do": "setting",
-          "name": "NeighbourhoodPolish",
-          "value": true
-        },
-        {
-          "do": "lab",
-          "op": "loadCity",
-          "name": "PM Askew Culdesac"
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 60
-        },
-        {
-          "do": "lab",
-          "op": "polishPassDump",
-          "max": 200,
-          "label": "culdesac"
-        },
-        {
-          "do": "lab",
-          "op": "polishSettings",
-          "settings": {}
-        },
-        {
-          "do": "lab",
-          "op": "polishIdle",
-          "seconds": 90
-        },
-        {
-          "do": "lab",
-          "op": "fenceMap",
-          "box": "gardens",
-          "label": "culdesac",
-          "closeups": 0,
-          "junctions": 0,
-          "edges": 0
-        },
-        {
-          "do": "shot",
-          "name": "culdesac",
-          "camera": {
-            "target": "point",
-            "at": [
-              0,
-              10
-            ],
-            "view": "top",
-            "distance": 210
-          },
-          "shotMode": "render"
-        }
-      ]
-    },
-    {
-      "id": "corner",
+      "id": "askew",
       "site": "flat",
       "steps": [
         {
@@ -263,8 +23,8 @@
         {
           "do": "lab",
           "op": "polishPassDump",
-          "max": 200,
-          "label": "corner"
+          "max": 400,
+          "label": "all"
         },
         {
           "do": "lab",
@@ -274,16 +34,76 @@
         {
           "do": "lab",
           "op": "polishIdle",
-          "seconds": 90
+          "seconds": 120
         },
         {
           "do": "lab",
           "op": "fenceMap",
           "box": "gardens",
-          "label": "corner",
+          "label": "all",
           "closeups": 0,
           "junctions": 0,
           "edges": 0
+        },
+        {
+          "do": "shot",
+          "name": "angle",
+          "camera": {
+            "target": "point",
+            "at": [
+              2096,
+              -6
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "curve",
+          "camera": {
+            "target": "point",
+            "at": [
+              2688,
+              -10
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "curves",
+          "camera": {
+            "target": "point",
+            "at": [
+              3280,
+              -15
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "culdesac",
+          "camera": {
+            "target": "point",
+            "at": [
+              3872,
+              0
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
         },
         {
           "do": "shot",
@@ -291,9 +111,10 @@
           "camera": {
             "target": "point",
             "at": [
-              0,
-              0
+              4464,
+              -10
             ],
+            "abs": true,
             "view": "top",
             "distance": 210
           },
