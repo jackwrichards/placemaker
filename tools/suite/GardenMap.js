@@ -19,7 +19,7 @@ const placed = gardens.filter(g => g.place);
 const out = [];
 const P = (s) => out.push(s);
 P(`${way}: ${placed.length} gardens in ${covers.length} places (${gardens.length - placed.length} elsewhere left out)`);
-P('coverage of the land Outgrow should cover (within 40 m of a road and 20 m of a lot, and what that encloses):');
+P('coverage of the land Outgrow should cover (within 52 m of a road and 26 m of a lot, and what that encloses):');
 let e = 0, c = 0;
 for (const cv of covers) { e += cv.expected; c += cv.covered; P(`  ${cv.place.padEnd(10)} ${cv.percent.toFixed(1).padStart(5)}%   ${((cv.expected - cv.covered)).toLocaleString()} m² uncovered of ${cv.expected.toLocaleString()} m²`); }
 P(`  ${'all'.padEnd(10)} ${(100 * c / e).toFixed(1).padStart(5)}%`);

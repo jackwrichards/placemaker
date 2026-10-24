@@ -241,7 +241,7 @@ namespace Placemaker.Core.Neighbours
         /// lot deep), and land those bands enclose (a block's, a triangle's, a ring's middle), not the roads themselves; and how
         /// much of it lies in a garden. Open land past the band is not expected: covering it scores nothing.
         /// </summary>
-        public static List<Cover> Coverage(IReadOnlyList<Place> places, IReadOnlyList<float2[]> roads, IReadOnlyList<float2[]> gardens, IReadOnlyList<float2[]> lots = null, float band = 40f, float nearLot = 20f, float cell = 1f)
+        public static List<Cover> Coverage(IReadOnlyList<Place> places, IReadOnlyList<float2[]> roads, IReadOnlyList<float2[]> gardens, IReadOnlyList<float2[]> lots = null, float band = 52f, float nearLot = 26f, float cell = 1f)
         {
             var result = new List<Cover>();
             foreach (var place in places)
@@ -373,7 +373,7 @@ namespace Placemaker.Core.Neighbours
         public static string CoverText(List<Cover> covers)
         {
             if (covers.Count == 0) return "";
-            var sb = new StringBuilder("coverage (expected: within 40 m of a road and 20 m of a lot, and the land that encloses; open land past it not counted):\n");
+            var sb = new StringBuilder("coverage (expected: within 52 m of a road and 26 m of a lot, and the land that encloses; open land past it not counted):\n");
             foreach (var c in covers) sb.Append($"  {c.Place,-12} {c.Percent,5:F1}%  ({c.Covered * c.Cell * c.Cell:F0} of {c.Expected * c.Cell * c.Cell:F0} m², {(c.Expected - c.Covered) * c.Cell * c.Cell:F0} m² uncovered)\n");
             long e = covers.Sum(c => (long)c.Expected), v = covers.Sum(c => (long)c.Covered);
             sb.Append($"  {"all",-12} {(e > 0 ? 100f * v / e : 0f),5:F1}%\n");
