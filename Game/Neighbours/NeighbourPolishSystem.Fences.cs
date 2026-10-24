@@ -398,8 +398,12 @@ namespace Placemaker.Game.Neighbours
                         // where the run does (YardStitch.LayRun); hidden as a double, it left a hole at the end of the run
                         if (owner != Entity.Null && EntityManager.HasComponent<PolishPiece>(o) && EntityManager.HasComponent<Owner>(o) && EntityManager.GetComponentData<Owner>(o).m_Owner == owner) continue;
                         if (!PieceSegment(o, out var p, out var q, out bool fence) || !fence) continue;
-                        // one that is hidden too only counts when it comes first (of two hidden ones, one is shown)
-                        if (EntityManager.HasComponent<Overridden>(o) && o.Index > e.Index) continue;
+                        // one that is hidden too only counts when it is one of ours that will be shown: it comes first (of two
+                        // hidden ones, one is shown) and is not left hidden itself. A hidden fence of a house's own model, or one
+                        // of ours left hidden for its own reason, is never drawn: counted, ours was left hidden as its double and
+                        // neither stood there, ours only seen when the house was hovered (the user, 23 Oct: "there's no fence at
+                        // all there, and then I hover and then there's a fence")
+                        if (EntityManager.HasComponent<Overridden>(o) && (o.Index > e.Index || !EntityManager.HasComponent<PolishPiece>(o) || _keptHidden.ContainsKey(o))) continue;
                         if (Along(p, q, o)) return true;
                     }
                 }

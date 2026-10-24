@@ -2698,6 +2698,18 @@ namespace Placemaker.Core.Neighbours
             var wallLo = new float2[walls.Count];
             var wallHi = new float2[walls.Count];
             for (int w = 0; w < walls.Count; w++) Poly.Bounds(walls[w], out wallLo[w], out wallHi[w]);
+            // (the houses themselves: along a house's wall is no place for a fence either, its own or the next one's: row houses
+            // touching share a wall on their lot line, and a hedge laid along it stuck out of the front onto the pavement)
+            bool[] isHouse = new bool[walls.Count];
+            for (int w = 0; w < walls.Count; w++) isHouse[w] = false;
+            {
+                int w = 0;
+                foreach (var h in houses)
+                {
+                    if (h.Footprint != null && h.Footprint.Length >= 3) { isHouse[w] = true; wallLo[w] -= 0.35f; wallHi[w] += 0.35f; w++; }
+                    foreach (var r in h.Props.Concat(h.Hard)) if (r != null && r.Length >= 3 && Inset(r) != null) w++;
+                }
+            }
             // the lines (drawn, and the pieces placed so far) by 4 m cell: a point only looks at the lines in its own cell
             var near = (s_closeGrid ??= new LineGrid(4f, 1f)).Reset(4f, 1f);
             foreach (var l in drawn) near.Add(l.A, l.B);
@@ -2733,8 +2745,12 @@ namespace Placemaker.Core.Neighbours
             bool InWall(float2 at)
             {
                 if (!wallCells.TryGetValue(((long)(int)math.floor(at.x / WallCell) << 32) ^ (uint)(int)math.floor(at.y / WallCell), out var l)) return false;
+                const float AlongWall = 0.35f;
                 foreach (int w in l)
-                    if (at.x >= wallLo[w].x && at.y >= wallLo[w].y && at.x <= wallHi[w].x && at.y <= wallHi[w].y && Poly.Contains(walls[w], at)) return true;
+                {
+                    if (at.x < wallLo[w].x || at.y < wallLo[w].y || at.x > wallHi[w].x || at.y > wallHi[w].y) continue;   // (a house's bounds grown by AlongWall)
+                    if (Poly.Contains(walls[w], at) || isHouse[w] && DistanceToRing(walls[w], at) < AlongWall) return true;
+                }
                 return false;
             }
             int pieces = 0, gardens = 0;
@@ -2748,7 +2764,7 @@ namespace Placemaker.Core.Neighbours
                 int before = plan.FencePieces.Count;
                 if (runs)
                 {
-                    CloseRuns(h, ring, piece, plan, near, InWall);
+                    CloseRuns(h, ring, piece, plan, near, InWall, OpenFrontFrom(h, s));
                     if (plan.FencePieces.Count > before) { gardens++; pieces += plan.FencePieces.Count - before; }
                     continue;
                 }
@@ -2798,6 +2814,22 @@ namespace Placemaker.Core.Neighbours
 
         // ───────────── closing a garden: runs of pieces ─────────────
 
+        /// <summary>
+        /// Where a garden's front yard begins (the house's local z): in front of the house's front wall a garden stays open to
+        /// its street, beside it too; no piece is laid there. Row houses, lots touching and no fences of their own, had a
+        /// hedge run down every side line through the front yards to the pavement (the user, 23 Oct: "fences sticking out in
+        /// front of them"). Paved land (a car park, a yard) is closed as before; a house with no footprint known, too.
+        /// </summary>
+        private static float OpenFrontFrom(StitchHouse h, StitchSettings s)
+        {
+            if (HardLand(h, s) || h.Footprint == null || h.Footprint.Length < 3 || s.Knob("openFrontYards", 1f) < 0.5f) return float.MaxValue;
+            float front = float.MinValue;
+            foreach (var p in h.Footprint) front = math.max(front, h.ToLocal(p).y);
+            // (a row house fills its lot nearly to the street: the metre left in front of it is open too; a piece laid there
+            // stuck out of its facade onto the pavement)
+            return front + 0.25f;
+        }
+
         /// <summary>The length a fence or hedge piece covers (vanilla pieces are 4 m, their short ones 2 m).</summary>
         private const float PieceLong = 4f, PieceShort = 2f;
 
@@ -2812,7 +2844,7 @@ namespace Placemaker.Core.Neighbours
         /// were gaps), and a piece whose middle touched a driveway or a road left out whole (a 4 m gap). A run's end against a
         /// line goes onto that line's end (no step where they meet).
         /// </summary>
-        private static void CloseRuns(StitchHouse h, float2[] ring, string piece, StitchPlan plan, LineGrid near, Func<float2, bool> inWall)
+        private static void CloseRuns(StitchHouse h, float2[] ring, string piece, StitchPlan plan, LineGrid near, Func<float2, bool> inWall, float openFrom = float.MaxValue)
         {
             // what a point along an edge going in direction dir is: open, along a line (and which), in a wall, the street front
             (EdgeState State, float2 A, float2 B) At(float2 p, float2 dir, bool front)
@@ -2852,7 +2884,7 @@ namespace Placemaker.Core.Neighbours
                 {
                     var p = a + dir * (len * st / steps);
                     pts.Add(p);
-                    states.Add(At(p, dir, front));
+                    states.Add(At(p, dir, front || h.ToLocal(p).y > openFrom));
                     corner.Add(st == 0);
                 }
             }
