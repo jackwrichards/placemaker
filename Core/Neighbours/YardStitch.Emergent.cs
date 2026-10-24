@@ -196,8 +196,20 @@ namespace Placemaker.Core.Neighbours
             int L(int x, int y) => x < 0 || y < 0 || x >= w || y >= h ? -2 : label[y * w + x];
             // where three or more owners meet (nobody's land counts as one), or two touch corner to corner: the points every
             // garden's outline keeps, so the edges between them are drawn the same by both sides
+            // the lots' corners: kept by every outline that passes them, at the exact corner (a straightened edge cut across a
+            // lot's corner, and the lot added back after left a notch of tiny edges on both sides)
+            var anchors = new Dictionary<int, float2>();
+            foreach (int j in seeds)
+                foreach (var c in Lot(houses[j]))
+                {
+                    var g = (int2)math.round((c - lo) / cell);
+                    if (g.x < 0 || g.y < 0 || g.x > w || g.y > h) continue;
+                    int key = g.y * (w + 1) + g.x;
+                    if (!anchors.ContainsKey(key)) anchors[key] = c;
+                }
             bool Node(int gx, int gy)
             {
+                if (anchors.ContainsKey(gy * (w + 1) + gx)) return true;
                 int a = L(gx - 1, gy - 1), b = L(gx, gy - 1), c = L(gx, gy), d = L(gx - 1, gy);
                 int distinct = 1 + (b != a ? 1 : 0) + (c != a && c != b ? 1 : 0) + (d != a && d != b && d != c ? 1 : 0);
                 return distinct >= 3 || distinct == 2 && a == c && b == d && a != b;
@@ -211,10 +223,10 @@ namespace Placemaker.Core.Neighbours
                 var ring = Outline(label, w, h, i, houses[i], lo, cell, box[i]);
                 if (ring == null) continue;
                 Lap("outline");
-                var pts = Straighten(ring, Node, tol / cell);
+                var pts = Straighten(ring, Node, tol / cell, math.max(0f, s.Knob("emergentMinEdge", 2f)) / cell);
                 Lap("straighten");
                 if (pts.Count < 3) continue;
-                var world = pts.Select(g => lo + new float2(g.x, g.y) * cell).ToList();
+                var world = pts.Select(g => anchors.TryGetValue(g.y * (w + 1) + g.x, out var exact) ? exact : lo + new float2(g.x, g.y) * cell).ToList();
                 if (!Poly.IsCcw(world)) world.Reverse();
                 // never past its reach (its street front, a ring's middle, a street it hugs: exact lines), and its lot whole
                 foreach (var (p, d) in Edges(Ccw((wide[i] ?? reach[i]).ToArray()))) world = ClipHalfPlane(world, p, d, p + new float2(-d.y, d.x));
@@ -319,6 +331,76 @@ namespace Placemaker.Core.Neighbours
             int kept = 0;
             foreach (int i in lost) if (label[i] == Open) { label[i] = was[i]; kept++; }
             plan.Notes.Add($"emergent: {lost.Count} cells of strips under {2 * r} cells wide: {given} to the garden round them, {kept} kept");
+        }
+
+        /// <summary>
+        /// The emergent split's fences: each edited house's own fence and hedge lines along its lot's sides and back (not its
+        /// street front, not one already laid on a shared side) onto the edge of its garden they face: the nearest edge
+        /// running the same way (within 20 degrees) on the line's outer side, along it for at least 2 m; laid along that whole
+        /// edge. One line per edge (the nicest, the longest). A line no edge takes, inside the garden now, goes; the edges no
+        /// line takes are closed with pieces (CloseGardens).
+        /// </summary>
+        private static void SnapLines(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchPlan plan,
+            Dictionary<long, (float2 A, float2 B)> moved, HashSet<long> placed, HashSet<long> stay, StitchSettings s)
+        {
+            int snapped = 0, gone = 0;
+            for (int i = 0; i < houses.Count; i++)
+            {
+                var h = houses[i];
+                if (!touched[i] || !h.Edit || !h.Polished || plots[i] == null || plots[i].Length < 3) continue;
+                var ring = Ccw(plots[i]);
+                int m = ring.Length;
+                var taken = new bool[m];
+                var lines = h.Lines
+                    .Where(l => !plan.HideLines.Contains(l.Id) && !placed.Contains(l.Id) && !stay.Contains(l.Id))
+                    .Where(l => OnLotEdge(h, l.A, s.EdgeTolerance) && OnLotEdge(h, l.B, s.EdgeTolerance))
+                    .Where(l => h.ToLocal(l.A).y < h.HalfLot.y - 1.2f || h.ToLocal(l.B).y < h.HalfLot.y - 1.2f)
+                    .OrderByDescending(l => Score(l.Name)).ThenByDescending(l => math.distance(l.A, l.B)).ToList();
+                foreach (var l in lines)
+                {
+                    var (a, b) = moved.TryGetValue(l.Id, out var mv) ? mv : (l.A, l.B);
+                    float len = math.distance(a, b);
+                    if (len < 0.5f) continue;
+                    var d = (b - a) / len;
+                    var mid = (a + b) * 0.5f;
+                    // (outward: away from the house)
+                    var outN = new float2(-d.y, d.x);
+                    if (math.dot(mid - h.Position, outN) < 0f) outN = -outN;
+                    int best = -1;
+                    float bestOff = float.MaxValue;
+                    for (int e = 0; e < m; e++)
+                    {
+                        if (taken[e]) continue;
+                        var ea = ring[e];
+                        var eb = ring[(e + 1) % m];
+                        float elen = math.distance(ea, eb);
+                        if (elen < 2f) continue;
+                        var ed = (eb - ea) / elen;
+                        if (math.abs(math.dot(ed, d)) < 0.94f) continue;
+                        var emid = (ea + eb) * 0.5f;
+                        if (h.ToLocal(emid).y >= h.HalfLot.y - 1.2f) continue;   // the street front
+                        float off = math.dot(emid - mid, outN);
+                        if (off < -0.6f) continue;
+                        float u0 = math.dot(ea - mid, d), u1 = math.dot(eb - mid, d);
+                        float overlap = math.min(len * 0.5f, math.max(u0, u1)) - math.max(-len * 0.5f, math.min(u0, u1));
+                        if (overlap < math.min(2f, 0.3f * len)) continue;
+                        if (off < bestOff) { bestOff = off; best = e; }
+                    }
+                    if (best < 0)
+                    {
+                        // nowhere to go: inside the garden now (it reaches past it), it goes; on its edge, it stays
+                        if (Poly.Contains(ring, mid) && DistanceToRing(ring, mid) > 1f) { plan.HideLines.Add(l.Id); gone++; }
+                        continue;
+                    }
+                    taken[best] = true;
+                    var p0 = ring[best];
+                    var p1 = ring[(best + 1) % m];
+                    // (its own direction kept: its end A at the edge's end nearer A)
+                    moved[l.Id] = math.distance(l.A, p0) + math.distance(l.B, p1) <= math.distance(l.A, p1) + math.distance(l.B, p0) ? (p0, p1) : (p1, p0);
+                    snapped++;
+                }
+            }
+            if (snapped + gone > 0) plan.Notes.Add($"emergent: {snapped} lines laid on their garden's edges, {gone} inside a garden gone");
         }
 
         /// <summary>The edges of a convex counter-clockwise ring as (start, direction).</summary>
@@ -477,7 +559,7 @@ namespace Placemaker.Core.Neighbours
         /// A grid outline with each run between two nodes straightened (Douglas–Peucker, ties broken by position, so the
         /// garden on the other side straightens the same run to the same points); straight runs of cells are corners only.
         /// </summary>
-        private static List<int2> Straighten(List<int2> ring, Func<int, int, bool> node, float tol)
+        private static List<int2> Straighten(List<int2> ring, Func<int, int, bool> node, float tol, float minSeg = 0f)
         {
             int m = ring.Count;
             var keep = new bool[m];
@@ -502,10 +584,60 @@ namespace Placemaker.Core.Neighbours
                 int len = (b - a + m) % m;
                 if (len == 0) len = m;
                 Dp(ring, a, len, tol, outKeep);
+                if (minSeg > 0f) MinSegments(ring, a, len, minSeg, outKeep);
             }
             var result = new List<int2>();
             for (int k = 0; k < m; k++) if (outKeep[k]) result.Add(ring[k]);
             return result;
+        }
+
+        /// <summary>
+        /// No piece of a run (between two fixed corners) shorter than <paramref name="minSeg"/> (a short fence piece: one laid
+        /// there sticks out past the bend): the shortest such piece goes first, its free end let go (of two free ends, the one
+        /// that bends the line least; ties by position, so the garden on the other side lets go the same corners).
+        /// </summary>
+        private static void MinSegments(List<int2> ring, int a, int len, float minSeg, bool[] keep)
+        {
+            int m = ring.Count;
+            // the run's corners in order, which of them are fixed (its two ends)
+            var idx = new List<int>();
+            for (int t = 0; t <= len; t++) { int k = (a + t) % m; if (keep[k]) idx.Add(k); }
+            if (idx.Count < 3) return;
+            float2 P(int k) => new float2(ring[k].x, ring[k].y);
+            bool Before(int2 p, int2 q) => p.x < q.x || p.x == q.x && p.y < q.y;
+            while (idx.Count >= 3)
+            {
+                int best = -1;
+                float bestLen = minSeg;
+                for (int s = 0; s + 1 < idx.Count; s++)
+                {
+                    float l = math.distance(P(idx[s]), P(idx[s + 1]));
+                    if (l >= bestLen + 1e-4f) continue;
+                    // (a piece between the two fixed ends cannot go)
+                    if (s == 0 && s + 1 == idx.Count - 1) continue;
+                    if (best >= 0 && math.abs(l - bestLen) <= 1e-4f)
+                    {
+                        var lo1 = Before(ring[idx[s]], ring[idx[s + 1]]) ? ring[idx[s]] : ring[idx[s + 1]];
+                        var lo0 = Before(ring[idx[best]], ring[idx[best + 1]]) ? ring[idx[best]] : ring[idx[best + 1]];
+                        if (!Before(lo1, lo0)) continue;
+                    }
+                    best = s;
+                    bestLen = l;
+                }
+                if (best < 0) return;
+                // which end goes: a fixed end never; of two free ones, the one whose going moves the line least
+                bool firstFree = best > 0, secondFree = best + 1 < idx.Count - 1;
+                int drop;
+                if (firstFree && secondFree)
+                {
+                    float Dev(int s) { var p = P(idx[s]); var u = P(idx[s - 1]); var v = P(idx[s + 1]); var d = v - u; float dl = math.length(d); return dl > 1e-6f ? math.abs(d.x * (p.y - u.y) - d.y * (p.x - u.x)) / dl : math.distance(p, u); }
+                    float d0 = Dev(best), d1 = Dev(best + 1);
+                    drop = math.abs(d0 - d1) > 1e-4f ? (d0 < d1 ? best : best + 1) : (Before(ring[idx[best]], ring[idx[best + 1]]) ? best : best + 1);
+                }
+                else drop = firstFree ? best : best + 1;
+                keep[idx[drop]] = false;
+                idx.RemoveAt(drop);
+            }
         }
 
         private static void Dp(List<int2> ring, int a, int len, float tol, bool[] keep)

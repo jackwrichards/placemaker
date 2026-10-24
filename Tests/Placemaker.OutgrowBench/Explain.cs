@@ -27,6 +27,7 @@ namespace Placemaker.OutgrowBench
             float size = 140f;
             var knobs = new Dictionary<string, float>();
             bool editAll = false, finalOnly = false;
+            int px = 640;   // (--final: the picture's width)
             string tag = "";
             for (int i = 1; i < args.Count; i++)
             {
@@ -39,6 +40,7 @@ namespace Placemaker.OutgrowBench
                     case "--edit-all": editAll = true; tag += "-all"; break;
                     // only the gardens as planned (one picture)
                     case "--final": finalOnly = true; break;
+                    case "--px": px = int.Parse(args[++i], CultureInfo.InvariantCulture); break;
                 }
             }
             string file = input;
@@ -68,6 +70,9 @@ namespace Placemaker.OutgrowBench
             clock.Stop();
             stages.Add(("final", sorted.Select(h => plan.Plots.TryGetValue(h.Id, out var g) ? g : null).ToArray()));
 
+            // the fence problems (Fences.Check), marked on the last picture
+            var tally = Fences.Check(houses, plan, settings);
+            var marks = tally.Marks;
             var centre = at ?? sorted.Where(h => h.Edit).Select(h => h.Position).Aggregate(float2.zero, (a, p) => a + p) / math.max(1, sorted.Count(h => h.Edit));
             var lo = centre - size * 0.5f;
             var hi = centre + size * 0.5f;
@@ -112,20 +117,22 @@ namespace Placemaker.OutgrowBench
                 var mine = Enumerable.Range(0, sorted.Count).Where(k => sorted[k].Edit && k < fin.Length && fin[k] != null).ToList();
                 if (mine.Count > 0) txt.Append($"\ngardens: {mine.Count}, corners {mine.Average(k => fin[k].Length):F1} on average, {mine.Max(k => fin[k].Length)} at most, area {mine.Sum(k => Poly.Area(fin[k])):F0} m² in all, outlines {mine.Sum(k => Poly.Perimeter(fin[k])):F0} m; fence pieces {plan.FencePieces.Count}, lines moved {plan.MoveLines.Count}, hidden {plan.HideLines.Count}\n");
             }
+            txt.Append($"\nfences: {tally}\n");
             txt.Append("\nnotes\n");
             foreach (var n in plan.Notes) txt.Append("  " + n + "\n");
 
             // the pictures: one per step, the gardens that changed in it outlined in black
             var html = new StringBuilder();
             html.Append("<!doctype html><meta charset=utf-8><title>Outgrow explain</title><style>body{font:13px system-ui;margin:12px;background:#fafafa}"
-                + ".g{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:10px}figure{margin:0;background:#fff;border:1px solid #ddd}"
+                + (finalOnly ? ".g{display:grid;grid-template-columns:1fr;gap:10px}" : ".g{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:10px}")
+                + "figure{margin:0;background:#fff;border:1px solid #ddd}"
                 + "figcaption{padding:4px 8px;font-weight:600}pre{background:#fff;border:1px solid #ddd;padding:8px;white-space:pre-wrap}</style>\n");
             html.Append($"<h3>{Path.GetFileName(file)} around {F(centre.x)}, {F(centre.y)}</h3><div class=g>\n");
             float2[][] prev = null;
             foreach (var (name, plots) in finalOnly ? stages.Where(st => st.Name == "final").ToList() : stages)
             {
                 html.Append($"<figure><figcaption>{name}</figcaption>");
-                html.Append(Picture(sorted, settings, plots, prev, lo, hi, name == "final" ? plan : null, In));
+                html.Append(Picture(sorted, settings, plots, prev, lo, hi, name == "final" ? plan : null, In, name == "final" ? marks : null));
                 html.Append("</figure>\n");
                 prev = plots;
             }
@@ -138,7 +145,7 @@ namespace Placemaker.OutgrowBench
             Console.WriteLine($"\n{Path.Combine(outDir, stem + "-explain.html")}");
             // a picture of the page (Edge, headless), for sending on
             var png = Path.Combine(outDir, stem + "-explain.png");
-            if (Shoot(Path.Combine(outDir, stem + "-explain.html"), png, finalOnly ? 640 : 1500, finalOnly ? 700 : (stages.Count + 2) / 3 * 540 + 140)) Console.WriteLine(png);
+            if (Shoot(Path.Combine(outDir, stem + "-explain.html"), png, finalOnly ? px : 1500, finalOnly ? px + 60 : (stages.Count + 2) / 3 * 540 + 140)) Console.WriteLine(png);
             return 0;
         }
 
@@ -174,7 +181,7 @@ namespace Placemaker.OutgrowBench
             return $"hsl({z % 360},60%,{50 + (z >> 20) % 20}%)";
         }
 
-        private static string Picture(List<StitchHouse> sorted, StitchSettings settings, float2[][] plots, float2[][] prev, float2 lo, float2 hi, StitchPlan plan, Func<IReadOnlyList<float2>, bool> In)
+        private static string Picture(List<StitchHouse> sorted, StitchSettings settings, float2[][] plots, float2[][] prev, float2 lo, float2 hi, StitchPlan plan, Func<IReadOnlyList<float2>, bool> In, List<(float2 At, string Kind)> marks = null)
         {
             var size = hi - lo;
             string X(float2 p) => F(p.x - lo.x);
@@ -212,12 +219,43 @@ namespace Placemaker.OutgrowBench
                 sb.Append($"<line x1=\"{X(front)}\" y1=\"{Y(front)}\" x2=\"{X(front + h.Forward * 3f)}\" y2=\"{Y(front + h.Forward * 3f)}\" stroke=\"#333\" stroke-width=\"0.4\"/>");
                 sb.Append($"<text x=\"{X(h.Position)}\" y=\"{Y(h.Position)}\" font-size=\"3.2\" text-anchor=\"middle\" fill=\"#111\">{h.Id % 10000}</text>");
             }
+            // the houses' own fence and hedge lines as the plan leaves them (a neighbour another pass planned: as it stands), thin
+            if (plan != null)
+                foreach (var h in sorted)
+                {
+                    if (h.Polished && !h.Edit && h.Standing != null)
+                    {
+                        foreach (var (a, b) in h.Standing)
+                            if (In(new[] { a, b })) sb.Append($"<line x1=\"{X(a)}\" y1=\"{Y(a)}\" x2=\"{X(b)}\" y2=\"{Y(b)}\" stroke=\"#6a5a4a\" stroke-width=\"0.35\"/>");
+                        continue;
+                    }
+                    foreach (var l in h.Lines)
+                    {
+                        if (plan.HideLines.Contains(l.Id)) continue;
+                        var (a, b) = plan.MoveLines.TryGetValue(l.Id, out var mv) ? mv : (l.A, l.B);
+                        if (!In(new[] { a, b })) continue;
+                        bool moved = plan.MoveLines.ContainsKey(l.Id);
+                        sb.Append($"<line x1=\"{X(a)}\" y1=\"{Y(a)}\" x2=\"{X(b)}\" y2=\"{Y(b)}\" stroke=\"{(moved ? "#0a8a8a" : "#3a2a1a")}\" stroke-width=\"0.45\"/>");
+                    }
+                }
             if (plan != null)
                 foreach (var (house, p, yaw, name) in plan.FencePieces)
                 {
                     if (!In(new[] { p })) continue;
                     var d = new float2(math.sin(yaw), math.cos(yaw));
                     sb.Append($"<line x1=\"{X(p - d)}\" y1=\"{Y(p - d)}\" x2=\"{X(p + d)}\" y2=\"{Y(p + d)}\" stroke=\"{(name != null && name.Contains("Hedge") ? "#1f5a1f" : "#7a4a1a")}\" stroke-width=\"0.7\"/>");
+                }
+            // the fence problems: gap magenta, crossing red ring, double orange, inside blue, open edge red dots, stub black,
+            // short edge purple
+            if (marks != null)
+                foreach (var (p, kind) in marks)
+                {
+                    if (!In(new[] { p })) continue;
+                    string c = kind == "gap" ? "#e000c0" : kind == "double" ? "#ff8c00" : kind == "inside" ? "#1060ff" : kind == "open" || kind == "crossing" ? "#e00000" : kind == "stub" ? "#000" : "#9020c0";
+                    float r = kind == "open" ? 0.35f : kind == "gap" || kind == "crossing" ? 2.2f : 1.2f;
+                    sb.Append(kind == "open"
+                        ? $"<circle cx=\"{X(p)}\" cy=\"{Y(p)}\" r=\"{F(r)}\" fill=\"{c}\"/>"
+                        : $"<circle cx=\"{X(p)}\" cy=\"{Y(p)}\" r=\"{F(r)}\" fill=\"none\" stroke=\"{c}\" stroke-width=\"0.6\"/>");
                 }
             sb.Append("</svg>");
             return sb.ToString();

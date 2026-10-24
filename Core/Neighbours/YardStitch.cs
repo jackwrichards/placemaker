@@ -972,10 +972,13 @@ namespace Placemaker.Core.Neighbours
                 moved[line.Id] = math.distance(line.A, p0) + math.distance(line.B, p1) <= math.distance(line.A, p1) + math.distance(line.B, p0) ? (p0, p1) : (p1, p0);
                 foreach (var l in lines) if (l.Id != line.Id) plan.HideLines.Add(l.Id);
             }
+            // (the emergent split: each house's own lines onto the edges of its garden as it is, instead of the back line and the
+            // no-line-leaves-its-plot steps below, which follow the lines the gardens used to be cut on)
+            if (emergent) SnapLines(houses, plots, touched, plan, moved, placed, stay, s);
             // each house's back line on its plot's back edge, when that edge is not the lot's own
             for (int i = 0; i < n; i++)
             {
-                if (!touched[i]) continue;
+                if (!touched[i] || emergent) continue;
                 var h = houses[i];
                 var backs = EdgeLines(h, back: true, s).Where(l => !plan.HideLines.Contains(l.Id)).ToList();
                 if (backs.Count == 0) continue;
@@ -1014,7 +1017,7 @@ namespace Placemaker.Core.Neighbours
             // no line leaves its own plot (a shared edge's line belongs to both)
             for (int i = 0; i < n; i++)
             {
-                if (!touched[i]) continue;
+                if (!touched[i] || emergent) continue;
                 var grown = Poly.Offset(Ccw(plots[i]), -0.3f);
                 if (grown.Count == 0) continue;
                 var ring = grown.OrderByDescending(r => Poly.Area(r)).First();
@@ -1043,7 +1046,7 @@ namespace Placemaker.Core.Neighbours
             List<(float2 A, float2 B)> drawnNow = null;
             for (int i = 0; i < n; i++)
                 {
-                    if (!touched[i] || K(houses[i], s, "closeBacks", 1f) < 0.5f || !BackEdge(houses[i], plots[i], out var e0, out var e1) || math.distance(e0, e1) < 3f) continue;
+                    if (!touched[i] || emergent || K(houses[i], s, "closeBacks", 1f) < 0.5f || !BackEdge(houses[i], plots[i], out var e0, out var e1) || math.distance(e0, e1) < 3f) continue;
                     var h = houses[i];
                     drawnNow ??= DrawnLines(houses, plan, moved);
                     if (Covered(e0, e1, drawnNow) >= 0.6f * math.distance(e0, e1)) continue;

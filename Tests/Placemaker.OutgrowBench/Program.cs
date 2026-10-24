@@ -56,6 +56,8 @@ namespace Placemaker.OutgrowBench
             if (args[0] == "--front") return Front.Run(args.Skip(1).ToList());
             // how each garden came to be: --explain <pass or dir> [--at x,z] [--size m] (Explain.cs)
             if (args[0] == "--explain") return Explain.Run(args.Skip(1).ToList());
+            // the fences recorded passes leave, checked: --fences <passes dir or file> [--knob NAME=VALUE] [--every] (Fences.cs)
+            if (args[0] == "--fences") return Fences.Run(args.Skip(1).ToList());
             if (args[0] == "--score") return Score.Run(args[1], args[2], args.Skip(3).ToList());
             // the tuner: --serve PORT label=pass.json ... (Serve.cs)
             if (args[0] == "--serve")
