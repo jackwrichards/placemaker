@@ -1,0 +1,10 @@
+{
+  "Placemaker.Issue.CutoutNotZonable": "Um lote de loja não dá para nenhuma via que o jogo zoneie. Ele fica para o parque.",
+  "Placemaker.Issue.BuildingsKept": "{0} edifícios estão no caminho. Eles ficam: nada é construído nos lotes deles.",
+  "Placemaker.Issue.BuildingsLeftOut": "{0} partes foram deixadas de fora ou recortadas para não encostar em edifícios existentes.",
+  "Placemaker.Problem.OnlyBuildings": "Sob a pintura só há coisas que as regras do pincel evitam (edifícios, outras construções, zoneamento, água). Pinte em outro lugar ou mude as regras.",
+  "Placemaker.Hint.BuildingsKept": "{0} edifícios da seleção ficam: nada é construído nos lotes deles.",
+  "Placemaker.Settings.PaintAvoidBuildings": "Pintar: evitar edifícios",
+  "Placemaker.Settings.PaintAvoidBuildings.Desc": "A pintura simples recorta os lotes de edifícios da área pintada (sombreados em vermelho ao pintar). Desligado = o comportamento antigo: o contorno cobre os edifícios e a construção os deixa de pé.",
+  "Placemaker.Why.AreaTooSmall": "Precisa de uma área maior (pelo menos {0} m²)."
+}

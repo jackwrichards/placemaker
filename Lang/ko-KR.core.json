@@ -1,0 +1,6 @@
+{
+  "Placemaker.Name": "Placemaker",
+  "Placemaker.Issue.RecipeTooDeep": "이 디자인에는 겹쳐진 레이어가 너무 많습니다.",
+  "Placemaker.Issue.UnknownLayer": "알 수 없는 레이어 \"{0}\" — 모드가 빠졌나요?",
+  "Placemaker.Issue.LayerFailed": "{0}을(를) 계획하지 못했습니다: {1}"
+}

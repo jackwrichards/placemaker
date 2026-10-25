@@ -1,0 +1,13 @@
+{
+  "Placemaker.UI.MakeGroup.Roads": "道路",
+  "Placemaker.UI.MakeGroup.Parking": "駐車場",
+  "Placemaker.UI.MakeGroup.Parks": "公園",
+  "Placemaker.UI.MakeGroup.Beach": "ビーチ",
+  "Placemaker.UI.MakeGroup.Commercial": "店舗と広場",
+  "Placemaker.UI.MakeGroup.Nature": "自然",
+  "Placemaker.UI.MakeGroup.Farms": "農場",
+  "Placemaker.UI.MakeGroup.Sports": "スポーツ",
+  "Placemaker.UI.MakeGroup.Neighbourhood": "近隣",
+  "Placemaker.UI.MakeGroup.Industry": "産業",
+  "Placemaker.UI.MakeGroup.Transport": "交通"
+}

@@ -1,0 +1,10 @@
+{
+  "Placemaker.Issue.CutoutNotZonable": "Una parcela de tienda no da a ninguna calle desde la que el juego zonifique. Se queda para el parque.",
+  "Placemaker.Issue.BuildingsKept": "Hay {0} edificios en medio. Se conservan: no se construye nada en sus solares.",
+  "Placemaker.Issue.BuildingsLeftOut": "Se omitieron o recortaron {0} piezas para no tocar edificios existentes.",
+  "Placemaker.Problem.OnlyBuildings": "Bajo la pintura solo hay cosas que las reglas del pincel evitan (edificios, otras construcciones, zonificación, agua). Pinta en otro sitio o cambia las reglas.",
+  "Placemaker.Hint.BuildingsKept": "Se conservan {0} edificios de la selección: no se construye nada en sus solares.",
+  "Placemaker.Settings.PaintAvoidBuildings": "Pintar: evitar edificios",
+  "Placemaker.Settings.PaintAvoidBuildings.Desc": "Pintar normal recorta los solares de los edificios de la zona pintada (sombreados en rojo al pintar). Desactivado = el comportamiento antiguo: el contorno cubre los edificios y la construcción los sigue dejando en pie.",
+  "Placemaker.Why.AreaTooSmall": "Necesita una zona más grande (al menos {0} m²)."
+}

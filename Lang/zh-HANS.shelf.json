@@ -1,0 +1,13 @@
+{
+  "Placemaker.UI.MakeGroup.Roads": "道路",
+  "Placemaker.UI.MakeGroup.Parking": "停车场",
+  "Placemaker.UI.MakeGroup.Parks": "公园",
+  "Placemaker.UI.MakeGroup.Beach": "海滩",
+  "Placemaker.UI.MakeGroup.Commercial": "商店和广场",
+  "Placemaker.UI.MakeGroup.Nature": "自然",
+  "Placemaker.UI.MakeGroup.Farms": "农场",
+  "Placemaker.UI.MakeGroup.Sports": "运动",
+  "Placemaker.UI.MakeGroup.Neighbourhood": "街区",
+  "Placemaker.UI.MakeGroup.Industry": "工业",
+  "Placemaker.UI.MakeGroup.Transport": "交通运输"
+}

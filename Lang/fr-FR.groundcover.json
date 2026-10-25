@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "sols agricoles",
+  "Placemaker.Category.surface.crop.soil": "sols de terre labourée",
+  "Placemaker.Category.surface.crop.plowed": "sols de terre retournée",
+  "Placemaker.Category.surface.crop.rows": "sols en rangs de culture",
+  "Placemaker.Category.surface.crop.green": "sols de cultures vertes",
+  "Placemaker.Category.surface.crop.straw": "sols de paille / céréales",
+  "Placemaker.Category.surface.crop.flower": "sols de cultures en fleurs",
+  "Placemaker.Category.surface.crop.lavender": "sols de cultures couleur lavande",
+  "Placemaker.Category.surface.crop.yellow": "sols de cultures jaunes",
+  "Placemaker.Category.decal.farm": "décalcomanies de chemins agricoles",
+  "Placemaker.GroundCover.Issue.Painted": "Aucune surface agricole n'est installée : les champs sont donc peints sur le terrain (de façon permanente).",
+  "Placemaker.Common.Issue.ObjectBudget": "Ce modèle voulait {0} objets ; {2} accessoires répétitifs ont été éclaircis pour rester vers {1}. Les champs et les massifs sont dessinés comme des surfaces au sol."
+}

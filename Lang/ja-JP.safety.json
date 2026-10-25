@@ -1,0 +1,10 @@
+{
+  "Placemaker.Issue.CutoutNotZonable": "ゲームが区画を作れる道路に面していない店舗用地があります。公園の一部として残します。",
+  "Placemaker.Issue.BuildingsKept": "{0}棟の建物が邪魔になっています。建物は残し、その用地には何も建てません。",
+  "Placemaker.Issue.BuildingsLeftOut": "既存の建物を避けるため、{0}個の要素を省くか縮めました。",
+  "Placemaker.Problem.OnlyBuildings": "塗った範囲にあるのは、ブラシのルールで避けるもの（建物、他の作品、区画、水）だけです。別の場所を塗るか、ルールを変更してください。",
+  "Placemaker.Hint.BuildingsKept": "選択範囲内の{0}棟の建物は残ります。その用地には何も建てません。",
+  "Placemaker.Settings.PaintAvoidBuildings": "塗る: 建物を避ける",
+  "Placemaker.Settings.PaintAvoidBuildings.Desc": "通常の塗りでは、塗った範囲から建物の用地を除外します（塗っている間は赤く表示）。オフ = 以前の動作: 輪郭は建物も含みますが、建設しても建物はそのまま残ります。",
+  "Placemaker.Why.AreaTooSmall": "もっと広い範囲が必要です（最低{0} m²）。"
+}

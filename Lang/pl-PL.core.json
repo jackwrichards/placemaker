@@ -1,0 +1,6 @@
+{
+  "Placemaker.Name": "Placemaker",
+  "Placemaker.Issue.RecipeTooDeep": "Ten projekt ma zbyt wiele zagnieżdżonych warstw.",
+  "Placemaker.Issue.UnknownLayer": "Nieznana warstwa „{0}” — czy brakuje moda?",
+  "Placemaker.Issue.LayerFailed": "Nie udało się zaplanować: {0}: {1}"
+}

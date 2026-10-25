@@ -1,0 +1,6 @@
+{
+  "Placemaker.Name": "Placemaker",
+  "Placemaker.Issue.RecipeTooDeep": "Questo progetto ha troppi livelli annidati.",
+  "Placemaker.Issue.UnknownLayer": "Livello sconosciuto \"{0}\": manca una mod?",
+  "Placemaker.Issue.LayerFailed": "Impossibile pianificare {0}: {1}"
+}

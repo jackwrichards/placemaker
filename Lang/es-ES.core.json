@@ -1,0 +1,6 @@
+{
+  "Placemaker.Name": "Placemaker",
+  "Placemaker.Issue.RecipeTooDeep": "Este diseño tiene demasiadas capas anidadas.",
+  "Placemaker.Issue.UnknownLayer": "Capa desconocida \"{0}\": ¿falta algún mod?",
+  "Placemaker.Issue.LayerFailed": "No se pudo planificar {0}: {1}"
+}

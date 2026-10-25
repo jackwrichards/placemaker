@@ -1,0 +1,6 @@
+{
+  "Placemaker.Name": "Placemaker",
+  "Placemaker.Issue.RecipeTooDeep": "このデザインは入れ子の階層が多すぎます。",
+  "Placemaker.Issue.UnknownLayer": "不明なレイヤー「{0}」です。MODが不足していませんか？",
+  "Placemaker.Issue.LayerFailed": "{0}を計画できませんでした: {1}"
+}

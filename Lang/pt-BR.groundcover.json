@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "superfícies de lavoura",
+  "Placemaker.Category.surface.crop.soil": "superfícies de solo arado",
+  "Placemaker.Category.surface.crop.plowed": "superfícies de terra lavrada",
+  "Placemaker.Category.surface.crop.rows": "superfícies de fileiras de cultivo",
+  "Placemaker.Category.surface.crop.green": "superfícies de cultivo verde",
+  "Placemaker.Category.surface.crop.straw": "superfícies de palha / cereais",
+  "Placemaker.Category.surface.crop.flower": "superfícies de cultivo em flor",
+  "Placemaker.Category.surface.crop.lavender": "superfícies de cultivo cor de lavanda",
+  "Placemaker.Category.surface.crop.yellow": "superfícies de cultivo amarelo",
+  "Placemaker.Category.decal.farm": "decalques de trilha de fazenda",
+  "Placemaker.GroundCover.Issue.Painted": "Nenhuma superfície de lavoura está instalada, então os campos são pintados no terreno (permanente).",
+  "Placemaker.Common.Issue.ObjectBudget": "Este projeto pedia {0} objetos; {2} acessórios repetidos foram reduzidos para ficar perto de {1}. Campos e canteiros são desenhados como superfícies do solo."
+}

@@ -1,0 +1,6 @@
+{
+  "Placemaker.Name": "Placemaker",
+  "Placemaker.Issue.RecipeTooDeep": "Dieser Entwurf hat zu viele verschachtelte Ebenen.",
+  "Placemaker.Issue.UnknownLayer": "Unbekannte Ebene „{0}“ – fehlt eine Mod?",
+  "Placemaker.Issue.LayerFailed": "{0} konnte nicht geplant werden: {1}"
+}

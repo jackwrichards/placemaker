@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "농지 표면",
+  "Placemaker.Category.surface.crop.soil": "경작한 흙 표면",
+  "Placemaker.Category.surface.crop.plowed": "갈아엎은 흙 표면",
+  "Placemaker.Category.surface.crop.rows": "작물 이랑 표면",
+  "Placemaker.Category.surface.crop.green": "녹색 작물 표면",
+  "Placemaker.Category.surface.crop.straw": "짚 / 곡물 표면",
+  "Placemaker.Category.surface.crop.flower": "꽃 피는 작물 표면",
+  "Placemaker.Category.surface.crop.lavender": "라벤더색 작물 표면",
+  "Placemaker.Category.surface.crop.yellow": "노란 작물 표면",
+  "Placemaker.Category.decal.farm": "농장길 데칼",
+  "Placemaker.GroundCover.Issue.Painted": "농지 표면이 설치되어 있지 않아 밭을 지형에 직접 칠합니다(영구적).",
+  "Placemaker.Common.Issue.ObjectBudget": "이 디자인에는 객체 {0}개가 필요했습니다. {1}개 근처로 맞추려고 반복되는 소품 {2}개를 줄였습니다. 밭과 화단은 대신 지면 표면으로 그립니다."
+}

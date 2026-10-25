@@ -1,0 +1,10 @@
+{
+  "Placemaker.Issue.CutoutNotZonable": "Un lotto per negozi non dà su nessuna strada da cui il gioco crea zone. Resta al parco.",
+  "Placemaker.Issue.BuildingsKept": "{0} edifici sono d'intralcio. Vengono mantenuti: sui loro lotti non si costruisce nulla.",
+  "Placemaker.Issue.BuildingsLeftOut": "{0} parti sono state omesse o ridotte per stare lontane dagli edifici esistenti.",
+  "Placemaker.Problem.OnlyBuildings": "Sotto la pittura ci sono solo cose che le regole del pennello evitano (edifici, altre costruzioni, zone, acqua). Dipingi altrove o cambia le regole.",
+  "Placemaker.Hint.BuildingsKept": "{0} edifici nella selezione restano: sui loro lotti non si costruisce nulla.",
+  "Placemaker.Settings.PaintAvoidBuildings": "Pittura: evita gli edifici",
+  "Placemaker.Settings.PaintAvoidBuildings.Desc": "La pittura semplice esclude i lotti degli edifici dall'area dipinta (in rosso mentre dipingi). Disattivata = il comportamento precedente: il contorno copre gli edifici e la costruzione li lascia comunque in piedi.",
+  "Placemaker.Why.AreaTooSmall": "Serve un'area più grande (almeno {0} m²)."
+}

@@ -1,0 +1,10 @@
+{
+  "Placemaker.Issue.CutoutNotZonable": "Une parcelle de boutique ne donne sur aucune route zonable par le jeu. Elle est laissée au parc.",
+  "Placemaker.Issue.BuildingsKept": "{0} bâtiments gênent. Ils sont conservés : rien n'est construit sur leurs lots.",
+  "Placemaker.Issue.BuildingsLeftOut": "{0} éléments ont été omis ou raccourcis pour rester à l'écart des bâtiments existants.",
+  "Placemaker.Problem.OnlyBuildings": "Sous la peinture, il n'y a que des choses que les règles du pinceau évitent (bâtiments, autres constructions, zonage, eau). Peignez ailleurs ou changez les règles.",
+  "Placemaker.Hint.BuildingsKept": "{0} bâtiments de la sélection restent : rien n'est construit sur leurs lots.",
+  "Placemaker.Settings.PaintAvoidBuildings": "Peinture : éviter les bâtiments",
+  "Placemaker.Settings.PaintAvoidBuildings.Desc": "La peinture simple retire les lots des bâtiments de la zone peinte (en rouge pendant la peinture). Désactivé = l'ancien comportement : le contour couvre les bâtiments, et la construction les laisse quand même debout.",
+  "Placemaker.Why.AreaTooSmall": "Il faut une zone plus grande (au moins {0} m²)."
+}

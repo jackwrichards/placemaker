@@ -1,0 +1,6 @@
+{
+  "Placemaker.Name": "Placemaker",
+  "Placemaker.Issue.RecipeTooDeep": "В этом проекте слишком много вложенных слоев.",
+  "Placemaker.Issue.UnknownLayer": "Неизвестный слой «{0}» — не хватает мода?",
+  "Placemaker.Issue.LayerFailed": "Не удалось спланировать {0}: {1}"
+}

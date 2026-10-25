@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "powierzchnie pól uprawnych",
+  "Placemaker.Category.surface.crop.soil": "powierzchnie spulchnionej gleby",
+  "Placemaker.Category.surface.crop.plowed": "powierzchnie zaoranej gleby",
+  "Placemaker.Category.surface.crop.rows": "powierzchnie rzędów upraw",
+  "Placemaker.Category.surface.crop.green": "powierzchnie zielonych upraw",
+  "Placemaker.Category.surface.crop.straw": "powierzchnie słomy / zbóż",
+  "Placemaker.Category.surface.crop.flower": "powierzchnie kwitnących upraw",
+  "Placemaker.Category.surface.crop.lavender": "powierzchnie upraw w kolorze lawendy",
+  "Placemaker.Category.surface.crop.yellow": "powierzchnie żółtych upraw",
+  "Placemaker.Category.decal.farm": "naklejki polnych dróg",
+  "Placemaker.GroundCover.Issue.Painted": "Nie zainstalowano powierzchni pól uprawnych, więc pola są zamiast tego malowane na terenie (trwałe).",
+  "Placemaker.Common.Issue.ObjectBudget": "Ten projekt chciał {0} obiektów; {2} powtarzalnych rekwizytów przerzedzono, by zostać blisko {1}. Pola i rabaty są zamiast tego rysowane jako powierzchnie gruntu."
+}

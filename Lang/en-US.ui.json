@@ -108,6 +108,8 @@
   "Placemaker.UI.Manage.UngroupTip": "Make its pieces separate, so you can click, change and bulldoze each one yourself.",
   "Placemaker.UI.Manage.UngroupTitle": "Ungroup {0}?",
   "Placemaker.UI.Marker.AccessShort": "Access",
+  "Placemaker.UI.Marker.AlleyInShort": "Drive in",
+  "Placemaker.UI.Marker.AlleyOutShort": "Drive out",
   "Placemaker.UI.Marker.AlleyShort": "Driveway",
   "Placemaker.UI.Marker.AlleyTip": "A small road junction through the edge.",
   "Placemaker.UI.Marker.BikeShort": "Bike",
