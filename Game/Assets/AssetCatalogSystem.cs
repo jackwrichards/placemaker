@@ -195,15 +195,41 @@ namespace Placemaker.Game.Assets
         private List<string> _palettes = new List<string>();
         private static readonly IReadOnlyList<string> NoNames = Array.Empty<string>();
 
-        public int ResolveAutomatic(ComposedPlan plan)
+        public int ResolveAutomatic(ComposedPlan plan) => ResolveAutomatic(plan, new AutoAssetSource
         {
-            if (!_ready || plan == null) return 0;
+            Pool = AutomaticPool, Exists = PrefabExists, Palettes = _palettes, PaletteItems = PaletteItems,
+        });
+
+        // (perf) The preview planner resolves assets on its worker (30–60 ms of the game's thread per plan before): the same
+        // resolver with "is this prefab loaded and alive" read from a set of names made here, once per catalog version.
+        private HashSet<string> _usableNames;
+        private int _usableVersion = -1;
+
+        /// <summary>Main thread: a source the worker may use (pools, palettes and info are only read; prefab life from a snapshot).</summary>
+        public AutoAssetSource WorkerSource()
+        {
+            if (!_ready) return null;
+            if (_usableNames == null || _usableVersion != _version)
+            {
+                var names = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var kv in _allPrefabsByName) if (Usable(kv.Value)) names.Add(kv.Key);
+                _usableNames = names;
+                _usableVersion = _version;
+            }
+            var usable = _usableNames;
+            return new AutoAssetSource
+            {
+                Pool = AutomaticPool, Exists = n => !string.IsNullOrEmpty(n) && usable.Contains(n), Palettes = _palettes, PaletteItems = PaletteItems,
+            };
+        }
+
+        /// <summary>ResolveAutomatic with a given source (WorkerSource on the preview worker).</summary>
+        public int ResolveAutomatic(ComposedPlan plan, AutoAssetSource source)
+        {
+            if (!_ready || plan == null || source == null) return 0;
             try
             {
-                int resolved = AutoAssets.Resolve(plan, new AutoAssetSource
-                {
-                    Pool = AutomaticPool, Exists = PrefabExists, Palettes = _palettes, PaletteItems = PaletteItems,
-                });
+                int resolved = AutoAssets.Resolve(plan, source);
                 // FEEDBACK-4: fit objects with their real collision boxes once per plan, right here, so the
                 // tool's preview/price, the ghost and the build (all call this resolver) see the same objects.
                 if (!plan.Decluttered)

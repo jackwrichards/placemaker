@@ -57,7 +57,9 @@ namespace Placemaker.Game.Build
         private void FinishParkStats(GroupRecord rec)
         {
             if (LooseBuild) return;
+            long t0 = Now;
             var stats = ComputeParkStats();
+            Sub("Park stats: compute", t0);
             if (stats == null) return;
             rec.ParkStats = ParkStatsRecord.Of(stats, _request.Recipe?.ParkStats);
             double attr = stats.ValueOf(ParkStatIds.Attractiveness);
@@ -67,7 +69,9 @@ namespace Placemaker.Game.Build
             {
                 var owner = Entity.Null;
                 if (_record != Entity.Null && EntityManager.Exists(_record)) owner = EntityManager.GetComponentData<PlacemakerGroup>(_record).Owner;
+                long ta = Now;
                 int applied = ApplyAttractiveness(EntityManager, owner, attr, TerrainBonus(owner));
+                Sub("Park stats: attractiveness", ta);
                 if (applied > 0) rec.ParkStats.Applied[ParkStatIds.InGameAttractiveness] = applied;
                 if (applied >= 0) Mod.Log.Info($"Placemaker: group {_groupId} attractiveness {applied} (suggested {stats.Get(ParkStatIds.Attractiveness).Suggested}).");
                 else Mod.Log.Info($"Placemaker: group {_groupId} has no owner lot; its park attractiveness ({attr}) is stored but not applied.");
@@ -76,7 +80,9 @@ namespace Placemaker.Game.Build
             {
                 Mod.Log.Warn("Placemaker: applying park attractiveness failed (build kept): " + e.Message);
             }
+            t0 = Now;
             RequestParkCompanion(rec, stats);
+            Sub("Park stats: companion", t0);
         }
 
         /// <summary>

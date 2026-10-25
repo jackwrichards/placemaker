@@ -830,7 +830,14 @@ namespace Placemaker.Core.Build
             return true;
         }
 
-        private static bool Inside(float2[][] rings, float2 p) { foreach (var r in rings) if (Poly.Contains(r, p)) return true; return false; }
+        private static bool Inside(float2[][] rings, float2 p) { foreach (var r in rings) if (Bands(r).Contains(p)) return true; return false; }
+
+        // (perf) A surface ring is tested at every node of its stamp (painted outlines: hundreds of corners): its edges by band,
+        // made once per ring (rings are not changed once collected). Exactly Poly.Contains.
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<float2[], RingBands> s_bands =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<float2[], RingBands>();
+
+        private static RingBands Bands(float2[] ring) => s_bands.GetValue(ring, r => new RingBands(r));
 
         private static float2 Centroid(float2[][] rings)
         {

@@ -281,6 +281,8 @@
   "Placemaker.Settings.SelectAsOneThing": "Select and bulldoze as one thing",
   "Placemaker.Settings.SelectAsOneThing.Desc": "Clicking any part of a built lot, park or plaza selects the whole build; bulldozing removes it all. Applies to new builds.",
   "Placemaker.Settings.DebugTerrainDump": "Debug: dump terrain after build",
+  "Placemaker.Settings.DebugBuildChecks": "Debug: build checks",
+  "Placemaker.Settings.DebugBuildChecks.Desc": "After every build, scans the built ground for bowls, sagging roads and zoning that did not happen, and writes what it finds to the log. Slow on big builds (it pauses the game for a moment). Off normally.",
   "Placemaker.Settings.DebugTerrainDump.Desc": "After every build, writes the terrain heights before and after, the water depth and the built paths and objects around it to ModsData/Placemaker/debug as a JSON file, for checking the result offline (the gallery renders it). Off normally.",
   "Placemaker.Settings.ConfirmBulldoze": "Ask before bulldozing a whole build",
   "Placemaker.Settings.ConfirmBulldoze.Desc": "Shows the game's confirmation before a Placemaker build is bulldozed.",

@@ -256,6 +256,9 @@ namespace Placemaker.Core.Layers.Common
 
         /// <summary>The cell's first entry, -1 when empty; walk on with Next, read with Item.</summary>
         public int First(int x, int y) => _head[Slot(x, y)];
+
+        /// <summary>The last item added to the cell, -1 when empty.</summary>
+        public int LastItem(int x, int y) { int s = Slot(x, y); return _head[s] < 0 ? -1 : _item[_tail[s]]; }
         public int Next(int e) => _next[e];
         public int Item(int e) => _item[e];
 

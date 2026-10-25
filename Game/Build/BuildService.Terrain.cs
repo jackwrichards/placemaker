@@ -45,7 +45,7 @@ namespace Placemaker.Game.Build
         private const double DirectTerraformSeconds = 6.0;
         private const float ShiftToolStrength = 2000f;    // TerrainSystem.GetTerrainAdjustmentSpeed(Shift)
 
-        private enum TfMode { Direct, Dabs }
+        private enum TfMode { Direct, Dabs, Preparing }
 
         private struct TfApplied { public UnityEngine.Texture2D Texture; public Brush Brush; public Bounds2 Area; }
 
@@ -77,6 +77,7 @@ namespace Placemaker.Game.Build
             _tfVerified = false;
             _tfAwaiting = _tfReverting = false;
             _tfWaitUntil = 0;
+            _tfJob = null;   // a running one disposes its own height copy
         }
 
         private void DestroyTerraformTextures()
@@ -122,6 +123,7 @@ namespace Placemaker.Game.Build
             _tfOrientation = s_shiftOrientation >= 0 ? s_shiftOrientation : 0;
             var items = TerraformItems(out var vertexHeights);
             if (items.Count == 0) { Go(AfterTerraform()); return; }
+            if (BeginTerraformJob(items, vertexHeights)) return;
             try
             {
                 // The ground before this build (read now, before any pass) carries the banks around sloped patches (s20).
@@ -138,6 +140,88 @@ namespace Placemaker.Game.Build
             _tfMode = TfMode.Direct;
             _tfStartRms = _tfLastRms = -1f;
             Mod.Log.Info($"Placemaker terraform: {items.Count} items, raster {_tfRaster.Width}x{_tfRaster.Height} @ {_tfRaster.Cell:F2} m (direct brush).");
+        }
+
+        // ───── (perf) the target raster and the pit guard on a worker ─────
+        // Both read the ground before the build at every texel (the pit guard 49 samples each, up to 4 passes): 0.3 s for a
+        // 1.5 ha lot, 2.7 s for 16 ha, in one frame of the game's thread (teardown 14). Now from a copy of the game's height
+        // map, through the game's own sampler (the same heights to the bit), while the game runs on.
+
+        private System.Threading.Tasks.Task<(TerraformRaster raster, string pitNote, double ms)> _tfJob;
+        private List<(float2[] ring, float target, int layer)> _tfJobItems;
+
+        /// <summary>A copy of the game's height map (a few ms) that a worker samples with TerrainUtils.SampleHeight; the worker disposes it.</summary>
+        private bool TryCopyHeights(out TerrainHeightData copy)
+        {
+            copy = default;
+            try
+            {
+                var live = _terrain.GetHeightData(true);
+                if (!live.isCreated) return false;
+                var heights = new NativeArray<ushort>(live.heights, Allocator.Persistent);
+                var down = live.downscaledHeights.IsCreated && live.downscaledHeights.Length > 0
+                    ? new NativeArray<ushort>(live.downscaledHeights, Allocator.Persistent) : new NativeArray<ushort>(0, Allocator.Persistent);
+                copy = new TerrainHeightData(heights, down, live.resolution, live.scale, live.offset, live.hasBackdrop);
+                return true;
+            }
+            catch (Exception e) { Mod.Log.Warn("Placemaker: no copy of the height map (" + e.Message + "); worked out in this frame."); return false; }
+        }
+
+        private static void DisposeHeights(TerrainHeightData d)
+        {
+            if (d.heights.IsCreated) d.heights.Dispose();
+            if (d.downscaledHeights.IsCreated) d.downscaledHeights.Dispose();
+        }
+
+        private bool BeginTerraformJob(List<(float2[] ring, float target, int layer)> items, List<float[]> vertexHeights)
+        {
+            if (!TryCopyHeights(out var copy)) return false;
+            bool guard = _request?.Plan != null && !TerraformPits.Intentional(_request.Plan);
+            _tfJobItems = items;
+            _tfMode = TfMode.Preparing;
+            _tfJob = System.Threading.Tasks.Task.Run(() =>
+            {
+                var d = copy;
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                try
+                {
+                    Func<float2, float> height = p => { float h = TerrainUtils.SampleHeight(ref d, new float3(p.x, 0f, p.y)); return math.isfinite(h) ? h : 0f; };
+                    var raster = TerraformRaster.Build(items, TerraformCell, TerraformBank, TerraformMaxRasterCells, vertexHeights, height);
+                    string note = null;
+                    if (raster != null && !guard) note = "Placemaker pit guard: skipped (this build digs on purpose).";
+                    else if (raster != null)
+                    {
+                        int n = TerraformPits.Fill(raster, height, PitDepth, out float deepest, out var at);
+                        if (n > 0) note = $"Placemaker pit guard: raised {n} texel(s) of the target, deepest bowl {deepest:F2} m at ({at.x:F0}, {at.y:F0}) (a lot has no hollow).";
+                    }
+                    return (raster, note, sw.Elapsed.TotalMilliseconds);
+                }
+                finally { DisposeHeights(d); }
+            });
+            return true;
+        }
+
+        /// <summary>DoTerraform while the target is made: waits for it, then starts the brush passes (or the dabs without one).</summary>
+        private void DoTerraformPreparing()
+        {
+            if (_tfJob == null) { Go(AfterTerraform()); return; }
+            if (!_tfJob.IsCompleted) return;
+            var job = _tfJob;
+            _tfJob = null;
+            TerraformRaster raster = null;
+            if (job.Status == System.Threading.Tasks.TaskStatus.RanToCompletion)
+            {
+                raster = job.Result.raster;
+                if (job.Result.pitNote != null) Mod.Log.Info(job.Result.pitNote);
+                Mod.Log.Info($"Placemaker terraform target made in the background in {job.Result.ms:0} ms.");
+            }
+            else Mod.Log.Warn("Placemaker terraform raster failed: " + job.Exception?.GetBaseException().Message);
+            _terraformStart = DateTime.UtcNow;   // the time limit counts the brush passes, not the wait
+            _tfRaster = raster;
+            if (_tfRaster == null) { BeginTerraformDabs(_tfJobItems); return; }
+            _tfMode = TfMode.Direct;
+            _tfStartRms = _tfLastRms = -1f;
+            Mod.Log.Info($"Placemaker terraform: {_tfJobItems.Count} items, raster {_tfRaster.Width}x{_tfRaster.Height} @ {_tfRaster.Cell:F2} m (direct brush).");
         }
 
         /// <summary>(s55) A lot is never meant to have a bowl in it (playtest 91): raise any pit of the target to its rim and log it.</summary>
@@ -159,6 +243,7 @@ namespace Placemaker.Game.Build
         /// <summary>(s55) After the build: does the live terrain hold a bowl although the target has none? One log line per bowl (max 3).</summary>
         private void VerifyLiveHollows()
         {
+            if (!DebugBuildChecks) return;
             try
             {
                 if (_tfRaster == null || !_tfVerified) return;
@@ -178,6 +263,7 @@ namespace Placemaker.Game.Build
         private void DoTerraform(int frame)
         {
             if (_tfMode == TfMode.Dabs) { DoTerraformDabs(frame); return; }
+            if (_tfMode == TfMode.Preparing) { DoTerraformPreparing(); return; }
             if (frame < _tfWaitUntil) return;
             if ((DateTime.UtcNow - _terraformStart).TotalSeconds > DirectTerraformSeconds)
             {
@@ -638,6 +724,7 @@ namespace Placemaker.Game.Build
         /// </summary>
         private void VerifyZoning()
         {
+            if (!DebugBuildChecks) return;
             var plan = _request?.Plan;
             if (plan?.ZoneCells == null) return;
             var planned = new List<float2>();

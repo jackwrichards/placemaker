@@ -32,6 +32,13 @@ namespace Placemaker.Game.Build
         private readonly List<TerraformPits.Pit> _livePits = new List<TerraformPits.Pit>();
 
         /// <summary>
+        /// (perf) Set from PlacemakerSettings.DebugBuildChecks (off): the build's checks that only write to the log — the live pit
+        /// scans, the sagging edges, the hollows and the zoning checks. Each pit scan alone froze a frame for 135–190 ms at 1.5 ha
+        /// and 1.6 s at 16 ha, three times per build (teardown 14).
+        /// </summary>
+        public static bool DebugBuildChecks;
+
+        /// <summary>
         /// (core) Every bowl deeper than <see cref="LivePitDepth"/> in the live ground of the build's outline and a rim of
         /// <see cref="LivePitRim"/> m, on a 2 m grid (the ring test of TerraformPits). Logs each with the nets standing at it.
         /// Types that dig on purpose (quarry, ponds, ...) are scanned too, but only reported.
@@ -41,7 +48,7 @@ namespace Placemaker.Game.Build
             _livePits.Clear();
             try
             {
-                if (LooseBuild || _request?.Plan == null) return _livePits;
+                if (!DebugBuildChecks || LooseBuild || _request?.Plan == null) return _livePits;
                 var outline = BuildOutline();
                 if (outline == null || outline.Length < 3) return _livePits;
                 float2 min = outline[0], max = outline[0];
@@ -120,6 +127,7 @@ namespace Placemaker.Game.Build
         /// </summary>
         private void LogSaggingEdges(string when)
         {
+            if (!DebugBuildChecks) return;
             try
             {
                 var outline = BuildOutline();

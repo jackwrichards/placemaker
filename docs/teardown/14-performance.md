@@ -132,9 +132,34 @@ From the game runner's 774 runs (1 560 builds, each step's 3 worst frames) and t
 Expected: a runner park's worst frame ~170 ms → ~20–40 ms after 1–2; the 16 ha parking ~2.7 s → under ~50 ms per frame
 after all of it.
 
+### 2.3 Done on this branch (25 Oct), seen in the game runner
+
+Runner: `Show.ps1 -Type park|parking -Size 320` (a 10 ha block, ring road). "Ours" = the mod's own main-thread time per frame
+(the new `Placemaker build timing` / `ghost timing` / `slow tool frame` lines); the game's own work comes on top.
+
+| | before (same day) | after |
+|---|---|---|
+| park build, worst frame of ours | 3 × 135–190 ms (pit checks) | **52 ms** (`show-park-default-1025-133213`) |
+| park build, companion site search | 183 ms | 25 ms |
+| parking build, census + tagging (5 000 pieces) | 89 + 112 ms | **40 + 51 ms** (`show-parking-default-1025-134722`), 2 376/2 376 stalls |
+| parking preview (ghost), worst frame | 349 ms | **32–40 ms** |
+| assets on every plan, main thread | 30–60 ms | 0 (on the planning worker) |
+| terraform target + pit guard | 0.3–2.7 s in one frame | on a worker (5 ms at 10 ha) |
+| shops zoning refresh | 1–5 s in one frame (big shops) | on a worker (20 ms here) |
+
+What changed: `Debug: build checks` (off) gates the log-only checks (pit scans, sagging edges, hollows, zoning verify, blocked
+cells, plot roads); the terraform raster/pit fill and ZoneGuard.Refresh run on workers from a copy of the height map (the
+game's own sampler, so the same heights); surface/area rings are repaired once per ring on a worker before the ghost emits
+(cached for the build); the census and tagging read through component lookups, batch their structural changes, and match in
+an index sized to its tolerance; the park companion search indexes the park's objects.
+
+Found on the way: **the yard and ruin types (carYard, junkYard, abandonedLot, containerYard, industrialWorks, scrapyard,
+logisticsYard, constructionSite, landfill, quarry, urbanRuins, memorialPark, dogPark) plan differently on a slope depending
+on what was planned before them in the same process** (bench `s0` vs `s0b`, 25 Oct): some static state carries over. Not
+caused by this work (the old code does it), but the preview and the build could differ for them. To look into.
+
 ## 3. Measurement to add (so the game runner can judge each step)
 
-- One timing line per build: ms per step, the 5 worst frames as (frame, step, ours, game), GC collections; the frame number
-  in every build line. Same for the ghost and plan landing.
+- Done: one timing line per build (steps, worst frames, parts), per ghost, and a line for any tool frame over 30 ms.
 - The outline's corner count in every plan line (`Placemaker: plan park r77: ... 1180 corners`).
 - Re-run big shops (`stripMall-classic-big`, `mallDistrict-dense-big`) and one build in a saved big city.
