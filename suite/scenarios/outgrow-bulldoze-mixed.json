@@ -1,0 +1,216 @@
+{
+  "_about": "As outgrow-bulldoze-curve, but the town first outgrown with the older emergent split (classic 0), then the default rules back (classic 1, nothing planned again) before the bulldozer: neighbours planned by another version kept as they are around the gardens planned again (the user's city had been outgrown by several versions). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-bulldoze-mixed.json -Who outgrow-bulldoze",
+  "scenarios": [
+    {
+      "id": "outgrow-bulldoze-mixed",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 3000,
+          "label": "mixed"
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "arc",
+          "at": [
+            0,
+            -150
+          ],
+          "radius": 190,
+          "from": 35,
+          "to": 145,
+          "zone": "NA Residential Low"
+        },
+        {
+          "do": "grow",
+          "seconds": 90
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 90
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "classic": 0,
+            "emergent": 1
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 90
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "classic": 1
+          },
+          "redo": false
+        },
+        {
+          "do": "shot",
+          "name": "before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              40
+            ],
+            "view": "top",
+            "distance": 230
+          }
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            0,
+            40
+          ],
+          "rel": true,
+          "radius": 80,
+          "nearest": 1
+        },
+        {
+          "do": "lab",
+          "op": "outgrowFrames",
+          "seconds": 20,
+          "speed": 1,
+          "outgrow": true
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 60
+        },
+        {
+          "do": "shot",
+          "name": "after-one",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              40
+            ],
+            "view": "top",
+            "distance": 230
+          }
+        },
+        {
+          "do": "shot",
+          "name": "after-one-45",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              40
+            ],
+            "view": "oblique",
+            "distance": 200
+          }
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            0,
+            40
+          ],
+          "rel": true,
+          "radius": 80,
+          "nearest": 3
+        },
+        {
+          "do": "lab",
+          "op": "outgrowFrames",
+          "seconds": 20,
+          "speed": 1,
+          "outgrow": true
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 60
+        },
+        {
+          "do": "shot",
+          "name": "after-four",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              40
+            ],
+            "view": "top",
+            "distance": 230
+          }
+        },
+        {
+          "do": "shot",
+          "name": "after-four-45",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              40
+            ],
+            "view": "oblique",
+            "distance": 200
+          }
+        },
+        {
+          "do": "lab",
+          "op": "gardenReport",
+          "label": "mixed",
+          "rel": true,
+          "places": [
+            {
+              "name": "curve",
+              "at": [
+                0,
+                0
+              ],
+              "size": 420
+            }
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 0,
+          "label": "off"
+        }
+      ]
+    }
+  ]
+}
