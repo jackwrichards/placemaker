@@ -30,7 +30,8 @@ namespace Placemaker.OutgrowBench
     {
         public static int Run(List<string> args)
         {
-            string input = args[0], scenario = null, game = null, way = "now", outDir = null;
+            string input = args[0], scenario = null, game = null, way = "now", outDir = null, placesFile = null, roadsFile = null;
+            bool quiet = false;
             int rounds = 2;
             var knobs = new Dictionary<string, float>();
             for (int i = 1; i < args.Count; i++)
@@ -42,12 +43,17 @@ namespace Placemaker.OutgrowBench
                     case "--game": game = args[++i]; break;
                     case "--way": way = args[++i]; break;
                     case "--out": outDir = args[++i]; break;
+                    case "--places": placesFile = args[++i]; break;
+                    case "--roads": roadsFile = args[++i]; break;
+                    // (only the score: the black box)
+                    case "--quiet": quiet = true; break;
                 }
             scenario ??= FindScenario();
             outDir ??= Path.GetDirectoryName(Path.GetFullPath(input.TrimEnd('\\', '/')));
             var files = Directory.GetFiles(input, "pass-*.json").OrderBy(f => f, StringComparer.Ordinal).ToList();
             var texts = files.Select(File.ReadAllText).ToList();
-            Console.WriteLine($"{files.Count} passes from {input}, replayed in order {rounds}x{(knobs.Count > 0 ? ", knobs " + string.Join(" ", knobs.Select(k => k.Key + "=" + k.Value.ToString(CultureInfo.InvariantCulture))) : "")}");
+            var log = quiet ? TextWriter.Null : Console.Out;
+            log.WriteLine($"{files.Count} passes from {input}, replayed in order {rounds}x{(knobs.Count > 0 ? ", knobs " + string.Join(" ", knobs.Select(k => k.Key + "=" + k.Value.ToString(CultureInfo.InvariantCulture))) : "")}");
 
             // what each house has as the replay goes: its garden and its fences as they stand (name: piece width)
             var garden = new Dictionary<long, float2[]>();
@@ -103,11 +109,11 @@ namespace Placemaker.OutgrowBench
                             if (!barriers.ContainsKey(key)) barriers[key] = (r, settings.BarrierKinds != null && k < settings.BarrierKinds.Count ? settings.BarrierKinds[k] : 0);
                         }
                 }
-                Console.WriteLine($"  round {round + 1}: {roundMs:F0} ms planning");
+                log.WriteLine($"  round {round + 1}: {roundMs:F0} ms planning");
             }
 
             // ── the town as the replay left it ──
-            var places = ReadPlaces(scenario);
+            var places = placesFile != null ? ReadPlacesFile(placesFile) : FindPlaces(game, way, input) ?? ReadPlaces(scenario);
             string PlaceOf(float2 p) { foreach (var pl in places) if (p.x >= pl.Lo.x && p.y >= pl.Lo.y && p.x <= pl.Hi.x && p.y <= pl.Hi.y) return pl.Name; return null; }
             var input2 = new List<GardenReport.Input>();
             foreach (var h in lastSeen.Values)
@@ -121,7 +127,7 @@ namespace Placemaker.OutgrowBench
             var gardens = GardenReport.Measure(placed);
             // the road surfaces the game's report measured from (roads-<way>.json beside it), else the passes' own (they miss pieces
             // at the junctions: the land to cover comes out larger)
-            var roads = ReadRoads(game, way, input) ?? barriers.Values.Where(b => b.Kind == 0).Select(b => b.Ring).ToList();
+            var roads = (roadsFile != null ? ReadRoadsFile(roadsFile) : ReadRoads(game, way, input)) ?? barriers.Values.Where(b => b.Kind == 0).Select(b => b.Ring).ToList();
             var lots = placed.Select(g => { var r = new float2(g.Forward.y, -g.Forward.x); return new[] { g.Position - r * g.HalfLot.x - g.Forward * g.HalfLot.y, g.Position + r * g.HalfLot.x - g.Forward * g.HalfLot.y, g.Position + r * g.HalfLot.x + g.Forward * g.HalfLot.y, g.Position - r * g.HalfLot.x + g.Forward * g.HalfLot.y }; }).ToList();
             var covers = GardenReport.Coverage(places, roads, input2.Select(g => g.Ring).ToList(), lots);
             // fences as they stand: what the replay made, else as recorded (a house never edited: its standing; an unpolished
@@ -165,6 +171,9 @@ namespace Placemaker.OutgrowBench
                     if (gm.Value.Gaps >= 0) sb.AppendLine($"  fences (the game's fence map counts differently): gaps {gm.Value.Gaps}, crossings {gm.Value.Crossings}, doubles {gm.Value.Doubles}");
                 }
             }
+            LastScore = score;
+            LastMs = times.Sum();
+            if (quiet) return 0;
             Console.Write(sb.ToString());
             Directory.CreateDirectory(outDir);
             File.WriteAllText(Path.Combine(outDir, "bootcamp-offline.txt"), sb.ToString() + "\n" + GardenReport.Text(gardens));
@@ -172,6 +181,59 @@ namespace Placemaker.OutgrowBench
             File.WriteAllText(Path.Combine(outDir, "coverage-offline.json"), GardenReport.CoverJson(covers));
             Console.WriteLine(Path.Combine(outDir, "bootcamp-offline.txt"));
             return 0;
+        }
+
+        public static float LastScore;
+        public static double LastMs;
+
+        /// <summary>
+        /// The black box: every town recorded under <paramref name="dir"/> (town-*/passes, roads.json, places.json; tools/suite/
+        /// blackbox.js) scored, the score alone printed: what is in them is not to be known (a planner is not tuned on them).
+        /// </summary>
+        public static int Blackbox(List<string> args)
+        {
+            var dir = args[0];
+            var towns = Directory.GetDirectories(dir, "town-*").OrderBy(d => d, StringComparer.Ordinal).ToList();
+            if (towns.Count == 0) { Console.WriteLine("no black-box towns in " + dir); return 1; }
+            var rest = args.Skip(1).ToList();
+            float sum = 0f;
+            foreach (var town in towns)
+            {
+                var a = new List<string> { Path.Combine(town, "passes"), "--quiet", "--places", Path.Combine(town, "places.json"), "--roads", Path.Combine(town, "roads.json") };
+                a.AddRange(rest);
+                Run(a);
+                Console.WriteLine($"black box {Path.GetFileName(town)}: score {LastScore:F1} ({LastMs:F0} ms planning)");
+                sum += LastScore;
+            }
+            Console.WriteLine($"black box mean: {sum / towns.Count:F1}");
+            return 0;
+        }
+
+        private static List<float2[]> ReadRoadsFile(string f) => File.Exists(f) ? JsonNode.Parse(File.ReadAllText(f)).AsArray().Select(r => r.AsArray().Select(p => new float2(p[0].GetValue<float>(), p[1].GetValue<float>())).ToArray()).ToList() : null;
+
+        private static List<GardenReport.Place> ReadPlacesFile(string f)
+        {
+            var list = new List<GardenReport.Place>();
+            if (!File.Exists(f)) return list;
+            foreach (var p in JsonNode.Parse(File.ReadAllText(f)).AsArray())
+            {
+                var at = new float2(p["at"][0].GetValue<float>(), p["at"][1].GetValue<float>());
+                float half = p["size"].GetValue<float>() * 0.5f;
+                list.Add(new GardenReport.Place { Name = p["name"].GetValue<string>(), Lo = at - half, Hi = at + half });
+            }
+            return list;
+        }
+
+        /// <summary>The places the game's report measured (places-<way>.json beside it or beside the passes).</summary>
+        private static List<GardenReport.Place> FindPlaces(string game, string way, string passes)
+        {
+            foreach (var dir in new[] { game, Path.GetDirectoryName(Path.GetFullPath(passes.TrimEnd('\\', '/'))) })
+            {
+                if (dir == null) continue;
+                var f = Path.Combine(dir, $"places-{way}.json");
+                if (File.Exists(f)) return ReadPlacesFile(f);
+            }
+            return null;
         }
 
         public struct M { public float Coverage, Plain, MeanEdges, ExtraTurn; public int Over8, Spikes, Notches, Slight, Short; }

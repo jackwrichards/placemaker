@@ -26,7 +26,7 @@ namespace Placemaker.Game.Suite
 {
     public sealed partial class SuiteRunner
     {
-        private IEnumerator LabGardenReport(JObject step, JObject rec)
+        private IEnumerator LabGardenReport(ScenarioState st, JObject step, JObject rec)
         {
             yield return Frames(10);
             var em = _world.EntityManager;
@@ -34,7 +34,8 @@ namespace Placemaker.Game.Suite
             if (step["places"] is JArray ps)
                 foreach (var p in ps)
                 {
-                    var at = new float2((float)p["at"][0], (float)p["at"][1]);
+                    // ("rel": true, from the scenario's land's middle)
+                    var at = new float2((float)p["at"][0], (float)p["at"][1]) + ((bool?)step["rel"] == true ? st.S.Block.Center : float2.zero);
                     float half = ((float?)p["size"] ?? 500f) * 0.5f;
                     places.Add(((string)p["name"], at - half, at + half));
                 }
@@ -93,6 +94,8 @@ namespace Placemaker.Game.Suite
                 File.WriteAllText(Path.Combine(_out, $"gardens-{label}.txt"), text);
                 if (covers.Count > 0) File.WriteAllText(Path.Combine(_out, $"coverage-{label}.json"), GardenReport.CoverJson(covers));
                 // (the road surfaces it measured from: the offline score, OutgrowBench --bootcamp, measures from the same)
+                // (the places as measured, in world terms: the offline score reads them)
+                File.WriteAllText(Path.Combine(_out, $"places-{label}.json"), "[" + string.Join(",", places.ConvertAll(p => $"{{\"name\":\"{p.Name}\",\"at\":[{((p.Lo.x + p.Hi.x) * 0.5f).ToString(System.Globalization.CultureInfo.InvariantCulture)},{((p.Lo.y + p.Hi.y) * 0.5f).ToString(System.Globalization.CultureInfo.InvariantCulture)}],\"size\":{(p.Hi.x - p.Lo.x).ToString(System.Globalization.CultureInfo.InvariantCulture)}}}")) + "]");
                 if (roads.Count > 0) File.WriteAllText(Path.Combine(_out, $"roads-{label}.json"), "[" + string.Join(",", roads.ConvertAll(r => "[" + string.Join(",", Array.ConvertAll(r, p => $"[{p.x.ToString(System.Globalization.CultureInfo.InvariantCulture)},{p.y.ToString(System.Globalization.CultureInfo.InvariantCulture)}]")) + "]")) + "]");
             }
             catch (Exception ex) { rec["error"] = "lab: garden report not written: " + ex.Message; }
