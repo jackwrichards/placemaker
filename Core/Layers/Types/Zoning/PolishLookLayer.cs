@@ -134,21 +134,21 @@ namespace Placemaker.Core.Layers.Types.Zoning
         /// <summary>Lots that keep to themselves (small reach, no open land, lawn everywhere).</summary>
         protected static readonly (string, object)[] CompactReach =
         {
-            ("gardenWidth", 15.0), ("gardenDepth", 35.0), ("sideReach", 30.0), ("maxFrontGap", 40.0), ("maxBackGap", 60.0), ("maxRearGap", 20.0), ("maxFacingGap", 16.0),
+            ("sideReach", 30.0), ("maxFrontGap", 40.0), ("maxBackGap", 60.0), ("maxRearGap", 20.0), ("maxFacingGap", 16.0),
             ("maxDeepen", 16.0), ("hugReach", 16.0), ("openReach", 0.0), ("lawnReach", 1000.0),
         };
 
         /// <summary>Roomy lots: they reach well out, but stop short of filling whole fields.</summary>
         protected static readonly (string, object)[] WideReach =
         {
-            ("gardenWidth", 70.0), ("gardenDepth", 80.0), ("sideReach", 150.0), ("maxFrontGap", 120.0), ("maxBackGap", 180.0), ("maxRearGap", 80.0), ("maxFacingGap", 60.0),
+            ("sideReach", 150.0), ("maxFrontGap", 120.0), ("maxBackGap", 180.0), ("maxRearGap", 80.0), ("maxFacingGap", 60.0),
             ("maxDeepen", 60.0), ("hugReach", 100.0), ("openReach", 40.0),
         };
 
         /// <summary>Lots that take every bit of land around them.</summary>
         protected static readonly (string, object)[] SprawlReach =
         {
-            ("gardenWidth", 120.0), ("gardenDepth", 140.0), ("sideReach", 250.0), ("maxFrontGap", 200.0), ("maxBackGap", 300.0), ("maxRearGap", 150.0), ("maxFacingGap", 120.0),
+            ("sideReach", 250.0), ("maxFrontGap", 200.0), ("maxBackGap", 300.0), ("maxRearGap", 150.0), ("maxFacingGap", 120.0),
             ("maxDeepen", 150.0), ("hugReach", 150.0), ("openReach", 80.0),
         };
 
