@@ -66,8 +66,8 @@ const GROUPS: { id: string; en: string; icon: string; open?: boolean; picture?: 
         // does not read them); the picture above them is the real planner on a small made-up street (GardenPicture)
         id: "reach", en: "Outgrow shape", icon: "ruler", open: true, picture: true,
         knobs: [
-            { id: "gardenWidth", en: "Grow sideways", tip: "How far the outgrow may reach past the lot on each side, into land no neighbour takes. Between two neighbours they meet on one straight line.", kind: "slider", min: 0, max: 150, step: 1, unit: "m" },
-            { id: "gardenDepth", en: "Outgrow depth", tip: "How far behind its street the outgrow may reach. Between two rows of houses the outgrow meets in the middle.", kind: "slider", min: 0, max: 200, step: 1, unit: "m" },
+            { id: "gardenWidth", en: "Grow sideways", tip: "Past the lot's sides (blue line).", kind: "slider", min: 0, max: 150, step: 1, unit: "m" },
+            { id: "gardenDepth", en: "Outgrow depth", tip: "Back from the street (blue line).", kind: "slider", min: 0, max: 200, step: 1, unit: "m" },
         ],
     },
     {
@@ -154,10 +154,9 @@ const GROUPS: { id: string; en: string; icon: string; open?: boolean; picture?: 
     },
 ];
 
-/** The garden picture: a small made-up street (a row with one plot empty, a side street, open land behind and at the row's
+/** The outgrow picture: a small made-up street (a row with one plot empty, a side street, open land behind and at the row's
  *  end) planned by the game with the rows' values as they are now, so a slider shows what it does as it moves. */
 const GardenPicture = ({ pic }: { pic: NonNullable<PainterState["preview"]> }) => {
-    const { t } = useT();
     const w = pic.hi[0] - pic.lo[0], h = pic.hi[1] - pic.lo[1];
     // (a new svg element for every new picture: the game's view does not repaint polygons whose points change)
     const sig = pic.gardens.reduce((n, r) => r.reduce((m, q) => m + q[0] * 3 + q[1], n), 0).toFixed(1);
@@ -169,8 +168,8 @@ const GardenPicture = ({ pic }: { pic: NonNullable<PainterState["preview"]> }) =
                 {pic.gardens.map((r, i) => <polygon key={"g" + i} points={pts(r)} fill="#b5dc95" stroke="#4d7a36" strokeWidth={0.7} strokeLinejoin="round" />)}
                 {pic.lots.map((r, i) => <polygon key={"l" + i} points={pts(r)} fill="#3f7a2c" />)}
                 {pic.roads.map((r, i) => <polygon key={"r" + i} points={pts(r)} fill="#8a8a8a" />)}
+                {(pic.limits ?? []).map((r, i) => <polyline key={"m" + i} points={pts(r)} fill="none" stroke="#3d8fe0" strokeWidth={1.2} strokeDasharray="3 2" strokeLinejoin="round" />)}
             </svg>
-            <div className={s.gardenPictureNote}>{t("Placemaker.UI.Polish.Picture", "A sample street: dark green the lots, light green their outgrow; one plot is empty")}</div>
         </div>
     );
 };

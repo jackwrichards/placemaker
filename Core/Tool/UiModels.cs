@@ -314,7 +314,7 @@ namespace Placemaker.Core.Tool
             JsonValue Pt(Unity.Mathematics.float2 v) => Arr(new[] { JsonValue.Num(Math.Round(v.x, 1)), JsonValue.Num(Math.Round(v.y, 1)) });
             JsonValue Rings(List<Unity.Mathematics.float2[]> rs) => Arr(rs.Select(r => Arr(r.Select(Pt))));
             return JsonValue.Obj().Set("lo", Pt(pic.Lo)).Set("hi", Pt(pic.Hi)).Set("roads", Rings(pic.Roads)).Set("lots", Rings(pic.Lots))
-                .Set("houses", Rings(pic.Houses)).Set("gardens", Rings(pic.Gardens)).Set("ms", Math.Round(pic.Ms, 1));
+                .Set("houses", Rings(pic.Houses)).Set("gardens", Rings(pic.Gardens)).Set("limits", Rings(pic.Limits)).Set("ms", Math.Round(pic.Ms, 1));
         }
 
         private static JsonValue StatsJson(PainterStats s)

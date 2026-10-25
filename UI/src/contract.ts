@@ -211,7 +211,7 @@ export interface PainterState {
    *  it, its icon, how many buildings (a Zoning type's Only edit existing). */
   areaZones?: { key: string; zone: string; icon: string; count: number }[];
   /** The editor's garden picture: a small made-up street planned with the rows' values (x, z: z north; rings of points). */
-  preview?: { lo: number[]; hi: number[]; roads: number[][][]; lots: number[][][]; houses: number[][][]; gardens: number[][][]; ms: number } | null;
+  preview?: { lo: number[]; hi: number[]; roads: number[][][]; lots: number[][][]; houses: number[][][]; gardens: number[][][]; limits?: number[][][]; ms: number } | null;
 }
 
 export interface PolishZone {

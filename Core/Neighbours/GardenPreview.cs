@@ -19,6 +19,9 @@ namespace Placemaker.Core.Neighbours
             /// <summary>The corner of the picture (x, z: z north) and its far corner.</summary>
             public float2 Lo, Hi;
             public readonly List<float2[]> Roads = new List<float2[]>(), Lots = new List<float2[]>(), Houses = new List<float2[]>(), Gardens = new List<float2[]>();
+            /// <summary>Where the two sliders reach, as lines: Outgrow depth behind each row (from the street), Grow sideways past
+            /// each row's open end.</summary>
+            public readonly List<float2[]> Limits = new List<float2[]>();
             /// <summary>How long the plan took (ms).</summary>
             public double Ms;
         }
@@ -42,6 +45,14 @@ namespace Placemaker.Core.Neighbours
             var clock = Stopwatch.StartNew();
             var plan = YardStitch.Plan(houses, s);
             pic.Ms = clock.Elapsed.TotalMilliseconds;
+            // the limits: the depth line behind the main row and the side row (measured from their streets), the width line past
+            // each row's open end, one line round the land the outgrow may take
+            float V(string k) => values != null && values.TryGetValue(k, out var v) ? v : PolishLooks.Defaults.TryGetValue(k, out var d) ? d : 0f;
+            float depth = V("gardenDepth"), width = V("gardenWidth");
+            float front = MainNorth + 1f, sideFront = SideWest - 1f;
+            float rowEnd = MainRow[0].At - MainRow[0].HalfX - width, sideEnd = SideRow[SideRow.Length - 1].At + SideRow[SideRow.Length - 1].HalfX + width;
+            float back = front + depth, sideBack = math.max(sideFront - depth, rowEnd);
+            pic.Limits.Add(new[] { new float2(rowEnd, front), new float2(rowEnd, back), new float2(sideBack, back), new float2(sideBack, sideEnd), new float2(sideFront, sideEnd) });
             foreach (var h in houses)
             {
                 pic.Lots.Add(LotOf(h));

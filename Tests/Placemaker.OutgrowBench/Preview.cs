@@ -24,10 +24,11 @@ namespace Placemaker.OutgrowBench
             float w = (pic.Hi.x - pic.Lo.x) * S, h = (pic.Hi.y - pic.Lo.y) * S;
             string P(float2[] r) => string.Join(" ", r.Select(p => ((p.x - pic.Lo.x) * S).ToString("F1", CultureInfo.InvariantCulture) + "," + ((pic.Hi.y - p.y) * S).ToString("F1", CultureInfo.InvariantCulture)));
             var sb = new StringBuilder($"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{w:F0}\" height=\"{h + 30:F0}\"><rect width=\"100%\" height=\"100%\" fill=\"#e9e4d8\"/>");
-            foreach (var r in pic.Roads) sb.Append($"<polygon points=\"{P(r)}\" fill=\"#8d8d8d\"/>");
-            foreach (var g in pic.Gardens) sb.Append($"<polygon points=\"{P(g)}\" fill=\"#a8d08d\" stroke=\"#3d6b2a\" stroke-width=\"2\"/>");
-            foreach (var l in pic.Lots) sb.Append($"<polygon points=\"{P(l)}\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.2\" stroke-dasharray=\"4 3\"/>");
-            foreach (var b in pic.Houses) sb.Append($"<polygon points=\"{P(b)}\" fill=\"#c96f4a\"/>");
+            // (as the panel draws it: light green the outgrow, dark green the lots, the roads, the sliders' limits in blue)
+            foreach (var g in pic.Gardens) sb.Append($"<polygon points=\"{P(g)}\" fill=\"#b5dc95\" stroke=\"#4d7a36\" stroke-width=\"2\"/>");
+            foreach (var l in pic.Lots) sb.Append($"<polygon points=\"{P(l)}\" fill=\"#3f7a2c\"/>");
+            foreach (var r in pic.Roads) sb.Append($"<polygon points=\"{P(r)}\" fill=\"#8a8a8a\"/>");
+            foreach (var m in pic.Limits) sb.Append($"<polyline points=\"{P(m)}\" fill=\"none\" stroke=\"#3d8fe0\" stroke-width=\"3\" stroke-dasharray=\"9 6\"/>");
             sb.Append($"<text x=\"8\" y=\"{h + 22:F0}\" font-family=\"system-ui\" font-size=\"16\">{string.Join("  ", args.Skip(1).Where(a => a != "--knob"))}  ({pic.Ms:F1} ms)</text></svg>");
             File.WriteAllText(args[0], sb.ToString());
             Console.WriteLine($"{args[0]}: {pic.Gardens.Count} gardens, {pic.Ms:F1} ms");
