@@ -120,15 +120,15 @@ namespace Placemaker.Core.Layers.Parking
                 return plan;
             }
             cancel.ThrowIfCancellationRequested();
-            layout.Surfaces = SurfaceCells.Build(layout.Lot, zones, pieces, s.Greenery == Greenery.None, cancel);
+            layout.Surfaces = SurfaceCells.Build(layout.Lot, zones, pieces, s.Greenery == Greenery.None, cancel, layout.ZoneChain, layout.ZoneChainZones);
             cancel.ThrowIfCancellationRequested();
 
             var greens = new List<List<double2>>();
-            var asphalts = new List<List<double2>>();
-            foreach (var sp in layout.Surfaces) (sp.Asphalt ? asphalts : greens).Add(sp.Ring);
-            var greenIndex = new RingIndex(greens);
-            var asphaltIndex = new RingIndex(asphalts);
-            bool IsGreen(double2 p) => greenIndex.Contains(p) && !asphaltIndex.Contains(p);
+            foreach (var sp in layout.Surfaces) if (!sp.Asphalt) greens.Add(sp.Ring);
+            // (perf) by the convex cells each ring was merged from, looked up by grid cell (was: every ring's box, then the
+            // whole ring, for each of the planting probes every 0.3 m)
+            var materials = new SurfaceIndex(layout.Surfaces);
+            bool IsGreen(double2 p) => materials.IsGreen(p);
             bool Reserved(double2 local, double r) => rq.Blocked(f.ToWorld(local), r);
 
             // ── lanterns ──
@@ -174,14 +174,26 @@ namespace Placemaker.Core.Layers.Parking
                     if (!bayGrid.TryGetValue(k, out var l)) bayGrid[k] = l = new List<Bay>();
                     l.Add(b);
                 }
+                // (perf) chargers by the same 8 m cell (every planting candidate asked every charger)
+                var chargerGrid = new Dictionary<long, List<double2>>();
+                foreach (var c in layout.Chargers)
+                {
+                    long k = Cell(c.Position.x, c.Position.y);
+                    if (!chargerGrid.TryGetValue(k, out var l)) chargerGrid[k] = l = new List<double2>();
+                    l.Add(c.Position);
+                }
                 bool PlantBlocked(double2 p)
                 {
-                    foreach (var c in layout.Chargers) if (math.distance(c.Position, p) < 1.5) return true;
                     // never in a stall, even where a stall's corner reaches into the planting (cut corners of odd outlines)
                     for (int dy = -1; dy <= 1; dy++)
                         for (int dx = -1; dx <= 1; dx++)
-                            if (bayGrid.TryGetValue(Cell(p.x + dx * 8, p.y + dy * 8), out var near))
+                        {
+                            long k = Cell(p.x + dx * 8, p.y + dy * 8);
+                            if (chargerGrid.Count > 0 && chargerGrid.TryGetValue(k, out var cs))
+                                foreach (var c in cs) if (math.distance(c, p) < 1.5) return true;
+                            if (bayGrid.TryGetValue(k, out var near))
                                 foreach (var b in near) if (PGeo.Contains(b.Quad, p)) return true;
+                        }
                     return Reserved(p, 1.0);
                 }
                 // rows first: the strips behind the stalls get evenly spaced trees and shrubs on their centre line
@@ -683,38 +695,60 @@ namespace Placemaker.Core.Layers.Parking
         /// <summary>
         /// Rings CS2 keeps for one merged surface. When the game model trims the big ring (it splits
         /// and drops pieces it cannot rescue), the same cells are regrouped into smaller rings and the
-        /// variant covering more area wins; cells are the last resort.
+        /// variant covering more area wins; cells are the last resort. A ring the build itself would refuse (the game's
+        /// area shape rules, <see cref="SurfaceRules"/>: it left the whole ring out, bare ground in the lot) counts as
+        /// lost, so its cells are regrouped too.
         /// </summary>
         private static List<float3[]> Acceptable(SurfacePoly sp, Func<List<double2>, float2[]> w2, Func<float2, float> h2, CancellationToken cancel)
         {
             double want = PGeo.Area(sp.Ring);
-            var best = SurfaceAcceptance.MakeAcceptable(w2(sp.Ring), h2);
-            double got = Sum(best);
-            if (want - got <= 0.05 || sp.Cells == null || sp.Cells.Count == 0) return best;
+            var best = Kept(SurfaceAcceptance.MakeAcceptable(w2(sp.Ring), h2), h2, out double got);
+            // (perf) A ring the game model only trimmed a little (spikes, short edges: under half a square metre) is kept as
+            // it is: regrouping its cells and then every cell on its own covered more only a few times in a hundred, and then by
+            // under 0.1 m², at the cost of re-planning every cell. Rings it cut up or dropped are still rescued.
+            if (want - got <= RescueLoss || sp.Cells == null || sp.Cells.Count == 0) return best;
             foreach (int cap in new[] { 48, 16 })
             {
                 var alt = new List<float3[]>();
+                double a = 0;
                 foreach (var ring in SurfaceCells.Regroup(sp.Cells, cap, cancel))
                 {
-                    var acc = SurfaceAcceptance.MakeAcceptable(w2(ring), h2);
-                    alt.AddRange(acc);
+                    alt.AddRange(Kept(SurfaceAcceptance.MakeAcceptable(w2(ring), h2), h2, out double ka));
+                    a += ka;
                 }
-                double a = Sum(alt);
                 if (a > got + 1e-3) { best = alt; got = a; }
                 if (want - got <= 0.05) return best;
             }
             var cells = new List<float3[]>();
-            foreach (var cell in sp.Cells) cells.AddRange(SurfaceAcceptance.MakeAcceptable(w2(cell), h2));
-            if (Sum(cells) > got + 1e-3) best = cells;
+            double c = 0;
+            foreach (var cell in sp.Cells)
+            {
+                cells.AddRange(Kept(SurfaceAcceptance.MakeAcceptable(w2(cell), h2), h2, out double kc));
+                c += kc;
+            }
+            if (c > got + 1e-3) best = cells;
             return best;
         }
 
-        private static double Sum(List<float3[]> rings)
+        /// <summary>
+        /// The rings the build keeps (SurfaceRules.GameKeeps: as they are or repaired by the build); the rest it would skip.
+        /// <paramref name="area"/>: their area.
+        /// </summary>
+        private static List<float3[]> Kept(List<float3[]> rings, Func<float2, float> h2, out double area)
         {
-            double a = 0;
-            foreach (var r in rings) a += Pricing.PolygonArea(r);
-            return a;
+            var kept = new List<float3[]>(rings.Count);
+            area = 0;
+            foreach (var r in rings)
+            {
+                if (!SurfaceRules.GameKeeps(r)) continue;
+                kept.Add(r);
+                area += Pricing.PolygonArea(r);
+            }
+            return kept;
         }
+
+        /// <summary>Area (m²) a surface ring may lose to the game model's clean-up before its cells are regrouped to win it back.</summary>
+        internal const double RescueLoss = 0.5;
 
         private static List<AssetRef> SpeciesAssets(ParkingSettings s)
         {
@@ -777,27 +811,86 @@ namespace Placemaker.Core.Layers.Parking
             }
             return outList;
         }
+    }
 
-        /// <summary>Point-in-rings lookup with bounding boxes.</summary>
-        private sealed class RingIndex
+    /// <summary>
+    /// (perf) Green or asphalt at a point, from the convex cells the surfaces were merged from (each ring is exactly the
+    /// union of its cells), by grid cell: a handful of small convex cells per probe instead of every ring.
+    /// Green = inside a green cell and no asphalt cell (as the rings were asked before).
+    /// </summary>
+    internal sealed class SurfaceIndex
+    {
+        private readonly List<List<double2>> _cells = new List<List<double2>>();
+        private readonly List<bool> _asphalt = new List<bool>();
+        private readonly List<double4> _box = new List<double4>();
+        private readonly double2 _min;
+        private readonly double _inv;
+        private readonly int _nx, _ny;
+        private readonly int[] _start, _items;
+
+        public SurfaceIndex(List<SurfacePoly> surfaces)
         {
-            private readonly List<List<double2>> _rings;
-            private readonly List<(double2 Min, double2 Max)> _bounds = new List<(double2, double2)>();
-            public RingIndex(List<List<double2>> rings)
+            var mn = new double2(double.MaxValue, double.MaxValue); var mx = new double2(double.MinValue, double.MinValue);
+            double area = 0;
+            foreach (var sp in surfaces)
             {
-                _rings = rings;
-                foreach (var r in rings) { PGeo.Bounds(r, out var mn, out var mx); _bounds.Add((mn, mx)); }
-            }
-            public bool Contains(double2 p)
-            {
-                for (int i = 0; i < _rings.Count; i++)
+                var list = sp.Cells != null && sp.Cells.Count > 0 ? sp.Cells : new List<List<double2>> { sp.Ring };
+                foreach (var c in list)
                 {
-                    var b = _bounds[i];
-                    if (p.x < b.Min.x || p.x > b.Max.x || p.y < b.Min.y || p.y > b.Max.y) continue;
-                    if (PGeo.Contains(_rings[i], p)) return true;
+                    if (c == null || c.Count < 3) continue;
+                    PGeo.Bounds(c, out var a, out var b);
+                    _cells.Add(c); _asphalt.Add(sp.Asphalt); _box.Add(new double4(a.x, a.y, b.x, b.y));
+                    mn = math.min(mn, a); mx = math.max(mx, b);
+                    area += (b.x - a.x) * (b.y - a.y);
                 }
-                return false;
             }
+            if (_cells.Count == 0) { _nx = _ny = 1; _inv = 1; _start = new int[2]; _items = Array.Empty<int>(); return; }
+            double w = Math.Max(1e-6, mx.x - mn.x), h = Math.Max(1e-6, mx.y - mn.y);
+            double cell = Math.Max(2, Math.Min(32, Math.Sqrt(area / _cells.Count)));
+            cell = Math.Max(cell, Math.Max(w, h) / 256);
+            _min = mn; _inv = 1 / cell;
+            _nx = (int)Math.Floor(w * _inv) + 1; _ny = (int)Math.Floor(h * _inv) + 1;
+            var count = new int[_nx * _ny + 1];
+            for (int pass = 0; pass < 2; pass++)
+            {
+                if (pass == 1)
+                {
+                    for (int i = 1; i < count.Length; i++) count[i] += count[i - 1];
+                    _start = (int[])count.Clone();
+                    _items = new int[count[count.Length - 1]];
+                }
+                for (int i = 0; i < _cells.Count; i++)
+                {
+                    var b = _box[i];
+                    int x0 = Cx(b.x), x1 = Cx(b.z), y0 = Cy(b.y), y1 = Cy(b.w);
+                    for (int y = y0; y <= y1; y++)
+                        for (int x = x0; x <= x1; x++)
+                        {
+                            int c = x + y * _nx;
+                            if (pass == 0) count[c + 1]++; else _items[count[c]++] = i;
+                        }
+                }
+            }
+        }
+
+        private int Cx(double x) { int i = (int)Math.Floor((x - _min.x) * _inv); return i < 0 ? 0 : i >= _nx ? _nx - 1 : i; }
+        private int Cy(double y) { int i = (int)Math.Floor((y - _min.y) * _inv); return i < 0 ? 0 : i >= _ny ? _ny - 1 : i; }
+
+        public bool IsGreen(double2 p)
+        {
+            if (_items.Length == 0) return false;
+            int c = Cx(p.x) + Cy(p.y) * _nx;
+            bool green = false;
+            for (int k = _start[c], end = _start[c + 1]; k < end; k++)
+            {
+                int i = _items[k];
+                var b = _box[i];
+                if (p.x < b.x || p.x > b.z || p.y < b.y || p.y > b.w) continue;
+                if (!PGeo.Contains(_cells[i], p)) continue;
+                if (_asphalt[i]) return false;
+                green = true;
+            }
+            return green;
         }
     }
 }

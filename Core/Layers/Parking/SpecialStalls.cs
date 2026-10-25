@@ -41,8 +41,12 @@ namespace Placemaker.Core.Layers.Parking
             return all;
         }
 
-        /// <summary>Contiguous runs of normal stalls per row, ordered along the row.</summary>
-        private static List<List<int>> Runs(Layout layout)
+        /// <summary>
+        /// The stalls of each row in row order (rows ascending). (perf) Sorted once: the accessible stalls only remove
+        /// stalls and add wider ones that are not normal, and Runs skips both (a removed slice leaves a gap wider than a
+        /// stall, which ends the run there just as the wider stalls did).
+        /// </summary>
+        private static List<List<int>> SortedRows(Layout layout)
         {
             var byRow = new SortedDictionary<int, List<int>>();
             for (int i = 0; i < layout.Bays.Count; i++)
@@ -52,17 +56,33 @@ namespace Placemaker.Core.Layers.Parking
                 if (!byRow.TryGetValue(b.Row, out var l)) byRow[b.Row] = l = new List<int>();
                 l.Add(i);
             }
-            var runs = new List<List<int>>();
+            var rows = new List<List<int>>();
             foreach (var kv in byRow)
             {
                 var list = kv.Value;
                 var dir = layout.Bays[list[0]].RowDir;
-                list.Sort((p, q) => PGeo.Dot(layout.Bays[p].Center, dir).CompareTo(PGeo.Dot(layout.Bays[q].Center, dir)));
+                var keys = new double[list.Count];
+                for (int k = 0; k < list.Count; k++) keys[k] = PGeo.Dot(layout.Bays[list[k]].Center, dir);
+                var arr = list.ToArray();
+                Array.Sort(keys, arr);
+                rows.Add(new List<int>(arr));
+            }
+            return rows;
+        }
+
+        /// <summary>Contiguous runs of normal stalls per row, ordered along the row.</summary>
+        private static List<List<int>> Runs(Layout layout, List<List<int>> rows)
+        {
+            var runs = new List<List<int>>();
+            foreach (var all in rows)
+            {
+                var dir = layout.Bays[all[0]].RowDir;
                 List<int> run = null;
                 Bay prev = null;
-                foreach (int i in list)
+                foreach (int i in all)
                 {
                     var b = layout.Bays[i];
+                    if (b.Removed) continue;
                     bool join = prev != null && b.Role == BayRole.Normal && prev.Role == BayRole.Normal &&
                         Math.Abs(PGeo.Dot(b.Center - prev.Center, dir) - LayoutEngine.HalfPitch(prev, dir) - LayoutEngine.HalfPitch(b, dir)) <= 0.05;
                     if (!join) { run = new List<int>(); runs.Add(run); }
@@ -86,6 +106,7 @@ namespace Placemaker.Core.Layers.Parking
             if (targets.Count == 0) targets.Add(PGeo.Centroid(layout.Lot));
 
             // ── accessible stalls ──
+            var rows = SortedRows(layout);
             var sizes = Groups(s.StallWidth);
             if (s.AccessibleShare > 0 && sizes.Count > 0)
             {
@@ -94,7 +115,7 @@ namespace Placemaker.Core.Layers.Parking
                 for (int gi = 0; gi < groups; gi++)
                 {
                     var anchor = targets[gi % targets.Count];
-                    var runs = Runs(layout);
+                    var runs = Runs(layout, rows);
                     int bestRun = -1, bestStart = -1; Group bestSize = null; double bestNear = double.MaxValue;
                     for (int ri = 0; ri < runs.Count; ri++)
                     {
@@ -138,7 +159,7 @@ namespace Placemaker.Core.Layers.Parking
                     return best;
                 }
                 var candidates = new List<int2>();
-                foreach (var run in Runs(layout))
+                foreach (var run in Runs(layout, rows))
                 {
                     if (run.Count < 2) continue;
                     bool reverse = Ref(layout.Bays[run[run.Count - 1]].Center) < Ref(layout.Bays[run[0]].Center);
@@ -146,11 +167,12 @@ namespace Placemaker.Core.Layers.Parking
                     if (reverse) walk.Reverse();
                     for (int k = 0; k + 1 < walk.Count; k += 2) candidates.Add(new int2(walk[k], walk[k + 1]));
                 }
+                // (perf) each pair's distance once (the comparison asked every reference point twice per compare)
+                var dist = new Dictionary<int, double>(candidates.Count);
+                foreach (var p in candidates) dist[p.x] = Math.Min(Ref(layout.Bays[p.x].Center), Ref(layout.Bays[p.y].Center));
                 candidates.Sort((p, q) =>
                 {
-                    double dp = Math.Min(Ref(layout.Bays[p.x].Center), Ref(layout.Bays[p.y].Center));
-                    double dq = Math.Min(Ref(layout.Bays[q.x].Center), Ref(layout.Bays[q.y].Center));
-                    int c = dp.CompareTo(dq);
+                    int c = dist[p.x].CompareTo(dist[q.x]);
                     return c != 0 ? c : p.x.CompareTo(q.x);
                 });
                 foreach (var pr in candidates)
