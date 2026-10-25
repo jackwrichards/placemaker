@@ -55,8 +55,11 @@ namespace Placemaker.Core.Layers.Common
             int cy = math.clamp((int)((p.y - Min.y) / _insideCell.y), 0, _insideNy - 1);
             byte state = _inside[cy * _insideNx + cx];
             if (state != 2) return state == 1;
-            return Poly.Contains(Ring, p);
+            // (perf) Exactly Poly.Contains(Ring, p), looking only at the edges that cross p's row.
+            return _bands.Contains(p);
         }
+
+        private RingBands _bands;
 
         // Containment is the hottest query (every planting candidate, every raster cell). A coarse
         // grid classifies cells as fully outside (0), fully inside (1) or touching the outline (2);
@@ -107,6 +110,7 @@ namespace Placemaker.Core.Layers.Common
                 }
             }
             _insideNx = nx; _insideNy = ny; _insideCell = cs;
+            _bands = new RingBands(Ring);
             System.Threading.Volatile.Write(ref _inside, grid);
         }
 
@@ -118,7 +122,9 @@ namespace Placemaker.Core.Layers.Common
         {
             const double eps = 0.0001;
             var lo = math.min(a, b); var hi = math.max(a, b);
-            for (int i = 0; i < Ring.Length; i++)
+            // (perf) Only the edges registered along a→b: an edge that crosses it touches a cell the line passes through.
+            _edges.Along(a, b, _along);
+            foreach (int i in _along)
             {
                 var c = Ring[i]; var d = Ring[(i + 1) % Ring.Length];
                 if (math.max(c.x, d.x) < lo.x || math.min(c.x, d.x) > hi.x || math.max(c.y, d.y) < lo.y || math.min(c.y, d.y) > hi.y) continue;
@@ -131,6 +137,8 @@ namespace Placemaker.Core.Layers.Common
             return false;
         }
 
+        private readonly List<int> _along = new List<int>();
+
         private static double Cross(float2 a, float2 b, float2 c) => ((double)b.x - a.x) * ((double)c.y - a.y) - ((double)b.y - a.y) * ((double)c.x - a.x);
 
         /// <summary>Distance to the outline, capped (cheap for small caps).</summary>
@@ -141,8 +149,79 @@ namespace Placemaker.Core.Layers.Common
         }
 
         /// <summary>Inside and at least <paramref name="margin"/> from the outline.</summary>
-        public bool ContainsDisc(float2 p, float margin) =>
-            Contains(p) && (margin <= 0f || !_edges.AnyBelow(p, margin + 0.01f, margin));
+        public bool ContainsDisc(float2 p, float margin)
+        {
+            if (!Contains(p)) return false;
+            if (margin <= 0f) return true;
+            int sure = FieldSays(p, margin);
+            if (sure != 0) return sure > 0;
+            return !_edges.AnyBelow(p, margin + 0.01f, margin);
+        }
+
+        /// <summary>BoundaryDistance(p, t + 0.01) ≥ t: at least t from the outline (inside or out).</summary>
+        public bool FarFromOutline(float2 p, float t)
+        {
+            int sure = FieldSays(p, t);
+            if (sure != 0) return sure > 0;
+            return BoundaryDistance(p, t + 0.01f) >= t;
+        }
+
+        // (perf) A raster of the distance to the outline (exact at each cell centre up to FieldCap, FieldCap beyond), made for
+        // the passes that ask at every cell of a grid (FreeSpace, the belt strips). The distance is 1-Lipschitz, so the
+        // centre's value ± the half diagonal bounds it anywhere in the cell: clear of the threshold, the raster answers;
+        // near it, the exact search does. Same answers either way.
+        private const float FieldCap = 12f;
+        private float[] _field;
+        private float _fx0, _fy0, _fh, _finv, _fdelta;
+        private int _fnx, _fny;
+
+        /// <summary>+1: surely at least t from the outline; −1: surely closer; 0: no raster or too near to tell.</summary>
+        private int FieldSays(float2 p, float t)
+        {
+            if (_field == null) return 0;
+            float fx = (p.x - _fx0) * _finv, fy = (p.y - _fy0) * _finv;
+            if (!(fx >= 0f && fy >= 0f && fx < _fnx && fy < _fny)) return 0;
+            float d = _field[(int)fy * _fnx + (int)fx];
+            if (d - _fdelta > t + 1e-3f) return 1;
+            if (d < FieldCap && d + _fdelta < t - 1e-3f) return -1;
+            return 0;
+        }
+
+        /// <summary>Makes the distance raster (cells of about <paramref name="cell"/> m) unless one at least as fine exists.</summary>
+        public void UseEdgeField(float cell)
+        {
+            var size = math.max(Max - Min, new float2(0.01f));
+            float h = math.max(cell, math.sqrt(size.x * size.y / 1000000f));
+            if (_field != null && _fh <= h) return;
+            float x0 = Min.x - FieldCap, y0 = Min.y - FieldCap, inv = 1f / h;
+            int nx = (int)math.ceil((size.x + 2f * FieldCap) * inv) + 1, ny = (int)math.ceil((size.y + 2f * FieldCap) * inv) + 1;
+            var field = new float[nx * ny];
+            for (int i = 0; i < field.Length; i++) field[i] = FieldCap;
+            float r2 = FieldCap * FieldCap;
+            for (int e = 0; e < Ring.Length; e++)
+            {
+                var a = Ring[e]; var b = Ring[(e + 1) % Ring.Length];
+                int ex0 = math.max(0, (int)math.floor((math.min(a.x, b.x) - FieldCap - x0) * inv - 0.5f));
+                int ex1 = math.min(nx - 1, (int)math.ceil((math.max(a.x, b.x) + FieldCap - x0) * inv - 0.5f));
+                int ey0 = math.max(0, (int)math.floor((math.min(a.y, b.y) - FieldCap - y0) * inv - 0.5f));
+                int ey1 = math.min(ny - 1, (int)math.ceil((math.max(a.y, b.y) + FieldCap - y0) * inv - 0.5f));
+                for (int y = ey0; y <= ey1; y++)
+                {
+                    float cy = y0 + (y + 0.5f) * h;
+                    for (int x = ex0; x <= ex1; x++)
+                    {
+                        var c = new float2(x0 + (x + 0.5f) * h, cy);
+                        float d2 = SegmentIndex.DistSq(c, a, b);
+                        if (d2 >= r2) continue;
+                        int k = y * nx + x;
+                        float d = math.sqrt(d2);
+                        if (d < field[k]) field[k] = d;
+                    }
+                }
+            }
+            _fx0 = x0; _fy0 = y0; _fh = h; _finv = inv; _fdelta = h * 0.70711f + 1e-3f; _fnx = nx; _fny = ny;
+            _field = field;
+        }
 
         public float2 Centroid => Poly.Centroid(Ring);
 
@@ -274,14 +353,24 @@ namespace Placemaker.Core.Layers.Common
             for (int pass = 0; pass < 3; pass++)
             {
                 for (int y = 0; y <= grid; y++)
+                {
+                    // (perf) The distance to the outline grows at most by the step from the previous point of the row: a point
+                    // whose bound cannot beat the best so far is not searched (it would not have replaced it), the same answer.
+                    float bound = float.PositiveInfinity;
+                    float2 prev = default;
                     for (int x = 0; x <= grid; x++)
                     {
                         var p = lo + step * new float2(x, y);
-                        if (!Contains(p)) continue;
+                        if (!Contains(p)) { bound = float.PositiveInfinity; continue; }
+                        bound += math.distance(p, prev);
+                        prev = p;
+                        if (bound + 1e-3f <= clearance) continue;
                         float c = BoundaryDistance(p);
+                        bound = c;
                         if (extraClearance != null) c = math.min(c, extraClearance(p, c));
                         if (c > clearance) { clearance = c; best = p; }
                     }
+                }
                 // Zoom into the best cell's neighbourhood.
                 var half = step * 1.5f;
                 lo = best - half; hi = best + half; step = (hi - lo) / grid;
@@ -387,7 +476,7 @@ namespace Placemaker.Core.Layers.Common
         private List<float2[]> RasterStrips(float depth, System.Threading.CancellationToken cancel)
         {
             float cell = math.clamp(depth / 5f, 0.5f, 2f);
-            return FreeSpace.Pieces(this, p => BoundaryDistance(p, depth + 0.01f) >= depth, cell, depth * depth, cancel);
+            return FreeSpace.Pieces(this, p => FarFromOutline(p, depth), cell, depth * depth, cancel);   // FarFromOutline: BoundaryDistance(p, depth + 0.01) >= depth
         }
 
         private void AddStrip(List<float2[]> into, float2[] inset, int from, int to)

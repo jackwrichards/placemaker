@@ -96,6 +96,31 @@ rings and the jittered fill plants differ (the rings are grouped from different 
   (parking step 3.8 s → 0.4 s), plain 12.5 ha 0.8 s → 0.2 s; garbage collections 11–22 → 3–9 per plan. Mall district,
   retail park, shops park, high street: same or a little faster.
 
+### 1.3c Park planting
+
+**Park layer, same designs** (branch `worktree-agent-a2ee16f4d84aac322`, 25 Oct; every change keeps the plan exactly: 778/778
+bench signatures over every type × preset at 5 and 12.5 ha, 400 corners, and the 50 park / mall park / botanical garden
+gallery pictures are byte-identical). [P] The park now logs its own steps: `park 284 [paths 35, lawns 26, clearings 32,
+trees 59, bushes 123, regions 2]`.
+- Planting (`ParkPlanting.Vegetation`, ~1 million candidates on 40 ha): a planting grid (`Park/PlantGrid.cs`) answers the
+  fixed checks per cell (outline, gates, lake, clearing, paths, reserved polygons: Lipschitz bounds, the full check only in a
+  band along each) and keeps per cell the nearest tree and bush, a sure spacing conflict for ~95 % of the candidates. Rows,
+  avenues, the bosque and grid fills ask it too. 98–99 % of candidates are now answered by lookups; what is left is drawing
+  them (in Mono a grove's Point, the belt noise; the noise lattice and the grove's rotation are now computed once).
+- Shared, same answers: clearance searches stop at the first ring of cells that cannot hold a nearer segment or disc;
+  segments and discs in plain float arrays (Mono runs `float2` operators as calls); `CrossesBoundary` tests only the edges
+  along the segment; `LayerRegion.Contains` uses `RingBands` on boundary cells; a distance-to-outline raster answers
+  `ContainsDisc` / `FarFromOutline` in free-space grids; `FreeSpace.Pieces` works each piece in its own box; spot search
+  skips points whose clearance bound cannot beat the best; `DeepestPoint` skips points whose bound cannot; the park path
+  roadmap keeps its weights beside its neighbours (was a dictionary).
+- Mono (game runtime, 400-corner hexagon, fastest of 2×2 runs, A/B alternated): park layer, all presets, 34.6 → 6.1 s
+  (**5.7×**), whole plans 42.9 → 11.9 s (3.6×). 40 ha: natural 1544 → 284 ms, garden 2636 → 415, woodland 2339 → 368,
+  victorian 2898 → 359, landscape 2506 → 305; 12.5 ha: natural 871 → 170, garden 1437 → 244. Slowest gains: picnic 2.6–3.2×
+  (its 7 picnic clearings: spot searches over open lawn), meadow / modern / formal at 40 ha 2.4–3.7× (little planting).
+- Planting is still the largest park step on a big park (natural 40 ha: trees 59 + bushes 123 of 284 ms in Mono): the
+  candidates themselves cost. Fewer candidates means a different sampler (the budget of 90 per plant is what makes the
+  density): per-source "full after N misses in a row" loses 2–10 % of the plants for a 25–60 % cut; not done.
+
 ### 1.4 The road to 100× for the design phase
 
 Ordered by gain per effort. Gains multiply.
@@ -180,10 +205,10 @@ game's own sampler, so the same heights); surface/area rings are repaired once p
 (cached for the build); the census and tagging read through component lookups, batch their structural changes, and match in
 an index sized to its tolerance; the park companion search indexes the park's objects.
 
-Found on the way: **the yard and ruin types (carYard, junkYard, abandonedLot, containerYard, industrialWorks, scrapyard,
-logisticsYard, constructionSite, landfill, quarry, urbanRuins, memorialPark, dogPark) plan differently on a slope depending
-on what was planned before them in the same process** (bench `s0` vs `s0b`, 25 Oct): some static state carries over. Not
-caused by this work (the old code does it), but the preview and the build could differ for them. To look into.
+Comparing signatures: **pin the catalog** (`--dump <a fixed copy of catalog-dump.json>`). The gallery reads the player's
+`ModsData/Placemaker/catalog-dump.json`, which every game run rewrites; the yard, ruin and memorial types pick assets from
+it, so their signatures changed between benches although no code had (first taken for a carry-over between plans; with a
+pinned dump the full catalogue and the single-type runs agree, 13/13, 25 Oct).
 
 ## 3. Measurement to add (so the game runner can judge each step)
 
