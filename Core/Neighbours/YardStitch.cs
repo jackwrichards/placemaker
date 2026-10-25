@@ -4534,7 +4534,7 @@ namespace Placemaker.Core.Neighbours
         /// </summary>
         private static void Push(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, List<(int I, int J)> alleys, List<Cut>[] cuts, StitchSettings s)
         {
-            float reach = s.Knob("push", 40f);
+            float reach = s.Knob("push", 60f);
             if (reach <= 0f) return;
             float step = math.max(0.5f, s.Knob("pushStep", 2f));
             // (a side never further than this from a road, at its middle: the land to share is near the streets, not the fields behind a town)
