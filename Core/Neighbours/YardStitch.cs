@@ -715,7 +715,7 @@ namespace Placemaker.Core.Neighbours
             bool gapsLate = s.Knob("fillGapsLate", 1f) > 0.5f;
             if (!gapsLate && s.Knob("fillGaps", 0f) > 0.5f) FillGaps(houses, plots, touched, raw, kept, s, plan);
             Stage("gaps");
-            FixedGardens(houses, plots, touched, plan);
+            FixedGardens(houses, plots, touched, plan, s.Knob("keptLot", 1f) > 0.5f ? kept : null);
             T("gaps+fixedGardens");
             Stage("fixedGardens");
             if (s.Knob("shareBetween", 0f) > 0.5f && !emergent)
@@ -2575,7 +2575,7 @@ namespace Placemaker.Core.Neighbours
                 var parts = Poly.Boolean(new[] { (IReadOnlyList<float2>)Ccw(plots[i]) }, new[] { (IReadOnlyList<float2>)front }, BoolOp.Intersection, FillRule.NonZero);
                 var keep = parts.OrderByDescending(r => Poly.Contains(r.Outer, h.Position) ? 1 : 0).ThenByDescending(r => r.Area).FirstOrDefault();
                 if (keep == null) continue;
-                var outer = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).First() : keep.Outer;
+                var outer = keep.HasHoles ? (Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).FirstOrDefault() ?? keep.Outer) : keep.Outer;
                 if (outer == null || outer.Length < 3 || Poly.Area(outer) < 1f) continue;
                 plots[i] = Poly.Simplify(outer, 0.05f);
                 capped++;
@@ -3378,7 +3378,7 @@ namespace Placemaker.Core.Neighbours
                     var merged = Poly.Boolean(new List<Region> { new Region(Ccw(plots[best])) }, new List<Region> { gap }, BoolOp.Union);
                     var keep = merged.OrderByDescending(r => Poly.Contains(r.Outer, houses[best].Position) ? 1 : 0).ThenByDescending(r => r.Area).FirstOrDefault();
                     if (keep == null) continue;
-                    var outer = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).First() : keep.Outer;
+                    var outer = keep.HasHoles ? (Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).FirstOrDefault() ?? keep.Outer) : keep.Outer;
                     if (outer == null || outer.Length < 3) continue;
                     var grown = Poly.Simplify(outer, 0.05f);
                     if (tidy && Corners(grown) > Corners(plots[best])) { refused++; continue; }
@@ -3755,7 +3755,7 @@ namespace Placemaker.Core.Neighbours
                     var merged = Poly.Boolean(new List<Region> { new Region(Ccw(plots[me])) }, part, BoolOp.Union);
                     var keep = merged.OrderByDescending(r => Poly.Contains(r.Outer, houses[me].Position) ? 1 : 0).ThenByDescending(r => r.Area).FirstOrDefault();
                     if (keep == null) continue;
-                    var outer = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).First() : keep.Outer;
+                    var outer = keep.HasHoles ? (Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).FirstOrDefault() ?? keep.Outer) : keep.Outer;
                     if (outer == null || outer.Length < 3) continue;
                     var next = Poly.Simplify(outer, 0.05f);
                     // nor up a cliff
@@ -3856,7 +3856,7 @@ namespace Placemaker.Core.Neighbours
         /// planned again and gives it back), and their plots are those gardens, so fences meet them on their real edges.
         /// Houses that grow fast one after another never end up with gardens through each other.
         /// </summary>
-        private static void FixedGardens(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchPlan plan)
+        private static void FixedGardens(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchPlan plan, float2[][] kept = null)
         {
             int n = houses.Count;
             var fixedIdx = Enumerable.Range(0, n).Where(j => !houses[j].Edit && houses[j].Polished && houses[j].Garden != null && houses[j].Garden.Length >= 3).ToList();
@@ -3865,7 +3865,7 @@ namespace Placemaker.Core.Neighbours
             for (int i = 0; i < n; i++)
             {
                 if (!houses[i].Edit || !touched[i] || plots[i] == null) continue;
-                var lot = Lot(houses[i]);
+                var lot = kept?[i] ?? Lot(houses[i]);
                 foreach (int j in fixedIdx)
                 {
                     var g = Ccw(houses[j].Garden);
@@ -3875,7 +3875,7 @@ namespace Placemaker.Core.Neighbours
                     var withLot = Poly.Boolean(left.ToList(), new List<Region> { new Region(Ccw(lot)) }, BoolOp.Union);
                     var keep = withLot.OrderByDescending(r => Poly.Contains(r.Outer, houses[i].Position) ? 1 : 0).ThenByDescending(r => r.Area).FirstOrDefault();
                     if (keep == null) continue;
-                    var ring = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).First() : keep.Outer;
+                    var ring = keep.HasHoles ? (Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).FirstOrDefault() ?? keep.Outer) : keep.Outer;
                     if (ring == null || ring.Length < 3 || Poly.Area(ring) < 1f) continue;
                     plots[i] = Poly.Simplify(ring, 0.05f);
                     cut++;
@@ -3909,7 +3909,7 @@ namespace Placemaker.Core.Neighbours
                 var withLot = Poly.Boolean(parts, new List<Region> { new Region(lots[i]) }, BoolOp.Union);
                 var keep = withLot.OrderByDescending(r => Poly.Contains(r.Outer, houses[i].Position) ? 1 : 0).ThenByDescending(r => r.Area).FirstOrDefault();
                 if (keep == null) return null;
-                var ring = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).First() : keep.Outer;
+                var ring = keep.HasHoles ? (Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).FirstOrDefault() ?? keep.Outer) : keep.Outer;
                 return ring != null && ring.Length >= 3 && Poly.Area(ring) > 1f ? Poly.Simplify(ring, 0.05f) : null;
             }
             int offLots = 0, shared = 0;
