@@ -701,7 +701,7 @@ namespace Placemaker.Core.Neighbours
                     if (!touched[i] || plots[i] == null) continue;
                     // a garden another pass wrote is its garden (FixedGardens): what this plan would have made of it is never used
                     if (IsFixed(houses[i])) continue;
-                    var clear = ClearOfBarriers(plots[i], s.Knob("keptLot", 1f) > 0.5f ? kept[i] : Lot(houses[i]), houses[i].Position, s.Knob("barrierMargin", 0.8f), WaterGap(houses[i], s), DeckMargin(s), s.Knob("lotLineMargin", 1f) > 0.5f);
+                    var clear = ClearOfBarriers(plots[i], Lot(houses[i]), houses[i].Position, s.Knob("barrierMargin", 0.8f), WaterGap(houses[i], s), DeckMargin(s), s.Knob("lotLineMargin", 1f) > 0.5f);
                     if (clear == null) continue;
                     plots[i] = clear;
                     clipped++;
@@ -715,7 +715,7 @@ namespace Placemaker.Core.Neighbours
             bool gapsLate = s.Knob("fillGapsLate", 1f) > 0.5f;
             if (!gapsLate && s.Knob("fillGaps", 0f) > 0.5f) FillGaps(houses, plots, touched, raw, kept, s, plan);
             Stage("gaps");
-            FixedGardens(houses, plots, touched, plan, s.Knob("keptLot", 1f) > 0.5f ? kept : null);
+            FixedGardens(houses, plots, touched, plan);
             T("gaps+fixedGardens");
             Stage("fixedGardens");
             if (s.Knob("shareBetween", 0f) > 0.5f && !emergent)
@@ -725,9 +725,9 @@ namespace Placemaker.Core.Neighbours
             }
             T("share");
             Stage("share");
-            if (s.Knob("separate", 1f) > 0.5f) Separate(houses, plots, touched, plan, s.Knob("separateKept", 1f) > 0.5f ? kept : null);
+            if (s.Knob("separate", 1f) > 0.5f) Separate(houses, plots, touched, plan);
             T("separate");
-            if (s.Knob("trimSlivers", 0f) > 0.5f && !emergent) TrimSlivers(houses, plots, touched, s, plan);
+            if (s.Knob("trimSlivers", 1f) > 0.5f && !emergent) TrimSlivers(houses, plots, touched, s, plan);
             T("trimSlivers");
             if (gapsLate && s.Knob("fillGaps", 0f) > 0.5f && !emergent) FillGaps(houses, plots, touched, raw, kept, s, plan);
             T("fillGaps");
@@ -3856,7 +3856,7 @@ namespace Placemaker.Core.Neighbours
         /// planned again and gives it back), and their plots are those gardens, so fences meet them on their real edges.
         /// Houses that grow fast one after another never end up with gardens through each other.
         /// </summary>
-        private static void FixedGardens(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchPlan plan, float2[][] kept = null)
+        private static void FixedGardens(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchPlan plan)
         {
             int n = houses.Count;
             var fixedIdx = Enumerable.Range(0, n).Where(j => !houses[j].Edit && houses[j].Polished && houses[j].Garden != null && houses[j].Garden.Length >= 3).ToList();
@@ -3865,7 +3865,7 @@ namespace Placemaker.Core.Neighbours
             for (int i = 0; i < n; i++)
             {
                 if (!houses[i].Edit || !touched[i] || plots[i] == null) continue;
-                var lot = kept?[i] ?? Lot(houses[i]);
+                var lot = Lot(houses[i]);
                 foreach (int j in fixedIdx)
                 {
                     var g = Ccw(houses[j].Garden);
@@ -3896,14 +3896,14 @@ namespace Placemaker.Core.Neighbours
         /// ran, pieces made and taken away each time (fences and outlines flickering). Other lots are cut out (the house's own
         /// lot always stays); land two of these gardens share goes to the house it is nearer.
         /// </summary>
-        private static void Separate(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchPlan plan, float2[][] kept = null)
+        private static void Separate(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchPlan plan)
         {
             int n = houses.Count;
             bool Mine(int i) => touched[i] && houses[i].Edit && houses[i].Polished && plots[i] != null && plots[i].Length >= 3;
             var lots = new float2[n][];
             var lotLo = new float2[n];
             var lotHi = new float2[n];
-            for (int j = 0; j < n; j++) { lots[j] = Ccw(kept?[j] ?? Lot(houses[j])); Poly.Bounds(lots[j], out lotLo[j], out lotHi[j]); }
+            for (int j = 0; j < n; j++) { lots[j] = Ccw(Lot(houses[j])); Poly.Bounds(lots[j], out lotLo[j], out lotHi[j]); }
             float2[] Keep(List<Region> parts, int i)
             {
                 var withLot = Poly.Boolean(parts, new List<Region> { new Region(lots[i]) }, BoolOp.Union);
@@ -3968,15 +3968,15 @@ namespace Placemaker.Core.Neighbours
             if (offLots + shared > 0) plan.Notes.Add($"{offLots} gardens cut off other houses' lots, {shared} pairs of gardens over each other split");
         }
 
-        /// <summary>A polished garden this plan does not edit and whose garden another pass wrote (StitchHouse.Garden): fixed.</summary>
         /// <summary>
-        /// A garden never ends in a spike: a corner sharper than 45° is cut square to its middle line where the garden is a
-        /// short fence piece wide (its own garden only: the land past the cut is nobody's; never into the house's lot, never a
-        /// garden another pass wrote).
+        /// A garden never ends in a spike: a corner sharper than 45° is cut square to its middle line where the garden is as wide
+        /// as half its lot (at least minGardenWidth, 8 m; knob spikeWidth sets a width instead): on the inside of a curve the backs
+        /// close in to no long thin points (its own garden only: the land past the cut is nobody's; never into the house's lot,
+        /// never a garden another pass wrote).
         /// </summary>
         private static void TrimSpikes(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchSettings s)
         {
-            float width = s.Knob("spikeWidth", 4f), sharp = math.cos(math.radians(s.Knob("spikeAngle", 45f)));
+            float width = s.Knob("spikeWidth", 0f), sharp = math.cos(math.radians(s.Knob("spikeAngle", 45f)));
             for (int i = 0; i < houses.Count; i++)
             {
                 if (!touched[i] || plots[i] == null || plots[i].Length < 3 || IsFixed(houses[i])) continue;
@@ -4003,7 +4003,8 @@ namespace Placemaker.Core.Neighbours
                     }
                     if (at < 0) break;
                     var tip = ring[at];
-                    float d = width * 0.5f / math.max(0.05f, math.tan(half));
+                    float w = width > 0f ? width : math.max(K(h, s, "minGardenWidth", 8f), h.HalfLot.x);
+                    float d = w * 0.5f / math.max(0.05f, math.tan(half));
                     var cutAt = tip + bis * d;
                     var dir = new float2(-bis.y, bis.x);
                     // (never into the lot: the cut moves back to the lot's nearest corner; a lot reaching the tip keeps it)
@@ -4013,7 +4014,7 @@ namespace Placemaker.Core.Neighbours
                     if (d > lotNear) cutAt = tip + bis * lotNear;
                     var cut = ClipHalfPlane(ring.ToList(), cutAt, dir, tip + bis * (d + 1000f));
                     // (only the tip goes: a cut taking more than the tip's triangle crossed some other part of the garden)
-                    if (cut.Count < 3 || Poly.Area(cut) < 1f || math.abs(Poly.Area(ring)) - math.abs(Poly.Area(cut)) > width * d * 0.6f + 0.5f) break;
+                    if (cut.Count < 3 || Poly.Area(cut) < 1f || math.abs(Poly.Area(ring)) - math.abs(Poly.Area(cut)) > w * d * 0.6f + 0.5f) break;
                     ring = cut.ToArray();
                 }
                 plots[i] = ring;
@@ -4072,6 +4073,7 @@ namespace Placemaker.Core.Neighbours
             return false;
         }
 
+        /// <summary>A polished garden this plan does not edit and whose garden another pass wrote (StitchHouse.Garden): fixed.</summary>
         private static bool IsFixed(StitchHouse h) => !h.Edit && h.Polished && h.Garden != null && h.Garden.Length >= 3;
 
         // the smallest and largest x and y of some points (Aggregate with math.min made a delegate each time: 19 MB of a city's
