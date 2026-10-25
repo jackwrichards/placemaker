@@ -134,6 +134,7 @@ namespace Placemaker.Game.Build
             _registry = World.GetOrCreateSystemManaged<GroupRegistrySystem>();
             _clones = World.GetOrCreateSystemManaged<SurfaceCloneSystem>();
             InitOwner();
+            InitFastReads();
             InitGhost();
             InitProtect();
             InitVerdicts();
@@ -209,6 +210,7 @@ namespace Placemaker.Game.Build
             ResetTransaction();
             _request = request;
             _startFrame = UnityEngine.Time.frameCount;
+            TimingBegin();
             DumpBegin();   // s30: "Debug: dump terrain after build" (ground before the build)
             _status = new BuildStatus { Phase = BuildPhase.Preparing, Progress = 0f, ErrorPositions = new List<float3>(), Warnings = new List<PlanIssue>() };
             // US5: the same concrete assets as preview and price (idempotent if the tool already did it).
@@ -283,6 +285,8 @@ namespace Placemaker.Game.Build
             int frame = UnityEngine.Time.frameCount;
             _heightsValid = false;   // terrain data handles are only valid within the frame they were fetched
             if (_stepFresh) { _stepFresh = false; _stepFrame = frame; }
+            var ran = _step;
+            _frameClock.Restart();
             try
             {
                 if (_toolActivated && _step != Step.Cleanup && _toolSystem.activeTool != _tool)
@@ -322,6 +326,8 @@ namespace Placemaker.Game.Build
                 if (_step == Step.Cleanup) ForceIdle(BuildPhase.Failed, "Placemaker.Build.Failed");
                 else BeginCleanup(BuildPhase.Failed, "Placemaker.Build.Failed", e.GetType().Name);
             }
+            TimingFrame(ran, frame, _frameClock.Elapsed.TotalMilliseconds);
+            if (_step == Step.Idle) TimingLog(_status.Phase.ToString());
         }
 
         private void Go(Step step)
@@ -388,12 +394,16 @@ namespace Placemaker.Game.Build
             if (frame - _stepFrame == 1)
             {
                 // Clear leftovers of the previous tool so our single Apply never applies them.
+                long tf = Now;
                 DestroyForeignDefinitions();
+                Sub("DestroyForeignDefinitions", tf);
                 _tool.Requested = ApplyMode.Clear;
                 return;
             }
             if (frame - _stepFrame < ToolSwitchFrames + 1) return;
+            long tr = Now;
             CreateRecord();
+            Sub("CreateRecord", tr);
             _status.Phase = BuildPhase.Materializing;
             Go(_work.Terraform.Count > 0 ? Step.Terraform : AfterTerraform());
             if (_step == Step.Terraform) BeginTerraform();
@@ -414,8 +424,11 @@ namespace Placemaker.Game.Build
             {
                 // Same transaction as the build: old trees/props vanish on the one Apply, or not at all.
                 // The owner lot is emitted after validation (Step.OwnerLot) so its overlaps never reject the plan.
+                long tc = Now;
                 EmitClearDefinitions();
+                Sub("EmitClearDefinitions", tc);
             }
+            long te = Now;
             int end = math.min(total, _emitCursor + DefinitionsPerFrame);
             for (int i = _emitCursor; i < end; i++)
             {
@@ -424,6 +437,7 @@ namespace Placemaker.Game.Build
                 else EmitObject(_work.Objects[i - _work.Surfaces.Count - _work.Areas.Count]);
             }
             _emitCursor = end;
+            Sub("Emit definitions", te);
             SetProgress(0.2f + 0.2f * (total == 0 ? 1f : end / (float)total));
             if (_emitCursor >= total)
             {
@@ -444,7 +458,9 @@ namespace Placemaker.Game.Build
         private void DoWaitTemps(int frame)
         {
             if (frame - _stepFrame < 2) return;
+            long t0 = Now;
             var census = Census();
+            Sub("Census", t0);
             SetProgress(0.4f + 0.15f * (census.Expected == 0 ? 1f : math.saturate(census.Matched / (float)census.Expected)));
             if (census.Matched >= census.Expected)
             {
@@ -479,7 +495,9 @@ namespace Placemaker.Game.Build
         /// </summary>
         private void DoValidate(int frame)
         {
+            long t0 = Now;
             CollectErrors();
+            Sub("CollectErrors", t0);
             if (frame - _stepFrame < ValidationSettleFrames) return;
             if (_tool.OriginalDeleted)
             {
@@ -488,15 +506,26 @@ namespace Placemaker.Game.Build
                 BeginCleanup(BuildPhase.Failed, "Placemaker.Build.Interrupted");
                 return;
             }
-            if (!ApplyVerdicts())
+            t0 = Now;
+            bool verdictsOk = ApplyVerdicts();
+            Sub("ApplyVerdicts", t0);
+            if (!verdictsOk)
             {
                 BeginCleanup(BuildPhase.Failed, _errorKey, _errorArgs);
                 return;
             }
             // (s15) Never demolish an existing building: its touching pieces are left out in place (nets: see ProtectBuildings).
-            if (ProtectBuildings() < 0) { BeginCleanup(BuildPhase.Failed, "Placemaker.Build.WouldDemolish"); return; }
+            t0 = Now;
+            int protectedN = ProtectBuildings();
+            Sub("ProtectBuildings", t0);
+            if (protectedN < 0) { BeginCleanup(BuildPhase.Failed, "Placemaker.Build.WouldDemolish"); return; }
+            t0 = Now;
             int tagged = TagTemporaries();
-            if (TemporariesDuplicated())
+            Sub("TagTemporaries", t0);
+            t0 = Now;
+            bool duplicated = TemporariesDuplicated();
+            Sub("TemporariesDuplicated", t0);
+            if (duplicated)
             {
                 // Never apply a doubled set: clear everything and emit once more, then give up.
                 if (!_dupRetried) { _dupRetried = true; Go(Step.ResetForRetry); return; }
@@ -545,9 +574,13 @@ namespace Placemaker.Game.Build
         {
             ScanLivePits("before Apply, temporaries in place");
             LogSaggingEdges("before Apply");
+            long t0 = Now;
             TagLateTemporaries();
+            Sub("TagLateTemporaries", t0); t0 = Now;
             PinMarkerNets(temporaries: true);   // (core) pinned before the first terrain pass after Apply
-            NeutralizeVerdicts();   // (s59) nothing of ours deleted/hidden by a verdict under anarchy; no existing building demolished
+            Sub("PinMarkerNets", t0); t0 = Now;
+            NeutralizeVerdicts();
+            Sub("NeutralizeVerdicts", t0);   // (s59) nothing of ours deleted/hidden by a verdict under anarchy; no existing building demolished
             _tool.Requested = ApplyMode.Apply;
             _applied = true;   // from here on, failures roll back through group removal
             SetProgress(0.75f);
@@ -559,22 +592,32 @@ namespace Placemaker.Game.Build
         {
             if (frame - _stepFrame < ApplySettleFrames) return;
             if (frame - _stepFrame == ApplySettleFrames) DestroyOwnDefinitions();
+            long t0 = Now;
             int stillTemp = CountTaggedTemporaries();
+            Sub("CountTaggedTemporaries", t0);
             if (stillTemp > 0 && frame - _stepFrame < ApplyTimeoutFrames) return;
             if (stillTemp > 0) Mod.Log.Warn($"Placemaker: {stillTemp} parts stayed temporary after Apply; they are discarded.");
+            t0 = Now;
             AdoptStrays();
+            Sub("AdoptStrays", t0);
             _registry.MarkDirty();
             // Loose builds (road grids) have no group: count what this build claimed and Apply kept.
+            t0 = Now;
             int members = LooseBuild ? CountAppliedClaimed() : _registry.CountMembers(_groupId, false);
+            Sub("CountMembers", t0);
             if (members == 0)
             {
                 CollectErrors();
                 BeginCleanup(BuildPhase.Failed, _status.ErrorPositions.Count > 0 ? _errorKey : "Placemaker.Build.ApplyRejected", _errorArgs);
                 return;
             }
+            t0 = Now;
             ChargeNets();
+            Sub("ChargeNets", t0); t0 = Now;
             AfterApply();
-            PinMarkerNets();   // (core) no sag of marker nets (lot drives) at lane junctions: the dip
+            Sub("AfterApply", t0); t0 = Now;
+            PinMarkerNets();
+            Sub("PinMarkerNets", t0);   // (core) no sag of marker nets (lot drives) at lane junctions: the dip
             LogSaggingEdges("applied");
             SetProgress(0.85f);
             GoAfterApply();
@@ -583,7 +626,10 @@ namespace Placemaker.Game.Build
         private void DoFinish()
         {
             _registry.MarkDirty();
-            if (VerifyMembers())
+            long t0 = Now;
+            bool twice = VerifyMembers();
+            Sub("VerifyMembers", t0);
+            if (twice)
             {
                 // Built twice despite the pre-Apply check: roll the whole group back (Cleanup after Apply
                 // removes it through the phase-correct removal system) and report.
@@ -591,8 +637,10 @@ namespace Placemaker.Game.Build
                 return;
             }
             if (LooseBuild) Mod.Log.Info($"Placemaker loose build: {CountAppliedClaimed()} parts are ordinary city content (no group).");
-            else FinishRecord();
+            else { t0 = Now; FinishRecord(); Sub("FinishRecord", t0); }
+            t0 = Now;
             RestoreTool();
+            Sub("RestoreTool", t0);
             var groupId = _groupId;
             int dropped = _dropped;
             if (_cleared > 0) NoteSkip("Placemaker.Build.Cleared", null, IssueSeverity.Info, _cleared);
@@ -604,8 +652,11 @@ namespace Placemaker.Game.Build
             VerifyLiveHollows();   // s55: a bowl in the built ground, with the target's height next to it
             ScanLivePits("after the build");
             LogSaggingEdges("after the build");   // (core) every bowl in the whole outline and its rim, with the nets standing at it
+            t0 = Now;
             AuditSurvivors();   // s55: count what the game really left visible (Overridden = hidden), not the temporaries
+            Sub("AuditSurvivors", t0); t0 = Now;
             var audit = FinishAudit(groupId);
+            Sub("FinishAudit", t0);
             ResetTransaction();
             _warnings.AddRange(warnings);
             PlanIssue headline = null;
@@ -704,6 +755,7 @@ namespace Placemaker.Game.Build
             _step = Step.Idle;
             _request = null;
             _work = null;
+            _zrJob = null;   // a running zoning refresh disposes its own height copy; its result is dropped
             ResetAudit();
             ResetVerdicts();
             _applied = false;

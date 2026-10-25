@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using Game.Common;
 using Game.Tools;
+using Placemaker.Core;
 using Placemaker.Core.Build;
 using Placemaker.Core.Geometry;
 using Placemaker.Game.Groups;
@@ -95,8 +96,15 @@ namespace Placemaker.Game.Build
         /// (s26) The build's paths split the streets' edges at their entrances; the game rebuilds those edges' zone
         /// blocks with cells shifted along the road. Re-snap cutouts and blockers to the live cells (ZoneGuard.Refresh).
         /// </summary>
+        // (perf) ZoneGuard.Refresh tries up to ~50 full zone computations: 1–5 s in one frame for a big shop build (teardown 14).
+        // It runs on a worker against a stand-in plan holding what it reads; what it writes is copied back here.
+        private System.Threading.Tasks.Task<(List<ZoneGuard.ZoningQuad> quads, ComposedPlan shadow, string report, double ms)> _zrJob;
+        private List<Placemaker.Core.ZoneGrid> _zrGrids;
+        private List<float2> _zrBefore;
+
         private void DoZoneRefresh(int frame)
         {
+            if (_zrJob != null) { if (_zrJob.IsCompleted) FinishZoneRefresh(); return; }
             if (frame - _stepFrame < ZoneRefreshFrames) return;
             LogSaggingEdges("before the zoning refresh");
             var plan = _request.Plan;
@@ -110,7 +118,69 @@ namespace Placemaker.Game.Build
                 foreach (var c in plan.ZoneCells) if (c.State == ZoneCellState.Zoned) before.Add(0.25f * (c.A + c.B + c.C + c.D));
                 _heightsValid = false;
                 LogBlockedPlanCells();
+                if (TryCopyHeights(out var copy))
+                {
+                    var shadow = new ComposedPlan
+                    {
+                        Footprints = plan.Footprints, ZoneQuads = plan.ZoneQuads, Protected = plan.Protected,
+                        ZoneCells = new List<ZoneCellMark>(plan.ZoneCells), ZoneBlockers = new List<float2[]>(plan.ZoneBlockers),
+                    };
+                    _zrGrids = grids;
+                    _zrBefore = before;
+                    _zrJob = System.Threading.Tasks.Task.Run(() =>
+                    {
+                        var d = copy;
+                        var sw = System.Diagnostics.Stopwatch.StartNew();
+                        try
+                        {
+                            var quads = ZoneGuard.Refresh(shadow, grids, p => { float h = global::Game.Simulation.TerrainUtils.SampleHeight(ref d, new float3(p.x, 0f, p.y)); return math.isfinite(h) ? h : 0f; });
+                            return (quads, shadow, ZoneGuard.LastRefreshReport, sw.Elapsed.TotalMilliseconds);
+                        }
+                        finally { DisposeHeights(d); }
+                    });
+                    return;
+                }
                 var refreshed = ZoneGuard.Refresh(plan, grids, p => Height(p));
+                ReportZoneRefresh(refreshed, grids, before, ZoneGuard.LastRefreshReport);
+            }
+            catch (Exception e)
+            {
+                Mod.Log.Warn("Placemaker zoning refresh failed (using the plan's cells): " + e.Message);
+                _refreshedZoning = null;
+            }
+            ContinueAfterApply();
+        }
+
+        private void FinishZoneRefresh()
+        {
+            var job = _zrJob;
+            _zrJob = null;
+            try
+            {
+                if (job.Status != System.Threading.Tasks.TaskStatus.RanToCompletion) throw job.Exception?.GetBaseException() ?? new Exception("cancelled");
+                var (quads, shadow, report, ms) = job.Result;
+                var plan = _request.Plan;
+                if (quads != null)
+                {
+                    plan.ZoneBlockers.Clear(); plan.ZoneBlockers.AddRange(shadow.ZoneBlockers);
+                    plan.ZoneCells.Clear(); plan.ZoneCells.AddRange(shadow.ZoneCells);
+                }
+                Mod.Log.Info($"Placemaker zoning refresh made in the background in {ms:0} ms.");
+                ReportZoneRefresh(quads, _zrGrids, _zrBefore, report);
+            }
+            catch (Exception e)
+            {
+                Mod.Log.Warn("Placemaker zoning refresh failed (using the plan's cells): " + e.Message);
+                _refreshedZoning = null;
+            }
+            _zrGrids = null;
+            _zrBefore = null;
+            ContinueAfterApply();
+        }
+
+        private void ReportZoneRefresh(List<ZoneGuard.ZoningQuad> refreshed, List<Placemaker.Core.ZoneGrid> grids, List<float2> before, string report)
+        {
+            var plan = _request.Plan;
                 if (refreshed != null)
                 {
                     _refreshedZoning = refreshed;
@@ -128,21 +198,15 @@ namespace Placemaker.Game.Build
                     foreach (var g in grids) if (g.Ours) ours++;
                     Mod.Log.Info($"Placemaker zoning refresh: {grids.Count} live zone block(s) ({ours} of the build's own roads); {after} cutout cell(s) (planned {before.Count}), "
                         + $"{moved} on a moved grid (road edges split by the build), {refreshed.Count} zoning quad(s).");
-                    Mod.Log.Info("Placemaker zoning refresh (s54): " + ZoneGuard.LastRefreshReport);
+                    Mod.Log.Info("Placemaker zoning refresh (s54): " + report);
                     // Which road each plot zones from (playtest: shops grew facing the street behind the plaza's lane).
-                    for (int i = 0; i < refreshed.Count && i < 40; i++)
-                    {
-                        var c = Poly.Centroid(refreshed[i].Corners);
-                        Mod.Log.Info($"Placemaker zoning: plot {i} at ({c.x:F0}, {c.y:F0}) zones from {RoadOfCell(c)}.");
-                    }
+                    if (DebugBuildChecks)
+                        for (int i = 0; i < refreshed.Count && i < 40; i++)
+                        {
+                            var c = Poly.Centroid(refreshed[i].Corners);
+                            Mod.Log.Info($"Placemaker zoning: plot {i} at ({c.x:F0}, {c.y:F0}) zones from {RoadOfCell(c)}.");
+                        }
                 }
-            }
-            catch (Exception e)
-            {
-                Mod.Log.Warn("Placemaker zoning refresh failed (using the plan's cells): " + e.Message);
-                _refreshedZoning = null;
-            }
-            ContinueAfterApply();
         }
 
         /// <summary>(s26) The road whose live zone block holds the cell at <paramref name="p"/> (prefab name, ours or the city's).</summary>

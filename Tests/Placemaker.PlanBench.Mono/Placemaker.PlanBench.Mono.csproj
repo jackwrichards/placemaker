@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    (perf) The preview planner timed in the game's own runtime: Core and a small Program compiled for net48 against the game's
+    Managed folder (as the mod is), run by tools\monohost (Unity's Mono with the game's class libraries). Mono runs the
+    planner slower than .NET and differently (a vector operation is a call; its own garbage collector), so this is where
+    a speed-up is measured for the game. Plans the same as before? Compare signatures with a baseline label made by an
+    older Core (-p:CoreDir=<a copy of Core>, its own -o folder).
+      dotnet build Tests/Placemaker.PlanBench.Mono -c Release -o <out>
+      tools\monohost\bin\monohost.exe <out>\Placemaker.PlanBench.Mono.exe <passes dir> [options]   (see Program.cs)
+    Lives under Tests/ so the mod csproj (which removes Tests\**) never compiles it.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>Placemaker.PlanBench.Mono</AssemblyName>
+    <RootNamespace>Placemaker.PlanBench.Mono</RootNamespace>
+    <Optimize>true</Optimize>
+    <NoStdLib>true</NoStdLib>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;CS0649;CS8632</NoWarn>
+    <ManagedPath Condition="'$(ManagedPath)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Cities Skylines II\Cities2_Data\Managed</ManagedPath>
+    <CoreDir Condition="'$(CoreDir)' == ''">..\..\Core</CoreDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(CoreDir)\**\*.cs" Link="Core\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Reference Include="mscorlib"><HintPath>$(ManagedPath)\mscorlib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System"><HintPath>$(ManagedPath)\System.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Core"><HintPath>$(ManagedPath)\System.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="netstandard"><HintPath>$(ManagedPath)\netstandard.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.Mathematics"><HintPath>$(ManagedPath)\Unity.Mathematics.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

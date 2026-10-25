@@ -40,6 +40,17 @@ namespace Placemaker.Core.Build
         {
             int n = ring?.Count ?? 0;
             if (n < 3) return 0;
+            // (perf) Rule 2 asks every pair of edges: quadratic in the nodes (a painted parking lot's rings have up to 240,
+            // and MakeValid asks again after every node it removes). Larger rings find the edge pairs closer than d by grid
+            // cell instead; the answer (the same node) does not change.
+            return n > 24 ? FirstViolationGrid(ring, minNodeDistance) : FirstViolationAllPairs(ring, minNodeDistance);
+        }
+
+        /// <summary>FirstViolation by checking every pair of edges (the reference; small rings).</summary>
+        internal static int FirstViolationAllPairs(IReadOnlyList<float2> ring, float minNodeDistance)
+        {
+            int n = ring?.Count ?? 0;
+            if (n < 3) return 0;
             float d = minNodeDistance;
             for (int i = 0; i < n; i++)
             {
@@ -57,6 +68,67 @@ namespace Placemaker.Core.Build
                     float2 c = ring[j], e = ring[(j + 1) % n];
                     if (DistanceSegmentSegment(a, b, c, e) < d) return j;
                 }
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// FirstViolation with the edges filed by grid cell (cells at least d wide): for edge i, only the edges whose box
+        /// comes within d of its box can break rule 2, and the smallest such j is the one the all-pairs scan returns first.
+        /// </summary>
+        internal static int FirstViolationGrid(IReadOnlyList<float2> ring, float minNodeDistance)
+        {
+            int n = ring.Count;
+            float d = minNodeDistance;
+            float2 mn = ring[0], mx = ring[0];
+            for (int i = 1; i < n; i++) { mn = math.min(mn, ring[i]); mx = math.max(mx, ring[i]); }
+            float pad = d + 1e-3f;
+            // about as many cells as nodes (small tables: MakeValid asks after every node it removes)
+            float span = math.max(mx.x - mn.x, mx.y - mn.y);
+            float cell = math.max(math.max(2f * pad, 0.5f), math.max(span / 128f, math.sqrt(math.max(1e-6f, (mx.x - mn.x) * (mx.y - mn.y)) / n)));
+            int nx = (int)((mx.x - mn.x) / cell) + 1, ny = (int)((mx.y - mn.y) / cell) + 1;
+            int Cx(float x) => math.clamp((int)math.floor((x - mn.x) / cell), 0, nx - 1);
+            int Cy(float y) => math.clamp((int)math.floor((y - mn.y) / cell), 0, ny - 1);
+            // edges by every cell their box touches (flat tables: start[c] .. start[c + 1] in items)
+            var start = new int[nx * ny + 1];
+            for (int e = 0; e < n; e++)
+            {
+                float2 a = ring[e], b = ring[(e + 1) % n];
+                for (int y = Cy(math.min(a.y, b.y)); y <= Cy(math.max(a.y, b.y)); y++)
+                    for (int x = Cx(math.min(a.x, b.x)); x <= Cx(math.max(a.x, b.x)); x++) start[x + y * nx + 1]++;
+            }
+            for (int c = 1; c < start.Length; c++) start[c] += start[c - 1];
+            var fill = (int[])start.Clone();
+            var items = new int[start[start.Length - 1]];
+            for (int e = 0; e < n; e++)
+            {
+                float2 a = ring[e], b = ring[(e + 1) % n];
+                for (int y = Cy(math.min(a.y, b.y)); y <= Cy(math.max(a.y, b.y)); y++)
+                    for (int x = Cx(math.min(a.x, b.x)); x <= Cx(math.max(a.x, b.x)); x++) items[fill[x + y * nx]++] = e;
+            }
+            for (int i = 0; i < n; i++)
+            {
+                float2 a = ring[i], b = ring[(i + 1) % n];
+                float2 next = ring[(i + 2) % n], prev = ring[(i - 1 + n) % n];
+                // Rule 1: the nodes right before and after the edge.
+                if (DistancePointSegment(next, a, b) < d) return (i + 2) % n;
+                if (DistancePointSegment(prev, a, b) < d) return (i - 1 + n) % n;
+                // Rule 2: the first non-adjacent edge j > i + 1 closer than d.
+                int best = int.MaxValue;
+                int x0 = Cx(math.min(a.x, b.x) - pad), x1 = Cx(math.max(a.x, b.x) + pad);
+                int y0 = Cy(math.min(a.y, b.y) - pad), y1 = Cy(math.max(a.y, b.y) + pad);
+                for (int y = y0; y <= y1; y++)
+                    for (int x = x0; x <= x1; x++)
+                    {
+                        int c = x + y * nx;
+                        for (int k = start[c]; k < start[c + 1]; k++)
+                        {
+                            int j = items[k];
+                            if (j < i + 2 || j >= best || (i == 0 && j == n - 1)) continue;
+                            if (DistanceSegmentSegment(a, b, ring[j], ring[(j + 1) % n]) < d) best = j;
+                        }
+                    }
+                if (best != int.MaxValue) return best;
             }
             return -1;
         }

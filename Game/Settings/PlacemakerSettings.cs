@@ -361,6 +361,10 @@ namespace Placemaker.Game.Settings
         [SettingsUISection(SectionMain, GroupMaintenance)]
         public bool DebugTerrainDump { get; set; }
 
+        /// <summary>(perf) The build's log-only checks (live pits, sagging edges, hollows, zoning): off, they froze frames.</summary>
+        [SettingsUISection(SectionMain, GroupMaintenance)]
+        public bool DebugBuildChecks { get; set; }
+
         /// <summary>(s17) Park attractiveness of builds counts for the city's tourism (owner lot AttractivenessProvider).</summary>
         [SettingsUISection(SectionMain, GroupBuild)]
         public bool ApplyParkStats { get; set; }
@@ -471,6 +475,7 @@ namespace Placemaker.Game.Settings
                 global::Placemaker.Game.Build.BuildService.SinkDecals = DecalsNeverCollide;
                 global::Placemaker.Game.Build.BuildService.ChargeNetConstruction = ChargeNetConstruction;
                 global::Placemaker.Game.Build.BuildService.DebugTerrainDump = DebugTerrainDump;
+                global::Placemaker.Game.Build.BuildService.DebugBuildChecks = DebugBuildChecks;
                 global::Placemaker.Game.Build.BuildService.ApplyParkStats = ApplyParkStats;
                 global::Placemaker.Game.Economy.ParkCompanionSystem.Enabled = RealParkStats;
                 global::Placemaker.Game.Groups.OwnerAreaPrefabSystem.FeatureEnabled = SelectAsOneThing;
@@ -570,6 +575,7 @@ namespace Placemaker.Game.Settings
             ChargeNetConstruction = true;
             SelectAsOneThing = true;
             DebugTerrainDump = false;
+            DebugBuildChecks = false;
             ApplyParkStats = true;
             RealParkStats = true;
             ConfirmBulldoze = true;

@@ -19,6 +19,7 @@ namespace Placemaker.Game.Build
     {
         private void LogBlockedPlanCells()
         {
+            if (!DebugBuildChecks) return;
             try
             {
                 var plan = _request?.Plan;

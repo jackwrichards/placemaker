@@ -43,18 +43,38 @@ namespace Placemaker.Core.Layers.Park
         /// <summary>Point and tangent at arc length s along the sampled polyline.</summary>
         public float2 At(float s, out float2 tangent)
         {
-            for (int i = 1; i < Samples.Length; i++)
+            var samples = Samples;
+            if (!ReferenceEquals(_measured, samples)) Measure(samples);
+            for (int i = 1; i < samples.Length; i++)
             {
-                float len = math.distance(Samples[i - 1], Samples[i]);
-                if (s <= len || i == Samples.Length - 1)
+                float len = _pieceLength[i];
+                if (s <= len || i == samples.Length - 1)
                 {
-                    tangent = math.normalizesafe(Samples[i] - Samples[i - 1], new float2(1, 0));
-                    return Samples[i - 1] + tangent * math.clamp(s, 0f, len);
+                    tangent = _pieceTangent[i];
+                    return samples[i - 1] + tangent * math.clamp(s, 0f, len);
                 }
                 s -= len;
             }
             tangent = new float2(1, 0);
             return A;
+        }
+
+        // (perf) Each sampled piece's length and direction, worked out once per Samples array (the planting asks ~100 000 times).
+        private float2[] _measured;
+        private float[] _pieceLength;
+        private float2[] _pieceTangent;
+
+        private void Measure(float2[] samples)
+        {
+            int n = samples?.Length ?? 0;
+            _pieceLength = new float[math.max(1, n)];
+            _pieceTangent = new float2[math.max(1, n)];
+            for (int i = 1; i < n; i++)
+            {
+                _pieceLength[i] = math.distance(samples[i - 1], samples[i]);
+                _pieceTangent[i] = math.normalizesafe(samples[i] - samples[i - 1], new float2(1, 0));
+            }
+            _measured = samples;
         }
     }
 

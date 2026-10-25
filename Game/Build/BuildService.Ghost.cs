@@ -58,7 +58,7 @@ namespace Placemaker.Game.Build
         private const int GhostSettleFrames = 4;
         private const int GhostWatchdogFrames = 3;
 
-        private enum GhostStep { Idle, Emitting, Settling, Shown, Failed }
+        private enum GhostStep { Idle, Preparing, Emitting, Settling, Shown, Failed }
 
         private GhostStep _gStep;
         private ComposedPlan _gPlan;
@@ -150,10 +150,19 @@ namespace Placemaker.Game.Build
             int frame = UnityEngine.Time.frameCount;
             _gLastPump = frame;
             if (Busy) return false;   // the build owns every temporary now
+            long t0 = Now;
+            try { return PumpGhost(frame); }
+            finally { GhostFrame((Now - t0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency); }
+        }
+
+        private bool PumpGhost(int frame)
+        {
             _heightsValid = false;
             try
             {
+                long th = Now;
                 if (_gHasContent) HideGhostIcons();
+                Sub("HideGhostIcons", th);
                 if (!_gWanted)
                 {
                     if (!_gHasContent) return false;
@@ -174,14 +183,19 @@ namespace Placemaker.Game.Build
                 }
                 switch (_gStep)
                 {
+                    case GhostStep.Preparing: StartGhostEmission(frame); break;
                     case GhostStep.Emitting: EmitGhostBatch(frame); break;
                     case GhostStep.Settling:
                         if (frame - _gStepFrame >= GhostSettleFrames)
                         {
+                            long ts = Now;
                             CollectGhostFacts();
+                            Sub("CollectGhostFacts", ts); ts = Now;
                             ClearGhostVerdicts();   // (s59) anarchy: no red refused tint on pieces the build will place
+                            Sub("ClearGhostVerdicts", ts);
                             _gShown = _gEmitting;
                             _gStep = GhostStep.Shown;
+                            GhostTimingLog();
                         }
                         break;
                 }
@@ -219,6 +233,7 @@ namespace Placemaker.Game.Build
             _startFrame = UnityEngine.Time.frameCount;
             _status = new BuildStatus { Phase = BuildPhase.Preparing, Progress = 0.1f, ErrorPositions = new List<float3>(), Warnings = new List<PlanIssue>() };
             Go(Step.ActivateTool);
+            TimingBegin();
             Mod.Log.Info($"Placemaker instant build from the ghost (revision {revision}).");
             return true;
         }
@@ -227,17 +242,23 @@ namespace Placemaker.Game.Build
 
         private bool BeginGhost(int frame)
         {
+            long t0 = Now;
             DestroyGhostDefinitions();   // old ghost: definitions now, temporaries in this Clear frame
             ResetTransaction();          // idle: only clears emission state (no tool is held)
+            Sub("Destroy old ghost", t0);
             _instant = false;
             var plan = _gPlan;
             _gEmitting = _gRequested;
             _gHasContent = true;
             _gDetails = new GhostDetails { ErrorPositions = new List<float3>() };
             _request = new BuildRequest { Plan = plan };
+            t0 = Now;
             _catalog.ResolveAutomatic(plan);   // idempotent; the tool normally did it already
+            Sub("ResolveAutomatic", t0); t0 = Now;
             _work = PlanWork.Flatten(plan);
+            Sub("Flatten", t0); t0 = Now;
             ResolvePrefabs();
+            Sub("ResolvePrefabs", t0);
             _groupId = _registry.AllocateId();   // the id the build will get → same seeds/variations
             _gEmission = true;
             int rest = _work.Surfaces.Count + _work.Areas.Count;
@@ -254,14 +275,38 @@ namespace Placemaker.Game.Build
             _gTotal = rest + _gObjects.Count;
             _gDetails.Planned = _work.Nets.Count + rest + objects;
             _gCursor = 0;
+            t0 = Now;
+            _gPrep = PrepareRingsAsync();
+            Sub("PrepareRings (start)", t0);
+            _gStep = GhostStep.Preparing;
+            return true;   // the Clear frame: the old ghost's temporaries go while the rings are prepared
+        }
+
+        private System.Threading.Tasks.Task _gPrep;
+
+        /// <summary>The rings are ready (or failed: the emission prepares them itself): the ghost is emitted as before.</summary>
+        private void StartGhostEmission(int frame)
+        {
+            if (_gPrep != null && !_gPrep.IsCompleted) return;
+            if (_gPrep != null && _gPrep.IsFaulted) Mod.Log.Warn("Placemaker ghost: ring preparation failed: " + _gPrep.Exception?.GetBaseException().Message);
+            _gPrep = null;
+            long t0 = Now;
             EmitNets();
+            Sub("EmitNets", t0); t0 = Now;
             EmitClearDefinitions();
+            Sub("EmitClearDefinitions", t0);
             _gStep = GhostStep.Emitting;
             EmitGhostBatch(frame);
-            return true;
         }
 
         private void EmitGhostBatch(int frame)
+        {
+            long t0 = Now;
+            try { EmitGhostBatchCore(frame); }
+            finally { Sub("Emit definitions", t0); }
+        }
+
+        private void EmitGhostBatchCore(int frame)
         {
             int end = math.min(_gTotal, _gCursor + math.max(50, GhostPerFrame));
             int s = _work.Surfaces.Count, a = _work.Areas.Count;

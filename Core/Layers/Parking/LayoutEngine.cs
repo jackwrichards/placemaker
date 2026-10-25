@@ -264,6 +264,24 @@ namespace Placemaker.Core.Layers.Parking
                 ZoneRegions.Add((_c2, 2));
                 ZoneRegions.Add((_g, 3));
             }
+            // (perf) the same zones as bands between corresponding corners (SurfaceCells builds its cells from them). A setback
+            // band thinner than the surfaces' shortest edge (0.4 m: the mall's lots) joins the next zone: the short-edge
+            // clean-up would fold it onto the outline anyway, and nothing paves it (stalls, aisles and lanes start at the
+            // setback line; entrance connectors pave every zone).
+            bool thinSetback = es < 0.45;
+            if (_c1Raw != null && _c1Raw.Length == _lot.Count)
+            {
+                if (_ring && _c2Raw != null && _c3Raw != null && _c2Raw.Length == _lot.Count && _c3Raw.Length == _lot.Count)
+                {
+                    _out.ZoneChain = thinSetback ? new List<double2[]> { _lot.ToArray(), _c2Raw, _c3Raw } : new List<double2[]> { _lot.ToArray(), _c1Raw, _c2Raw, _c3Raw };
+                    _out.ZoneChainZones = thinSetback ? new[] { 1, 2, 3 } : new[] { 0, 1, 2, 3 };
+                }
+                else if (!_ring)
+                {
+                    _out.ZoneChain = thinSetback ? new List<double2[]> { _lot.ToArray() } : new List<double2[]> { _lot.ToArray(), _c1Raw };
+                    _out.ZoneChainZones = thinSetback ? new[] { 3 } : new[] { 0, 3 };
+                }
+            }
             return true;
         }
 
@@ -457,7 +475,7 @@ namespace Placemaker.Core.Layers.Parking
                 var m = modules[mi];
                 double ay0 = m.Y0 + (m.Lower ? d : 0);
                 aisleY[mi] = new double2(ay0, ay0 + ai);
-                aisleIv[mi] = PGeo.StripInside(_g, ay0, ay0 + ai);
+                aisleIv[mi] = GridOf(_g).StripInside(ay0, ay0 + ai);
                 aisleIndexBase[mi] = res.AisleIntervals.Count;
                 foreach (var iv in aisleIv[mi]) res.AisleIntervals.Add((ay0, ay0 + ai, mi, iv));
             }
@@ -494,7 +512,7 @@ namespace Placemaker.Core.Layers.Parking
                     if (lower && !m.Lower) continue;
                     if (!lower && !m.Upper) continue;
                     double by0 = lower ? m.Y0 : aisleY[mi].y, by1 = by0 + d;
-                    var strip = PGeo.Intersect(PGeo.StripInside(_g, by0, by1), ai_iv);
+                    var strip = PGeo.Intersect(GridOf(_g).StripInside(by0, by1), ai_iv);
                     var cuts = new List<double2>();
                     foreach (var lane in res.Lanes)
                         if (lane.Y0 < by1 - 1e-6 && lane.Y1 > by0 + 1e-6) cuts.Add(new double2(lane.X - cw / 2, lane.X + cw / 2));
@@ -667,9 +685,9 @@ namespace Placemaker.Core.Layers.Parking
             double hw = _s.Cross / 2;
             double y0 = ya + _s.Aisle / 2, y1 = yb - _s.Aisle / 2;
             var domain = _ring ? _c2 : _g;
-            if (y1 - y0 < 1e-3) return PGeo.Contains(domain, new double2(x, (ya + yb) / 2));
+            if (y1 - y0 < 1e-3) return GridOf(domain).Contains(new double2(x, (ya + yb) / 2));
             var rect = new List<double2> { new double2(x - hw, y0), new double2(x + hw, y0), new double2(x + hw, y1), new double2(x - hw, y1) };
-            return PGeo.ConvexInside(rect, domain, 1e-3);
+            return GridOf(domain).ConvexInside(rect, 1e-3);
         }
 
         private void BuildCrossLanes(InteriorResult interior)
@@ -763,7 +781,7 @@ namespace Placemaker.Core.Layers.Parking
                     // PLT Netzerhalt: one-way entrances get a pedestrian path beside the lane.
                     var off = PGeo.Perp(e.Inward) * (e.Width / 2 + 1.0);
                     var fp = e.Point + off;
-                    if (PGeo.DistToBoundary(_lot, fp) < 0.5 && FindJunction(fp, e.Inward, out var fj, out _))
+                    if (GridOf(_lot).Dist(fp, 1.0) < 0.5 && FindJunction(fp, e.Inward, out var fj, out _))
                         AddLine(fp, fj, LineKind.Footpath, 2.0, ei);
                 }
             }
@@ -816,10 +834,17 @@ namespace Placemaker.Core.Layers.Parking
 
         private bool SegmentInLot(double2 a, double2 b)
         {
-            for (int i = 0; i < _lot.Count; i++)
-                if (PGeo.SegmentsCross(a, b, _lot[i], _lot[(i + 1) % _lot.Count], 1e-7)) return false;
-            var m = (a + b) * 0.5;
-            return PGeo.Contains(_lot, m);
+            var g = GridOf(_lot);
+            if (g.AnyCross(a, b, 1e-7)) return false;
+            return g.Contains((a + b) * 0.5);
+        }
+
+        // (perf) the contours' edges by grid cell, for the inside tests that ran over every corner of a painted outline
+        private readonly Dictionary<List<double2>, RingGrid> _grids = new Dictionary<List<double2>, RingGrid>();
+        private RingGrid GridOf(List<double2> ring)
+        {
+            if (!_grids.TryGetValue(ring, out var g)) _grids[ring] = g = new RingGrid(ring);
+            return g;
         }
 
         // ───────────────────────────── perimeter row ─────────────────────────────
@@ -836,6 +861,8 @@ namespace Placemaker.Core.Layers.Parking
             double es = _s.Setback, dp = _s.StallLength, sw = _s.StallWidth;
             int n = _lot.Count;
             var accepted = new List<Bay>();
+            double near = Math.Max(1, sw + dp);
+            var nearIndex = new Dictionary<long, List<Bay>>();
             int ringLine = _ringLines.Count > 0 ? _ringLines[0] : -1;
             for (int k = 0; k < n; k++)
             {
@@ -897,12 +924,22 @@ namespace Placemaker.Core.Layers.Parking
                             Quad = q, Center = (q[0] + q[2]) * 0.5, Axis = -nrm, RowDir = tan,
                             Width = sw, Length = dp, Kind = BayKind.Perimeter, Row = row, Order = order++, Line = ringLine,
                         };
-                        if (!PGeo.ConvexInside(q, _c1, 1e-4)) { order++; continue; }
+                        if (!GridOf(_c1).ConvexInside(q, 1e-4)) { order++; continue; }
                         bool clash = false;
-                        foreach (var other in accepted)
-                            if (math.distance(other.Center, bay.Center) < sw + dp && PGeo.ConvexOverlap(q, other.Quad, 1e-4)) { clash = true; break; }
+                        // (perf) only the accepted stalls in the neighbouring cells can be closer than sw + dp
+                        long kx = (long)Math.Floor(bay.Center.x / near), ky = (long)Math.Floor(bay.Center.y / near);
+                        for (long x = kx - 1; x <= kx + 1 && !clash; x++)
+                            for (long y = ky - 1; y <= ky + 1 && !clash; y++)
+                                if (nearIndex.TryGetValue((x << 32) ^ (y & 0xffffffffL), out var list))
+                                    foreach (var other in list)
+                                        if (math.distance(other.Center, bay.Center) < sw + dp && PGeo.ConvexOverlap(q, other.Quad, 1e-4)) { clash = true; break; }
                         if (clash) { order++; continue; }
                         accepted.Add(bay);
+                        {
+                            long nk = (kx << 32) ^ (ky & 0xffffffffL);
+                            if (!nearIndex.TryGetValue(nk, out var list)) nearIndex[nk] = list = new List<Bay>();
+                            list.Add(bay);
+                        }
                     }
                     order += 2;
                 }
@@ -971,7 +1008,7 @@ namespace Placemaker.Core.Layers.Parking
                     {
                         o + tan * x, o + tan * (x + sw), o + tan * (x + sw) + nrm * sl, o + tan * x + nrm * sl,
                     };
-                    if (PGeo.ConvexInside(q, _g, 1e-4) && Free(q))
+                    if (GridOf(_g).ConvexInside(q, 1e-4) && Free(q))
                     {
                         var bay = new Bay
                         {
@@ -1005,11 +1042,33 @@ namespace Placemaker.Core.Layers.Parking
                 }
                 else if (l.Kind == LineKind.Footpath) corridors.Add(PGeo.Corridor(l.A, l.B, 1.0));
             }
+            // (perf) corridors by 8 m cell: each stall asks the few near it (was every corridor for every stall)
+            const double cell = 8;
+            var index = new Dictionary<long, List<int>>();
+            long Key(long x, long y) => (x << 32) ^ (y & 0xffffffffL);
+            for (int i = 0; i < corridors.Count; i++)
+            {
+                PGeo.Bounds(corridors[i], out var mn, out var mx);
+                for (long x = (long)Math.Floor(mn.x / cell); x <= (long)Math.Floor(mx.x / cell); x++)
+                    for (long y = (long)Math.Floor(mn.y / cell); y <= (long)Math.Floor(mx.y / cell); y++)
+                    {
+                        if (!index.TryGetValue(Key(x, y), out var list)) index[Key(x, y)] = list = new List<int>();
+                        list.Add(i);
+                    }
+            }
+            var hit = new List<int>();
             foreach (var b in _out.Bays)
             {
                 if (b.Removed) continue;
-                foreach (var c in corridors)
-                    if (PGeo.ConvexOverlap(b.Quad, c, 1e-4)) { b.Removed = true; break; }
+                PGeo.Bounds(b.Quad, out var mn, out var mx);
+                hit.Clear();
+                for (long x = (long)Math.Floor(mn.x / cell); x <= (long)Math.Floor(mx.x / cell); x++)
+                    for (long y = (long)Math.Floor(mn.y / cell); y <= (long)Math.Floor(mx.y / cell); y++)
+                        if (index.TryGetValue(Key(x, y), out var list))
+                            foreach (int i in list) if (!hit.Contains(i)) hit.Add(i);
+                // the corridors in their own order, as before (only whether any overlaps matters)
+                foreach (int i in hit)
+                    if (PGeo.ConvexOverlap(b.Quad, corridors[i], 1e-4)) { b.Removed = true; break; }
             }
         }
 
@@ -1110,7 +1169,8 @@ namespace Placemaker.Core.Layers.Parking
         /// <summary>A charger needs planting behind the pair: inside the lot, off every stall and lane.</summary>
         private bool ChargerSpotOk(double2 p)
         {
-            if (!PGeo.Contains(_lot, p) || PGeo.DistToBoundary(_lot, p) < 0.3) return false;
+            var lotGrid = GridOf(_lot);
+            if (!lotGrid.Contains(p) || lotGrid.Dist(p, 1.0) < 0.3) return false;
             foreach (var b in _out.Bays)
                 if (!b.Removed && math.distance(b.Center, p) < b.Length && PGeo.StrictlyInsideConvex(b.Quad, p, -0.3)) return false;
             foreach (var l in _out.Lines)

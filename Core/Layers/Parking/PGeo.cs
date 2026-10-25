@@ -188,6 +188,7 @@ namespace Placemaker.Core.Layers.Parking
         {
             int n = ring.Count;
             if (n < 3) return false;
+            if (n > 32) return IsSimpleByGrid(ring);
             for (int i = 0; i < n; i++)
             {
                 var a = ring[i]; var b = ring[(i + 1) % n];
@@ -197,6 +198,32 @@ namespace Placemaker.Core.Layers.Parking
                     if ((j + 1) % n == i || j == (i + 1) % n) continue;
                     if (SegmentsIntersect(a, b, ring[j], ring[(j + 1) % n])) return false;
                 }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// (perf) IsSimple for a painted outline's hundreds of corners: the edge pairs that can touch are found by grid cell
+        /// (touching edges have touching boxes), the same pairs answer as in the all-pairs scan.
+        /// </summary>
+        internal static bool IsSimpleByGrid(IReadOnlyList<double2> ring)
+        {
+            int n = ring.Count;
+            for (int i = 0; i < n; i++) if (Len(ring[(i + 1) % n] - ring[i]) < 1e-9) return false;
+            var grid = new RingGrid(ring);
+            var pad = new double2(1e-6, 1e-6);
+            for (int i = 0; i < n; i++)
+            {
+                var a = ring[i]; var b = ring[(i + 1) % n];
+                bool hit = false;
+                int ii = i;
+                grid.Edges(math.min(a, b) - pad, math.max(a, b) + pad, j =>
+                {
+                    if (j <= ii || (j + 1) % n == ii || j == (ii + 1) % n) return true;
+                    if (SegmentsIntersect(a, b, ring[j], ring[(j + 1) % n])) { hit = true; return false; }
+                    return true;
+                });
+                if (hit) return false;
             }
             return true;
         }
@@ -494,22 +521,30 @@ namespace Placemaker.Core.Layers.Parking
             // polygons as index lists
             var polys = new List<List<int>>();
             foreach (var t in tris) polys.Add(new List<int> { t.x, t.y, t.z });
-            bool merged = true;
-            while (merged)
+            // Merge the first pair (in index order) that shares an edge and stays convex, until none does. (perf) The scan
+            // resumes instead of starting over after every merge (cubic in the corners: a 400-corner lot took seconds): the
+            // pairs before piece i were all refused and only the merged piece changed, so the next merge is the first of
+            // (a, i) for a < i, else the first of (i, b) - the very pair the old full restart found.
+            bool TryMerge(int i, int j)
             {
-                merged = false;
-                for (int i = 0; i < polys.Count && !merged; i++)
+                if (!SharedEdge(polys[i], polys[j], out int ai, out int bj)) return false;
+                var u = MergeAt(polys[i], polys[j], ai, bj);
+                if (u == null) return false;
+                var pts = new List<double2>(u.Count);
+                foreach (int q in u) pts.Add(ring[q]);
+                if (!IsConvex(pts)) return false;
+                polys[i] = u; polys.RemoveAt(j);
+                return true;
+            }
+            for (int i = 0; i < polys.Count;)
+            {
+                bool merged = false;
+                for (int j = i + 1; j < polys.Count && !merged; j++) merged = TryMerge(i, j);
+                if (!merged) { i++; continue; }
+                for (bool back = true; back;)
                 {
-                    for (int j = i + 1; j < polys.Count && !merged; j++)
-                    {
-                        if (!SharedEdge(polys[i], polys[j], out int ai, out int bj)) continue;
-                        var u = MergeAt(polys[i], polys[j], ai, bj);
-                        if (u == null) continue;
-                        var pts = new List<double2>(u.Count);
-                        foreach (int q in u) pts.Add(ring[q]);
-                        if (!IsConvex(pts)) continue;
-                        polys[i] = u; polys.RemoveAt(j); merged = true;
-                    }
+                    back = false;
+                    for (int a = 0; a < i; a++) if (TryMerge(a, i)) { i = a; back = true; break; }
                 }
             }
             foreach (var pl in polys)

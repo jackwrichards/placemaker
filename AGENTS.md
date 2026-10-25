@@ -138,7 +138,7 @@ ode_modules`.
 - Farm fields and their fences across entrances: same cause, gone.
 - The dip at lot entrances (4–7 m, strip mall, mall district): the game re-fits marker nets (invisible paths) to the
   ground and the lane junction clips the ground to them. Our marker edges and nodes get `Game.Net.Elevation` 0 on the
-  Apply frame (`BuildService.Pits.cs`). Every build logs a live pit check over its whole outline ("pit check").
+  Apply frame (`BuildService.Pits.cs`). With the option "Debug: build checks" (off: it froze frames; a scenario turns it on with a `setting` step) every build logs a live pit check over its whole outline ("pit check"). Every build logs "Placemaker build timing" (its main-thread time per step and the worst frames).
 - Shops facing the city street: our zoning roads switch zoning off on sides no plot faces (`Core/Build/LaneSides.cs`,
   vanilla `ZonesDisabled`), kerb strips block the city streets' first zone row along the build before the zoning
   refresh (`ZoneGuard.KerbStrips`), the refresh never moves a lane plot onto a city street, and street-facing plots are

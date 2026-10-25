@@ -48,6 +48,8 @@ namespace Placemaker.Core.Layers.Park
         public CancellationToken Cancel;
         /// <summary>Reusable query buffer (one planning run = one thread).</summary>
         public readonly List<int> Scratch = new List<int>();
+        /// <summary>(perf) Quick planting checks (PlantGrid.cs), made by the first natural planting pass.</summary>
+        internal PlantGrid PlantGrid;
 
         public int Count(ParkItemKind k) { int n = 0; foreach (var i in Items) if (i.Kind == k) n++; return n; }
 
@@ -68,6 +70,8 @@ namespace Placemaker.Core.Layers.Park
         {
             Items.Add(item);
             Occ.Take(item.Position, item.Radius, (int)item.Kind);
+            if (PlantGrid != null && PlantGrid.Ready && (item.Kind == ParkItemKind.Tree || item.Kind == ParkItemKind.Bush))
+                PlantGrid.Added(item.Position, item.Kind == ParkItemKind.Tree);
         }
 
         internal static float MinDistToRing(float2[] ring, float2 p)
@@ -91,9 +95,14 @@ namespace Placemaker.Core.Layers.Park
         {
             float outline = Radius * (1f + 0.22f * math.sin(Lobes * angle + Phase) + 0.12f * math.sin(FineLobes * angle + FinePhase));
             var local = new float2(math.cos(angle), math.sin(angle) * Aspect) * outline * radial;
-            math.sincos(Rotation, out float s, out float c);
+            // (perf) The rotation's sine and cosine once (the same values every call).
+            if (!_turned) { math.sincos(Rotation, out _sin, out _cos); _turned = true; }
+            float s = _sin, c = _cos;
             return Center + new float2(local.x * c - local.y * s, local.x * s + local.y * c);
         }
+
+        private bool _turned;
+        private float _sin, _cos;
     }
 
     public static class ParkPlanting
@@ -147,6 +156,11 @@ namespace Placemaker.Core.Layers.Park
         public static void Vegetation(ParkSite s, ParkStyle style, int target, bool tree, bool belt)
         {
             if (target <= 0) return;
+            float boundaryClearance = tree ? 4f : 2.2f;
+            // (perf) The planting grid (PlantGrid.cs) for this pass: every PlantFits below answers from it where it can.
+            var grid = s.PlantGrid ??= new PlantGrid(s.LayerRegion);
+            if (tree) grid.Prepare(s, boundaryClearance, 2.5f, 8.5f * 0.45f);
+            else grid.Prepare(s, boundaryClearance, 1.2f, 4.2f * 0.45f);
             if (style.Formal) { FormalVegetation(s, target, tree, belt); return; }
             if (style.Grid) { GridVegetation(s, target, tree, belt); return; }
             if (style.RowBelt && belt && tree)
@@ -160,7 +174,6 @@ namespace Placemaker.Core.Layers.Park
             var rng = Hashing.Rng(s.Seed, tree ? 0x51f15e21u : 0x9e3779b9u);
             var region = s.LayerRegion;
             var beltShape = belt ? new Belt(region, Hashing.Mix(s.Seed, 0x1234567u)) : null;
-            float boundaryClearance = tree ? 4f : 2.2f;
             float baseSpacing = tree ? 7.5f : 4f;
             float groveShare = s.Groves.Count > 0 ? (tree ? style.TreeGroveShare : style.BushGroveShare) : 0f;
             float beltShare = belt ? (tree ? style.TreeBeltShare : style.BushBeltShare) : 0f;
@@ -227,7 +240,7 @@ namespace Placemaker.Core.Layers.Park
                 }
                 float size = tree ? rng.NextFloat(5f, 8.5f) : rng.NextFloat(2.3f, 4.2f);
                 float radius = tree ? math.max(2.5f, size * 0.45f) : math.max(1.2f, size * 0.45f);
-                if (!PlantFits(s, p, tree, radius, spacing, boundaryClearance)) continue;
+                if (!QuickFits(grid, s, p, tree, radius, spacing, boundaryClearance)) continue;
                 accepted++;
                 if (solitaire) solitaires++;
                 s.Add(new ParkItem
@@ -238,14 +251,38 @@ namespace Placemaker.Core.Layers.Park
             }
         }
 
+        /// <summary>(perf) PlantFits with the grid's quick answers first: always the same answer as PlantFits.</summary>
+        private static bool QuickFits(PlantGrid grid, ParkSite s, float2 p, bool tree, float radius, float spacing, float boundaryClearance)
+        {
+            int cell = grid.Cell(p);
+            byte fixedChecks = grid.Static(cell);
+            if (fixedChecks == PlantGrid.Fail) return false;
+            if (grid.Crowded(cell, p, tree, spacing)) return false;
+            if (fixedChecks == PlantGrid.Maybe && !FixedFits(s, p, radius, boundaryClearance)) return false;
+            return !TooClose(s, p, tree, spacing, radius);
+        }
+
         private static bool PlantFits(ParkSite s, float2 p, bool tree, float radius, float spacing, float boundaryClearance)
+        {
+            var grid = s.PlantGrid;
+            if (grid == null || !grid.Ready) return FixedFits(s, p, radius, boundaryClearance) && !TooClose(s, p, tree, spacing, radius);
+            // (perf) The grid's quick answers first (rows, avenues, grids): the same answer.
+            int cell = grid.Cell(p);
+            byte fixedChecks = grid.Static(cell, boundaryClearance, radius);
+            if (fixedChecks == PlantGrid.Fail) return false;
+            if (grid.Crowded(cell, p, tree, spacing)) return false;
+            if (fixedChecks == PlantGrid.Maybe && !FixedFits(s, p, radius, boundaryClearance)) return false;
+            return !TooClose(s, p, tree, spacing, radius);
+        }
+
+        /// <summary>The checks that do not depend on what was planted: outline, gates, lake, clearing, paths, reserved polygons.</summary>
+        private static bool FixedFits(ParkSite s, float2 p, float radius, float boundaryClearance)
         {
             if (!s.LayerRegion.ContainsDisc(p, boundaryClearance)) return false;
             if (s.GateDistanceSq(p) < 100f) return false;
             if (s.InLake(p, radius) || s.InClearing(p, radius)) return false;
             if (s.Occ.Corridors.Overlaps(p, radius, 0.35f)) return false;
-            if (s.Occ.HitsPolygon(p, radius)) return false;   // obstacles / reserved polygons
-            return !TooClose(s, p, tree, spacing, radius);
+            return !s.Occ.HitsPolygon(p, radius);   // obstacles / reserved polygons
         }
 
         /// <summary>ParkManager's spacing rules: own layer keeps `spacing`, others their collision gaps.</summary>
@@ -424,10 +461,19 @@ namespace Placemaker.Core.Layers.Park
                 _depthCells = Math.Max(1, (int)Math.Round(Perimeter / 45f));
                 _sectionCells = Math.Max(1, (int)Math.Round(Perimeter / 90f));
                 _depthScale = math.clamp(math.sqrt(region.Area) / 250f, 1f, 2.2f);
+                MakeLattices();
             }
 
-            public float Coverage(float along) => math.smoothstep(0.42f, 0.72f, Noise(along, _coverageCells, 1u));
-            public float DepthFactor(float along) => 0.25f + 0.75f * (0.6f * Noise(along, _coverageCells, 1u) + 0.4f * Noise(along, _depthCells, 2u));
+            public float Coverage(float along) => math.smoothstep(0.42f, 0.72f, CoverageNoise(along));
+            public float DepthFactor(float along) => 0.25f + 0.75f * (0.6f * CoverageNoise(along) + 0.4f * Noise(along, _depthCells, 2u));
+
+            // (perf) A candidate asks Coverage and then DepthFactor at the same point: the coverage noise once.
+            private float _lastAlong = float.NaN, _lastCoverage;
+            private float CoverageNoise(float along)
+            {
+                if (along != _lastAlong) { _lastCoverage = Noise(along, _coverageCells, 1u); _lastAlong = along; }
+                return _lastCoverage;
+            }
             public float MaxDepth(bool tree) => Layout.M((tree ? 7f : 9f) * _depthScale, tree ? 3f : 2f);
             public uint SectionVariant(float along, uint layerSeed) =>
                 Hashing.Mix(layerSeed, (uint)((int)(along / Perimeter * _sectionCells) % _sectionCells));
@@ -436,7 +482,42 @@ namespace Placemaker.Core.Layers.Park
             private float Noise(float along, int cells, uint salt)
             {
                 float t = along / Perimeter;
-                return 0.7f * ValueNoise.Periodic(t * cells, cells, _seed ^ salt) + 0.3f * ValueNoise.Periodic(t * cells * 3, cells * 3, _seed ^ (salt * 0x9e3779b9u));
+                var coarse = salt == 1u ? _cov : _depth;
+                var fine = salt == 1u ? _covFine : _depthFine;
+                if (coarse == null || coarse.Period != Math.Max(1, cells)) return 0.7f * ValueNoise.Periodic(t * cells, cells, _seed ^ salt) + 0.3f * ValueNoise.Periodic(t * cells * 3, cells * 3, _seed ^ (salt * 0x9e3779b9u));
+                return 0.7f * coarse.At(t * cells) + 0.3f * fine.At(t * cells * 3);
+            }
+
+            // (perf) The noise's lattice values once (a belt candidate asked for 4–6 noise samples, each hashing two of them).
+            private Lattice _cov, _covFine, _depth, _depthFine;
+
+            private void MakeLattices()
+            {
+                _cov = new Lattice(_coverageCells, _seed ^ 1u); _covFine = new Lattice(_coverageCells * 3, _seed ^ (1u * 0x9e3779b9u));
+                _depth = new Lattice(_depthCells, _seed ^ 2u); _depthFine = new Lattice(_depthCells * 3, _seed ^ unchecked(2u * 0x9e3779b9u));
+            }
+
+            /// <summary>ValueNoise.Periodic(x, period, seed) with its lattice values looked up: the same arithmetic, the same values.</summary>
+            private sealed class Lattice
+            {
+                public readonly int Period;
+                private readonly float[] _v;
+
+                public Lattice(int period, uint seed)
+                {
+                    Period = math.max(1, period);
+                    _v = new float[Period];
+                    for (int i = 0; i < Period; i++) _v[i] = Hashing.Unit(Hashing.Mix(seed, (uint)i));
+                }
+
+                public float At(float x)
+                {
+                    int cell = (int)math.floor(x);
+                    float f = x - cell;
+                    f = f * f * (3f - 2f * f);
+                    int a = ((cell % Period) + Period) % Period, b = (a + 1) % Period;
+                    return math.lerp(_v[a], _v[b], f);
+                }
             }
         }
 

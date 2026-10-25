@@ -88,7 +88,10 @@ namespace Placemaker.Core.Layers.Parking
             }
 
             // Only when the ring is demonstrably unclean — otherwise every shape stays bit-identical.
-            if (IsUnclean(outer, inner, distance))
+            // (perf) The outline's edges by grid cell: these checks asked every edge for every sample (quadratic in the
+            // corners of a painted outline).
+            var grid = new RingGrid(outer);
+            if (IsUnclean(grid, inner, distance))
             {
                 var eroded = Eroded(outer, lines, distance);
                 if (eroded != null) inner = eroded;
@@ -97,7 +100,7 @@ namespace Placemaker.Core.Layers.Parking
 
             if (PGeo.SignedArea(inner) <= 0) return null;
             foreach (var p in inner)
-                if (!PGeo.Contains(outer, p) && PGeo.DistToBoundary(outer, p) > 1e-6) return null;
+                if (!grid.Contains(p) && grid.Dist(p, 1e-5) > 1e-6) return null;
             return inner;
         }
 
@@ -105,7 +108,7 @@ namespace Placemaker.Core.Layers.Parking
         /// An arm narrower than twice the offset collapses: pieces of the inset then lie closer to
         /// the outline than the offset, or outside it (PLT issue #10, a U whose arm is 10.5 m wide).
         /// </summary>
-        private static bool IsUnclean(IReadOnlyList<double2> outer, double2[] inner, double distance)
+        private static bool IsUnclean(RingGrid outer, double2[] inner, double distance)
         {
             int n = inner.Length;
             for (int i = 0; i < n; i++)
@@ -115,11 +118,54 @@ namespace Placemaker.Core.Layers.Parking
                 for (int s = 0; s <= 4; s++)
                 {
                     var p = a + (b - a) * (s * 0.25);
-                    bool inside = PGeo.Contains(outer, p) || PGeo.DistToBoundary(outer, p) < 1e-9;
-                    if (!inside || PGeo.DistToBoundary(outer, p) < distance - 0.01) return true;
+                    double d = outer.Dist(p, distance);   // exact below the offset, which is all both tests need
+                    bool inside = d < 1e-9 || outer.Contains(p);
+                    if (!inside || d < distance - 0.01) return true;
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// (perf) The parameters t where o + u·t (u a unit vector) is closer than r to the segment a-b: one interval (the
+        /// segment's r-capsule is convex), from the two end discs and the band beside the segment. Replaces a ternary search
+        /// for the closest point and two bisections for the interval's ends (the same interval to rounding).
+        /// </summary>
+        internal static bool CloseInterval(double2 o, double2 u, double2 a, double2 b, double r, out double lo, out double hi)
+        {
+            lo = double.PositiveInfinity; hi = double.NegativeInfinity;
+            double r2 = r * r;
+            void Disc(double2 c, ref double l, ref double h)
+            {
+                var w = o - c;
+                double B = PGeo.Dot(u, w), C = PGeo.Dot(w, w) - r2, disc = B * B - C;
+                if (disc <= 0) return;
+                double s = Math.Sqrt(disc);
+                l = Math.Min(l, -B - s); h = Math.Max(h, -B + s);
+            }
+            Disc(a, ref lo, ref hi);
+            Disc(b, ref lo, ref hi);
+            var ab = b - a; double len = PGeo.Len(ab);
+            if (len > 1e-12)
+            {
+                var v = ab / len;
+                double bl = double.NegativeInfinity, bh = double.PositiveInfinity;
+                bool Clip(double c0, double c1, double min, double max, ref double l, ref double h)
+                {
+                    // min < c0 + c1·t < max
+                    if (Math.Abs(c1) < 1e-15) return c0 > min && c0 < max;
+                    double ta = (min - c0) / c1, tb = (max - c0) / c1;
+                    if (ta > tb) { var x = ta; ta = tb; tb = x; }
+                    l = Math.Max(l, ta); h = Math.Min(h, tb);
+                    return l < h;
+                }
+                var w = o - a;
+                if (Clip(PGeo.Dot(w, v), PGeo.Dot(u, v), 0, len, ref bl, ref bh) && Clip(PGeo.Cross(v, w), PGeo.Cross(v, u), -r, r, ref bl, ref bh))
+                {
+                    lo = Math.Min(lo, bl); hi = Math.Max(hi, bh);
+                }
+            }
+            return lo < hi;
         }
 
         private sealed class Piece { public int Edge; public double2 Start, End; }
@@ -153,30 +199,19 @@ namespace Placemaker.Core.Layers.Parking
                 double t1 = PGeo.Dot(raw[(i + 1) % n] - basePt, u);
                 if (t1 <= t0 + eps) continue;
                 var free = new List<double2> { new double2(t0, t1) };
+                // (perf) the piece's box grown by the offset: segments outside it cannot come closer than the offset
+                var pa = basePt + u * t0; var pb = basePt + u * t1;
+                var bmin = math.min(pa, pb) - distance; var bmax = math.max(pa, pb) + distance;
                 for (int j = 0; j < n && free.Count > 0; j++)
                 {
                     if (j == i) continue;
                     var a = outer[j]; var b = outer[(j + 1) % n];
-                    Func<double, double> dist = t => PGeo.DistPointSeg(basePt + u * t, a, b);
-                    double lo = t0, hi = t1;
-                    for (int k = 0; k < 80; k++)
-                    {
-                        double m1 = lo + (hi - lo) / 3, m2 = hi - (hi - lo) / 3;
-                        if (dist(m1) < dist(m2)) hi = m2; else lo = m1;
-                    }
-                    double tm = (lo + hi) / 2;
-                    if (dist(tm) >= distance - eps) continue;
-                    Func<double, double, double> edgeOf = (inT, outT) =>
-                    {
-                        if (dist(outT) < distance - eps) return outT;
-                        for (int k = 0; k < 80; k++)
-                        {
-                            double m = (inT + outT) / 2;
-                            if (dist(m) < distance - eps) inT = m; else outT = m;
-                        }
-                        return (inT + outT) / 2;
-                    };
-                    double fromBad = edgeOf(tm, t0), toBad = edgeOf(tm, t1);
+                    if (Math.Max(a.x, b.x) < bmin.x || Math.Min(a.x, b.x) > bmax.x || Math.Max(a.y, b.y) < bmin.y || Math.Min(a.y, b.y) > bmax.y) continue;
+                    // where on [t0, t1] the offset line is too close to segment j (distance along a line to a segment is
+                    // convex, so that is one interval)
+                    if (!CloseInterval(basePt, u, a, b, distance - eps, out double badLo, out double badHi)) continue;
+                    double fromBad = Math.Max(t0, badLo), toBad = Math.Min(t1, badHi);
+                    if (toBad <= fromBad) continue;
                     var next = new List<double2>();
                     foreach (var f in free)
                     {

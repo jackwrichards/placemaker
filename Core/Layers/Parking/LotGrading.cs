@@ -82,6 +82,7 @@ namespace Placemaker.Core.Layers.Parking
             if (layout?.Lot == null || layout.Lot.Count < 3 || ground == null) return res;
             var f = layout.Frame;
             var lot = layout.Lot;
+            var lotGrid = new RingGrid(lot);   // (perf) inside tests by grid cell (same answers)
             PGeo.Bounds(lot, out var lo, out var hi);
 
             // Smoothed ground: a 5-point average over ±3 m (single lumps do not tilt a tier).
@@ -148,7 +149,7 @@ namespace Placemaker.Core.Layers.Parking
                 for (double x = lo.x + Sample * 0.5; x < hi.x; x += Sample)
                 {
                     var p = new double2(x, y);
-                    if (!PGeo.Contains(lot, p)) continue;
+                    if (!lotGrid.Contains(p)) continue;
                     pts.Add(new double3(x, y, G(x, y)));
                 }
             if (pts.Count < 4) return res;
@@ -447,10 +448,11 @@ namespace Placemaker.Core.Layers.Parking
                             TargetHeight = th, Permanent = true, Sloped = true,
                         });
                     }
+            var clipGrid = new RingGrid(clipLocal);
             res.Height = w =>
             {
                 var l = f.ToLocal(w);
-                return PGeo.Contains(clipLocal, l) ? (float)F2(l.x, l.y) : ground(w);
+                return clipGrid.Contains(l) ? (float)F2(l.x, l.y) : ground(w);
             };
             return res;
         }

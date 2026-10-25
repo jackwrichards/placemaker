@@ -129,8 +129,8 @@ namespace Placemaker.Game.Build
             _heightsValid = false;
             _sagNotes = _splitNotes = 0;
             if (!_gEmission) ScanLivePits("before the nets");
-            _netIndex = new PlanIndex();
-            _objectIndex = _objectIndex ?? new PlanIndex();
+            _netIndex = new PlanIndex(NetIndexCell);
+            _objectIndex = _objectIndex ?? new PlanIndex(ObjectIndexCell);
             var random = new Unity.Mathematics.Random(Seeds.Mix(0x5EEDu, (uint)_groupId));
             var pathEnds = PlannedPathEnds();
             int clearNotes = 0;
@@ -434,7 +434,7 @@ namespace Placemaker.Game.Build
 
         private void EmitObjectDefinition(Entity prefab, float3 position, float yaw, float scale, int age, uint variation, long key, bool snapToGround, int? randomSeed = null, float elevation = 0f, bool optional = true, float roll = 0f, float pitch = 0f, float sink = 0f)
         {
-            _objectIndex = _objectIndex ?? new PlanIndex();
+            _objectIndex = _objectIndex ?? new PlanIndex(ObjectIndexCell);
             var p = position;
             if (snapToGround || !math.isfinite(p.y)) p.y = GroundHeight(p.xz);
             if (elevation > 0f) p.y += elevation;   // raised props (stacked containers) stand this high above the ground
@@ -475,14 +475,13 @@ namespace Placemaker.Game.Build
 
         private void EmitSurface(WorkItem w)
         {
-            var prefab = PrefabOf(w);
-            if (prefab == Entity.Null) return;
             var s = _request.Plan.Layers[w.Layer].Surfaces[w.Index];
             // Parking surfaces must draw over roads (priority −94, Terrain|Roads decal layers): use
             // the runtime overlay clone when it is ready; otherwise the original still builds.
             // US6: paved surfaces of parks/plazas also use the clone, so they stack deterministically
             // above grass/ground (vanilla −100…−95) instead of z-fighting where they overlap.
-            if (w.GeneratorId == "parking" || (OverlayPavedSurfaces && IsPaved(s.Role))) prefab = _clones.OverlayFor(prefab);
+            var prefab = SurfacePrefab(w, s);
+            if (prefab == Entity.Null) return;
             EmitPreparedRings(prefab, s.Ring, w, true);
         }
 
@@ -519,33 +518,64 @@ namespace Placemaker.Game.Build
         /// into acceptable pieces (extra pieces get synthetic keys mapped to the same work item) or,
         /// as the last resort, skipped and reported.
         /// </summary>
-        private void EmitPreparedRings(Entity prefab, float3[] ring, WorkItem w, bool surface)
+        private float RingNodeDistance(Entity prefab)
         {
-            if (ring == null || ring.Length < 3) return;
             float d = AreaRings.SurfaceMinNodeDistance;
             if (EntityManager.HasComponent<AreaGeometryData>(prefab))
             {
                 float snap = EntityManager.GetComponentData<AreaGeometryData>(prefab).m_SnapDistance;
                 if (math.isfinite(snap) && snap > 0f) d = AreaRings.MinNodeDistanceForSnap(snap);
             }
-            var ring2 = Placemaker.Core.Geometry.Poly.To2D(ring);
-            List<float2[]> rings;
-            if (AreaRings.IsValid(ring2, d + AreaRings.Margin) && (!surface || Placemaker.Core.Geometry.SurfaceAcceptance.IsAccepted(ring2)))
-                rings = new List<float2[]> { ring2 };
-            else
+            return d;
+        }
+
+        /// <summary>The prefab a surface work item is emitted with (EmitSurface's choice, overlay clone included).</summary>
+        private Entity SurfacePrefab(WorkItem w, PlannedSurface s)
+        {
+            var prefab = PrefabOf(w);
+            if (prefab == Entity.Null) return prefab;
+            if (w.GeneratorId == "parking" || (OverlayPavedSurfaces && IsPaved(s.Role))) prefab = _clones.OverlayFor(prefab);
+            return prefab;
+        }
+
+        /// <summary>
+        /// (perf) Every surface and area ring of _work checked and repaired on a worker (Prepared, kept with each ring), so the
+        /// emission that follows only copies them: the first ghost batch of a big lot spent 323 ms of one frame on it.
+        /// </summary>
+        private System.Threading.Tasks.Task PrepareRingsAsync()
+        {
+            var jobs = new List<(float3[] ring, float d, bool surface)>();
+            foreach (var w in _work.Surfaces)
             {
-                if (surface) rings = AreaRings.PrepareSurface(ring2, d);
-                else
-                {
-                    var v = AreaRings.MakeValid(ring2, d);
-                    rings = v != null ? new List<float2[]> { v } : new List<float2[]>();
-                }
+                var s = _request.Plan.Layers[w.Layer].Surfaces[w.Index];
+                var prefab = SurfacePrefab(w, s);
+                if (prefab != Entity.Null && s.Ring != null && s.Ring.Length >= 3) jobs.Add((s.Ring, RingNodeDistance(prefab), true));
+            }
+            foreach (var w in _work.Areas)
+            {
+                var a = _request.Plan.Layers[w.Layer].Areas[w.Index];
+                var prefab = PrefabOf(w);
+                if (prefab != Entity.Null && a.Ring != null && a.Ring.Length >= 3) jobs.Add((a.Ring, RingNodeDistance(prefab), false));
+            }
+            if (jobs.Count == 0) return System.Threading.Tasks.Task.CompletedTask;
+            return System.Threading.Tasks.Task.Run(() => { foreach (var (ring, d, surface) in jobs) Prepared(ring, d, surface); });
+        }
+
+        private void EmitPreparedRings(Entity prefab, float3[] ring, WorkItem w, bool surface)
+        {
+            if (ring == null || ring.Length < 3) return;
+            float d = RingNodeDistance(prefab);
+            var prepared = Prepared(ring, d, surface);
+            var ring2 = prepared.Ring2;
+            List<float2[]> rings = prepared.Rings;
+            if (!prepared.AsIs)
+            {
                 var at = new float3(w.Anchor.x, Height(w.Anchor), w.Anchor.y);
                 bool first = _notedRings.Add(PlanWork.Key(w));   // retries re-emit: count each piece once
                 if (rings.Count == 0)
                 {
                     if (first) NoteSkip(surface ? "Placemaker.Build.Skipped.Surface" : "Placemaker.Build.Skipped.Area", at);
-                    Mod.Log.Info($"Placemaker skipped a {(surface ? "surface" : "area")} ring the game would reject ({ring.Length} nodes, d={d:0.###}; {w.GeneratorId} layer {w.Layer} #{w.Index}, first violation at node {AreaRings.FirstViolation(ring2, d + AreaRings.Margin)}): {string.Join(" ", System.Linq.Enumerable.Select(ring2, p => $"({p.x:F2},{p.y:F2})"))}.");
+                    if (first && !_gEmission) Mod.Log.Info($"Placemaker skipped a {(surface ? "surface" : "area")} ring the game would reject ({ring.Length} nodes, d={d:0.###}; {w.GeneratorId} layer {w.Layer} #{w.Index}, first violation at node {AreaRings.FirstViolation(ring2, d + AreaRings.Margin)}): {string.Join(" ", System.Linq.Enumerable.Select(ring2, p => $"({p.x:F2},{p.y:F2})"))}.");
                     return;
                 }
                 if (first) NoteSkip(surface ? "Placemaker.Build.Repaired.Surface" : "Placemaker.Build.Repaired.Area", at, IssueSeverity.Info);
@@ -561,11 +591,45 @@ namespace Placemaker.Game.Build
             }
         }
 
+        // (perf) The checks and repairs of a ring (AreaRings, SurfaceAcceptance) depend on its corners and d only, and the preview
+        // and the build emit the very same plan rings: worked out once per ring and kept with it (a big lot: ~0.5 s per emission
+        // for 740 rings, on the game's thread). Corners changed in place: worked out again.
+        private sealed class PreparedRing
+        {
+            public float D; public bool Surface; public double Sum;
+            public float2[] Ring2; public bool AsIs; public List<float2[]> Rings;
+        }
+
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<float3[], PreparedRing> s_prepared =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<float3[], PreparedRing>();
+
+        private static PreparedRing Prepared(float3[] ring, float d, bool surface)
+        {
+            double sum = 0;
+            for (int i = 0; i < ring.Length; i++) sum += ring[i].x * (i + 1.0) + ring[i].z * (i + 7.0);
+            if (s_prepared.TryGetValue(ring, out var p) && p.D == d && p.Surface == surface && p.Sum == sum) return p;
+            p = new PreparedRing { D = d, Surface = surface, Sum = sum, Ring2 = Placemaker.Core.Geometry.Poly.To2D(ring) };
+            if (AreaRings.IsValid(p.Ring2, d + AreaRings.Margin) && (!surface || Placemaker.Core.Geometry.SurfaceAcceptance.IsAccepted(p.Ring2)))
+            {
+                p.AsIs = true;
+                p.Rings = new List<float2[]> { p.Ring2 };
+            }
+            else if (surface) p.Rings = AreaRings.PrepareSurface(p.Ring2, d);
+            else
+            {
+                var v = AreaRings.MakeValid(p.Ring2, d);
+                p.Rings = v != null ? new List<float2[]> { v } : new List<float2[]>();
+            }
+            s_prepared.Remove(ring);
+            s_prepared.Add(ring, p);
+            return p;
+        }
+
         private Entity EmitAreaDefinition(Entity prefab, float3[] ring, long key, WorkItem w)
         {
             if (ring == null || ring.Length < 3) return Entity.Null;
             if (!EntityManager.HasComponent<AreaData>(prefab) || !EntityManager.GetComponentData<AreaData>(prefab).m_Archetype.Valid) return Entity.Null;
-            _areaIndex = _areaIndex ?? new PlanIndex();
+            _areaIndex = _areaIndex ?? new PlanIndex(AreaIndexCell);
             var def = NewDefinition();
             EntityManager.AddComponentData(def, new CreationDefinition { m_Prefab = prefab });
             EntityManager.AddComponent<Updated>(def);

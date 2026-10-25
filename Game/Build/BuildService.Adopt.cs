@@ -23,6 +23,9 @@ namespace Placemaker.Game.Build
         private const float NetMatchTolerance = 1.0f;
         private const float ObjectMatchTolerance = 0.75f;
         private const float AreaMatchTolerance = 2.0f;
+        // (perf) Index cells sized to the match tolerance: 16 m cells made every match of a dense lot scan a 48 m square (~150
+        // pieces); the census and the tagging of a 5 000-piece lot took ~85 ms each.
+        private const float NetIndexCell = 8f, ObjectIndexCell = 2f, AreaIndexCell = 4f;
         private const int MaxErrorMarkers = 64;
 
         private readonly List<Entity> _tagged = new List<Entity>();
@@ -32,15 +35,66 @@ namespace Placemaker.Game.Build
 
         private struct CensusResult { public int Expected, Matched; }
 
+        // (perf) Census and TagTemporaries read a few components of every temporary (thousands for a big lot): EntityManager.Get /
+        // Has complete the jobs and look the entity up again on every call (~90 ms a frame for 5 000 pieces). Inside those
+        // loops the reads go through component lookups instead, the jobs completed once (FastReads). No structural change
+        // happens while they are on (TagTemporaries defers its own).
+        private bool _fast;
+        private ComponentLookup<Temp> _lkTemp;
+        private ComponentLookup<PrefabRef> _lkPrefab;
+        private ComponentLookup<Edge> _lkEdge;
+        private ComponentLookup<Curve> _lkCurve;
+        private ComponentLookup<global::Game.Net.Node> _lkNode;
+        private ComponentLookup<Owner> _lkOwner;
+        private ComponentLookup<global::Game.Objects.Object> _lkObject;
+        private ComponentLookup<global::Game.Objects.Transform> _lkTransform;
+        private ComponentLookup<global::Game.Areas.Area> _lkArea;
+        private BufferLookup<global::Game.Areas.Node> _lkAreaNodes;
+
+        private void InitFastReads()
+        {
+            _lkTemp = GetComponentLookup<Temp>(true);
+            _lkPrefab = GetComponentLookup<PrefabRef>(true);
+            _lkEdge = GetComponentLookup<Edge>(true);
+            _lkCurve = GetComponentLookup<Curve>(true);
+            _lkNode = GetComponentLookup<global::Game.Net.Node>(true);
+            _lkOwner = GetComponentLookup<Owner>(true);
+            _lkObject = GetComponentLookup<global::Game.Objects.Object>(true);
+            _lkTransform = GetComponentLookup<global::Game.Objects.Transform>(true);
+            _lkArea = GetComponentLookup<global::Game.Areas.Area>(true);
+            _lkAreaNodes = GetBufferLookup<global::Game.Areas.Node>(true);
+        }
+
+        /// <summary>Lookups current for this frame and every job writing what they read completed: _fast on until FastReadsEnd.</summary>
+        private void FastReads()
+        {
+            EntityManager.CompleteDependencyBeforeRO<Temp>();
+            EntityManager.CompleteDependencyBeforeRO<PrefabRef>();
+            EntityManager.CompleteDependencyBeforeRO<Edge>();
+            EntityManager.CompleteDependencyBeforeRO<Curve>();
+            EntityManager.CompleteDependencyBeforeRO<global::Game.Net.Node>();
+            EntityManager.CompleteDependencyBeforeRO<Owner>();
+            EntityManager.CompleteDependencyBeforeRO<global::Game.Objects.Object>();
+            EntityManager.CompleteDependencyBeforeRO<global::Game.Objects.Transform>();
+            EntityManager.CompleteDependencyBeforeRO<global::Game.Areas.Area>();
+            EntityManager.CompleteDependencyBeforeRO<global::Game.Areas.Node>();
+            _lkTemp.Update(this); _lkPrefab.Update(this); _lkEdge.Update(this); _lkCurve.Update(this); _lkNode.Update(this);
+            _lkOwner.Update(this); _lkObject.Update(this); _lkTransform.Update(this); _lkArea.Update(this); _lkAreaNodes.Update(this);
+            _fast = true;
+        }
+
+        private void FastReadsEnd() => _fast = false;
+
         private bool IsOwnCandidate(Entity e, out Temp temp)
         {
-            temp = EntityManager.GetComponentData<Temp>(e);
+            temp = _fast ? _lkTemp[e] : EntityManager.GetComponentData<Temp>(e);
             if (temp.m_Original != Entity.Null || (temp.m_Flags & (TempFlags.Delete | TempFlags.Cancel)) != 0) return false;
             return true;
         }
 
         private bool TryMatch(Entity e, out long key, out WorkKind kind)
         {
+            if (_fast) return TryMatchFast(e, out key, out kind);
             key = 0; kind = WorkKind.Net;
             var prefab = EntityManager.GetComponentData<PrefabRef>(e).m_Prefab;
             long pid = PrefabId(prefab);
@@ -69,9 +123,37 @@ namespace Placemaker.Game.Build
             return false;
         }
 
+        /// <summary>TryMatch through the lookups (the same tests in the same order).</summary>
+        private bool TryMatchFast(Entity e, out long key, out WorkKind kind)
+        {
+            key = 0; kind = WorkKind.Net;
+            long pid = PrefabId(_lkPrefab[e].m_Prefab);
+            if (_lkEdge.HasComponent(e))
+            {
+                if (_netIndex == null || !_lkCurve.HasComponent(e)) return false;
+                var mid = MathUtils.Position(_lkCurve[e].m_Bezier, 0.5f);
+                return _netIndex.TryMatch(mid.xz, pid, NetMatchTolerance, out key, out _);
+            }
+            if (_lkNode.HasComponent(e)) return false;
+            if (_lkOwner.HasComponent(e)) return false;
+            if (_lkObject.HasComponent(e) && _lkTransform.HasComponent(e))
+            {
+                if (_objectIndex == null) return false;
+                kind = WorkKind.Object;
+                return _objectIndex.TryMatch(_lkTransform[e].m_Position.xz, pid, ObjectMatchTolerance, out key, out _);
+            }
+            if (_lkArea.HasComponent(e) && _lkAreaNodes.HasBuffer(e))
+            {
+                if (_areaIndex == null) return false;
+                kind = WorkKind.Area;
+                return _areaIndex.TryMatch(AreaCentroid(e), pid, AreaMatchTolerance, out key, out _);
+            }
+            return false;
+        }
+
         private float2 AreaCentroid(Entity e)
         {
-            var nodes = EntityManager.GetBuffer<global::Game.Areas.Node>(e, true);
+            var nodes = _fast ? _lkAreaNodes[e] : EntityManager.GetBuffer<global::Game.Areas.Node>(e, true);
             int n = nodes.Length;
             // Ignore a closing duplicate of the first node (it would bias the centroid of small rings).
             if (n > 1 && math.distancesq(nodes[0].m_Position.xz, nodes[n - 1].m_Position.xz) < 1e-4f) n--;
@@ -83,12 +165,17 @@ namespace Placemaker.Game.Build
         private CensusResult Census()
         {
             var matched = new HashSet<long>();
-            using (var temps = _tempQuery.ToEntityArray(Allocator.Temp))
-                for (int i = 0; i < temps.Length; i++)
-                {
-                    if (!IsOwnCandidate(temps[i], out _)) continue;
-                    if (TryMatch(temps[i], out long key, out _) && key != OwnerKey) matched.Add(key);
-                }
+            FastReads();
+            try
+            {
+                using (var temps = _tempQuery.ToEntityArray(Allocator.Temp))
+                    for (int i = 0; i < temps.Length; i++)
+                    {
+                        if (!IsOwnCandidate(temps[i], out _)) continue;
+                        if (TryMatch(temps[i], out long key, out _) && key != OwnerKey) matched.Add(key);
+                    }
+            }
+            finally { FastReadsEnd(); }
             return new CensusResult { Expected = _itemByKey.Count, Matched = matched.Count };
         }
 
@@ -178,6 +265,10 @@ namespace Placemaker.Game.Build
             var nodeRefs = new Dictionary<Entity, int2>();   // x = all temp edges, y = our edges
             bool carrier = _carrier != Entity.Null && EntityManager.Exists(_carrier);
             using var temps = _tempQuery.ToEntityArray(Allocator.Temp);
+            _deferStructural = true;
+            FastReads();
+            try
+            {
             for (int i = 0; i < temps.Length; i++)
             {
                 var e = temps[i];
@@ -226,8 +317,7 @@ namespace Placemaker.Game.Build
                     // Bare carrier owner (PLT): LaneConnectionSystem walks Owner/Attached to find the
                     // aisles in the carrier's SubNet; an area owner would scatter the decals and an
                     // edge owner would cull them (RESEARCH-NOTES 13).
-                    EntityManager.AddComponentData(e, new Owner(_carrier));
-                    EntityManager.AddComponentData(e, new global::Game.Objects.Attached(_carrier, Entity.Null, 0f));
+                    _pendingBays.Add(e);
                 }
             }
             foreach (var kv in nodeRefs)
@@ -236,6 +326,13 @@ namespace Placemaker.Game.Build
                 if (kv.Value.y == 0 || kv.Value.x != kv.Value.y) continue;
                 if (!EntityManager.Exists(node) || !EntityManager.HasComponent<Temp>(node) || !IsOwnCandidate(node, out _)) continue;
                 Tag(node, MemberKind.Node, MemberRole.Generic);
+            }
+            }
+            finally
+            {
+                FastReadsEnd();
+                _deferStructural = false;
+                FlushStructural();
             }
             if (_carrierOwned > 0) Mod.Log.Info($"Placemaker: {_carrierOwned} props/trees/chargers share the parking carrier owner (the game does not pair them with the markings).");
             Mod.Log.Info($"Placemaker tagged {_tagged.Count} temporary parts for group {_groupId}"
@@ -251,6 +348,56 @@ namespace Placemaker.Game.Build
         }
 
         private int _carrierOwned;
+
+        // (perf) TagTemporaries changed every piece's archetype one at a time (its tag; a stall marking's Owner and Attached, a
+        // prop's carrier Owner): a few thousand structural changes in one frame for a big lot (~110 ms). They are collected and
+        // made in one batch per component set at the end; nothing in between reads them.
+        private bool _deferStructural;
+        private readonly List<(Entity e, PlacemakerMember tag)> _pendingTags = new List<(Entity, PlacemakerMember)>();
+        private readonly List<Entity> _pendingOwners = new List<Entity>(), _pendingBays = new List<Entity>();
+
+        private void FlushStructural()
+        {
+            try
+            {
+                if (_pendingTags.Count > 0)
+                {
+                    var list = new List<Entity>(_pendingTags.Count);
+                    foreach (var (e, _) in _pendingTags) list.Add(e);
+                    using var arr = ToArray(list);
+                    EntityManager.AddComponent<PlacemakerMember>(arr);
+                    foreach (var (e, tag) in _pendingTags) EntityManager.SetComponentData(e, tag);
+                }
+                if (_pendingOwners.Count > 0)
+                {
+                    using var arr = ToArray(_pendingOwners);
+                    EntityManager.AddComponent<Owner>(arr);
+                    var owner = new Owner(_carrier);
+                    foreach (var e in _pendingOwners) EntityManager.SetComponentData(e, owner);
+                }
+                if (_pendingBays.Count > 0)
+                {
+                    using var arr = ToArray(_pendingBays);
+                    EntityManager.AddComponent(arr, new ComponentTypeSet(ComponentType.ReadWrite<Owner>(), ComponentType.ReadWrite<global::Game.Objects.Attached>()));
+                    var owner = new Owner(_carrier);
+                    var attached = new global::Game.Objects.Attached(_carrier, Entity.Null, 0f);
+                    foreach (var e in _pendingBays) { EntityManager.SetComponentData(e, owner); EntityManager.SetComponentData(e, attached); }
+                }
+            }
+            finally
+            {
+                _pendingTags.Clear();
+                _pendingOwners.Clear();
+                _pendingBays.Clear();
+            }
+        }
+
+        private static NativeArray<Entity> ToArray(List<Entity> list)
+        {
+            var arr = new NativeArray<Entity>(list.Count, Allocator.Temp);
+            for (int i = 0; i < list.Count; i++) arr[i] = list[i];
+            return arr;
+        }
 
         /// <summary>
         /// (s55) Playtest 89/90: a lot built "successfully" had no island trees, bushes, lamps or chargers. OverrideSystem (decompiled
@@ -272,7 +419,8 @@ namespace Placemaker.Game.Build
                 var flags = EntityManager.GetComponentData<ObjectGeometryData>(prefab).m_Flags;
                 const global::Game.Objects.GeometryFlags mask = global::Game.Objects.GeometryFlags.Overridable | global::Game.Objects.GeometryFlags.DeleteOverridden;
                 if ((flags & mask) != global::Game.Objects.GeometryFlags.Overridable) return;
-                EntityManager.AddComponentData(e, new Owner(_carrier));
+                if (_deferStructural) _pendingOwners.Add(e);
+                else EntityManager.AddComponentData(e, new Owner(_carrier));
                 _carrierOwned++;
             }
             catch (Exception ex) { Mod.Log.Warn("Placemaker: carrier owner failed: " + ex.Message); }
@@ -478,6 +626,7 @@ namespace Placemaker.Game.Build
             {
                 var tag = new PlacemakerMember { GroupId = _groupId, Kind = kind, Role = role };
                 if (EntityManager.HasComponent<PlacemakerMember>(e)) EntityManager.SetComponentData(e, tag);
+                else if (_deferStructural) _pendingTags.Add((e, tag));
                 else EntityManager.AddComponentData(e, tag);
             }
             _tagged.Add(e);
@@ -582,7 +731,9 @@ namespace Placemaker.Game.Build
             foreach (var l in plan.Layers)
                 foreach (var kv in l.Facts)
                     rec.Facts[kv.Key] = (rec.Facts.TryGetValue(kv.Key, out var v) ? v : 0) + kv.Value;
+            long t0 = Now;
             var estimate = Pricing.Of(plan, _catalog.InfoMap());
+            Sub("Record: pricing", t0);
             rec.Cost = estimate.Cost;
             rec.Upkeep = estimate.Upkeep;
             rec.PrefabNames = new List<string>(_usedPrefabNames);
@@ -600,18 +751,25 @@ namespace Placemaker.Game.Build
                     Attachments = new List<BoundaryAttachment>(_request.Area.Attachments ?? new List<BoundaryAttachment>()),
                 };
             }
+            t0 = Now;
             FinishParkStats(rec);
+            Sub("Record: park stats", t0); t0 = Now;
             if (EntityManager.Exists(_record))
             {
                 _registry.WriteRecord(_record, rec);
+                Sub("Record: write", t0); t0 = Now;
                 var g = EntityManager.GetComponentData<PlacemakerGroup>(_record);
                 g.BuiltMembers = _registry.CountMembers(_groupId, false);
                 EntityManager.SetComponentData(_record, g);
+                Sub("Record: count members", t0);
             }
+            t0 = Now;
             RemoveUnderConstruction();
+            Sub("Record: under construction", t0); t0 = Now;
             _registry.MarkDirty();
             try { World.GetOrCreateSystemManaged<Economy.ParkingEconomySystem>().OnGroupBuilt(_groupId); }
             catch (Exception e) { Mod.Log.Warn("Placemaker parking economy setup failed (build kept): " + e.Message); }
+            Sub("Record: parking economy", t0);
         }
     }
 }
