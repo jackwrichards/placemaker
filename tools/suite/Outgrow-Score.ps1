@@ -15,7 +15,8 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot)
-$main = if ($repo -match '\\\.claude\\worktrees\\') { $repo.Substring(0, $repo.IndexOf('\.claude\worktrees\')) } else { $repo }
+# (the main checkout's .forensics, from any worktree)
+$main = Split-Path (Resolve-Path (& git -C $repo rev-parse --git-common-dir | ForEach-Object { if ([IO.Path]::IsPathRooted($_)) { $_ } else { Join-Path $repo $_ } })).Path
 $bench = Join-Path $main '.forensics\outgrow-bench\bootcamp'
 $box = Join-Path $main '.forensics\blackbox'
 $proj = Join-Path $repo 'Tests\Placemaker.OutgrowBench'
