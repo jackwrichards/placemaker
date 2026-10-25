@@ -558,7 +558,7 @@ namespace Placemaker.Core.Neighbours
             // the same garden not ended by the street behind it: what the spike test below measures (a street at an angle to the
             // lot's back narrows the garden toward its end, which is no spike)
             var unended = new List<float2>[n];
-            bool streetEnd = s.Knob("streetEnd", 1f) > 0.5f;
+            bool streetEnd = s.Knob("streetEnd", 0f) > 0.5f;
             for (int i = 0; i < n; i++)
             {
                 var h = houses[i];
