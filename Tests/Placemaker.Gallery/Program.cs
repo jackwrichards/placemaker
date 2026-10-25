@@ -57,6 +57,7 @@ namespace Placemaker.Gallery
                     case "--water": Renderer.WaterTypes = new HashSet<string>(next.Split(','), StringComparer.OrdinalIgnoreCase); i++; break;
                     case "--shores": Renderer.Shores = next.Split(','); i++; break;
                     case "--slopes": Renderer.Slopes = next.Split(','); i++; break;
+                    case "--plan-json": Renderer.PlanJson = true; break;   // sketch research: <variant>.plan.json beside each picture
                     case "--size": Renderer.ImageSize = float.Parse(next, CultureInfo.InvariantCulture); i++; break;
                     case "--zoom": Renderer.Zoom = next.Split(',').Select(x => float.Parse(x, CultureInfo.InvariantCulture)).ToArray(); i++; break;
                     case "--roads":
@@ -553,6 +554,8 @@ namespace Placemaker.Gallery
         public static string[] RoadSiteKinds;
         /// <summary>(s34) --size N: longest image side in pixels (default 880).</summary>
         public static float ImageSize = 880f;
+        /// <summary>(sketch research) Also write each plan's geometry as &lt;variant&gt;.plan.json for the sketch mock-ups.</summary>
+        public static bool PlanJson;
         /// <summary>(s34) --zoom fx0,fz0,fx1,fz1: render only this part of the site (fractions of its bounds).</summary>
         public static float[] Zoom;
         [ThreadStatic] private static float _contourStep;
@@ -945,8 +948,52 @@ namespace Placemaker.Gallery
 
         // ─── drawing ───
 
+        /// <summary>
+        /// (sketch research) The plan's geometry as JSON for the sketch mock-ups (tools/sketch-mockups): outline, streets
+        /// around, nets at their real width, surfaces, areas, objects with footprint, zoning, markers, issues; each element
+        /// with its legend layer (PreviewLegend.Of).
+        /// </summary>
+        private static void WritePlanJson(ComposedPlan plan, float3[] ring, Catalog cat, string file)
+        {
+            static float[] P(float2 p) => new[] { (float)Math.Round(p.x, 2), (float)Math.Round(p.y, 2) };
+            static float[][] R(IEnumerable<float2> r) => r.Select(P).ToArray();
+            var nets = new List<object>();
+            var objects = new List<object>();
+            var surfaces = new List<object>();
+            var areas = new List<object>();
+            var zoning = new List<object>();
+            foreach (var l in plan.Layers)
+            {
+                if (l == null) continue;
+                foreach (var n in l.Nets)
+                    if (n != null)
+                        nets.Add(new { role = n.Role.ToString(), layer = PreviewLegend.Of(n, l.GeneratorId), gen = l.GeneratorId, hw = HalfWidth(n, cat), pts = R(Flatten(n)), asset = n.Asset.Id ?? "" });
+                foreach (var s in l.Surfaces)
+                    if (s?.Ring != null && s.Ring.Length >= 3) surfaces.Add(new { role = s.Role.ToString(), layer = PreviewLegend.Of(s), ring = R(s.Ring.Select(p => p.xz)) });
+                foreach (var a in l.Areas)
+                    if (a?.Ring != null && a.Ring.Length >= 3) areas.Add(new { role = a.Role.ToString(), ring = R(a.Ring.Select(p => p.xz)) });
+                foreach (var z in l.Zoning)
+                    if (z != null) zoning.Add(new { zone = z.ZoneId ?? "", quad = R(new[] { z.A.xz, z.B.xz, z.C.xz, z.D.xz }) });
+                foreach (var o in l.Objects)
+                {
+                    if (o == null) continue;
+                    var (poly, r) = Footprint(o, cat);
+                    objects.Add(new { role = o.Role.ToString(), layer = PreviewLegend.Of(o), cat = RoleCategories.ForObject(o) ?? "", pos = P(o.Position.xz), yaw = (float)Math.Round(o.Yaw, 3), r = (float)Math.Round(r, 2), poly = R(poly) });
+                }
+            }
+            var cells = (plan.ZoneCells ?? new List<ZoneCellMark>()).Select(c => new { state = c.State.ToString(), zone = c.ZoneId ?? "", quad = R(c.Clipped ?? new[] { c.A, c.B, c.C, c.D }) }).ToList();
+            var roads = (_roads ?? new List<NearbyNet>()).Select(r => new { w = r.Width, pts = R(new[] { r.A.xz, r.B.xz, r.C.xz, r.D.xz }) }).ToList();
+            var markers = (_markers ?? new List<EdgeMarker>()).Select(m => new { kind = m.Kind ?? "", pos = P(m.Position.xz), crosswalk = m.Crosswalk }).ToList();
+            var issues = plan.AllIssues().Where(i => i?.At != null).Select(i => new { key = i.Key, red = i.Dropped || i.Severity == IssueSeverity.Error, sev = i.Severity.ToString(), pos = P(i.At.Value.xz) }).ToList();
+            var heat = plan.TerrainHeat?.Rings.Select(h => new { band = h.band, ring = R(h.ring) }).ToList();
+            var legend = PreviewLegend.Compute(plan, markers.Count).Select(e => new { id = e.Id, color = e.Color, count = e.Count, length = e.LengthM, area = e.AreaM2 }).ToList();
+            var doc = new { outline = R(ring.Select(p => p.xz)), roads, nets, surfaces, areas, objects, zoning, cells, markers, issues, heat, legend };
+            File.WriteAllText(file, JsonSerializer.Serialize(doc));
+        }
+
         private static void Draw(ComposedPlan plan, float3[] ring, Catalog cat, string file, Result res)
         {
+            if (PlanJson) WritePlanJson(plan, ring, cat, Path.ChangeExtension(file, ".plan.json"));
             var ring2 = ring.Select(p => p.xz).ToArray();
             float2 min = ring2[0], max = ring2[0];
             foreach (var p in ring2) { min = math.min(min, p); max = math.max(max, p); }

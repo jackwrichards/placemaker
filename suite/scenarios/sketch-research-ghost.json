@@ -1,0 +1,578 @@
+{
+  "_about": "Sketch research, part 2: the ghost (Real) preview set explicitly per build, and the panel with its legend at 45 degrees. Sketch-view research (the user, 25 Oct): the sketch, the ghost preview and the built result from the same cameras, for roads, parking, parks and shops at two sizes. ",
+  "scenarios": [
+    {
+      "id": "skg-parking-small",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-45",
+          "shotMode": "overlay",
+          "pitch": 45
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "top",
+          "shot": "ghost-top",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "sketch-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "build"
+        }
+      ],
+      "site": "flat"
+    },
+    {
+      "id": "skg-parking-big",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-45",
+          "shotMode": "overlay",
+          "pitch": 45
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "top",
+          "shot": "ghost-top",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "sketch-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "build"
+        }
+      ],
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          240
+        ],
+        "gap": 10
+      }
+    },
+    {
+      "id": "skg-park-small",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "natural"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-45",
+          "shotMode": "overlay",
+          "pitch": 45
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "top",
+          "shot": "ghost-top",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "sketch-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "build"
+        }
+      ],
+      "site": "flat"
+    },
+    {
+      "id": "skg-park-big",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "natural"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-45",
+          "shotMode": "overlay",
+          "pitch": 45
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "top",
+          "shot": "ghost-top",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "sketch-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "build"
+        }
+      ],
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          240
+        ],
+        "gap": 10
+      }
+    },
+    {
+      "id": "skg-stripMall-small",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "stripMall",
+          "preset": "classic"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-45",
+          "shotMode": "overlay",
+          "pitch": 45
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "top",
+          "shot": "ghost-top",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "sketch-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "build"
+        }
+      ],
+      "site": "flat"
+    },
+    {
+      "id": "skg-stripMall-big",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "stripMall",
+          "preset": "classic"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-45",
+          "shotMode": "overlay",
+          "pitch": 45
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "top",
+          "shot": "ghost-top",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "sketch-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "build"
+        }
+      ],
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          240
+        ],
+        "gap": 10
+      }
+    },
+    {
+      "id": "skg-roads-small",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "suburb"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-45",
+          "shotMode": "overlay",
+          "pitch": 45
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "top",
+          "shot": "ghost-top",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "sketch-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "build"
+        }
+      ],
+      "land": {
+        "shape": "rect",
+        "size": [
+          360,
+          300
+        ],
+        "roads": "none"
+      }
+    },
+    {
+      "id": "skg-roads-big",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "suburb"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-45",
+          "shotMode": "overlay",
+          "pitch": 45
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "top",
+          "shot": "ghost-top",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "ghost-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "sketch-ui45",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "build"
+        }
+      ],
+      "land": {
+        "shape": "rect",
+        "size": [
+          700,
+          520
+        ],
+        "roads": "none"
+      }
+    }
+  ]
+}
