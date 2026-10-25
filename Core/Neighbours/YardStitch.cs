@@ -516,7 +516,7 @@ namespace Placemaker.Core.Neighbours
                         if (!hugOn || !Hug(houses, i, e, s, out hcut, out reach))
                         {
                             // nothing near to meet: it still grows this far into open land (cut back later at anything there)
-                            float open = math.min(K(h, s, "openReach", 0f), K(h, s, "gardenWidth", float.MaxValue));
+                            float open = K(h, s, "openReach", 0f);
                             if (open < 1f || HardLand(h, s) && e != 2) continue;
                             extra[i, e] = open;
                             touched[i] = true;
@@ -552,18 +552,16 @@ namespace Placemaker.Core.Neighbours
                 var h = houses[i];
                 if (!touched[i]) continue;
                 float reachH = K(h, s, "sideReach", 100f);
-                // (Grow sideways set below its default: no side reaches further, toward a neighbour or a road or open land; 0: no
-                // garden past the lot's sides)
-                float widthH = K(h, s, "gardenWidth", s.Knob("push", 60f));
-                bool widthCap = s.Knob("sliderCaps", 1f) > 0.5f || widthH < s.Knob("push", 60f);
-                if (widthCap) { reachH = math.min(reachH, widthH); extra[i, 0] = math.min(extra[i, 0], widthH); extra[i, 1] = math.min(extra[i, 1], widthH); }
-                float xl = -h.HalfLot.x - (left[i] >= 0 ? reachH : extra[i, 0]);
-                float xr = h.HalfLot.x + (right[i] >= 0 ? reachH : extra[i, 1]);
-                float zb = -h.HalfLot.y - math.max(math.max(deepen[i] ? K(h, s, "maxRearGap", 60f) : 0f, extra[i, 2]), rowDeepen[i]);
-                // (Garden depth set below its default: no further behind its street than this, backs lined up along a row too;
-                // two lots back to back still meet; knob depthCap 0: off)
-                float depthH = K(h, s, "gardenDepth", s.Knob("pushDepth", 50f));
-                if (!deepen[i] && s.Knob("depthCap", 1f) > 0.5f && (s.Knob("sliderCaps", 1f) > 0.5f || depthH < s.Knob("pushDepth", 50f))) zb = math.max(zb, -h.HalfLot.y - math.max(0f, depthH - 2f * h.HalfLot.y));
+                // (the outgrow type's Grow sideways and Outgrow depth scale every reach of these rules: at their defaults (60 m, 50 m)
+                // the rules as tuned, half of it at half, none at 0; the user, 25 Oct: the first B "is great", the sliders' caps
+                // made it tighter)
+                float widthScale = math.max(0f, K(h, s, "gardenWidth", s.Knob("push", 60f)) / math.max(1f, s.Knob("push", 60f)));
+                float depthScale = math.max(0f, K(h, s, "gardenDepth", s.Knob("pushDepth", 50f)) / math.max(1f, s.Knob("pushDepth", 50f)));
+                reachH *= widthScale;
+                float extraL = extra[i, 0] * widthScale, extraR = extra[i, 1] * widthScale;
+                float xl = -h.HalfLot.x - (left[i] >= 0 ? reachH : extraL);
+                float xr = h.HalfLot.x + (right[i] >= 0 ? reachH : extraR);
+                float zb = -h.HalfLot.y - depthScale * math.max(math.max(deepen[i] ? K(h, s, "maxRearGap", 60f) : 0f, extra[i, 2]), rowDeepen[i]);
                 // in front of the lot as far as its street: where the street curves away from the lot's front line, the
                 // triangles between the lot's front corners and the kerb were nobody's (the user: "it kind of has to play to its
                 // back"). Only for a lot whose street lies right in front of it: the street, cut back below, ends it. Only paved
