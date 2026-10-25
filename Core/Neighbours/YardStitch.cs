@@ -733,7 +733,7 @@ namespace Placemaker.Core.Neighbours
             T("fillGaps");
             if (s.Knob("capNarrow", 1f) > 0.5f && !emergent) CapNarrow(houses, plots, touched, s, plan);
             T("capNarrow");
-            if (s.Knob("straightBacks", 1f) > 0.5f && !emergent)
+            if (s.Knob("straightBacks", 0f) > 0.5f && !emergent)
             {
                 // (a garden that shares its back or front with another lot keeps that line)
                 var sharesEnd = new bool[n];
