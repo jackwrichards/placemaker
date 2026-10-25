@@ -80,15 +80,28 @@ namespace Placemaker.Core.Layers.Common
             foreach (int i in _big) { var it = Items[i]; best = math.min(best, math.distance(p, it.P) - it.R); }
             float reach = cap + _smallMax;
             var lo = Cell(p - reach); var hi = Cell(p + reach);
-            for (int y = lo.y; y <= hi.y; y++)
-                for (int x = lo.x; x <= hi.x; x++)
+            // (perf) Rings of cells outwards from p's cell, stopping once no unseen disc can be nearer: a disc in ring k has its
+            // centre more than (k − 1) cells away. Same discs as the whole box up to that point, so the same minimum.
+            var pc = Cell(p);
+            int rings = math.max(math.max(pc.x - lo.x, hi.x - pc.x), math.max(pc.y - lo.y, hi.y - pc.y));
+            for (int k = 0; k <= rings; k++)
+            {
+                if (k > 0 && best <= (k - 1) * _cell - _smallMax) break;
+                int y0 = math.max(lo.y, pc.y - k), y1 = math.min(hi.y, pc.y + k);
+                for (int y = y0; y <= y1; y++)
                 {
-                    for (int e = _cells.First(x, y); e >= 0; e = _cells.Next(e))
+                    int step = y == pc.y - k || y == pc.y + k ? 1 : 2 * k;
+                    for (int x = pc.x - k; x <= pc.x + k; x += step)
                     {
-                        var it = Items[_cells.Item(e)];
-                        best = math.min(best, math.distance(p, it.P) - it.R);
+                        if (x < lo.x || x > hi.x) continue;
+                        for (int e = _cells.First(x, y); e >= 0; e = _cells.Next(e))
+                        {
+                            var it = Items[_cells.Item(e)];
+                            best = math.min(best, math.distance(p, it.P) - it.R);
+                        }
                     }
                 }
+            }
             return best;
         }
 
@@ -105,6 +118,7 @@ namespace Placemaker.Core.Layers.Common
         public readonly List<Seg> Segments = new List<Seg>();
         private int[] _stamp = new int[64];
         private int _stampValue;
+        private float _maxHalfWidth;
 
         public SegmentIndex(float cell = 10f) { _cell = math.max(0.5f, cell); }
 
@@ -114,6 +128,7 @@ namespace Placemaker.Core.Layers.Common
         {
             int id = Segments.Count;
             Segments.Add(new Seg { A = a, B = b, HalfWidth = halfWidth, Kind = kind });
+            _maxHalfWidth = math.max(_maxHalfWidth, halfWidth);
             if (_stamp.Length < Segments.Count) Array.Resize(ref _stamp, Segments.Count * 2);
             var lo = Cell(math.min(a, b) - halfWidth); var hi = Cell(math.max(a, b) + halfWidth);
             // Long diagonal segments would fill a big rectangle of cells; only cells near the line matter.
@@ -172,23 +187,67 @@ namespace Placemaker.Core.Layers.Common
             // scanning cells within `cap` of p plus one cell of slack finds every candidate.
             var lo = Cell(p - cap - _cell); var hi = Cell(p + cap + _cell);
             long cellsWide = (long)(hi.x - lo.x + 1) * (hi.y - lo.y + 1);
-            if (cellsWide > Segments.Count * 4L)
+            // A box wider than the segments are many: every segment (so not only the box's), unless the rings below settle it
+            // within as many cells as there are segments (then without the box: the stop rule holds for every segment).
+            bool all = cellsWide > Segments.Count * 4L;
+            if (all) { lo = new int2(int.MinValue / 2); hi = new int2(int.MaxValue / 2); }
+            long budget = all ? Segments.Count : long.MaxValue;
+            // (perf) Rings of cells outwards from p's cell, stopping once no unseen segment can be nearer: a segment first met in
+            // ring k has its closest point (whose cell it is registered in) in ring k or beyond, so more than (k − 1) cells
+            // away. Same segments as the whole box (or all of them) up to that point, so the same minimum.
+            var pc = Cell(p);
+            long rings = math.max(math.max((long)pc.x - lo.x, (long)hi.x - pc.x), math.max((long)pc.y - lo.y, (long)hi.y - pc.y));
+            for (int k = 0; k <= rings; k++)
             {
-                for (int i = 0; i < Segments.Count; i++) best = math.min(best, Dist(p, i));
-                return best;
+                if (k > 0 && best <= (k - 1) * _cell - _maxHalfWidth) return best;
+                int y0 = math.max(lo.y, pc.y - k), y1 = math.min(hi.y, pc.y + k);
+                for (int y = y0; y <= y1; y++)
+                {
+                    int step = y == pc.y - k || y == pc.y + k ? 1 : 2 * k;   // the ring's top and bottom rows whole, its sides
+                    for (int x = pc.x - k; x <= pc.x + k; x += step)
+                    {
+                        if (x < lo.x || x > hi.x) continue;
+                        if (--budget < 0) goto everySegment;
+                        for (int e = _cells.First(x, y); e >= 0; e = _cells.Next(e))
+                        {
+                            int i = _cells.Item(e);
+                            if (_stamp[i] == _stampValue) continue;
+                            _stamp[i] = _stampValue;
+                            best = math.min(best, Dist(p, i));
+                        }
+                    }
+                }
             }
+            if (!all) return best;
+        everySegment:
+            for (int i = 0; i < Segments.Count; i++) best = math.min(best, Dist(p, i));
+            return best;
+        }
+
+        /// <summary>
+        /// (perf) Each segment registered in a cell the straight line a→b passes through, once: every segment that touches the
+        /// line is among them (the cell holding the touching point lies within 0.71 cell of both).
+        /// </summary>
+        public void Along(float2 a, float2 b, List<int> into)
+        {
+            into.Clear();
+            if (Segments.Count == 0) return;
+            unchecked { _stampValue++; }
+            if (_stampValue == 0) { Array.Clear(_stamp, 0, _stamp.Length); _stampValue = 1; }
+            var lo = Cell(math.min(a, b)); var hi = Cell(math.max(a, b));
+            float reach = _cell * 0.75f;
             for (int y = lo.y; y <= hi.y; y++)
                 for (int x = lo.x; x <= hi.x; x++)
                 {
+                    if (lo.x != hi.x && lo.y != hi.y && DistSq((new float2(x, y) + 0.5f) * _cell, a, b) > reach * reach) continue;
                     for (int e = _cells.First(x, y); e >= 0; e = _cells.Next(e))
                     {
                         int i = _cells.Item(e);
                         if (_stamp[i] == _stampValue) continue;
                         _stamp[i] = _stampValue;
-                        best = math.min(best, Dist(p, i));
+                        into.Add(i);
                     }
                 }
-            return best;
         }
 
         /// <summary>Nearest segment index within cap (−1 if none) and the closest point on it.</summary>

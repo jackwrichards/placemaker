@@ -333,6 +333,7 @@ namespace Placemaker.Core.Layers.Park
 
         protected override void PlanCore(LayerContext ctx)
         {
+            var clock = new PlanClock(ctx.Plan.Timings);   // (perf) the park's own steps, shown in brackets after "park"
             ShoreKit.CarveShore(ctx);   // g2: the wet part + a shore band go to the "Shore" feature
             var region = ctx.LayerRegion;
             var style = ParkStyle.Get(ctx.S("style"));
@@ -446,6 +447,7 @@ namespace Placemaker.Core.Layers.Park
                 ParkPathHierarchy.ConnectLooseGates(ctx, s);
             }
             ctx.Check();
+            clock.Lap("paths");
 
             // 2. Pond (permanent terraform): a "pond" feature fills the place; the old "lake" setting emits it here.
             if (pondFeature || ctx.B("lake"))
@@ -458,7 +460,9 @@ namespace Placemaker.Core.Layers.Park
             ctx.Check();
 
             // 3. Lawns between paths (regions) and the protected clearing on the largest one.
+            clock.Lap("pond");
             var lawns = Lawns(ctx, s, plaza);
+            clock.Lap("lawns");
             // 3c. Desire lines (worn or paved shortcuts) once the lawns are known; amenities and clearings then avoid them.
             if (pathMode != "none") ParkPathHierarchy.DesireLines(ctx, s, tiers, okPoint);
             // 3b. Open ground for the features (playground, picnic, fountain, restrooms): found now and kept
@@ -499,6 +503,7 @@ namespace Placemaker.Core.Layers.Park
                 }
             }
             ctx.Check();
+            clock.Lap("clearings");
 
             // 4. Furniture first so planting keeps clear of it (ParkManager ordering).
             GatewayProps(ctx, s);
@@ -523,12 +528,15 @@ namespace Placemaker.Core.Layers.Park
             var treeIds = ctx.L("treeSpecies"); var bushIds = ctx.L("bushSpecies");
             bool canTrees = trees > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Tree, treeIds, Keys.Category(AssetCategories.Tree));
             bool canBushes = bushes > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Bush, bushIds, Keys.Category(AssetCategories.Bush));
+            clock.Lap("furniture");
             if (canTrees || canBushes) ParkPlanting.BuildGroves(s, style);
             if (canTrees) ParkPlanting.Vegetation(s, style, trees, true, belt);
             ctx.Check();
+            clock.Lap("trees");
             if (canBushes) ParkPlanting.Vegetation(s, style, bushes, false, belt);
             if (ctx.B("animals")) ParkPlanting.AnimalSpawners(s);
             ctx.Check();
+            clock.Lap("bushes");
 
             // 6. Emit everything.
             if (ctx.B("groundSurface")) Lawn.Cover(ctx, region.Ring, AssetMix.One(ctx.S("surface")));
@@ -553,6 +561,7 @@ namespace Placemaker.Core.Layers.Park
             EmitItems(ctx, s, treeIds, bushIds);
             foreach (var g in gates)
                 if (g.Suggested) ctx.Plan.Facts["suggestedEntrances"] = (ctx.Plan.Facts.TryGetValue("suggestedEntrances", out var n) ? n : 0) + 1;
+            clock.Lap("emit");
 
             // 7. Regions for children.
             if (plaza.Length >= 3) ctx.AddRegion(plaza, PlazaPlace, PlazaPlace, RegionTags.Paved);
@@ -563,6 +572,7 @@ namespace Placemaker.Core.Layers.Park
                 else ctx.AddRegion(lawns[i], "green:" + i, RegionTags.Green);
             var strips = region.BoundaryStrips(ctx.M(BeltDepth, 4f), math.clamp((int)math.round(region.Perimeter / 250f), 2, 6));
             for (int i = 0; i < strips.Count; i++) ctx.AddRegion(strips[i], "edge:" + i, RegionTags.Edge);
+            clock.Lap("regions");
 
             // 8. Summary.
             ctx.Stat(Keys.StatArea, Math.Round(region.Area), Keys.UnitM2);
@@ -857,10 +867,21 @@ namespace Placemaker.Core.Layers.Park
                 return new List<float2[]> { s.LayerRegion.Ring };
             var corridors = s.Occ.Corridors;
             var lake = s.Lake;
+            // (perf) Lake and plaza tests only near their bounds (beyond them both are false anyway).
+            Bounds(lake, 2.01f, out var lakeLo, out var lakeHi);
+            Bounds(plaza, 1.01f, out var plazaLo, out var plazaHi);
             return FreeSpace.Pieces(s.LayerRegion, p =>
-                    corridors.Overlaps(p, 0.75f) || lake.Length >= 3 && (Poly.Contains(lake, p) || ParkSite.MinDistToRing(lake, p) < 2f)
-                    || hasPlaza && (Poly.Contains(plaza, p) || ParkSite.MinDistToRing(plaza, p) < 1f),
+                    corridors.Overlaps(p, 0.75f)
+                    || lake.Length >= 3 && math.all(p >= lakeLo & p <= lakeHi) && (Poly.Contains(lake, p) || ParkSite.MinDistToRing(lake, p) < 2f)
+                    || hasPlaza && math.all(p >= plazaLo & p <= plazaHi) && (Poly.Contains(plaza, p) || ParkSite.MinDistToRing(plaza, p) < 1f),
                 2f, 120f, ctx.Cancel);
+        }
+
+        private static void Bounds(float2[] ring, float margin, out float2 lo, out float2 hi)
+        {
+            lo = new float2(float.MaxValue); hi = new float2(float.MinValue);
+            foreach (var p in ring) { lo = math.min(lo, p); hi = math.max(hi, p); }
+            lo -= margin; hi += margin;
         }
 
         /// <summary>Lake terraform + water + permanent warning. Shared with the pond feature layer.</summary>

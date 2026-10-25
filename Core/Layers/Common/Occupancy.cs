@@ -19,6 +19,8 @@ namespace Placemaker.Core.Layers.Common
         /// <summary>Reserved corridors whose tag says they are walkable paths (useful anchors for add-ons).</summary>
         public readonly SegmentIndex Paths = new SegmentIndex(10f);
         private readonly List<float2[]> _polygons = new List<float2[]>();
+        /// <summary>Reserved polygons and site obstacles (read only: HitsPolygon's polygons).</summary>
+        public IReadOnlyList<float2[]> Polygons => _polygons;
         /// <summary>
         /// (s20, optional) Terrain check for placements: (centre, radius) → the ground there can take it (e.g. not steeper
         /// than a bench tolerates). Null = any ground. Set by layers that survey their terrain (water types).

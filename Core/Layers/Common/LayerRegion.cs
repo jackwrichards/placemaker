@@ -55,8 +55,11 @@ namespace Placemaker.Core.Layers.Common
             int cy = math.clamp((int)((p.y - Min.y) / _insideCell.y), 0, _insideNy - 1);
             byte state = _inside[cy * _insideNx + cx];
             if (state != 2) return state == 1;
-            return Poly.Contains(Ring, p);
+            // (perf) Exactly Poly.Contains(Ring, p), looking only at the edges that cross p's row.
+            return _bands.Contains(p);
         }
+
+        private RingBands _bands;
 
         // Containment is the hottest query (every planting candidate, every raster cell). A coarse
         // grid classifies cells as fully outside (0), fully inside (1) or touching the outline (2);
@@ -107,6 +110,7 @@ namespace Placemaker.Core.Layers.Common
                 }
             }
             _insideNx = nx; _insideNy = ny; _insideCell = cs;
+            _bands = new RingBands(Ring);
             System.Threading.Volatile.Write(ref _inside, grid);
         }
 
@@ -118,7 +122,9 @@ namespace Placemaker.Core.Layers.Common
         {
             const double eps = 0.0001;
             var lo = math.min(a, b); var hi = math.max(a, b);
-            for (int i = 0; i < Ring.Length; i++)
+            // (perf) Only the edges registered along a→b: an edge that crosses it touches a cell the line passes through.
+            _edges.Along(a, b, _along);
+            foreach (int i in _along)
             {
                 var c = Ring[i]; var d = Ring[(i + 1) % Ring.Length];
                 if (math.max(c.x, d.x) < lo.x || math.min(c.x, d.x) > hi.x || math.max(c.y, d.y) < lo.y || math.min(c.y, d.y) > hi.y) continue;
@@ -130,6 +136,8 @@ namespace Placemaker.Core.Layers.Common
             }
             return false;
         }
+
+        private readonly List<int> _along = new List<int>();
 
         private static double Cross(float2 a, float2 b, float2 c) => ((double)b.x - a.x) * ((double)c.y - a.y) - ((double)b.y - a.y) * ((double)c.x - a.x);
 

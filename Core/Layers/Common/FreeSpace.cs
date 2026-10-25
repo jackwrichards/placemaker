@@ -44,34 +44,48 @@ namespace Placemaker.Core.Layers.Common
                 for (int x = 1; x < nx - 1; x++)
                 {
                     var c = origin + (new float2(x, y) + 0.5f) * cell;
-                    free[y * nx + x] = region.Contains(c) && region.BoundaryDistance(c, margin + 0.01f) >= margin && !isBlocked(c);
+                    free[y * nx + x] = region.ContainsDisc(c, margin) && !isBlocked(c);   // ContainsDisc: Contains && BoundaryDistance >= margin
                 }
             }
 
-            var grid = new Grid(nx, ny, cell, origin);
             var label = new int[nx * ny];
-            int components = grid.Label(free, label);
-            var masks = new List<bool[]>();
+            int components = new Grid(nx, ny, cell, origin, 0, 0).Label(free, label);
+            // (perf) Each piece is worked on in its own box (its cells' bounds + one empty cell round them; the padding keeps that
+            // inside the grid) instead of the whole grid: the same steps in the same order, so the same rings, at a fraction of the
+            // cost with many lawns.
+            var lo = new int2[components + 1]; var hi = new int2[components + 1];
+            for (int k = 1; k <= components; k++) { lo[k] = new int2(int.MaxValue); hi[k] = new int2(int.MinValue); }
+            for (int y = 0; y < ny; y++)
+                for (int x = 0; x < nx; x++)
+                {
+                    int k = label[y * nx + x];
+                    if (k == 0) continue;
+                    lo[k] = math.min(lo[k], new int2(x, y)); hi[k] = math.max(hi[k], new int2(x, y));
+                }
+            var masks = new List<(Grid grid, bool[] mask)>();
             for (int k = 1; k <= components; k++)
             {
-                var m = new bool[nx * ny];
-                for (int i = 0; i < m.Length; i++) m[i] = label[i] == k;
-                masks.Add(m);
+                int ox = lo[k].x - 1, oy = lo[k].y - 1, w = hi[k].x - lo[k].x + 3, h = hi[k].y - lo[k].y + 3;
+                var g = new Grid(w, h, cell, origin, ox, oy);
+                var m = new bool[w * h];
+                for (int y = 1; y < h - 1; y++)
+                    for (int x = 1; x < w - 1; x++) m[y * w + x] = label[(y + oy) * nx + x + ox] == k;
+                masks.Add((g, m));
             }
 
             int guard = 0;
             while (masks.Count > 0 && guard++ < 4000)
             {
                 cancel.ThrowIfCancellationRequested();
-                var mask = masks[masks.Count - 1];
+                var (grid, mask) = masks[masks.Count - 1];
                 masks.RemoveAt(masks.Count - 1);
                 if (grid.Count(mask) * cell * cell < minArea) continue;
                 grid.RemovePinches(mask);
                 // Pinch removal or slits may split the piece; process parts separately.
                 var parts = grid.Split(mask);
-                if (parts.Count > 1) { masks.AddRange(parts); continue; }
+                if (parts.Count > 1) { foreach (var part in parts) masks.Add((grid, part)); continue; }
                 if (parts.Count == 0) continue;
-                if (grid.CutHoles(mask)) { masks.Add(mask); continue; }
+                if (grid.CutHoles(mask)) { masks.Add((grid, mask)); continue; }
                 var ring = grid.Trace(mask);
                 if (ring == null) continue;
                 var simplified = Simplify(ring, cell);
@@ -140,11 +154,12 @@ namespace Placemaker.Core.Layers.Common
 
         private sealed class Grid
         {
-            private readonly int _nx, _ny;
+            private readonly int _nx, _ny, _ox, _oy;
             private readonly float _cell;
             private readonly float2 _origin;
 
-            public Grid(int nx, int ny, float cell, float2 origin) { _nx = nx; _ny = ny; _cell = cell; _origin = origin; }
+            /// <summary>A box of nx × ny cells at cell (ox, oy) of the grid whose cell (0, 0) starts at origin.</summary>
+            public Grid(int nx, int ny, float cell, float2 origin, int ox, int oy) { _nx = nx; _ny = ny; _cell = cell; _origin = origin; _ox = ox; _oy = oy; }
 
             public int Count(bool[] m) { int c = 0; foreach (var b in m) if (b) c++; return c; }
 
@@ -288,7 +303,7 @@ namespace Placemaker.Core.Layers.Common
                 do
                 {
                     int vx = (int)(v >> 32), vy = (int)(v & 0xFFFFFFFF);
-                    ring.Add(_origin + new float2(vx, vy) * _cell);
+                    ring.Add(_origin + new float2(vx + _ox, vy + _oy) * _cell);
                     if (!next.TryGetValue(v, out v)) return null;
                 } while (v != start && guard-- > 0);
                 // A pinch-free component without holes has exactly one loop; anything else is a bug guard.

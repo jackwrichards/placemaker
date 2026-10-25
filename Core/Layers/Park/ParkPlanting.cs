@@ -48,6 +48,8 @@ namespace Placemaker.Core.Layers.Park
         public CancellationToken Cancel;
         /// <summary>Reusable query buffer (one planning run = one thread).</summary>
         public readonly List<int> Scratch = new List<int>();
+        /// <summary>(perf) Quick planting checks (PlantGrid.cs), made by the first natural planting pass.</summary>
+        internal PlantGrid PlantGrid;
 
         public int Count(ParkItemKind k) { int n = 0; foreach (var i in Items) if (i.Kind == k) n++; return n; }
 
@@ -177,6 +179,9 @@ namespace Placemaker.Core.Layers.Park
             int scatterNext = 0;
             uint clumpSeed = Hashing.Mix(s.Seed, tree ? 0x77u : 0x99u);
             int attempts = Math.Max(80, target * 90);
+            var grid = s.PlantGrid ??= new PlantGrid(region);
+            if (tree) grid.Prepare(s, boundaryClearance, 2.5f, 8.5f * 0.45f);
+            else grid.Prepare(s, boundaryClearance, 1.2f, 4.2f * 0.45f);
             for (int attempt = 0; attempt < attempts && accepted < target; attempt++)
             {
                 if ((attempt & 1023) == 0) s.Cancel.ThrowIfCancellationRequested();
@@ -227,7 +232,8 @@ namespace Placemaker.Core.Layers.Park
                 }
                 float size = tree ? rng.NextFloat(5f, 8.5f) : rng.NextFloat(2.3f, 4.2f);
                 float radius = tree ? math.max(2.5f, size * 0.45f) : math.max(1.2f, size * 0.45f);
-                if (!PlantFits(s, p, tree, radius, spacing, boundaryClearance)) continue;
+                if (!QuickFits(grid, s, p, tree, radius, spacing, boundaryClearance)) continue;
+                grid.Added(p, tree);
                 accepted++;
                 if (solitaire) solitaires++;
                 s.Add(new ParkItem
@@ -238,14 +244,27 @@ namespace Placemaker.Core.Layers.Park
             }
         }
 
-        private static bool PlantFits(ParkSite s, float2 p, bool tree, float radius, float spacing, float boundaryClearance)
+        /// <summary>(perf) PlantFits with the grid's quick answers first: always the same answer as PlantFits.</summary>
+        private static bool QuickFits(PlantGrid grid, ParkSite s, float2 p, bool tree, float radius, float spacing, float boundaryClearance)
+        {
+            byte fixedChecks = grid.Static(p);
+            if (fixedChecks == PlantGrid.Fail) return false;
+            if (grid.Crowded(p, tree, spacing)) return false;
+            if (fixedChecks == PlantGrid.Maybe && !FixedFits(s, p, radius, boundaryClearance)) return false;
+            return !TooClose(s, p, tree, spacing, radius);
+        }
+
+        private static bool PlantFits(ParkSite s, float2 p, bool tree, float radius, float spacing, float boundaryClearance) =>
+            FixedFits(s, p, radius, boundaryClearance) && !TooClose(s, p, tree, spacing, radius);
+
+        /// <summary>The checks that do not depend on what was planted: outline, gates, lake, clearing, paths, reserved polygons.</summary>
+        private static bool FixedFits(ParkSite s, float2 p, float radius, float boundaryClearance)
         {
             if (!s.LayerRegion.ContainsDisc(p, boundaryClearance)) return false;
             if (s.GateDistanceSq(p) < 100f) return false;
             if (s.InLake(p, radius) || s.InClearing(p, radius)) return false;
             if (s.Occ.Corridors.Overlaps(p, radius, 0.35f)) return false;
-            if (s.Occ.HitsPolygon(p, radius)) return false;   // obstacles / reserved polygons
-            return !TooClose(s, p, tree, spacing, radius);
+            return !s.Occ.HitsPolygon(p, radius);   // obstacles / reserved polygons
         }
 
         /// <summary>ParkManager's spacing rules: own layer keeps `spacing`, others their collision gaps.</summary>
