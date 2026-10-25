@@ -7,9 +7,21 @@ previews it and builds it: roads, parking lots, parks, shops. It merges ParkingL
 - `Core/`: the pure planner (.NET + Unity.Mathematics only), tested by `Tests/Placemaker.Tests` (xUnit, net9).
 - `Game/`: the ECS game layer (tool, preview, build pipeline in `Game/Build/`).
 - `UI/`: the React panel; `UI/src/contract.ts` is authoritative.
-- `Lang/`: one strings file per area and language (English and the game's 11 others). After changing English text, run
-  `node tools/lang/check.js` and bring the languages along (`docs/LOCALIZATION.md`).
+- `Lang/`: one strings file per area and language (English and the game's 11 others).
 - `Recipes/`: the shipped types.
+
+## Every text in every language
+
+Placemaker ships in English and the game's 11 other languages (de-DE, es-ES, fr-FR, it-IT, ja-JP, ko-KR, pl-PL, pt-BR,
+ru-RU, zh-HANS, zh-HANT). **Anything you add or change that the player reads (a type, a style, a control, a tooltip, a
+button, a message) is translated into all 11 in the same change.** It is not done until `node tools/lang/check.js`
+reports every language at 100 % with 0 changed and 0 broken; then `node tools/lang/check.js --stamp <locale>` for each.
+
+- `node tools/lang/check.js --todo <locale> <area>` lists what to translate; use the game's own words
+  (`node tools/lang/glossary.js`, then `.forensics/lang/glossary/<locale>.json`) and keep labels as short as the English.
+- Panel text: also run `PM_ALL=1 node mock/run.js --test tests/i18n.spec.ts` (from `UI/`): nothing may be cut that
+  is whole in English.
+- How it works: `docs/LOCALIZATION.md`.
 
 ## Direction: tall and perfect, not wide
 
