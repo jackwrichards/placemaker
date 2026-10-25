@@ -461,6 +461,7 @@ namespace Placemaker.Core.Layers.Park
                 _depthCells = Math.Max(1, (int)Math.Round(Perimeter / 45f));
                 _sectionCells = Math.Max(1, (int)Math.Round(Perimeter / 90f));
                 _depthScale = math.clamp(math.sqrt(region.Area) / 250f, 1f, 2.2f);
+                MakeLattices();
             }
 
             public float Coverage(float along) => math.smoothstep(0.42f, 0.72f, CoverageNoise(along));
@@ -481,7 +482,42 @@ namespace Placemaker.Core.Layers.Park
             private float Noise(float along, int cells, uint salt)
             {
                 float t = along / Perimeter;
-                return 0.7f * ValueNoise.Periodic(t * cells, cells, _seed ^ salt) + 0.3f * ValueNoise.Periodic(t * cells * 3, cells * 3, _seed ^ (salt * 0x9e3779b9u));
+                var coarse = salt == 1u ? _cov : _depth;
+                var fine = salt == 1u ? _covFine : _depthFine;
+                if (coarse == null || coarse.Period != Math.Max(1, cells)) return 0.7f * ValueNoise.Periodic(t * cells, cells, _seed ^ salt) + 0.3f * ValueNoise.Periodic(t * cells * 3, cells * 3, _seed ^ (salt * 0x9e3779b9u));
+                return 0.7f * coarse.At(t * cells) + 0.3f * fine.At(t * cells * 3);
+            }
+
+            // (perf) The noise's lattice values once (a belt candidate asked for 4–6 noise samples, each hashing two of them).
+            private Lattice _cov, _covFine, _depth, _depthFine;
+
+            private void MakeLattices()
+            {
+                _cov = new Lattice(_coverageCells, _seed ^ 1u); _covFine = new Lattice(_coverageCells * 3, _seed ^ (1u * 0x9e3779b9u));
+                _depth = new Lattice(_depthCells, _seed ^ 2u); _depthFine = new Lattice(_depthCells * 3, _seed ^ unchecked(2u * 0x9e3779b9u));
+            }
+
+            /// <summary>ValueNoise.Periodic(x, period, seed) with its lattice values looked up: the same arithmetic, the same values.</summary>
+            private sealed class Lattice
+            {
+                public readonly int Period;
+                private readonly float[] _v;
+
+                public Lattice(int period, uint seed)
+                {
+                    Period = math.max(1, period);
+                    _v = new float[Period];
+                    for (int i = 0; i < Period; i++) _v[i] = Hashing.Unit(Hashing.Mix(seed, (uint)i));
+                }
+
+                public float At(float x)
+                {
+                    int cell = (int)math.floor(x);
+                    float f = x - cell;
+                    f = f * f * (3f - 2f * f);
+                    int a = ((cell % Period) + Period) % Period, b = (a + 1) % Period;
+                    return math.lerp(_v[a], _v[b], f);
+                }
             }
         }
 
