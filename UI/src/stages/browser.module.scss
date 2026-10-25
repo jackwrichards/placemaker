@@ -1,6 +1,6 @@
 @use "../styles/tokens" as *;
 
-// s42 picker (1 Category · 2 Type · 3 Style) and editing bar (PresetBrowser.tsx). Dense, aligned, hairline
+// s42 picker (1 Category · 2 Type · 3 Style), also what is being edited (PresetBrowser.tsx). Dense, aligned, hairline
 // dividers; every chip one 24rem line (Gameface: flexbox + margins only, no grid / gap).
 
 $accent: #8fd1ff;
@@ -215,24 +215,9 @@ $label-w: 74rem;
     color: $c-text-dim;
 }
 
-// ── editing: the section header (EDITING · ● unsaved changes), then the bar ──
-.editing {
-    @include col;
-    position: relative;
-    min-width: 0;
-}
-
-.bar {
-    @include col;
-    position: relative;
-    min-width: 0;
-    border-radius: $radius;
-    background-color: rgba(143, 209, 255, 0.07);
-    @include border(1rem, rgba(143, 209, 255, 0.4));
-}
-
-.barModified {
-    @include border-color(rgba(143, 209, 255, 0.7));
+// ── the style being edited: its state and tools in the header, the browser lit while it has unsaved changes ──
+.browserModified {
+    @include border-color(rgba(143, 209, 255, 0.6));
 }
 
 // "● unsaved changes" in the header
@@ -255,73 +240,39 @@ $label-w: 74rem;
     white-space: nowrap;
 }
 
-.barRow {
-    @include row;
-    min-width: 0;
-    height: 32rem;
-    padding: 0 3rem 0 5rem;
-}
-
-.crumbs {
-    @include row;
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-}
-
-.crumb {
-    @include row;
-    flex: 0 1 auto;
-    min-width: 0;
-    height: 22rem;
-    padding: 0 6rem 0 3rem;
-    border-radius: $radius-s;
-    background-color: rgba(255, 255, 255, 0.06);
-}
-
-.crumbOn {
-    background-color: rgba(143, 209, 255, 0.22);
-    @include border(1rem, $accent);
-    .crumbName {
-        color: #ffffff;
-        font-weight: bold;
-    }
-}
-
-.crumbName {
-    margin-left: 5rem;
-    font-size: $fs-s;
-    color: var(--menuText1Normal);
-    @include ellipsis;
-}
-
-.sep {
-    flex-shrink: 0;
-    margin-left: 2rem;
-    margin-right: 2rem;
-}
-
+// the style's tools, before the search button
 .tools {
     @include row;
     flex-shrink: 0;
-    margin-left: 6rem;
 }
 
 .tool {
-    width: 24rem;
-    height: 24rem;
-    margin-left: 1rem;
+    width: 20rem;
+    height: 20rem;
+    margin-right: 1rem;
 }
 
 .toolPrimary {
-    width: 28rem;
+    width: 26rem;
 }
 
+.toolSep {
+    flex-shrink: 0;
+    width: 1rem;
+    height: 14rem;
+    margin: 0 4rem 0 3rem;
+    background-color: $c-line;
+}
+
+// naming a new style or renaming one, under the rows
 .nameForm {
     @include row;
     min-width: 0;
     height: 32rem;
     padding: 0 3rem 0 6rem;
+    border-top-width: 1rem;
+    border-top-style: solid;
+    border-top-color: $c-line;
 }
 
 .nameInput {

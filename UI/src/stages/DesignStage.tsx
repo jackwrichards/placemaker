@@ -1,12 +1,12 @@
 // Stage 2 — what to make, then how it is built (s42, docs/proposals/s42.md), top to bottom, one story: every section
 // opens with the same header line (SectionHead.tsx: icon badge · TITLE · note · rule · buttons).
-//   1. Pick what to make: 1 Category · 2 Type · 3 Style (PresetBrowser.tsx TypeBrowser), always open.
-//   2. Editing: [Category] › [Type] › [Style] + undo changes · shuffle · save as new · save · more.
-//   3. Add entrances (types that need them): "add one to build" + typed entrance buttons on the header line, then the
+//   1. Pick what to make: 1 Category · 2 Type · 3 Style (PresetBrowser.tsx TypeBrowser), always open; also what is being
+//      edited (the lit chips): ● unsaved changes and the style's tools (undo changes · shuffle · save · more) on its header.
+//   2. Add entrances (types that need them): "add one to build" + typed entrance buttons on the header line, then the
 //      placed ones.
-//   4. Shape — how it's built (Zoning for a zoning type): the type's control groups as one-line heads in two columns;
+//   3. Shape — how it's built (Zoning for a zoning type): the type's control groups as one-line heads in two columns;
 //      an open one unfolds full width under its pair (Controls.tsx ControlList).
-//   5. Extras — optional add-ons: the built-in features as one-line rows in two columns (tile · name · fit or
+//   4. Extras — optional add-ons: the built-in features as one-line rows in two columns (tile · name · fit or
 //      summary · switch), their options under the pair when open, the rest behind "N more".
 //   "Places inside": reserved slot for round 3, hidden for now.
 import React, { useRef, useState } from "react";
@@ -30,7 +30,7 @@ import { SettingValue } from "../contract";
 import { ControlEx, valueOf } from "../lib/schema";
 import { useAssetName } from "../components/picker";
 import { ZoneOutgrowInline, ZoneOutgrowPick } from "../components/PainterCard";
-import { BarMode, PresetBar, Tile, TypeBrowser } from "./PresetBrowser";
+import { BarMode, Tile, TypeBrowser } from "./PresetBrowser";
 import { SectionHead } from "./SectionHead";
 import s from "./design.module.scss";
 
@@ -649,16 +649,13 @@ export const DesignStage = ({ catalog, design, state }: { catalog: Catalog; desi
     return (
         <div className={s.stage} data-testid="stage-design">
             <ErrorBoundary name="recipes">
-                <TypeBrowser catalog={catalog} design={design} onNew={() => setMode("saveAs")} />
+                <TypeBrowser catalog={catalog} design={design} step={root} mode={mode} setMode={setMode} />
             </ErrorBoundary>
             <PlacesInside />
             {!root ? (
                 <div className={s.emptyNote}>{t("Placemaker.UI.PickRecipe", "Nothing picked yet: pick a category to start")}</div>
             ) : (
                 <div className={s.options} data-testid="options">
-                    <ErrorBoundary name="preset-bar">
-                        <PresetBar catalog={catalog} design={design} step={root} mode={mode} setMode={setMode} />
-                    </ErrorBoundary>
                     <ErrorBoundary name={"step-" + root.path}>
                         <StepOptions catalog={catalog} design={design} state={state} step={root} />
                     </ErrorBoundary>

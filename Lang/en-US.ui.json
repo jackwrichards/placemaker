@@ -281,7 +281,6 @@
   "Placemaker.UI.Preset.ResetTitle": "Reset “{0}”?",
   "Placemaker.UI.Preset.Revert": "Undo changes",
   "Placemaker.UI.Preset.RevertTip": "Back to “{0}” as saved",
-  "Placemaker.UI.Preset.SaveAs": "Save as new style",
   "Placemaker.UI.Preset.SaveAsTip": "Save these settings as a new style",
   "Placemaker.UI.Preset.SaveBuiltIn": "Save over this style (reset any time)",
   "Placemaker.UI.Preset.SaveTip": "Save changes to this style",
