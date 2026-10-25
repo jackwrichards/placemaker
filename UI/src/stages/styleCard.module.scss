@@ -1,26 +1,12 @@
 @use "../styles/tokens" as *;
 
-// The style you are editing (StyleCard.tsx): one card, its head the lit Style chip again (same tint and border), its body
-// Parameters (or Zoning) and Add-ons. Gameface: flexbox + margins only.
-
-$accent: #8fd1ff;
+// The style you are editing (StyleCard.tsx): a section line (SectionHead) and one bordered panel, built like the
+// Placemaker library above it (browser.module.scss .browser). Gameface: flexbox + margins only.
 
 .card {
     @include col;
     position: relative;
     min-width: 0;
-    margin-top: 10rem;
-    border-radius: $radius;
-    background-color: rgba(143, 209, 255, 0.03);
-    @include border(1rem, rgba(143, 209, 255, 0.45));
-}
-
-// unsaved changes: the frame warms up (the ● on the head and on the lit chip say the same)
-.cardChanged {
-    @include border-color(rgba(255, 181, 71, 0.6));
-    .head {
-        background-color: rgba(255, 181, 71, 0.1);
-    }
 }
 
 .plain {
@@ -28,82 +14,66 @@ $accent: #8fd1ff;
     min-width: 0;
 }
 
-// ── the head: ✎ · tile · name · ● · Undo · Save over · Save as new · shuffle · ⋯ ──
-.head {
-    @include row;
+// the panel: the library's, amber while there are unsaved changes
+.panel {
+    @include col;
     min-width: 0;
-    min-height: 34rem;
-    padding: 3rem 4rem 3rem 8rem;
-    border-radius: $radius $radius 0 0;
-    background-color: rgba(143, 209, 255, 0.12);
-    border-bottom-width: 1rem;
-    border-bottom-style: solid;
-    border-bottom-color: rgba(143, 209, 255, 0.25);
+    padding: 0 5rem 5rem 5rem;
+    border-radius: $radius;
+    background-color: rgba(0, 0, 0, 0.18);
+    @include border(1rem, $c-line-strong);
 }
 
-.headWrap {
-    flex-wrap: wrap;
+.panelChanged {
+    @include border-color(rgba(255, 181, 71, 0.65));
 }
 
-.tile {
-    flex-shrink: 0;
-    margin-left: 7rem;
-}
-
-.name {
-    flex: 0 1 auto;
-    min-width: 0;
-    margin-left: 6rem;
-    font-size: $fs;
-    font-weight: bold;
-    color: #ffffff;
-    @include ellipsis;
-}
-
+// ● unsaved changes, after the name
 .dot {
     flex-shrink: 0;
     width: 7rem;
     height: 7rem;
-    margin-left: 6rem;
     border-radius: 4rem;
     background-color: $c-warning;
 }
 
-.flex {
-    flex: 1 1 auto;
-    min-width: 4rem;
+// the words on the line: Revert · Save · Save as… · Rename · Delete / Reset
+.words {
+    @include row;
+    flex-shrink: 0;
 }
 
-.btn {
+.word {
     flex-shrink: 0;
-    height: 22rem;
+    height: 20rem;
     margin-left: 2rem;
-    padding: 0 6rem 0 5rem;
+    padding: 0 6rem;
+    font-size: $fs-s;
+    & > div {
+        margin-left: 0;
+    }
 }
 
-.icon {
-    flex-shrink: 0;
-    width: 22rem;
-    height: 22rem;
-    margin-left: 1rem;
+.wordDanger {
+    color: #ff9c90;
 }
 
-// naming a new style or renaming one, in the head
-.nameLabel {
-    flex-shrink: 0;
-    margin-right: 6rem;
-    font-size: 11rem;
-    color: $c-text-dim;
-    white-space: nowrap;
+// naming (Save as, Rename) in place of the line's rule
+.nameForm {
+    @include row;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 8rem;
 }
 
 .nameInput {
     flex: 1 1 auto;
     min-width: 0;
-    height: 22rem;
+    height: 20rem;
+    margin-right: 2rem;
     padding: 0 6rem;
     border-radius: $radius-s;
-    @include border(1rem, $c-line-strong);
+    @include border(1rem, rgba(143, 209, 255, 0.45));
     background-color: $c-shade;
     font-size: $fs-s;
     font-family: var(--fontFamily);
@@ -111,73 +81,12 @@ $accent: #8fd1ff;
     outline-width: 0;
 }
 
-// the ⋯ actions, side by side in the head
-.menuItem {
-    @include row;
-    @include button-reset;
-    flex-shrink: 0;
-    height: 22rem;
-    margin: 1rem 3rem 1rem 0;
-    padding: 0 7rem 0 6rem;
-    border-radius: $radius-s;
-    background-color: rgba(255, 255, 255, 0.06);
-    &:hover {
-        background-color: $c-surface-hover;
-    }
-}
-
-.menuText {
-    margin-left: 5rem;
-    font-size: $fs-s;
-    white-space: nowrap;
-}
-
-.menuDanger .menuText {
-    color: $c-danger;
-}
-
-.exported {
-    @include col;
-    min-width: 0;
-    padding: 3rem 6rem 5rem 8rem;
-    border-bottom-width: 1rem;
-    border-bottom-style: solid;
-    border-bottom-color: $c-line;
-}
-
-.exportedHead {
-    @include row;
-    min-width: 0;
-}
-
-.exportedNote {
-    flex: 1 1 auto;
-    margin-left: 6rem;
-    font-size: $fs-s;
-    color: $c-text-dim;
-    @include ellipsis;
-}
-
-.path {
-    margin-top: 2rem;
-    font-size: 11rem;
-    color: $c-text-faint;
-    word-break: break-all;
-}
-
-// ── the body: Parameters (or Zoning), then Add-ons ──
-.body {
-    @include col;
-    min-width: 0;
-    padding: 0 6rem 6rem 6rem;
-}
-
-// one light line per part, the same for each: icon · TITLE · rule · (didn't fit)
+// one light line per part, the same for each: icon · TITLE · rule · (Shuffle, didn't fit)
 .subHead {
     @include row;
     min-width: 0;
-    height: 18rem;
-    margin: 8rem 0 4rem 2rem;
+    height: 20rem;
+    margin: 4rem 0 3rem 3rem;
 }
 
 .subTitle {

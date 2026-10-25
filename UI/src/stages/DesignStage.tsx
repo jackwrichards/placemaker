@@ -2,9 +2,10 @@
 // opens with the same header line (SectionHead.tsx: icon badge · TITLE · note · rule · buttons).
 //   1. Placemaker library: 1 Category · 2 Type · 3 Style (PresetBrowser.tsx TypeBrowser), always open; the lit Style chip
 //      carries ✎: it is the style being edited.
-//   2. The style card (StyleCard.tsx, the user, 25 Oct: "I've selected the formal garden and I'm now editing it"): its
-//      head is that style (✎ · tile · name · ●) with Undo · Save over · Save as new · shuffle · ⋯; its body everything
-//      the style keeps, each part under the same light line: Parameters (Zoning for a zoning type: the type's control
+//   2. The style card (StyleCard.tsx, the user, 25 Oct: "I've selected the formal garden and I'm now editing it"; "it's
+//      like a file"): its line is that style (✎ · name · ●) with Revert · Save · Save as… (Rename · Delete, or Reset); its
+//      panel everything the style keeps, each part under the same light line: Parameters (Shuffle at its end; Zoning for
+//      a zoning type: the type's control
 //      groups as one-line heads in two columns, an open one unfolding full width under its pair, Controls.tsx
 //      ControlList), then Add-ons (the built-in features as one-line rows in two columns: tile · name · fit or summary ·
 //      switch, their options under the pair when open, the rest behind "N more").
@@ -33,7 +34,7 @@ import { ControlEx, valueOf } from "../lib/schema";
 import { useAssetName } from "../components/picker";
 import { ZoneOutgrowInline, ZoneOutgrowPick } from "../components/PainterCard";
 import { Tile, TypeBrowser } from "./PresetBrowser";
-import { StyleCard, SubHead } from "./StyleCard";
+import { ShuffleBtn, StyleCard, SubHead } from "./StyleCard";
 import { SectionHead } from "./SectionHead";
 import s from "./design.module.scss";
 
@@ -591,7 +592,7 @@ const StepOptions = ({ catalog, design, state, step }: { catalog: Catalog; desig
                 <ZoningShape step={step} layer={layer} state={state} scope={scope} />
             ) : (
                 <div className={s.shape} data-testid="shape">
-                    {parent ? null : <SubHead icon="gear" title={t("Placemaker.UI.Parameters", "Parameters")} />}
+                    {parent ? null : <SubHead icon="gear" title={t("Placemaker.UI.Parameters", "Parameters")} right={<ShuffleBtn step={step} />} />}
                     <ErrorBoundary name="controls">
                         <ControlList step={step} layer={layer} state={state} scope={scope} exclude={featureOptionIds(step)} />
                     </ErrorBoundary>
