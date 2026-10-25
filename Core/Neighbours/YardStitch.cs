@@ -4681,6 +4681,7 @@ namespace Placemaker.Core.Neighbours
             float wet = math.max(margin, waterGap), far = math.max(math.max(margin, deckMargin), wet);
             Poly.Bounds(plot, out var plo, out var phi);
             var lotGaps = new Dictionary<long, float>();
+            var touching = new List<(int K, float G)>();
             if (clearLine)
             {
                 Poly.Bounds(lot, out var llo, out var lhi);
@@ -4689,7 +4690,22 @@ namespace Placemaker.Core.Neighbours
                     if (s_barrierKind[k] == WaterKind || s_barrierKind[k] == DeckKind) continue;
                     float g = LotGap(lot, s_barriers[k].Ring, margin);
                     if (g < margin && (!lotGaps.TryGetValue(s_barrierGroup[k], out float was) || g < was)) lotGaps[s_barrierGroup[k]] = g;
+                    if (g < margin && s_barrierKind[k] == 0) touching.Add((k, g));
                 }
+                // the street carried on past the lot's corner as another piece (the next stretch of the road, or the street it meets
+                // at a junction): the same nearness, so the garden's front stays on the lot's line across the joint
+                if (touching.Count > 0)
+                    foreach (int k in BarriersIn(plo - margin, phi + margin))
+                    {
+                        if (s_barrierKind[k] != 0 || lotGaps.ContainsKey(s_barrierGroup[k])) continue;
+                        var rk = s_barriers[k].Ring;
+                        foreach (var (j, g) in touching)
+                        {
+                            if (!Within(rk, s_barriers[j].Ring, 0.05f)) continue;
+                            lotGaps[s_barrierGroup[k]] = g;
+                            break;
+                        }
+                    }
             }
             var grown = new List<IReadOnlyList<float2>>();
             foreach (int k in BarriersIn(plo - (far + 0.5f), phi + (far + 0.5f)))
