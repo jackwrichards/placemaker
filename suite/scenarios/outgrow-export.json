@@ -1,0 +1,13 @@
+{
+  "_about": "Options, Placemaker, Export Outgrow settings: the button pressed in a fresh test world; ModsData/Placemaker/outgrow-settings.json must be written. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-export.json -Who outgrow-export",
+  "scenarios": [
+    {
+      "id": "outgrow-export",
+      "land": { "shape": "rect", "size": [120, 120], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "ExportOutgrowSettings", "value": true },
+        { "do": "wait", "seconds": 1 }
+      ]
+    }
+  ]
+}
