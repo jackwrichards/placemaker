@@ -128,7 +128,8 @@ namespace Placemaker.OutgrowBench
             // at the junctions: the land to cover comes out larger)
             var roads = (roadsFile != null ? ReadRoadsFile(roadsFile) : ReadRoads(game, way, input)) ?? barriers.Values.Where(b => b.Kind == 0).Select(b => b.Ring).ToList();
             var gardens = GardenReport.Measure(placed, null, roads);
-            var lots = placed.Select(g => { var r = new float2(g.Forward.y, -g.Forward.x); return new[] { g.Position - r * g.HalfLot.x - g.Forward * g.HalfLot.y, g.Position + r * g.HalfLot.x - g.Forward * g.HalfLot.y, g.Position + r * g.HalfLot.x + g.Forward * g.HalfLot.y, g.Position - r * g.HalfLot.x + g.Forward * g.HalfLot.y }; }).ToList();
+            // (every house's lot in the places, polished or not: "a house near" for the land to cover)
+            var lots = lastSeen.Values.Where(h => PlaceOf(h.Position) != null).Select(g => { var r = new float2(g.Forward.y, -g.Forward.x); return new[] { g.Position - r * g.HalfLot.x - g.Forward * g.HalfLot.y, g.Position + r * g.HalfLot.x - g.Forward * g.HalfLot.y, g.Position + r * g.HalfLot.x + g.Forward * g.HalfLot.y, g.Position - r * g.HalfLot.x + g.Forward * g.HalfLot.y }; }).ToList();
             var covers = GardenReport.Coverage(places, roads, input2.Select(g => g.Ring).ToList(), lots);
             // fences as they stand: what the replay made, else as recorded (a house never edited: its standing; an unpolished
             // lot: its own lines)
