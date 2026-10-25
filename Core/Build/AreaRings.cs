@@ -41,6 +41,14 @@ namespace Placemaker.Core.Build
             int n = ring?.Count ?? 0;
             if (n < 3) return 0;
             float d = minNodeDistance;
+            if (n >= GridFrom) return FirstViolationGrid(ring, d);
+            return FirstViolationLoop(ring, d);
+        }
+
+        /// <summary>The plain loop over every pair (small rings; the reference the grid path must equal).</summary>
+        internal static int FirstViolationLoop(IReadOnlyList<float2> ring, float d)
+        {
+            int n = ring.Count;
             for (int i = 0; i < n; i++)
             {
                 float2 a = ring[i], b = ring[(i + 1) % n];
@@ -54,6 +62,65 @@ namespace Placemaker.Core.Build
                 for (int j = i + 2; j < n; j++)
                 {
                     if (i == 0 && j == n - 1) continue;   // adjacent through the closing edge
+                    float2 c = ring[j], e = ring[(j + 1) % n];
+                    if (DistanceSegmentSegment(a, b, c, e) < d) return j;
+                }
+            }
+            return -1;
+        }
+
+        // (perf) Rule 2 compares every edge with every other: a ring of a painted outline (400–600 corners) cost ~10^5 segment
+        // distances per check, and MakeValid checks again after every node it removes (ZoneGuard's blockers: 30 % of it). The
+        // edges near edge i come from a grid of their boxes grown by d (an edge whose box is further than d cannot be closer
+        // than d), tested in increasing j: the very violation the full loop returns first.
+        private const int GridFrom = 40;
+
+        private static int FirstViolationGrid(IReadOnlyList<float2> ring, float d)
+        {
+            int n = ring.Count;
+            var lo = new float2[n];
+            var hi = new float2[n];
+            float2 bmin = new float2(float.MaxValue), bmax = new float2(float.MinValue);
+            for (int k = 0; k < n; k++)
+            {
+                float2 a = ring[k], b = ring[(k + 1) % n];
+                lo[k] = math.min(a, b); hi[k] = math.max(a, b);
+                bmin = math.min(bmin, lo[k]); bmax = math.max(bmax, hi[k]);
+            }
+            if (!math.all(math.isfinite(bmin)) || !math.all(math.isfinite(bmax))) return FirstViolationLoop(ring, d);
+            var size = bmax - bmin;
+            float cell = math.max(math.max(4f * d, 0.5f), math.sqrt(math.max(size.x * size.y, 1f) / n) * 2f);
+            var grid = new Placemaker.Core.Layers.Common.CellMap();
+            int2 Cell(float2 p) => (int2)math.floor((p - bmin) / cell);
+            for (int k = 0; k < n; k++)
+            {
+                int2 c0 = Cell(lo[k] - d), c1 = Cell(hi[k] + d);
+                for (int y = c0.y; y <= c1.y; y++)
+                    for (int x = c0.x; x <= c1.x; x++) grid.Add(x, y, k);
+            }
+            var stamp = new int[n];
+            var cand = new List<int>();
+            for (int i = 0; i < n; i++)
+            {
+                float2 a = ring[i], b = ring[(i + 1) % n];
+                float2 next = ring[(i + 2) % n], prev = ring[(i - 1 + n) % n];
+                if (DistancePointSegment(next, a, b) < d) return (i + 2) % n;
+                if (DistancePointSegment(prev, a, b) < d) return (i - 1 + n) % n;
+                cand.Clear();
+                int2 c0 = Cell(lo[i]), c1 = Cell(hi[i]);
+                for (int y = c0.y; y <= c1.y; y++)
+                    for (int x = c0.x; x <= c1.x; x++)
+                        for (int en = grid.First(x, y); en >= 0; en = grid.Next(en))
+                        {
+                            int j = grid.Item(en);
+                            if (j < i + 2 || stamp[j] == i + 1) continue;
+                            stamp[j] = i + 1;
+                            if (i == 0 && j == n - 1) continue;   // adjacent through the closing edge
+                            cand.Add(j);
+                        }
+                cand.Sort();
+                foreach (int j in cand)
+                {
                     float2 c = ring[j], e = ring[(j + 1) % n];
                     if (DistanceSegmentSegment(a, b, c, e) < d) return j;
                 }
