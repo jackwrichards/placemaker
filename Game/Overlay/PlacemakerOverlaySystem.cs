@@ -35,6 +35,7 @@ namespace Placemaker.Game.Overlay
         private static readonly Color OutlineBad = new Color(1f, 0.35f, 0.3f, 0.95f);
         private static readonly Color Fill = new Color(0.30f, 0.62f, 1f, 0.10f);
         private static readonly Color FillHover = new Color(1f, 1f, 1f, 0.10f);
+        private static readonly Color SitePlanFill = new Color(1f, 1f, 1f, 0f);   // the site plan draws its own ground (sp:base): no blue cast
         private static readonly Color FillUnderGhost = new Color(0.30f, 0.62f, 1f, 0.05f);   // barely tint the real surfaces
         private static readonly Color Handle = new Color(0.30f, 0.62f, 1f, 0.95f);
         private static readonly Color HandleHot = new Color(1f, 1f, 1f, 0.95f);
@@ -180,7 +181,7 @@ namespace Placemaker.Game.Overlay
             if (shape != null && shape.Ring.Length >= 3 && !stroke)
             {
                 var rings = new[] { shape.Ring };
-                _fill.SetLayer("selection", rings, _tool.SketchObjects == SketchObjects.Hidden ? FillUnderGhost : Fill, -94f, FilledPreviewSystem.Signature(rings));
+                _fill.SetLayer("selection", rings, SitePlanStyle && _tool.Stage != ToolStage.Area && _tool.Plan != null ? SitePlanFill : _tool.SketchObjects == SketchObjects.Hidden ? FillUnderGhost : Fill, -94f, FilledPreviewSystem.Signature(rings));
             }
 
             // Keep off existing roads: the parts on roads are left out — shaded grey, the outline used is drawn solid.

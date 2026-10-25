@@ -55,4 +55,6 @@ export interface ComposeResult {
     costBuckets?: { id: string; cost: number; upkeep: number }[];
     /** s22: the preview legend (host: Core UiModels.Legend). */
     legend?: LegendEntry[];
+    /** (sketch study) the top view from the host (Core SitePlan.ToUi); absent with the fake planner. */
+    sitePlan?: unknown;
 }

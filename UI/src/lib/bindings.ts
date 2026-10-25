@@ -9,7 +9,7 @@ import { useMemo } from "react";
 import { bindValue, trigger, useValue, ValueBinding } from "cs2/api";
 import {
     AssetLists, Catalog, DesignState, FeatureFit, GROUP, ManagedGroup, Stage, StepView, Summary, ToolState, Triggers, Values,
-    AreaMode, BrushShape, SettingValue, BrushRules, BucketWalls, LocText, NetLegendEntry, ResolvedAsset, LegendEntry,
+    AreaMode, BrushShape, SettingValue, BrushRules, BucketWalls, LocText, NetLegendEntry, ResolvedAsset, LegendEntry, SitePlanView,
 } from "../contract";
 
 const LOG = "[Placemaker]";
@@ -30,6 +30,7 @@ export const bindings = {
     summary: bindRaw(Values.summary),
     assets: bindRaw(Values.assets),
     managed: bindRaw(Values.managed),
+    sitePlan: bindRaw(Values.sitePlan),
 };
 
 const NULL_BINDING: ValueBinding<unknown> = {
@@ -299,6 +300,24 @@ export const useDesign = () => useBound(bindings.design, normalizeDesign);
 export const useSummary = () => useBound(bindings.summary, normalizeSummary);
 export const useAssets = () => useBound(bindings.assets, normalizeAssets);
 export const useManaged = () => useBound(bindings.managed, normalizeManaged);
+
+/** (sketch study) The site plan of the current plan, or null (no plan, older DLL, malformed payload). */
+export function normalizeSitePlan(raw: unknown): SitePlanView | null {
+    const v = parseJson(raw);
+    if (!isObj(v) || !Array.isArray(v.outline) || v.outline.length < 6) return null;
+    const list = (k: string) => arr<any>(v[k]);
+    return {
+        ...v,
+        stamp: String(v.stamp ?? ""),
+        min: list("min"), max: list("max"), centre: list("centre"), outline: list("outline"),
+        fills: list("fills"), cars: list("cars"), walks: list("walks"), streets: list("streets"), caps: list("caps"), fences: list("fences"),
+        stalls: list("stalls"), chargers: list("chargers"), places: list("places"), benches: list("benches"), lamps: list("lamps"), bins: list("bins"),
+        trees: list("trees"), bushes: list("bushes"), plots: list("plots"), entrances: list("entrances"), issues: list("issues"), legend: list("legend"),
+        areaM2: typeof v.areaM2 === "number" ? v.areaM2 : 0,
+    } as SitePlanView;
+}
+
+export const useSitePlan = () => useBound(bindings.sitePlan, normalizeSitePlan);
 
 // ───────────── triggers ─────────────
 

@@ -21,6 +21,13 @@ namespace Placemaker.Game.Overlay
 {
     public sealed partial class PlacemakerOverlaySystem
     {
+        private struct SpCurve
+        {
+            public Bezier4x3 Curve;
+            public float Width;
+            public bool Mark;
+        }
+
         private struct SpLine
         {
             public Line3.Segment Seg;
@@ -32,8 +39,9 @@ namespace Placemaker.Game.Overlay
         private TerrainSystem _spTerrain;
         private readonly Dictionary<string, (List<float3[]> rings, long sig)> _spFills = new Dictionary<string, (List<float3[]>, long)>();
         private readonly Dictionary<string, (List<float3[]> rings, long sig)> _spPlots = new Dictionary<string, (List<float3[]>, long)>();
-        private (List<float3[]> rings, long sig) _spPlaces;
-        private readonly List<SpLine> _spCars = new List<SpLine>(), _spWalks = new List<SpLine>(), _spStalls = new List<SpLine>(), _spBenches = new List<SpLine>(), _spFences = new List<SpLine>();
+        private (List<float3[]> rings, long sig) _spPlaces, _spBase;
+        private readonly List<SpCurve> _spCars = new List<SpCurve>(), _spWalks = new List<SpCurve>();
+        private readonly List<SpLine> _spStalls = new List<SpLine>(), _spBenches = new List<SpLine>(), _spFences = new List<SpLine>();
         private readonly List<(float3 at, float r)> _spCaps = new List<(float3, float)>(), _spTrees = new List<(float3, float)>(), _spBushes = new List<(float3, float)>();
         private readonly List<float3> _spLamps = new List<float3>(), _spBins = new List<float3>(), _spChargers = new List<float3>(), _spIssues = new List<float3>();
 
@@ -61,21 +69,20 @@ namespace Placemaker.Game.Overlay
                 for (int i = 0; i < r.Length; i++) o[i] = new float3(r[i].x, 0f, r[i].y);   // the fill mesh samples the ground itself
                 return o;
             }
-            void Lines(List<SitePlan.Stroke> from, List<SpLine> to)
+            // one smooth piece per net with round ends: only the joins between nets overlap (no darker beads along a road)
+            void Curves(List<SitePlan.Stroke> from, List<SpCurve> to)
             {
                 to.Clear();
                 foreach (var s in from)
                 {
-                    if (s.Points == null) continue;
-                    var prev = G(s.Points[0]);
-                    for (int i = 1; i < s.Points.Length; i++)
-                    {
-                        var next = G(s.Points[i]);
-                        to.Add(new SpLine { Seg = new Line3.Segment(prev, next), Width = s.Width, Mark = s.Marked });
-                        prev = next;
-                    }
+                    if (s.Curve == null || s.Curve.Length != 4) continue;
+                    var c = new Bezier4x3(s.Curve[0], s.Curve[1], s.Curve[2], s.Curve[3]);
+                    c.a.y = G(c.a.xz).y; c.d.y = G(c.d.xz).y; c.b.y = math.lerp(c.a.y, c.d.y, 1f / 3f); c.c.y = math.lerp(c.a.y, c.d.y, 2f / 3f);
+                    to.Add(new SpCurve { Curve = c, Width = s.Width, Mark = s.Marked });
                 }
             }
+            var site = new List<float3[]> { Flat(sp.Outline) };
+            _spBase = (site, FilledPreviewSystem.Signature(site));
             _spFills.Clear();
             foreach (var m in SitePlan.Materials)
             {
@@ -95,8 +102,8 @@ namespace Placemaker.Game.Overlay
             var places = new List<float3[]>();
             foreach (var p in sp.PlaceFootprints) places.Add(Flat(p));
             _spPlaces = (places, FilledPreviewSystem.Signature(places));
-            Lines(sp.Cars, _spCars);
-            Lines(sp.Walks, _spWalks);
+            Curves(sp.Cars, _spCars);
+            Curves(sp.Walks, _spWalks);
             _spFences.Clear();
             foreach (var f in sp.Fences)
                 for (int i = 1; i < f.Length; i++) _spFences.Add(new SpLine { Seg = new Line3.Segment(G(f[i - 1]), G(f[i])), Width = 0.35f });
@@ -140,6 +147,9 @@ namespace Placemaker.Game.Overlay
             var up = new float2(0, 1);
             var none = new Color(0, 0, 0, 0);
 
+            // 0. the site's own ground under everything (no blue selection cast on the grass)
+            _fill.SetLayer("sp:base", _spBase.rings, SpColor(SitePlan.Palette.Base, SitePlan.Palette.BaseAlpha * alpha), -93.6f, _spBase.sig);
+
             // 1. ground fills: one quiet tone per material (kept under the ghost: the game shows planned areas as outlines only)
             foreach (var kv in _spFills)
             {
@@ -157,26 +167,26 @@ namespace Placemaker.Game.Overlay
             _fill.SetLayer("sp:places", _spPlaces.rings, SpColor(SitePlan.Palette.Place, places ? objAlpha : 0f), -93.2f, _spPlaces.sig);
 
             // 2. roads, aisles and paths: their real width, round ends so joins merge
-            float carA = (underGhost ? 0.6f : 0.92f) * alpha;
+            float carA = (underGhost ? 0.55f : 1f) * alpha;
             if (Shows(SitePlan.Roads) || Shows(SitePlan.Parking))
             {
                 var asphalt = SpColor(SitePlan.Palette.Asphalt, carA);
                 bool roads = Shows(SitePlan.Roads), lot = Shows(SitePlan.Parking);
                 foreach (var l in _spCars)
-                    if (l.Mark ? roads : lot) buffer.DrawLine(asphalt, asphalt, 0f, P, l.Seg, l.Width, new float2(1, 1));
+                    if (l.Mark ? roads : lot) buffer.DrawCurve(asphalt, asphalt, 0f, P, l.Curve, l.Width, new float2(1, 1));
                 foreach (var c in _spCaps)
                     if (roads) buffer.DrawCircle(asphalt, asphalt, 0f, P, up, c.at, c.r * 2f);
                 if (roads && !underGhost)
                 {
                     var mark = SpColor(SitePlan.Palette.RoadMark, 0.7f * alpha);
                     float mw = math.max(0.25f, w * 0.35f);
-                    foreach (var l in _spCars) if (l.Mark) buffer.DrawDashedLine(mark, mark, 0f, P, l.Seg, mw, 3f, 3f);
+                    foreach (var l in _spCars) if (l.Mark) buffer.DrawDashedCurve(mark, mark, 0f, P, l.Curve, mw, 3f, 3f);
                 }
             }
             if (Shows(SitePlan.Paths))
             {
                 var path = SpColor(SitePlan.Palette.Path, (underGhost ? 0.45f : 0.95f) * alpha);
-                foreach (var l in _spWalks) buffer.DrawLine(path, path, 0f, P, l.Seg, l.Width, new float2(1, 1));
+                foreach (var l in _spWalks) buffer.DrawCurve(path, path, 0f, P, l.Curve, l.Width, new float2(1, 1));
             }
             if (objAlpha <= 0.001f) { DrawSitePlanIssues(buffer, w, alpha); return; }
 

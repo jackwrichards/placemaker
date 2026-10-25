@@ -8,10 +8,11 @@
 // While drawing, C# may collapse it to a slim header + primary button (state.panelCollapsed); it then
 // shows an obvious "Show options" button.
 import { Legend } from "./Legend";
+import { SitePlanFlyout, SitePlanWindow, useSitePlanBig } from "./SitePlanCard";
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import classNames from "classnames";
 import { PROTOCOL, Stage, StepView, Summary, ToolState } from "../contract";
-import { act, useCatalog, useDesign, useManaged, useSummary, useToolState } from "../lib/bindings";
+import { act, useCatalog, useDesign, useManaged, useSitePlan, useSummary, useToolState } from "../lib/bindings";
 import { area as fmtArea, compactMoney, formatValue } from "../lib/format";
 import { useT } from "../lib/l10n";
 import { ErrorBoundary } from "../lib/errorBoundary";
@@ -673,6 +674,9 @@ export const PlacemakerPanel = () => {
     const catalog = useCatalog();
     const design = useDesign();
     const summary = useSummary();
+    // (sketch study) Site plan style: the top view replaces the legend window (Design: beside the panel; Review: in it)
+    const sitePlan = useSitePlan();
+    const sitePlanBig = useSitePlanBig();
     const managed = useManaged();
     const rtl = useRtl();
     const { t, tl } = useT();
@@ -927,9 +931,19 @@ export const PlacemakerPanel = () => {
                             </div>
                         </div>
                         {!picker && !outgrow ? (
-                            <ErrorBoundary name="legend">
-                                <Legend state={state} summary={summary} side={position.side === "left" ? "left" : "right"} />
-                            </ErrorBoundary>
+                            sitePlan && sitePlan.style !== "classic" && (state.stage === "design" || state.stage === "review") ? (
+                                <ErrorBoundary name="siteplan">
+                                    {sitePlanBig ? (
+                                        <SitePlanFlyout sp={sitePlan} state={state} side={position.side === "left" ? "left" : "right"} />
+                                    ) : state.stage === "design" ? (
+                                        <SitePlanWindow sp={sitePlan} state={state} side={position.side === "left" ? "left" : "right"} />
+                                    ) : null}
+                                </ErrorBoundary>
+                            ) : (
+                                <ErrorBoundary name="legend">
+                                    <Legend state={state} summary={summary} side={position.side === "left" ? "left" : "right"} />
+                                </ErrorBoundary>
+                            )
                         ) : null}
                         {picker ? (
                             <div className={classNames(s.flyout, position.side === "left" ? s.flyoutLeft : s.flyoutRight)} data-testid="picker-flyout">

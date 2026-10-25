@@ -578,6 +578,60 @@ export interface Summary {
   legend?: LegendEntry[];
 }
 
+/** Additive (sketch study, C# Core/Build/SitePlan.cs ToUi): the plan drawn as what gets built, for the panel's top view; the
+ *  map's sketch draws the same list (setting Sketch style: Site plan). World metres, x east and z north; point lists are flat
+ *  ([x, z, x, z, …]); discs are [x, z, r, …]; badges [x, z, angle, …]. Null = no plan. */
+export interface SitePlanView {
+  /** Changes with every new plan. */
+  stamp: string;
+  /** The map's sketch style: siteplan (the floating legend steps aside for the card's) or classic. */
+  style?: "siteplan" | "classic";
+  stale?: boolean;
+  min: number[];
+  max: number[];
+  areaM2: number;
+  /** A point well inside the outline (its label). */
+  centre: number[];
+  outline: number[];
+  fills: { m: string; color: string; alpha: number; row: string; rings: number[][] }[];
+  cars: SitePlanStroke[];
+  walks: SitePlanStroke[];
+  /** The city's own streets near the build (context). */
+  streets: SitePlanStroke[];
+  caps: number[];
+  fences: number[][];
+  /** [ax, az, bx, bz, …] painted stall lines. */
+  stalls: number[];
+  chargers: number[];
+  places: number[][];
+  benches: number[][];
+  lamps: number[];
+  bins: number[];
+  trees: number[];
+  bushes: number[];
+  plots: { color: string; q: number[] }[];
+  entrances: number[];
+  issues: number[];
+  legend: SitePlanRow[];
+}
+
+export interface SitePlanStroke { w: number; p: number[]; mark?: boolean }
+
+/** One legend row: what is drawn, in plain words; the id is the map layer it hovers / hides (state.legendVisibility). */
+export interface SitePlanRow {
+  id: string;
+  /** Swatch shape: road, bays, path, grass, paving, water, zone, tree, bush, place, furniture, entrance, issue. */
+  sym: string;
+  label: LocText;
+  /** English fallback of the label. */
+  en: string;
+  count: number;
+  /** "m" a length, "count", "cells", "" no number. */
+  unit: string;
+  /** Where its note goes on the picture (inside the outline). */
+  anchor: number[];
+}
+
 /** s17 park stat ids (save format, never renamed). */
 export type ParkStatId = "attractiveness" | "leisure" | "coverageRange" | "coverageCapacity" | "entertainment" | "upkeep";
 
@@ -651,6 +705,7 @@ export const Values = {
   summary: "summary",       // Summary
   assets: "assets",         // AssetLists
   managed: "managed",       // ManagedGroup | null
+  sitePlan: "sitePlan",     // SitePlanView | null (additive, sketch study)
 } as const;
 
 // ─────────────────────────── Triggers (UI → C#) ───────────────────────────

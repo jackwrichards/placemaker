@@ -1775,6 +1775,8 @@ export class MockBackend {
         publish(GROUP, "summary", JSON.stringify(this.summary()));
         publish(GROUP, "assets", JSON.stringify(this.assets));
         publish(GROUP, "managed", JSON.stringify(this.managed()));
+        const stage = this.state().stage;
+        publish(GROUP, "sitePlan", JSON.stringify(this.plan?.sitePlan && (stage === "design" || stage === "review") ? { ...(this.plan.sitePlan as object), stale: this.stale || undefined } : null));
         this.listeners.forEach((l) => l());
     }
 }

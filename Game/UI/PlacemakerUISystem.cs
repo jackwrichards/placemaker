@@ -21,7 +21,8 @@ namespace Placemaker.Game.UI
         public const string Group = "Placemaker";
 
         private PlacemakerToolSystem _tool;
-        private ValueBinding<string> _state, _catalog, _design, _summary, _assets, _managed;
+        private ValueBinding<string> _state, _catalog, _design, _summary, _assets, _managed, _sitePlan;
+        private string _sitePlanStamp;
 
         private int _stateStamp = -1;
         private int _statePushFrame = -100;
@@ -47,6 +48,7 @@ namespace Placemaker.Game.UI
             AddBinding(_summary = new ValueBinding<string>(Group, "summary", UiModels.Summary(new SummaryInput()).ToString()));
             AddBinding(_assets = new ValueBinding<string>(Group, "assets", "{}"));
             AddBinding(_managed = new ValueBinding<string>(Group, "managed", "null"));
+            AddBinding(_sitePlan = new ValueBinding<string>(Group, "sitePlan", "null"));
 
             Trigger("toggleTool", () => _tool.Toggle());
             Trigger("togglePolish", () => _tool.TogglePolishTool());   // the polish tool's own button
@@ -160,6 +162,7 @@ namespace Placemaker.Game.UI
                 PushCatalog();
                 PushDesign();
                 PushSummary();
+                PushSitePlan();
                 PushAssets();
                 PushManaged();
             }
@@ -259,6 +262,22 @@ namespace Placemaker.Game.UI
             catch (Exception) { found = null; }
             _labels[key] = found;
             return found;
+        }
+
+        /// <summary>(sketch study) The site plan for the panel's top view: once per plan (Core/Build/SitePlan.cs ToUi).</summary>
+        private void PushSitePlan()
+        {
+            bool open = _tool.Stage == ToolStage.Design || _tool.Stage == ToolStage.Review || _tool.Stage == ToolStage.Building;
+            var sp = open ? _tool.SitePlan : null;
+            bool classic = (ToolRegistration.Settings?.SketchStyle ?? global::Placemaker.Game.Settings.SketchStyle.SitePlan) == global::Placemaker.Game.Settings.SketchStyle.Classic;
+            string stamp = sp == null ? "none" : _tool.SitePlanVersion + "|" + _tool.PlanStale + "|" + classic;
+            if (stamp == _sitePlanStamp) return;
+            _sitePlanStamp = stamp;
+            if (sp == null || sp.Outline.Length < 3) { _sitePlan.Update("null"); return; }
+            var json = sp.ToUi(_tool.SitePlanVersion.ToString());
+            json.Set("style", classic ? "classic" : "siteplan");
+            if (_tool.PlanStale) json.Set("stale", true);
+            _sitePlan.Update(json.ToString());
         }
 
         private void PushSummary()

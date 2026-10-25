@@ -87,6 +87,18 @@ namespace Placemaker.MockHost
             app.Run();
         }
 
+        internal static string SitePlanOf(ComposedPlan plan, AreaShape shape, SiteContext site, Recipe recipe)
+        {
+            var entrances = new List<Unity.Mathematics.float2>();
+            if (recipe != null)
+                foreach (var kv in Placemaker.Core.Tool.RecipePaths.Walk(recipe))
+                    foreach (var m in kv.Value.Markers) entrances.Add(m.Position.xz);
+            var sp = Placemaker.Core.Build.SitePlan.Compute(new Placemaker.Core.Build.SitePlan.Input { Plan = plan, Outline = Placemaker.Core.Geometry.Poly.To2D(shape.Ring), Assets = site.Assets, Entrances = entrances });
+            var json = sp.ToUi(DateTime.Now.Ticks.ToString());
+            json.Set("style", "siteplan");
+            return json.ToString();
+        }
+
         private static IResult Json(JsonNode node) => Results.Content(node?.ToJsonString() ?? "null", "application/json");
 
         private static string FindMockRoot()
@@ -450,6 +462,8 @@ namespace Placemaker.MockHost
                 ["costBuckets"] = FakeBuckets(plan),
                 ["permanent"] = permanent,
                 ["legend"] = JsonNode.Parse(Placemaker.Core.Tool.UiModels.Legend(plan, recipe, (cat, id) => new Placemaker.Core.Tool.AssetLabel { Name = RoadRoles.NameOf(id) }).ToString()),
+                // (sketch study) the top view, as the game sends it on the "sitePlan" binding
+                ["sitePlan"] = JsonNode.Parse(Program.SitePlanOf(plan, shape, site, recipe)),
                 ["ms"] = sw.Elapsed.TotalMilliseconds,
             };
         }

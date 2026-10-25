@@ -45,6 +45,11 @@ namespace Placemaker.Core.Build
                 Bin = "#26272a", Stall = "#ffffff", Charger = "#3fd28a", Fence = "#6b5440", Outline = "#d6ecff", Accent = "#4fa3ff",
                 Issue = "#e5322d", Street = "#8d9196", Kerb = "#c9ccd0", Land = "#6f8a4c";
 
+            /// <summary>The ground of the whole site under everything else (the user, 25 Oct: the blue selection haze read as "blue
+            /// grass"): a soft lawn tone, so open land in the build reads as ground, not as a selection.</summary>
+            public const string Base = "#9cc76f";
+            public const float BaseAlpha = 0.28f;
+
             /// <summary>Opacity of a fill material (one tone each, quiet enough for the ground to read through grass).</summary>
             public static float Alpha(string material)
             {
@@ -91,6 +96,8 @@ namespace Placemaker.Core.Build
             public float Width;
             /// <summary>A real road (centre marking drawn), not a parking aisle.</summary>
             public bool Marked;
+            /// <summary>The net's own curve (the map draws it smooth, one piece per net); null for the city's streets.</summary>
+            public float3[] Curve;
         }
 
         public struct Disc
@@ -205,13 +212,13 @@ namespace Placemaker.Core.Build
                     double len = Length(pts);
                     if (walk)
                     {
-                        sp.Walks.Add(new Stroke { Points = pts, Width = math.max(1.2f, hw * 2f) });
+                        sp.Walks.Add(new Stroke { Points = pts, Width = math.max(1.2f, hw * 2f), Curve = new[] { n.A, n.B, n.C, n.D } });
                         walkLen += len;
                         Anchor(Paths, pts[pts.Length / 2]);
                         continue;
                     }
                     bool road = PreviewLegend.IsRoad(layer);
-                    sp.Cars.Add(new Stroke { Points = pts, Width = hw * 2f, Marked = road && hw >= 3f });
+                    sp.Cars.Add(new Stroke { Points = pts, Width = hw * 2f, Marked = road && hw >= 3f, Curve = new[] { n.A, n.B, n.C, n.D } });
                     if (road) { roadLen += len; Anchor(Roads, pts[pts.Length / 2]); }
                     else aisles.Add(pts);
                 }
@@ -403,16 +410,21 @@ namespace Placemaker.Core.Build
             return assets != null && !string.IsNullOrEmpty(o.Asset.Id) && assets.TryGetValue(o.Asset.Id, out info) && math.cmax(info.BoundsMax.xz - info.BoundsMin.xz) > 0.05f;
         }
 
-        /// <summary>Crown radius: bounds near the trunk, so the height counts too (0.28 × height), 1..7 m × scale (as the sketch).</summary>
+        /// <summary>
+        /// Crown radius: bounds near the trunk, so the height counts too (0.28 × height), 1..7 m × scale (as the sketch), and
+        /// never less than a tree of its growth stage shows in the game (the first site plan drew the car parks' adult trees
+        /// half their built size).
+        /// </summary>
         public static float Crown(PlannedObject o, IReadOnlyDictionary<string, AssetInfo> assets)
         {
             float s = o.Scale > 0.05f ? o.Scale : 1f;
+            float floor = o.Age == PlannedAge.Young ? 1.8f : o.Age == PlannedAge.Teen ? 2.6f : o.Age == PlannedAge.Dead ? 1.5f : 3.4f;
             if (TryInfo(o, assets, out var info))
             {
                 float r = math.cmax((info.BoundsMax - info.BoundsMin).xz) * 0.5f, h = info.BoundsMax.y - info.BoundsMin.y;
-                return math.clamp(math.max(r, h * 0.28f), 1f, 7f) * s;
+                return math.clamp(math.max(math.max(r, h * 0.28f), floor), 1f, 7f) * s;
             }
-            return Composer.DefaultRadius(o.Role) * s * 1.4f;
+            return math.max(Composer.DefaultRadius(o.Role) * 1.4f, floor) * s;
         }
 
         private static float Radius(PlannedObject o, IReadOnlyDictionary<string, AssetInfo> assets)
@@ -524,7 +536,7 @@ namespace Placemaker.Core.Build
             o.Set("issues", Badges(IssueBadges));
             var legend = JsonValue.Arr();
             foreach (var r in Legend)
-                legend.Add(JsonValue.Obj().Set("id", r.Id).Set("sym", r.Sym).Set("label", JsonValue.Obj().Set("key", r.LabelKey).Set("fallback", r.Label))
+                legend.Add(JsonValue.Obj().Set("id", r.Id).Set("sym", r.Sym).Set("label", JsonValue.Obj().Set("key", r.LabelKey)).Set("en", r.Label)
                     .Set("count", r.Count).Set("unit", r.Unit).Set("anchor", Pt(r.Anchor)));
             o.Set("legend", legend);
             return o;

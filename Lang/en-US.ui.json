@@ -368,6 +368,8 @@
   "Placemaker.UI.Rules.ZoningZoned": "Zoned",
   "Placemaker.UI.Rules.ZoningZonedTip": "Keep off every zoned cell, built on or not.",
   "Placemaker.UI.Save": "Save",
+  "Placemaker.UI.SitePlan.Close": "Close the large view",
+  "Placemaker.UI.SitePlan.Title": "Top view",
   "Placemaker.UI.Stage.Area": "Area",
   "Placemaker.UI.Stage.Design": "Design",
   "Placemaker.UI.Stage.Review": "Review",

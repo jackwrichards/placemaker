@@ -11,7 +11,8 @@
 import React, { useState } from "react";
 import classNames from "classnames";
 import { Catalog, Issue, LocText, Stat, Summary, ToolState } from "../contract";
-import { act } from "../lib/bindings";
+import { act, useSitePlan } from "../lib/bindings";
+import { SitePlanCard } from "../components/SitePlanCard";
 import { area as fmtArea, formatValue, Money } from "../lib/format";
 import { entityIcon, layerColor, statIcon } from "../lib/icons";
 import { categoryColor } from "../lib/palette";
@@ -379,6 +380,7 @@ export const ReviewStage = ({ catalog, state, summary }: { catalog: Catalog; sta
     const { t } = useT();
     const pending = summary.stale || state.planning;
     const clean = summary.issues.length === 0 && summary.permanent.length === 0 && !pending;
+    const sitePlan = useSitePlan();
     return (
         <div className={s.stage} data-testid="stage-review">
             {!summary.ready ? (
@@ -391,6 +393,7 @@ export const ReviewStage = ({ catalog, state, summary }: { catalog: Catalog; sta
                     <SectionHead first icon="cost" title={t("Placemaker.UI.Review.CostHead", "Cost")} sub={t("Placemaker.UI.Review.CostSub", "to build and to run")} testId="review-head-cost" />
                     <MoneyCard catalog={catalog} state={state} summary={summary} pending={pending} />
                     <SectionHead icon="layers" title={t("Placemaker.UI.Review.StatsHead", "What you get")} sub={t("Placemaker.UI.Review.StatsSub", "what will be built")} testId="review-head-stats" />
+                    {sitePlan && sitePlan.style !== "classic" ? <SitePlanCard sp={sitePlan} state={state} /> : null}
                     <div className={classNames(s.stats, { [s.shimmer]: pending })} data-testid="review-stats">
                         {mergeStats(t, summary.stats).map((st) => (
                             <StatChip key={st.key + st.unit} k={st.key} value={st.value} unit={st.unit} />

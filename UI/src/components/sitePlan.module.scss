@@ -1,0 +1,215 @@
+@use "../styles/tokens" as *;
+
+// Sketch study: the top view (SitePlanCard.tsx). The picture keeps the shape's proportions; the land around it is part of
+// the picture, so any outline (a T, a circle, a sliver) sits in a full frame.
+
+.card {
+    @include col;
+    margin-bottom: 4rem;
+}
+
+.stale {
+    opacity: 0.6;
+}
+
+.pic {
+    position: relative;
+    width: 100%;
+    border-radius: $radius-l;
+    overflow: hidden;
+    cursor: pointer;
+    background-color: #6f8a4c;
+    @include border(1rem, $c-line);
+}
+
+.picHint {
+    @include row;
+    position: absolute;
+    top: 6rem;
+    right: 6rem;
+    padding: 3rem;
+    border-radius: $radius-s;
+    background-color: rgba(11, 18, 26, 0.55);
+    color: #ffffff;
+    opacity: 0.75;
+    pointer-events: none;
+}
+
+.notes {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.note {
+    position: absolute;
+    height: 18rem;
+    padding: 0 6rem;
+    border-radius: 9rem;
+    background-color: rgba(11, 18, 26, 0.82);
+    color: #ffffff;
+    font-size: 11rem;
+    line-height: 18rem;
+    white-space: nowrap;
+}
+
+.noteDot {
+    position: absolute;
+    width: 6rem;
+    height: 6rem;
+    border-radius: 3rem;
+    background-color: #ffffff;
+    @include border(1rem, rgba(11, 18, 26, 0.8));
+}
+
+.size {
+    position: absolute;
+    right: 6rem;
+    bottom: 6rem;
+    height: 18rem;
+    padding: 0 6rem;
+    border-radius: 9rem;
+    background-color: rgba(11, 18, 26, 0.7);
+    color: #ffffff;
+    font-size: 11rem;
+    line-height: 18rem;
+    white-space: nowrap;
+}
+
+.scale {
+    @include row;
+    position: absolute;
+    left: 8rem;
+    bottom: 10rem;
+}
+
+.scaleBar {
+    height: 3rem;
+    background-color: #ffffff;
+    border-radius: 1rem;
+}
+
+.scaleText {
+    margin-left: 5rem;
+    color: #ffffff;
+    font-size: 11rem;
+}
+
+.rows {
+    @include col;
+    margin-top: 4rem;
+}
+
+.row {
+    @include row;
+    min-width: 0;
+    height: 22rem;
+    padding: 0 6rem;
+    border-radius: $radius-s;
+    font-size: $fs-s;
+    color: #ffffff;
+    cursor: pointer;
+    transition-property: background-color, opacity;
+    transition-duration: $t-fast;
+    &:hover {
+        background-color: $c-surface-hover;
+    }
+}
+
+.rowHover {
+    background-color: $c-surface-hover;
+}
+
+.rowHidden {
+    opacity: 0.45;
+}
+
+.swatch {
+    flex-shrink: 0;
+    width: 27rem;
+    height: 16rem;
+    margin-right: 8rem;
+}
+
+.name {
+    flex: 1 1 auto;
+    @include ellipsis;
+}
+
+.value {
+    flex-shrink: 0;
+    margin-left: 6rem;
+    color: $c-text-dim;
+}
+
+.eye {
+    flex-shrink: 0;
+    margin-left: 8rem;
+    opacity: 0.6;
+}
+
+// the large view beside the panel (where the legend window sits)
+.flyout {
+    @include col;
+    position: absolute;
+    bottom: 0;
+    width: 640rem;
+    padding: 0 10rem 8rem 10rem;
+    pointer-events: auto;
+    border-radius: $radius-l;
+    background-color: rgba(12, 18, 23, 0.94);
+    @include border(1rem, rgba(255, 255, 255, 0.13));
+    box-shadow: 0 6rem 22rem rgba(0, 0, 0, 0.4);
+    color: var(--menuText1Normal);
+}
+
+.left {
+    right: 100%;
+    margin-right: 8rem;
+}
+
+.right {
+    left: 100%;
+    margin-left: 8rem;
+}
+
+.flyHead {
+    @include row;
+    height: 30rem;
+    font-size: $fs;
+    color: $c-text-dim;
+}
+
+.flyTitle {
+    margin-left: 6rem;
+    @include ellipsis;
+}
+
+.flex {
+    flex: 1 1 auto;
+}
+
+.flyPic {
+    position: relative;
+    width: 620rem;
+    border-radius: $radius-l;
+    overflow: hidden;
+    background-color: #6f8a4c;
+}
+
+.window {
+    @include col;
+    position: absolute;
+    bottom: 0;
+    width: 280rem;
+    padding: 0 8rem 6rem 8rem;
+    pointer-events: auto;
+    border-radius: $radius-l;
+    background-color: rgba(12, 18, 23, 0.9);
+    @include border(1rem, rgba(255, 255, 255, 0.13));
+    box-shadow: 0 6rem 22rem rgba(0, 0, 0, 0.4);
+    color: var(--menuText1Normal);
+}
