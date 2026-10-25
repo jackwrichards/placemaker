@@ -1,0 +1,13 @@
+{
+  "Placemaker.UI.MakeGroup.Roads": "Routes",
+  "Placemaker.UI.MakeGroup.Parking": "Stationnement",
+  "Placemaker.UI.MakeGroup.Parks": "Parcs",
+  "Placemaker.UI.MakeGroup.Beach": "Plage",
+  "Placemaker.UI.MakeGroup.Commercial": "Boutiques et places",
+  "Placemaker.UI.MakeGroup.Nature": "Nature",
+  "Placemaker.UI.MakeGroup.Farms": "Fermes",
+  "Placemaker.UI.MakeGroup.Sports": "Sports",
+  "Placemaker.UI.MakeGroup.Neighbourhood": "Quartier",
+  "Placemaker.UI.MakeGroup.Industry": "Industrie",
+  "Placemaker.UI.MakeGroup.Transport": "Transport"
+}

@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "農地地面",
+  "Placemaker.Category.surface.crop.soil": "翻耕土壤地面",
+  "Placemaker.Category.surface.crop.plowed": "犁過的土壤地面",
+  "Placemaker.Category.surface.crop.rows": "作物行列地面",
+  "Placemaker.Category.surface.crop.green": "綠色作物地面",
+  "Placemaker.Category.surface.crop.straw": "稻草／穀物地面",
+  "Placemaker.Category.surface.crop.flower": "開花作物地面",
+  "Placemaker.Category.surface.crop.lavender": "薰衣草色作物地面",
+  "Placemaker.Category.surface.crop.yellow": "黃色作物地面",
+  "Placemaker.Category.decal.farm": "農用小路貼花",
+  "Placemaker.GroundCover.Issue.Painted": "未安裝任何農地地面，因此田地改為直接繪製在地形上（永久性）。",
+  "Placemaker.Common.Issue.ObjectBudget": "這個設計需要 {0} 個物件；為了維持在 {1} 個左右，已精簡 {2} 個重複的道具。田地與花圃改以地表繪製。"
+}

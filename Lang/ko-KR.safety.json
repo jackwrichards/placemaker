@@ -1,0 +1,10 @@
+{
+  "Placemaker.Issue.CutoutNotZonable": "상점 부지가 게임이 구역을 지정하는 도로와 맞닿아 있지 않습니다. 공원으로 남겨 둡니다.",
+  "Placemaker.Issue.BuildingsKept": "건물 {0}채가 걸립니다. 건물은 그대로 두고, 그 부지에는 아무것도 짓지 않습니다.",
+  "Placemaker.Issue.BuildingsLeftOut": "기존 건물을 피하려고 {0}개 부분을 빼거나 줄였습니다.",
+  "Placemaker.Problem.OnlyBuildings": "칠한 곳 아래에는 브러시 규칙이 피하는 것(건물, 다른 건설물, 구역, 물)만 있습니다. 다른 곳을 칠하거나 규칙을 바꾸세요.",
+  "Placemaker.Hint.BuildingsKept": "선택한 곳의 건물 {0}채는 그대로 남습니다. 그 부지에는 아무것도 짓지 않습니다.",
+  "Placemaker.Settings.PaintAvoidBuildings": "칠하기: 건물 피하기",
+  "Placemaker.Settings.PaintAvoidBuildings.Desc": "일반 칠하기에서 건물 부지를 칠한 구역에서 뺍니다(칠하는 동안 빨갛게 표시). 끄면 예전 방식: 윤곽선이 건물을 덮지만, 건설할 때 건물은 그대로 남습니다.",
+  "Placemaker.Why.AreaTooSmall": "더 넓은 구역이 필요합니다(최소 {0} m²)."
+}

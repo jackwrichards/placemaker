@@ -1,0 +1,6 @@
+{
+  "Placemaker.Name": "Placemaker",
+  "Placemaker.Issue.RecipeTooDeep": "Este projeto tem camadas aninhadas demais.",
+  "Placemaker.Issue.UnknownLayer": "Camada desconhecida \"{0}\" — falta algum mod?",
+  "Placemaker.Issue.LayerFailed": "Não foi possível planejar {0}: {1}"
+}

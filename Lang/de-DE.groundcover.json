@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "Ackerland-Oberflächen",
+  "Placemaker.Category.surface.crop.soil": "Oberflächen mit bestelltem Boden",
+  "Placemaker.Category.surface.crop.plowed": "Oberflächen mit gepflügtem Boden",
+  "Placemaker.Category.surface.crop.rows": "Oberflächen mit Pflanzreihen",
+  "Placemaker.Category.surface.crop.green": "Oberflächen mit grünen Feldfrüchten",
+  "Placemaker.Category.surface.crop.straw": "Stroh-/Getreide-Oberflächen",
+  "Placemaker.Category.surface.crop.flower": "Oberflächen mit blühenden Feldfrüchten",
+  "Placemaker.Category.surface.crop.lavender": "lavendelfarbene Feld-Oberflächen",
+  "Placemaker.Category.surface.crop.yellow": "gelbe Feld-Oberflächen",
+  "Placemaker.Category.decal.farm": "Feldweg-Markierungen",
+  "Placemaker.GroundCover.Issue.Painted": "Es ist keine Ackerland-Oberfläche installiert, daher werden die Felder stattdessen aufs Terrain gemalt (dauerhaft).",
+  "Placemaker.Common.Issue.ObjectBudget": "Dieser Entwurf wollte {0} Objekte; {2} sich wiederholende Requisiten wurden ausgedünnt, um nahe bei {1} zu bleiben. Felder und Beete werden stattdessen als Bodenoberflächen gezeichnet."
+}

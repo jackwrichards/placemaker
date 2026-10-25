@@ -144,6 +144,25 @@ namespace Placemaker.Core.Build
             if (roads.Count == 0) return none;
 
             float half8 = LotSize * 0.5f;
+            // (perf) Only objects and paths closer than the clearance cap can change a candidate's clearance: the objects in a
+            // grid of that size, each path with its reach box (a park's ~2 000 plants were measured from every candidate, ~180 ms
+            // in the game's Finish frame). The same minimum over the same values that matter.
+            float reach = 12f + half8;
+            var objGrid = new Dictionary<long, List<float2>>();
+            if (objects != null)
+                foreach (var o in objects)
+                {
+                    long k = CellKey((int)math.floor(o.x / reach), (int)math.floor(o.y / reach));
+                    if (!objGrid.TryGetValue(k, out var l)) objGrid[k] = l = new List<float2>();
+                    l.Add(o);
+                }
+            var pathBoxes = new List<(float2 min, float2 max)>();
+            if (paths != null)
+                foreach (var pa in paths)
+                {
+                    float r = pa.halfWidth + reach + 0.01f;
+                    pathBoxes.Add((math.min(pa.a, pa.b) - r, math.max(pa.a, pa.b) + r));
+                }
             bool found = false;
             double bestScore = double.MinValue;
             var best = none;
@@ -186,9 +205,21 @@ namespace Placemaker.Core.Build
                     if (onRoad) continue;
                     float clear = 12f;
                     if (objects != null)
-                        foreach (var o in objects) clear = Math.Min(clear, math.distance(o, centre) - half8);
+                    {
+                        int cx = (int)math.floor(centre.x / reach), cy = (int)math.floor(centre.y / reach);
+                        for (int gy = cy - 1; gy <= cy + 1; gy++)
+                            for (int gx = cx - 1; gx <= cx + 1; gx++)
+                                if (objGrid.TryGetValue(CellKey(gx, gy), out var near))
+                                    foreach (var o in near) clear = Math.Min(clear, math.distance(o, centre) - half8);
+                    }
                     if (paths != null)
-                        foreach (var pa in paths) clear = Math.Min(clear, math.distance(Closest(pa.a, pa.b, centre), centre) - pa.halfWidth - half8);
+                        for (int pi = 0; pi < paths.Count; pi++)
+                        {
+                            var box = pathBoxes[pi];
+                            if (centre.x < box.min.x || centre.y < box.min.y || centre.x > box.max.x || centre.y > box.max.y) continue;
+                            var pa = paths[pi];
+                            clear = Math.Min(clear, math.distance(Closest(pa.a, pa.b, centre), centre) - pa.halfWidth - half8);
+                        }
                     if (clear < 0f) continue;
                     float corner2 = float.MaxValue;
                     foreach (var v in outline) corner2 = Math.Min(corner2, math.distance(v, centre));
@@ -203,6 +234,8 @@ namespace Placemaker.Core.Build
             }
             return best;
         }
+
+        private static long CellKey(int x, int y) => ((long)x << 32) ^ (uint)y;
 
         private static float2 Perp(float2 v)
         {

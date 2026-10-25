@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "superficies de tierras de cultivo",
+  "Placemaker.Category.surface.crop.soil": "superficies de tierra labrada",
+  "Placemaker.Category.surface.crop.plowed": "superficies de tierra arada",
+  "Placemaker.Category.surface.crop.rows": "superficies de hileras de cultivo",
+  "Placemaker.Category.surface.crop.green": "superficies de cultivo verde",
+  "Placemaker.Category.surface.crop.straw": "superficies de paja / cereal",
+  "Placemaker.Category.surface.crop.flower": "superficies de cultivo en flor",
+  "Placemaker.Category.surface.crop.lavender": "superficies de cultivo color lavanda",
+  "Placemaker.Category.surface.crop.yellow": "superficies de cultivo amarillo",
+  "Placemaker.Category.decal.farm": "calcomanías de caminos agrícolas",
+  "Placemaker.GroundCover.Issue.Painted": "No hay ninguna superficie de tierras de cultivo instalada, así que los campos se pintan sobre el terreno (de forma permanente).",
+  "Placemaker.Common.Issue.ObjectBudget": "Este diseño quería {0} objetos; se aclararon {2} elementos repetitivos para quedarse cerca de {1}. Los campos y los parterres se dibujan como superficies del suelo."
+}

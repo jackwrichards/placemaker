@@ -190,16 +190,24 @@ namespace Placemaker.Game.Tool
             _planMs = r.Milliseconds;
             _affordRevision = -1;
             var sw = System.Diagnostics.Stopwatch.StartNew();
+            if (r.AfterMs > 0 && Services.Assets != null && Services.Assets.Version == _requestedCatalogVersion)
+            {
+                // resolved on the worker against this very catalog: nothing left to do here
+                _resolvedPlan = _plan;
+                _resolvedCatalogVersion = _requestedCatalogVersion;
+                _assetsResolvedStamp++;
+            }
             ResolveAssets();
             // (zoning speed) Where the plan's time went: the worker's steps (Core PlanClock), the site capture before it and the
             // assets after it (main thread). Every plan but those of a running drag (unless slow).
             if (_gesture == Gesture.None || r.Milliseconds >= 100)
-                Mod.Log.Info($"Placemaker: plan {_recipe?.Root?.Layer} r{r.Revision}: {r.Milliseconds:0} ms on the worker (site capture {_captureMs:0} ms, assets {sw.Elapsed.TotalMilliseconds:0} ms), "
+                Mod.Log.Info($"Placemaker: plan {_recipe?.Root?.Layer} r{r.Revision}: {r.Milliseconds:0} ms on the worker (site capture {_captureMs:0} ms, assets {sw.Elapsed.TotalMilliseconds:0} ms here + {r.AfterMs:0} ms on the worker), "
                     + $"{CountZoning(_plan)} zone cells: {PlanTimings.Describe(_plan)}");
             Touch();
         }
 
         private double _captureMs;
+        private int _requestedCatalogVersion = -1;
 
         private static int CountZoning(ComposedPlan plan)
         {
@@ -243,7 +251,11 @@ namespace Placemaker.Game.Tool
             _captureMs = capture.Elapsed.TotalMilliseconds;
             _requestedRevision = _inputRevision;
             _planStartedAt = UnityEngine.Time.realtimeSinceStartup;
-            _worker.Request(_inputRevision, _recipe.Clone(), _shape, site);
+            // (perf) assets resolved on the worker, from the catalog version of now (PumpPreview checks it is still current)
+            var assets = Services.Assets as Placemaker.Game.Assets.AssetCatalogSystem;
+            var source = assets?.WorkerSource();
+            _requestedCatalogVersion = assets?.Version ?? -1;
+            _worker.Request(_inputRevision, _recipe.Clone(), _shape, site, source == null ? null : (Action<ComposedPlan>)(p => assets.ResolveAutomatic(p, source)));
             Touch();
         }
 

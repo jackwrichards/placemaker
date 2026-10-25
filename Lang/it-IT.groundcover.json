@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "superfici agricole",
+  "Placemaker.Category.surface.crop.soil": "superfici di terra lavorata",
+  "Placemaker.Category.surface.crop.plowed": "superfici di terra arata",
+  "Placemaker.Category.surface.crop.rows": "superfici a filari",
+  "Placemaker.Category.surface.crop.green": "superfici di colture verdi",
+  "Placemaker.Category.surface.crop.straw": "superfici di paglia / cereali",
+  "Placemaker.Category.surface.crop.flower": "superfici di colture in fiore",
+  "Placemaker.Category.surface.crop.lavender": "superfici di colture color lavanda",
+  "Placemaker.Category.surface.crop.yellow": "superfici di colture gialle",
+  "Placemaker.Category.decal.farm": "decalcomanie per carrarecce",
+  "Placemaker.GroundCover.Issue.Painted": "Non è installata nessuna superficie agricola, quindi i campi vengono dipinti sul terreno (in modo permanente).",
+  "Placemaker.Common.Issue.ObjectBudget": "Questo progetto voleva {0} oggetti; {2} oggetti ripetitivi sono stati diradati per restare vicino a {1}. Campi e aiuole sono disegnati come superfici del terreno."
+}

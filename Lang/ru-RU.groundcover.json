@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "покрытия сельхозугодий",
+  "Placemaker.Category.surface.crop.soil": "покрытия обработанной почвы",
+  "Placemaker.Category.surface.crop.plowed": "покрытия вспаханной почвы",
+  "Placemaker.Category.surface.crop.rows": "покрытия рядов посевов",
+  "Placemaker.Category.surface.crop.green": "покрытия зеленых посевов",
+  "Placemaker.Category.surface.crop.straw": "покрытия соломы / зерновых",
+  "Placemaker.Category.surface.crop.flower": "покрытия цветущих посевов",
+  "Placemaker.Category.surface.crop.lavender": "покрытия посевов цвета лаванды",
+  "Placemaker.Category.surface.crop.yellow": "покрытия желтых посевов",
+  "Placemaker.Category.decal.farm": "декали полевых дорог",
+  "Placemaker.GroundCover.Issue.Painted": "Покрытия сельхозугодий не установлены, поэтому поля вместо этого окрашены на рельефе (постоянно).",
+  "Placemaker.Common.Issue.ObjectBudget": "Этому проекту нужно было {0} объектов; {2} повторяющихся объектов прорежены, чтобы держаться около {1}. Поля и клумбы вместо этого нарисованы покрытиями земли."
+}

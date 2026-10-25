@@ -1,0 +1,10 @@
+{
+  "Placemaker.Issue.CutoutNotZonable": "有一塊商店用地沒有面向遊戲可劃設功能區的道路，因此留給公園使用。",
+  "Placemaker.Issue.BuildingsKept": "有 {0} 棟建築擋在中間，將予以保留：它們的用地上不會建造任何東西。",
+  "Placemaker.Issue.BuildingsLeftOut": "為了避開現有建築，有 {0} 個部分被省略或縮減。",
+  "Placemaker.Problem.OnlyBuildings": "塗刷範圍內只有筆刷規則會避開的東西（建築、其他建造、功能區、水）。請改塗別處，或更改規則。",
+  "Placemaker.Hint.BuildingsKept": "選取範圍內的 {0} 棟建築會保留：它們的用地上不會建造任何東西。",
+  "Placemaker.Settings.PaintAvoidBuildings": "塗刷：避開建築",
+  "Placemaker.Settings.PaintAvoidBuildings.Desc": "一般塗刷會把建築用地從塗刷區域中挖除（塗刷時以紅色標示）。關閉 = 舊的做法：外框會蓋過建築，但建造時仍會保留建築。",
+  "Placemaker.Why.AreaTooSmall": "需要更大的區域（至少 {0} m²）。"
+}

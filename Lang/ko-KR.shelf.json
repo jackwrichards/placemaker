@@ -1,0 +1,13 @@
+{
+  "Placemaker.UI.MakeGroup.Roads": "도로",
+  "Placemaker.UI.MakeGroup.Parking": "주차",
+  "Placemaker.UI.MakeGroup.Parks": "공원",
+  "Placemaker.UI.MakeGroup.Beach": "해변",
+  "Placemaker.UI.MakeGroup.Commercial": "상점·광장",
+  "Placemaker.UI.MakeGroup.Nature": "자연",
+  "Placemaker.UI.MakeGroup.Farms": "농장",
+  "Placemaker.UI.MakeGroup.Sports": "스포츠",
+  "Placemaker.UI.MakeGroup.Neighbourhood": "동네",
+  "Placemaker.UI.MakeGroup.Industry": "산업",
+  "Placemaker.UI.MakeGroup.Transport": "교통"
+}

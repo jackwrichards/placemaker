@@ -1,0 +1,13 @@
+{
+  "Placemaker.UI.MakeGroup.Roads": "Дороги",
+  "Placemaker.UI.MakeGroup.Parking": "Парковка",
+  "Placemaker.UI.MakeGroup.Parks": "Парки",
+  "Placemaker.UI.MakeGroup.Beach": "Пляж",
+  "Placemaker.UI.MakeGroup.Commercial": "Магазины и площади",
+  "Placemaker.UI.MakeGroup.Nature": "Природа",
+  "Placemaker.UI.MakeGroup.Farms": "Фермы",
+  "Placemaker.UI.MakeGroup.Sports": "Спорт",
+  "Placemaker.UI.MakeGroup.Neighbourhood": "Район",
+  "Placemaker.UI.MakeGroup.Industry": "Промышленность",
+  "Placemaker.UI.MakeGroup.Transport": "Транспорт"
+}

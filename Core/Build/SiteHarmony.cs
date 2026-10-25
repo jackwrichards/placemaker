@@ -293,12 +293,15 @@ namespace Placemaker.Core.Build
             }
             var rK = BuildRaster(kept, keptV, c.Orig);
             c.K = new float[n];
+            // (perf) The rings' edges by band: a painted outline has hundreds of corners, tested at every node.
+            var bands = new List<RingBands>(c.Rings.Count);
+            foreach (var r in c.Rings) bands.Add(new RingBands(r));
             for (int k = 0; k < n; k++)
             {
                 var p = c.Pos(k);
                 c.K[k] = S(rK, c.Orig, p);
                 if (c.Lock[k]) continue;
-                foreach (var r in c.Rings) if (Poly.Contains(r, p)) { c.Free[k] = true; break; }
+                foreach (var b in bands) if (b.Contains(p)) { c.Free[k] = true; break; }
             }
             return c;
         }
@@ -827,7 +830,14 @@ namespace Placemaker.Core.Build
             return true;
         }
 
-        private static bool Inside(float2[][] rings, float2 p) { foreach (var r in rings) if (Poly.Contains(r, p)) return true; return false; }
+        private static bool Inside(float2[][] rings, float2 p) { foreach (var r in rings) if (Bands(r).Contains(p)) return true; return false; }
+
+        // (perf) A surface ring is tested at every node of its stamp (painted outlines: hundreds of corners): its edges by band,
+        // made once per ring (rings are not changed once collected). Exactly Poly.Contains.
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<float2[], RingBands> s_bands =
+            new System.Runtime.CompilerServices.ConditionalWeakTable<float2[], RingBands>();
+
+        private static RingBands Bands(float2[] ring) => s_bands.GetValue(ring, r => new RingBands(r));
 
         private static float2 Centroid(float2[][] rings)
         {

@@ -1,0 +1,6 @@
+{
+  "Placemaker.Name": "Placemaker",
+  "Placemaker.Issue.RecipeTooDeep": "Ce modèle a trop de couches imbriquées.",
+  "Placemaker.Issue.UnknownLayer": "Couche inconnue « {0} » : un mod manque-t-il ?",
+  "Placemaker.Issue.LayerFailed": "{0} n'a pas pu être planifié : {1}"
+}

@@ -22,7 +22,8 @@ namespace Placemaker.Core.Build
 
         private readonly float _cell;
         private readonly List<Entry> _entries = new List<Entry>();
-        private readonly Dictionary<long, List<int>> _grid = new Dictionary<long, List<int>>();
+        // (perf) the flat cell table of SpatialIndex: a Dictionary of Lists was most of the census of a 5 000-piece build in Mono
+        private readonly Placemaker.Core.Layers.Common.CellMap _grid = new Placemaker.Core.Layers.Common.CellMap();
 
         public PlanIndex(float cellSize = 16f) { _cell = math.max(1f, cellSize); }
 
@@ -72,9 +73,9 @@ namespace Placemaker.Core.Build
             for (int dx = -reach; dx <= reach; dx++)
                 for (int dz = -reach; dz <= reach; dz++)
                 {
-                    if (!_grid.TryGetValue(Pack(c + new int2(dx, dz)), out var list)) continue;
-                    foreach (int i in list)
+                    for (int en = _grid.First(c.x + dx, c.y + dz); en >= 0; en = _grid.Next(en))
                     {
+                        int i = _grid.Item(en);
                         var e = _entries[i];
                         if (prefab != 0 && e.Prefab != prefab) continue;
                         float d = e.IsCurve ? e.Curve.DistanceXZ(p, out _) : math.distance(p, e.Point);
@@ -86,8 +87,8 @@ namespace Placemaker.Core.Build
 
         private void Insert(long cell, int index)
         {
-            if (!_grid.TryGetValue(cell, out var list)) _grid[cell] = list = new List<int>(4);
-            if (list.Count == 0 || list[list.Count - 1] != index) list.Add(index);
+            var c = Unpack(cell);
+            if (_grid.LastItem(c.x, c.y) != index) _grid.Add(c.x, c.y, index);
         }
 
         private long Cell(float2 p) => Pack(new int2((int)math.floor(p.x / _cell), (int)math.floor(p.y / _cell)));

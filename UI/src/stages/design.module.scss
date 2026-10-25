@@ -131,16 +131,19 @@
     background-color: transparent;
 }
 
+// "Add one to build": a long translation shortens (…) before the header line breaks
 .required {
     @include row;
-    flex-shrink: 0;
+    flex: 0 1 auto;
+    min-width: 0;
 }
 
 .requiredText {
+    min-width: 0;
     font-size: 11rem;
     font-weight: bold;
     color: #ffd79a;
-    white-space: nowrap;
+    @include ellipsis;
 }
 
 // the type buttons, then the placed entrances
@@ -352,8 +355,9 @@
     color: #ffffff;
 }
 
+// the summary takes only the room the name leaves (a long translated name stays whole first)
 .featureSummary {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-width: 0;
     margin-right: 5rem;
     font-size: 11rem;

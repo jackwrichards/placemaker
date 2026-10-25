@@ -523,5 +523,34 @@ namespace Placemaker.Game.Suite
             yield return Frames(2);
             yield return WaitPlan(st, rec);
         }
+
+        /// <summary>The game's language before the first locale step: a locale step without one goes back to it.</summary>
+        private static string s_LocaleBefore;
+
+        /// <summary>
+        /// The game's language for the rest of the run (`locale`: "de-DE"), the way the Options menu switches it but not saved
+        /// to the player's settings; without `locale`, back to the language the game had before. The panel re-reads its texts.
+        /// </summary>
+        private IEnumerator StepLocale(JObject step, JObject rec)
+        {
+            var lm = global::Game.SceneFlow.GameManager.instance?.localizationManager;
+            if (lm == null) { rec["error"] = "no localization manager"; yield break; }
+            string want = (string)step["locale"];
+            if (string.IsNullOrEmpty(want))
+            {
+                want = s_LocaleBefore;
+                if (want == null) { rec["note"] = "no locale step before: nothing to undo"; yield break; }
+                s_LocaleBefore = null;
+            }
+            else
+            {
+                if (!lm.GetSupportedLocales().Contains(want)) { rec["error"] = $"the game has no locale '{want}' ({string.Join(", ", lm.GetSupportedLocales())})"; yield break; }
+                if (s_LocaleBefore == null) s_LocaleBefore = lm.activeLocaleId;
+            }
+            lm.SetActiveLocale(want);
+            rec["locale"] = lm.activeLocaleId;
+            Mod.Log.Info("Placemaker suite: locale " + lm.activeLocaleId);
+            yield return Frames(10);
+        }
     }
 }

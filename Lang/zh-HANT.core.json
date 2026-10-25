@@ -1,0 +1,6 @@
+{
+  "Placemaker.Name": "Placemaker",
+  "Placemaker.Issue.RecipeTooDeep": "這個設計的巢狀層級太多。",
+  "Placemaker.Issue.UnknownLayer": "未知的層「{0}」——是否缺少某個模組？",
+  "Placemaker.Issue.LayerFailed": "無法規劃{0}：{1}"
+}

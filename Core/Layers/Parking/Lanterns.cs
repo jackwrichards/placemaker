@@ -14,6 +14,7 @@ namespace Placemaker.Core.Layers.Parking
     internal static class Lanterns
     {
         public const double MinSpacing = 20, MaxSpacing = 40;
+        private static readonly double[] Quarters = { 0.25, 0.5, 0.75 };
 
         private enum Kind { Cap, Median, HeadToHead, Edge, Strip }
 
@@ -33,17 +34,15 @@ namespace Placemaker.Core.Layers.Parking
             foreach (var l in layout.LiveLines)
                 if (l.Kind != LineKind.Footpath) lanes.Add((l.A, l.B));
             var outline = layout.Lot;
+            var outlineGrid = new RingGrid(outline);   // (perf) by grid cell, same answers
+            var laneGrid = new SegmentGrid(lanes, 8);
 
-            bool NearLane(double2 p, double tol)
-            {
-                foreach (var g in lanes) if (PGeo.DistPointSeg(p, g.A, g.B) < tol) return true;
-                return false;
-            }
+            bool NearLane(double2 p, double tol) => laneGrid.AnyWithin(p, tol);
             bool AtEdge(double2 p, double near)
             {
                 if (outline.Count < 3) return false;
-                if (!PGeo.Contains(outline, p)) return true;
-                return PGeo.DistToBoundary(outline, p) < near;
+                if (!outlineGrid.Contains(p)) return true;
+                return outlineGrid.Dist(p, near + 1) < near;
             }
 
             // group stalls by axis angle (0.5° tolerance)
@@ -140,7 +139,7 @@ namespace Placemaker.Core.Layers.Parking
                             if (covered) continue;
                             double t0 = run.T0, t1 = run.T1, tm = (t0 + t1) / 2;
                             int behind = 0;
-                            foreach (var f in new[] { 0.25, 0.5, 0.75 })
+                            foreach (var f in Quarters)
                             {
                                 var q = W(sEdge + d * 0.4, t0 + (t1 - t0) * f);
                                 if (isGreen(q) || AtEdge(q, 3)) behind++;

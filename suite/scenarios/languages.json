@@ -1,0 +1,159 @@
+{
+  "_about": "The panel in every language the game ships (the user, 25 Oct: translate into the top languages). A formal park with one change (unsaved), its picture in each language; a parking lot in three; then the game back in its own language (the locale step does not touch the player's settings). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/languages.json -Build -Who <you>",
+  "scenarios": [
+    {
+      "id": "languages",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "formal"
+        },
+        {
+          "do": "value",
+          "path": "0",
+          "id": "pathWidth",
+          "json": "\"wide\""
+        },
+        {
+          "do": "locale",
+          "locale": "de-DE"
+        },
+        {
+          "do": "shot",
+          "name": "park-de-DE",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "es-ES"
+        },
+        {
+          "do": "shot",
+          "name": "park-es-ES",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "fr-FR"
+        },
+        {
+          "do": "shot",
+          "name": "park-fr-FR",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "it-IT"
+        },
+        {
+          "do": "shot",
+          "name": "park-it-IT",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "ja-JP"
+        },
+        {
+          "do": "shot",
+          "name": "park-ja-JP",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "ko-KR"
+        },
+        {
+          "do": "shot",
+          "name": "park-ko-KR",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "pl-PL"
+        },
+        {
+          "do": "shot",
+          "name": "park-pl-PL",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "pt-BR"
+        },
+        {
+          "do": "shot",
+          "name": "park-pt-BR",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "ru-RU"
+        },
+        {
+          "do": "shot",
+          "name": "park-ru-RU",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "zh-HANS"
+        },
+        {
+          "do": "shot",
+          "name": "park-zh-HANS",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "zh-HANT"
+        },
+        {
+          "do": "shot",
+          "name": "park-zh-HANT",
+          "shotMode": "ui"
+        },
+        {
+          "do": "type",
+          "layer": "parking"
+        },
+        {
+          "do": "locale",
+          "locale": "de-DE"
+        },
+        {
+          "do": "shot",
+          "name": "parking-de-DE",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "ja-JP"
+        },
+        {
+          "do": "shot",
+          "name": "parking-ja-JP",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "ru-RU"
+        },
+        {
+          "do": "shot",
+          "name": "parking-ru-RU",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale"
+        }
+      ]
+    }
+  ]
+}

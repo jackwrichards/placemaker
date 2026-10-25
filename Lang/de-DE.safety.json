@@ -1,0 +1,10 @@
+{
+  "Placemaker.Issue.CutoutNotZonable": "Ein Ladengrundstück liegt an keiner Straße, von der das Spiel Zonen ausweist. Es bleibt Teil des Parks.",
+  "Placemaker.Issue.BuildingsKept": "{0} Gebäude stehen im Weg. Sie bleiben: Auf ihren Grundstücken wird nichts gebaut.",
+  "Placemaker.Issue.BuildingsLeftOut": "{0} Teile wurden weggelassen oder gekürzt, um bestehende Gebäude freizuhalten.",
+  "Placemaker.Problem.OnlyBuildings": "Unter dem Pinsel liegt nur, was die Pinselregeln aussparen (Gebäude, andere Bauten, Zonen, Wasser). Woanders malen oder die Regeln ändern.",
+  "Placemaker.Hint.BuildingsKept": "{0} Gebäude in der Auswahl bleiben: Auf ihren Grundstücken wird nichts gebaut.",
+  "Placemaker.Settings.PaintAvoidBuildings": "Malen: Gebäude aussparen",
+  "Placemaker.Settings.PaintAvoidBuildings.Desc": "Einfaches Malen schneidet Gebäudegrundstücke aus der bemalten Fläche aus (beim Malen rot schattiert). Aus = altes Verhalten: Der Umriss überdeckt Gebäude, und der Bau lässt sie trotzdem stehen.",
+  "Placemaker.Why.AreaTooSmall": "Braucht eine größere Fläche (mindestens {0} m²)."
+}

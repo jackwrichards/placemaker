@@ -104,10 +104,25 @@ namespace Placemaker.Game.Preview
             CaptureZoneBlocks(min, max, site.ZoneGrids);
             try { site.LeftHandTraffic = _cityConfig != null && _cityConfig.leftHandTraffic; } catch (Exception) { }
             // Copy: the worker must not see the catalog's dictionary mutate under it.
-            site.Assets = new Dictionary<string, AssetInfo>(Assets());
+            site.Assets = AssetsCopy();
             // s33: the map's terrain paint materials (planners remap their paint intents to these slots).
             site.Terrain = TerrainPaletteReader.Current(_world);
             return site;
+        }
+
+        // (perf) The planners only read it: one copy per catalog version, shared by every capture (each copied the whole catalog).
+        private Dictionary<string, AssetInfo> _assetsCopy;
+        private int _assetsCopyVersion = -1;
+
+        private Dictionary<string, AssetInfo> AssetsCopy()
+        {
+            var live = Assets();
+            if (_assetsCopy == null || _assetsCopyVersion != _assetsVersion || !_assetsReady)
+            {
+                _assetsCopy = new Dictionary<string, AssetInfo>(live);
+                _assetsCopyVersion = _assetsReady ? _assetsVersion : -1;
+            }
+            return _assetsCopy;
         }
 
         /// <summary>Nets around a ring (for attachments of drawn/painted outlines) without the full capture.</summary>

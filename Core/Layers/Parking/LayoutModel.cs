@@ -175,6 +175,13 @@ namespace Placemaker.Core.Layers.Parking
         public List<Lantern> Lanterns = new List<Lantern>();
         public List<Plant> Plants = new List<Plant>();
         public List<SurfacePoly> Surfaces = new List<SurfacePoly>();
+        /// <summary>
+        /// (perf) The nested zone outlines corner by corner: the lot, then each inset as Inset.Of returned it (same corner
+        /// count, edge i parallel to the lot's edge i), so the bands between them tile into one quad per edge
+        /// (SurfaceCells.Build). ZoneChainZones: the zone of each band, then the zone inside the last ring.
+        /// </summary>
+        public List<double2[]> ZoneChain;
+        public int[] ZoneChainZones;
         public List<LayoutIssue> Issues = new List<LayoutIssue>();
         public bool PerimeterRoad;
         public double RowAngleDeg;

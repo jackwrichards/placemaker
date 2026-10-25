@@ -253,15 +253,20 @@ namespace Placemaker.Game.Tool
             // Placemaker never applies: the ghost preview (when shown) needs None to keep its temporaries and asks for a
             // Clear frame only when it replaces them (GhostFrame); the build applies through its own BuildToolSystem.
             applyMode = ApplyMode.None;
+            FrameBegin();
             try
             {
                 GetAvailableSnapMask(out m_SnapOnMask, out m_SnapOffMask);
                 _roads.BeginFrame();
+                FramePart("BeginFrame");
                 PumpPreview();
+                FramePart("PumpPreview");
                 UpdateBuild();
+                FramePart("UpdateBuild");
                 // Build & close: the build service hands the tool back when it is done, then it closes
                 if (_closeAfterBuild && !_building) { _closeAfterBuild = false; Close(); }
                 ReadInput();
+                FramePart("ReadInput");
 
                 if (HandleKeys()) { /* key handled: no tool input this frame */ }
                 else if (_stage == ToolStage.Building) { /* input ignored while building */ }
@@ -280,6 +285,7 @@ namespace Placemaker.Game.Tool
                         case SelectionMode.BlockPaint: if (BrushLive) UpdateBlockPaint(); else { _cursorValid = false; _hoverFace = null; } break;
                     }
                 }
+                FramePart(_markerKind != null ? "Input (markers)" : "Input");
                 FinishFrame();
             }
             catch (Exception e)
@@ -289,6 +295,8 @@ namespace Placemaker.Game.Tool
                 try { CancelGesture(); } catch (Exception) { }
             }
             applyMode = GhostFrame();
+            FramePart("GhostFrame");
+            FrameEnd();
             return inputDeps;
         }
 
@@ -296,18 +304,25 @@ namespace Placemaker.Game.Tool
         {
             CheckKeepOffSetting();
             CheckPolishType();
+            FramePart("Checks");
             RebuildShapeIfDirty(false);
+            FramePart("RebuildShape");
             UpdateLivePolish();
             UpdateGardenPreview();
+            FramePart("Polish, gardens");
             UpdatePlanning();
+            FramePart("UpdatePlanning (site capture)");
             TickPlanningProgress();
             var facts = Facts();
             var normalized = StageMachine.Normalize(_stage, facts);
             if (normalized != _stage) SetStage(normalized);
+            FramePart("Facts, stage");
             ResolveAssets();
+            FramePart("ResolveAssets");
             if (_markerKind != null && (_shape == null || RecipePaths.Resolve(_recipe, _markerPath) == null)) ExitMarkerMode();
             UpdateHintActions();
             UpdateGhostOutline(PreviewModeEffective == PreviewMode.Ghost && !_outgrowMode);
+            FramePart("Hints, ghost outline");
         }
 
         // ───────────── stage ─────────────

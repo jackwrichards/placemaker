@@ -19,6 +19,8 @@ namespace Placemaker.Core.Layers.Common
         /// <summary>Reserved corridors whose tag says they are walkable paths (useful anchors for add-ons).</summary>
         public readonly SegmentIndex Paths = new SegmentIndex(10f);
         private readonly List<float2[]> _polygons = new List<float2[]>();
+        /// <summary>Reserved polygons and site obstacles (read only: HitsPolygon's polygons).</summary>
+        public IReadOnlyList<float2[]> Polygons => _polygons;
         /// <summary>
         /// (s20, optional) Terrain check for placements: (centre, radius) → the ground there can take it (e.g. not steeper
         /// than a bench tolerates). Null = any ground. Set by layers that survey their terrain (water types).
@@ -48,6 +50,16 @@ namespace Placemaker.Core.Layers.Common
                     Paths.Add(c.A, c.B, c.HalfWidth, KindReserved);
             }
             foreach (var p in reserved.Polygons) _polygons.Add(p);
+        }
+
+        /// <summary>
+        /// (perf) Another region's view of the same placed discs and corridors (shared, not copied: what a copy of them made now
+        /// would hold, without rebuilding their grids for every search), with the site's obstacles; no reserved space, no paths.
+        /// </summary>
+        public Occupancy(LayerRegion region, SiteContext site, DiscIndex discs, SegmentIndex corridors) : this(region, null, site)
+        {
+            Discs = discs;
+            Corridors = corridors;
         }
 
         private bool Near(float2 p, float r) =>
@@ -135,21 +147,39 @@ namespace Placemaker.Core.Layers.Common
             var centre = region.Centroid;
             float scale = math.max(10f, math.sqrt(region.Area));
             float bestScore = float.MinValue; bool found = false;
+            // (perf) The clearance is a distance (1-Lipschitz, capped): at most the last computed one along the row plus the way
+            // since. A spot whose best possible score with that bound cannot beat the best so far (or whose bound is below the
+            // radius) is passed over without its clearance search: it would not have been chosen. The same spot either way.
+            float noPathsTerm = pref == Preference.NearPaths && occ.Paths.Count == 0 ? -math.abs(scale - (radius + 3f)) / scale * 3f : 0f;
             for (int y = 0; y <= ny; y++)
+            {
+                float bound = float.PositiveInfinity;
+                float2 last = default;
                 for (int x = 0; x <= nx; x++)
                 {
                     var p = region.Min + new float2(x, y) * step;
                     if (!region.Contains(p)) continue;
-                    float edge = region.BoundaryDistance(p, radius + boundaryMargin + 0.01f);
-                    if (edge < radius + boundaryMargin) continue;
-                    float clear = occ.Clearance(p, radius * 2f + 5f);
-                    if (clear < radius) continue;
+                    // (perf) The cheap tests first (each only skips the spot, so the order does not change the answer).
                     if (avoid != null)
                     {
                         bool tooClose = false;
                         foreach (var a in avoid) if (math.distancesq(a, p) < avoidDistance * avoidDistance) { tooClose = true; break; }
                         if (tooClose) continue;
                     }
+                    if (!region.FarFromOutline(p, radius + boundaryMargin)) continue;   // BoundaryDistance(p, t + 0.01) >= t
+                    if (bound < float.PositiveInfinity)
+                    {
+                        float ub = bound + math.distance(p, last);
+                        float best = math.min(ub, radius * 2f) / math.max(1f, radius) * 0.5f;
+                        if (pref == Preference.Centre) best -= math.distance(p, centre) / scale * 2f;
+                        else if (pref == Preference.Open) best += math.min(ub, radius * 4f) / math.max(1f, radius);
+                        else if (pref == Preference.NearPaths) best += noPathsTerm;
+                        if (ub < radius - 1e-3f || best + 0.0201f < bestScore) { bound = ub; last = p; continue; }
+                    }
+                    float clear = occ.Clearance(p, radius * 2f + 5f);
+                    bound = clear < 0f ? float.PositiveInfinity : clear;   // −1: outside or in an obstacle, no bound from there
+                    last = p;
+                    if (clear < radius) continue;
                     float score = math.min(clear, radius * 2f) / math.max(1f, radius) * 0.5f;
                     switch (pref)
                     {
@@ -168,6 +198,7 @@ namespace Placemaker.Core.Layers.Common
                     score += Hashing.Unit(Hashing.Mix(seed, x, y)) * 0.02f;
                     if (score > bestScore) { bestScore = score; spot = p; found = true; }
                 }
+            }
             return found;
         }
     }

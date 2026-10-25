@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "農地の地表",
+  "Placemaker.Category.surface.crop.soil": "耕した土の地表",
+  "Placemaker.Category.surface.crop.plowed": "鋤いた土の地表",
+  "Placemaker.Category.surface.crop.rows": "作物の畝の地表",
+  "Placemaker.Category.surface.crop.green": "緑の作物の地表",
+  "Placemaker.Category.surface.crop.straw": "麦わら・穀物の地表",
+  "Placemaker.Category.surface.crop.flower": "花咲く作物の地表",
+  "Placemaker.Category.surface.crop.lavender": "ラベンダー色の作物の地表",
+  "Placemaker.Category.surface.crop.yellow": "黄色い作物の地表",
+  "Placemaker.Category.decal.farm": "農道のデカル",
+  "Placemaker.GroundCover.Issue.Painted": "農地の地表がインストールされていないため、畑は代わりに地形に塗られます（元に戻せません）。",
+  "Placemaker.Common.Issue.ObjectBudget": "このデザインには{0}個のオブジェクトが必要でしたが、{1}個前後に収めるため繰り返しのプロップを{2}個間引きました。畑と花壇は代わりに地表として描かれます。"
+}

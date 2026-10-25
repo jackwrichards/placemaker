@@ -1,0 +1,10 @@
+{
+  "Placemaker.Issue.CutoutNotZonable": "Działka sklepu nie przylega do żadnej drogi, od której gra wyznacza strefy. Zostaje dla parku.",
+  "Placemaker.Issue.BuildingsKept": "Na drodze stoi {0} budynków. Zostają: na ich działkach nic nie powstaje.",
+  "Placemaker.Issue.BuildingsLeftOut": "Pominięto lub przycięto {0} części, by trzymać się z dala od istniejących budynków.",
+  "Placemaker.Problem.OnlyBuildings": "Pod farbą są tylko rzeczy, które omijają zasady pędzla (budynki, inne obiekty, strefy, woda). Maluj gdzie indziej albo zmień zasady.",
+  "Placemaker.Hint.BuildingsKept": "{0} budynków w zaznaczeniu zostaje: na ich działkach nic nie powstaje.",
+  "Placemaker.Settings.PaintAvoidBuildings": "Malowanie: omijaj budynki",
+  "Placemaker.Settings.PaintAvoidBuildings.Desc": "Zwykłe malowanie wycina działki budynków z malowanego obszaru (zacienione na czerwono podczas malowania). Wył. = stare zachowanie: obrys obejmuje budynki, a budowa i tak zostawia je na miejscu.",
+  "Placemaker.Why.AreaTooSmall": "Potrzeba większego obszaru (co najmniej {0} m²)."
+}

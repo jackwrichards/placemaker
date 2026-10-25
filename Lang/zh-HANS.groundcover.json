@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "农田表面",
+  "Placemaker.Category.surface.crop.soil": "耕作土壤表面",
+  "Placemaker.Category.surface.crop.plowed": "翻耕土壤表面",
+  "Placemaker.Category.surface.crop.rows": "作物垄表面",
+  "Placemaker.Category.surface.crop.green": "绿色作物表面",
+  "Placemaker.Category.surface.crop.straw": "秸秆／谷物表面",
+  "Placemaker.Category.surface.crop.flower": "开花作物表面",
+  "Placemaker.Category.surface.crop.lavender": "薰衣草色作物表面",
+  "Placemaker.Category.surface.crop.yellow": "黄色作物表面",
+  "Placemaker.Category.decal.farm": "农用小路贴花",
+  "Placemaker.GroundCover.Issue.Painted": "没有安装农田表面，因此田地改为涂刷在地形上（永久性）。",
+  "Placemaker.Common.Issue.ObjectBudget": "此设计需要 {0} 个物体；已减少 {2} 个重复道具，以保持在约 {1} 个。田地和苗床改为以地面表面绘制。"
+}

@@ -22,6 +22,8 @@ namespace Placemaker.Game.Preview
             public int Revision;
             public ComposedPlan Plan;
             public double Milliseconds;
+            /// <summary>(perf) The after-step on the worker (assets), ms.</summary>
+            public double AfterMs;
             /// <summary>Set when planning failed or timed out (plan is then an empty plan carrying the issue).</summary>
             public string FailureKey;
         }
@@ -54,7 +56,7 @@ namespace Placemaker.Game.Preview
         /// Plans <paramref name="recipe"/> over <paramref name="area"/>. The caller must hand over
         /// objects it will not mutate afterwards (a recipe clone, an immutable shape, a fresh site).
         /// </summary>
-        public void Request(int revision, Recipe recipe, AreaShape area, SiteContext site)
+        public void Request(int revision, Recipe recipe, AreaShape area, SiteContext site, Action<ComposedPlan> after = null)
         {
             if (_disposed) return;
             CancellationTokenSource cts;
@@ -74,7 +76,10 @@ namespace Placemaker.Game.Preview
                 try
                 {
                     var plan = Composer.Compose(recipe, area, site, token);
-                    r = new Result { Revision = revision, Plan = plan, Milliseconds = sw.Elapsed.TotalMilliseconds };
+                    double planned = sw.Elapsed.TotalMilliseconds;
+                    // (perf) what the main thread used to do with every plan (assets), still on the worker
+                    if (after != null) { token.ThrowIfCancellationRequested(); after(plan); }
+                    r = new Result { Revision = revision, Plan = plan, Milliseconds = planned, AfterMs = sw.Elapsed.TotalMilliseconds - planned };
                 }
                 catch (OperationCanceledException)
                 {

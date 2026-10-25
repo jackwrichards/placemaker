@@ -150,11 +150,11 @@ const MoneyCard = ({ catalog, state, summary, pending }: { catalog: Catalog; sta
     return (
         <div className={classNames(s.money, { [s.shimmer]: pending })} data-testid="review-numbers">
             <div className={s.moneyRow}>
-                <div className={s.moneyLabel}>{t("Placemaker.UI.Review.Cost", "Cost")}</div>
+                <div className={s.moneyLabel} data-ellipsis>{t("Placemaker.UI.Review.Cost", "Cost")}</div>
                 <div className={classNames(s.moneyValue, { [s.bad]: !summary.canAfford })} data-testid="review-cost">
                     <Money value={summary.cost} />
                 </div>
-                <div className={s.moneyLabel}>{t("Placemaker.UI.Review.Upkeep", "Upkeep")}</div>
+                <div className={s.moneyLabel} data-ellipsis>{t("Placemaker.UI.Review.Upkeep", "Upkeep")}</div>
                 <div className={s.moneyValue} data-testid="review-upkeep">
                     <Money value={summary.upkeep} perMonth />
                 </div>

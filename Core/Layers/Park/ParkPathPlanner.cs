@@ -48,16 +48,26 @@ namespace Placemaker.Core.Layers.Park
         private sealed class Graph
         {
             public readonly List<int>[] Adj;
-            private readonly Dictionary<long, double> _w = new Dictionary<long, double>();
-            public Graph(int n) { Adj = new List<int>[n]; for (int i = 0; i < n; i++) Adj[i] = new List<int>(8); }
+            /// <summary>(perf) The weight of each Adj entry, at the same index (was a dictionary by node pair: most of the roadmap's time).</summary>
+            public readonly List<double>[] W;
+            public Graph(int n)
+            {
+                Adj = new List<int>[n]; W = new List<double>[n];
+                for (int i = 0; i < n; i++) { Adj[i] = new List<int>(8); W[i] = new List<double>(8); }
+            }
             public int Count => Adj.Length;
-            public bool Has(int a, int b) => _w.ContainsKey(Key(a, b));
-            public double Weight(int a, int b) => _w.TryGetValue(Key(a, b), out var w) ? w : 0.0;
+            public bool Has(int a, int b) => Adj[a].IndexOf(b) >= 0;
+            public double Weight(int a, int b) { int k = Adj[a].IndexOf(b); return k >= 0 ? W[a][k] : 0.0; }
             public void Set(int a, int b, double w)
             {
-                long k = Key(a, b);
-                if (_w.TryGetValue(k, out var old)) { if (w < old) _w[k] = w; return; }
-                _w[k] = w; Adj[a].Add(b); Adj[b].Add(a);
+                int k = Adj[a].IndexOf(b);
+                if (k >= 0)
+                {
+                    if (w < W[a][k]) { W[a][k] = w; W[b][Adj[b].IndexOf(a)] = w; }
+                    return;
+                }
+                Adj[a].Add(b); W[a].Add(w);
+                Adj[b].Add(a); W[b].Add(w);
             }
         }
 
@@ -574,11 +584,13 @@ namespace Placemaker.Core.Layers.Park
                 if (done[cur] || d > dist[cur]) continue;
                 done[cur] = true;
                 if (cur != source && targets.Contains(cur)) { destination = cur; break; }
-                foreach (int next in graph.Adj[cur])
+                var adj = graph.Adj[cur]; var weights = graph.W[cur];
+                for (int k = 0; k < adj.Count; k++)
                 {
+                    int next = adj[k];
                     if (done[next]) continue;
                     if (blocked != null && blocked.Contains(Key(cur, next))) continue;
-                    double nd = d + graph.Weight(cur, next);
+                    double nd = d + weights[k];
                     if (nd >= dist[next]) continue;
                     dist[next] = nd; prev[next] = cur; heap.Push(next, nd);
                 }

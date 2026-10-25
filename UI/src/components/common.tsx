@@ -117,7 +117,8 @@ export const Segmented = ({
 }) => (
     <div className={classNames(s.segmented, { [s.stretch]: stretch })} data-testid={testId}>
         {options.map((o) => (
-            <Tip key={o.value} title={o.title ?? (iconOnly ? o.label : undefined)} description={o.description}>
+            // A long label (a translation) may end in "…": then its whole text on hover.
+            <Tip key={o.value} title={o.title ?? (iconOnly || (typeof o.label === "string" && o.label.length > 14) ? o.label : undefined)} description={o.description}>
                 <button
                     type="button"
                     data-testid={testId ? `${testId}-${o.value}` : undefined}
