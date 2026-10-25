@@ -355,8 +355,9 @@
     color: #ffffff;
 }
 
+// the summary takes only the room the name leaves (a long translated name stays whole first)
 .featureSummary {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-width: 0;
     margin-right: 5rem;
     font-size: 11rem;
