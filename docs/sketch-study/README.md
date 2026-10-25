@@ -45,3 +45,20 @@ dotnet run -c Release --project Tests/Placemaker.Gallery -- --out <dir> --only p
 node tools/sketch-mockups/render.js <dir>/parking/square-preset-standard-1.7ha.plan.json site > parking.svg
 node tools/sketch-mockups/png.js parking.svg
 ```
+
+## Built: the site plan (25 Oct, the user chose it)
+
+- `Core/Build/SitePlan.cs`: one list of what to draw (fills per material, roads and paths at their real width, stalls as
+  painted lines, crowns at their growth stage's size, plots, furniture, entrances, red issues) and its legend rows, in
+  metres. Tested by `Tests/Placemaker.Tests/SitePlanTests.cs`.
+- The map: `Game/Overlay/PlacemakerOverlaySystem.SitePlan.cs`, behind the setting Sketch style (Site plan by default;
+  Classic is the old sketch). The site gets a soft lawn ground instead of the blue selection haze (the user). Under the
+  Real preview only the ground stays (asphalt, paths, lawn, plots, flat road ends), so car parks and new roads show
+  there too; the cyan outlines in Real are the game's own.
+- The panel: binding `sitePlan` (`Game/UI/PlacemakerUISystem.cs`), `UI/src/components/SitePlanCard.tsx`: a top view
+  beside the panel in Design, in Review's What you get; hover = notes (counts where things are, size, scale); a row
+  hovered = only that thing here and on the map; click = a large view. Its legend replaces the legend window.
+- Seen in the game runner: runs `send-siteplan-look-1025-160055`, `send-siteplan-ui-1025-161620`,
+  `send-siteplan-real-1025-162701` (parking, park, strip mall, roads; circle, triangle, T). `board/board.png`.
+- Mock: `UI/mock/tests/siteplan.spec.ts` (T, triangle, circle, field, strip mall on the real Core host).
+- Not done: the terrain heat map is unchanged (a little quieter); notes can sit close together near the middle.
