@@ -333,6 +333,8 @@
   "Placemaker.Settings.RedoAltBinding.Desc": "Second key for redo.",
   "Placemaker.Settings.ResetKeys": "Reset keys",
   "Placemaker.Settings.ResetKeys.Desc": "Restore Placemaker's default keys.",
+  "Placemaker.Settings.ExportOutgrowSettings": "Export Outgrow settings",
+  "Placemaker.Settings.ExportOutgrowSettings.Desc": "Saves every outgrow type and zone pick to a file (outgrow-settings.json) and shows it.",
   "Placemaker.Settings.RemoveEverything": "Remove everything Placemaker built",
   "Placemaker.Settings.RemoveEverything.Desc": "Removes every park, plaza, parking lot and road area built with Placemaker in this city.",
   "Placemaker.Settings.RemoveEverything.Warning": "Remove everything Placemaker built in this city? This cannot be undone.",

@@ -144,6 +144,8 @@ namespace Placemaker.Game.Tool
         /// <summary>For the game runner: a setting of the look as the rows have it; the changes Polish would give.</summary>
         public float PolishKnobValue(string id) => _lookValues.TryGetValue(id, out var v) ? v : float.NaN;
         public Dictionary<string, float> PolishChanges => LookChanges();
+        /// <summary>The editor's rows when they are not saved (Export Outgrow settings): the look picked, its base theme, every value.</summary>
+        public (string Look, string Theme, Dictionary<string, float> Values)? UnsavedLook() => LookChanges() == null ? null : ((string, string, Dictionary<string, float>)?)(PainterLook, _lookTheme, new Dictionary<string, float>(_lookValues));
 
         /// <summary>A look row of the polish tool ("theme": the base theme's index).</summary>
         public void SetPolishKnob(string id, double value)

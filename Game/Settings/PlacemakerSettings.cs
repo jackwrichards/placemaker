@@ -278,6 +278,25 @@ namespace Placemaker.Game.Settings
 
         // ───────────── Maintenance ─────────────
 
+        /// <summary>Every Outgrow setting written to ModsData/Placemaker/outgrow-settings.json, shown in Explorer (to make them
+        /// the mod's defaults: NeighbourPolishSystem.ExportSettings).</summary>
+        [SettingsUISection(SectionMain, GroupMaintenance)]
+        [SettingsUIButton]
+        public bool ExportOutgrowSettings
+        {
+            set
+            {
+                try
+                {
+                    var tool = Unity.Entities.World.DefaultGameObjectInjectionWorld?.GetExistingSystemManaged<global::Placemaker.Game.Tool.PlacemakerToolSystem>();
+                    var path = global::Placemaker.Game.Neighbours.NeighbourPolishSystem.ExportSettings(this, tool?.UnsavedLook());
+                    Mod.Log.Info("Placemaker: Outgrow settings exported to " + path);
+                    System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + path + "\"");
+                }
+                catch (Exception e) { Mod.Log.Error(e, "Placemaker: exporting the Outgrow settings failed"); }
+            }
+        }
+
         [SettingsUISection(SectionMain, GroupMaintenance)]
         [SettingsUIButton]
         [SettingsUIConfirmation]
