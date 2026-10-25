@@ -1,0 +1,200 @@
+@use "../styles/tokens" as *;
+
+// The style you are editing (StyleCard.tsx): one card, its head the lit Style chip again (same tint and border), its body
+// Parameters (or Zoning) and Add-ons. Gameface: flexbox + margins only.
+
+$accent: #8fd1ff;
+
+.card {
+    @include col;
+    position: relative;
+    min-width: 0;
+    margin-top: 10rem;
+    border-radius: $radius;
+    background-color: rgba(143, 209, 255, 0.03);
+    @include border(1rem, rgba(143, 209, 255, 0.45));
+}
+
+// unsaved changes: the frame warms up (the ● on the head and on the lit chip say the same)
+.cardChanged {
+    @include border-color(rgba(255, 181, 71, 0.6));
+    .head {
+        background-color: rgba(255, 181, 71, 0.1);
+    }
+}
+
+.plain {
+    @include col;
+    min-width: 0;
+}
+
+// ── the head: ✎ · tile · name · ● · Undo · Save over · Save as new · shuffle · ⋯ ──
+.head {
+    @include row;
+    min-width: 0;
+    min-height: 34rem;
+    padding: 3rem 4rem 3rem 8rem;
+    border-radius: $radius $radius 0 0;
+    background-color: rgba(143, 209, 255, 0.12);
+    border-bottom-width: 1rem;
+    border-bottom-style: solid;
+    border-bottom-color: rgba(143, 209, 255, 0.25);
+}
+
+.headWrap {
+    flex-wrap: wrap;
+}
+
+.tile {
+    flex-shrink: 0;
+    margin-left: 7rem;
+}
+
+.name {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-left: 6rem;
+    font-size: $fs;
+    font-weight: bold;
+    color: #ffffff;
+    @include ellipsis;
+}
+
+.dot {
+    flex-shrink: 0;
+    width: 7rem;
+    height: 7rem;
+    margin-left: 6rem;
+    border-radius: 4rem;
+    background-color: $c-warning;
+}
+
+.flex {
+    flex: 1 1 auto;
+    min-width: 4rem;
+}
+
+.btn {
+    flex-shrink: 0;
+    height: 22rem;
+    margin-left: 2rem;
+    padding: 0 6rem 0 5rem;
+}
+
+.icon {
+    flex-shrink: 0;
+    width: 22rem;
+    height: 22rem;
+    margin-left: 1rem;
+}
+
+// naming a new style or renaming one, in the head
+.nameLabel {
+    flex-shrink: 0;
+    margin-right: 6rem;
+    font-size: 11rem;
+    color: $c-text-dim;
+    white-space: nowrap;
+}
+
+.nameInput {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 22rem;
+    padding: 0 6rem;
+    border-radius: $radius-s;
+    @include border(1rem, $c-line-strong);
+    background-color: $c-shade;
+    font-size: $fs-s;
+    font-family: var(--fontFamily);
+    color: #ffffff;
+    outline-width: 0;
+}
+
+// the ⋯ actions, side by side in the head
+.menuItem {
+    @include row;
+    @include button-reset;
+    flex-shrink: 0;
+    height: 22rem;
+    margin: 1rem 3rem 1rem 0;
+    padding: 0 7rem 0 6rem;
+    border-radius: $radius-s;
+    background-color: rgba(255, 255, 255, 0.06);
+    &:hover {
+        background-color: $c-surface-hover;
+    }
+}
+
+.menuText {
+    margin-left: 5rem;
+    font-size: $fs-s;
+    white-space: nowrap;
+}
+
+.menuDanger .menuText {
+    color: $c-danger;
+}
+
+.exported {
+    @include col;
+    min-width: 0;
+    padding: 3rem 6rem 5rem 8rem;
+    border-bottom-width: 1rem;
+    border-bottom-style: solid;
+    border-bottom-color: $c-line;
+}
+
+.exportedHead {
+    @include row;
+    min-width: 0;
+}
+
+.exportedNote {
+    flex: 1 1 auto;
+    margin-left: 6rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
+    @include ellipsis;
+}
+
+.path {
+    margin-top: 2rem;
+    font-size: 11rem;
+    color: $c-text-faint;
+    word-break: break-all;
+}
+
+// ── the body: Parameters (or Zoning), then Add-ons ──
+.body {
+    @include col;
+    min-width: 0;
+    padding: 0 6rem 6rem 6rem;
+}
+
+// one light line per part, the same for each: icon · TITLE · rule · (didn't fit)
+.subHead {
+    @include row;
+    min-width: 0;
+    height: 18rem;
+    margin: 8rem 0 4rem 2rem;
+}
+
+.subTitle {
+    flex-shrink: 0;
+    margin-left: 5rem;
+    font-size: 10rem;
+    font-weight: bold;
+    letter-spacing: 0.6rem;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap;
+}
+
+.subRule {
+    flex: 1 1 auto;
+    min-width: 6rem;
+    height: 1rem;
+    margin: 0 4rem 0 8rem;
+    background-color: $c-line;
+}

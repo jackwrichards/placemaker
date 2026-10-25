@@ -32,7 +32,7 @@ test("browser: categories ▸ types ▸ presets; clicking a preset applies it; t
     expect(await backend(page, "b.root.values.style")).toBe("meadow");
     await expect(page.getByTestId("preset-bar-name")).toHaveText("Wild meadow");
     await expect(page.getByTestId("preset-modified")).toHaveCount(0);
-    await expect(page.getByTestId("preset-save")).toHaveCount(0);
+    await expect(page.getByTestId("preset-save")).toHaveAttribute("aria-disabled", "true");
 
     // Standard is a style like the others: picked again any time (it was "Default", which could not be reselected)
     await park.getByTestId("preset-standard").click();

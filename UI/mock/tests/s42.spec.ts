@@ -82,10 +82,10 @@ test("s42 editing bar: unsaved changes, undo changes, save as new from the strip
     await page.getByTestId("primary").click();
     await pickType(page, "park");
     await waitPlanned(page);
-    await expect(page.getByTestId("preset-revert")).toHaveCount(0);
+    await expect(page.getByTestId("preset-revert")).toHaveAttribute("aria-disabled", "true");
     await page.getByTestId("randomize").click();
     await waitPlanned(page);
-    await expect(page.getByTestId("preset-modified")).toContainText("Unsaved changes");
+    await expect(page.getByTestId("preset-modified")).toBeVisible();
     await panelShot(page, "s42-editing-modified");
     await page.getByTestId("preset-revert").click();
     await expect(page.getByTestId("preset-modified")).toHaveCount(0);

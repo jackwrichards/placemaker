@@ -1,5 +1,5 @@
 // The Design page reads as one story, top to bottom (user 2026-10-20: "the whole font should match ... it should tell a
-// story"): Placemaker library → Add entrances → Parameters (or Zoning, add-ons included). Every section opens with this one
+// story"): Placemaker library → the style card (Parameters or Zoning, Add-ons) → Entrances. Every section opens with this one
 // header line, the same everywhere: a round icon badge · TITLE · count · a short note · hairline rule · its buttons.
 import React, { ReactNode } from "react";
 import classNames from "classnames";
