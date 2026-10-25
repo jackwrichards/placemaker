@@ -5,8 +5,11 @@
 // PolishCitySwitches) and read back when it loads. A new city, or one saved without them, starts with all four off and
 // Outgrow running. Nothing ever switches them by itself.
 //
-// The master switch off pauses Outgrow: no building is newly given a look (new buildings, zoned areas), nothing is planned
-// or written, and nothing is put back. What the painter stamps meanwhile is kept and fitted once it is on again.
+// The master switch shows or hides Outgrow (the user, 25 Oct: "a hide and show switch ... and then reset all the buildings
+// to their default zone type"). Off: every outgrown building is put back as the game made it, a few a frame, but keeps its
+// flag and outgrow type; nothing is planned or written while it is off. On: every one of them is planned again, a patch of
+// town a frame. New buildings always get their zone type's outgrow type ("Off": none), also while it is off: the type is
+// the setting, the switch only shows it. (The "new buildings" switch is no longer the player's: always on.)
 
 using Game.Common;
 using Unity.Collections;
@@ -59,13 +62,33 @@ namespace Placemaker.Game.Neighbours
             Mod.Log.Info($"Placemaker neighbourhood polish: outgrow again when the game removes a building nearby {(on ? "on" : "off")} (this city)");
         }
 
-        /// <summary>The master switch for this city (saved with it): off pauses Outgrow and puts nothing back.</summary>
+        /// <summary>The master switch for this city (saved with it): off hides Outgrow (every outgrown building put back, its
+        /// type kept), on shows it again (every one planned again).</summary>
         public static void SetRunning(bool on)
         {
             if (Paused == !on) return;
             Paused = !on;
             s_switchesDirty = true;
-            Mod.Log.Info($"Placemaker neighbourhood polish: Outgrow {(on ? "running" : "paused")} (this city)");
+            if (on) { s_hideAll = false; Redo(); } else s_hideAll = true;
+            Mod.Log.Info($"Placemaker neighbourhood polish: Outgrow {(on ? "shown: every outgrown building planned again" : "hidden: every outgrown building put back, its type kept")} (this city)");
+        }
+
+        private static bool s_hideAll;
+
+        /// <summary>Hidden: every outgrown building put back as the game made it, its flag and type kept (DrainRestores).</summary>
+        private void StartHideAll()
+        {
+            s_hideAll = false;
+            _passBuild = null;
+            int n = 0;
+            using (var all = _growables.ToEntityArray(Allocator.Temp))
+                foreach (var e in all)
+                    if (IsYes(e)) { _restoreQueue.Add(e); n++; }
+            _dirty.Clear();
+            _first.Clear();
+            _described.Clear();
+            _removeAllCount = 0;
+            Mod.Log.Info($"Placemaker neighbourhood polish: Outgrow hidden, {n} outgrown buildings to put back (they keep their types).");
         }
 
         private void CreateSwitchesQuery()
@@ -88,7 +111,7 @@ namespace Placemaker.Game.Neighbours
         {
             _switchesRead = false;
             s_switchesDirty = false;
-            PolishNew = false;
+            PolishNew = true;
             Paused = false;
             PolishLevelUps = PolishGameChanges = PolishGameRemovals = false;
         }
@@ -104,7 +127,7 @@ namespace Placemaker.Game.Neighbours
                 {
                     using (var all = _switches.ToComponentDataArray<PolishCitySwitches>(Allocator.Temp))
                     {
-                        PolishNew = all.Length > 0 && all[0].NewBuildings;
+                        PolishNew = true;   // (always: a zone set to Off gives its new buildings none)
                         Paused = all.Length > 0 && all[0].Paused;
                         PolishLevelUps = all.Length > 0 && all[0].LevelUps;
                         PolishGameChanges = all.Length > 0 && all[0].GameChanges;

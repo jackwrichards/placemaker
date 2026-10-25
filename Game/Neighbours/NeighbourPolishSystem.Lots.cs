@@ -187,6 +187,7 @@ namespace Placemaker.Game.Neighbours
             if (s_polishAll) StartPolishAll();
             ApplyStamps();
             if (s_removeAll) StartRemoveAll();
+            if (s_hideAll) StartHideAll();
             DrainRestores();
             UpdateStatus();
         }
@@ -248,7 +249,7 @@ namespace Placemaker.Game.Neighbours
                 foreach (var e in all)
                 {
                     if (!IsGrowable(e) || !InScope(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab, s_polishScope)) continue;
-                    if (s_polishAllTheme == 0 && LookOfZone(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab) == "off") { off++; continue; }
+                    if (s_polishAllTheme == 0 && LookOfZone(EntityManager.GetComponentData<PrefabRef>(e).m_Prefab) == "off") { if (IsYes(e)) s_stamps.Add((e, false, "zone", null)); off++; continue; }
                     s_stamps.Add((e, true, s_polishAllTheme > 0 && s_polishAllTheme < ThemeNames.Length ? ThemeNames[s_polishAllTheme] : "zone", null));
                     n++;
                 }
@@ -336,7 +337,7 @@ namespace Placemaker.Game.Neighbours
                     // a new lot: polished when Outgrow runs and new buildings are on (both this city's), unless its zone's
                     // look is Off; paused: no new lot outgrows (a replaced building still keeps its flag)
                     var zoneLook = LookOfZone(prefab);
-                    bool yes = FeatureEnabled && !Paused && PolishNew && zoneLook != "off";
+                    bool yes = FeatureEnabled && zoneLook != "off";   // (hidden too: shown once Outgrow is on)
                     bool carried = false;
                     for (int k = _goneFlags.Count - 1; k >= 0; k--)
                     {
@@ -435,9 +436,11 @@ namespace Placemaker.Game.Neighbours
             var stamps = s_stamps.GetRange(0, take);
             s_stamps.RemoveRange(0, take);
             int yes = 0, no = 0, restored = 0;
-            foreach (var (lot, y, lookId, changes) in stamps)
+            foreach (var (lot, yes0, lookId, changes) in stamps)
             {
                 if (!EntityManager.Exists(lot) || EntityManager.HasComponent<Deleted>(lot) || !IsGrowable(lot)) continue;
+                // ("zone": its zone type's outgrow type, and a zone set to Off has none: the lot is put back)
+                bool y = yes0 && !(lookId == "zone" && LookOfZone(EntityManager.GetComponentData<PrefabRef>(lot).m_Prefab) == "off");
                 if (y) StampLook(lot, lookId, changes); else SetFlag(lot, false);
                 _described.Remove(lot);
                 if (y)

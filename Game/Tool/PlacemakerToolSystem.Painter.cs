@@ -400,7 +400,7 @@ namespace Placemaker.Game.Tool
         }
 
         // Global outgrow's status lens: on while the window is open and its switch is on; its map: "status" or "types"
-        private bool _cityOpen, _lensWanted = true;
+        private bool _cityOpen, _lensWanted;
         private string _lensMode = "status";
         /// <summary>The status lens is drawn (PlacemakerOverlaySystem).</summary>
         public bool OutgrowLens => _cityOpen && _lensWanted;
@@ -435,7 +435,7 @@ namespace Placemaker.Game.Tool
             if (_brush > 0)
             {
                 // "zone": every building painted gets its zone type's default outgrow type
-                if (look != "zone" && NeighbourPolishSystem.LookById(look) == null) { _brush = 0; Touch(); return; }
+                if (look != "zone" && look != "off" && NeighbourPolishSystem.LookById(look) == null) { _brush = 0; Touch(); return; }
                 _brushLook = look;
             }
             _brushDown = false;
@@ -495,7 +495,8 @@ namespace Placemaker.Game.Tool
             {
                 var settings = global::Placemaker.Game.Tool.ToolRegistration.Settings;
                 if (_brush > 0 && settings != null && !settings.NeighbourhoodPolish) { settings.NeighbourhoodPolish = true; settings.ApplyAndSave(); }
-                NeighbourPolishSystem.Stamp(new List<Entity>(_brushHits), _brush > 0, _brush > 0 ? _brushLook : "zone", null);
+                // (paint: the type picked, "off" puts them back; erase: each its zone's type again, an Off zone's none)
+                NeighbourPolishSystem.Stamp(new List<Entity>(_brushHits), !(_brush > 0 && _brushLook == "off"), _brush > 0 && _brushLook != "off" ? _brushLook : "zone", null);
                 LastStamp = (_brushHits.Count, _brush > 0);
                 Mod.Log.Info($"Placemaker outgrow brush: {_brushHits.Count} buildings {(_brush > 0 ? "outgrown as " + _brushLook : "put back")}");
             }

@@ -1,0 +1,24 @@
+{
+  "_about": "The simplified Outgrow window (25 Oct): one switch that shows or hides Outgrow (every building keeps its type), one status line, the brush (Off is a type), the Zones and Edit types tabs, Reset all at the bottom. A street grows and is outgrown; the window; the switch off (gardens go, the window says hidden); on again (they come back); the Edit types tab. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-window.json -Who outgrow-window",
+  "scenarios": [
+    {
+      "id": "outgrow-window",
+      "land": { "shape": "rect", "size": [300, 240], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 220, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 60 },
+        { "do": "lab", "op": "polishIdle", "seconds": 60 },
+        { "do": "polish", "stamp": "pick" },
+        { "do": "polish", "click": "panel-mode-outgrow", "shot": "window-shown", "shotMode": "ui" },
+        { "do": "polish", "click": "polish-on" },
+        { "do": "lab", "op": "polishIdle", "seconds": 30 },
+        { "do": "shot", "name": "window-hidden", "shotMode": "ui" },
+        { "do": "polish", "click": "polish-on" },
+        { "do": "lab", "op": "polishIdle", "seconds": 60 },
+        { "do": "shot", "name": "window-shown-again", "shotMode": "ui" },
+        { "do": "polish", "click": "polish-city-tab-edit", "shot": "window-edit", "shotMode": "ui" }
+      ]
+    }
+  ]
+}
