@@ -66,6 +66,8 @@ In the game's Mono on the plain 6-corner site: **strip mall ~4.0 s with ~40 garb
 open-addressing cell table. Same results in the same order: **78 of 78 signatures identical** (park, parking, mall park,
 strip mall, botanical garden, 5 and 12.5 ha). Park 12.5 ha .NET: default 346 → 160 ms, garden 608 → 293, greenway
 362 → 169; botanical garden 821 → 505; mall park 570 → 410. [P, `base-park` vs `grid-park`]
+In the game's Mono with a 1200-corner outline the gain is only 15–20 % (park default 3344 → 2836 ms, garden 4614 → 3701):
+there the outline's corners dominate, so 1.4 item 1 comes first. [P, `planmono` vs `planmono-grid`, tests running alongside]
 
 ### 1.4 The road to 100× for the design phase
 

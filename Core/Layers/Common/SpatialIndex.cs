@@ -15,7 +15,7 @@ namespace Placemaker.Core.Layers.Common
         public struct Item { public float2 P; public float R; public int Kind; }
 
         private readonly float _cell;
-        private readonly Dictionary<long, List<int>> _cells = new Dictionary<long, List<int>>();
+        private readonly CellMap _cells = new CellMap();
         public readonly List<Item> Items = new List<Item>();
         public float MaxRadius { get; private set; }
 
@@ -27,9 +27,7 @@ namespace Placemaker.Core.Layers.Common
             Items.Add(new Item { P = p, R = r, Kind = kind });
             MaxRadius = math.max(MaxRadius, r);
             var c = Cell(p);
-            var key = Key(c.x, c.y);
-            if (!_cells.TryGetValue(key, out var list)) _cells[key] = list = new List<int>(4);
-            list.Add(id);
+            _cells.Add(c.x, c.y, id);
             return id;
         }
 
@@ -41,7 +39,7 @@ namespace Placemaker.Core.Layers.Common
             var lo = Cell(p - reach); var hi = Cell(p + reach);
             for (int y = lo.y; y <= hi.y; y++)
                 for (int x = lo.x; x <= hi.x; x++)
-                    if (_cells.TryGetValue(Key(x, y), out var list)) into.AddRange(list);
+                    for (int e = _cells.First(x, y); e >= 0; e = _cells.Next(e)) into.Add(_cells.Item(e));
         }
 
         /// <summary>True when a disc (p, r) plus <paramref name="gap"/> overlaps any item.</summary>
@@ -52,10 +50,9 @@ namespace Placemaker.Core.Layers.Common
             for (int y = lo.y; y <= hi.y; y++)
                 for (int x = lo.x; x <= hi.x; x++)
                 {
-                    if (!_cells.TryGetValue(Key(x, y), out var list)) continue;
-                    foreach (int i in list)
+                    for (int e = _cells.First(x, y); e >= 0; e = _cells.Next(e))
                     {
-                        var it = Items[i];
+                        var it = Items[_cells.Item(e)];
                         float d = r + it.R + gap;
                         if (math.distancesq(p, it.P) < d * d) return true;
                     }
@@ -72,10 +69,9 @@ namespace Placemaker.Core.Layers.Common
             for (int y = lo.y; y <= hi.y; y++)
                 for (int x = lo.x; x <= hi.x; x++)
                 {
-                    if (!_cells.TryGetValue(Key(x, y), out var list)) continue;
-                    foreach (int i in list)
+                    for (int e = _cells.First(x, y); e >= 0; e = _cells.Next(e))
                     {
-                        var it = Items[i];
+                        var it = Items[_cells.Item(e)];
                         best = math.min(best, math.distance(p, it.P) - it.R);
                     }
                 }
@@ -83,7 +79,6 @@ namespace Placemaker.Core.Layers.Common
         }
 
         private int2 Cell(float2 p) => (int2)math.floor(p / _cell);
-        private static long Key(int x, int y) => ((long)x << 32) ^ (uint)y;
     }
 
     /// <summary>Segments with half widths (paths, fences, reserved corridors).</summary>
@@ -92,7 +87,7 @@ namespace Placemaker.Core.Layers.Common
         public struct Seg { public float2 A, B; public float HalfWidth; public int Kind; }
 
         private readonly float _cell;
-        private readonly Dictionary<long, List<int>> _cells = new Dictionary<long, List<int>>();
+        private readonly CellMap _cells = new CellMap();
         public readonly List<Seg> Segments = new List<Seg>();
         private int[] _stamp = new int[64];
         private int _stampValue;
@@ -114,9 +109,7 @@ namespace Placemaker.Core.Layers.Common
                 {
                     var centre = (new float2(x, y) + 0.5f) * _cell;
                     if (DistSq(centre, a, b) > reach * reach) continue;
-                    var key = Key(x, y);
-                    if (!_cells.TryGetValue(key, out var list)) _cells[key] = list = new List<int>(4);
-                    list.Add(id);
+                    _cells.Add(x, y, id);
                 }
         }
 
@@ -145,9 +138,9 @@ namespace Placemaker.Core.Layers.Common
             for (int y = lo.y; y <= hi.y; y++)
                 for (int x = lo.x; x <= hi.x; x++)
                 {
-                    if (!_cells.TryGetValue(Key(x, y), out var list)) continue;
-                    foreach (int i in list)
+                    for (int e = _cells.First(x, y); e >= 0; e = _cells.Next(e))
                     {
+                        int i = _cells.Item(e);
                         if (_stamp[i] == _stampValue) continue;
                         _stamp[i] = _stampValue;
                         best = math.min(best, Dist(p, i));
@@ -191,6 +184,59 @@ namespace Placemaker.Core.Layers.Common
         }
 
         private int2 Cell(float2 p) => (int2)math.floor(p / _cell);
-        private static long Key(int x, int y) => ((long)x << 32) ^ (uint)y;
+    }
+
+    /// <summary>
+    /// (perf) Grid cell → its items, in the order added: an open-addressing table of cells, each a chain of entries in flat
+    /// arrays. The Dictionary of Lists it replaces was a third of a park's planning time (most of it in the lookups, slower
+    /// still in the game's Mono).
+    /// </summary>
+    internal sealed class CellMap
+    {
+        private int[] _kx = new int[64], _ky = new int[64], _head = new int[64], _tail = new int[64];
+        private int _used;
+        private int[] _item = new int[64], _next = new int[64];
+        private int _entries;
+
+        public CellMap() { for (int i = 0; i < _head.Length; i++) _head[i] = -1; }
+
+        public void Add(int x, int y, int item)
+        {
+            if ((_used + 1) * 2 > _head.Length) Grow();
+            int s = Slot(x, y);
+            if (_head[s] < 0) { _kx[s] = x; _ky[s] = y; _used++; }
+            if (_entries == _item.Length) { Array.Resize(ref _item, _entries * 2); Array.Resize(ref _next, _entries * 2); }
+            int e = _entries++;
+            _item[e] = item; _next[e] = -1;
+            if (_head[s] < 0) _head[s] = e; else _next[_tail[s]] = e;
+            _tail[s] = e;
+        }
+
+        /// <summary>The cell's first entry, -1 when empty; walk on with Next, read with Item.</summary>
+        public int First(int x, int y) => _head[Slot(x, y)];
+        public int Next(int e) => _next[e];
+        public int Item(int e) => _item[e];
+
+        private int Slot(int x, int y)
+        {
+            int mask = _head.Length - 1;
+            int s = (int)((uint)(x * 73856093 ^ y * 19349663) * 2654435769u >> 7) & mask;
+            while (_head[s] >= 0 && (_kx[s] != x || _ky[s] != y)) s = (s + 1) & mask;
+            return s;
+        }
+
+        private void Grow()
+        {
+            int[] kx = _kx, ky = _ky, head = _head, tail = _tail;
+            int n = head.Length * 2;
+            _kx = new int[n]; _ky = new int[n]; _head = new int[n]; _tail = new int[n];
+            for (int i = 0; i < n; i++) _head[i] = -1;
+            for (int i = 0; i < head.Length; i++)
+            {
+                if (head[i] < 0) continue;
+                int s = Slot(kx[i], ky[i]);
+                _kx[s] = kx[i]; _ky[s] = ky[i]; _head[s] = head[i]; _tail[s] = tail[i];
+            }
+        }
     }
 }
