@@ -725,7 +725,7 @@ namespace Placemaker.Core.Neighbours
             }
             T("share");
             Stage("share");
-            if (s.Knob("separate", 1f) > 0.5f) Separate(houses, plots, touched, plan);
+            if (s.Knob("separate", 1f) > 0.5f) Separate(houses, plots, touched, plan, s.Knob("separateKept", 1f) > 0.5f ? kept : null);
             T("separate");
             if (s.Knob("trimSlivers", 1f) > 0.5f && !emergent) TrimSlivers(houses, plots, touched, s, plan);
             T("trimSlivers");
@@ -3896,14 +3896,14 @@ namespace Placemaker.Core.Neighbours
         /// ran, pieces made and taken away each time (fences and outlines flickering). Other lots are cut out (the house's own
         /// lot always stays); land two of these gardens share goes to the house it is nearer.
         /// </summary>
-        private static void Separate(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchPlan plan)
+        private static void Separate(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchPlan plan, float2[][] kept = null)
         {
             int n = houses.Count;
             bool Mine(int i) => touched[i] && houses[i].Edit && houses[i].Polished && plots[i] != null && plots[i].Length >= 3;
             var lots = new float2[n][];
             var lotLo = new float2[n];
             var lotHi = new float2[n];
-            for (int j = 0; j < n; j++) { lots[j] = Ccw(Lot(houses[j])); Poly.Bounds(lots[j], out lotLo[j], out lotHi[j]); }
+            for (int j = 0; j < n; j++) { lots[j] = Ccw(kept?[j] ?? Lot(houses[j])); Poly.Bounds(lots[j], out lotLo[j], out lotHi[j]); }
             float2[] Keep(List<Region> parts, int i)
             {
                 var withLot = Poly.Boolean(parts, new List<Region> { new Region(lots[i]) }, BoolOp.Union);
