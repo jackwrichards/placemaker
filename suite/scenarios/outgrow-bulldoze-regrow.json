@@ -1,0 +1,400 @@
+{
+  "_about": "As outgrow-bulldoze-bootcamp, then the game grows new houses on the bulldozed lots (the zoning is still there) and Outgrow plans them and their neighbours: the gardens that had taken the empty lot meet a new house. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-bulldoze-regrow.json -Who outgrow-bulldoze -Fresh",
+  "scenarios": [
+    {
+      "id": "outgrow-bulldoze-regrow",
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "loadCity",
+          "name": "PM Bootcamp"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 60
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "classic": 1
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 3000,
+          "label": "regrow"
+        },
+        {
+          "do": "shot",
+          "name": "circles-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3104,
+              47
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "blocks-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              4866,
+              -110
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "triangles-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              5296,
+              -145
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "wedges-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              6332,
+              -106
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "curves-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3848,
+              -201
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "grid-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              2358,
+              -91
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            3104,
+            47
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            4866,
+            -110
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            5296,
+            -145
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            6332,
+            -106
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            3848,
+            -201
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            2358,
+            -91
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "outgrowFrames",
+          "seconds": 20,
+          "speed": 1,
+          "outgrow": true
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 90
+        },
+        {
+          "do": "grow",
+          "seconds": 90
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "shot",
+          "name": "circles-regrown",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3104,
+              47
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "circles-regrown-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3104,
+              47
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "shot",
+          "name": "blocks-regrown",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              4866,
+              -110
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "blocks-regrown-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              4866,
+              -110
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "shot",
+          "name": "triangles-regrown",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              5296,
+              -145
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "triangles-regrown-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              5296,
+              -145
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "shot",
+          "name": "wedges-regrown",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              6332,
+              -106
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "wedges-regrown-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              6332,
+              -106
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "shot",
+          "name": "curves-regrown",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3848,
+              -201
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "curves-regrown-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3848,
+              -201
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "shot",
+          "name": "grid-regrown",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              2358,
+              -91
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "grid-regrown-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              2358,
+              -91
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 0,
+          "label": "off"
+        }
+      ]
+    }
+  ]
+}
