@@ -474,7 +474,7 @@ const TypeChips = ({ p, zoneChip, testId = "polish-themes" }: { p: PainterState;
             name={lookName(t, p, l.id)}
             on={p.theme === l.id}
             description={l.custom ? t("Placemaker.UI.Polish.YourType", "Yours, planted like {0}", [lookName(t, p, l.theme)]) : t("Placemaker.UI.Painter.ThemeTip." + l.id, "")}
-            count={p.stats?.looks?.[l.id] !== undefined ? num(p.stats.looks[l.id]) : undefined}
+            count={p.stats?.looks?.[l.id]}
             badge={(p.theme === l.id && p.modified) || l.edited ? <div className={b.dot} /> : null}
             onClick={() => act.polishTheme(l.id)}
         />
