@@ -539,10 +539,6 @@ namespace Placemaker.Core.Neighbours
             var reachR = emergent ? new List<float2>[n] : null;
             // and as far as it may grow into land another garden reaches too (land between houses is shared, wherever it is)
             var reachW = emergent ? new List<float2>[n] : null;
-            // the same garden not ended by the street behind it: what the spike test below measures (a street at an angle to the
-            // lot's back narrows the garden toward its end, which is no spike)
-            var unended = new List<float2>[n];
-            bool streetEnd = s.Knob("streetEnd", 0f) > 0.5f;
             for (int i = 0; i < n; i++)
             {
                 var h = houses[i];
@@ -578,14 +574,7 @@ namespace Placemaker.Core.Neighbours
                     foreach (var c in cuts[i]) if (!c.Pair || c.Side) wide = ClipHalfPlane(wide, c.P, c.D, c.Keep ?? FrontMid(h));
                     reachW[i] = wide;
                 }
-                if (!streetEnd || backHug[i] == null) continue;
-                // (a free side hugging the same street: a row's end lot meets it with its side and its back)
-                var o = rect;
-                foreach (var c in cuts[i]) if (!AlongStreet(c, backHug[i])) o = ClipHalfPlane(o, c.P, c.D, c.Keep ?? FrontMid(h));
-                unended[i] = o;
             }
-            static bool AlongStreet(Cut c, Cut street) =>
-                c == street || math.abs(c.D.x * street.D.y - c.D.y * street.D.x) < 0.09f && math.abs(street.D.x * (c.P.y - street.P.y) - street.D.y * (c.P.x - street.P.x)) < 2f;
             var rawLo = new float2[n];
             var rawHi = new float2[n];
             for (int i = 0; i < n; i++)
@@ -619,7 +608,6 @@ namespace Placemaker.Core.Neighbours
                     if (squareSplits && OnOneGrid(h, o, out var gu, out var gv))
                         nrm = math.abs(math.dot(nrm, gu)) >= math.abs(math.dot(nrm, gv)) ? gu * math.sign(math.dot(nrm, gu)) : gv * math.sign(math.dot(nrm, gv));
                     poly = ClipHalfPlane(poly, mid, new float2(-nrm.y, nrm.x), h.Position);
-                    if (unended[i] != null) unended[i] = ClipHalfPlane(unended[i], mid, new float2(-nrm.y, nrm.x), h.Position);
                     TraceWhy?.Invoke($"split {h.Id} {o.Id} at {mid.x:F1},{mid.y:F1} line {math.degrees(math.atan2(-nrm.y, nrm.x)):F0}° (closest {pa.x:F1},{pa.y:F1} - {pb.x:F1},{pb.y:F1})");
                 }
                 plots[i] = poly.Count >= 3 && Poly.Area(poly) > 1f ? poly.ToArray() : lot;
@@ -630,27 +618,6 @@ namespace Placemaker.Core.Neighbours
                 Trace("grown", raw.Select(r => r?.ToArray()).ToArray());
                 Trace("split", plots.Select(p => p?.ToArray()).ToArray());
             }
-            // a garden never runs out into a spike (on the inside of a curve its sides close in behind it): it ends where it has
-            // become narrower than half its lot (at least minGardenWidth); the land past that is nobody's (FillGaps never sees it).
-            // Only its sides count: a garden that ends along a street behind it at an angle narrows toward that end too, and was
-            // cut square there, a grass triangle left between every back fence and the sidewalk (the user, 22 Oct: "WHERE DO
-            // THESE COME FROM?"). Its end is the street: measured as if the street were not there, as far back as it reaches
-            int narrowed = 0;
-            for (int i = 0; i < n; i++)
-            {
-                if (!touched[i] || plots[i] == null || raw[i] == null || emergent) continue;
-                var h = houses[i];
-                float minW = math.max(K(h, s, "minGardenWidth", 8f), h.HalfLot.x);
-                float? z = unended[i] != null && unended[i].Count >= 3 ? NarrowsAt(unended[i], h, minW, plots[i].Min(p => math.dot(p - h.Position, h.Forward))) : NarrowsAt(plots[i], h, minW);
-                if (z == null) continue;
-                var p = h.ToWorld(new float2(0f, z.Value));
-                var cutPlot = ClipHalfPlane(plots[i].ToList(), p, h.Right, h.Position);
-                if (cutPlot.Count < 3 || Poly.Area(cutPlot) < 1f) continue;
-                plots[i] = cutPlot.ToArray();
-                raw[i] = ClipHalfPlane(raw[i], p, h.Right, h.Position);
-                narrowed++;
-            }
-            if (narrowed > 0) plan.Notes.Add($"{narrowed} gardens end where they get narrow (no spikes)");
             // nor up a cliff: each side grown past the lot ends (a straight line across it) where the land gets steeper than
             // maxSlope or further than maxRise above or below the house
             int sloped = 0;
