@@ -18,6 +18,10 @@ namespace Placemaker.Core.Layers.Common
         private readonly CellMap _cells = new CellMap();
         public readonly List<Item> Items = new List<Item>();
         public float MaxRadius { get; private set; }
+        // (perf) Discs wider than a cell (a reserved place, a pond) are kept apart and always looked at: one 14 m disc used to
+        // widen every search of a park's ~400 000 planting checks from ~20 cells to ~50.
+        private readonly List<int> _big = new List<int>();
+        private float _smallMax;
 
         public DiscIndex(float cell = 8f) { _cell = math.max(0.5f, cell); }
 
@@ -26,6 +30,8 @@ namespace Placemaker.Core.Layers.Common
             int id = Items.Count;
             Items.Add(new Item { P = p, R = r, Kind = kind });
             MaxRadius = math.max(MaxRadius, r);
+            if (r > _cell) { _big.Add(id); return id; }
+            _smallMax = math.max(_smallMax, r);
             var c = Cell(p);
             _cells.Add(c.x, c.y, id);
             return id;
@@ -35,17 +41,24 @@ namespace Placemaker.Core.Layers.Common
         public void Query(float2 p, float radius, List<int> into)
         {
             into.Clear();
-            float reach = radius + MaxRadius;
+            float reach = radius + _smallMax;
             var lo = Cell(p - reach); var hi = Cell(p + reach);
             for (int y = lo.y; y <= hi.y; y++)
                 for (int x = lo.x; x <= hi.x; x++)
                     for (int e = _cells.First(x, y); e >= 0; e = _cells.Next(e)) into.Add(_cells.Item(e));
+            into.AddRange(_big);
         }
 
         /// <summary>True when a disc (p, r) plus <paramref name="gap"/> overlaps any item.</summary>
         public bool Overlaps(float2 p, float r, float gap = 0f)
         {
-            float reach = r + gap + MaxRadius;
+            foreach (int i in _big)
+            {
+                var it = Items[i];
+                float d = r + it.R + gap;
+                if (math.distancesq(p, it.P) < d * d) return true;
+            }
+            float reach = r + gap + _smallMax;
             var lo = Cell(p - reach); var hi = Cell(p + reach);
             for (int y = lo.y; y <= hi.y; y++)
                 for (int x = lo.x; x <= hi.x; x++)
@@ -64,7 +77,8 @@ namespace Placemaker.Core.Layers.Common
         public float Clearance(float2 p, float cap)
         {
             float best = cap;
-            float reach = cap + MaxRadius;
+            foreach (int i in _big) { var it = Items[i]; best = math.min(best, math.distance(p, it.P) - it.R); }
+            float reach = cap + _smallMax;
             var lo = Cell(p - reach); var hi = Cell(p + reach);
             for (int y = lo.y; y <= hi.y; y++)
                 for (int x = lo.x; x <= hi.x; x++)
@@ -114,9 +128,37 @@ namespace Placemaker.Core.Layers.Common
         }
 
         /// <summary>True when a disc (p, r) touches any segment corridor (+gap).</summary>
-        public bool Overlaps(float2 p, float r, float gap = 0f)
+        public bool Overlaps(float2 p, float r, float gap = 0f) => AnyBelow(p, r + gap + 0.001f, r + gap);
+
+        /// <summary>
+        /// (perf) Clearance(p, cap) &lt; t for t ≤ cap, stopping at the first segment closer than t (the same segments are looked
+        /// at, in the same order, so the answer is exactly Clearance's).
+        /// </summary>
+        public bool AnyBelow(float2 p, float cap, float t)
         {
-            return Clearance(p, r + gap + 0.001f) < r + gap;
+            if (Segments.Count == 0) return cap < t;
+            unchecked { _stampValue++; }
+            if (_stampValue == 0) { Array.Clear(_stamp, 0, _stamp.Length); _stampValue = 1; }
+            if (cap < t) return true;
+            var lo = Cell(p - cap - _cell); var hi = Cell(p + cap + _cell);
+            long cellsWide = (long)(hi.x - lo.x + 1) * (hi.y - lo.y + 1);
+            if (cellsWide > Segments.Count * 4L)
+            {
+                for (int i = 0; i < Segments.Count; i++) if (Dist(p, i) < t) return true;
+                return false;
+            }
+            for (int y = lo.y; y <= hi.y; y++)
+                for (int x = lo.x; x <= hi.x; x++)
+                {
+                    for (int e = _cells.First(x, y); e >= 0; e = _cells.Next(e))
+                    {
+                        int i = _cells.Item(e);
+                        if (_stamp[i] == _stampValue) continue;
+                        _stamp[i] = _stampValue;
+                        if (Dist(p, i) < t) return true;
+                    }
+                }
+            return false;
         }
 
         /// <summary>Distance from p to the nearest corridor edge (segment distance − half width), capped.</summary>

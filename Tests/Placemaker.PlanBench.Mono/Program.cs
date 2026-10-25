@@ -42,8 +42,13 @@ public static class Program
                 case "--repeat": repeat = int.Parse(args[++i]); break;
                 case "--out": outDir = args[++i]; break;
                 case "--corners": Corners = int.Parse(args[++i]); break;
+                case "--heap": HeapMb = int.Parse(args[++i]); break;
             }
         }
+        // --heap N: N MB of live small objects held for the whole run, like the game's managed heap (a city's worth of
+        // prefabs, UI and mods): the garbage collector must trace all of them at every collection a plan causes.
+        var ballast = Ballast(HeapMb);
+        if (HeapMb > 0) Console.WriteLine($"ballast: {GC.GetTotalMemory(true) / (1 << 20)} MB live");
         var assets = LoadCatalog(Path.Combine(repo, "Tests", "Placemaker.Tests", "Fixtures", "catalog-bounds.json"), out var source);
         var editor = new DesignEditor(GeneratorRegistry.Get);
         var jobs = new List<(string type, string variant, Recipe recipe)>();
@@ -105,6 +110,7 @@ public static class Program
                    .Append(best.ToString("0.#", CultureInfo.InvariantCulture)).Append(',').Append(gcs).Append(",\"").Append(steps.Replace("\"", "'")).Append("\"\n");
             }
         Console.WriteLine($"Total {total / 1000:0.0} s");
+        GC.KeepAlive(ballast);
         if (outDir != null) { Directory.CreateDirectory(outDir); File.WriteAllText(Path.Combine(outDir, "bench-mono.csv"), csv.ToString()); }
         return 0;
     }
@@ -116,6 +122,23 @@ public static class Program
         float s = (float)math.sqrt(targetArea / math.abs(a * 0.5));
         var ring = BaseRing.Select(p => new float3(p.x * s, 0, p.y * s)).ToArray();
         return Corners > ring.Length ? Wobbly(ring, Corners) : ring;
+    }
+
+    public static int HeapMb;
+
+    private sealed class Node { public Node Next; public object Payload; public int A, B; }
+
+    private static Node[] Ballast(int mb)
+    {
+        if (mb <= 0) return null;
+        long count = (long)mb * (1 << 20) / 48;   // a node and a boxed int, about 48 bytes
+        var roots = new Node[1024];
+        for (long i = 0; i < count; i++)
+        {
+            int r = (int)(i & 1023);
+            roots[r] = new Node { Next = roots[r], Payload = (object)(int)i, A = (int)i };
+        }
+        return roots;
     }
 
     /// <summary>--corners N: the outline resampled to N corners with a ±0.4 m wobble, like a painted area's traced outline.</summary>

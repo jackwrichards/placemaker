@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using Placemaker.Core.Geometry;
 using Placemaker.Core.Layers.Common;
 using Unity.Mathematics;
 
@@ -424,12 +425,12 @@ namespace Placemaker.Core.Paint
 
     internal sealed class PolygonShape : PaintShape
     {
-        private readonly float2[] _ring; private readonly SegGrid _edges;
+        private readonly float2[] _ring; private readonly SegGrid _edges; private readonly RingBands _bands;
         private readonly float _feather, _noise, _scale; private readonly uint _seed;
 
         private PolygonShape(float2[] ring, float feather, float noise, float scale, uint seed)
         {
-            _ring = ring; _feather = math.max(0.05f, feather); _noise = math.max(0f, noise); _scale = scale > 0f ? scale : 8f; _seed = seed;
+            _ring = ring; _bands = new RingBands(ring); _feather = math.max(0.05f, feather); _noise = math.max(0f, noise); _scale = scale > 0f ? scale : 8f; _seed = seed;
             var segs = new List<(float2, float2)>(ring.Length);
             for (int i = 0; i < ring.Length; i++) segs.Add((ring[i], ring[(i + 1) % ring.Length]));
             _edges = new SegGrid(segs, _feather + 2f * _noise + 1f);
@@ -455,16 +456,7 @@ namespace Placemaker.Core.Paint
             return Smooth01((d - pull) / _feather);
         }
 
-        private bool Inside(float2 p)
-        {
-            bool c = false;
-            for (int i = 0, j = _ring.Length - 1; i < _ring.Length; j = i++)
-            {
-                var a = _ring[i]; var b = _ring[j];
-                if ((a.y > p.y) != (b.y > p.y) && p.x < (b.x - a.x) * (p.y - a.y) / (b.y - a.y) + a.x) c = !c;
-            }
-            return c;
-        }
+        private bool Inside(float2 p) => _bands.ContainsF(p);
     }
 
     internal sealed class StrokeShape : PaintShape

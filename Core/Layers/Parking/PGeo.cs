@@ -494,22 +494,30 @@ namespace Placemaker.Core.Layers.Parking
             // polygons as index lists
             var polys = new List<List<int>>();
             foreach (var t in tris) polys.Add(new List<int> { t.x, t.y, t.z });
-            bool merged = true;
-            while (merged)
+            // Merge the first pair (in index order) that shares an edge and stays convex, until none does. (perf) The scan
+            // resumes instead of starting over after every merge (cubic in the corners: a 400-corner lot took seconds): the
+            // pairs before piece i were all refused and only the merged piece changed, so the next merge is the first of
+            // (a, i) for a < i, else the first of (i, b) - the very pair the old full restart found.
+            bool TryMerge(int i, int j)
             {
-                merged = false;
-                for (int i = 0; i < polys.Count && !merged; i++)
+                if (!SharedEdge(polys[i], polys[j], out int ai, out int bj)) return false;
+                var u = MergeAt(polys[i], polys[j], ai, bj);
+                if (u == null) return false;
+                var pts = new List<double2>(u.Count);
+                foreach (int q in u) pts.Add(ring[q]);
+                if (!IsConvex(pts)) return false;
+                polys[i] = u; polys.RemoveAt(j);
+                return true;
+            }
+            for (int i = 0; i < polys.Count;)
+            {
+                bool merged = false;
+                for (int j = i + 1; j < polys.Count && !merged; j++) merged = TryMerge(i, j);
+                if (!merged) { i++; continue; }
+                for (bool back = true; back;)
                 {
-                    for (int j = i + 1; j < polys.Count && !merged; j++)
-                    {
-                        if (!SharedEdge(polys[i], polys[j], out int ai, out int bj)) continue;
-                        var u = MergeAt(polys[i], polys[j], ai, bj);
-                        if (u == null) continue;
-                        var pts = new List<double2>(u.Count);
-                        foreach (int q in u) pts.Add(ring[q]);
-                        if (!IsConvex(pts)) continue;
-                        polys[i] = u; polys.RemoveAt(j); merged = true;
-                    }
+                    back = false;
+                    for (int a = 0; a < i; a++) if (TryMerge(a, i)) { i = a; back = true; break; }
                 }
             }
             foreach (var pl in polys)

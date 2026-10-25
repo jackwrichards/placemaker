@@ -35,7 +35,7 @@ decals 148); parking right after: **3925 ms** and **3080 ms**. [P]
 
 | Factor | Evidence | Size |
 |---|---|---|
-| **The painted outline has hundreds of corners** | Mono bench, park default 12.5 ha: 6 corners 806 ms, 300 corners 1111 ms, **1200 corners 2986 ms** (site harmony 266, decals 194: the user's log's shape). Parking: 998 ms → 4332 ms → **40 s**. [P] Paint area's outline is simplified at 8 cm (`Core/Geometry/BlockBrush.cs:380`) [C] | 3–40× |
+| **The painted outline has hundreds of corners** | Mono bench, park default 12.5 ha: 6 corners 806 ms, 300 corners 1111 ms, 1200 corners 2986 ms. Parking: 998 ms → 4332 ms → **40 s**. [P] A Paint area outline (`BlockBrush.Outline`, 4 m cells) of 15 ha has ~150 corners on open land and ~450 with 60 zone-cell strips around it (offline test, 25 Oct); they are real notches, so simplifying at 0.3–0.5 m removes only ~10 %. The fix is algorithms that do not scale with the corners (§1.5), not a coarser outline. [P] | 1.5–4× |
 | **The game's Mono runtime** | same plans: .NET 327 ms vs Mono 848 ms (park default), 570 vs 2112 ms (garden). [P] | 2.5–4× |
 | **Slow inner data structures** | profile below: a third of a park is dictionary lookups in the spacing grid. [P] | 2× (fixed, see 1.3) |
 | **Everything is re-planned from scratch on every change** | `UpdatePlanning` → `Composer.Compose` of the whole recipe for any slider tick. [C] | all of it, every time |

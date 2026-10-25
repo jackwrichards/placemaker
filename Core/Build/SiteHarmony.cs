@@ -293,12 +293,15 @@ namespace Placemaker.Core.Build
             }
             var rK = BuildRaster(kept, keptV, c.Orig);
             c.K = new float[n];
+            // (perf) The rings' edges by band: a painted outline has hundreds of corners, tested at every node.
+            var bands = new List<RingBands>(c.Rings.Count);
+            foreach (var r in c.Rings) bands.Add(new RingBands(r));
             for (int k = 0; k < n; k++)
             {
                 var p = c.Pos(k);
                 c.K[k] = S(rK, c.Orig, p);
                 if (c.Lock[k]) continue;
-                foreach (var r in c.Rings) if (Poly.Contains(r, p)) { c.Free[k] = true; break; }
+                foreach (var b in bands) if (b.Contains(p)) { c.Free[k] = true; break; }
             }
             return c;
         }

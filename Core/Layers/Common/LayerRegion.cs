@@ -142,7 +142,7 @@ namespace Placemaker.Core.Layers.Common
 
         /// <summary>Inside and at least <paramref name="margin"/> from the outline.</summary>
         public bool ContainsDisc(float2 p, float margin) =>
-            Contains(p) && (margin <= 0f || _edges.Clearance(p, margin + 0.01f) >= margin);
+            Contains(p) && (margin <= 0f || !_edges.AnyBelow(p, margin + 0.01f, margin));
 
         public float2 Centroid => Poly.Centroid(Ring);
 
