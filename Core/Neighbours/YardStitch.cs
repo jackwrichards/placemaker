@@ -555,7 +555,7 @@ namespace Placemaker.Core.Neighbours
                 // (Grow sideways set below its default: no side reaches further, toward a neighbour or a road or open land; 0: no
                 // garden past the lot's sides)
                 float widthH = K(h, s, "gardenWidth", s.Knob("push", 60f));
-                bool widthCap = widthH < s.Knob("push", 60f);
+                bool widthCap = s.Knob("sliderCaps", 1f) > 0.5f || widthH < s.Knob("push", 60f);
                 if (widthCap) { reachH = math.min(reachH, widthH); extra[i, 0] = math.min(extra[i, 0], widthH); extra[i, 1] = math.min(extra[i, 1], widthH); }
                 float xl = -h.HalfLot.x - (left[i] >= 0 ? reachH : extra[i, 0]);
                 float xr = h.HalfLot.x + (right[i] >= 0 ? reachH : extra[i, 1]);
@@ -563,7 +563,7 @@ namespace Placemaker.Core.Neighbours
                 // (Garden depth set below its default: no further behind its street than this, backs lined up along a row too;
                 // two lots back to back still meet; knob depthCap 0: off)
                 float depthH = K(h, s, "gardenDepth", s.Knob("pushDepth", 50f));
-                if (!deepen[i] && s.Knob("depthCap", 1f) > 0.5f && depthH < s.Knob("pushDepth", 50f)) zb = math.max(zb, -h.HalfLot.y - math.max(0f, depthH - 2f * h.HalfLot.y));
+                if (!deepen[i] && s.Knob("depthCap", 1f) > 0.5f && (s.Knob("sliderCaps", 1f) > 0.5f || depthH < s.Knob("pushDepth", 50f))) zb = math.max(zb, -h.HalfLot.y - math.max(0f, depthH - 2f * h.HalfLot.y));
                 // in front of the lot as far as its street: where the street curves away from the lot's front line, the
                 // triangles between the lot's front corners and the kerb were nobody's (the user: "it kind of has to play to its
                 // back"). Only for a lot whose street lies right in front of it: the street, cut back below, ends it. Only paved
