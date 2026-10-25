@@ -92,6 +92,8 @@ const MARKER_SHORT: Record<string, [string, string]> = {
     entry: ["Placemaker.UI.Marker.EntryShort", "In"],
     exit: ["Placemaker.UI.Marker.ExitShort", "Out"],
     alley: ["Placemaker.UI.Marker.AlleyShort", "Driveway"],
+    alleyin: ["Placemaker.UI.Marker.AlleyInShort", "Drive in"],
+    alleyout: ["Placemaker.UI.Marker.AlleyOutShort", "Drive out"],
     footpath: ["Placemaker.UI.Marker.FootpathShort", "Path"],
     pedestrian: ["Placemaker.UI.Marker.PedestrianShort", "Walk-in"],
     bike: ["Placemaker.UI.Marker.BikeShort", "Bike"],
@@ -166,7 +168,7 @@ const Entrances = ({ step, state }: { step: StepView; state: ToolState }) => {
                 sub={
                     missing ? (
                         <div className={s.required} data-testid="entrance-required">
-                            <div className={s.requiredText}>
+                            <div className={s.requiredText} data-ellipsis>
                                 {need > 1 ? t("Placemaker.UI.Markers.NeedNShort", "Add {0} to build", [need]) : t("Placemaker.UI.Markers.NeedOneShort", "Add one to build")}
                             </div>
                         </div>

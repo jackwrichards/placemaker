@@ -53,8 +53,11 @@
     height: 24rem;
 }
 
+// a long label (a translation: "Unterhaltungskosten") shortens before the amounts do
 .moneyLabel {
-    flex-shrink: 0;
+    flex: 0 1 auto;
+    min-width: 0;
+    @include ellipsis;
     margin-right: 5rem;
     font-size: 11rem;
     text-transform: uppercase;

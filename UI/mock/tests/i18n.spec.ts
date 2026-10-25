@@ -43,7 +43,7 @@ async function overflow(page: Page, where: string, out: { where: string; text: s
 
 for (const lang of ["en-US", ...LANGS]) {
     test(`${lang}: no text cut or spilling in the panel`, async ({ page }) => {
-        test.setTimeout(120_000);
+        test.setTimeout(process.env.PM_ALL ? 900_000 : 120_000);
         const errors = await open(page, { real: true, lang });
         await page.waitForFunction(() => (window as any).pm.backend.hostUp !== undefined);
         await page.evaluate(() => {
@@ -61,6 +61,19 @@ for (const lang of ["en-US", ...LANGS]) {
             await panelShot(page, `i18n-${lang}-2-${recipe}`);
             await unfoldSections(page);
             await overflow(page, recipe + " open", bad);
+        }
+        // PM_ALL=1: every type of every category of the Make row, all groups open (no pictures)
+        if (process.env.PM_ALL) {
+            for (const g of await page.locator('[data-testid^="make-group-"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")!))) {
+                await page.getByTestId(g).click();
+                await waitPlanned(page);
+                for (const r of await page.locator('[data-testid="recipes"] [data-testid^="recipe-"]').evaluateAll((els) => els.map((e) => e.getAttribute("data-testid")!))) {
+                    await page.getByTestId(r).click();
+                    await waitPlanned(page);
+                    await unfoldSections(page);
+                    await overflow(page, r.slice(7) + " open", bad);
+                }
+            }
         }
         // Review: roads need no entrance
         await pick(page, "roads", "roads");

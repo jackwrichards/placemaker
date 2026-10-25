@@ -7,7 +7,8 @@ previews it and builds it: roads, parking lots, parks, shops. It merges ParkingL
 - `Core/`: the pure planner (.NET + Unity.Mathematics only), tested by `Tests/Placemaker.Tests` (xUnit, net9).
 - `Game/`: the ECS game layer (tool, preview, build pipeline in `Game/Build/`).
 - `UI/`: the React panel; `UI/src/contract.ts` is authoritative.
-- `Lang/`: one strings file per area.
+- `Lang/`: one strings file per area and language (English and the game's 11 others). After changing English text, run
+  `node tools/lang/check.js` and bring the languages along (`docs/LOCALIZATION.md`).
 - `Recipes/`: the shipped types.
 
 ## Direction: tall and perfect, not wide

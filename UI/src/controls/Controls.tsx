@@ -204,8 +204,9 @@ const ChoiceEditor = ({ c, value, commit }: { c: ControlEx; value: string; commi
                             <div className={s.chipText}>{optLabel(t, o)}</div>
                         </button>
                     );
-                    return o.tooltip ? (
-                        <Tip key={o.value} title={optLabel(t, o)} description={t(o.tooltip, "")}>
+                    // The whole name on hover, also without a tooltip when it is long (a translation may end in "…").
+                    return o.tooltip || optLabel(t, o).length > 18 ? (
+                        <Tip key={o.value} title={optLabel(t, o)} description={o.tooltip ? t(o.tooltip, "") : undefined}>
                             {chip}
                         </Tip>
                     ) : (
@@ -379,7 +380,8 @@ const AssetEditor = ({
             ) : (
                 <AutoMosaic items={autoPool(list, c.assetCategory, 3)} size={28} testId={`asset-thumb-${c.id}`} />
             )}
-            <div className={s.assetName} data-testid={`asset-name-${c.id}`}>
+            {/* the game's asset names run long in every language: a deliberate "…" (the picker shows them whole) */}
+            <div className={s.assetName} data-testid={`asset-name-${c.id}`} data-ellipsis>
                 {value
                     ? list?.find((a) => a.id === value)?.name ?? (resolved?.id === value && resolved.name ? resolved.name : name(c.assetCategory, value))
                     : autoName
