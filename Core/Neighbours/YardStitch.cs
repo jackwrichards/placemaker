@@ -405,13 +405,6 @@ namespace Placemaker.Core.Neighbours
                     borders[(i, right[i])] = ecut;
                     edgeBorders[(i, right[i])] = fx;
                     cuts[yi].Add(ecut);
-                    float fg0 = math.distance(a.FrontRight, b.FrontLeft), bg0 = math.distance(BackAt(a, +1, deep), BackAt(b, -1, deep));
-                    if (fg0 > 1f && fg0 > bg0 + 0.5f)
-                    {
-                        var along = math.normalize(b.FrontLeft - a.FrontRight);
-                        var inward = math.normalizesafe(-(a.Forward + b.Forward), -a.Forward);
-                        cuts[yi].Add(new Cut { P = a.FrontRight + inward * s.Knob("streetSetback", 0.6f), D = along, Keep = k });
-                    }
                     continue;
                 }
                 // how the land between them is shared, as people do: a wedge opening to the back (the outside of a curve) is
@@ -462,15 +455,6 @@ namespace Placemaker.Core.Neighbours
                 sideCuts[(math.min(i, right[i]), math.max(i, right[i]))] = cut;
                 cuts[i].Add(cut);
                 cuts[right[i]].Add(cut);
-                float frontGap = math.distance(a.FrontRight, b.FrontLeft), backGap = math.distance(BackAt(a, +1, deep), BackAt(b, -1, deep));
-                if (frontGap > 1f && frontGap > backGap + 0.5f)
-                {
-                    var along = math.normalize(b.FrontLeft - a.FrontRight);
-                    var inward = math.normalizesafe(-(a.Forward + b.Forward), -a.Forward);
-                    var street = new Cut { P = a.FrontRight + inward * s.Knob("streetSetback", 0.6f), D = along, Keep = k };
-                    cuts[i].Add(street);
-                    cuts[right[i]].Add(street);
-                }
             }
             var deepen = new bool[n];
             var extra = new float[n, 3];
