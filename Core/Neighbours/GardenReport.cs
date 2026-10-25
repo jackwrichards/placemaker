@@ -10,6 +10,10 @@
 // each corner's inside angle; each edge's length and the neighbours it is shared with; how far it turns in all (a garden with
 // no notch turns 360 degrees; every degree past that is a bend out and back); flags. In all: how many edges gardens have,
 // how their angles fall, the worst gardens and why.
+//
+// A garden's side that follows a curved road is one edge (the user, 24 Oct: "Should a garden edge that follows a curved road
+// count as one edge? Yes ... But that's only where I would say that"): slight bends whose two edges both run along a road's
+// edge (within 2 m) are not corners.
 
 using System;
 using System.Collections.Generic;
@@ -69,16 +73,40 @@ namespace Placemaker.Core.Neighbours
             public float ShortEdge = 2f;
             /// <summary>A turn under this (degrees, past the 2 that count as a corner): a slight bend, a kink in a line.</summary>
             public float SlightBend = 15f;
+            /// <summary>An edge whose ends and middle lie this close to a road's edge (m) runs along the road: a slight bend between
+            /// two such edges follows the road's curve and is no corner.</summary>
+            public float AlongRoad = 2f;
         }
 
-        public static List<Garden> Measure(IReadOnlyList<Input> gardens, Options o = null)
+        /// <param name="roads">The road surfaces (null: none; then every bend counts).</param>
+        public static List<Garden> Measure(IReadOnlyList<Input> gardens, Options o = null, IReadOnlyList<float2[]> roads = null)
         {
             o = o ?? new Options();
+            var roadBoxes = roads?.Select(r => (Lo: r.Aggregate(new float2(float.MaxValue), math.min) - o.AlongRoad, Hi: r.Aggregate(new float2(float.MinValue), math.max) + o.AlongRoad)).ToList();
+            bool NearRoad(float2 p)
+            {
+                for (int i = 0; i < roads.Count; i++)
+                {
+                    var (lo, hi) = roadBoxes[i];
+                    if (p.x < lo.x || p.y < lo.y || p.x > hi.x || p.y > hi.y) continue;
+                    var r = roads[i];
+                    for (int k = 0; k < r.Length; k++)
+                    {
+                        var a = r[k];
+                        var ab = r[(k + 1) % r.Length] - a;
+                        float u = math.saturate(math.dot(p - a, ab) / math.max(1e-6f, math.lengthsq(ab)));
+                        if (math.distancesq(p, a + ab * u) <= o.AlongRoad * o.AlongRoad) return true;
+                    }
+                }
+                return false;
+            }
             var result = new List<Garden>(gardens.Count);
             foreach (var g in gardens)
             {
                 if (g.Ring == null || g.Ring.Length < 3) continue;
                 var ring = Clean(g.Ring);
+                if (ring.Count < 3) continue;
+                if (roads != null && roads.Count > 0) ring = FollowRoads(ring, o, NearRoad);
                 if (ring.Count < 3) continue;
                 var m = new Garden { Id = g.Id, Place = g.Place, Position = g.Position, RawPoints = g.Ring.Length };
                 double area2 = 0;
@@ -137,6 +165,31 @@ namespace Placemaker.Core.Neighbours
                 }
             }
             return pts;
+        }
+
+        /// <summary>The outline with the slight bends between two edges along a road left out (a side following a curved road).</summary>
+        private static List<float2> FollowRoads(List<float2> ring, Options o, Func<float2, bool> nearRoad)
+        {
+            int n = ring.Count;
+            var along = new bool[n];
+            for (int k = 0; k < n; k++)
+            {
+                var a = ring[k];
+                var b = ring[(k + 1) % n];
+                along[k] = nearRoad(a) && nearRoad(b) && nearRoad((a + b) * 0.5f);
+            }
+            var kept = new List<float2>(n);
+            for (int k = 0; k < n; k++)
+            {
+                if (along[(k + n - 1) % n] && along[k])
+                {
+                    var din = math.normalizesafe(ring[k] - ring[(k + n - 1) % n]);
+                    var dout = math.normalizesafe(ring[(k + 1) % n] - ring[k]);
+                    if (math.dot(din, dout) >= math.cos(math.radians(o.SlightBend))) continue;
+                }
+                kept.Add(ring[k]);
+            }
+            return kept.Count >= 3 ? kept : ring;
         }
 
         private static bool Along(Edge e, Edge f)
@@ -237,9 +290,11 @@ namespace Placemaker.Core.Neighbours
         }
 
         /// <summary>
-        /// The land Outgrow is expected to cover in each place: within <paramref name="band"/> (m) of a road's surface (about one
-        /// lot deep), and land those bands enclose (a block's, a triangle's, a ring's middle), not the roads themselves; and how
-        /// much of it lies in a garden. Open land past the band is not expected: covering it scores nothing.
+        /// The land Outgrow is expected to cover in each place: the lots, and the land between lots (two lots within
+        /// <paramref name="nearLot"/> m of it, on roughly opposite sides of it, with no road between them), within
+        /// <paramref name="band"/> m of a road, not the roads themselves; and how much of it lies in a garden. The user, 24 Oct: "I
+        /// really just care about the in-between of lots, not like their outgrowing expansion": land past a row's end, round a
+        /// lone house, in a block with no house, is nobody's to cover (covering it scores nothing). A trend, not a target.
         /// </summary>
         public static List<Cover> Coverage(IReadOnlyList<Place> places, IReadOnlyList<float2[]> roads, IReadOnlyList<float2[]> gardens, IReadOnlyList<float2[]> lots = null, float band = 52f, float nearLot = 26f, float cell = 1f)
         {
@@ -279,24 +334,66 @@ namespace Placemaker.Core.Neighbours
                         }
                     }
                 float bandCells = band / cell;
-                // (and near a lot: the land past a street's last house, round its end, is nobody's to cover)
-                var lotNear = lots == null ? null : Near(lots, w, h, place.Lo, cell, nearLot / cell);
-                var inBand = new bool[w * h];
-                for (int i = 0; i < d.Length; i++) inBand[i] = !road[i] && d[i] <= bandCells && (lotNear == null || lotNear[i]);
-                // land the bands enclose: not reached from the place's border without crossing a band or a road
-                var outside = new bool[w * h];
-                var stack = new Stack<int>();
-                void Seed(int x, int y) { int i = y * w + x; if (!outside[i] && !inBand[i] && !road[i]) { outside[i] = true; stack.Push(i); } }
-                for (int x = 0; x < w; x++) { Seed(x, 0); Seed(x, h - 1); }
-                for (int y = 0; y < h; y++) { Seed(0, y); Seed(w - 1, y); }
-                while (stack.Count > 0)
+                var expect = new bool[w * h];
+                if (lots == null)
+                    for (int i = 0; i < d.Length; i++) expect[i] = !road[i] && d[i] <= bandCells;
+                else
                 {
-                    int i = stack.Pop();
-                    int x = i % w, y = i / w;
-                    if (x > 0) Seed(x - 1, y);
-                    if (x < w - 1) Seed(x + 1, y);
-                    if (y > 0) Seed(x, y - 1);
-                    if (y < h - 1) Seed(x, y + 1);
+                    var inLot = new bool[w * h];
+                    foreach (var r in lots) Fill(inLot, w, h, place.Lo, cell, r);
+                    var boxes = lots.Select(r => (Lo: r.Aggregate(new float2(float.MaxValue), math.min) - nearLot, Hi: r.Aggregate(new float2(float.MinValue), math.max) + nearLot)).ToList();
+                    // the lots that may be near each 16-cell tile
+                    const int Tile = 16;
+                    int tw = (w + Tile - 1) / Tile, th = (h + Tile - 1) / Tile;
+                    var byTile = new List<int>[tw * th];
+                    for (int k = 0; k < lots.Count; k++)
+                    {
+                        int x0 = math.max(0, (int)math.floor((boxes[k].Lo.x - place.Lo.x) / cell / Tile)), x1 = math.min(tw - 1, (int)math.floor((boxes[k].Hi.x - place.Lo.x) / cell / Tile));
+                        int y0 = math.max(0, (int)math.floor((boxes[k].Lo.y - place.Lo.y) / cell / Tile)), y1 = math.min(th - 1, (int)math.floor((boxes[k].Hi.y - place.Lo.y) / cell / Tile));
+                        for (int ty = y0; ty <= y1; ty++) for (int tx = x0; tx <= x1; tx++) (byTile[ty * tw + tx] ??= new List<int>()).Add(k);
+                    }
+                    bool RoadOn(float2 a, float2 b)
+                    {
+                        int steps = (int)math.ceil(math.distance(a, b) / (cell * 0.5f));
+                        for (int s = 1; s < steps; s++)
+                        {
+                            var p = math.lerp(a, b, (float)s / steps);
+                            int x = (int)math.floor((p.x - place.Lo.x) / cell), y = (int)math.floor((p.y - place.Lo.y) / cell);
+                            if (x >= 0 && y >= 0 && x < w && y < h && road[y * w + x]) return true;
+                        }
+                        return false;
+                    }
+                    var near = new List<float2>();
+                    float reach2 = nearLot * nearLot;
+                    for (int y = 0; y < h; y++)
+                        for (int x = 0; x < w; x++)
+                        {
+                            int i = y * w + x;
+                            if (road[i] || d[i] > bandCells) continue;
+                            if (inLot[i]) { expect[i] = true; continue; }
+                            var list = byTile[(y / Tile) * tw + x / Tile];
+                            if (list == null || list.Count < 2) continue;
+                            var c = place.Lo + new float2(x + 0.5f, y + 0.5f) * cell;
+                            near.Clear();
+                            foreach (var k in list)
+                            {
+                                var r = lots[k];
+                                float best = float.MaxValue; var bp = c;
+                                for (int j = 0; j < r.Length; j++)
+                                {
+                                    var a = r[j];
+                                    var ab = r[(j + 1) % r.Length] - a;
+                                    var q = a + ab * math.saturate(math.dot(c - a, ab) / math.max(1e-6f, math.lengthsq(ab)));
+                                    float dd = math.distancesq(c, q);
+                                    if (dd < best) { best = dd; bp = q; }
+                                }
+                                if (best <= reach2) near.Add(bp);
+                            }
+                            // between two of them: on roughly opposite sides (over 90 degrees apart), no road across
+                            for (int a = 0; a < near.Count && !expect[i]; a++)
+                                for (int b = a + 1; b < near.Count; b++)
+                                    if (math.dot(near[a] - c, near[b] - c) < 0f && !RoadOn(near[a], near[b])) { expect[i] = true; break; }
+                        }
                 }
                 var covered = new bool[w * h];
                 foreach (var g in gardens) Fill(covered, w, h, place.Lo, cell, g);
@@ -304,7 +401,7 @@ namespace Placemaker.Core.Neighbours
                 int expected = 0, cov = 0;
                 for (int i = 0; i < mask.Length; i++)
                 {
-                    bool exp = !road[i] && (inBand[i] || !outside[i]);
+                    bool exp = expect[i];
                     if (road[i]) mask[i] = 'r';
                     else if (!exp) mask[i] = '.';
                     else { expected++; if (covered[i]) { cov++; mask[i] = 'c'; } else mask[i] = 'U'; }
@@ -312,33 +409,6 @@ namespace Placemaker.Core.Neighbours
                 result.Add(new Cover { Place = place.Name, Origin = place.Lo, Cell = cell, W = w, H = h, Expected = expected, Covered = cov, Mask = new string(mask) });
             }
             return result;
-        }
-
-        /// <summary>The cells within <paramref name="cells"/> of any of the rings (8-way distance).</summary>
-        private static bool[] Near(IReadOnlyList<float2[]> rings, int w, int h, float2 lo, float cell, float cells)
-        {
-            var inside = new bool[w * h];
-            foreach (var r in rings) Fill(inside, w, h, lo, cell, r);
-            var d = new float[w * h];
-            for (int i = 0; i < d.Length; i++) d[i] = inside[i] ? 0f : float.MaxValue;
-            const float Diag = 1.41421f;
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
-                {
-                    int i = y * w + x;
-                    if (x > 0) d[i] = math.min(d[i], d[i - 1] + 1f);
-                    if (y > 0) { d[i] = math.min(d[i], d[i - w] + 1f); if (x > 0) d[i] = math.min(d[i], d[i - w - 1] + Diag); if (x < w - 1) d[i] = math.min(d[i], d[i - w + 1] + Diag); }
-                }
-            for (int y = h - 1; y >= 0; y--)
-                for (int x = w - 1; x >= 0; x--)
-                {
-                    int i = y * w + x;
-                    if (x < w - 1) d[i] = math.min(d[i], d[i + 1] + 1f);
-                    if (y < h - 1) { d[i] = math.min(d[i], d[i + w] + 1f); if (x < w - 1) d[i] = math.min(d[i], d[i + w + 1] + Diag); if (x > 0) d[i] = math.min(d[i], d[i + w - 1] + Diag); }
-                }
-            var near = new bool[w * h];
-            for (int i = 0; i < d.Length; i++) near[i] = d[i] <= cells;
-            return near;
         }
 
         /// <summary>Marks the cells whose middle lies inside a ring (even-odd, by rows).</summary>
@@ -373,7 +443,7 @@ namespace Placemaker.Core.Neighbours
         public static string CoverText(List<Cover> covers)
         {
             if (covers.Count == 0) return "";
-            var sb = new StringBuilder("coverage (expected: within 52 m of a road and 26 m of a lot, and the land that encloses; open land past it not counted):\n");
+            var sb = new StringBuilder("coverage (expected: the lots and the land between them, within 52 m of a road; land past a row's end or round a lone house not counted):\n");
             foreach (var c in covers) sb.Append($"  {c.Place,-12} {c.Percent,5:F1}%  ({c.Covered * c.Cell * c.Cell:F0} of {c.Expected * c.Cell * c.Cell:F0} m², {(c.Expected - c.Covered) * c.Cell * c.Cell:F0} m² uncovered)\n");
             long e = covers.Sum(c => (long)c.Expected), v = covers.Sum(c => (long)c.Covered);
             sb.Append($"  {"all",-12} {(e > 0 ? 100f * v / e : 0f),5:F1}%\n");

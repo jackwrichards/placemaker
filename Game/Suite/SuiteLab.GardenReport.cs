@@ -81,7 +81,7 @@ namespace Placemaker.Game.Suite
                     }
             var o = new GardenReport.Options { MaxEdges = (int?)step["max"] ?? 8 };
             var clock = System.Diagnostics.Stopwatch.StartNew();
-            var gardens = GardenReport.Measure(input, o);
+            var gardens = GardenReport.Measure(input, o, roads);
             // (the lots of every outgrown building in the places)
             var lots = new List<float2[]>();
             foreach (var g in input) if (math.any(g.HalfLot > 0f)) { var r = new float2(g.Forward.y, -g.Forward.x); lots.Add(new[] { g.Position - r * g.HalfLot.x - g.Forward * g.HalfLot.y, g.Position + r * g.HalfLot.x - g.Forward * g.HalfLot.y, g.Position + r * g.HalfLot.x + g.Forward * g.HalfLot.y, g.Position - r * g.HalfLot.x + g.Forward * g.HalfLot.y }); }
