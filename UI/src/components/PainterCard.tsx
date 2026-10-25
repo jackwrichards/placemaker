@@ -752,7 +752,7 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                 <div className={classNames(s.rows, { [s.rowsOff]: !p.featureOn })} data-testid="polish-master">
                     <div className={s.crow}>
                         <Icon name="eye" size={13} tint={p.featureOn ? "ok" : "dim"} />
-                        <div className={s.crowLabel}>{L("RowShow", "Show")}</div>
+                        <div className={s.crowLabel}>{L("RowOutgrow", "Outgrow")}</div>
                         <Segmented
                             testId="polish-on"
                             value={p.featureOn ? "show" : "hide"}

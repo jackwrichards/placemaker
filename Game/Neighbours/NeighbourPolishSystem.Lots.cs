@@ -188,6 +188,7 @@ namespace Placemaker.Game.Neighbours
             ApplyStamps();
             if (s_removeAll) StartRemoveAll();
             if (s_hideAll) StartHideAll();
+            if (s_typeUntyped) TypeUntyped();
             DrainRestores();
             UpdateStatus();
         }

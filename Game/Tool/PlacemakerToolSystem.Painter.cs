@@ -187,8 +187,6 @@ namespace Placemaker.Game.Tool
                 case "delete":
                     if (look != null && look.Custom && NeighbourPolishSystem.DeleteLook(look.Id))
                     {
-                        var s = global::Placemaker.Game.Tool.ToolRegistration.Settings;
-                        if (s != null) { s.PolishZoneLooks = NeighbourPolishSystem.ZoneLooksJson(); s.ApplyAndSave(); }
                         SelectLook("garden");
                     }
                     break;
@@ -202,9 +200,7 @@ namespace Placemaker.Game.Tool
         public void SetPolishZoneLook(string zone, string look)
         {
             if (!string.IsNullOrEmpty(look) && look != "off" && NeighbourPolishSystem.LookById(look) == null) return;
-            NeighbourPolishSystem.SetZoneLook(zone, look);
-            var s = global::Placemaker.Game.Tool.ToolRegistration.Settings;
-            if (s != null) { s.PolishZoneLooks = NeighbourPolishSystem.ZoneLooksJson(); s.ApplyAndSave(); }
+            NeighbourPolishSystem.SetZoneLook(zone, look);   // (this city's: kept with its save)
             Touch();
         }
 
@@ -341,12 +337,11 @@ namespace Placemaker.Game.Tool
                 case "gameChanges": NeighbourPolishSystem.SetGameChanges(on); Touch(); return;
                 case "gameRemovals": NeighbourPolishSystem.SetGameRemovals(on); Touch(); return;
                 case "homes": case "shops": case "offices": case "industry":
+                    // (this city's: kept with its save)
                     if (value != "off" && value != NeighbourPolishSystem.KindAuto && NeighbourPolishSystem.LookById(value) == null) return;
-                    if (what == "homes") s.PolishThemeHomes = value;
-                    else if (what == "shops") s.PolishThemeShops = value;
-                    else if (what == "offices") s.PolishThemeOffices = value;
-                    else s.PolishThemeIndustry = value;
-                    break;
+                    NeighbourPolishSystem.SetKindLook(what == "homes" ? "home" : what == "shops" ? "shop" : what == "offices" ? "office" : "industry", value);
+                    Touch();
+                    return;
                 case "polishAll":
                     NeighbourPolishSystem.PolishEverything(0);
                     Mod.Log.Info("Placemaker painter: polish the whole city (each building its zone's look)");

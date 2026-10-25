@@ -69,11 +69,23 @@ namespace Placemaker.Game.Neighbours
             if (Paused == !on) return;
             Paused = !on;
             s_switchesDirty = true;
-            if (on) { s_hideAll = false; Redo(); } else s_hideAll = true;
+            if (on) { s_hideAll = false; s_typeUntyped = true; Redo(); } else s_hideAll = true;
             Mod.Log.Info($"Placemaker neighbourhood polish: Outgrow {(on ? "shown: every outgrown building planned again" : "hidden: every outgrown building put back, its type kept")} (this city)");
         }
 
-        private static bool s_hideAll;
+        private static bool s_hideAll, s_typeUntyped;
+
+        /// <summary>Outgrow on: every building that never had an outgrow type (it stood before the city was outgrown) gets its
+        /// zone's default (a zone set to Off: none), so on always means every building as it is set up.</summary>
+        private void TypeUntyped()
+        {
+            s_typeUntyped = false;
+            int n = 0;
+            using (var all = _growables.ToEntityArray(Allocator.Temp))
+                foreach (var e in all)
+                    if (!EntityManager.HasComponent<PolishedLot>(e) && IsGrowable(e)) { s_stamps.Add((e, true, "zone", null)); n++; }
+            if (n > 0) Mod.Log.Info($"Placemaker neighbourhood polish: Outgrow on, {n} buildings without an outgrow type get their zone's default.");
+        }
 
         /// <summary>Hidden: every outgrown building put back as the game made it, its flag and type kept (DrainRestores).</summary>
         private void StartHideAll()
@@ -114,6 +126,7 @@ namespace Placemaker.Game.Neighbours
             PolishNew = true;
             Paused = false;
             PolishLevelUps = PolishGameChanges = PolishGameRemovals = false;
+            s_cityLooksDirty = false;
         }
 
 
@@ -125,10 +138,16 @@ namespace Placemaker.Game.Neighbours
                 _switchesRead = true;
                 if (!s_switchesDirty)
                 {
+                    // a city with nothing kept yet: a new one starts with Outgrow off; one saved before the switches were kept
+                    // (it has outgrown buildings) goes on as it was, on
+                    bool legacy = false;
+                    using (var flags = _flaggedLots.ToComponentDataArray<PolishedLot>(Allocator.Temp))
+                        foreach (var f in flags) if (f.Yes) { legacy = true; break; }
                     using (var all = _switches.ToComponentDataArray<PolishCitySwitches>(Allocator.Temp))
                     {
                         PolishNew = true;   // (always: a zone set to Off gives its new buildings none)
-                        Paused = all.Length > 0 && all[0].Paused;
+                        Paused = all.Length > 0 ? all[0].Paused : !legacy;
+                        if (all.Length == 0) s_switchesDirty = true;   // (kept from now on: next time it reads them)
                         PolishLevelUps = all.Length > 0 && all[0].LevelUps;
                         PolishGameChanges = all.Length > 0 && all[0].GameChanges;
                         PolishGameRemovals = all.Length > 0 && all[0].GameRemovals;
@@ -139,22 +158,48 @@ namespace Placemaker.Game.Neighbours
                                 s_switchesDirty = true;   // written as switches below
                             }
                         if (!_oldCitySettings.IsEmptyIgnoreFilter) EntityManager.DestroyEntity(_oldCitySettings);
+                        // the zone defaults: the city's own; a city that kept none yet: an old one keeps the mod's (as they were
+                        // before they were per city), a new one starts with the built-in ones
+                        using (var ents = _switches.ToEntityArray(Allocator.Temp))
+                        {
+                            if (ents.Length > 0 && EntityManager.HasBuffer<PolishCityZoneLook>(ents[0])) ReadCityLooks(EntityManager.GetBuffer<PolishCityZoneLook>(ents[0], true));
+                            else
+                            {
+                                var settings = global::Placemaker.Game.Tool.ToolRegistration.Settings;
+                                if (legacy && settings != null)
+                                {
+                                    SetZoneThemes(settings.PolishThemeHomes, settings.PolishThemeShops, settings.PolishThemeOffices, settings.PolishThemeIndustry);
+                                    SetZoneLooks(settings.PolishZoneLooks);
+                                }
+                                else
+                                {
+                                    s_zoneLooks.Clear();
+                                    foreach (var k in new[] { "home", "shop", "office", "industry" }) s_zoneTheme[k] = KindAuto;
+                                }
+                                s_cityLooksDirty = true;
+                            }
+                        }
                         Mod.Log.Info($"Placemaker neighbourhood polish: this city's switches {(all.Length > 0 ? "read" : "not saved yet (the defaults)")}: new buildings {(PolishNew ? "on" : "off")}, level-ups {(PolishLevelUps ? "outgrown again" : "keep their gardens")}, the game's changes {(PolishGameChanges ? "outgrown again" : "keep their gardens")}, the game's removals {(PolishGameRemovals ? "outgrown again" : "keep the gardens around")}, Outgrow {(Paused ? "paused" : "running")}");
                     }
                     StatusVersion++;
                 }
             }
-            if (!s_switchesDirty) return;
+            if (!s_switchesDirty && !s_cityLooksDirty) return;
+            bool looks = s_cityLooksDirty;
             s_switchesDirty = false;
+            s_cityLooksDirty = false;
             var value = new PolishCitySwitches { NewBuildings = PolishNew, Paused = Paused, LevelUps = PolishLevelUps, GameChanges = PolishGameChanges, GameRemovals = PolishGameRemovals };
             using (var all = _switches.ToEntityArray(Allocator.Temp))
             {
-                if (all.Length == 0) EntityManager.AddComponentData(EntityManager.CreateEntity(), value);
+                Entity e;
+                if (all.Length == 0) { e = EntityManager.CreateEntity(); EntityManager.AddComponentData(e, value); looks = true; }
                 else
                 {
-                    EntityManager.SetComponentData(all[0], value);
+                    e = all[0];
+                    EntityManager.SetComponentData(e, value);
                     for (int k = 1; k < all.Length; k++) EntityManager.DestroyEntity(all[k]);
                 }
+                if (looks) WriteCityLooks(e);
             }
             StatusVersion++;
         }

@@ -486,8 +486,8 @@ namespace Placemaker.Game.Settings
                 // what is polished keeps fitting as the city changes; only new buildings and what the player polishes are
                 // ever polished, buildings standing before are left as they are
                 global::Placemaker.Game.Neighbours.NeighbourPolishSystem.FeatureEnabled = true;
-                global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetZoneThemes(PolishThemeHomes, PolishThemeShops, PolishThemeOffices, PolishThemeIndustry);
-                global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetZoneLooks(PolishZoneLooks);
+                // (the zone defaults are each city's own, kept with its save: NeighbourPolishSystem.Switches; PolishZoneLooks and
+                // PolishTheme* are only what a city saved before then takes the first time)
                 {
                     byte parts = 0;
                     if (PolishLawns) parts |= global::Placemaker.Game.Neighbours.NeighbourPolishSystem.PartLawns;

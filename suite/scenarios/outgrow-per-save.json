@@ -1,0 +1,20 @@
+{
+  "_about": "Outgrow per save (25 Oct): a new city starts with Outgrow off (the window's first shot); its zone defaults and its switch are kept with the save: Outgrow on, Homes given Natural, the city saved and loaded back; the log then says this city's zone defaults read (kinds home natural) and the window shows Outgrow on. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-per-save.json -Who outgrow-per-save -Fresh",
+  "scenarios": [
+    {
+      "id": "outgrow-per-save",
+      "land": { "shape": "rect", "size": [260, 200], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "polish", "click": "panel-mode-outgrow", "shot": "new-city", "shotMode": "ui" },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "polish", "city": "homes", "value": "natural" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 180, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 40 },
+        { "do": "lab", "op": "polishIdle", "seconds": 60 },
+        { "do": "lab", "op": "saveLoad" },
+        { "do": "lab", "op": "polishIdle", "seconds": 60 },
+        { "do": "polish", "click": "panel-mode-outgrow", "shot": "after-load", "shotMode": "ui" }
+      ]
+    }
+  ]
+}

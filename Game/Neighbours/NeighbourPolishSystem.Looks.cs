@@ -195,7 +195,7 @@ namespace Placemaker.Game.Neighbours
             EnsureLooks();
             if (s_custom.RemoveAll(l => l.Id == id) == 0) return false;
             // zones that used it follow their kind again
-            foreach (var z in s_zoneLooks.Where(kv => kv.Value == id).Select(kv => kv.Key).ToList()) s_zoneLooks.Remove(z);
+            foreach (var z in s_zoneLooks.Where(kv => kv.Value == id).Select(kv => kv.Key).ToList()) { s_zoneLooks.Remove(z); s_cityLooksDirty = true; }
             PersistLooks();
             return true;
         }
@@ -339,6 +339,51 @@ namespace Placemaker.Game.Neighbours
             if (string.IsNullOrEmpty(zone)) return;
             if (string.IsNullOrEmpty(look)) s_zoneLooks.Remove(zone);
             else s_zoneLooks[zone] = look;
+            s_cityLooksDirty = true;
+        }
+
+        /// <summary>The City window: a kind's outgrow type ("home", "shop", "office", "industry"; "auto": each zone type its
+        /// own; "off"), this city's.</summary>
+        public static void SetKindLook(string kind, string look)
+        {
+            if (string.IsNullOrEmpty(kind) || string.IsNullOrEmpty(look)) return;
+            if (ZoneTheme(kind) != look) { s_zoneTheme[kind] = look; SettingsChanged = true; }
+            s_cityLooksDirty = true;
+        }
+
+        /// <summary>The zone defaults changed: written to the city's switches entity (kept with the save) next frame.</summary>
+        private static bool s_cityLooksDirty;
+
+        /// <summary>The city's zone defaults as kept with it.</summary>
+        private void ReadCityLooks(DynamicBuffer<PolishCityZoneLook> kept)
+        {
+            s_zoneLooks.Clear();
+            foreach (var k in new[] { "home", "shop", "office", "industry" }) s_zoneTheme[k] = KindAuto;
+            for (int i = 0; i < kept.Length; i++)
+            {
+                string zone = kept[i].Zone.ToString(), look = kept[i].Look.ToString();
+                if (string.IsNullOrEmpty(zone) || string.IsNullOrEmpty(look)) continue;
+                if (zone.StartsWith("kind:")) s_zoneTheme[zone.Substring(5)] = look;
+                else s_zoneLooks[zone] = look;
+            }
+            SettingsChanged = true;
+            Mod.Log.Info($"Placemaker neighbourhood polish: this city's zone defaults read: {s_zoneLooks.Count} zone(s), kinds {string.Join(", ", new[] { "home", "shop", "office", "industry" }.Select(k => k + " " + ZoneTheme(k)))}");
+        }
+
+        /// <summary>The city's zone defaults onto its entity (only the player's picks: a zone or kind not there is the default).</summary>
+        private void WriteCityLooks(Entity e)
+        {
+            var buf = EntityManager.HasBuffer<PolishCityZoneLook>(e) ? EntityManager.GetBuffer<PolishCityZoneLook>(e) : EntityManager.AddBuffer<PolishCityZoneLook>(e);
+            buf.Clear();
+            void Add(string zone, string look)
+            {
+                var x = new PolishCityZoneLook();
+                x.Zone.CopyFromTruncated(zone);
+                x.Look.CopyFromTruncated(look);
+                buf.Add(x);
+            }
+            foreach (var k in new[] { "home", "shop", "office", "industry" }) if (ZoneTheme(k) != KindAuto) Add("kind:" + k, ZoneTheme(k));
+            foreach (var kv in s_zoneLooks.OrderBy(k => k.Key, StringComparer.Ordinal)) Add(kv.Key, kv.Value);
         }
 
         private readonly Dictionary<Entity, string> _zoneNameOf = new Dictionary<Entity, string>();

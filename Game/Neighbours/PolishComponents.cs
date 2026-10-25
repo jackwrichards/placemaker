@@ -16,6 +16,7 @@
 //     PolishCitySwitches; NeighbourPolishSystem.Switches), kept so such saves load.
 
 using Colossal.Serialization.Entities;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 
@@ -110,6 +111,31 @@ namespace Placemaker.Game.Neighbours
         {
             reader.Read(out Knob);
             reader.Read(out Value);
+        }
+    }
+
+    /// <summary>(On the city switches' entity) the city's zone defaults: a zone type's outgrow type ("off": none), or a kind's
+    /// ("kind:home", "kind:shop", "kind:office", "kind:industry": "auto" = each zone type its own). Kept with the save; the
+    /// buffer there at all says the city keeps its own (NeighbourPolishSystem.Switches).</summary>
+    public struct PolishCityZoneLook : IBufferElementData, ISerializable
+    {
+        public FixedString128Bytes Zone;
+        public FixedString64Bytes Look;
+
+        public void Serialize<TWriter>(TWriter writer) where TWriter : IWriter
+        {
+            writer.Write(Zone.ToString());
+            writer.Write(Look.ToString());
+        }
+
+        public void Deserialize<TReader>(TReader reader) where TReader : IReader
+        {
+            reader.Read(out string zone);
+            reader.Read(out string look);
+            Zone = default;
+            Look = default;
+            Zone.CopyFromTruncated(zone ?? "");
+            Look.CopyFromTruncated(look ?? "");
         }
     }
 
