@@ -1,7 +1,7 @@
 // Stage 2 — what to make, then how it is built (s42, docs/proposals/s42.md), top to bottom, one story: every section
 // opens with the same header line (SectionHead.tsx: icon badge · TITLE · note · rule · buttons).
-//   1. Pick what to make: 1 Category · 2 Type · 3 Style (PresetBrowser.tsx TypeBrowser), always open; also what is being
-//      edited (the lit chips): ● unsaved changes and the style's tools (undo changes · shuffle · save · more) on its header.
+//   1. Place library: 1 Category · 2 Type · 3 Style (PresetBrowser.tsx TypeBrowser), always open; also what is being
+//      edited (the lit chips), with its save strip (● unsaved changes · Undo · Save over · Save as new · ⋯) as its last line.
 //   2. Add entrances (types that need them): "add one to build" + typed entrance buttons on the header line, then the
 //      placed ones.
 //   3. Shape — how it's built (Zoning for a zoning type): the type's control groups as one-line heads in two columns;

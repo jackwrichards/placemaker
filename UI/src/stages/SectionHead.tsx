@@ -1,5 +1,5 @@
 // The Design page reads as one story, top to bottom (user 2026-10-20: "the whole font should match ... it should tell a
-// story"): Pick what to make (and edit) → Add entrances → Shape (or Zoning) → Extras. Every section opens with this one
+// story"): Place library → Add entrances → Shape (or Zoning) → Extras. Every section opens with this one
 // header line, the same everywhere: a round icon badge · TITLE · count · a short note · hairline rule · its buttons.
 import React, { ReactNode } from "react";
 import classNames from "classnames";

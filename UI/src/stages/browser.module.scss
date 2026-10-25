@@ -215,18 +215,67 @@ $label-w: 74rem;
     color: $c-text-dim;
 }
 
-// ── the style being edited: its state and tools in the header, the browser lit while it has unsaved changes ──
+// ── the save strip: one line at the bottom of the library (the style you edit: where it stands, save, save as new, ⋯);
+// naming and the ⋯ actions take the same line. The library's border lights while there are unsaved changes ──
 .browserModified {
     @include border-color(rgba(143, 209, 255, 0.6));
 }
 
-// "● unsaved changes" in the header
+.strip {
+    @include row;
+    min-width: 0;
+    min-height: 30rem;
+    padding: 3rem 4rem 3rem 8rem;
+    border-top-width: 1rem;
+    border-top-style: solid;
+    border-top-color: $c-line;
+}
+
+// the ⋯ actions wrap when they do not fit
+.stripWrap {
+    flex-wrap: wrap;
+}
+
+.stripChanged {
+    background-color: rgba(255, 181, 71, 0.07);
+}
+
+.flex {
+    flex: 1 1 auto;
+    min-width: 4rem;
+}
+
+.stripNote {
+    flex: 0 1 auto;
+    min-width: 0;
+    font-size: 11rem;
+    color: $c-text-faint;
+    @include ellipsis;
+}
+
+.stripBtn {
+    flex-shrink: 0;
+    height: 22rem;
+    margin-left: 3rem;
+    padding: 0 7rem 0 6rem;
+}
+
+.stripIcon {
+    flex-shrink: 0;
+    width: 22rem;
+    height: 22rem;
+    margin-left: 3rem;
+}
+
+// "● Changes to Formal garden"
 .modified {
     @include row;
-    flex-shrink: 0;
+    flex: 0 1 auto;
+    min-width: 0;
 }
 
 .modDot {
+    flex-shrink: 0;
     width: 6rem;
     height: 6rem;
     border-radius: 3rem;
@@ -234,87 +283,55 @@ $label-w: 74rem;
 }
 
 .modText {
-    margin-left: 4rem;
+    min-width: 0;
+    margin-left: 5rem;
     font-size: 11rem;
     color: #ffd79a;
+    @include ellipsis;
+}
+
+// naming a new style or renaming one, in the strip
+.nameLabel {
+    flex-shrink: 0;
+    margin-right: 6rem;
+    font-size: 11rem;
+    color: $c-text-dim;
     white-space: nowrap;
-}
-
-// the style's tools, before the search button
-.tools {
-    @include row;
-    flex-shrink: 0;
-}
-
-.tool {
-    width: 20rem;
-    height: 20rem;
-    margin-right: 1rem;
-}
-
-.toolPrimary {
-    width: 26rem;
-}
-
-.toolSep {
-    flex-shrink: 0;
-    width: 1rem;
-    height: 14rem;
-    margin: 0 4rem 0 3rem;
-    background-color: $c-line;
-}
-
-// naming a new style or renaming one, under the rows
-.nameForm {
-    @include row;
-    min-width: 0;
-    height: 32rem;
-    padding: 0 3rem 0 6rem;
-    border-top-width: 1rem;
-    border-top-style: solid;
-    border-top-color: $c-line;
 }
 
 .nameInput {
     flex: 1 1 auto;
     min-width: 0;
     height: 22rem;
-    margin-right: 4rem;
     padding: 0 6rem;
     border-radius: $radius-s;
     @include border(1rem, $c-line-strong);
     background-color: $c-shade;
-    font-size: $fs;
+    font-size: $fs-s;
     font-family: var(--fontFamily);
     color: #ffffff;
     outline-width: 0;
 }
 
-.menu {
-    @include col;
-    min-width: 0;
-    padding: 2rem 4rem 4rem 4rem;
-    border-top-width: 1rem;
-    border-top-style: solid;
-    border-top-color: $c-line;
-}
-
+// the ⋯ actions, side by side in the strip
 .menuItem {
     @include row;
     @include button-reset;
-    min-width: 0;
+    flex-shrink: 0;
     height: 22rem;
-    padding: 0 6rem;
+    margin-right: 3rem;
+    padding: 0 7rem 0 6rem;
     border-radius: $radius-s;
+    background-color: rgba(255, 255, 255, 0.05);
     &:hover {
         background-color: $c-surface-hover;
     }
 }
 
 .menuText {
-    margin-left: 6rem;
+    margin-left: 5rem;
     font-size: $fs-s;
-    @include ellipsis;
+    white-space: nowrap;
 }
 
 .menuDanger .menuText {
