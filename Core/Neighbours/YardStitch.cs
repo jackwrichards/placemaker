@@ -4680,6 +4680,17 @@ namespace Placemaker.Core.Neighbours
         {
             float wet = math.max(margin, waterGap), far = math.max(math.max(margin, deckMargin), wet);
             Poly.Bounds(plot, out var plo, out var phi);
+            var lotGaps = new Dictionary<long, float>();
+            if (clearLine)
+            {
+                Poly.Bounds(lot, out var llo, out var lhi);
+                foreach (int k in BarriersIn(llo - margin, lhi + margin))
+                {
+                    if (s_barrierKind[k] == WaterKind || s_barrierKind[k] == DeckKind) continue;
+                    float g = LotGap(lot, s_barriers[k].Ring, margin);
+                    if (g < margin && (!lotGaps.TryGetValue(s_barrierGroup[k], out float was) || g < was)) lotGaps[s_barrierGroup[k]] = g;
+                }
+            }
             var grown = new List<IReadOnlyList<float2>>();
             foreach (int k in BarriersIn(plo - (far + 0.5f), phi + (far + 0.5f)))
             {
@@ -4695,8 +4706,8 @@ namespace Placemaker.Core.Neighbours
                 if (bhi.x < plo.x - m || blo.x > phi.x + m || bhi.y < plo.y - m || blo.y > phi.y + m) continue;
                 // a barrier the house's own lot comes nearer than the margin (its street, right at the lot's front): the garden
                 // keeps no further off it than the lot does, so its edge carries the lot's line on (no step of a margin's depth
-                // where the garden reaches past the lot's corner)
-                if (clearLine) bm = math.min(bm, LotGap(lot, b, bm));
+                // where the garden reaches past the lot's corner); every piece of that street alike (its ends too)
+                if (clearLine && lotGaps.TryGetValue(s_barrierGroup[k], out float lg)) bm = math.min(bm, lg);
                 if (bm < 0.01f)
                 {
                     if (Overlaps(plot, b)) grown.Add(b);
