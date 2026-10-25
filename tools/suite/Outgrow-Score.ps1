@@ -30,5 +30,9 @@ foreach ($k in ($Knob -join ',').Split(',', [StringSplitOptions]::RemoveEmptyEnt
 if (-not $Out) { $Out = Join-Path $env:TEMP ('outgrow-score-' + [guid]::NewGuid().ToString('N').Substring(0, 8)) }
 & $exe --bootcamp (Join-Path $bench 'passes') --rounds 2 --scenario (Join-Path $repo 'suite\scenarios\outgrow-bootcamp.json') --roads (Join-Path $bench 'roads.json') --out $Out @knobs |
     Where-Object { $_ -notmatch '^\s+round \d' -and $_ -notmatch 'bootcamp-offline\.txt$' }
+'--- thinned town (a random town with houses taken out and a few put in: gaps to fill; 25 Oct) ---'
+$thin = Join-Path $main '.forensics\outgrow-bench\thinned'
+& $exe --bootcamp (Join-Path $thin 'passes') --rounds 2 --places (Join-Path $thin 'places.json') --roads (Join-Path $thin 'roads.json') --out (Join-Path $Out 'thinned') @knobs |
+    Where-Object { $_ -notmatch '^\s+round \d' -and $_ -notmatch 'bootcamp-offline\.txt$' -and $_ -notmatch 'replayed in order' }
 '--- black box (random towns; the scores alone) ---'
 & $exe --blackbox $box @knobs
