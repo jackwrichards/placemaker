@@ -1,0 +1,30 @@
+{
+  "_about": "The player's bulldozer on a curved street of outgrown houses (the user, 25 Oct: after a bulldoze the gardens that fill in get 'insane amounts of squiggle'). A curved street zoned on both sides grows and is outgrown, every Outgrow pass recorded (passes/curve, for OutgrowBench --bulldoze), then the house nearest the curve's middle is bulldozed, then the three nearest to it, the neighbours planned again each time; top views before and after each. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-bulldoze-curve.json -Who outgrow-bulldoze",
+  "scenarios": [
+    {
+      "id": "outgrow-bulldoze-curve",
+      "land": { "shape": "rect", "size": [420, 320], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "polishPassDump", "max": 3000, "label": "curve" },
+        { "do": "lab", "op": "street", "shape": "arc", "at": [0, -150], "radius": 190, "from": 35, "to": 145, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 90 },
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
+        { "do": "shot", "name": "before", "shotMode": "render", "camera": { "target": "point", "at": [0, 40], "view": "top", "distance": 230 } },
+        { "do": "lab", "op": "bulldozeHouses", "near": [0, 40], "rel": true, "radius": 80, "nearest": 1 },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 20, "speed": 1, "outgrow": true },
+        { "do": "lab", "op": "polishIdle", "seconds": 60 },
+        { "do": "shot", "name": "after-one", "shotMode": "render", "camera": { "target": "point", "at": [0, 40], "view": "top", "distance": 230 } },
+        { "do": "shot", "name": "after-one-45", "shotMode": "render", "camera": { "target": "point", "at": [0, 40], "view": "45", "distance": 200 } },
+        { "do": "lab", "op": "bulldozeHouses", "near": [0, 40], "rel": true, "radius": 80, "nearest": 3 },
+        { "do": "lab", "op": "outgrowFrames", "seconds": 20, "speed": 1, "outgrow": true },
+        { "do": "lab", "op": "polishIdle", "seconds": 60 },
+        { "do": "shot", "name": "after-four", "shotMode": "render", "camera": { "target": "point", "at": [0, 40], "view": "top", "distance": 230 } },
+        { "do": "shot", "name": "after-four-45", "shotMode": "render", "camera": { "target": "point", "at": [0, 40], "view": "45", "distance": 200 } },
+        { "do": "lab", "op": "gardenReport", "label": "curve", "rel": true, "places": [{ "name": "curve", "at": [0, 0], "size": 420 }] },
+        { "do": "lab", "op": "polishPassDump", "max": 0, "label": "off" }
+      ]
+    }
+  ]
+}
