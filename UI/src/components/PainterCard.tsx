@@ -774,7 +774,7 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                     </div>
                     <div className={s.crow} data-testid="polish-brush">
                         <Icon name="brush" size={13} tint={p.brush ? "accent" : "dim"} />
-                        <div className={s.crowLabel}>{L("RowPaint", "Paint")}</div>
+                        <div className={s.crowLabel}>{L("RowBrush", "Brush")}</div>
                         <Btn icon="brush" iconSize={11} label={L("BrushPaint", "Paint")} selected={p.brush === "paint"} title={L("BrushPaintTip4", "Drag over buildings: they get this outgrow type. Right-click drops the stroke.")} onClick={() => act.polishCity("brush", p.brush === "paint" ? "off" : "paint:" + brushType)} testId="polish-brush-paint" />
                         <Btn icon="reset" iconSize={11} label={L("BrushErase", "Erase")} selected={p.brush === "erase"} title={L("BrushEraseTip4", "Drag over buildings: they get their zone's default outgrow type back")} onClick={() => act.polishCity("brush", p.brush === "erase" ? "off" : "erase")} testId="polish-brush-erase" />
                         <div className={s.flex} />
@@ -800,7 +800,7 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                         </div>
                     ) : null}
                     <div className={s.crow} data-testid="polish-lens">
-                        <Icon name="map" size={13} tint={p.lensWanted ? "accent" : "dim"} fallback="eye" />
+                        <Icon name="layers" size={13} tint={p.lensWanted ? "accent" : "dim"} />
                         <div className={s.crowLabel}>{L("RowMap", "Map")}</div>
                         <Segmented
                             testId="polish-lens-mode"
