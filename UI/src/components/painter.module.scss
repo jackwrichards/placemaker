@@ -639,9 +639,9 @@
 // along; 2. Paint buildings; 3. Outgrow types under their own heading, underline tabs
 .hero {
     @include col;
-    flex-shrink: 0;
+    flex: 1 1 0;
     min-width: 0;
-    margin: 8rem 8rem 0 8rem;
+    margin: 0 6rem 0 0;
     padding: 10rem 12rem 9rem 12rem;
     border-radius: $radius-l;
     background-color: rgba(111, 220, 140, 0.12);
@@ -701,9 +701,9 @@
 
 .paintCard {
     @include col;
-    flex-shrink: 0;
+    flex: 1 1 0;
     min-width: 0;
-    margin: 0 8rem;
+    margin: 0;
     padding: 7rem 9rem;
     border-radius: $radius;
     background-color: $c-surface;
@@ -756,4 +756,25 @@
     color: #ffffff;
     font-weight: bold;
     border-bottom-color: #ffffff;
+}
+
+.topRow {
+    @include row(stretch);
+    flex-shrink: 0;
+    min-width: 0;
+    margin: 8rem 8rem 0 8rem;
+}
+
+.heroSwitch {
+    margin-top: 8rem;
+}
+
+.paintHead {
+    margin-bottom: 6rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
+}
+
+.brushSizeWide {
+    margin: 6rem 8rem 0 8rem;
 }
