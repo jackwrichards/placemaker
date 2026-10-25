@@ -281,6 +281,8 @@
   "Placemaker.Settings.SelectAsOneThing": "Выбирать и сносить как одно целое",
   "Placemaker.Settings.SelectAsOneThing.Desc": "Щелчок по любой части построенной стоянки, парка или площади выбирает всю постройку; снос убирает ее целиком. Действует для новых построек.",
   "Placemaker.Settings.DebugTerrainDump": "Отладка: сохранять рельеф после постройки",
+  "Placemaker.Settings.DebugBuildChecks": "Отладка: проверки",
+  "Placemaker.Settings.DebugBuildChecks.Desc": "После каждой постройки проверяет застроенную землю на ямы, провисшие дороги и незонированные клетки и пишет находки в журнал. Медленно на больших постройках (игра ненадолго замирает). Обычно выключено.",
   "Placemaker.Settings.DebugTerrainDump.Desc": "После каждой постройки записывает высоты рельефа до и после, глубину воды и построенные дорожки и объекты вокруг в ModsData/Placemaker/debug в виде файла JSON, чтобы проверить результат вне игры (галерея его отображает). Обычно выключено.",
   "Placemaker.Settings.ConfirmBulldoze": "Спрашивать перед сносом всей постройки",
   "Placemaker.Settings.ConfirmBulldoze.Desc": "Показывает подтверждение игры перед сносом постройки Placemaker.",

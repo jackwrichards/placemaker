@@ -281,6 +281,8 @@
   "Placemaker.Settings.SelectAsOneThing": "Seleziona e demolisci come un tutt'uno",
   "Placemaker.Settings.SelectAsOneThing.Desc": "Cliccare una parte qualsiasi di un lotto, parco o piazza costruiti seleziona l'intera costruzione; demolendo si rimuove tutto. Vale per le nuove costruzioni.",
   "Placemaker.Settings.DebugTerrainDump": "Debug: salva terreno dopo la costruzione",
+  "Placemaker.Settings.DebugBuildChecks": "Debug: controlli build",
+  "Placemaker.Settings.DebugBuildChecks.Desc": "Dopo ogni costruzione controlla il terreno costruito in cerca di avvallamenti, strade cedute e zonizzazione non avvenuta, e scrive ciò che trova nel registro. Lento sulle costruzioni grandi (mette in pausa il gioco per un attimo). Di norma disattivato.",
   "Placemaker.Settings.DebugTerrainDump.Desc": "Dopo ogni costruzione scrive in ModsData/Placemaker/debug un file JSON con le altezze del terreno prima e dopo, la profondità dell'acqua e i sentieri e gli oggetti costruiti attorno, per controllare il risultato offline (la galleria lo visualizza). Normalmente disattivato.",
   "Placemaker.Settings.ConfirmBulldoze": "Chiedi prima di demolire un'intera costruzione",
   "Placemaker.Settings.ConfirmBulldoze.Desc": "Mostra la conferma del gioco prima di demolire una costruzione Placemaker.",

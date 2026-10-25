@@ -281,6 +281,8 @@
   "Placemaker.Settings.SelectAsOneThing": "Als Ganzes auswählen und abreißen",
   "Placemaker.Settings.SelectAsOneThing.Desc": "Ein Klick auf einen Teil eines gebauten Parkplatzes, Parks oder Platzes wählt den ganzen Bau aus; Abreißen entfernt alles. Gilt für neue Bauten.",
   "Placemaker.Settings.DebugTerrainDump": "Debug: Terrain nach Bau ausgeben",
+  "Placemaker.Settings.DebugBuildChecks": "Debug: Bauprüfungen",
+  "Placemaker.Settings.DebugBuildChecks.Desc": "Prüft nach jedem Bau den gebauten Boden auf Mulden, durchhängende Straßen und ausgebliebene Zonierung und schreibt die Funde ins Log. Langsam bei großen Bauten (das Spiel hält kurz an). Normalerweise aus.",
   "Placemaker.Settings.DebugTerrainDump.Desc": "Schreibt nach jedem Bau die Terrainhöhen vorher und nachher, die Wassertiefe und die gebauten Wege und Objekte ringsum als JSON-Datei nach ModsData/Placemaker/debug, um das Ergebnis offline zu prüfen (die Galerie stellt es dar). Normalerweise aus.",
   "Placemaker.Settings.ConfirmBulldoze": "Vor dem Abriss eines ganzen Baus fragen",
   "Placemaker.Settings.ConfirmBulldoze.Desc": "Zeigt die Bestätigung des Spiels, bevor ein Placemaker-Bau abgerissen wird.",

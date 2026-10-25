@@ -6,7 +6,8 @@
 //   node tools/lang/check.js --stamp de-DE      record the English each translated text was made from (after translating)
 //
 // Lang/<locale>.<area>.json mirrors Lang/en-US.<area>.json key for key. "Changed": tools/lang/state/<locale>.json keeps a hash
-// of the English each text was translated from (--stamp); a key whose English hash differs is to be translated again.
+// of the English each text was translated from, per area and key (--stamp; a key can live in two areas with different
+// English); a key whose English hash differs is to be translated again.
 // Broken: a {0} placeholder, a line break or a leading/trailing space that the English has and the translation not (or the
 // other way round), an empty text, a key the English does not have, a file that is not valid JSON.
 const fs = require("fs");
@@ -62,7 +63,7 @@ function check(locale) {
             const t = tr[k];
             if (typeof t !== "string" || (!t.trim() && v.trim())) r.broken.push({ key: k, why: "empty" });
             else if (marks(t) !== marks(v)) r.broken.push({ key: k, why: `placeholders/line breaks differ: English ${JSON.stringify(marks(v))}, here ${JSON.stringify(marks(t))}` });
-            if (state[k] && state[k] !== hash(v)) r.changed.push(k);
+            if (state[area + "/" + k] && state[area + "/" + k] !== hash(v)) r.changed.push(k);
         }
         for (const k of Object.keys(tr)) if (!(k in en)) r.extra.push(k);
         out[area] = r;
@@ -95,7 +96,7 @@ if (args[0] === "--todo") {
         const en = read(path.join(LANG, `en-US.${area}.json`));
         const tr = read(file);
         for (const k of Object.keys(tr)) if (k in en) {
-            state[k] = hash(en[k]);
+            state[area + "/" + k] = hash(en[k]);
             n++;
         }
     }

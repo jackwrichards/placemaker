@@ -281,6 +281,8 @@
   "Placemaker.Settings.SelectAsOneThing": "Zaznaczaj i wyburzaj jako całość",
   "Placemaker.Settings.SelectAsOneThing.Desc": "Kliknięcie dowolnej części zbudowanej działki, parku lub placu zaznacza cały obiekt; wyburzenie usuwa go w całości. Dotyczy nowych obiektów.",
   "Placemaker.Settings.DebugTerrainDump": "Debug: zrzut terenu po budowie",
+  "Placemaker.Settings.DebugBuildChecks": "Debug: kontrola budowy",
+  "Placemaker.Settings.DebugBuildChecks.Desc": "Po każdej budowie sprawdza zbudowany teren pod kątem niecek, zapadniętych dróg i strefowania, które się nie wykonało, i zapisuje znaleziska w dzienniku. Wolne przy dużych budowach (gra na chwilę się zatrzymuje). Zwykle wyłączone.",
   "Placemaker.Settings.DebugTerrainDump.Desc": "Po każdej budowie zapisuje wysokości terenu przed i po, głębokość wody oraz zbudowane ścieżki i obiekty wokół do ModsData/Placemaker/debug jako plik JSON, do sprawdzenia wyniku poza grą (galeria go renderuje). Zwykle wyłączone.",
   "Placemaker.Settings.ConfirmBulldoze": "Pytaj przed wyburzeniem obiektu",
   "Placemaker.Settings.ConfirmBulldoze.Desc": "Pokazuje potwierdzenie gry przed wyburzeniem obiektu Placemakera.",

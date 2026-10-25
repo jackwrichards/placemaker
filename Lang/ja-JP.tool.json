@@ -281,6 +281,8 @@
   "Placemaker.Settings.SelectAsOneThing": "1つのものとして選択・撤去",
   "Placemaker.Settings.SelectAsOneThing.Desc": "建設した用地、公園、広場のどこかをクリックすると作品全体を選択し、ブルドーザーで全体を削除します。新しい作品に適用されます。",
   "Placemaker.Settings.DebugTerrainDump": "デバッグ: 建設後に地形を出力",
+  "Placemaker.Settings.DebugBuildChecks": "デバッグ: 建設チェック",
+  "Placemaker.Settings.DebugBuildChecks.Desc": "建設のたびに、建設した地面のくぼみ、たるんだ道路、行われなかったゾーニングを調べ、見つけたものをログに書き出します。大きな建設では遅くなります（ゲームが一瞬止まります）。通常はオフ。",
   "Placemaker.Settings.DebugTerrainDump.Desc": "建設のたびに、前後の地形の高さ、水深、まわりに建てた小道とオブジェクトを JSON ファイルとして ModsData/Placemaker/debug に書き出し、結果をオフラインで確認できるようにします（ギャラリーで表示）。通常はオフです。",
   "Placemaker.Settings.ConfirmBulldoze": "作品全体を撤去する前に確認",
   "Placemaker.Settings.ConfirmBulldoze.Desc": "Placemakerの作品をブルドーザーで撤去する前に、ゲームの確認を表示します。",

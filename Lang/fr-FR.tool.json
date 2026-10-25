@@ -281,6 +281,8 @@
   "Placemaker.Settings.SelectAsOneThing": "Sélectionner et démolir d'un bloc",
   "Placemaker.Settings.SelectAsOneThing.Desc": "Cliquer sur n'importe quelle partie d'un parking, d'un parc ou d'une place construits sélectionne toute la construction ; la démolir retire tout. S'applique aux nouvelles constructions.",
   "Placemaker.Settings.DebugTerrainDump": "Débogage : exporter le terrain après construction",
+  "Placemaker.Settings.DebugBuildChecks": "Débogage : contrôles",
+  "Placemaker.Settings.DebugBuildChecks.Desc": "Après chaque construction, inspecte le sol construit à la recherche de cuvettes, de routes affaissées et de zonage non appliqué, et écrit ce qu'il trouve dans le journal. Lent sur les grandes constructions (le jeu se fige un instant). Désactivé en temps normal.",
   "Placemaker.Settings.DebugTerrainDump.Desc": "Après chaque construction, écrit les hauteurs du terrain avant et après, la profondeur d'eau et les chemins et objets construits autour dans ModsData/Placemaker/debug sous forme de fichier JSON, pour vérifier le résultat hors du jeu (la galerie l'affiche). Désactivé normalement.",
   "Placemaker.Settings.ConfirmBulldoze": "Confirmer avant de démolir une construction",
   "Placemaker.Settings.ConfirmBulldoze.Desc": "Affiche la confirmation du jeu avant qu'une construction Placemaker soit démolie.",

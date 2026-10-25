@@ -281,6 +281,8 @@
   "Placemaker.Settings.SelectAsOneThing": "作为一个整体选择和铲平",
   "Placemaker.Settings.SelectAsOneThing.Desc": "点击建成的场地、公园或广场的任意部分即可选中整个建造；铲平会将其全部移除。适用于新建造。",
   "Placemaker.Settings.DebugTerrainDump": "调试：建造后导出地形",
+  "Placemaker.Settings.DebugBuildChecks": "调试：建造检查",
+  "Placemaker.Settings.DebugBuildChecks.Desc": "每次建造后，检查已建地面上的凹坑、下陷的道路和未生效的区域规划，并把发现写入日志。大型建造时较慢（游戏会短暂停顿）。通常关闭。",
   "Placemaker.Settings.DebugTerrainDump.Desc": "每次建造后，将前后的地形高度、水深以及周围已建的小径和物体以 JSON 文件写入 ModsData/Placemaker/debug，供离线检查结果（图库会渲染它）。通常保持关闭。",
   "Placemaker.Settings.ConfirmBulldoze": "铲平整个建造前询问",
   "Placemaker.Settings.ConfirmBulldoze.Desc": "铲平 Placemaker 建造前显示游戏的确认框。",
