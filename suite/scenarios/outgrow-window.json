@@ -3,21 +3,87 @@
   "scenarios": [
     {
       "id": "outgrow-window",
-      "land": { "shape": "rect", "size": [300, 240], "ground": "flat", "roads": "none" },
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          240
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
       "steps": [
-        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
-        { "do": "lab", "op": "street", "shape": "straight", "length": 220, "zone": "NA Residential Low" },
-        { "do": "grow", "seconds": 60 },
-        { "do": "lab", "op": "polishIdle", "seconds": 60 },
-        { "do": "polish", "stamp": "pick" },
-        { "do": "polish", "click": "panel-mode-outgrow", "shot": "window-shown", "shotMode": "ui" },
-        { "do": "polish", "click": "polish-on" },
-        { "do": "lab", "op": "polishIdle", "seconds": 30 },
-        { "do": "shot", "name": "window-hidden", "shotMode": "ui" },
-        { "do": "polish", "click": "polish-on" },
-        { "do": "lab", "op": "polishIdle", "seconds": 60 },
-        { "do": "shot", "name": "window-shown-again", "shotMode": "ui" },
-        { "do": "polish", "click": "polish-city-tab-edit", "shot": "window-edit", "shotMode": "ui" }
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "length": 220,
+          "zone": "NA Residential Low"
+        },
+        {
+          "do": "grow",
+          "seconds": 60
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 60
+        },
+        {
+          "do": "polish",
+          "stamp": "pick"
+        },
+        {
+          "do": "polish",
+          "click": "panel-mode-outgrow",
+          "shot": "window-shown",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "polish-on-hide"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 30
+        },
+        {
+          "do": "shot",
+          "name": "window-hidden",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "polish-on-show"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 60
+        },
+        {
+          "do": "shot",
+          "name": "window-shown-again",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "polish-city-tab-edit",
+          "shot": "window-edit",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "polish-lens-mode-types",
+          "shot": "window-map-types",
+          "shotMode": "ui"
+        }
       ]
     }
   ]

@@ -634,3 +634,126 @@
     margin: 14rem 0 6rem 0;
     opacity: 0.85;
 }
+
+// Global outgrow, three sections (the user, 25 Oct: "tell a better story"): 1. Outgrow itself, big: Show / Hide and how far
+// along; 2. Paint buildings; 3. Outgrow types under their own heading, underline tabs
+.hero {
+    @include col;
+    flex-shrink: 0;
+    min-width: 0;
+    margin: 8rem 8rem 0 8rem;
+    padding: 10rem 12rem 9rem 12rem;
+    border-radius: $radius-l;
+    background-color: rgba(111, 220, 140, 0.12);
+    border-width: 1rem;
+    border-style: solid;
+    border-color: rgba(111, 220, 140, 0.32);
+}
+
+.heroOff {
+    background-color: $c-surface;
+    border-color: $c-line;
+}
+
+.heroHead {
+    @include row;
+    min-width: 0;
+}
+
+.heroTitle {
+    margin-left: 7rem;
+    font-size: 18rem;
+    font-weight: bold;
+}
+
+.heroBar {
+    margin-top: 10rem;
+    height: 5rem;
+    border-radius: 3rem;
+    background-color: $c-shade;
+    overflow: hidden;
+}
+
+.heroBarFill {
+    height: 100%;
+    border-radius: 3rem;
+    background-color: $c-ok;
+}
+
+.heroOff .heroBarFill {
+    background-color: $c-text-faint;
+}
+
+.heroStatus {
+    @include row;
+    margin-top: 5rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
+    white-space: nowrap;
+}
+
+.sectionHead {
+    flex-shrink: 0;
+    margin: 14rem 10rem 5rem 10rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
+}
+
+.paintCard {
+    @include col;
+    flex-shrink: 0;
+    min-width: 0;
+    margin: 0 8rem;
+    padding: 7rem 9rem;
+    border-radius: $radius;
+    background-color: $c-surface;
+}
+
+.paintRow {
+    @include row;
+    min-width: 0;
+    & + & {
+        margin-top: 7rem;
+    }
+    & > * + * {
+        margin-left: 6rem;
+    }
+}
+
+.paintLabel {
+    font-size: $fs;
+    color: $c-text-dim;
+}
+
+.typesHead {
+    margin: 8rem 2rem 6rem 2rem;
+    font-size: 15rem;
+    font-weight: bold;
+}
+
+.underTabs {
+    @include row;
+    margin: 0 2rem 8rem 2rem;
+    border-bottom-width: 1rem;
+    border-bottom-style: solid;
+    border-bottom-color: $c-line;
+}
+
+.underTab {
+    margin-right: 16rem;
+    padding: 3rem 0 5rem 0;
+    border: none;
+    border-bottom-width: 2rem;
+    border-bottom-style: solid;
+    border-bottom-color: transparent;
+    background: none;
+    font-size: $fs;
+    color: $c-text-dim;
+    cursor: pointer;
+}
+
+.underTabOn {
+    color: #ffffff;
+    font-weight: bold;
+    border-bottom-color: #ffffff;
+}
