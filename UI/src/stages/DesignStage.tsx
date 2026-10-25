@@ -4,10 +4,11 @@
 //      edited (the lit chips), with its save strip (● unsaved changes · Undo · Save over · Save as new · ⋯) as its last line.
 //   2. Add entrances (types that need them): "add one to build" + typed entrance buttons on the header line, then the
 //      placed ones.
-//   3. Shape — how it's built (Zoning for a zoning type): the type's control groups as one-line heads in two columns;
-//      an open one unfolds full width under its pair (Controls.tsx ControlList).
-//   4. Extras — optional add-ons: the built-in features as one-line rows in two columns (tile · name · fit or
-//      summary · switch), their options under the pair when open, the rest behind "N more".
+//   3. Parameters — tune it (Zoning for a zoning type), one section (the user, 25 Oct: Shape was a misnomer, and the
+//      extras are parameters too): the type's control groups as one-line heads in two columns, an open one unfolds full
+//      width under its pair (Controls.tsx ControlList); then, under a light "Add-ons" line, the built-in features as
+//      one-line rows in two columns (tile · name · fit or summary · switch), their options under the pair when open,
+//      the rest behind "N more".
 //   "Places inside": reserved slot for round 3, hidden for now.
 import React, { useRef, useState } from "react";
 import classNames from "classnames";
@@ -310,7 +311,7 @@ type ExtraModel = {
     key: string;
 };
 
-/** One extra: [chevron] [tile] name · fit or summary · [switch], one fixed line. */
+/** One add-on: [chevron] [tile] name · fit or summary · [switch], one fixed line. */
 const ExtraRow = ({ m, parent, width }: { m: ExtraModel; parent: StepView; width: number }) => {
     const { t } = useT();
     const { f, name, why, blocked, open, foldable, summary } = m;
@@ -386,7 +387,7 @@ const ExtraRow = ({ m, parent, width }: { m: ExtraModel; parent: StepView; width
     );
 };
 
-/** Extras listed before "N more" (enabled ones are always listed). */
+/** Add-ons listed before "N more" (enabled ones are always listed). */
 const EXTRAS_SHOWN = 8;
 
 const Extras = ({ catalog, design, state, step }: { catalog: Catalog; design: DesignState; state: ToolState; step: StepView }) => {
@@ -426,13 +427,14 @@ const Extras = ({ catalog, design, state, step }: { catalog: Catalog; design: De
     for (let i = 0; i < shown.length; i += cols) pairs.push(shown.slice(i, i + cols));
     return (
         <div className={s.extras} data-testid="features">
-            <SectionHead
-                icon="addon"
-                title={t("Placemaker.UI.Extras", "Extras")}
-                sub={t("Placemaker.UI.Extras.Sub", "optional add-ons")}
-                count={on || undefined}
-                right={<MisfitChip step={step} catalog={catalog} />}
-            />
+            {/* Part of Parameters: a light line, not a section of its own. */}
+            <div className={s.subHead} data-testid="features-head">
+                <Icon name="addon" size={11} tint="dim" />
+                <div className={s.subTitle}>{t("Placemaker.UI.AddOns", "Add-ons")}</div>
+                {on ? <div className={s.subCount}>{t("Placemaker.UI.AddOns.On", "{0} on", [on])}</div> : null}
+                <div className={s.subRule} />
+                <MisfitChip step={step} catalog={catalog} />
+            </div>
             <div className={s.featureGrid} data-testid="feature-grid" data-cols={cols}>
                 {pairs.map((pair) => (
                     <React.Fragment key={pair.map((m) => m.f.layer).join("|")}>
@@ -490,7 +492,7 @@ function featurePaths(root: StepView | null, step: StepView): Set<string> {
     return out;
 }
 
-/** "2 didn't fit" in the Extras heading: enabled extras the latest plan had to shrink or drop. */
+/** "2 didn't fit" on the Add-ons line: enabled add-ons the latest plan had to shrink or drop. */
 const MisfitChip = ({ step, catalog }: { step: StepView; catalog: Catalog }) => {
     const { t } = useT();
     const list = misfits(step);
@@ -622,7 +624,7 @@ const StepOptions = ({ catalog, design, state, step }: { catalog: Catalog; desig
                         <ZoningShape step={step} layer={layer} state={state} scope={scope} />
                     ) : (
                         <div className={s.shape} data-testid="shape">
-                            {parent ? null : <SectionHead icon="cube" title={t("Placemaker.UI.Shape", "Shape")} sub={t("Placemaker.UI.Shape.Sub", "how it's built")} />}
+                            {parent ? null : <SectionHead icon="gear" title={t("Placemaker.UI.Parameters", "Parameters")} sub={t("Placemaker.UI.Parameters.Sub", "tune it")} />}
                             <ErrorBoundary name="controls">
                                 <ControlList step={step} layer={layer} state={state} scope={scope} exclude={featureOptionIds(step)} />
                             </ErrorBoundary>

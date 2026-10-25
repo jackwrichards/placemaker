@@ -1,6 +1,6 @@
 @use "../styles/tokens" as *;
 
-// s42 Design stage: the picker, also what is being edited (browser.module.scss), then Entrances, Shape and Extras as dense,
+// s42 Design stage: the picker, also what is being edited (browser.module.scss), then Entrances and Parameters as dense,
 // aligned one-line rows with hairline dividers. Gameface: flexbox + margins only.
 
 .stage {
@@ -35,7 +35,7 @@
     @include col;
 }
 
-// Section headers (Shape, Extras, Zoning, Add entrances) are SectionHead.tsx (sectionHead.module.scss).
+// Section headers (Parameters, Zoning, Add entrances) are SectionHead.tsx (sectionHead.module.scss).
 
 // ── one step ──
 .step {
@@ -263,10 +263,41 @@
     height: 22rem;
 }
 
-// ── extras ──
+// ── add-ons: part of Parameters, under a light line (icon · Add-ons · N on · rule · didn't fit) ──
 .extras {
     @include col;
     min-width: 0;
+}
+
+.subHead {
+    @include row;
+    min-width: 0;
+    height: 18rem;
+    margin: 9rem 0 4rem 3rem;
+}
+
+.subTitle {
+    flex-shrink: 0;
+    margin-left: 5rem;
+    font-size: 11rem;
+    color: $c-text-dim;
+    white-space: nowrap;
+}
+
+.subCount {
+    flex-shrink: 0;
+    margin-left: 6rem;
+    font-size: 10rem;
+    color: $c-text-faint;
+    white-space: nowrap;
+}
+
+.subRule {
+    flex: 1 1 auto;
+    min-width: 6rem;
+    height: 1rem;
+    margin: 0 4rem 0 8rem;
+    background-color: $c-line;
 }
 
 .featureGrid {
@@ -436,7 +467,7 @@
     color: $c-text-dim;
 }
 
-// "2 didn't fit" in the Extras heading.
+// "2 didn't fit" on the Add-ons line.
 .misfit {
     @include row;
     flex-shrink: 0;

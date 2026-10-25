@@ -26,7 +26,7 @@ async function pick(page: Page, group: string, recipe: string) {
     await page.waitForTimeout(150);
 }
 
-test("s42 design: picker rows, editing bar, two-column Shape and Extras for real types", async ({ page }) => {
+test("s42 design: library rows, save strip, two-column Parameters with Add-ons for real types", async ({ page }) => {
     const errors = await realDesign(page);
     test.skip(!(await page.evaluate(() => (window as any).pm.backend.hostLayers.has("waterfront"))), "no real Core layers");
 
