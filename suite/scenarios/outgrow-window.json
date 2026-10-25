@@ -83,6 +83,22 @@
           "click": "polish-lens-mode-types",
           "shot": "window-map-types",
           "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "polish-brush-paint",
+          "shot": "window-painting",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "polish-brush-paint"
+        },
+        {
+          "do": "polish",
+          "click": "polish-city-tab-zones",
+          "shot": "window-zones",
+          "shotMode": "ui"
         }
       ]
     }

@@ -474,6 +474,7 @@ const TypeChips = ({ p, zoneChip, testId = "polish-themes" }: { p: PainterState;
             name={lookName(t, p, l.id)}
             on={p.theme === l.id}
             description={l.custom ? t("Placemaker.UI.Polish.YourType", "Yours, planted like {0}", [lookName(t, p, l.theme)]) : t("Placemaker.UI.Painter.ThemeTip." + l.id, "")}
+            count={p.stats?.looks?.[l.id] !== undefined ? num(p.stats.looks[l.id]) : undefined}
             badge={(p.theme === l.id && p.modified) || l.edited ? <div className={b.dot} /> : null}
             onClick={() => act.polishTheme(l.id)}
         />
@@ -744,58 +745,65 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
     const editFp = tab === "edit" ? JSON.stringify([p.theme, p.looks, p.values, p.lookValues, p.lookTheme, p.lookSavedTheme, p.modified, p.swatches, st?.looks?.[p.theme ?? ""], p.preview?.gardens]) : "";
     return (
         <div className={s.cityEmbedded} data-testid="polish-city" onMouseDown={(e) => e.stopPropagation()}>
-                {/* 1. Outgrow itself: this city's one switch, Show or Hide (saved with the city; every building keeps its outgrow
-                    type), and how far along it is (numbers the panel already has: nothing counted for them) */}
-                <div className={s.topRow}>
-                <div className={classNames(s.hero, { [s.heroOff]: !p.featureOn })} data-testid="polish-master">
-                    <div className={s.heroHead}>
-                        <Icon name="flower" size={18} tint={p.featureOn ? "accent" : "dim"} />
-                        <Tip title={L("Master", "Outgrow")} description={L("Master.Tip3", "Hide: every building looks as the game made it, and keeps its outgrow type for when you show it again.")}>
-                            <div className={s.heroTitle}>{L("Master", "Outgrow")}</div>
-                        </Tip>
-                    </div>
-                    <div className={s.heroSwitch}>
+                {/* one card, three rows alike (the user, 25 Oct: "one of them is like your map mode, one of them is like to paint
+                    stuff, and one of them is the general outgrow stuff"): an icon, a word, its controls. Show: this city's one
+                    switch (every building keeps its outgrow type) and the count (numbers the panel already has). Paint: Paint or
+                    Erase (its zone's default again) and the type painted. Map: what the map shows. */}
+                <div className={classNames(s.rows, { [s.rowsOff]: !p.featureOn })} data-testid="polish-master">
+                    <div className={s.crow}>
+                        <Icon name="eye" size={13} tint={p.featureOn ? "ok" : "dim"} />
+                        <div className={s.crowLabel}>{L("RowShow", "Show")}</div>
                         <Segmented
                             testId="polish-on"
-                            stretch
                             value={p.featureOn ? "show" : "hide"}
                             onChange={(v) => act.polishCity("on", v === "show" ? "true" : "false")}
                             options={[
-                                { value: "show", label: L("Show", "Show") },
-                                { value: "hide", label: L("Hide", "Hide") },
+                                { value: "show", label: L("On", "On"), description: L("ShowOnTip", "Buildings get their outgrow") },
+                                { value: "hide", label: L("Off", "Off"), description: L("ShowOffTip", "Every building as the game made it; each keeps its outgrow type for later") },
                             ]}
                         />
+                        <div className={s.flex} />
+                        <div className={s.crowCount} data-testid="polish-summary">
+                            {`${num(city.polished)} / ${num(city.total)}`}
+                            {city.waiting > 0 ? (
+                                <span className={s.crowBusy} data-testid="polish-summary-waiting">{L("CountLeft", " · {0} left", [num(city.waiting)])}</span>
+                            ) : city.restoring > 0 ? (
+                                <span className={s.crowBusy} data-testid="polish-summary-waiting">{L("CountLeft", " · {0} left", [num(city.restoring)])}</span>
+                            ) : null}
+                        </div>
                     </div>
-                    <div className={s.heroBar}>
-                        <div className={s.heroBarFill} style={{ width: `${city.total > 0 ? Math.round((100 * city.polished) / city.total) : 0}%` }} />
-                    </div>
-                    <div className={s.heroStatus} data-testid="polish-summary">
-                        <span>{L("StatusOf2", "{0} / {1} outgrown", [num(city.polished), num(city.total)])}</span>
-                    </div>
-                    <div className={s.heroStatus}>
-                        {city.waiting > 0 ? (
-                            <span data-testid="polish-summary-waiting">{L("StatusOutgrowing2", "{0} outgrowing…", [num(city.waiting)])}</span>
-                        ) : city.restoring > 0 ? (
-                            <span data-testid="polish-summary-waiting">{L("StatusGoingBack", "{0} going back…", [num(city.restoring)])}</span>
-                        ) : (
-                            <span>{L("StatusDone", "Up to date")}</span>
-                        )}
-                    </div>
-                </div>
-                {/* 2. Paint buildings, beside it: a type (Off among them) or each its zone's type again, and what the map shows */}
-                <div className={s.paintCard} data-testid="polish-brush">
-                    <div className={s.paintHead}>{L("PaintHead", "Paint buildings")}</div>
-                    <div className={s.paintRow}>
+                    <div className={s.crow} data-testid="polish-brush">
+                        <Icon name="brush" size={13} tint={p.brush ? "accent" : "dim"} />
+                        <div className={s.crowLabel}>{L("RowPaint", "Paint")}</div>
+                        <Btn icon="brush" iconSize={11} label={L("BrushPaint", "Paint")} selected={p.brush === "paint"} title={L("BrushPaintTip4", "Drag over buildings: they get this outgrow type. Right-click drops the stroke.")} onClick={() => act.polishCity("brush", p.brush === "paint" ? "off" : "paint:" + brushType)} testId="polish-brush-paint" />
+                        <Btn icon="reset" iconSize={11} label={L("BrushErase", "Erase")} selected={p.brush === "erase"} title={L("BrushEraseTip4", "Drag over buildings: they get their zone's default outgrow type back")} onClick={() => act.polishCity("brush", p.brush === "erase" ? "off" : "erase")} testId="polish-brush-erase" />
+                        <div className={s.flex} />
                         <TypeButton p={p} id={brushType} on={picking === "brush"} onClick={() => setPicking(picking === "brush" ? null : "brush")} testId="polish-brush-type" />
                     </div>
-                    <div className={s.paintRow}>
-                        <Btn icon="brush" iconSize={11} label={L("BrushPaint", "Paint")} selected={p.brush === "paint"} title={L("BrushPaintTip4", "Drag over buildings: they get this outgrow type. Right-click drops the stroke.")} onClick={() => act.polishCity("brush", p.brush === "paint" ? "off" : "paint:" + brushType)} testId="polish-brush-paint" />
-                        <Btn icon="reset" iconSize={11} label={L("BrushZoneType", "Zone type")} selected={p.brush === "erase"} title={L("BrushEraseTip3", "Drag over buildings: they get their zone's outgrow type back")} onClick={() => act.polishCity("brush", p.brush === "erase" ? "off" : "erase")} testId="polish-brush-erase" />
-                    </div>
-                    <div className={s.paintRow} data-testid="polish-lens">
+                    {p.brush ? (
+                        <div className={s.crowSub} data-testid="polish-brush-size">
+                            <Slider testId="polish-brush-size-slider" value={Math.round(p.brushSize ?? 40)} min={8} max={200} step={2} unit=" m" onPreview={() => {}} onCommit={(v) => act.polishCity("brushSize", String(v))} />
+                        </div>
+                    ) : null}
+                    {picking === "brush" ? (
+                        <div className={s.crowSub}>
+                            <LookChips
+                                p={p}
+                                value={brushType}
+                                testId="polish-brush-pick"
+                                onPick={(v) => {
+                                    setBrushLook(v);
+                                    if (p.brush === "paint") act.polishCity("brush", "paint:" + v);
+                                    setPicking(null);
+                                }}
+                            />
+                        </div>
+                    ) : null}
+                    <div className={s.crow} data-testid="polish-lens">
+                        <Icon name="map" size={13} tint={p.lensWanted ? "accent" : "dim"} fallback="eye" />
+                        <div className={s.crowLabel}>{L("RowMap", "Map")}</div>
                         <Segmented
                             testId="polish-lens-mode"
-                            stretch
                             value={!p.lensWanted ? "off" : p.lensMode === "types" ? "types" : "status"}
                             onChange={(v) => {
                                 if (v === "off") act.polishCity("lens", "false");
@@ -805,59 +813,20 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                                 }
                             }}
                             options={[
-                                { value: "off", label: L("MapOff", "Map off") },
+                                { value: "off", label: L("Off", "Off") },
                                 { value: "status", label: L("LensStatus", "Status"), description: L("LensStatusTip2", "Outgrown or not, and what is waiting") },
                                 { value: "types", label: L("LensTypes", "Types"), description: L("LensTypesTip", "Every building in its outgrow type's color") },
                             ]}
                         />
                     </div>
                 </div>
-                </div>
-                {p.brush ? (
-                    <div className={classNames(s.brushSize, s.brushSizeWide)} data-testid="polish-brush-size">
-                        <Slider testId="polish-brush-size-slider" value={Math.round(p.brushSize ?? 40)} min={8} max={200} step={2} unit=" m" onPreview={() => {}} onCommit={(v) => act.polishCity("brushSize", String(v))} />
-                    </div>
-                ) : null}
-                {picking === "brush" ? (
-                    <div className={s.topPick}>
-                        <LookChips
-                            p={p}
-                            value={brushType}
-                            zoneDefault
-                            testId="polish-brush-pick"
-                            onPick={(v) => {
-                                setBrushLook(v);
-                                if (p.brush === "paint") act.polishCity("brush", "paint:" + v);
-                                setPicking(null);
-                            }}
-                        />
-                    </div>
-                ) : null}
-                {p.lensWanted ? (
-                    <div className={s.legendStrip}>
-                        {p.lensMode === "types" ? (
-                            <div className={s.legendGrid} data-testid="polish-lens-types">
-                                {(p.lensTypes ?? []).map((x) => (
-                                    <div key={x.id} className={s.legendCell}>
-                                        <div className={s.dot} style={{ backgroundColor: x.id === "-" ? NOT_OUTGROWN : lookColor(p, x.id) }} />
-                                        <div className={s.legendCellName}>{x.id === "-" ? L("NotOutgrown", "Not outgrown") : x.id === "" ? L("NoType", "No type") : lookName(t, p, x.id)}</div>
-                                        <div className={s.legendCellCount}>{num(x.count)}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <LensLegend p={p} />
-                        )}
-                    </div>
-                ) : null}
                 <ScrollArea className={pn.bodyWrap} testId="polish-city-body">
                     <div className={classNames(pn.body, s.cityBody)}>
-                        {/* 3. Outgrow types: which each zone gets, and the types themselves, under their own heading */}
-                        <div className={s.typesHead}>{L("TypesHead", "Outgrow types")}</div>
+                        {/* the two tabs: each zone's default outgrow type, and the outgrow types themselves */}
                         <div className={s.underTabs} data-testid="polish-city-tab">
                             {[
-                                { value: "zones", label: L("TabByZone", "By zone"), tip: L("TabZonesTip", "Each zone's outgrow type. New buildings get it too.") },
-                                { value: "edit", label: L("TabEditTypes", "Edit types"), tip: L("TabEditTip", "Every outgrow type and its settings: change one, or make your own") },
+                                { value: "zones", label: L("TabZoneDefaults", "Zone defaults"), tip: L("TabZoneDefaultsTip", "The default outgrow type of each zone. New buildings get it.") },
+                                { value: "edit", label: L("TabEditOutgrowTypes", "Edit outgrow types"), tip: L("TabEditTip", "Every outgrow type and its settings: change one, or make your own") },
                             ].map((o) => (
                                 <Tip key={o.value} title={o.label} description={o.tip}>
                                     <button type="button" className={classNames(s.underTab, { [s.underTabOn]: (tab === "edit") === (o.value === "edit") })} data-testid={"polish-city-tab-" + o.value} onClick={() => setTab(o.value as "zones" | "edit")}>
@@ -869,7 +838,6 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                         {tab !== "edit" ? (
                             <Frozen fp={zonesFp}>
                             <div data-testid="polish-city-zones">
-                                <div className={s.zhead}>{L("ZonesHead3", "Each zone's outgrow type. New buildings get it too.")}</div>
                                 {KINDS.map((k, ki) => {
                                     const list = zones.filter((z) => z.kind === k.id);
                                     if (!list.length) return null;
