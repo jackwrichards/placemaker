@@ -1504,7 +1504,12 @@ namespace Placemaker.Gallery
                             {
                                 if (j == i) continue;
                                 var b = solid[j];
-                                if (math.distance(a.o.Position.xz, b.o.Position.xz) < (a.r + b.r) * 0.5f) { hit = true; break; }
+                                if (math.distance(a.o.Position.xz, b.o.Position.xz) < (a.r + b.r) * 0.5f)
+                                {
+                                    hit = true;
+                                    if (System.Environment.GetEnvironmentVariable("PM_DEBUG") == "1") System.Console.Error.WriteLine($"overlap {a.o.Role}/{a.o.Asset.Id} r{a.r:F2} at ({a.o.Position.x:F1},{a.o.Position.z:F1}) with {b.o.Role}/{b.o.Asset.Id} r{b.r:F2} d {math.distance(a.o.Position.xz, b.o.Position.xz):F2}");
+                                    break;
+                                }
                             }
                 if (hit) res.Overlaps++;
             }

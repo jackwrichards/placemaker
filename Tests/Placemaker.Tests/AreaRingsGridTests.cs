@@ -34,7 +34,7 @@ namespace Placemaker.Tests
                 var ring = Jagged(n, rng.NextFloat(20f, 300f), rng.NextFloat(0f, 0.08f), seed);
                 foreach (float d in new[] { 0.1f, 0.375f, 1.5f, 4f })
                 {
-                    int expected = AreaRings.FirstViolationLoop(ring, d);
+                    int expected = AreaRings.FirstViolationAllPairs(ring, d);
                     Assert.Equal(expected, AreaRings.FirstViolation(ring, d));
                     checkedRings++;
                     if (expected >= 0) violating++;
@@ -50,7 +50,7 @@ namespace Placemaker.Tests
             {
                 var ring = Jagged(500, 150f, 0.05f, seed);
                 var made = AreaRings.MakeValid(ring, 0.375f);
-                Assert.True(made == null || AreaRings.FirstViolationLoop(made, 0.375f + AreaRings.Margin) < 0);
+                Assert.True(made == null || AreaRings.FirstViolationAllPairs(made, 0.375f + AreaRings.Margin) < 0);
             }
         }
     }

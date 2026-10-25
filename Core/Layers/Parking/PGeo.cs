@@ -188,6 +188,7 @@ namespace Placemaker.Core.Layers.Parking
         {
             int n = ring.Count;
             if (n < 3) return false;
+            if (n > 32) return IsSimpleByGrid(ring);
             for (int i = 0; i < n; i++)
             {
                 var a = ring[i]; var b = ring[(i + 1) % n];
@@ -197,6 +198,32 @@ namespace Placemaker.Core.Layers.Parking
                     if ((j + 1) % n == i || j == (i + 1) % n) continue;
                     if (SegmentsIntersect(a, b, ring[j], ring[(j + 1) % n])) return false;
                 }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// (perf) IsSimple for a painted outline's hundreds of corners: the edge pairs that can touch are found by grid cell
+        /// (touching edges have touching boxes), the same pairs answer as in the all-pairs scan.
+        /// </summary>
+        internal static bool IsSimpleByGrid(IReadOnlyList<double2> ring)
+        {
+            int n = ring.Count;
+            for (int i = 0; i < n; i++) if (Len(ring[(i + 1) % n] - ring[i]) < 1e-9) return false;
+            var grid = new RingGrid(ring);
+            var pad = new double2(1e-6, 1e-6);
+            for (int i = 0; i < n; i++)
+            {
+                var a = ring[i]; var b = ring[(i + 1) % n];
+                bool hit = false;
+                int ii = i;
+                grid.Edges(math.min(a, b) - pad, math.max(a, b) + pad, j =>
+                {
+                    if (j <= ii || (j + 1) % n == ii || j == (ii + 1) % n) return true;
+                    if (SegmentsIntersect(a, b, ring[j], ring[(j + 1) % n])) { hit = true; return false; }
+                    return true;
+                });
+                if (hit) return false;
             }
             return true;
         }

@@ -40,15 +40,18 @@ namespace Placemaker.Core.Build
         {
             int n = ring?.Count ?? 0;
             if (n < 3) return 0;
-            float d = minNodeDistance;
-            if (n >= GridFrom) return FirstViolationGrid(ring, d);
-            return FirstViolationLoop(ring, d);
+            // (perf) Rule 2 asks every pair of edges: quadratic in the nodes (a painted parking lot's rings have up to 240,
+            // and MakeValid asks again after every node it removes). Larger rings find the edge pairs closer than d by grid
+            // cell instead; the answer (the same node) does not change.
+            return n > 24 ? FirstViolationGrid(ring, minNodeDistance) : FirstViolationAllPairs(ring, minNodeDistance);
         }
 
-        /// <summary>The plain loop over every pair (small rings; the reference the grid path must equal).</summary>
-        internal static int FirstViolationLoop(IReadOnlyList<float2> ring, float d)
+        /// <summary>FirstViolation by checking every pair of edges (the reference; small rings).</summary>
+        internal static int FirstViolationAllPairs(IReadOnlyList<float2> ring, float minNodeDistance)
         {
-            int n = ring.Count;
+            int n = ring?.Count ?? 0;
+            if (n < 3) return 0;
+            float d = minNodeDistance;
             for (int i = 0; i < n; i++)
             {
                 float2 a = ring[i], b = ring[(i + 1) % n];
@@ -69,61 +72,63 @@ namespace Placemaker.Core.Build
             return -1;
         }
 
-        // (perf) Rule 2 compares every edge with every other: a ring of a painted outline (400–600 corners) cost ~10^5 segment
-        // distances per check, and MakeValid checks again after every node it removes (ZoneGuard's blockers: 30 % of it). The
-        // edges near edge i come from a grid of their boxes grown by d (an edge whose box is further than d cannot be closer
-        // than d), tested in increasing j: the very violation the full loop returns first.
-        private const int GridFrom = 40;
-
-        private static int FirstViolationGrid(IReadOnlyList<float2> ring, float d)
+        /// <summary>
+        /// FirstViolation with the edges filed by grid cell (cells at least d wide): for edge i, only the edges whose box
+        /// comes within d of its box can break rule 2, and the smallest such j is the one the all-pairs scan returns first.
+        /// </summary>
+        internal static int FirstViolationGrid(IReadOnlyList<float2> ring, float minNodeDistance)
         {
             int n = ring.Count;
-            var lo = new float2[n];
-            var hi = new float2[n];
-            float2 bmin = new float2(float.MaxValue), bmax = new float2(float.MinValue);
-            for (int k = 0; k < n; k++)
+            float d = minNodeDistance;
+            float2 mn = ring[0], mx = ring[0];
+            for (int i = 1; i < n; i++) { mn = math.min(mn, ring[i]); mx = math.max(mx, ring[i]); }
+            float pad = d + 1e-3f;
+            // about as many cells as nodes (small tables: MakeValid asks after every node it removes)
+            float span = math.max(mx.x - mn.x, mx.y - mn.y);
+            float cell = math.max(math.max(2f * pad, 0.5f), math.max(span / 128f, math.sqrt(math.max(1e-6f, (mx.x - mn.x) * (mx.y - mn.y)) / n)));
+            int nx = (int)((mx.x - mn.x) / cell) + 1, ny = (int)((mx.y - mn.y) / cell) + 1;
+            int Cx(float x) => math.clamp((int)math.floor((x - mn.x) / cell), 0, nx - 1);
+            int Cy(float y) => math.clamp((int)math.floor((y - mn.y) / cell), 0, ny - 1);
+            // edges by every cell their box touches (flat tables: start[c] .. start[c + 1] in items)
+            var start = new int[nx * ny + 1];
+            for (int e = 0; e < n; e++)
             {
-                float2 a = ring[k], b = ring[(k + 1) % n];
-                lo[k] = math.min(a, b); hi[k] = math.max(a, b);
-                bmin = math.min(bmin, lo[k]); bmax = math.max(bmax, hi[k]);
+                float2 a = ring[e], b = ring[(e + 1) % n];
+                for (int y = Cy(math.min(a.y, b.y)); y <= Cy(math.max(a.y, b.y)); y++)
+                    for (int x = Cx(math.min(a.x, b.x)); x <= Cx(math.max(a.x, b.x)); x++) start[x + y * nx + 1]++;
             }
-            if (!math.all(math.isfinite(bmin)) || !math.all(math.isfinite(bmax))) return FirstViolationLoop(ring, d);
-            var size = bmax - bmin;
-            float cell = math.max(math.max(4f * d, 0.5f), math.sqrt(math.max(size.x * size.y, 1f) / n) * 2f);
-            var grid = new Placemaker.Core.Layers.Common.CellMap();
-            int2 Cell(float2 p) => (int2)math.floor((p - bmin) / cell);
-            for (int k = 0; k < n; k++)
+            for (int c = 1; c < start.Length; c++) start[c] += start[c - 1];
+            var fill = (int[])start.Clone();
+            var items = new int[start[start.Length - 1]];
+            for (int e = 0; e < n; e++)
             {
-                int2 c0 = Cell(lo[k] - d), c1 = Cell(hi[k] + d);
-                for (int y = c0.y; y <= c1.y; y++)
-                    for (int x = c0.x; x <= c1.x; x++) grid.Add(x, y, k);
+                float2 a = ring[e], b = ring[(e + 1) % n];
+                for (int y = Cy(math.min(a.y, b.y)); y <= Cy(math.max(a.y, b.y)); y++)
+                    for (int x = Cx(math.min(a.x, b.x)); x <= Cx(math.max(a.x, b.x)); x++) items[fill[x + y * nx]++] = e;
             }
-            var stamp = new int[n];
-            var cand = new List<int>();
             for (int i = 0; i < n; i++)
             {
                 float2 a = ring[i], b = ring[(i + 1) % n];
                 float2 next = ring[(i + 2) % n], prev = ring[(i - 1 + n) % n];
+                // Rule 1: the nodes right before and after the edge.
                 if (DistancePointSegment(next, a, b) < d) return (i + 2) % n;
                 if (DistancePointSegment(prev, a, b) < d) return (i - 1 + n) % n;
-                cand.Clear();
-                int2 c0 = Cell(lo[i]), c1 = Cell(hi[i]);
-                for (int y = c0.y; y <= c1.y; y++)
-                    for (int x = c0.x; x <= c1.x; x++)
-                        for (int en = grid.First(x, y); en >= 0; en = grid.Next(en))
+                // Rule 2: the first non-adjacent edge j > i + 1 closer than d.
+                int best = int.MaxValue;
+                int x0 = Cx(math.min(a.x, b.x) - pad), x1 = Cx(math.max(a.x, b.x) + pad);
+                int y0 = Cy(math.min(a.y, b.y) - pad), y1 = Cy(math.max(a.y, b.y) + pad);
+                for (int y = y0; y <= y1; y++)
+                    for (int x = x0; x <= x1; x++)
+                    {
+                        int c = x + y * nx;
+                        for (int k = start[c]; k < start[c + 1]; k++)
                         {
-                            int j = grid.Item(en);
-                            if (j < i + 2 || stamp[j] == i + 1) continue;
-                            stamp[j] = i + 1;
-                            if (i == 0 && j == n - 1) continue;   // adjacent through the closing edge
-                            cand.Add(j);
+                            int j = items[k];
+                            if (j < i + 2 || j >= best || (i == 0 && j == n - 1)) continue;
+                            if (DistanceSegmentSegment(a, b, ring[j], ring[(j + 1) % n]) < d) best = j;
                         }
-                cand.Sort();
-                foreach (int j in cand)
-                {
-                    float2 c = ring[j], e = ring[(j + 1) % n];
-                    if (DistanceSegmentSegment(a, b, c, e) < d) return j;
-                }
+                    }
+                if (best != int.MaxValue) return best;
             }
             return -1;
         }

@@ -69,6 +69,33 @@ strip mall, botanical garden, 5 and 12.5 ha). Park 12.5 ha .NET: default 346 →
 In the game's Mono with a 1200-corner outline the gain is only 15–20 % (park default 3344 → 2836 ms, garden 4614 → 3701):
 there the outline's corners dominate, so 1.4 item 1 comes first. [P, `planmono` vs `planmono-grid`, tests running alongside]
 
+### 1.3b Parking planner (`Core/Layers/Parking`, not seen in the game yet)
+
+Measured with `Placemaker.Gallery --bench` and `PlanBench.Mono` (base `d044c071`). Lots look the same and keep their
+stalls (capacity identical in every gallery case: parking, mall district, odd shapes, 400-corner outlines); the surface
+rings and the jittered fill plants differ (the rings are grouped from different cells).
+
+* **Surface cells** (`SurfaceCells`): the zones come straight from the bands between the nested outlines (`Inset.Of`
+  keeps edge i parallel to the lot's edge i, so lot → setback → ring road → grid is one quad per edge) and the innermost
+  ring is cut by peeling its convex pockets (`Decompose`), not by ear clipping, which fanned slivers across the whole lot
+  that every stall row then cut again: 13 800 cells → 5 000 on 12.5 ha with 400 corners. A setback thinner than 0.45 m
+  joins the next zone (the short-edge clean-up folded it onto the outline). Merge on flat arrays (edge twins by sorted
+  keys), the short-edge collapse only revisits the cells whose clusters changed. The old zone cutting stays as the
+  fallback when a band does not tile (not hit in any bench case).
+* **Surfaces the build keeps**: every emitted ring passes the game's area shape rules (`AreaRings`) or can be repaired
+  by the build (`SurfaceRules.GameKeeps`); a ring the build would skip is regrouped from its cells. Refused rings in the
+  gallery: 141 → 0 on the painted lots (21–38 per 12.5 ha lot before). (Emitting the repaired rings instead, so the build
+  only copies them, was tried: the repair drops nodes on one ring and not on its neighbour, planned surfaces overlapped by
+  up to 1 % — ParkingQualityTests.) Rings the game model trims by less than 0.5 m² are no longer regrouped (that won back
+  < 0.1 m² a few times in 100).
+* **Inside / distance tests by grid** (`RingGrid`: same answers as `PGeo`): insets (`Eroded` now finds the too-close part
+  of each offset line analytically), the layout's `ConvexInside` / `StripInside`, planting probes (`SurfaceIndex` over the
+  cells), lanterns, grading, `IsSimple`; `AreaRings.FirstViolation` by grid for rings over 24 nodes (also the build's).
+* Results (fastest of 2, on a shared machine): .NET 12.5 ha with 400 corners 640–1 160 ms → 95–165 ms (7–10×), 1 ha
+  280–315 → 20–23 ms; plain hexagon 12.5 ha 240–250 → 60–75 ms. Mono 12.5 ha with 400 corners 2.4–3.9 s → 0.32–0.44 s
+  (parking step 3.8 s → 0.4 s), plain 12.5 ha 0.8 s → 0.2 s; garbage collections 11–22 → 3–9 per plan. Mall district,
+  retail park, shops park, high street: same or a little faster.
+
 ### 1.4 The road to 100× for the design phase
 
 Ordered by gain per effort. Gains multiply.

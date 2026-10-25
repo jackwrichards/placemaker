@@ -63,6 +63,9 @@ namespace Placemaker.Core.Layers.Parking
             var anchor = new double2(double.MaxValue, double.MaxValue);
             foreach (var r in rings) foreach (var p in r) anchor = math.min(anchor, p);
             int candidates = 0;
+            // (perf) lanterns by 8 m cell (every candidate asked every lantern)
+            var lamps = lanterns != null && lanterns.Count > 0 ? new PointGrid(8) : null;
+            if (lamps != null) foreach (var l in lanterns) lamps.Add(l.Position);
 
             foreach (var ring in rings)
             {
@@ -87,6 +90,8 @@ namespace Placemaker.Core.Layers.Parking
                     var l = new double2(PGeo.Dot(d, axis), PGeo.Dot(d, across));
                     local.Add(l); lo = math.min(lo, l); hi = math.max(hi, l);
                 }
+                // (perf) the ring's edges by grid cell for the inside / distance-to-edge tests (same answers)
+                var localGrid = local.Count > 16 ? new RingGrid(local) : null;
                 for (int pass = 0; pass < 2; pass++)
                 {
                     var pool = new List<int>();
@@ -113,26 +118,17 @@ namespace Placemaker.Core.Layers.Parking
                         var kind = species[which];
                         var p = new double2(lo.x + (hi.x - lo.x) * (ix + .5) / nx, lo.y + (hi.y - lo.y) * (iy + .5) / ny);
                         p += new double2(Unit(Hash(s + 7)) - .5, Unit(Hash(s + 11)) - .5) * (hi - lo) / new double2(nx, ny);
-                        if (!PGeo.Contains(local, p)) continue;
-                        double edge = PGeo.DistToBoundary(local, p);
+                        if (!(localGrid != null ? localGrid.Contains(p) : PGeo.Contains(local, p))) continue;
+                        // only the first 4 m of the distance matter (the chance saturates there)
+                        double edge = Math.Min(localGrid != null ? localGrid.Dist(p, 4.0) : PGeo.DistToBoundary(local, p), 4.0);
                         if (edge < (kind.Tree ? TreeEdge : .10)) continue;
                         double chance = kind.Tree ? Lerp(.3, 1, Sat(edge / 4)) : Lerp(1, .7, Sat(edge / 4));
                         var world = origin + axis * p.x + across * p.y;
                         double group = GroupDensity((world - anchor) / (kind.Tree ? 18.0 : 7.0), seed + (uint)pass * 313u);
                         chance *= Lerp(.35, 1, group);
                         if (Unit(Hash(s + 23)) > chance) continue;
-                        if (lanterns != null)
-                        {
-                            bool hit = false;
-                            foreach (var l in lanterns)
-                            {
-                                // a tree taller than the mast must keep 3 m off the lantern (PLT LaternenKoerper)
-                                double free = kind.Tree ? 3.0 : 0.5;
-                                if (math.distancesq(world, l.Position) < free * free) { hit = true; break; }
-                            }
-                            if (hit) continue;
-                        }
-                        if (blocked != null && blocked(world)) continue;
+                        // a tree taller than the mast must keep 3 m off the lantern (PLT LaternenKoerper)
+                        if (lamps != null && lamps.AnyWithin(world, kind.Tree ? 3.0 : 0.5)) continue;
                         int gx = (int)Math.Floor(world.x / 16), gy = (int)Math.Floor(world.y / 16);
                         bool clear = true;
                         for (int dy = -1; dy <= 1 && clear; dy++)
@@ -146,6 +142,8 @@ namespace Placemaker.Core.Layers.Parking
                                         if (math.distancesq(world, other.Position) < dist * dist - .001) { clear = false; break; }
                                     }
                         if (!clear) continue;
+                        // (perf) the stall / charger / reserved test after the spacing test, which drops more (both only filter)
+                        if (blocked != null && blocked(world)) continue;
                         long key = Key(gx, gy);
                         if (!occupied.TryGetValue(key, out var list)) occupied[key] = list = new List<int>();
                         list.Add(plants.Count);
@@ -184,6 +182,8 @@ namespace Placemaker.Core.Layers.Parking
             var treeKinds = new List<int>(); var shrubKinds = new List<int>();
             for (int i = 0; i < species.Count; i++) (species[i].Tree ? treeKinds : shrubKinds).Add(i);
             double factor = RowSpacingFactor(density);
+            var lamps = lanterns != null && lanterns.Count > 0 ? new PointGrid(8) : null;
+            if (lamps != null) foreach (var l in lanterns) lamps.Add(l.Position);
 
             // 1. the middle of the strip behind each back corner
             var pts = new List<(double2 P, double2 Dir, double Width, bool Cap)>();
@@ -327,30 +327,28 @@ namespace Placemaker.Core.Layers.Parking
 
             bool Near(double2 p, bool tree)
             {
-                if (lanterns != null)
-                {
-                    double free = tree ? 3.0 : 0.8;
-                    foreach (var l in lanterns) if (math.distancesq(p, l.Position) < free * free) return true;
-                }
+                if (lamps != null && lamps.AnyWithin(p, tree ? 3.0 : 0.8)) return true;
                 return blocked != null && blocked(p);
             }
         }
 
-        /// <summary>Points by 16 m cell, for "anything closer than r".</summary>
+        /// <summary>Points by 16 m cell (or the given size), for "anything closer than r".</summary>
         private sealed class PointGrid
         {
             private readonly Dictionary<long, List<double2>> _cells = new Dictionary<long, List<double2>>();
+            private readonly double _size;
+            public PointGrid(double size = 16) { _size = size; }
             public void Add(double2 p)
             {
-                long k = Key((int)Math.Floor(p.x / 16), (int)Math.Floor(p.y / 16));
+                long k = Key((int)Math.Floor(p.x / _size), (int)Math.Floor(p.y / _size));
                 if (!_cells.TryGetValue(k, out var l)) _cells[k] = l = new List<double2>();
                 l.Add(p);
             }
             public bool AnyWithin(double2 p, double r)
             {
-                int gx = (int)Math.Floor(p.x / 16), gy = (int)Math.Floor(p.y / 16);
+                int gx = (int)Math.Floor(p.x / _size), gy = (int)Math.Floor(p.y / _size);
                 double r2 = r * r;
-                int reach = Math.Max(1, (int)Math.Ceiling(r / 16));
+                int reach = Math.Max(1, (int)Math.Ceiling(r / _size));
                 for (int dy = -reach; dy <= reach; dy++)
                     for (int dx = -reach; dx <= reach; dx++)
                         if (_cells.TryGetValue(Key(gx + dx, gy + dy), out var l))
