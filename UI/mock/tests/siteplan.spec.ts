@@ -1,5 +1,5 @@
 // Sketch study: the top view (SitePlanCard) on the real Core host, for odd outlines (a T, a triangle, a circle, a field):
-// Design shows it beside the panel, Review in the panel, hover shows the notes, a click the large view. Screenshots land in
+// Design shows it beside the panel, Review in the panel (beside its legend), a hovered row blinks, the expand button opens the large view. Screenshots land in
 // mock/screenshots/siteplan-*.png for review.
 import { expect, Page, test } from "@playwright/test";
 import { clickWorld, drawPolygon, FIELD, open, panelShot, pickType, shot, waitPlanned } from "./helpers";
@@ -50,21 +50,23 @@ for (const c of cases) {
         await expect(win.getByTestId("siteplan-picture").locator("svg")).toHaveCount(1);
         await shot(page, "siteplan-" + c.name + "-design");
 
-        // Review: the card in the panel; hover the picture for its notes
+        // Review: the card in the panel, beside its legend
         await entrance(page, c.ring);
         await page.getByTestId("primary").click();
         const card = page.getByTestId("placemaker-panel").getByTestId("siteplan-card");
         await expect(card).toBeVisible({ timeout: 15000 });
         await panelShot(page, "siteplan-" + c.name + "-review");
-        await card.getByTestId("siteplan-picture").hover();
-        await page.waitForTimeout(200);
-        const box = await page.getByTestId("placemaker-panel").boundingBox();
-        await page.screenshot({ path: "mock/screenshots/siteplan-" + c.name + "-notes.png", clip: { x: box!.x - 10, y: box!.y, width: box!.width + 20, height: Math.min(box!.height, 700) } });
 
         // a row hovered: only that thing; then the large view
         const rows = card.getByTestId("siteplan-rows").locator("[data-testid^='siteplan-row-']");
-        if (await rows.count()) await rows.first().hover();
-        await card.getByTestId("siteplan-picture").click();
+        // a hovered row blinks (nothing else is hidden)
+        if (await rows.count()) {
+            await rows.first().hover();
+            await page.waitForTimeout(300);
+            const box = await page.getByTestId("placemaker-panel").boundingBox();
+            await page.screenshot({ path: "mock/screenshots/siteplan-" + c.name + "-hover.png", clip: { x: box!.x - 10, y: box!.y, width: box!.width + 20, height: Math.min(box!.height, 600) } });
+        }
+        await card.getByTestId("siteplan-expand").click();
         await expect(page.getByTestId("siteplan-flyout")).toBeVisible();
         await page.mouse.move(5, 300);
         await page.waitForTimeout(200);

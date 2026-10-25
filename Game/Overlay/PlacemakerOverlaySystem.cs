@@ -504,8 +504,10 @@ namespace Placemaker.Game.Overlay
         private const int PaintLevels = 4;
         /// <summary>(s22) Terraform heat map: rings per band (−4…−1 cut, 1…4 fill), from Core TerrainHeat.</summary>
         private readonly Dictionary<int, List<float3[]>> _heatGroups = new Dictionary<int, List<float3[]>>();
+        private readonly Dictionary<int, (List<float3[]> list, long sig)> _heatSigs = new Dictionary<int, (List<float3[]>, long)>();
 
-        private bool Shows(string layer) => _tool.LayerVisible(layer);
+        // (sketch study) the site plan never isolates a layer on hover (the hovered row blinks instead: SpPulse)
+        private bool Shows(string layer) => SitePlanStyle && _tool.Plan != null ? SpShows(layer) : _tool.LayerVisible(layer);
 
         private void DrawPlan(OverlayRenderSystem.Buffer buffer, float w, PreviewDetail detail)
         {
@@ -545,11 +547,15 @@ namespace Placemaker.Game.Overlay
             if (SitePlanStyle)
             {
                 DrawSitePlan(buffer, w, alpha, objects);
+                // the ground change (red raised, blue lowered): its own legend row (the user: "I want to be able to toggle the height
+                // adjustments"), over the ground fills and under the stalls and crowns; it blinks while its row is hovered
                 bool heatOn = Shows(PreviewLegend.Terrain);
+                float heatPulse = SpPulse(PreviewLegend.Terrain);
                 foreach (var kv in _heatGroups)
                 {
                     var (hex, a) = TerrainHeat.Style(kv.Key);
-                    _fill.SetLayer("heat:" + kv.Key, kv.Value, WithAlpha(Hex(hex), heatOn ? a * (stale ? 0.5f : 1f) * (isolating ? 1.5f : 0.7f) : 0f), -92.8f + kv.Key * 0.001f, FilledPreviewSystem.Signature(kv.Value));
+                    if (!_heatSigs.TryGetValue(kv.Key, out var hs) || hs.list != kv.Value) _heatSigs[kv.Key] = hs = (kv.Value, FilledPreviewSystem.Signature(kv.Value));
+                    _fill.SetLayer("heat:" + kv.Key, kv.Value, WithAlpha(Hex(hex), heatOn ? math.min(1f, a * (stale ? 0.5f : 1f) * (1.2f + heatPulse * 2.5f)) : 0f), -93.25f + kv.Key * 0.001f, hs.sig);
                 }
                 if (Shows(PreviewLegend.Entrances) || Shows(PreviewLegend.Paths)) DrawCrosswalks(buffer, plan, w, stale ? 0.45f : 1f);
                 return;

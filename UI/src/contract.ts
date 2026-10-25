@@ -610,6 +610,8 @@ export interface SitePlanView {
   trees: number[];
   bushes: number[];
   plots: { color: string; q: number[] }[];
+  /** The ground change by band (red raised, blue lowered; Core TerrainHeat), the "terrain" row. Absent = none. */
+  heat?: { band: number; color: string; alpha: number; rings: number[][] }[];
   entrances: number[];
   issues: number[];
   legend: SitePlanRow[];
@@ -626,7 +628,7 @@ export interface SitePlanRow {
   /** English fallback of the label. */
   en: string;
   count: number;
-  /** "m" a length, "count", "cells", "" no number. */
+  /** "m" a length, "count", "cells", "delta" the biggest ground change in metres (±), "" no number. */
   unit: string;
   /** Where its note goes on the picture (inside the outline). */
   anchor: number[];

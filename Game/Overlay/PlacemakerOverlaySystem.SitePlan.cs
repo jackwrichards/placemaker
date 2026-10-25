@@ -1,11 +1,16 @@
 // Placemaker — the sketch as a site plan (setting Sketch style: Site plan; sketch study, docs/sketch-study): the plan drawn as
-// what gets built, from the tool's Core SitePlan, the same list the panel's top view draws. Ground fills (asphalt, lawn,
-// paving, water, shop plots) are filled meshes (FilledPreviewSystem); roads and paths are surfaces at their real width with
-// round joins, so a junction is one surface; stalls are the painted lines; trees are crowns at their real size with a soft
-// shadow. Every size is in metres. Under the Real preview only the ground stays (the game draws planned surfaces as outlines
-// only, so without it Real shows no asphalt and no new roads); the ghost shows the rest.
+// what gets built, from the tool's Core SitePlan, the same list the panel's top view draws. Roads and paths are surfaces at
+// their real width with round joins, so a junction is one surface; stalls are the painted lines; trees are crowns at their
+// real size with a soft shadow. Every size is in metres. Under the Real preview only the ground stays (the game draws planned
+// surfaces as outlines only, so without it Real shows no asphalt and no new roads); the ghost shows the rest.
 //
-// The 3D geometry (ground heights) is built once per site plan, not per frame.
+// Speed (the user, 25 Oct: "I'm lagging pretty bad in sketch view" on a 3,573-space car park): everything but the roads and
+// paths is a filled mesh built once per site plan (FilledPreviewSystem: one draw call per layer, as ParkingLotTool draws its
+// plants and bay lines), not thousands of overlay lines and circles every frame. Showing, hiding and the hover highlight only
+// change a layer's colour.
+//
+// Hover (the user: "just blink or highlight the thing that you select ... not hide everything but it"): the hovered legend
+// row blinks in the highlight colour; nothing else is hidden.
 
 using System.Collections.Generic;
 using Colossal.Mathematics;
@@ -28,22 +33,27 @@ namespace Placemaker.Game.Overlay
             public bool Mark;
         }
 
-        private struct SpLine
+        /// <summary>A prebuilt mesh layer: its rings, signature, colour, legend row and draw order.</summary>
+        private sealed class SpShape
         {
-            public Line3.Segment Seg;
-            public float Width;
-            public bool Mark;
+            public List<float3[]> Rings = new List<float3[]>();
+            public long Sig;
+            public string Color;
+            public float Alpha;
+            public string Row;
+            public float Priority;
+            /// <summary>Drawn under the Real preview too (ground), or only in the sketch (what the ghost shows itself).</summary>
+            public bool Ground;
         }
 
         private int _spVersion = -1;
         private TerrainSystem _spTerrain;
-        private readonly Dictionary<string, (List<float3[]> rings, long sig)> _spFills = new Dictionary<string, (List<float3[]>, long)>();
-        private readonly Dictionary<string, (List<float3[]> rings, long sig)> _spPlots = new Dictionary<string, (List<float3[]>, long)>();
-        private (List<float3[]> rings, long sig) _spPlaces, _spBase;
+        private readonly List<(string key, SpShape shape)> _spShapes = new List<(string, SpShape)>();
         private readonly List<SpCurve> _spCars = new List<SpCurve>(), _spWalks = new List<SpCurve>();
-        private readonly List<SpLine> _spStalls = new List<SpLine>(), _spBenches = new List<SpLine>(), _spFences = new List<SpLine>();
-        private readonly List<(float3 at, float r)> _spCaps = new List<(float3, float)>(), _spTrees = new List<(float3, float)>(), _spBushes = new List<(float3, float)>();
-        private readonly List<float3> _spLamps = new List<float3>(), _spBins = new List<float3>(), _spChargers = new List<float3>(), _spIssues = new List<float3>();
+        private readonly List<(float3 at, float r)> _spCaps = new List<(float3, float)>();
+        private readonly List<float3> _spIssues = new List<float3>();
+
+        private const string Highlight = "#ffe14d";
 
         private static bool SitePlanStyle => (ToolRegistration.Settings?.SketchStyle ?? Placemaker.Game.Settings.SketchStyle.SitePlan) == Placemaker.Game.Settings.SketchStyle.SitePlan;
 
@@ -51,6 +61,40 @@ namespace Placemaker.Game.Overlay
         {
             var c = PreviewLegend.Hex(hex);
             return new Color(c.x, c.y, c.z, a);
+        }
+
+        private static float3[] Flat(float2[] r)
+        {
+            var o = new float3[r.Length];
+            for (int i = 0; i < r.Length; i++) o[i] = new float3(r[i].x, 0f, r[i].y);   // the fill mesh samples the ground itself
+            return o;
+        }
+
+        /// <summary>A disc as a polygon: 8 sides for small things, up to 16 for big crowns.</summary>
+        private static float3[] DiscRing(float2 c, float r)
+        {
+            int n = r < 1f ? 6 : r < 3f ? 10 : 14;
+            var o = new float3[n];
+            for (int i = 0; i < n; i++)
+            {
+                float a = i * math.PI * 2f / n;
+                o[i] = new float3(c.x + math.cos(a) * r, 0f, c.y + math.sin(a) * r);
+            }
+            return o;
+        }
+
+        /// <summary>A line of the given width as a thin rectangle.</summary>
+        private static float3[] BarRing(float2 a, float2 b, float w)
+        {
+            float2 d = math.normalizesafe(b - a, new float2(1, 0)), n = new float2(-d.y, d.x) * (w * 0.5f);
+            return new[] { new float3(a.x + n.x, 0, a.y + n.y), new float3(b.x + n.x, 0, b.y + n.y), new float3(b.x - n.x, 0, b.y - n.y), new float3(a.x - n.x, 0, a.y - n.y) };
+        }
+
+        private SpShape Shape(string key, string color, float alpha, string row, float priority, bool ground)
+        {
+            var s = new SpShape { Color = color, Alpha = alpha, Row = row, Priority = priority, Ground = ground };
+            _spShapes.Add((key, s));
+            return s;
         }
 
         private void BuildSitePlan3D(SitePlan sp)
@@ -63,13 +107,70 @@ namespace Placemaker.Game.Overlay
                 v.y = TerrainUtils.SampleHeight(ref heights, v);
                 return v;
             }
-            float3[] Flat(float2[] r)
+            _spShapes.Clear();
+
+            // ground: the site's own lawn tone, the materials, shop plots (kept under the Real preview)
+            Shape("sp:base", SitePlan.Palette.Base, SitePlan.Palette.BaseAlpha, "", -93.6f, true).Rings.Add(Flat(sp.Outline));
+            for (int m = 0; m < SitePlan.Materials.Length; m++)
             {
-                var o = new float3[r.Length];
-                for (int i = 0; i < r.Length; i++) o[i] = new float3(r[i].x, 0f, r[i].y);   // the fill mesh samples the ground itself
-                return o;
+                string mat = SitePlan.Materials[m];
+                SpShape s = null;
+                foreach (var f in sp.Fills)
+                    if (f.material == mat) (s ??= Shape("sp:" + mat, SitePlan.Palette.Fill(mat), SitePlan.Palette.Alpha(mat), SitePlan.RowOfMaterial(mat), -93.4f + m * 0.01f, true)).Rings.Add(Flat(f.ring));
             }
-            // one smooth piece per net with round ends: only the joins between nets overlap (no darker beads along a road)
+            var byZone = new Dictionary<string, SpShape>();
+            SpShape grid = null;
+            foreach (var (zone, quad) in sp.PlotCells)
+            {
+                string c = SitePlan.Palette.Zone(zone);
+                if (!byZone.TryGetValue(c, out var s)) byZone[c] = s = Shape("sp:plot:" + c, c, 0.5f, SitePlan.Plots, -93.3f, true);
+                s.Rings.Add(Flat(quad));
+                grid ??= Shape("sp:plotGrid", "#ffffff", 0.45f, SitePlan.Plots, -93.29f, true);
+                for (int i = 0; i < quad.Length; i++) grid.Rings.Add(BarRing(quad[i], quad[(i + 1) % quad.Length], 0.3f));
+            }
+
+            // what the ghost shows itself (sketch only): stalls, places, furniture, planting, crowns last
+            if (sp.Stalls.Count > 0)
+            {
+                var s = Shape("sp:stalls", SitePlan.Palette.Stall, 0.9f, SitePlan.Parking, -93.1f, false);
+                foreach (var (a, b) in sp.Stalls) s.Rings.Add(BarRing(a, b, 0.18f));
+            }
+            if (sp.Chargers.Count > 0) { var s = Shape("sp:chargers", SitePlan.Palette.Charger, 1f, SitePlan.Parking, -93.09f, false); foreach (var p in sp.Chargers) s.Rings.Add(DiscRing(p, 0.7f)); }
+            if (sp.PlaceFootprints.Count > 0)
+            {
+                var s = Shape("sp:places", SitePlan.Palette.Place, 1f, SitePlan.Places, -93.08f, false);
+                var e = Shape("sp:placeEdges", SitePlan.Palette.PlaceEdge, 1f, SitePlan.Places, -93.07f, false);
+                foreach (var q in sp.PlaceFootprints)
+                {
+                    s.Rings.Add(Flat(q));
+                    for (int i = 0; i < q.Length; i++) e.Rings.Add(BarRing(q[i], q[(i + 1) % q.Length], 0.3f));
+                }
+            }
+            if (sp.Fences.Count > 0)
+            {
+                var s = Shape("sp:fences", SitePlan.Palette.Fence, 0.9f, SitePlan.Furniture, -93.06f, false);
+                foreach (var f in sp.Fences) for (int i = 1; i < f.Length; i++) s.Rings.Add(BarRing(f[i - 1], f[i], 0.35f));
+            }
+            if (sp.Benches.Count > 0) { var s = Shape("sp:benches", SitePlan.Palette.Bench, 1f, SitePlan.Furniture, -93.05f, false); foreach (var q in sp.Benches) s.Rings.Add(Flat(q)); }
+            if (sp.Bins.Count > 0) { var s = Shape("sp:bins", SitePlan.Palette.Bin, 1f, SitePlan.Furniture, -93.04f, false); foreach (var p in sp.Bins) s.Rings.Add(DiscRing(p, 0.35f)); }
+            if (sp.Lamps.Count > 0) { var s = Shape("sp:lamps", SitePlan.Palette.Lamp, 1f, SitePlan.Furniture, -93.03f, false); foreach (var p in sp.Lamps) s.Rings.Add(DiscRing(p, 0.5f)); }
+            if (sp.Bushes.Count > 0) { var s = Shape("sp:bushes", SitePlan.Palette.Bush, 0.85f, SitePlan.Planting, -93.02f, false); foreach (var d in sp.Bushes) s.Rings.Add(DiscRing(d.At, d.R)); }
+            if (sp.TreeCrowns.Count > 0)
+            {
+                // a soft shadow to the north (the sun is south), the crown, its lit side
+                var sh = Shape("sp:treeShadow", SitePlan.Palette.Shadow, 0.28f, SitePlan.Trees, -93.01f, false);
+                var cr = Shape("sp:tree", SitePlan.Palette.Tree, 0.95f, SitePlan.Trees, -93.0f, false);
+                var lit = Shape("sp:treeLit", SitePlan.Palette.TreeHi, 0.95f, SitePlan.Trees, -92.99f, false);
+                foreach (var t in sp.TreeCrowns)
+                {
+                    sh.Rings.Add(DiscRing(t.At + new float2(t.R * 0.25f, t.R * 0.3f), t.R));
+                    cr.Rings.Add(DiscRing(t.At, t.R));
+                    lit.Rings.Add(DiscRing(t.At + new float2(-t.R * 0.22f, -t.R * 0.22f), t.R * 0.55f));
+                }
+            }
+            foreach (var (_, s) in _spShapes) s.Sig = FilledPreviewSystem.Signature(s.Rings);
+
+            // roads and paths stay overlay curves (a few hundred): one smooth piece per net, round ends
             void Curves(List<SitePlan.Stroke> from, List<SpCurve> to)
             {
                 to.Clear();
@@ -81,51 +182,23 @@ namespace Placemaker.Game.Overlay
                     to.Add(new SpCurve { Curve = c, Width = s.Width, Mark = s.Marked });
                 }
             }
-            var site = new List<float3[]> { Flat(sp.Outline) };
-            _spBase = (site, FilledPreviewSystem.Signature(site));
-            _spFills.Clear();
-            foreach (var m in SitePlan.Materials)
-            {
-                var rings = new List<float3[]>();
-                foreach (var f in sp.Fills) if (f.material == m) rings.Add(Flat(f.ring));
-                if (rings.Count > 0) _spFills[m] = (rings, FilledPreviewSystem.Signature(rings));
-            }
-            _spPlots.Clear();
-            var byZone = new Dictionary<string, List<float3[]>>();
-            foreach (var (zone, quad) in sp.PlotCells)
-            {
-                string c = SitePlan.Palette.Zone(zone);
-                if (!byZone.TryGetValue(c, out var l)) byZone[c] = l = new List<float3[]>();
-                l.Add(Flat(quad));
-            }
-            foreach (var kv in byZone) _spPlots[kv.Key] = (kv.Value, FilledPreviewSystem.Signature(kv.Value));
-            var places = new List<float3[]>();
-            foreach (var p in sp.PlaceFootprints) places.Add(Flat(p));
-            _spPlaces = (places, FilledPreviewSystem.Signature(places));
             Curves(sp.Cars, _spCars);
             Curves(sp.Walks, _spWalks);
-            _spFences.Clear();
-            foreach (var f in sp.Fences)
-                for (int i = 1; i < f.Length; i++) _spFences.Add(new SpLine { Seg = new Line3.Segment(G(f[i - 1]), G(f[i])), Width = 0.35f });
-            _spStalls.Clear();
-            foreach (var (a, b) in sp.Stalls) _spStalls.Add(new SpLine { Seg = new Line3.Segment(G(a), G(b)), Width = 0.15f });
-            _spBenches.Clear();
-            foreach (var q in sp.Benches)
-            {
-                // a bench is a short bar along its long side
-                bool long01 = math.distance(q[0], q[1]) >= math.distance(q[1], q[2]);
-                float2 a = long01 ? (q[0] + q[3]) * 0.5f : (q[0] + q[1]) * 0.5f, b = long01 ? (q[1] + q[2]) * 0.5f : (q[3] + q[2]) * 0.5f;
-                float wdt = long01 ? math.distance(q[0], q[3]) : math.distance(q[0], q[1]);
-                _spBenches.Add(new SpLine { Seg = new Line3.Segment(G(a), G(b)), Width = math.max(0.4f, wdt) });
-            }
             _spCaps.Clear(); foreach (var d in sp.Caps) _spCaps.Add((G(d.At), d.R));
-            _spTrees.Clear(); foreach (var d in sp.TreeCrowns) _spTrees.Add((G(d.At), d.R));
-            _spBushes.Clear(); foreach (var d in sp.Bushes) _spBushes.Add((G(d.At), d.R));
-            _spLamps.Clear(); foreach (var p in sp.Lamps) _spLamps.Add(G(p));
-            _spBins.Clear(); foreach (var p in sp.Bins) _spBins.Add(G(p));
-            _spChargers.Clear(); foreach (var p in sp.Chargers) _spChargers.Add(G(p));
             _spIssues.Clear(); foreach (var b in sp.IssueBadges) _spIssues.Add(G(b.At));
         }
+
+        /// <summary>A site-plan row shown? The player's show / hide only: hovering highlights, it never hides the rest.</summary>
+        private bool SpShows(string row)
+        {
+            if (string.IsNullOrEmpty(row)) return true;
+            var v = _tool.LegendVisibility;
+            return v != null && v.TryGetValue(row, out var on) ? on : PreviewLegend.DefaultVisible(row);
+        }
+
+        /// <summary>0..1 blink of the hovered row (1 = full highlight).</summary>
+        private float SpPulse(string row) =>
+            !string.IsNullOrEmpty(row) && row == _tool.LegendHover ? 0.55f + 0.45f * math.sin(UnityEngine.Time.realtimeSinceStartup * 7f) : 0f;
 
         /// <summary>
         /// The site plan on the map. <paramref name="alpha"/>: 1, or less while the plan is catching up; <paramref name="objects"/>:
@@ -142,41 +215,31 @@ namespace Placemaker.Game.Overlay
             }
             bool underGhost = objects == SketchObjects.Hidden;
             float objAlpha = objects == SketchObjects.Dimmed ? alpha * 0.3f : underGhost ? 0f : alpha;
-            bool isolating = !string.IsNullOrEmpty(_tool.LegendHover);
             var P = OverlayRenderSystem.StyleFlags.Projected;
             var up = new float2(0, 1);
-            var none = new Color(0, 0, 0, 0);
+            var hi = PreviewLegend.Hex(Highlight);
 
-            // 0. the site's own ground under everything (no blue selection cast on the grass)
-            _fill.SetLayer("sp:base", _spBase.rings, SpColor(SitePlan.Palette.Base, SitePlan.Palette.BaseAlpha * alpha), -93.6f, _spBase.sig);
-
-            // 1. ground fills: one quiet tone per material (kept under the ghost: the game shows planned areas as outlines only)
-            foreach (var kv in _spFills)
+            // 1. the prebuilt layers: only their colours change from frame to frame
+            foreach (var (key, s) in _spShapes)
             {
-                bool on = Shows(SitePlan.RowOfMaterial(kv.Key));
-                float a = SitePlan.Palette.Alpha(kv.Key) * alpha * (underGhost && kv.Key != "asphalt" ? 0.8f : 1f) * (isolating && on ? 1.2f : 1f);
-                _fill.SetLayer("sp:" + kv.Key, kv.Value.rings, SpColor(SitePlan.Palette.Fill(kv.Key), on ? math.min(1f, a) : 0f), -93.4f + System.Array.IndexOf(SitePlan.Materials, kv.Key) * 0.01f, kv.Value.sig);
+                bool on = SpShows(s.Row);
+                float a = s.Alpha * (s.Ground ? alpha * (underGhost && key != "sp:asphalt" && key != "sp:base" ? 0.8f : 1f) : objAlpha);
+                var c = PreviewLegend.Hex(s.Color);
+                float pulse = SpPulse(s.Row);
+                if (pulse > 0f) { c = math.lerp(c, hi, pulse * 0.85f); a = math.max(a, 0.9f * pulse); }
+                _fill.SetLayer(key, s.Rings, new Color(c.x, c.y, c.z, on ? math.min(1f, a) : 0f), s.Priority, s.Sig);
             }
-            bool plots = Shows(SitePlan.Plots);
-            foreach (var kv in _spPlots)
-                _fill.SetLayer("sp:plot:" + kv.Key, kv.Value.rings, SpColor(kv.Key, plots ? 0.5f * alpha : 0f), -93.3f, kv.Value.sig);
-            if (plots)
-                foreach (var kv in _spPlots)
-                    foreach (var q in kv.Value.rings) Ring(buffer, Grounded(q), new Color(1f, 1f, 1f, 0.45f * alpha), math.max(0.25f, w * 0.3f));
-            bool places = Shows(SitePlan.Places);
-            _fill.SetLayer("sp:places", _spPlaces.rings, SpColor(SitePlan.Palette.Place, places ? objAlpha : 0f), -93.2f, _spPlaces.sig);
 
-            // 2. roads, aisles and paths: their real width, round ends so joins merge
+            // 2. roads, aisles and paths: their real width, round ends so joins merge (flat under the see-through ghost)
             float carA = (underGhost ? 0.55f : 1f) * alpha;
-            if (Shows(SitePlan.Roads) || Shows(SitePlan.Parking))
+            bool roads = SpShows(SitePlan.Roads), lot = SpShows(SitePlan.Parking);
+            var ends = underGhost ? default : new float2(1, 1);
+            if (roads || lot)
             {
                 var asphalt = SpColor(SitePlan.Palette.Asphalt, carA);
-                bool roads = Shows(SitePlan.Roads), lot = Shows(SitePlan.Parking);
                 foreach (var l in _spCars)
-                    // under the ghost the surfaces are see-through: round ends would overlap into dark dots at every join
-                    if (l.Mark ? roads : lot) buffer.DrawCurve(asphalt, asphalt, 0f, P, l.Curve, l.Width, underGhost ? default : new float2(1, 1));
-                foreach (var c in _spCaps)
-                    if (roads && !underGhost) buffer.DrawCircle(asphalt, asphalt, 0f, P, up, c.at, c.r * 2f);
+                    if (l.Mark ? roads : lot) buffer.DrawCurve(asphalt, asphalt, 0f, P, l.Curve, l.Width, ends);
+                if (roads && !underGhost) foreach (var c in _spCaps) buffer.DrawCircle(asphalt, asphalt, 0f, P, up, c.at, c.r * 2f);
                 if (roads && !underGhost)
                 {
                     var mark = SpColor(SitePlan.Palette.RoadMark, 0.7f * alpha);
@@ -184,53 +247,20 @@ namespace Placemaker.Game.Overlay
                     foreach (var l in _spCars) if (l.Mark) buffer.DrawDashedCurve(mark, mark, 0f, P, l.Curve, mw, 3f, 3f);
                 }
             }
-            if (Shows(SitePlan.Paths))
+            bool paths = SpShows(SitePlan.Paths);
+            if (paths)
             {
                 var path = SpColor(SitePlan.Palette.Path, (underGhost ? 0.45f : 0.95f) * alpha);
-                foreach (var l in _spWalks) buffer.DrawCurve(path, path, 0f, P, l.Curve, l.Width, underGhost ? default : new float2(1, 1));
+                foreach (var l in _spWalks) buffer.DrawCurve(path, path, 0f, P, l.Curve, l.Width, ends);
             }
-            if (objAlpha <= 0.001f) { DrawSitePlanIssues(buffer, w, alpha); return; }
-
-            // 3. what the ghost shows itself: stalls, places, planting, furniture
-            if (Shows(SitePlan.Parking))
+            // the hovered road / path / aisle row blinks over its surface
+            foreach (var (row, list, show) in new[] { (SitePlan.Roads, _spCars, roads), (SitePlan.Parking, _spCars, lot), (SitePlan.Paths, _spWalks, paths) })
             {
-                var stall = SpColor(SitePlan.Palette.Stall, 0.9f * objAlpha);
-                float sw = math.max(0.15f, w * 0.3f);
-                foreach (var l in _spStalls) buffer.DrawLine(stall, stall, 0f, P, l.Seg, sw, default);
-                var ch = SpColor(SitePlan.Palette.Charger, objAlpha);
-                foreach (var p in _spChargers) buffer.DrawCircle(ch, ch, 0f, P, up, p, 1.4f);
-            }
-            if (places)
-            {
-                var edge = SpColor(SitePlan.Palette.PlaceEdge, objAlpha);
-                foreach (var r in _spPlaces.rings) Ring(buffer, Grounded(r), edge, math.max(0.25f, w * 0.3f));
-            }
-            if (Shows(SitePlan.Furniture))
-            {
-                var fence = SpColor(SitePlan.Palette.Fence, 0.9f * objAlpha);
-                foreach (var l in _spFences) buffer.DrawLine(fence, fence, 0f, P, l.Seg, math.max(0.35f, w * 0.4f), default);
-                var bench = SpColor(SitePlan.Palette.Bench, objAlpha);
-                foreach (var l in _spBenches) buffer.DrawLine(bench, bench, 0f, P, l.Seg, l.Width, default);
-                var lamp = SpColor(SitePlan.Palette.Lamp, objAlpha);
-                var rim = new Color(0.2f, 0.2f, 0.2f, objAlpha);
-                foreach (var p in _spLamps) buffer.DrawCircle(rim, lamp, 0.15f, P, up, p, math.max(0.9f, w * 1.6f));
-                var bin = SpColor(SitePlan.Palette.Bin, objAlpha);
-                foreach (var p in _spBins) buffer.DrawCircle(bin, bin, 0f, P, up, p, math.max(0.7f, w * 1.2f));
-            }
-            if (Shows(SitePlan.Planting))
-            {
-                var bush = SpColor(SitePlan.Palette.Bush, 0.85f * objAlpha);
-                foreach (var b in _spBushes) buffer.DrawCircle(bush, bush, 0f, P, up, b.at, b.r * 2f);
-            }
-            if (Shows(SitePlan.Trees))
-            {
-                // crowns last, over everything: a soft shadow to the north (the sun is south), the crown, a lit side
-                var shadow = SpColor(SitePlan.Palette.Shadow, 0.28f * objAlpha);
-                var crown = SpColor(SitePlan.Palette.Tree, 0.95f * objAlpha);
-                var lit = SpColor(SitePlan.Palette.TreeHi, 0.95f * objAlpha);
-                foreach (var t in _spTrees) buffer.DrawCircle(shadow, shadow, 0f, P, up, t.at + new float3(t.r * 0.25f, 0f, t.r * 0.3f), t.r * 2f);
-                foreach (var t in _spTrees) buffer.DrawCircle(crown, crown, 0f, P, up, t.at, t.r * 2f);
-                foreach (var t in _spTrees) buffer.DrawCircle(lit, lit, 0f, P, up, t.at + new float3(-t.r * 0.22f, 0f, -t.r * 0.22f), t.r * 1.1f);
+                float pulse = SpPulse(row);
+                if (pulse <= 0f || !show) continue;
+                var glow = new Color(hi.x, hi.y, hi.z, 0.75f * pulse);
+                foreach (var l in list)
+                    if (row == SitePlan.Paths || l.Mark == (row == SitePlan.Roads)) buffer.DrawCurve(glow, glow, 0f, P, l.Curve, l.Width + 1f, new float2(1, 1));
             }
             DrawSitePlanIssues(buffer, w, alpha);
         }
@@ -238,17 +268,11 @@ namespace Placemaker.Game.Overlay
         /// <summary>Only what needs a look: a red badge where something was left out or blocked (warnings stay in the panel).</summary>
         private void DrawSitePlanIssues(OverlayRenderSystem.Buffer buffer, float w, float alpha)
         {
-            if (!Shows(SitePlan.Issues)) return;
+            if (!SpShows(SitePlan.Issues)) return;
+            float pulse = SpPulse(SitePlan.Issues);
             var red = SpColor(SitePlan.Palette.Issue, 0.95f * alpha);
-            var white = new Color(1f, 1f, 1f, 0.95f * alpha);
-            foreach (var p in _spIssues) buffer.DrawCircle(white, red, math.max(0.4f, w * 0.6f), 0, new float2(0, 1), p, math.max(6f, w * 12f));
-        }
-
-        private float3[] Grounded(float3[] ring)
-        {
-            var o = new float3[ring.Length];
-            for (int i = 0; i < ring.Length; i++) o[i] = OnGround(ring[i].xz);
-            return o;
+            var rim = pulse > 0f ? SpColor(Highlight, alpha) : new Color(1f, 1f, 1f, 0.95f * alpha);
+            foreach (var p in _spIssues) buffer.DrawCircle(rim, red, math.max(0.4f, w * (0.6f + pulse)), 0, new float2(0, 1), p, math.max(6f, w * 12f));
         }
     }
 }

@@ -390,10 +390,10 @@ export const ReviewStage = ({ catalog, state, summary }: { catalog: Catalog; sta
             ) : (
                 <>
                     {/* the same story as the Design page: what it costs, what you get, what to check */}
-                    <SectionHead first icon="cost" title={t("Placemaker.UI.Review.CostHead", "Cost")} sub={t("Placemaker.UI.Review.CostSub", "to build and to run")} testId="review-head-cost" />
+                    <SectionHead first icon="cost" title={t("Placemaker.UI.Review.CostHead", "Cost")} testId="review-head-cost" />
                     <MoneyCard catalog={catalog} state={state} summary={summary} pending={pending} />
-                    <SectionHead icon="layers" title={t("Placemaker.UI.Review.StatsHead", "What you get")} sub={t("Placemaker.UI.Review.StatsSub", "what will be built")} testId="review-head-stats" />
-                    {sitePlan && sitePlan.style !== "classic" ? <SitePlanCard sp={sitePlan} state={state} /> : null}
+                    <SectionHead icon="layers" title={t("Placemaker.UI.Review.StatsHead", "What you get")} testId="review-head-stats" />
+                    {sitePlan && sitePlan.style !== "classic" ? <SitePlanCard sp={sitePlan} state={state} layout="row" /> : null}
                     <div className={classNames(s.stats, { [s.shimmer]: pending })} data-testid="review-stats">
                         {mergeStats(t, summary.stats).map((st) => (
                             <StatChip key={st.key + st.unit} k={st.key} value={st.value} unit={st.unit} />

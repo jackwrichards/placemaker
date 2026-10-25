@@ -32,6 +32,8 @@ namespace Placemaker.Core.Build
         public const string Furniture = PreviewLegend.Objects;
         public const string Entrances = PreviewLegend.Entrances;
         public const string Issues = PreviewLegend.Issues;
+        /// <summary>The ground change (the terrain heat map: red raised, blue lowered).</summary>
+        public const string Terrain = PreviewLegend.Terrain;
 
         /// <summary>Fill materials, drawn in this order (later on top).</summary>
         public static readonly string[] Materials = { "ground", "grass", "deco", "paving", "plaza", "asphalt", "water" };
@@ -152,9 +154,12 @@ namespace Placemaker.Core.Build
         /// <summary>The city's own streets near the build (context in the panel picture).</summary>
         public readonly List<Stroke> Streets = new List<Stroke>();
         public readonly List<Row> Legend = new List<Row>();
+        /// <summary>The ground change in bands (Core TerrainHeat: band &gt; 0 raised, &lt; 0 lowered), clipped to the outline.</summary>
+        public readonly List<(int band, float2[] ring)> Heat = new List<(int, float2[])>();
 
         // Budgets for the panel picture (the overlay draws everything): far more than a panel can show.
-        public const int MaxTrees = 4000, MaxBushes = 3000, MaxStalls = 12000, MaxSmall = 3000;
+        public const int MaxTrees = 4000, MaxBushes = 3000, MaxStalls = 12000, MaxSmall = 3000, MaxHeat = 2000;
+        public const float MaxStallSpan = 320f;
 
         public sealed class Input
         {
@@ -320,23 +325,30 @@ namespace Placemaker.Core.Build
             // The legend: one row per thing drawn, in plain words, with the number that matters.
             void Row(string id, string sym, string key, string label, double count, string unit)
             {
-                sp.Legend.Add(new Row { Id = id, Sym = sym, LabelKey = key, Label = label, Count = Math.Round(count), Unit = unit, Anchor = AnchorOf(anchors, id, outline, centre) });
+                sp.Legend.Add(new Row { Id = id, Sym = sym, LabelKey = key, Label = label, Count = unit == "delta" ? count : Math.Round(count), Unit = unit, Anchor = AnchorOf(anchors, id, outline, centre) });
             }
             if (roadLen > 0) Row(Roads, "road", "Placemaker.SitePlan.Roads", "Roads", roadLen, "m");
-            if (bays > 0) Row(Parking, "bays", "Placemaker.SitePlan.Parking", "Parking spaces", bays, "count");
+            if (bays > 0) Row(Parking, "bays", "Placemaker.SitePlan.Parking", "Parking", bays, "count");
             else if (aisles.Count > 0) Row(Parking, "bays", "Placemaker.SitePlan.CarPark", "Car park", 0, "");
             if (walkLen > 0) Row(Paths, "path", "Placemaker.SitePlan.Paths", "Footpaths", walkLen, "m");
-            if (grass) Row(Ground, "grass", "Placemaker.SitePlan.Lawn", paved ? "Lawn and paving" : "Lawn", 0, "");
+            if (grass) Row(Ground, "grass", "Placemaker.SitePlan.Lawn", "Lawn", 0, "");
             else if (paved) Row(Ground, "paving", "Placemaker.SitePlan.Paving", "Paving", 0, "");
             if (water) Row(Water, "water", "Placemaker.SitePlan.Water", "Water", 0, "");
-            if (sp.PlotCells.Count > 0) Row(Plots, "zone", "Placemaker.SitePlan.Plots", "Shops grow here", sp.PlotCells.Count, "cells");
+            var heat = plan.TerrainHeat;
+            if (heat != null && heat.Rings.Count > 0)
+            {
+                foreach (var hr in heat.Rings) sp.Heat.Add(hr);
+                // the number: the biggest change either way, in metres
+                Row(Terrain, "terrain", "Placemaker.SitePlan.Terrain", "Ground change", Math.Round(Math.Max(Math.Abs(heat.MinDelta), Math.Abs(heat.MaxDelta)), 1), "delta");
+            }
+            if (sp.PlotCells.Count > 0) Row(Plots, "zone", "Placemaker.SitePlan.Plots", "Shop plots", sp.PlotCells.Count, "cells");
             if (sp.TreeCrowns.Count > 0) Row(Trees, "tree", "Placemaker.SitePlan.Trees", "Trees", sp.TreeCrowns.Count, "count");
-            if (sp.Bushes.Count > 0) Row(Planting, "bush", "Placemaker.SitePlan.Planting", "Bushes and flower beds", sp.Bushes.Count, "count");
-            if (sp.PlaceFootprints.Count > 0) Row(Places, "place", "Placemaker.SitePlan.Places", "Playground, picnic, kiosk", sp.PlaceFootprints.Count, "count");
+            if (sp.Bushes.Count > 0) Row(Planting, "bush", "Placemaker.SitePlan.Planting", "Planting", sp.Bushes.Count, "count");
+            if (sp.PlaceFootprints.Count > 0) Row(Places, "place", "Placemaker.SitePlan.Places", "Places", sp.PlaceFootprints.Count, "count");
             int small = sp.Lamps.Count + sp.Benches.Count + sp.Bins.Count;
-            if (small > 0) Row(Furniture, "furniture", "Placemaker.SitePlan.Furniture", "Benches, lamps, bins", small, "count");
+            if (small > 0) Row(Furniture, "furniture", "Placemaker.SitePlan.Furniture", "Furniture", small, "count");
             if (sp.EntranceBadges.Count > 0) Row(Entrances, "entrance", "Placemaker.SitePlan.Entrances", "Entrances", sp.EntranceBadges.Count, "count");
-            if (red > 0) Row(Issues, "issue", "Placemaker.SitePlan.Issues", "Needs a look", red, "count");
+            if (red > 0) Row(Issues, "issue", "Placemaker.SitePlan.Issues", "Problems", red, "count");
             return sp;
         }
 
@@ -511,7 +523,9 @@ namespace Placemaker.Core.Build
             o.Set("fences", fences);
             var stalls = JsonValue.Arr();
             int n = 0;
-            foreach (var (a, b) in Stalls)
+            // a stall is under a pixel in the panel beyond about 320 m: not sent (the map still draws every one)
+            bool small = math.cmax(Max - Min) <= MaxStallSpan;
+            foreach (var (a, b) in small ? Stalls : new List<(float2, float2)>())
             {
                 if (n++ >= MaxStalls) break;
                 stalls.Add(R(a.x)).Add(R(a.y)).Add(R(b.x)).Add(R(b.y));
@@ -532,6 +546,18 @@ namespace Placemaker.Core.Build
             var plots = JsonValue.Arr();
             foreach (var (zone, quad) in PlotCells) plots.Add(JsonValue.Obj().Set("color", Palette.Zone(zone)).Set("q", Flat(quad)));
             o.Set("plots", plots);
+            var heatJ = JsonValue.Arr();
+            for (int band = -TerrainHeat.MaxBand; band <= TerrainHeat.MaxBand; band++)
+            {
+                if (band == 0) continue;
+                var rings = JsonValue.Arr();
+                int hn = 0;
+                foreach (var (b, ring) in Heat) if (b == band && hn++ < MaxHeat) rings.Add(Flat(ring));
+                if (rings.Count == 0) continue;
+                var (hex, alpha) = TerrainHeat.Style(band);
+                heatJ.Add(JsonValue.Obj().Set("band", band).Set("color", hex).Set("alpha", Math.Round(Math.Min(1.0, alpha * 1.6), 2)).Set("rings", rings));
+            }
+            o.Set("heat", heatJ);
             o.Set("entrances", Badges(EntranceBadges));
             o.Set("issues", Badges(IssueBadges));
             var legend = JsonValue.Arr();
