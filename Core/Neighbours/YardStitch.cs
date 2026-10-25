@@ -750,7 +750,7 @@ namespace Placemaker.Core.Neighbours
                     if (!touched[i] || plots[i] == null) continue;
                     // a garden another pass wrote is its garden (FixedGardens): what this plan would have made of it is never used
                     if (IsFixed(houses[i])) continue;
-                    var clear = ClearOfBarriers(plots[i], Lot(houses[i]), houses[i].Position, s.Knob("barrierMargin", 0.8f), WaterGap(houses[i], s), DeckMargin(s));
+                    var clear = ClearOfBarriers(plots[i], Lot(houses[i]), houses[i].Position, s.Knob("barrierMargin", 0.8f), WaterGap(houses[i], s), DeckMargin(s), s.Knob("lotLineMargin", 1f) > 0.5f);
                     if (clear == null) continue;
                     plots[i] = clear;
                     clipped++;
@@ -4664,7 +4664,19 @@ namespace Placemaker.Core.Neighbours
         /// overhead (grown by <paramref name="deckMargin"/>) and the water (grown by <paramref name="waterGap"/>, round: a smooth
         /// line), never cutting the house's own lot; the part that holds the house. Null when nothing is in the way.
         /// </summary>
-        private static float2[] ClearOfBarriers(float2[] plot, float2[] lot, float2 house, float margin, float waterGap, float deckMargin)
+        /// <summary>How near the lot comes to a barrier, up to <paramref name="cap"/> (0: they touch or overlap).</summary>
+        private static float LotGap(float2[] lot, float2[] b, float cap)
+        {
+            if (!Within(lot, b, cap)) return cap;
+            if (Overlaps(lot, b)) return 0f;
+            float best = cap * cap;
+            for (int i = 0; i < lot.Length; i++)
+                for (int j = 0; j < b.Length; j++)
+                    best = math.min(best, SegmentDistanceSq(lot[i], lot[(i + 1) % lot.Length], b[j], b[(j + 1) % b.Length]));
+            return math.sqrt(best);
+        }
+
+        private static float2[] ClearOfBarriers(float2[] plot, float2[] lot, float2 house, float margin, float waterGap, float deckMargin, bool clearLine = false)
         {
             float wet = math.max(margin, waterGap), far = math.max(math.max(margin, deckMargin), wet);
             Poly.Bounds(plot, out var plo, out var phi);
@@ -4681,6 +4693,15 @@ namespace Placemaker.Core.Neighbours
                 // (grown by the margin a barrier reaches at most four margins out, a miter's limit: one further away is never grown)
                 float reach = bm * 4f + 0.01f, m = bm + 0.5f;
                 if (bhi.x < plo.x - m || blo.x > phi.x + m || bhi.y < plo.y - m || blo.y > phi.y + m) continue;
+                // a barrier the house's own lot comes nearer than the margin (its street, right at the lot's front): the garden
+                // keeps no further off it than the lot does, so its edge carries the lot's line on (no step of a margin's depth
+                // where the garden reaches past the lot's corner)
+                if (clearLine) bm = math.min(bm, LotGap(lot, b, bm));
+                if (bm < 0.01f)
+                {
+                    if (Overlaps(plot, b)) grown.Add(b);
+                    continue;
+                }
                 if (!Overlaps(plot, b) && !(Within(plot, b, reach) && Grown(b, bm).Any(g => Overlaps(plot, g)))) continue;
                 foreach (var g in Grown(b, bm)) grown.Add(Ccw(g));
             }
@@ -4689,7 +4710,7 @@ namespace Placemaker.Core.Neighbours
             var withLot = Poly.Boolean(left.Select(r => r).ToList(), new List<Region> { new Region(Ccw(lot)) }, BoolOp.Union);
             var keep = withLot.OrderByDescending(r => Poly.Contains(r.Outer, house) ? 1 : 0).ThenByDescending(r => r.Area).FirstOrDefault();
             if (keep == null) return null;
-            var ring = keep.HasHoles ? Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).First() : keep.Outer;
+            var ring = keep.HasHoles ? (Poly.CutHoles(keep, 0f).OrderByDescending(r => Poly.Area(r)).FirstOrDefault() ?? keep.Outer) : keep.Outer;
             return ring != null && ring.Length >= 3 && Poly.Area(ring) > 1f ? ring : null;
         }
 
