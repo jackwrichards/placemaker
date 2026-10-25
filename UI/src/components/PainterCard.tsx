@@ -74,7 +74,7 @@ const GROUPS: { id: string; en: string; icon: string; open?: boolean; picture?: 
         id: "land", en: "What the land becomes", icon: "layers", open: true,
         knobs: [
             {
-                id: "fill", en: "Beyond the lot", tip: "What a building's land past its own lot becomes, whatever the building is: a garden (lawn, fences, beds), a car park yard (green edges, bins, marked bays with parked cars), or paving. The outgrow type alone decides: whatever the building is (a house given a car park type gets a car park).", kind: "choice",
+                id: "fill", en: "Beyond the lot", tip: "What a building's land past its own lot becomes, whatever the building is: an outgrow (lawn, fences, beds), a car park yard (green edges, bins, marked bays with parked cars), or paving. The outgrow type alone decides: whatever the building is (a house given a car park type gets a car park).", kind: "choice",
                 options: [{ value: 1, en: "Garden" }, { value: 2, en: "Car park" }, { value: 3, en: "Paved" }],
             },
             {
@@ -84,13 +84,13 @@ const GROUPS: { id: string; en: string; icon: string; open?: boolean; picture?: 
             { id: "parkReach", en: "Car park reach", tip: "How far out from the building its car park yard is paved and parked. Further out, the land is the outgrow type's own: its ground, patches, rocks and things.", kind: "slider", min: 0, max: 300, step: 5, unit: "m" },
             { id: "parkCars", en: "Parked cars", tip: "The share of parking bays with a car or van in them.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
             { id: "parkWorn", en: "Worn edge", tip: "The chance a car park's edge is worn, as the strip malls' are: the ground painted, dirt fading into dry grass out from the paving, no grass strip. Otherwise a grass strip with trees. Industrial car parks are always worn.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
-            { id: "waterGap", en: "Water gap", tip: "How far the land keeps from water: gardens, yards and car parks stop this far from the shore, along a smooth line. The building's own lot is never cut.", kind: "slider", min: 0, max: 200, step: 1, unit: "m" },
+            { id: "waterGap", en: "Water gap", tip: "How far the land keeps from water: outgrows, yards and car parks stop this far from the shore, along a smooth line. The building's own lot is never cut.", kind: "slider", min: 0, max: 200, step: 1, unit: "m" },
         ],
     },
     {
         id: "fences", en: "Fences", icon: "edgeZoning",
         knobs: [
-            { id: "closeGardens", en: "Close every garden", tip: "Every open edge of a garden (not its street front) gets fence or hedge pieces, following its bends and the roads it hugs.", kind: "toggle" },
+            { id: "closeGardens", en: "Close every outgrow", tip: "Every open edge of an outgrow (not its street front) gets fence or hedge pieces, following its bends and the roads it hugs.", kind: "toggle" },
             {
                 id: "fenceKind", en: "New fences", tip: "What closes the open edges: the house's own fence or hedge kind, or one for every house.", kind: "choice",
                 options: [{ value: 0, en: "Own" }, { value: 1, en: "Low hedge" }, { value: 2, en: "Tall hedge" }, { value: 3, en: "Low fence" }, { value: 4, en: "Tall fence" }],
@@ -100,35 +100,35 @@ const GROUPS: { id: string; en: string; icon: string; open?: boolean; picture?: 
     {
         id: "lawns", en: "Lawns and ground paint", icon: "leaf",
         knobs: [
-            { id: "lawns", en: "Lawns up to the fences", tip: "A garden's lawn grows to its new fences, around driveways and paving.", kind: "toggle" },
-            { id: "lawnReach", en: "Lawn near the house", tip: "Mowed lawn this far from the house; a big garden is painted further out (Ground: further out). 400 or more: lawn everywhere.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
-            { id: "paintedGardens", en: "Painted gardens", tip: "How many gardens are painted (lush ground, soft edges) instead of keeping their lawns. Natural and Yard more often, Tidy seldom.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
-            { id: "gardenPaint", en: "Garden paint", tip: "How strong the paint of a painted garden is.", kind: "slider", min: 0, max: 1, step: 0.05 },
-            { id: "paint", en: "Ground paint", tip: "Soft lush ground past the gardens and worn ground along fences facing open land.", kind: "toggle" },
-            { id: "blendWidth", en: "Paint reach", tip: "How far the lush ground reaches past the gardens.", kind: "slider", min: 0, max: 150, step: 1, unit: "m" },
+            { id: "lawns", en: "Lawns up to the fences", tip: "An outgrow's lawn grows to its new fences, around driveways and paving.", kind: "toggle" },
+            { id: "lawnReach", en: "Lawn near the house", tip: "Mowed lawn this far from the house; a big outgrow is painted further out (Ground: further out). 400 or more: lawn everywhere.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
+            { id: "paintedGardens", en: "Painted outgrows", tip: "How many outgrows are painted (lush ground, soft edges) instead of keeping their lawns. Natural and Yard more often, Tidy seldom.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
+            { id: "gardenPaint", en: "Outgrow paint", tip: "How strong the paint of a painted outgrow is.", kind: "slider", min: 0, max: 1, step: 0.05 },
+            { id: "paint", en: "Ground paint", tip: "Soft lush ground past the outgrows and worn ground along fences facing open land.", kind: "toggle" },
+            { id: "blendWidth", en: "Paint reach", tip: "How far the lush ground reaches past the outgrows.", kind: "slider", min: 0, max: 150, step: 1, unit: "m" },
             { id: "blendFar", en: "Faint reach", tip: "How far the fainter, wider band reaches.", kind: "slider", min: 0, max: 250, step: 1, unit: "m" },
-            { id: "blendStrength", en: "Paint strength", tip: "How strong the paint past the gardens is.", kind: "slider", min: 0, max: 1, step: 0.05 },
+            { id: "blendStrength", en: "Paint strength", tip: "How strong the paint past the outgrows is.", kind: "slider", min: 0, max: 1, step: 0.05 },
         ],
     },
     {
         id: "ground", en: "Ground", icon: "paint",
         knobs: [
-            { id: "gardenLayer", en: "Painted gardens", tip: "The ground a painted garden is painted with.", kind: "ground" },
-            { id: "meadowLayer", en: "Further out", tip: "The ground of a big garden beyond its lawn near the house.", kind: "ground" },
+            { id: "gardenLayer", en: "Painted outgrows", tip: "The ground a painted outgrow is painted with.", kind: "ground" },
+            { id: "meadowLayer", en: "Further out", tip: "The ground of a big outgrow beyond its lawn near the house.", kind: "ground" },
             { id: "meadowStrength", en: "Further out strength", tip: "How strong that paint is.", kind: "slider", min: 0, max: 1, step: 0.05 },
-            { id: "blendLayer", en: "Just past the gardens", tip: "The ground of the band just past the gardens.", kind: "ground" },
+            { id: "blendLayer", en: "Just past the outgrows", tip: "The ground of the band just past the outgrows.", kind: "ground" },
             { id: "blendFarLayer", en: "Fainter band", tip: "The ground of the wider, fainter band further out.", kind: "ground" },
             { id: "edgeLayer", en: "Along open fences", tip: "Worn ground along back fences that face open land.", kind: "ground" },
             { id: "edgeWidth", en: "Fence band width", tip: "How wide the worn band along those fences is.", kind: "slider", min: 0, max: 15, step: 0.5, unit: "m" },
             { id: "edgeStrength", en: "Fence band strength", tip: "How strong it is.", kind: "slider", min: 0, max: 1, step: 0.05 },
-            { id: "roadLayer", en: "Along roads", tip: "A band along the roads and paths beside the gardens (sand or dirt by the road…).", kind: "ground" },
+            { id: "roadLayer", en: "Along roads", tip: "A band along the roads and paths beside the outgrows (sand or dirt by the road…).", kind: "ground" },
             { id: "roadWidth", en: "Road band width", tip: "How wide the band along roads and paths is.", kind: "slider", min: 0, max: 20, step: 0.5, unit: "m" },
             { id: "roadStrength", en: "Road band strength", tip: "How strong it is.", kind: "slider", min: 0, max: 1, step: 0.05 },
             { id: "rockLayer", en: "Under rocks", tip: "The ground under rock gardens and outcrops.", kind: "ground" },
             { id: "rockGround", en: "Around outcrops", tip: "The wider ground around an outcrop.", kind: "ground" },
             { id: "yardLayer", en: "Storage yards", tip: "The ground of a storage yard.", kind: "ground" },
-            { id: "patchLayer", en: "Worn patches", tip: "The ground of the worn patches in big gardens.", kind: "ground" },
-            { id: "patchChance", en: "Patch chance", tip: "How many worn patches big gardens get.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
+            { id: "patchLayer", en: "Worn patches", tip: "The ground of the worn patches in big outgrows.", kind: "ground" },
+            { id: "patchChance", en: "Patch chance", tip: "How many worn patches big outgrows get.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
         ],
     },
     {
@@ -136,18 +136,18 @@ const GROUPS: { id: string; en: string; icon: string; open?: boolean; picture?: 
         knobs: [
             { id: "plant", en: "Beds and bushes", tip: "Planted beds with bushes along new fences. Off: no planting, features, paths or rocks.", kind: "toggle" },
             { id: "bedChance", en: "Beds", tip: "How often a new fence gets a bed with bushes.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
-            { id: "bushesPerGarden", en: "Bushes", tip: "The most bushes the beds of one garden get.", kind: "slider", min: 0, max: 80, step: 1, unit: "count" },
-            { id: "features", en: "Garden features", tip: "Big new garden land gets something by its theme: a rock garden, a sand pit, a log pile, a bench nook, a flower garden, a storage yard.", kind: "toggle" },
-            { id: "featureChance", en: "Feature chance", tip: "How many big gardens get a feature.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
-            { id: "featureSpacing", en: "More features every", tip: "A big garden gets one more feature for every this much new land (at most 6).", kind: "slider", min: 50, max: 3000, step: 50, unit: "m2" },
-            { id: "featureMinLand", en: "Feature land", tip: "New garden land a feature needs.", kind: "slider", min: 10, max: 600, step: 10, unit: "m2" },
-            { id: "rockChance", en: "Rocks", tip: "How often a rock sits where two gardens meet at the street (never against a hedge).", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
+            { id: "bushesPerGarden", en: "Bushes", tip: "The most bushes the beds of one outgrow get.", kind: "slider", min: 0, max: 80, step: 1, unit: "count" },
+            { id: "features", en: "Outgrow features", tip: "Big new outgrow land gets something by its theme: a rock garden, a sand pit, a log pile, a bench nook, a flower garden, a storage yard.", kind: "toggle" },
+            { id: "featureChance", en: "Feature chance", tip: "How many big outgrows get a feature.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
+            { id: "featureSpacing", en: "More features every", tip: "A big outgrow gets one more feature for every this much new land (at most 6).", kind: "slider", min: 50, max: 3000, step: 50, unit: "m2" },
+            { id: "featureMinLand", en: "Feature land", tip: "New outgrow land a feature needs.", kind: "slider", min: 10, max: 600, step: 10, unit: "m2" },
+            { id: "rockChance", en: "Rocks", tip: "How often a rock sits where two outgrows meet at the street (never against a hedge).", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
         ],
     },
     {
         id: "paths", en: "Paths", icon: "footpath",
         knobs: [
-            { id: "pathChance", en: "Garden paths", tip: "How many big gardens get a paved path from the house to the back.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
+            { id: "pathChance", en: "Outgrow paths", tip: "How many big outgrows get a paved path from the house to the back.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
             { id: "alleys", en: "Walkways between houses", tip: "A narrow even gap between two houses becomes a paved walkway.", kind: "toggle" },
             { id: "alleyChance", en: "Walkways", tip: "How often a narrow gap becomes a walkway.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
         ],
@@ -406,7 +406,7 @@ const LookEditor = ({ p }: { p: PainterState }) => {
     return (
         <div className={d.options} data-testid="options">
             <LookBar p={p} />
-            <Row id="color" label={t("Placemaker.UI.Polish.Color", "Colour")} tip={t("Placemaker.UI.Polish.ColorTip", "Its colour on the map (the lens's Types) and in the charts.")}>
+            <Row id="color" label={t("Placemaker.UI.Polish.TypeColor", "Type color")} tip={t("Placemaker.UI.Polish.TypeColorTip", "Its color on the map (the lens's Types).")}>
                 <div className={s.swatches} data-testid="polish-color">
                     {(p.swatches ?? []).map((hex) => (
                         <button
@@ -423,21 +423,6 @@ const LookEditor = ({ p }: { p: PainterState }) => {
                     ))}
                 </div>
             </Row>
-            <Row
-                id="theme"
-                label={t("Placemaker.UI.Polish.Planting", "Planting style")}
-                tip={t("Placemaker.UI.Polish.PlantingTip", "What is planted and placed in the land: Garden (lawns, beds, a sand pit or a bench), Natural (wild ground, rocks, logs), Tidy (lawns, hedges, flower beds), Yard (worn ground, pallets, rubble). The rows below fine-tune it.")}
-                changed={p.lookTheme !== p.lookSavedTheme}
-                onReset={() => act.polishKnob("theme", THEMES.indexOf(p.lookSavedTheme))}
-            >
-                <Segmented
-                    testId="polish-base"
-                    stretch
-                    value={p.lookTheme}
-                    onChange={(v) => act.polishKnob("theme", THEMES.indexOf(v))}
-                    options={PLANTING.map((x) => ({ value: x.id, label: t("Placemaker.UI.Polish.Planting." + x.id, x.en), title: t("Placemaker.UI.Polish.Planting." + x.id, x.en), description: t("Placemaker.UI.Polish.PlantingTip." + x.id, x.tip) }))}
-                />
-            </Row>
             {GROUPS.map((g) => (
                 <Collapsible
                     key={g.id}
@@ -449,6 +434,24 @@ const LookEditor = ({ p }: { p: PainterState }) => {
                     summary={changedIn(g.knobs, p) > 0 ? t("Placemaker.UI.Polish.GroupChanged", "{0} changed", [changedIn(g.knobs, p)]) : undefined}
                 >
                     {g.picture && p.preview ? <GardenPicture pic={p.preview} /> : null}
+                    {g.id === "planting" ? (
+                        // what is planted and placed in the outgrow: the first row of its group
+                        <Row
+                            id="theme"
+                            label={t("Placemaker.UI.Polish.Planting", "Planting style")}
+                            tip={t("Placemaker.UI.Polish.PlantingTip", "What is planted and placed in the land: Garden (lawns, beds, a sand pit or a bench), Natural (wild ground, rocks, logs), Tidy (lawns, hedges, flower beds), Yard (worn ground, pallets, rubble). The rows below fine-tune it.")}
+                            changed={p.lookTheme !== p.lookSavedTheme}
+                            onReset={() => act.polishKnob("theme", THEMES.indexOf(p.lookSavedTheme))}
+                        >
+                            <Segmented
+                                testId="polish-base"
+                                stretch
+                                value={p.lookTheme}
+                                onChange={(v) => act.polishKnob("theme", THEMES.indexOf(v))}
+                                options={PLANTING.map((x) => ({ value: x.id, label: t("Placemaker.UI.Polish.Planting." + x.id, x.en), title: t("Placemaker.UI.Polish.Planting." + x.id, x.en), description: t("Placemaker.UI.Polish.PlantingTip." + x.id, x.tip) }))}
+                            />
+                        </Row>
+                    ) : null}
                     {g.knobs.map((k) => (
                         <KnobRow key={k.id} k={k} p={p} />
                     ))}
@@ -742,18 +745,22 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
     return (
         <div className={s.cityEmbedded} data-testid="polish-city" onMouseDown={(e) => e.stopPropagation()}>
                 {/* this city's one switch (saved with it): shows or hides Outgrow; every building keeps its outgrow type */}
+                {/* (with it, in the same row: outgrown of all, and what is being worked on now: numbers the panel already has,
+                    nothing counted for them) */}
                 <div className={classNames(s.masterRow, { [s.masterRowOff]: !p.featureOn })} data-testid="polish-master">
                     <Tip title={L("Master", "Outgrow")} description={L("Master.Tip2", "Show or hide Outgrow in this city. Hidden, every building looks as the game made it but keeps its outgrow type.")}>
                         <div className={s.masterLabel}>{p.featureOn ? L("MasterShown", "Outgrow is shown") : L("MasterHidden", "Outgrow is hidden")}</div>
                     </Tip>
-                    <Switch testId="polish-on" on={p.featureOn} onChange={(v) => act.polishCity("on", v ? "true" : "false")} />
-                </div>
-                {/* one line: outgrown of all, and how many are still being worked on */}
-                <div className={s.statusLine} data-testid="polish-summary">
-                    <span className={s.statusValue}>{`${num(city.polished)} / ${num(city.total)}`}</span>
-                    <span className={s.statusLabel}>{L("StatusOutgrown", "outgrown")}</span>
                     <span className={s.flex} />
-                    {city.waiting + city.restoring > 0 ? <span className={s.statusLabel} data-testid="polish-summary-waiting">{L("StatusWaiting", "{0} waiting", [num(city.waiting + city.restoring)])}</span> : null}
+                    <span className={s.statusValue} data-testid="polish-summary">{`${num(city.polished)} / ${num(city.total)}`}</span>
+                    <span className={s.statusLabel}>
+                        {city.waiting > 0
+                            ? L("StatusOutgrowing", "{0} outgrowing", [num(city.waiting)])
+                            : city.restoring > 0
+                              ? L("StatusPuttingBack", "{0} going back", [num(city.restoring)])
+                              : L("StatusOutgrown", "outgrown")}
+                    </span>
+                    <Switch testId="polish-on" on={p.featureOn} onChange={(v) => act.polishCity("on", v ? "true" : "false")} />
                 </div>
                 <div className={s.tools}>
                     <div className={s.toolCol} data-testid="polish-brush">
@@ -785,7 +792,7 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                                 onChange={(v) => act.polishCity("lensMode", v)}
                                 options={[
                                     { value: "status", label: L("LensStatus", "Status"), description: L("LensStatusTip", "Outgrown, not, being fitted, and the queue by how long each has waited") },
-                                    { value: "types", label: L("LensTypes", "Types"), description: L("LensTypesTip", "Every building in its outgrow type's colour") },
+                                    { value: "types", label: L("LensTypes", "Types"), description: L("LensTypesTip", "Every building in its outgrow type's color") },
                                 ]}
                             />
                         </div>
