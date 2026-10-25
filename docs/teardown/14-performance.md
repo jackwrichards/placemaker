@@ -69,6 +69,29 @@ strip mall, botanical garden, 5 and 12.5 ha). Park 12.5 ha .NET: default 346 →
 In the game's Mono with a 1200-corner outline the gain is only 15–20 % (park default 3344 → 2836 ms, garden 4614 → 3701):
 there the outline's corners dominate, so 1.4 item 1 comes first. [P, `planmono` vs `planmono-grid`, tests running alongside]
 
+**Park layer, same designs** (branch `worktree-agent-a2ee16f4d84aac322`, 25 Oct; every change keeps the plan exactly: 778/778
+bench signatures over every type × preset at 5 and 12.5 ha, 400 corners, and the 50 park / mall park / botanical garden
+gallery pictures are byte-identical). [P] The park now logs its own steps: `park 284 [paths 35, lawns 26, clearings 32,
+trees 59, bushes 123, regions 2]`.
+- Planting (`ParkPlanting.Vegetation`, ~1 million candidates on 40 ha): a planting grid (`Park/PlantGrid.cs`) answers the
+  fixed checks per cell (outline, gates, lake, clearing, paths, reserved polygons: Lipschitz bounds, the full check only in a
+  band along each) and keeps per cell the nearest tree and bush, a sure spacing conflict for ~95 % of the candidates. Rows,
+  avenues, the bosque and grid fills ask it too. 98–99 % of candidates are now answered by lookups; what is left is drawing
+  them (in Mono a grove's Point, the belt noise; the noise lattice and the grove's rotation are now computed once).
+- Shared, same answers: clearance searches stop at the first ring of cells that cannot hold a nearer segment or disc;
+  segments and discs in plain float arrays (Mono runs `float2` operators as calls); `CrossesBoundary` tests only the edges
+  along the segment; `LayerRegion.Contains` uses `RingBands` on boundary cells; a distance-to-outline raster answers
+  `ContainsDisc` / `FarFromOutline` in free-space grids; `FreeSpace.Pieces` works each piece in its own box; spot search
+  skips points whose clearance bound cannot beat the best; `DeepestPoint` skips points whose bound cannot; the park path
+  roadmap keeps its weights beside its neighbours (was a dictionary).
+- Mono (game runtime, 400-corner hexagon, fastest of 2×2 runs, A/B alternated): park layer, all presets, 34.6 → 6.1 s
+  (**5.7×**), whole plans 42.9 → 11.9 s (3.6×). 40 ha: natural 1544 → 284 ms, garden 2636 → 415, woodland 2339 → 368,
+  victorian 2898 → 359, landscape 2506 → 305; 12.5 ha: natural 871 → 170, garden 1437 → 244. Slowest gains: picnic 2.6–3.2×
+  (its 7 picnic clearings: spot searches over open lawn), meadow / modern / formal at 40 ha 2.4–3.7× (little planting).
+- Planting is still the largest park step on a big park (natural 40 ha: trees 59 + bushes 123 of 284 ms in Mono): the
+  candidates themselves cost. Fewer candidates means a different sampler (the budget of 90 per plant is what makes the
+  density): per-source "full after N misses in a row" loses 2–10 % of the plants for a 25–60 % cut; not done.
+
 ### 1.4 The road to 100× for the design phase
 
 Ordered by gain per effort. Gains multiply.
