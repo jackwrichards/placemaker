@@ -701,7 +701,7 @@ namespace Placemaker.Core.Neighbours
                     if (!touched[i] || plots[i] == null) continue;
                     // a garden another pass wrote is its garden (FixedGardens): what this plan would have made of it is never used
                     if (IsFixed(houses[i])) continue;
-                    var clear = ClearOfBarriers(plots[i], Lot(houses[i]), houses[i].Position, s.Knob("barrierMargin", 0.8f), WaterGap(houses[i], s), DeckMargin(s), s.Knob("lotLineMargin", 1f) > 0.5f);
+                    var clear = ClearOfBarriers(plots[i], s.Knob("keptLot", 1f) > 0.5f ? kept[i] : Lot(houses[i]), houses[i].Position, s.Knob("barrierMargin", 0.8f), WaterGap(houses[i], s), DeckMargin(s), s.Knob("lotLineMargin", 1f) > 0.5f);
                     if (clear == null) continue;
                     plots[i] = clear;
                     clipped++;
