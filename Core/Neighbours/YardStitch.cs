@@ -4537,7 +4537,7 @@ namespace Placemaker.Core.Neighbours
             float reach = s.Knob("push", 60f);
             if (reach <= 0f) return;
             float step = math.max(0.5f, s.Knob("pushStep", 2f));
-            // (a side never further than this from a road, at its middle: the land to share is near the streets, not the fields behind a town)
+            // (a side never wholly further than this from a road: the land to share is near the streets, not the fields behind a town)
             float depth = s.Knob("pushDepth", 50f);
             float margin = s.Knob("barrierMargin", 0.8f);
             int n = houses.Count;
@@ -4681,8 +4681,8 @@ namespace Placemaker.Core.Neighbours
                     var l = h.ToLocal(c);
                     if (math.abs(l.x) > h.HalfLot.x + reach || l.y < -h.HalfLot.y - reach || l.y > h.HalfLot.y + 0.5f) { why = "box"; return 0; }
                 }
-                // (its middle: a side whose far corner is past it already still moves where the side as a whole is near)
-                if (depth > 0f && !RoadNear((a2 + b2) * 0.5f, depth)) { why = "far from roads"; return 0; }
+                // (an end or its middle: a side whose far corner is past it already still moves where the side is near a road)
+                if (depth > 0f && !RoadNear((a2 + b2) * 0.5f, depth) && !RoadNear(a2, depth) && !RoadNear(b2, depth)) { why = "far from roads"; return 0; }
                 // (a side carried on alongside another garden's side a hair off it: two fences side by side with a strip between,
                 // as behind a walkway; the user, 22 Oct: "who would want two fences running parallel to each other?")
                 if (Walk(i, a, a2) || Walk(i, b, b2) || Slit(i, a, a2) || Slit(i, b, b2)) { why = "walkway/slit"; return -1; }
