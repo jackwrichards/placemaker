@@ -52,6 +52,16 @@ namespace Placemaker.Core.Layers.Common
             foreach (var p in reserved.Polygons) _polygons.Add(p);
         }
 
+        /// <summary>
+        /// (perf) Another region's view of the same placed discs and corridors (shared, not copied: what a copy of them made now
+        /// would hold, without rebuilding their grids for every search), with the site's obstacles; no reserved space, no paths.
+        /// </summary>
+        public Occupancy(LayerRegion region, SiteContext site, DiscIndex discs, SegmentIndex corridors) : this(region, null, site)
+        {
+            Discs = discs;
+            Corridors = corridors;
+        }
+
         private bool Near(float2 p, float r) =>
             p.x + r >= LayerRegion.Min.x && p.y + r >= LayerRegion.Min.y && p.x - r <= LayerRegion.Max.x && p.y - r <= LayerRegion.Max.y;
 

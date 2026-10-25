@@ -616,9 +616,7 @@ namespace Placemaker.Core.Layers.Park
                     for (int ri = 0; ri < search.Count && !found; ri++)
                     {
                         if (core && ri > 0 && attempt == 0) break;   // the core lawn first; a smaller one beats "no space" (4b defaults)
-                        var occ = new Occupancy(search[ri], null, ctx.Site);
-                        foreach (var seg in s.Occ.Corridors.Segments) occ.Corridors.Add(seg.A, seg.B, seg.HalfWidth, seg.Kind);
-                        foreach (var d in s.Occ.Discs.Items) occ.Discs.Add(d.P, d.R, d.Kind);
+                        var occ = new Occupancy(search[ri], ctx.Site, s.Occ.Discs, s.Occ.Corridors);   // the park's paths and discs, seen from this lawn
                         var avoid = new List<float2>(gates);
                         avoid.AddRange(taken);
                         var pref = s.Curves.Count > 0 ? Spots.Preference.NearPaths : Spots.Preference.Open;
@@ -640,9 +638,7 @@ namespace Placemaker.Core.Layers.Park
                 bool placed = false;
                 for (int ri = 0; ri < search.Count && !placed; ri++)
                 {
-                    var occ = new Occupancy(search[ri], null, ctx.Site);
-                    foreach (var seg in s.Occ.Corridors.Segments) occ.Corridors.Add(seg.A, seg.B, seg.HalfWidth, seg.Kind);
-                    foreach (var d in s.Occ.Discs.Items) occ.Discs.Add(d.P, d.R, d.Kind);
+                    var occ = new Occupancy(search[ri], ctx.Site, s.Occ.Discs, s.Occ.Corridors);
                     var avoid = new List<float2>(gates);
                     avoid.AddRange(taken);
                     if (!Spots.Find(occ, r, Spots.Preference.Open, Hashing.Mix(ctx.Seed, 0x91C0u + (uint)k), out var c, avoid, r * 2f + 3f, 1f)) continue;

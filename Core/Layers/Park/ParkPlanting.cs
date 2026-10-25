@@ -247,9 +247,10 @@ namespace Placemaker.Core.Layers.Park
         /// <summary>(perf) PlantFits with the grid's quick answers first: always the same answer as PlantFits.</summary>
         private static bool QuickFits(PlantGrid grid, ParkSite s, float2 p, bool tree, float radius, float spacing, float boundaryClearance)
         {
-            byte fixedChecks = grid.Static(p);
+            int cell = grid.Cell(p);
+            byte fixedChecks = grid.Static(cell);
             if (fixedChecks == PlantGrid.Fail) return false;
-            if (grid.Crowded(p, tree, spacing)) return false;
+            if (grid.Crowded(cell, p, tree, spacing)) return false;
             if (fixedChecks == PlantGrid.Maybe && !FixedFits(s, p, radius, boundaryClearance)) return false;
             return !TooClose(s, p, tree, spacing, radius);
         }

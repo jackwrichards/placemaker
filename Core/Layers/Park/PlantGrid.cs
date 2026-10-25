@@ -10,6 +10,7 @@
 //     TooClose would have found it too (a real conflict), so the candidate fails without the full spacing search. When it is
 //     not, the full search runs as before.
 // Same candidates, same order, same answers: the plans are exactly the ones the full checks make.
+// Plain float arithmetic in the loops (no float2 temporaries): the game's Mono runs vector operators as calls.
 
 using System;
 using System.Collections.Generic;
@@ -24,13 +25,13 @@ namespace Placemaker.Core.Layers.Park
         /// <summary>Plants are registered in the cells within this distance (+ the half diagonal): the spacing tests reach that far.</summary>
         private const float TreeReach = 8f, BushReach = 6f;
 
-        private readonly float2 _min;
-        private readonly float _h, _inv, _delta;
+        private readonly float _minX, _minY, _h, _inv, _delta;
         private readonly int _nx, _ny;
         private readonly byte[] _state;
         private float[] _g0, _g1;
         private readonly int[] _nearTree, _nearBush;
-        private readonly List<float2> _trees = new List<float2>(), _bushes = new List<float2>();
+        private float[] _tx = new float[256], _ty = new float[256], _bx = new float[256], _by = new float[256];
+        private int _trees, _bushes;
         private readonly List<float> _cross = new List<float>();
 
         public PlantGrid(LayerRegion region)
@@ -40,7 +41,7 @@ namespace Placemaker.Core.Layers.Park
             _h = math.clamp(math.sqrt(size.x * size.y / 400000f), 1f, 6f);
             _inv = 1f / _h;
             _delta = _h * 0.70711f + 0.002f;
-            _min = region.Min - _h;
+            _minX = region.Min.x - _h; _minY = region.Min.y - _h;
             _nx = (int)math.ceil(size.x * _inv) + 2;
             _ny = (int)math.ceil(size.y * _inv) + 2;
             int n = _nx * _ny;
@@ -50,41 +51,36 @@ namespace Placemaker.Core.Layers.Park
         }
 
         /// <summary>The cell of p, −1 outside the grid.</summary>
-        private int Index(float2 p)
+        public int Cell(float2 p)
         {
-            float fx = (p.x - _min.x) * _inv, fy = (p.y - _min.y) * _inv;
+            float fx = (p.x - _minX) * _inv, fy = (p.y - _minY) * _inv;
             if (!(fx >= 0f && fy >= 0f && fx < _nx && fy < _ny)) return -1;
             return (int)fy * _nx + (int)fx;
         }
 
-        private float2 Centre(int x, int y) => _min + (new float2(x, y) + 0.5f) * _h;
-
-        /// <summary>Fail, Pass or Maybe for the fixed checks of a candidate at p.</summary>
-        public byte Static(float2 p)
-        {
-            int i = Index(p);
-            return i < 0 ? Maybe : _state[i];
-        }
+        /// <summary>Fail, Pass or Maybe for the fixed checks of a candidate in cell i (Cell; −1: Maybe).</summary>
+        public byte Static(int i) => i < 0 ? Maybe : _state[i];
 
         /// <summary>
-        /// True when a tree or bush already planted is too close for this candidate (exactly a conflict TooClose finds).
-        /// False says nothing: the full spacing search decides.
+        /// True when a tree or bush already planted is too close for this candidate at p in cell i (exactly a conflict TooClose
+        /// finds). False says nothing: the full spacing search decides.
         /// </summary>
-        public bool Crowded(float2 p, bool tree, float spacing)
+        public bool Crowded(int i, float2 p, bool tree, float spacing)
         {
-            int i = Index(p);
             if (i < 0) return false;
             int t = _nearTree[i];
             if (t >= 0)
             {
                 float d = tree ? math.max(spacing, 6f) : 6f;
-                if (math.distancesq(p, _trees[t]) < d * d) return true;
+                float dx = p.x - _tx[t], dy = p.y - _ty[t];
+                if (dx * dx + dy * dy < d * d) return true;
             }
             int b = _nearBush[i];
             if (b >= 0)
             {
                 float d = tree ? 6f : math.max(spacing, 3.5f);
-                if (math.distancesq(p, _bushes[b]) < d * d) return true;
+                float dx = p.x - _bx[b], dy = p.y - _by[b];
+                if (dx * dx + dy * dy < d * d) return true;
             }
             return false;
         }
@@ -92,23 +88,43 @@ namespace Placemaker.Core.Layers.Park
         /// <summary>Registers a planted tree or bush.</summary>
         public void Added(float2 p, bool tree)
         {
-            var list = tree ? _trees : _bushes;
-            var near = tree ? _nearTree : _nearBush;
-            int id = list.Count;
-            list.Add(p);
-            float reach = (tree ? TreeReach : BushReach) + _delta;
-            Cells(p, p, reach, out int x0, out int y0, out int x1, out int y1);
-            float r2 = reach * reach;
+            int id;
+            float[] xs, ys; int[] near;
+            if (tree)
+            {
+                if (_trees == _tx.Length) { Array.Resize(ref _tx, _trees * 2); Array.Resize(ref _ty, _trees * 2); }
+                id = _trees++; xs = _tx; ys = _ty; near = _nearTree;
+            }
+            else
+            {
+                if (_bushes == _bx.Length) { Array.Resize(ref _bx, _bushes * 2); Array.Resize(ref _by, _bushes * 2); }
+                id = _bushes++; xs = _bx; ys = _by; near = _nearBush;
+            }
+            float px = p.x, py = p.y;
+            xs[id] = px; ys[id] = py;
+            float reach = (tree ? TreeReach : BushReach) + _delta, r2 = reach * reach;
+            int y0 = math.max(0, (int)math.floor((py - reach - _minY) * _inv - 0.5f));
+            int y1 = math.min(_ny - 1, (int)math.ceil((py + reach - _minY) * _inv - 0.5f));
             for (int y = y0; y <= y1; y++)
+            {
+                float cy = _minY + (y + 0.5f) * _h, dy = cy - py, rest = r2 - dy * dy;
+                if (rest < 0f) continue;
+                float half = math.sqrt(rest);
+                int x0 = math.max(0, (int)math.ceil((px - half - _minX) * _inv - 0.5f));
+                int x1 = math.min(_nx - 1, (int)math.floor((px + half - _minX) * _inv - 0.5f));
+                int row = y * _nx;
                 for (int x = x0; x <= x1; x++)
                 {
-                    var c = Centre(x, y);
-                    float d2 = math.distancesq(c, p);
-                    if (d2 > r2) continue;
-                    int k = y * _nx + x;
-                    int e = near[k];
-                    if (e < 0 || d2 < math.distancesq(c, list[e])) near[k] = id;
+                    float cx = _minX + (x + 0.5f) * _h, dx = cx - px;
+                    int k = row + x, e = near[k];
+                    if (e >= 0)
+                    {
+                        float ex = cx - xs[e], ey = cy - ys[e];
+                        if (ex * ex + ey * ey <= dx * dx + dy * dy) continue;
+                    }
+                    near[k] = id;
                 }
+            }
         }
 
         /// <summary>
@@ -122,83 +138,92 @@ namespace Placemaker.Core.Layers.Park
             var g0 = _g0; var g1 = _g1;
             var region = s.LayerRegion;
 
-            // g0: signed distance to the outline (inside > 0) − bc, and the gates' distance − 10 (GateDistanceSq < 100).
-            float capB = bc + _delta + 0.01f;
-            for (int i = 0; i < n; i++) g0[i] = -capB;
-            InsideRows(region.Ring, 0, _ny - 1, (k) => g0[k] = capB);
-            var ring = region.Ring;
-            for (int e = 0; e < ring.Length; e++)
-            {
-                var a = ring[e]; var b = ring[(e + 1) % ring.Length];
-                Cells(a, b, capB, out int x0, out int y0, out int x1, out int y1);
-                for (int y = y0; y <= y1; y++)
-                    for (int x = x0; x <= x1; x++)
-                    {
-                        int k = y * _nx + x;
-                        float d = math.sqrt(SegmentIndex.DistSq(Centre(x, y), a, b));
-                        float v = g0[k];
-                        if (d < math.abs(v)) g0[k] = v < 0f ? -d : d;
-                    }
-            }
-            for (int i = 0; i < n; i++) g0[i] -= bc;
-            float capG = 10f + _delta + 0.01f;
-            foreach (var g in s.Gates)
-            {
-                Cells(g.Position, g.Position, capG, out int x0, out int y0, out int x1, out int y1);
-                for (int y = y0; y <= y1; y++)
-                    for (int x = x0; x <= x1; x++)
-                    {
-                        int k = y * _nx + x;
-                        g0[k] = math.min(g0[k], math.distance(Centre(x, y), g.Position) - 10f);
-                    }
-            }
-
+            // g0: signed distance to the outline (inside > 0), the gates' distance − 10 + bc (GateDistanceSq < 100); bc is taken
+            // off when the cells are classified.
             // g1: the distances tested against the plant's radius: lake (signed, inside < 0), clearing, paths (+0.35 gap),
             // reserved polygons and site obstacles (0 inside).
-            float cap1 = rMax + _delta + 0.01f;
-            for (int i = 0; i < n; i++) g1[i] = cap1;
+            float capB = bc + _delta + 0.01f, cap1 = rMax + _delta + 0.01f;
+            for (int i = 0; i < n; i++) { g0[i] = -capB; g1[i] = cap1; }
+            InsideRows(region.Ring, 0, _ny - 1, 0, _nx - 1, g0, 0, _nx, capB);
+            var ring = region.Ring;
+            for (int e = 0; e < ring.Length; e++)
+                StampSegment(g0, ring[e], ring[(e + 1) % ring.Length], 0f, capB, true);
+            float capG = 10f + _delta + 0.01f;
+            foreach (var g in s.Gates) StampDisc(g0, g.Position, 10f - bc, capG);
+
             if (s.Lake.Length >= 3) StampRing(s.Lake, cap1, true);
-            if (s.ClearingRadius > 0f)
-            {
-                float reach = s.ClearingRadius + cap1;
-                Cells(s.ClearingCenter, s.ClearingCenter, reach, out int x0, out int y0, out int x1, out int y1);
-                for (int y = y0; y <= y1; y++)
-                    for (int x = x0; x <= x1; x++)
-                    {
-                        int k = y * _nx + x;
-                        g1[k] = math.min(g1[k], math.distance(Centre(x, y), s.ClearingCenter) - s.ClearingRadius);
-                    }
-            }
+            if (s.ClearingRadius > 0f) StampDisc(g1, s.ClearingCenter, s.ClearingRadius, s.ClearingRadius + cap1);
             var segs = s.Occ.Corridors.Segments;
             for (int i = 0; i < segs.Count; i++)
             {
                 var sg = segs[i];
-                float reach = sg.HalfWidth + 0.35f + cap1;
-                Cells(sg.A, sg.B, reach, out int x0, out int y0, out int x1, out int y1);
-                float r2 = reach * reach;
-                for (int y = y0; y <= y1; y++)
-                    for (int x = x0; x <= x1; x++)
-                    {
-                        float d2 = SegmentIndex.DistSq(Centre(x, y), sg.A, sg.B);
-                        if (d2 > r2) continue;
-                        int k = y * _nx + x;
-                        g1[k] = math.min(g1[k], math.sqrt(d2) - sg.HalfWidth - 0.35f);
-                    }
+                StampSegment(g1, sg.A, sg.B, sg.HalfWidth + 0.35f, sg.HalfWidth + 0.35f + cap1, false);
             }
             foreach (var poly in s.Occ.Polygons) if (poly != null && poly.Length >= 3) StampRing(poly, cap1, false);
 
             for (int i = 0; i < n; i++)
             {
-                float a = g0[i], b = g1[i];
+                float a = g0[i] - bc, b = g1[i];
                 _state[i] = a + _delta < 0f || b + _delta < rMin ? Fail : a - _delta >= 0f && b - _delta >= rMax ? Pass : Maybe;
+                _nearTree[i] = -1; _nearBush[i] = -1;
             }
 
             // The plants already there (trees of the first pass, rows, avenues).
-            _trees.Clear(); _bushes.Clear();
-            for (int i = 0; i < n; i++) { _nearTree[i] = -1; _nearBush[i] = -1; }
+            _trees = 0; _bushes = 0;
             foreach (var d in s.Occ.Discs.Items)
                 if (d.Kind == (int)ParkItemKind.Tree) Added(d.P, true);
                 else if (d.Kind == (int)ParkItemKind.Bush) Added(d.P, false);
+        }
+
+        /// <summary>
+        /// f = min(f, distance to segment a→b − <paramref name="sub"/>) for the cells within <paramref name="reach"/> of it; with
+        /// <paramref name="signed"/>, |f| instead, keeping f's sign (the outline: inside &gt; 0).
+        /// </summary>
+        private void StampSegment(float[] f, float2 a, float2 b, float sub, float reach, bool signed)
+        {
+            float ax = a.x, ay = a.y, abx = b.x - a.x, aby = b.y - a.y, len = abx * abx + aby * aby, r2 = reach * reach;
+            int x0 = math.max(0, (int)math.floor((math.min(ax, b.x) - reach - _minX) * _inv - 0.5f));
+            int x1 = math.min(_nx - 1, (int)math.ceil((math.max(ax, b.x) + reach - _minX) * _inv - 0.5f));
+            int y0 = math.max(0, (int)math.floor((math.min(ay, b.y) - reach - _minY) * _inv - 0.5f));
+            int y1 = math.min(_ny - 1, (int)math.ceil((math.max(ay, b.y) + reach - _minY) * _inv - 0.5f));
+            for (int y = y0; y <= y1; y++)
+            {
+                float cy = _minY + (y + 0.5f) * _h;
+                int row = y * _nx;
+                for (int x = x0; x <= x1; x++)
+                {
+                    float cx = _minX + (x + 0.5f) * _h;
+                    float t = len > 1e-9f ? math.saturate(((cx - ax) * abx + (cy - ay) * aby) / len) : 0f;
+                    float qx = cx - (ax + abx * t), qy = cy - (ay + aby * t), d2 = qx * qx + qy * qy;
+                    if (d2 > r2) continue;
+                    float d = math.sqrt(d2) - sub;
+                    int k = row + x;
+                    float v = f[k];
+                    if (signed) { if (d < math.abs(v)) f[k] = v < 0f ? -d : d; }
+                    else if (d < v) f[k] = d;
+                }
+            }
+        }
+
+        /// <summary>f = min(f, distance to c − <paramref name="sub"/>) for the cells within <paramref name="reach"/> of c.</summary>
+        private void StampDisc(float[] f, float2 c, float sub, float reach)
+        {
+            float r2 = reach * reach;
+            int x0 = math.max(0, (int)math.floor((c.x - reach - _minX) * _inv - 0.5f));
+            int x1 = math.min(_nx - 1, (int)math.ceil((c.x + reach - _minX) * _inv - 0.5f));
+            int y0 = math.max(0, (int)math.floor((c.y - reach - _minY) * _inv - 0.5f));
+            int y1 = math.min(_ny - 1, (int)math.ceil((c.y + reach - _minY) * _inv - 0.5f));
+            for (int y = y0; y <= y1; y++)
+            {
+                float dy = _minY + (y + 0.5f) * _h - c.y;
+                for (int x = x0; x <= x1; x++)
+                {
+                    float dx = _minX + (x + 0.5f) * _h - c.x, d2 = dx * dx + dy * dy;
+                    if (d2 > r2) continue;
+                    int k = y * _nx + x;
+                    f[k] = math.min(f[k], math.sqrt(d2) - sub);
+                }
+            }
         }
 
         /// <summary>
@@ -207,26 +232,43 @@ namespace Placemaker.Core.Layers.Park
         /// </summary>
         private void StampRing(float2[] ring, float cap, bool signed)
         {
-            Poly(ring, out var lo, out var hi);
-            Cells(lo, hi, cap, out int x0, out int y0, out int x1, out int y1);
+            float lx = float.MaxValue, ly = float.MaxValue, hx = float.MinValue, hy = float.MinValue;
+            foreach (var p in ring) { lx = math.min(lx, p.x); ly = math.min(ly, p.y); hx = math.max(hx, p.x); hy = math.max(hy, p.y); }
+            int x0 = math.max(0, (int)math.floor((lx - cap - _minX) * _inv - 0.5f));
+            int x1 = math.min(_nx - 1, (int)math.ceil((hx + cap - _minX) * _inv - 0.5f));
+            int y0 = math.max(0, (int)math.floor((ly - cap - _minY) * _inv - 0.5f));
+            int y1 = math.min(_ny - 1, (int)math.ceil((hy + cap - _minY) * _inv - 0.5f));
             int w = x1 - x0 + 1, hgt = y1 - y0 + 1;
             if (w <= 0 || hgt <= 0) return;
+            // The ring's own field over its box (f's index = (y − y0)·w + x − x0), then folded into g1.
             var f = new float[w * hgt];
             for (int i = 0; i < f.Length; i++) f[i] = cap;
-            InsideRows(ring, y0, y1, k => { int x = k % _nx - x0, y = k / _nx - y0; if (x >= 0 && x < w) f[y * w + x] = signed ? -cap : 0f; });
+            InsideRows(ring, y0, y1, x0, x1, f, -(y0 * w + x0), w, signed ? -cap : 0f);
+            float saveMinX = _minX;
             for (int e = 0; e < ring.Length; e++)
             {
                 var a = ring[e]; var b = ring[(e + 1) % ring.Length];
-                Cells(a, b, cap, out int ex0, out int ey0, out int ex1, out int ey1);
+                float ax = a.x, ay = a.y, abx = b.x - a.x, aby = b.y - a.y, len = abx * abx + aby * aby, r2 = cap * cap;
+                int ex0 = math.max(x0, (int)math.floor((math.min(ax, b.x) - cap - _minX) * _inv - 0.5f));
+                int ex1 = math.min(x1, (int)math.ceil((math.max(ax, b.x) + cap - _minX) * _inv - 0.5f));
+                int ey0 = math.max(y0, (int)math.floor((math.min(ay, b.y) - cap - _minY) * _inv - 0.5f));
+                int ey1 = math.min(y1, (int)math.ceil((math.max(ay, b.y) + cap - _minY) * _inv - 0.5f));
                 for (int y = ey0; y <= ey1; y++)
+                {
+                    float cy = _minY + (y + 0.5f) * _h;
                     for (int x = ex0; x <= ex1; x++)
                     {
                         int k = (y - y0) * w + (x - x0);
                         float v = f[k];
                         if (!signed && v == 0f) continue;
-                        float d = math.sqrt(SegmentIndex.DistSq(Centre(x, y), a, b));
+                        float cx = saveMinX + (x + 0.5f) * _h;
+                        float t = len > 1e-9f ? math.saturate(((cx - ax) * abx + (cy - ay) * aby) / len) : 0f;
+                        float qx = cx - (ax + abx * t), qy = cy - (ay + aby * t), d2 = qx * qx + qy * qy;
+                        if (d2 > r2) continue;
+                        float d = math.sqrt(d2);
                         if (d < math.abs(v)) f[k] = v < 0f ? -d : d;
                     }
+                }
             }
             var g1 = _g1;
             for (int y = 0; y < hgt; y++)
@@ -237,43 +279,31 @@ namespace Placemaker.Core.Layers.Park
                 }
         }
 
-        /// <summary>Calls <paramref name="inside"/> with the index of every cell in rows y0..y1 whose centre is inside the ring (even-odd).</summary>
-        private void InsideRows(float2[] ring, int y0, int y1, Action<int> inside)
+        /// <summary>
+        /// Sets f[y·stride + x + offset] = <paramref name="value"/> for every cell of rows y0..y1, columns x0..x1, whose centre is
+        /// inside the ring (even-odd).
+        /// </summary>
+        private void InsideRows(float2[] ring, int y0, int y1, int x0, int x1, float[] f, int offset, int stride, float value)
         {
             for (int y = y0; y <= y1; y++)
             {
-                float py = _min.y + (y + 0.5f) * _h;
+                float py = _minY + (y + 0.5f) * _h;
                 _cross.Clear();
                 for (int i = 0, j = ring.Length - 1; i < ring.Length; j = i++)
                 {
-                    var a = ring[i]; var b = ring[j];
-                    if ((a.y > py) != (b.y > py)) _cross.Add(a.x + (py - a.y) * (b.x - a.x) / (b.y - a.y));
+                    float ay = ring[i].y, by = ring[j].y;
+                    if ((ay > py) != (by > py)) _cross.Add(ring[i].x + (py - ay) * (ring[j].x - ring[i].x) / (by - ay));
                 }
                 if (_cross.Count < 2) continue;
                 _cross.Sort();
                 for (int c = 0; c + 1 < _cross.Count; c += 2)
                 {
                     // Centres x with cross[c] < x < cross[c+1].
-                    int from = math.max(0, (int)math.ceil((_cross[c] - _min.x) * _inv - 0.5f));
-                    int to = math.min(_nx - 1, (int)math.floor((_cross[c + 1] - _min.x) * _inv - 0.5f));
-                    for (int x = from; x <= to; x++) inside(y * _nx + x);
+                    int from = math.max(x0, (int)math.ceil((_cross[c] - _minX) * _inv - 0.5f));
+                    int to = math.min(x1, (int)math.floor((_cross[c + 1] - _minX) * _inv - 0.5f));
+                    for (int x = from; x <= to; x++) f[y * stride + x + offset] = value;
                 }
             }
-        }
-
-        private static void Poly(float2[] ring, out float2 lo, out float2 hi)
-        {
-            lo = new float2(float.MaxValue); hi = new float2(float.MinValue);
-            foreach (var p in ring) { lo = math.min(lo, p); hi = math.max(hi, p); }
-        }
-
-        /// <summary>The cells whose centre may lie within <paramref name="reach"/> of the box a..b, clamped to the grid.</summary>
-        private void Cells(float2 a, float2 b, float reach, out int x0, out int y0, out int x1, out int y1)
-        {
-            var lo = (math.min(a, b) - reach - _min) * _inv - 0.5f;
-            var hi = (math.max(a, b) + reach - _min) * _inv - 0.5f;
-            x0 = math.max(0, (int)math.floor(lo.x)); y0 = math.max(0, (int)math.floor(lo.y));
-            x1 = math.min(_nx - 1, (int)math.ceil(hi.x)); y1 = math.min(_ny - 1, (int)math.ceil(hi.y));
         }
     }
 }
