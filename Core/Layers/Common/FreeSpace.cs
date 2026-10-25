@@ -38,6 +38,7 @@ namespace Placemaker.Core.Layers.Common
             // Cells hug the outline only up to this margin, so staircase corners and the simplified outline
             // (tolerance ≤ 0.75 cell) never poke outside the region.
             float margin = cell * 1.5f;
+            region.UseEdgeField(cell);   // (perf) the distance raster answers ContainsDisc at most cells
             for (int y = 1; y < ny - 1; y++)
             {
                 if ((y & 15) == 0) cancel.ThrowIfCancellationRequested();

@@ -93,9 +93,14 @@ namespace Placemaker.Core.Layers.Park
         {
             float outline = Radius * (1f + 0.22f * math.sin(Lobes * angle + Phase) + 0.12f * math.sin(FineLobes * angle + FinePhase));
             var local = new float2(math.cos(angle), math.sin(angle) * Aspect) * outline * radial;
-            math.sincos(Rotation, out float s, out float c);
+            // (perf) The rotation's sine and cosine once (the same values every call).
+            if (!_turned) { math.sincos(Rotation, out _sin, out _cos); _turned = true; }
+            float s = _sin, c = _cos;
             return Center + new float2(local.x * c - local.y * s, local.x * s + local.y * c);
         }
+
+        private bool _turned;
+        private float _sin, _cos;
     }
 
     public static class ParkPlanting
@@ -446,8 +451,16 @@ namespace Placemaker.Core.Layers.Park
                 _depthScale = math.clamp(math.sqrt(region.Area) / 250f, 1f, 2.2f);
             }
 
-            public float Coverage(float along) => math.smoothstep(0.42f, 0.72f, Noise(along, _coverageCells, 1u));
-            public float DepthFactor(float along) => 0.25f + 0.75f * (0.6f * Noise(along, _coverageCells, 1u) + 0.4f * Noise(along, _depthCells, 2u));
+            public float Coverage(float along) => math.smoothstep(0.42f, 0.72f, CoverageNoise(along));
+            public float DepthFactor(float along) => 0.25f + 0.75f * (0.6f * CoverageNoise(along) + 0.4f * Noise(along, _depthCells, 2u));
+
+            // (perf) A candidate asks Coverage and then DepthFactor at the same point: the coverage noise once.
+            private float _lastAlong = float.NaN, _lastCoverage;
+            private float CoverageNoise(float along)
+            {
+                if (along != _lastAlong) { _lastCoverage = Noise(along, _coverageCells, 1u); _lastAlong = along; }
+                return _lastCoverage;
+            }
             public float MaxDepth(bool tree) => Layout.M((tree ? 7f : 9f) * _depthScale, tree ? 3f : 2f);
             public uint SectionVariant(float along, uint layerSeed) =>
                 Hashing.Mix(layerSeed, (uint)((int)(along / Perimeter * _sectionCells) % _sectionCells));
