@@ -20,7 +20,7 @@ test("browser: categories ▸ types ▸ presets; clicking a preset applies it; t
     await expect(park.getByTestId("preset-standard")).toHaveAttribute("aria-pressed", "true");
     for (const id of ["formal", "wild", "pond"]) await expect(park.getByTestId(`preset-${id}`)).toBeVisible();
     await expect(page.getByTestId("presets-plaza")).toHaveCount(0);
-    await expect(page.getByTestId("preset-bar-head")).toContainText("Standard");
+    await expect(page.getByTestId("preset-bar-name")).toHaveText("Standard");
     // compact chips and tiles
     const h = (await park.getByTestId("preset-formal").boundingBox())!.height;
     expect(h).toBeLessThanOrEqual(24);
@@ -30,7 +30,7 @@ test("browser: categories ▸ types ▸ presets; clicking a preset applies it; t
     await expect(park.getByTestId("preset-wild")).toHaveAttribute("aria-pressed", "true");
     await expect(park.getByTestId("preset-standard")).toHaveAttribute("aria-pressed", "false");
     expect(await backend(page, "b.root.values.style")).toBe("meadow");
-    await expect(page.getByTestId("preset-bar-head")).toContainText("Wild meadow");
+    await expect(page.getByTestId("preset-bar-name")).toHaveText("Wild meadow");
     await expect(page.getByTestId("preset-modified")).toHaveCount(0);
     await expect(page.getByTestId("preset-save")).toHaveAttribute("aria-disabled", "true");
 
@@ -38,7 +38,7 @@ test("browser: categories ▸ types ▸ presets; clicking a preset applies it; t
     await park.getByTestId("preset-standard").click();
     await expect(park.getByTestId("preset-standard")).toHaveAttribute("aria-pressed", "true");
     await expect(park.getByTestId("preset-wild")).toHaveAttribute("aria-pressed", "false");
-    await expect(page.getByTestId("preset-bar-head")).toContainText("Standard");
+    await expect(page.getByTestId("preset-bar-name")).toHaveText("Standard");
     expect(await backend(page, "b.active.id")).toBe("standard");
     await expect(page.getByTestId("preset-modified")).toHaveCount(0);
     await park.getByTestId("preset-wild").click();
@@ -172,7 +172,7 @@ test("Save as → own preset (★, active) → save changes → rename → delet
     await expect(own).toContainText("Lawn with playground");
     await expect(own).toHaveAttribute("aria-pressed", "true");
     await expect(own.locator('img[data-icon="star"]')).toHaveCount(1);
-    await expect(page.getByTestId("preset-bar-head")).toContainText("Lawn with playground");
+    await expect(page.getByTestId("preset-bar-name")).toHaveText("Lawn with playground");
     await expect(page.getByTestId("preset-modified")).toHaveCount(0);
     // the built-in it came from is untouched
     await expect(park.getByTestId("preset-edited-formal")).toHaveCount(0);
@@ -195,7 +195,7 @@ test("Save as → own preset (★, active) → save changes → rename → delet
     await page.getByTestId("preset-name-input").fill("Family lawn");
     await page.getByTestId("preset-name-save").click();
     await expect(own).toContainText("Family lawn");
-    await expect(page.getByTestId("preset-bar-head")).toContainText("Family lawn");
+    await expect(page.getByTestId("preset-bar-name")).toHaveText("Family lawn");
 
     // delete: cancel keeps it, confirm removes it
     await page.getByTestId("preset-delete").click();
@@ -204,7 +204,7 @@ test("Save as → own preset (★, active) → save changes → rename → delet
     await page.getByTestId("preset-delete").click();
     await page.getByTestId("confirm-ok").click();
     await expect(own).toHaveCount(0);
-    await expect(page.getByTestId("preset-bar-head")).toContainText("Standard");
+    await expect(page.getByTestId("preset-bar-name")).toHaveText("Standard");
     // the settings stay (they now differ from the type's defaults)
     await expect(page.getByTestId("preset-modified")).toBeVisible();
     expect(errors).toEqual([]);

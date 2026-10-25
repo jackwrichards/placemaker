@@ -6,7 +6,7 @@
 //     Each chip = coloured icon tile (category colour; types and styles inherit it) + name + small count. Styles start with
 //     Standard (the type's own design, a style like the others: the old "Default"), end with the player's own (gold star).
 //     The search icon in the header filters all three rows.
-//   The lit Style chip carries ✎ (amber while changed): it is the style the card under the library edits (StyleCard.tsx).
+//   The lit Style chip is the style the card under the library edits (StyleCard.tsx: EDITING · the same chip, small); ● while changed.
 // Styles are the engine's presets (selectPreset / savePreset / savePresetAs …); categories come from the central shelf
 // (Recipes/shelf/<category>.json, Core/Tool/Shelf.cs): the game sends each type's category (RecipeInfo.category), what the
 // shelf hides (RecipeInfo.shelved, PresetView.shelved) and the categories in order (Catalog.categories).
@@ -433,8 +433,8 @@ export const TypeBrowser = ({ catalog, design }: { catalog: Catalog; design: Des
                 badge={
                     <>
                         {p.overridden ? <div className={s.edited} data-testid={`preset-edited-${p.id}`} /> : null}
-                        {/* the style you are editing (the card below carries the same ✎); amber while changed */}
-                        {active && !inSearch ? <Icon name="edit" size={10} tint={modified ? "warn" : "accent"} className={s.editing} /> : null}
+                        {/* unsaved changes to the style being edited (the card below: ● and an amber frame) */}
+                        {active && !inSearch && modified ? <div className={s.dot} /> : null}
                     </>
                 }
                 onClick={() => pickStyle(r, layer, p)}

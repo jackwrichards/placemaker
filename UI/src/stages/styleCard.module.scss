@@ -28,9 +28,31 @@
     @include border-color(rgba(255, 181, 71, 0.65));
 }
 
-// ● unsaved changes, after the name
+// the lit Style chip again, small: what is being edited
+.chip {
+    @include row;
+    flex: 0 1 auto;
+    min-width: 0;
+    height: 20rem;
+    padding: 0 7rem 0 3rem;
+    border-radius: $radius;
+    background-color: rgba(143, 209, 255, 0.2);
+    @include border(1rem, #8fd1ff);
+}
+
+.chipName {
+    min-width: 0;
+    margin-left: 5rem;
+    font-size: $fs-s;
+    font-weight: bold;
+    color: #ffffff;
+    @include ellipsis;
+}
+
+// ● unsaved changes, after the chip
 .dot {
     flex-shrink: 0;
+    margin-left: 6rem;
     width: 7rem;
     height: 7rem;
     border-radius: 4rem;

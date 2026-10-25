@@ -92,7 +92,7 @@ test("s42 editing bar: unsaved changes, undo changes, save as new from the strip
     await page.getByTestId("preset-save-as").click();
     await page.getByTestId("preset-name-input").fill("My park");
     await page.getByTestId("preset-name-save").click();
-    await expect(page.getByTestId("preset-bar-head")).toContainText("My park");
+    await expect(page.getByTestId("preset-bar-name")).toHaveText("My park");
     expect(errors).toEqual([]);
 });
 

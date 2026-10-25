@@ -1,9 +1,9 @@
 // Stage 2 — what to make, then how it is built (s42, docs/proposals/s42.md), top to bottom, one story: every section
 // opens with the same header line (SectionHead.tsx: icon badge · TITLE · note · rule · buttons).
 //   1. Placemaker library: 1 Category · 2 Type · 3 Style (PresetBrowser.tsx TypeBrowser), always open; the lit Style chip
-//      carries ✎: it is the style being edited.
+//      is the style being edited.
 //   2. The style card (StyleCard.tsx, the user, 25 Oct: "I've selected the formal garden and I'm now editing it"; "it's
-//      like a file"): its line is that style (✎ · name · ●) with Revert · Save · Save as… (Rename · Delete, or Reset); its
+//      like a file"): its line is EDITING · that style's chip again, small · ● with Revert · Save · Save as… (Rename · Delete, or Reset); its
 //      panel everything the style keeps, each part under the same light line: Parameters (Shuffle at its end; Zoning for
 //      a zoning type: the type's control
 //      groups as one-line heads in two columns, an open one unfolding full width under its pair, Controls.tsx

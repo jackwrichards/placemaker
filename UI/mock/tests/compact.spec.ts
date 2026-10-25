@@ -195,7 +195,7 @@ test("compact: the whole park design fits without scrolling; full-HD screenshots
     await waitPlanned(page);
     // the picker is always open (user 2026-10-20: no collapse button for it); a type starts on its Standard style
     await expect(page.getByTestId("make-toggle")).toHaveCount(0);
-    await expect(page.getByTestId("preset-bar-head")).toContainText("Standard");
+    await expect(page.getByTestId("preset-bar-name")).toHaveText("Standard");
     await shot(page, "r3-2-design-park");
     await panelShot(page, "r3-panel-2-design-park");
     await page.getByTestId("feature-toggle-playground").click();

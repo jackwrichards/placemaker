@@ -1,10 +1,11 @@
 // The style you are editing, right under the Placemaker library and built the same way (the user, 25 Oct: "I've selected
 // the formal garden and I'm now editing it"; "it's like a file"): a section line, then one bordered panel.
-//   The line: ✎ · the style's name · ● while changed, then words, as for a file: Revert · Save · Save as… and, for your own
+//   The line: ✎ EDITING · the lit Style chip again, small (its coloured tile and name: the user, 25 Oct, the name alone
+//     "restates it" and may confuse) · ● while changed, then words, as for a file: Revert · Save · Save as… and, for your own
 //     style, Rename · Delete, or Reset for a built-in you saved over. No icons to guess, no menu. Save as… and Rename turn
 //     the line into the name field (Save · Cancel).
 //   The panel: everything the style keeps, each part under the same light line (SubHead): Parameters (or Zoning; Shuffle
-//     at its end) and Add-ons. Its border turns amber while there are unsaved changes; the lit Style chip carries the same ✎.
+//     at its end) and Add-ons. Its border turns amber while there are unsaved changes, as does the lit Style chip's dot.
 import React, { ReactNode, useState } from "react";
 import classNames from "classnames";
 import { Catalog, DesignState, StepView } from "../contract";
@@ -13,7 +14,8 @@ import { useT } from "../lib/l10n";
 import { Tip } from "../lib/tips";
 import { Btn, Icon } from "../components/common";
 import { Confirm } from "../components/dialog";
-import { presetName, shownActive } from "./PresetBrowser";
+import { categoryColor, CUSTOM_COLOR, typeIcon } from "../lib/palette";
+import { presetIcon, presetName, recipeGroup, shownActive, Tile } from "./PresetBrowser";
 import { SectionHead } from "./SectionHead";
 import s from "./styleCard.module.scss";
 
@@ -82,6 +84,9 @@ export const StyleCard = ({ catalog, design, step, children }: { catalog: Catalo
     const id = shownActive(layer, ap);
     const p = id ? layer.presets.find((x) => x.id === id) ?? null : null;
     const name = p ? presetName(t, p) : t("Placemaker.UI.Preset.Standard", "Standard");
+    const recipe = catalog.recipes.find((r) => r.id === design.recipeId);
+    const group = recipe ? recipeGroup(recipe) : "other";
+    const tIcon = typeIcon(layer.id, group);
     const changed = !!ap.modified;
     const canSave = changed && ap.canSave && !!p;
     const close = () => setMode("idle");
@@ -107,16 +112,25 @@ export const StyleCard = ({ catalog, design, step, children }: { catalog: Catalo
     ) : (
         <SectionHead
             icon="edit"
-            title={name}
-            tip={p?.overridden ? t("Placemaker.UI.Preset.EditedTip", "You saved over this style.") : name}
-            shrink
+            title={t("Placemaker.UI.Editing", "Editing")}
             testId="preset-bar-head"
             sub={
-                changed ? (
-                    <Tip title={t("Placemaker.UI.Preset.Unsaved", "Unsaved changes")}>
-                        <div className={s.dot} data-testid="preset-modified" />
+                <>
+                    {/* the lit Style chip again: the same tile, colour and name */}
+                    <Tip title={name} description={p?.overridden ? t("Placemaker.UI.Preset.EditedTip", "You saved over this style.") : undefined}>
+                        <div className={s.chip} data-testid="preset-bar-chip">
+                            <Tile icon={p ? presetIcon(p, name, tIcon) : tIcon} color={p?.custom ? CUSTOM_COLOR : categoryColor(group)} size={14} />
+                            <div className={s.chipName} data-testid="preset-bar-name" data-ellipsis>
+                                {name}
+                            </div>
+                        </div>
                     </Tip>
-                ) : undefined
+                    {changed ? (
+                        <Tip title={t("Placemaker.UI.Preset.Unsaved", "Unsaved changes")}>
+                            <div className={s.dot} data-testid="preset-modified" />
+                        </Tip>
+                    ) : null}
+                </>
             }
             right={
                 <div
