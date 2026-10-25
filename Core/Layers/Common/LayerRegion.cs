@@ -353,14 +353,24 @@ namespace Placemaker.Core.Layers.Common
             for (int pass = 0; pass < 3; pass++)
             {
                 for (int y = 0; y <= grid; y++)
+                {
+                    // (perf) The distance to the outline grows at most by the step from the previous point of the row: a point
+                    // whose bound cannot beat the best so far is not searched (it would not have replaced it), the same answer.
+                    float bound = float.PositiveInfinity;
+                    float2 prev = default;
                     for (int x = 0; x <= grid; x++)
                     {
                         var p = lo + step * new float2(x, y);
-                        if (!Contains(p)) continue;
+                        if (!Contains(p)) { bound = float.PositiveInfinity; continue; }
+                        bound += math.distance(p, prev);
+                        prev = p;
+                        if (bound + 1e-3f <= clearance) continue;
                         float c = BoundaryDistance(p);
+                        bound = c;
                         if (extraClearance != null) c = math.min(c, extraClearance(p, c));
                         if (c > clearance) { clearance = c; best = p; }
                     }
+                }
                 // Zoom into the best cell's neighbourhood.
                 var half = step * 1.5f;
                 lo = best - half; hi = best + half; step = (hi - lo) / grid;

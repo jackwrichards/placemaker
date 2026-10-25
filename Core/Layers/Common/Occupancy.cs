@@ -152,16 +152,16 @@ namespace Placemaker.Core.Layers.Common
                 {
                     var p = region.Min + new float2(x, y) * step;
                     if (!region.Contains(p)) continue;
-                    float edge = region.BoundaryDistance(p, radius + boundaryMargin + 0.01f);
-                    if (edge < radius + boundaryMargin) continue;
-                    float clear = occ.Clearance(p, radius * 2f + 5f);
-                    if (clear < radius) continue;
+                    // (perf) The cheap tests first (each only skips the spot, so the order does not change the answer).
                     if (avoid != null)
                     {
                         bool tooClose = false;
                         foreach (var a in avoid) if (math.distancesq(a, p) < avoidDistance * avoidDistance) { tooClose = true; break; }
                         if (tooClose) continue;
                     }
+                    if (!region.FarFromOutline(p, radius + boundaryMargin)) continue;   // BoundaryDistance(p, t + 0.01) >= t
+                    float clear = occ.Clearance(p, radius * 2f + 5f);
+                    if (clear < radius) continue;
                     float score = math.min(clear, radius * 2f) / math.max(1f, radius) * 0.5f;
                     switch (pref)
                     {
