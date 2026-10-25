@@ -54,6 +54,9 @@ namespace Placemaker.OutgrowBench
             new KnobInfo { id = "fillGaps", kind = "toggle", def = 0, group = "planner", tip = "strips between gardens nobody took go to the garden beside them" },
             new KnobInfo { id = "separate", kind = "toggle", def = 1, group = "planner", tip = "gardens over each other split by the nearer house" },
             new KnobInfo { id = "steps", kind = "toggle", def = 1, group = "planner", tip = "a step where two neighbours' backs are at different depths" },
+            new KnobInfo { id = "classic", kind = "toggle", def = 1, group = "planner", tip = "the older rules with gardens pushed out (off: the emergent split, if emergent is on)" },
+            new KnobInfo { id = "push", kind = "slider", min = 0, max = 100, step = 1, def = 60, group = "reach", tip = "how far past its lot a garden pushes its free sides out into land nobody has (0: not at all)" },
+            new KnobInfo { id = "pushDepth", kind = "slider", min = 0, max = 150, step = 1, def = 50, group = "reach", tip = "a pushed side stays this near a road (an end or its middle)" },
             new KnobInfo { id = "walkwayMeet", kind = "toggle", def = 0, group = "planner", tip = "behind a walkway the two gardens meet on the middle line" },
         };
 

@@ -79,6 +79,11 @@ namespace Placemaker.Core.Neighbours
             return t > 0f && u > 0f && t < reach && u < reach;
         }
 
+        /// <summary>The emergent split (YardStitch.Emergent) instead of the older rules: only with knob "classic" 0 (since 25 Oct the older
+        /// rules with gardens pushed out into the land nobody has are the default, whatever "emergent" says: lots polished earlier carry
+        /// emergent 1 in their settings) and "emergent" 1.</summary>
+        private static bool EmergentOn(StitchSettings s) => s.Knob("classic", 1f) < 0.5f && s.Knob("emergent", 1f) > 0.5f;
+
         /// <summary>A knob for one house: what its lot was polished with (StitchHouse.Options), else the settings.</summary>
         private static float K(StitchHouse h, StitchSettings s, string name, float fallback) =>
             h?.Options != null && h.Options.TryGetValue(name, out var v) ? v : s.Knob(name, fallback);
@@ -366,7 +371,7 @@ namespace Placemaker.Core.Neighbours
             var wraps = new List<(int L, int M, int R, float Ext)>();
             // the emergent split (YardStitch.Emergent): the land shared by nearness, each shared edge straightened, instead of the
             // lines below and the steps that patch them up after (wraps, walkways meeting, sharing the rest, slivers, caps)
-            bool emergent = s.Knob("emergent", 1f) > 0.5f;
+            bool emergent = EmergentOn(s);
             if (!emergent && houses.Any(h => K(h, s, "wrap", 1f) > 0.5f))
                 for (int m = 0; m < n; m++)
                 {
@@ -2853,7 +2858,7 @@ namespace Placemaker.Core.Neighbours
                 int before = plan.FencePieces.Count;
                 if (runs)
                 {
-                    CloseRuns(h, ring, piece, plan, near, InWall, OpenFrontFrom(h, s), s.Knob("emergent", 1f) > 0.5f);
+                    CloseRuns(h, ring, piece, plan, near, InWall, OpenFrontFrom(h, s), EmergentOn(s));
                     if (plan.FencePieces.Count > before) { gardens++; pieces += plan.FencePieces.Count - before; }
                     continue;
                 }
