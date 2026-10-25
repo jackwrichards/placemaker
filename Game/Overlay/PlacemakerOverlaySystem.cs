@@ -539,6 +539,20 @@ namespace Placemaker.Game.Overlay
                         if (a?.Ring != null && a.Ring.Length >= 3) Group(_areaGroups, (int)a.Role).Add(a.Ring);
                 }
             }
+            // (sketch study) Sketch style "Site plan": the plan as what gets built (PlacemakerOverlaySystem.SitePlan.cs); the terrain
+            // heat map (a little quieter) and the crosswalks stay as they are.
+            if (SitePlanStyle)
+            {
+                DrawSitePlan(buffer, w, alpha, objects);
+                bool heatOn = Shows(PreviewLegend.Terrain);
+                foreach (var kv in _heatGroups)
+                {
+                    var (hex, a) = TerrainHeat.Style(kv.Key);
+                    _fill.SetLayer("heat:" + kv.Key, kv.Value, WithAlpha(Hex(hex), heatOn ? a * (stale ? 0.5f : 1f) * (isolating ? 1.5f : 0.7f) : 0f), -92.8f + kv.Key * 0.001f, FilledPreviewSystem.Signature(kv.Value));
+                }
+                if (Shows(PreviewLegend.Entrances) || Shows(PreviewLegend.Paths)) DrawCrosswalks(buffer, plan, w, stale ? 0.45f : 1f);
+                return;
+            }
             // FEEDBACK-4 #4: surfaces are a faint tint (≤ 15 %) — or outline only — with a thin outline in the role's
             // colour (dashed for paved roles), so paths and objects on top stay readable.
             bool tint = ToolRegistration.Settings?.SketchSurfaceFill ?? true;

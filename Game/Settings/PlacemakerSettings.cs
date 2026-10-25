@@ -17,6 +17,9 @@ namespace Placemaker.Game.Settings
 {
     public enum PreviewDetail { Simple = 0, Normal = 1, Detailed = 2 }
 
+    /// <summary>(sketch study) How the sketch draws the plan: as what gets built (site plan) or the older role diagram.</summary>
+    public enum SketchStyle { SitePlan = 0, Classic = 1 }
+
     [FileLocation("ModsSettings/Placemaker/Placemaker")]
     [SettingsUIGroupOrder(GroupGeneral, GroupBrush, GroupBuild, GroupKeys, GroupMaintenance)]
     [SettingsUIShowGroupName(GroupGeneral, GroupBrush, GroupBuild, GroupKeys, GroupMaintenance)]
@@ -54,6 +57,11 @@ namespace Placemaker.Game.Settings
 
         [SettingsUISection(SectionMain, GroupGeneral)]
         public PreviewDetail PreviewDetail { get; set; }
+
+        /// <summary>(sketch study, docs/sketch-study) Site plan: the sketch draws what gets built (asphalt, paths, lawn, tree crowns,
+        /// painted stalls) and keeps its ground fills under the Real preview; Classic: the role colours and dashed centre lines.</summary>
+        [SettingsUISection(SectionMain, GroupGeneral)]
+        public SketchStyle SketchStyle { get; set; }
 
         /// <summary>Outgrow's gardens drawn on the city (OutgrowDebugOverlaySystem): every outgrown building's garden as its last
         /// plan wrote it, its corners, edges under 2 m red, its lot.</summary>
@@ -532,6 +540,7 @@ namespace Placemaker.Game.Settings
         {
             ShowCursorTooltips = true;
             PreviewDetail = PreviewDetail.Normal;
+            SketchStyle = SketchStyle.SitePlan;
             SketchSurfaceFill = true;
             SnapToRoadsWhenDrawing = true;
             KeepOffExistingRoads = true;
