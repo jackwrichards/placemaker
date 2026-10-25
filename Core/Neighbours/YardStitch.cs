@@ -744,6 +744,8 @@ namespace Placemaker.Core.Neighbours
             T("straightBacks");
             if (s.Knob("trimSpikes", 1f) > 0.5f) TrimSpikes(houses, plots, touched, s);
             T("trimSpikes");
+            if (s.Knob("tidyCorners", 1f) > 0.5f) TidyCorners(houses, plots, touched, s);
+            T("tidyCorners");
             Stage("fixed");
 
             // ── 3. fences on plot edges ──
@@ -4016,6 +4018,58 @@ namespace Placemaker.Core.Neighbours
                 }
                 plots[i] = ring;
             }
+        }
+
+        /// <summary>
+        /// A garden's outline without the crumbs where cuts met a hair apart: a corner that sticks out less than
+        /// <c>tidyTolerance</c> from the line past it goes (only corners that stick out: the garden only ever gives up a sliver,
+        /// never takes one from a neighbour; never a corner on the house's own lot, never a garden another pass wrote).
+        /// </summary>
+        private static void TidyCorners(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchSettings s)
+        {
+            float tol = s.Knob("tidyTolerance", 0.3f);
+            for (int i = 0; i < houses.Count; i++)
+            {
+                if (!touched[i] || plots[i] == null || plots[i].Length < 4 || IsFixed(houses[i])) continue;
+                var lot = Lot(houses[i]);
+                var ring = plots[i].ToList();
+                float sign = Poly.IsCcw(plots[i]) ? 1f : -1f;
+                bool changed = true;
+                while (changed && ring.Count > 3)
+                {
+                    changed = false;
+                    for (int k = 0; k < ring.Count && ring.Count > 3; k++)
+                    {
+                        var u = ring[(k + ring.Count - 1) % ring.Count];
+                        var v = ring[k];
+                        var w = ring[(k + 1) % ring.Count];
+                        var uw = w - u;
+                        float len = math.length(uw);
+                        if (len < 1e-4f) { ring.RemoveAt(k); changed = true; k--; continue; }
+                        float cross = ((v.x - u.x) * uw.y - (v.y - u.y) * uw.x) / len;   // > 0: v sticks out (to the right of u->w on a ccw ring)
+                        if (cross * sign <= 0f || cross * sign > tol) continue;
+                        if (OnOrIn(lot, v) || Poly.Contains(lot, (u + w) * 0.5f)) continue;
+                        ring.RemoveAt(k);
+                        changed = true;
+                        k--;
+                    }
+                }
+                if (ring.Count >= 3 && math.abs(Poly.Area(ring)) > 1f) plots[i] = ring.ToArray();
+            }
+        }
+
+        /// <summary>The point lies in the lot or on its outline (within 5 cm).</summary>
+        private static bool OnOrIn(float2[] lot, float2 p)
+        {
+            if (Poly.Contains(lot, p)) return true;
+            for (int k = 0; k < lot.Length; k++)
+            {
+                var a = lot[k];
+                var ab = lot[(k + 1) % lot.Length] - a;
+                float u = math.saturate(math.dot(p - a, ab) / math.max(1e-6f, math.lengthsq(ab)));
+                if (math.distancesq(p, a + ab * u) < 0.0025f) return true;
+            }
+            return false;
         }
 
         private static bool IsFixed(StitchHouse h) => !h.Edit && h.Polished && h.Garden != null && h.Garden.Length >= 3;
