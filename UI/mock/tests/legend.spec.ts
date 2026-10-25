@@ -85,6 +85,10 @@ test("legend: default-off layers start hidden and show on click (real Core host)
     test.skip(!up, "mock host not running");
     await toDesign(page, "park");
     await page.waitForFunction(() => (window as any).pm.backend.plan?.source === "core");
+    // (sketch study) the real host sends the site plan: the top view replaces this window (siteplan.spec.ts); the legend
+    // window stays the Classic sketch style's, covered above on the fake planner
+    await page.waitForTimeout(300);
+    test.skip((await page.getByTestId("siteplan-window").count()) > 0, "site plan style: the top view replaces the legend window");
     const legend = page.getByTestId("legend-window");
     await expect(legend).toBeVisible();
     // Core sends the legend: every row's layer is one of the known ids, roads grouped, defaults applied.

@@ -173,9 +173,10 @@ namespace Placemaker.Game.Overlay
                 var asphalt = SpColor(SitePlan.Palette.Asphalt, carA);
                 bool roads = Shows(SitePlan.Roads), lot = Shows(SitePlan.Parking);
                 foreach (var l in _spCars)
-                    if (l.Mark ? roads : lot) buffer.DrawCurve(asphalt, asphalt, 0f, P, l.Curve, l.Width, new float2(1, 1));
+                    // under the ghost the surfaces are see-through: round ends would overlap into dark dots at every join
+                    if (l.Mark ? roads : lot) buffer.DrawCurve(asphalt, asphalt, 0f, P, l.Curve, l.Width, underGhost ? default : new float2(1, 1));
                 foreach (var c in _spCaps)
-                    if (roads) buffer.DrawCircle(asphalt, asphalt, 0f, P, up, c.at, c.r * 2f);
+                    if (roads && !underGhost) buffer.DrawCircle(asphalt, asphalt, 0f, P, up, c.at, c.r * 2f);
                 if (roads && !underGhost)
                 {
                     var mark = SpColor(SitePlan.Palette.RoadMark, 0.7f * alpha);
@@ -186,7 +187,7 @@ namespace Placemaker.Game.Overlay
             if (Shows(SitePlan.Paths))
             {
                 var path = SpColor(SitePlan.Palette.Path, (underGhost ? 0.45f : 0.95f) * alpha);
-                foreach (var l in _spWalks) buffer.DrawCurve(path, path, 0f, P, l.Curve, l.Width, new float2(1, 1));
+                foreach (var l in _spWalks) buffer.DrawCurve(path, path, 0f, P, l.Curve, l.Width, underGhost ? default : new float2(1, 1));
             }
             if (objAlpha <= 0.001f) { DrawSitePlanIssues(buffer, w, alpha); return; }
 
