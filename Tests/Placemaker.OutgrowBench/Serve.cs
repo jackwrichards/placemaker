@@ -45,16 +45,16 @@ namespace Placemaker.OutgrowBench
             new KnobInfo { id = "closeBacks", kind = "toggle", def = 1, group = "rules", tip = "open backs close with a freed fence" },
             new KnobInfo { id = "alleys", kind = "toggle", def = 1, group = "rules", tip = "walkways between some houses" },
             new KnobInfo { id = "closeGardens", kind = "toggle", def = 1, group = "rules", tip = "every open garden edge gets fence pieces" },
-            new KnobInfo { id = "shareBetween", kind = "toggle", def = 1, group = "planner", tip = "lots no joining rule fits share the land between them" },
+            new KnobInfo { id = "shareBetween", kind = "toggle", def = 0, group = "planner", tip = "lots no joining rule fits share the land between them" },
             new KnobInfo { id = "capNarrow", kind = "toggle", def = 1, group = "planner", tip = "a garden ends straight across where, behind its lot, it gets narrow or splits into prongs" },
             new KnobInfo { id = "minGardenWidth", kind = "slider", min = 0, max = 40, step = 1, def = 8, group = "reach", tip = "narrower than this (or half its lot) behind its lot, a garden ends" },
             new KnobInfo { id = "squareCorners", kind = "toggle", def = 0, group = "planner", tip = "two lots round a block corner split along one's side line (else the 45° middle line, shared fairly)" },
             new KnobInfo { id = "squareSplits", kind = "toggle", def = 1, group = "planner", tip = "two gardens growing into each other on one grid split along the grid (else square to their corners: a slant)" },
             new KnobInfo { id = "shareGrid", kind = "toggle", def = 1, group = "planner", tip = "lots on one grid share a box split along the grid (else a slanted hull)" },
-            new KnobInfo { id = "fillGaps", kind = "toggle", def = 1, group = "planner", tip = "strips between gardens nobody took go to the garden beside them" },
+            new KnobInfo { id = "fillGaps", kind = "toggle", def = 0, group = "planner", tip = "strips between gardens nobody took go to the garden beside them" },
             new KnobInfo { id = "separate", kind = "toggle", def = 1, group = "planner", tip = "gardens over each other split by the nearer house" },
             new KnobInfo { id = "steps", kind = "toggle", def = 1, group = "planner", tip = "a step where two neighbours' backs are at different depths" },
-            new KnobInfo { id = "walkwayMeet", kind = "toggle", def = 1, group = "planner", tip = "behind a walkway the two gardens meet on the middle line" },
+            new KnobInfo { id = "walkwayMeet", kind = "toggle", def = 0, group = "planner", tip = "behind a walkway the two gardens meet on the middle line" },
         };
 
         public static int Run(int port, List<(string Label, string Path)> passes, string gradesDir)

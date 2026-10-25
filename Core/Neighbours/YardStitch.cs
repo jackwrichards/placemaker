@@ -724,7 +724,7 @@ namespace Placemaker.Core.Neighbours
             // side neighbours do (the user, 22 Oct: their hedges ran on side by side down to the back street, a grass strip
             // between, "who would want two fences running parallel to each other?")
             var walkwayEnds = new List<(int I, int J, float Hz)>();
-            foreach (var (ai, bi) in s.Knob("walkwayMeet", 1f) > 0.5f && !emergent ? alleys : new List<(int, int)>())
+            foreach (var (ai, bi) in s.Knob("walkwayMeet", 0f) > 0.5f && !emergent ? alleys : new List<(int, int)>())
             {
                 var a = houses[ai];
                 var b = houses[bi];
@@ -762,12 +762,12 @@ namespace Placemaker.Core.Neighbours
             // (fillGapsLate: the gaps are filled once the gardens round a block's corner have shared their land, below; filled
             // here, the land between them went in spokes to every garden around it)
             bool gapsLate = s.Knob("fillGapsLate", 1f) > 0.5f;
-            if (!gapsLate && s.Knob("fillGaps", 1f) > 0.5f) FillGaps(houses, plots, touched, raw, kept, s, plan);
+            if (!gapsLate && s.Knob("fillGaps", 0f) > 0.5f) FillGaps(houses, plots, touched, raw, kept, s, plan);
             Stage("gaps");
             FixedGardens(houses, plots, touched, plan);
             T("gaps+fixedGardens");
             Stage("fixedGardens");
-            if (s.Knob("shareBetween", 1f) > 0.5f && !emergent)
+            if (s.Knob("shareBetween", 0f) > 0.5f && !emergent)
             {
                 foreach (var kv in sideCuts) pairCuts[kv.Key] = kv.Value;
                 ShareBetween(houses, plots, touched, left, right, ringCut, pairCuts, alleys, s, plan);
@@ -778,7 +778,7 @@ namespace Placemaker.Core.Neighbours
             T("separate");
             if (s.Knob("trimSlivers", 1f) > 0.5f && !emergent) TrimSlivers(houses, plots, touched, s, plan);
             T("trimSlivers");
-            if (gapsLate && s.Knob("fillGaps", 1f) > 0.5f && !emergent) FillGaps(houses, plots, touched, raw, kept, s, plan);
+            if (gapsLate && s.Knob("fillGaps", 0f) > 0.5f && !emergent) FillGaps(houses, plots, touched, raw, kept, s, plan);
             T("fillGaps");
             if (s.Knob("capNarrow", 1f) > 0.5f && !emergent) CapNarrow(houses, plots, touched, s, plan);
             T("capNarrow");
