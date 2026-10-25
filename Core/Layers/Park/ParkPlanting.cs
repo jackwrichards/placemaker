@@ -70,6 +70,8 @@ namespace Placemaker.Core.Layers.Park
         {
             Items.Add(item);
             Occ.Take(item.Position, item.Radius, (int)item.Kind);
+            if (PlantGrid != null && PlantGrid.Ready && (item.Kind == ParkItemKind.Tree || item.Kind == ParkItemKind.Bush))
+                PlantGrid.Added(item.Position, item.Kind == ParkItemKind.Tree);
         }
 
         internal static float MinDistToRing(float2[] ring, float2 p)
@@ -154,6 +156,11 @@ namespace Placemaker.Core.Layers.Park
         public static void Vegetation(ParkSite s, ParkStyle style, int target, bool tree, bool belt)
         {
             if (target <= 0) return;
+            float boundaryClearance = tree ? 4f : 2.2f;
+            // (perf) The planting grid (PlantGrid.cs) for this pass: every PlantFits below answers from it where it can.
+            var grid = s.PlantGrid ??= new PlantGrid(s.LayerRegion);
+            if (tree) grid.Prepare(s, boundaryClearance, 2.5f, 8.5f * 0.45f);
+            else grid.Prepare(s, boundaryClearance, 1.2f, 4.2f * 0.45f);
             if (style.Formal) { FormalVegetation(s, target, tree, belt); return; }
             if (style.Grid) { GridVegetation(s, target, tree, belt); return; }
             if (style.RowBelt && belt && tree)
@@ -167,7 +174,6 @@ namespace Placemaker.Core.Layers.Park
             var rng = Hashing.Rng(s.Seed, tree ? 0x51f15e21u : 0x9e3779b9u);
             var region = s.LayerRegion;
             var beltShape = belt ? new Belt(region, Hashing.Mix(s.Seed, 0x1234567u)) : null;
-            float boundaryClearance = tree ? 4f : 2.2f;
             float baseSpacing = tree ? 7.5f : 4f;
             float groveShare = s.Groves.Count > 0 ? (tree ? style.TreeGroveShare : style.BushGroveShare) : 0f;
             float beltShare = belt ? (tree ? style.TreeBeltShare : style.BushBeltShare) : 0f;
@@ -184,9 +190,6 @@ namespace Placemaker.Core.Layers.Park
             int scatterNext = 0;
             uint clumpSeed = Hashing.Mix(s.Seed, tree ? 0x77u : 0x99u);
             int attempts = Math.Max(80, target * 90);
-            var grid = s.PlantGrid ??= new PlantGrid(region);
-            if (tree) grid.Prepare(s, boundaryClearance, 2.5f, 8.5f * 0.45f);
-            else grid.Prepare(s, boundaryClearance, 1.2f, 4.2f * 0.45f);
             for (int attempt = 0; attempt < attempts && accepted < target; attempt++)
             {
                 if ((attempt & 1023) == 0) s.Cancel.ThrowIfCancellationRequested();
@@ -238,7 +241,6 @@ namespace Placemaker.Core.Layers.Park
                 float size = tree ? rng.NextFloat(5f, 8.5f) : rng.NextFloat(2.3f, 4.2f);
                 float radius = tree ? math.max(2.5f, size * 0.45f) : math.max(1.2f, size * 0.45f);
                 if (!QuickFits(grid, s, p, tree, radius, spacing, boundaryClearance)) continue;
-                grid.Added(p, tree);
                 accepted++;
                 if (solitaire) solitaires++;
                 s.Add(new ParkItem
@@ -260,8 +262,18 @@ namespace Placemaker.Core.Layers.Park
             return !TooClose(s, p, tree, spacing, radius);
         }
 
-        private static bool PlantFits(ParkSite s, float2 p, bool tree, float radius, float spacing, float boundaryClearance) =>
-            FixedFits(s, p, radius, boundaryClearance) && !TooClose(s, p, tree, spacing, radius);
+        private static bool PlantFits(ParkSite s, float2 p, bool tree, float radius, float spacing, float boundaryClearance)
+        {
+            var grid = s.PlantGrid;
+            if (grid == null || !grid.Ready) return FixedFits(s, p, radius, boundaryClearance) && !TooClose(s, p, tree, spacing, radius);
+            // (perf) The grid's quick answers first (rows, avenues, grids): the same answer.
+            int cell = grid.Cell(p);
+            byte fixedChecks = grid.Static(cell, boundaryClearance, radius);
+            if (fixedChecks == PlantGrid.Fail) return false;
+            if (grid.Crowded(cell, p, tree, spacing)) return false;
+            if (fixedChecks == PlantGrid.Maybe && !FixedFits(s, p, radius, boundaryClearance)) return false;
+            return !TooClose(s, p, tree, spacing, radius);
+        }
 
         /// <summary>The checks that do not depend on what was planted: outline, gates, lake, clearing, paths, reserved polygons.</summary>
         private static bool FixedFits(ParkSite s, float2 p, float radius, float boundaryClearance)

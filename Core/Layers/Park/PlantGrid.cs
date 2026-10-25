@@ -61,6 +61,21 @@ namespace Placemaker.Core.Layers.Park
         /// <summary>Fail, Pass or Maybe for the fixed checks of a candidate in cell i (Cell; −1: Maybe).</summary>
         public byte Static(int i) => i < 0 ? Maybe : _state[i];
 
+        /// <summary>The fixed checks of one candidate of radius r with boundary clearance bc (any, not only this pass's).</summary>
+        public byte Static(int i, float bc, float r)
+        {
+            if (i < 0 || bc + _delta + 0.01f > _capB || r + _delta + 0.01f > _cap1) return Maybe;
+            float a = math.min(_g0[i] - bc, _gt[i]), b = _g1[i];
+            if (a + _delta < 0f || b + _delta < r) return Fail;
+            return a - _delta >= 0f && b - _delta >= r ? Pass : Maybe;
+        }
+
+        /// <summary>Prepared for a planting pass (Prepare ran).</summary>
+        public bool Ready { get; private set; }
+        private const float GenericBc = 4f, GenericR = 2.5f;
+        private float _capB, _cap1;
+        private float[] _gt;
+
         /// <summary>
         /// True when a tree or bush already planted is too close for this candidate at p in cell i (exactly a conflict TooClose
         /// finds). False says nothing: the full spacing search decides.
@@ -142,14 +157,18 @@ namespace Placemaker.Core.Layers.Park
             // off when the cells are classified.
             // g1: the distances tested against the plant's radius: lake (signed, inside < 0), clearing, paths (+0.35 gap),
             // reserved polygons and site obstacles (0 inside).
-            float capB = bc + _delta + 0.01f, cap1 = rMax + _delta + 0.01f;
-            for (int i = 0; i < n; i++) { g0[i] = -capB; g1[i] = cap1; }
+            // The caps also cover the rows, avenues and grids (PlantFits: boundary clearance up to GenericBc, radius up to GenericR).
+            float capB = math.max(bc, GenericBc) + _delta + 0.01f, cap1 = math.max(rMax, GenericR) + _delta + 0.01f;
+            _capB = capB; _cap1 = cap1;
+            if (_gt == null || _gt.Length < n) _gt = new float[n];
+            var gt = _gt;
+            float capG = 10f + _delta + 0.01f;
+            for (int i = 0; i < n; i++) { g0[i] = -capB; g1[i] = cap1; gt[i] = capG - 10f; }
             InsideRows(region.Ring, 0, _ny - 1, 0, _nx - 1, g0, 0, _nx, capB);
             var ring = region.Ring;
             for (int e = 0; e < ring.Length; e++)
                 StampSegment(g0, ring[e], ring[(e + 1) % ring.Length], 0f, capB, true);
-            float capG = 10f + _delta + 0.01f;
-            foreach (var g in s.Gates) StampDisc(g0, g.Position, 10f - bc, capG);
+            foreach (var g in s.Gates) StampDisc(gt, g.Position, 10f, capG);
 
             if (s.Lake.Length >= 3) StampRing(s.Lake, cap1, true);
             if (s.ClearingRadius > 0f) StampDisc(g1, s.ClearingCenter, s.ClearingRadius, s.ClearingRadius + cap1);
@@ -163,10 +182,11 @@ namespace Placemaker.Core.Layers.Park
 
             for (int i = 0; i < n; i++)
             {
-                float a = g0[i] - bc, b = g1[i];
+                float a = math.min(g0[i] - bc, gt[i]), b = g1[i];
                 _state[i] = a + _delta < 0f || b + _delta < rMin ? Fail : a - _delta >= 0f && b - _delta >= rMax ? Pass : Maybe;
                 _nearTree[i] = -1; _nearBush[i] = -1;
             }
+            Ready = true;
 
             // The plants already there (trees of the first pass, rows, avenues).
             _trees = 0; _bushes = 0;
