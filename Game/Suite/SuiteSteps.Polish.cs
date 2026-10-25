@@ -117,10 +117,10 @@ namespace Placemaker.Game.Suite
                     "levelUps" => () => NeighbourPolishSystem.PolishLevelUps == (value == "true"),
                     "gameChanges" => () => NeighbourPolishSystem.PolishGameChanges == (value == "true"),
                     "gameRemovals" => () => NeighbourPolishSystem.PolishGameRemovals == (value == "true"),
-                    "homes" => () => s.PolishThemeHomes == value,
-                    "shops" => () => s.PolishThemeShops == value,
-                    "offices" => () => s.PolishThemeOffices == value,
-                    "industry" => () => s.PolishThemeIndustry == value,
+                    "homes" => () => NeighbourPolishSystem.ZoneTheme("home") == value,   // (the city's own: kept with its save)
+                    "shops" => () => NeighbourPolishSystem.ZoneTheme("shop") == value,
+                    "offices" => () => NeighbourPolishSystem.ZoneTheme("office") == value,
+                    "industry" => () => NeighbourPolishSystem.ZoneTheme("industry") == value,
                     _ => null,
                 };
                 if (done == null) { rec["error"] = "polish: unknown city row '" + what + "'"; yield break; }
