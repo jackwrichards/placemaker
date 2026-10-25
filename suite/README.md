@@ -328,6 +328,7 @@ after a failed `area`, `type`, `preview` or `build` the scenario's remaining ste
 | `anarchy` | `on` | the panel's anarchy switch (not there in a clean run: the Anarchy mod is not loaded) |
 | `group` | `on` | Review's "One group" switch beside Build (off: the build is born ungrouped) |
 | `setting` | `name`, `value` | a Placemaker option (e.g. `IgnoreOwnCollisions`), read back |
+| `locale` | `locale` (`de-DE`, `ja-JP`, … the game's languages); none: back to the game's own | the game's language, as the Options menu switches it but not saved to the player's settings; end a scenario that changes it with `{"do": "locale"}` (the queue's game is shared) |
 
 World clicks: the point is projected to the screen; off the screen or under the panel the camera pans to it like a
 person (recorded as `pan`), else the step says "not clickable". The game's own raycast with the tool's masks decides
