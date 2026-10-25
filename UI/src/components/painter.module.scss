@@ -812,8 +812,8 @@
 }
 
 .crowLabel {
-    width: 42rem;
     flex-shrink: 0;
+    margin-right: 2rem;
     font-size: $fs;
     color: $c-text-dim;
 }
@@ -831,4 +831,34 @@
 
 .crowSub {
     padding: 0 9rem 7rem 9rem;
+}
+
+// a little room between the switch and the brush
+.crowGap {
+    flex: 0 0 auto;
+    width: 6rem;
+}
+
+// Paint and Erase: a pair of buttons, the look of a switch with neither on
+.toolGroup {
+    @include row;
+    flex-shrink: 0;
+    padding: 1rem;
+    border-radius: $radius + 1rem;
+    background-color: $c-shade;
+    & > * + * {
+        margin-left: 1rem;
+    }
+}
+
+// the type painted: takes what room is left
+.crow .typeBtn {
+    flex: 1 1 auto;
+    max-width: none;
+    height: 22rem;
+}
+
+.crow .typeBtn .choiceText {
+    flex: 1 1 auto;
+    min-width: 0;
 }

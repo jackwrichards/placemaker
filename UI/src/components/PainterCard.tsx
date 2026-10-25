@@ -745,13 +745,11 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
     const editFp = tab === "edit" ? JSON.stringify([p.theme, p.looks, p.values, p.lookValues, p.lookTheme, p.lookSavedTheme, p.modified, p.swatches, st?.looks?.[p.theme ?? ""], p.preview?.gardens]) : "";
     return (
         <div className={s.cityEmbedded} data-testid="polish-city" onMouseDown={(e) => e.stopPropagation()}>
-                {/* one card, three rows alike (the user, 25 Oct: "one of them is like your map mode, one of them is like to paint
-                    stuff, and one of them is the general outgrow stuff"): an icon, a word, its controls. Show: this city's one
-                    switch (every building keeps its outgrow type) and the count (numbers the panel already has). Paint: Paint or
-                    Erase (its zone's default again) and the type painted. Map: what the map shows. */}
+                {/* one card, two rows (the user, 25 Oct: "outgrow on off, and then a paint button and erase button, and then a
+                    dropdown to the right of that"). 1: this city's one switch (every building keeps its outgrow type), Paint or
+                    Erase (its zone's default again) and the type painted. 2: what the map shows, and the count. */}
                 <div className={classNames(s.rows, { [s.rowsOff]: !p.featureOn })} data-testid="polish-master">
                     <div className={s.crow}>
-                        <Icon name="eye" size={13} tint={p.featureOn ? "ok" : "dim"} />
                         <div className={s.crowLabel}>{L("RowOutgrow", "Outgrow")}</div>
                         <Segmented
                             testId="polish-on"
@@ -762,22 +760,11 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                                 { value: "hide", label: L("Off", "Off"), description: L("ShowOffTip", "Every building as the game made it; each keeps its outgrow type for later") },
                             ]}
                         />
-                        <div className={s.flex} />
-                        <div className={s.crowCount} data-testid="polish-summary">
-                            {`${num(city.polished)} / ${num(city.total)}`}
-                            {city.waiting > 0 ? (
-                                <span className={s.crowBusy} data-testid="polish-summary-waiting">{L("CountLeft", " · {0} left", [num(city.waiting)])}</span>
-                            ) : city.restoring > 0 ? (
-                                <span className={s.crowBusy} data-testid="polish-summary-waiting">{L("CountLeft", " · {0} left", [num(city.restoring)])}</span>
-                            ) : null}
+                        <div className={s.crowGap} />
+                        <div className={s.toolGroup} data-testid="polish-brush">
+                            <Btn icon="brush" iconSize={11} label={L("BrushPaint", "Paint")} selected={p.brush === "paint"} title={L("BrushPaintTip4", "Drag over buildings: they get this outgrow type. Right-click drops the stroke.")} onClick={() => act.polishCity("brush", p.brush === "paint" ? "off" : "paint:" + brushType)} testId="polish-brush-paint" />
+                            <Btn icon="reset" iconSize={11} label={L("BrushErase", "Erase")} selected={p.brush === "erase"} title={L("BrushEraseTip4", "Drag over buildings: they get their zone's default outgrow type back")} onClick={() => act.polishCity("brush", p.brush === "erase" ? "off" : "erase")} testId="polish-brush-erase" />
                         </div>
-                    </div>
-                    <div className={s.crow} data-testid="polish-brush">
-                        <Icon name="brush" size={13} tint={p.brush ? "accent" : "dim"} />
-                        <div className={s.crowLabel}>{L("RowBrush", "Brush")}</div>
-                        <Btn icon="brush" iconSize={11} label={L("BrushPaint", "Paint")} selected={p.brush === "paint"} title={L("BrushPaintTip4", "Drag over buildings: they get this outgrow type. Right-click drops the stroke.")} onClick={() => act.polishCity("brush", p.brush === "paint" ? "off" : "paint:" + brushType)} testId="polish-brush-paint" />
-                        <Btn icon="reset" iconSize={11} label={L("BrushErase", "Erase")} selected={p.brush === "erase"} title={L("BrushEraseTip4", "Drag over buildings: they get their zone's default outgrow type back")} onClick={() => act.polishCity("brush", p.brush === "erase" ? "off" : "erase")} testId="polish-brush-erase" />
-                        <div className={s.flex} />
                         <TypeButton p={p} id={brushType} on={picking === "brush"} onClick={() => setPicking(picking === "brush" ? null : "brush")} testId="polish-brush-type" />
                     </div>
                     {p.brush ? (
@@ -800,7 +787,6 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                         </div>
                     ) : null}
                     <div className={s.crow} data-testid="polish-lens">
-                        <Icon name="layers" size={13} tint={p.lensWanted ? "accent" : "dim"} />
                         <div className={s.crowLabel}>{L("RowMap", "Map")}</div>
                         <Segmented
                             testId="polish-lens-mode"
@@ -818,6 +804,15 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                                 { value: "types", label: L("LensTypes", "Types"), description: L("LensTypesTip", "Every building in its outgrow type's color") },
                             ]}
                         />
+                        <div className={s.flex} />
+                        <div className={s.crowCount} data-testid="polish-summary">
+                            {`${num(city.polished)} / ${num(city.total)}`}
+                            {city.waiting > 0 ? (
+                                <span className={s.crowBusy} data-testid="polish-summary-waiting">{L("CountLeft", " · {0} left", [num(city.waiting)])}</span>
+                            ) : city.restoring > 0 ? (
+                                <span className={s.crowBusy} data-testid="polish-summary-waiting">{L("CountLeft", " · {0} left", [num(city.restoring)])}</span>
+                            ) : null}
+                        </div>
                     </div>
                 </div>
                 <ScrollArea className={pn.bodyWrap} testId="polish-city-body">
