@@ -208,13 +208,14 @@ namespace Placemaker.Core.Neighbours
                     if (fg > maxFg || bg > maxBg) { whyKind = 2; whyId = b.Id; whyA = fg; whyB = bg; continue; }
                     // the land between them (from just behind the street to the shallower one's back) is open: no road, path,
                     // track or other building runs through it
-                    float shallow = math.min(a.HalfLot.y, b.HalfLot.y);
-                    if (Blocked(new[] { a.FrontRight - a.Forward * 2f, b.FrontLeft - b.Forward * 2f, BackAt(b, -1, shallow), BackAt(a, +1, shallow) }))
-                    { whyKind = 3; whyId = b.Id; continue; }
+                    // (the cheap tests first: the open-land test below is asked only of a nearer claim)
                     if (fg >= rightGap[i]) continue;
                     // one left neighbour per house: the nearer claim wins
                     int other = left[j];
                     if (other >= 0 && other != i && rightGap[other] <= fg) continue;
+                    float shallow = math.min(a.HalfLot.y, b.HalfLot.y);
+                    if (Blocked(new[] { a.FrontRight - a.Forward * 2f, b.FrontLeft - b.Forward * 2f, BackAt(b, -1, shallow), BackAt(a, +1, shallow) }))
+                    { whyKind = 3; whyId = b.Id; continue; }
                     if (other >= 0 && other != i) { right[other] = -1; rightGap[other] = float.MaxValue; }
                     if (right[i] >= 0) left[right[i]] = -1;
                     right[i] = j;
@@ -291,7 +292,8 @@ namespace Placemaker.Core.Neighbours
                 {
                     if (i == j || math.dot(houses[i].Forward, houses[j].Forward) > -0.5f || ringCut[i] != null || ringCut[j] != null) continue;
                     if (!RearGap(houses[i], houses[j], out float gap, out float overlap) || gap > math.min(K(houses[i], s, "maxRearGap", 60f), K(houses[j], s, "maxRearGap", 60f)) || overlap < s.Knob("minRearOverlap", 6f)) continue;
-                    if (gap > 0.5f && Blocked(Hull(new[] { houses[i].BackLeft, houses[i].BackRight, houses[j].BackLeft, houses[j].BackRight }))) continue;
+                    // (the open-land test only for a nearer one, or for the trace)
+                    if ((gap < best || TraceWhy != null) && gap > 0.5f && Blocked(Hull(new[] { houses[i].BackLeft, houses[i].BackRight, houses[j].BackLeft, houses[j].BackRight }))) continue;
                     if (gap < best) { best = gap; rear[i] = j; }
                     TraceWhy?.Invoke($"rear-candidate {houses[i].Id} {houses[j].Id} gap {gap:F1} overlap {overlap:F1} angle {math.degrees(math.acos(math.clamp(-math.dot(houses[i].Forward, houses[j].Forward), -1f, 1f))):F0}");
                 }
@@ -327,12 +329,6 @@ namespace Placemaker.Core.Neighbours
                         for (int ej = 0; ej < 3; ej++)
                         {
                             if (!free[i, ei] || !free[j, ej] || !Faces(houses[i], ei, houses[j], ej, math.min(K(houses[i], s, "maxFacingGap", 50f), K(houses[j], s, "maxFacingGap", 50f)), s.Knob("minFacingOverlap", 4f), out float g, out var cut)) continue;
-                            if (g > 0.5f)
-                            {
-                                var (fa0, fa1, _) = Edge(houses[i], ei);
-                                var (fb0, fb1, _) = Edge(houses[j], ej);
-                                if (Blocked(Hull(new[] { fa0, fa1, fb0, fb1 }))) continue;
-                            }
                             // an unpolished lot facing a polished one: the border is its own edge (the polished one takes the gap)
                             int fx = Fixed(i, j);
                             if (fx >= 0)
@@ -348,6 +344,13 @@ namespace Placemaker.Core.Neighbours
             {
                 // an edge may face several houses along its length (a long side behind two corner lots): one pair each
                 if (paired.Contains((c.I, c.J))) continue;
+                // (something between them: no pair; asked only of the pair that would be made)
+                if (c.Gap > 0.5f)
+                {
+                    var (fa0, fa1, _) = Edge(houses[c.I], c.EI);
+                    var (fb0, fb1, _) = Edge(houses[c.J], c.EJ);
+                    if (Blocked(Hull(new[] { fa0, fa1, fb0, fb1 }))) continue;
+                }
                 paired.Add((c.I, c.J));
                 touched[c.I] = touched[c.J] = true;
                 facing.Add(c);
@@ -747,6 +750,9 @@ namespace Placemaker.Core.Neighbours
             if (s.Knob("tidyCorners", 1f) > 0.5f) TidyCorners(houses, plots, touched, s);
             T("tidyCorners");
             Stage("fixed");
+            if (!emergent) Push(houses, plots, touched, alleys, cuts, s);
+            T("push");
+            Stage("push");
 
             // ── 3. fences on plot edges ──
             var moved = new Dictionary<long, (float2 A, float2 B)>();
@@ -4475,6 +4481,218 @@ namespace Placemaker.Core.Neighbours
                         l.Add(k);
                     }
             }
+        }
+
+        /// <summary>
+        /// Every garden pushes its free sides straight out into land nobody has (the land a missing neighbour left, the open
+        /// middle of a block, the wedge by a road), each side moved parallel, its two neighbouring sides carried on along their
+        /// own lines: no new corner, every angle kept, so a plain garden stays plain. All gardens push a step at a time in turn,
+        /// so two pushing into one gap meet near its middle; a side stops at another garden, a lot, a road (a margin off it, as
+        /// near as the lot itself where it is the house's own street) or water, and never leaves a box "push" metres round its
+        /// lot (the front never moves). Knobs "push" (m, 0 off) and "pushStep" (m).
+        /// </summary>
+        private static void Push(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, List<(int I, int J)> alleys, List<Cut>[] cuts, StitchSettings s)
+        {
+            float reach = s.Knob("push", 40f);
+            if (reach <= 0f) return;
+            float step = math.max(0.5f, s.Knob("pushStep", 2f));
+            // (never further than this from a road: the land to share is near the streets, not the fields behind a town)
+            float depth = s.Knob("pushDepth", 50f);
+            float margin = s.Knob("barrierMargin", 0.8f);
+            int n = houses.Count;
+            var who = new List<int>();
+            for (int i = 0; i < n; i++)
+                if (touched[i] && plots[i] != null && plots[i].Length >= 3 && houses[i].Polished && !IsFixed(houses[i])) who.Add(i);
+            if (who.Count == 0) return;
+            var lots = new float2[n][];
+            var lotLo = new float2[n];
+            var lotHi = new float2[n];
+            var lo = new float2[n];
+            var hi = new float2[n];
+            for (int j = 0; j < n; j++)
+            {
+                lots[j] = Lot(houses[j]);
+                Poly.Bounds(lots[j], out lotLo[j], out lotHi[j]);
+                if (plots[j] != null) Poly.Bounds(plots[j], out lo[j], out hi[j]);
+            }
+            // what a side stops at, looked up near each step (only a few gardens have a side free to push): roads, paths, tracks and
+            // buildings grown by the margin (the house's own street only as far as its lot is from it, as ClearOfBarriers), decks
+            // by theirs, water by its gap
+            var gaps = new Dictionary<int, Dictionary<long, float>>();
+            var grownNear = new Dictionary<(int, int), List<(float2 Lo, float2 Hi, float2[] Ring)>>();
+            var near = new List<int>();
+            float deck = DeckMargin(s);
+            bool hasWater = s_barrierKind != null && s_barrierKind.Contains(WaterKind);
+            var active = new Dictionary<int, bool[]>();
+            var ccw = new Dictionary<int, bool>();
+            foreach (int i in who)
+            {
+                var h = houses[i];
+                active[i] = Enumerable.Repeat(true, plots[i].Length).ToArray();
+                ccw[i] = Poly.IsCcw(plots[i]);
+            }
+            const float e = 0.2f;
+            bool Free(int i, float2[] quad)
+            {
+                Poly.Bounds(quad, out var qlo, out var qhi);
+                if (s_barriers != null && s_barriers.Count > 0)
+                {
+                    if (!gaps.TryGetValue(i, out var lg)) gaps[i] = lg = LotGaps(lots[i], margin);
+                    float wet = math.max(margin, WaterGap(houses[i], s));
+                    float far = (hasWater ? math.max(math.max(margin, deck) * 4f, wet) : math.max(margin, deck) * 4f) + 0.5f;
+                    near.Clear();
+                    foreach (int k in BarriersIn(qlo - far, qhi + far, near))
+                    {
+                        bool water = s_barrierKind[k] == WaterKind;
+                        float m = water ? wet : s_barrierKind[k] == DeckKind ? deck : margin;
+                        if (!water && lg.TryGetValue(s_barrierGroup[k], out float g)) m = math.min(m, g);
+                        var key = (k, Bits(m));
+                        if (!grownNear.TryGetValue(key, out var rings))
+                        {
+                            var ring = s_barriers[k].Ring;
+                            var gs = water ? GrownWater(ring, wet) : m < 0.01f ? new List<float2[]> { ring } : Grown(ring, m);
+                            rings = new List<(float2, float2, float2[])>(gs.Count);
+                            foreach (var gr in gs) { Poly.Bounds(gr, out var glo, out var ghi); rings.Add((glo, ghi, gr)); }
+                            grownNear[key] = rings;
+                        }
+                        foreach (var (wlo, whi, w) in rings)
+                            if (!(whi.x < qlo.x || wlo.x > qhi.x || whi.y < qlo.y || wlo.y > qhi.y) && Overlaps(quad, w)) return false;
+                    }
+                }
+                for (int j = 0; j < n; j++)
+                {
+                    if (plots[j] != null && !(hi[j].x < qlo.x || lo[j].x > qhi.x || hi[j].y < qlo.y || lo[j].y > qhi.y) && Overlaps(quad, plots[j])) return false;
+                    if (j != i && !(lotHi[j].x < qlo.x || lotLo[j].x > qhi.x || lotHi[j].y < qlo.y || lotLo[j].y > qhi.y) && Overlaps(quad, lots[j])) return false;
+                }
+                return true;
+            }
+            // a walkway's sides: a garden never carries them on (the walkway ends at the shallower lot's back; two gardens running on
+            // beside it would leave a strip between two fences)
+            var walkSides = new List<(int I, float2 A, float2 B)>();
+            foreach (var (ai, bi) in alleys) { walkSides.Add((ai, houses[ai].FrontRight, houses[ai].BackRight)); walkSides.Add((bi, houses[bi].FrontLeft, houses[bi].BackLeft)); }
+            bool Walk(int i, float2 p0, float2 p1)
+            {
+                foreach (var (wi, wa, wb) in walkSides)
+                {
+                    if (wi != i) continue;
+                    var wd = math.normalizesafe(wb - wa);
+                    var wn = new float2(-wd.y, wd.x);
+                    if (math.abs(math.dot(p0 - wa, wn)) < 0.5f && math.abs(math.dot(p1 - wa, wn)) < 0.5f) return true;
+                }
+                return false;
+            }
+            float slit = s.Knob("pushSlit", 0f);
+            bool Slit(int i, float2 p0, float2 p1)
+            {
+                if (slit <= 0f) return false;
+                var dir = math.normalizesafe(p1 - p0);
+                var slo = math.min(p0, p1) - slit;
+                var shi = math.max(p0, p1) + slit;
+                for (int j = 0; j < n; j++)
+                {
+                    if (j == i || plots[j] == null || hi[j].x < slo.x || lo[j].x > shi.x || hi[j].y < slo.y || lo[j].y > shi.y) continue;
+                    var r = plots[j];
+                    for (int k = 0; k < r.Length; k++)
+                    {
+                        var r0 = r[k];
+                        var r1 = r[(k + 1) % r.Length];
+                        if (math.abs(math.dot(math.normalizesafe(r1 - r0), dir)) < 0.9f) continue;
+                        float d2 = SegmentDistanceSq(p0, p1, r0, r1);
+                        if (d2 > 0.09f && d2 < slit * slit) return true;
+                    }
+                }
+                return false;
+            }
+            // 1: pushed; 0: blocked at this step; -1: never (a front, a side whose neighbours lean in)
+            int Try(int i, int k, float d)
+            {
+                var ring = plots[i];
+                int m = ring.Length;
+                var h = houses[i];
+                var a = ring[k];
+                var b = ring[(k + 1) % m];
+                var p = ring[(k + m - 1) % m];
+                var q = ring[(k + 2) % m];
+                var w = b - a;
+                float len = math.length(w);
+                if (len < 2f) return -1;
+                w /= len;
+                var nrm = ccw[i] ? new float2(w.y, -w.x) : new float2(-w.y, w.x);
+                if (math.dot(nrm, h.Forward) > 0.5f) return -1;
+                // (a side on one of its lines with a neighbour, a ring's or a road it hugs: the land past it is not its; the fences
+                // are laid on that line)
+                foreach (var c in cuts[i])
+                {
+                    var cn = math.normalizesafe(new float2(-c.D.y, c.D.x));
+                    if (math.abs(math.dot(a - c.P, cn)) < 0.3f && math.abs(math.dot(b - c.P, cn)) < 0.3f) return -1;
+                }
+                var u = math.normalizesafe(a - p);
+                var v = math.normalizesafe(b - q);
+                float du = math.dot(u, nrm), dv = math.dot(v, nrm);
+                if (du < 0.25f || dv < 0.25f) return -1;
+                var a2 = a + u * (d / du);
+                var b2 = b + v * (d / dv);
+                if (math.dot(b2 - a2, w) < 2f) return -1;
+                foreach (var c in new[] { a2, b2 })
+                {
+                    var l = h.ToLocal(c);
+                    if (math.abs(l.x) > h.HalfLot.x + reach || l.y < -h.HalfLot.y - reach || l.y > h.HalfLot.y + 0.5f) return 0;
+                    if (depth > 0f && !RoadNear(c, depth)) return 0;
+                }
+                // (a side carried on alongside another garden's side a hair off it: two fences side by side with a strip between,
+                // as behind a walkway; the user, 22 Oct: "who would want two fences running parallel to each other?")
+                if (Walk(i, a, a2) || Walk(i, b, b2) || Slit(i, a, a2) || Slit(i, b, b2)) return -1;
+                var quad = new[] { a + u * (e / du) + w * e, b + v * (e / dv) - w * e, b2 - w * e, a2 + w * e };
+                if (!Free(i, quad)) return 0;
+                ring[k] = a2;
+                ring[(k + 1) % m] = b2;
+                Poly.Bounds(ring, out lo[i], out hi[i]);
+                return 1;
+            }
+            int rounds = (int)math.ceil(reach / step);
+            for (int round = 0; round < rounds; round++)
+            {
+                bool any = false;
+                foreach (int i in who)
+                {
+                    var act = active[i];
+                    for (int k = 0; k < act.Length; k++)
+                    {
+                        if (!act[k]) continue;
+                        int r = Try(i, k, step);
+                        if (r == 1) { any = true; continue; }
+                        act[k] = false;
+                        if (r < 0) continue;
+                        // blocked: on to the contact (to a few cm, so a garden met keeps meeting it exactly: a fence that stops
+                        // on the other's edge still finds it the next time round), then it stays
+                        if (Try(i, k, 0.04f) != 1) continue;
+                        any = true;
+                        float free0 = 0f, shut = step - 0.04f;
+                        while (shut - free0 > 0.04f)
+                        {
+                            float d = (free0 + shut) * 0.5f;
+                            int t = Try(i, k, d - free0);
+                            if (t == 1) free0 = d; else if (t == 0) shut = d; else break;
+                        }
+                    }
+                }
+                if (!any) break;
+            }
+        }
+
+        /// <summary>The barriers a lot comes nearer than the margin, by group: how near (its own street, as ClearOfBarriers keeps it).</summary>
+        private static Dictionary<long, float> LotGaps(float2[] lot, float margin)
+        {
+            var lotGaps = new Dictionary<long, float>();
+            if (s_barriers == null) return lotGaps;
+            Poly.Bounds(lot, out var llo, out var lhi);
+            foreach (int k in BarriersIn(llo - margin, lhi + margin))
+            {
+                if (s_barrierKind[k] == WaterKind || s_barrierKind[k] == DeckKind) continue;
+                float g = LotGap(lot, s_barriers[k].Ring, margin);
+                if (g < margin && (!lotGaps.TryGetValue(s_barrierGroup[k], out float was) || g < was)) lotGaps[s_barrierGroup[k]] = g;
+            }
+            return lotGaps;
         }
 
         /// <summary>A short path stub outside every house's lot (a small group of narrow pieces, its dead end rounded: a driveway
