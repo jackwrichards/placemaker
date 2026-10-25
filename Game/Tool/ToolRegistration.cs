@@ -44,6 +44,7 @@ namespace Placemaker.Game.Tool
             updateSystem.UpdateAt<PlacemakerUISystem>(SystemUpdatePhase.UIUpdate);
             updateSystem.UpdateAt<PlacemakerTooltipSystem>(SystemUpdatePhase.UITooltip);
             updateSystem.UpdateAt<PlacemakerOverlaySystem>(SystemUpdatePhase.Rendering);
+            updateSystem.UpdateAt<Placemaker.Game.Overlay.OutgrowDebugOverlaySystem>(SystemUpdatePhase.Rendering);
             updateSystem.UpdateAt<FilledPreviewSystem>(SystemUpdatePhase.Rendering);
             updateSystem.UpdateBefore<ZoneGridOpacitySystem, global::Game.Prefabs.ZoneSystem>(SystemUpdatePhase.PrefabUpdate);
             s_Tool = updateSystem.World.GetOrCreateSystemManaged<PlacemakerToolSystem>();

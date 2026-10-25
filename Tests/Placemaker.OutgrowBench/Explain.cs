@@ -1,0 +1,266 @@
+// Outgrow benchmark: how each garden came to be (--explain <pass file or passes dir> [--at x,z] [--size m] [--knob NAME=VALUE]):
+// one recorded pass replayed with YardStitch.Trace on, every garden near the spot drawn after each step that shapes it, the
+// planner's reasons (who is beside, behind or facing whom, where two gardens were split and on what line) and, per house,
+// the steps that changed its garden. Writes explain.html (and explain.txt) next to the pass. With a passes dir: the last
+// pass that edits a house near the spot.
+
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using Placemaker.Core.Geometry;
+using Placemaker.Core.Neighbours;
+using Unity.Mathematics;
+
+namespace Placemaker.OutgrowBench
+{
+    internal static class Explain
+    {
+        private static string F(float v) => v.ToString("0.##", CultureInfo.InvariantCulture);
+
+        public static int Run(List<string> args)
+        {
+            string input = args[0];
+            float2? at = null;
+            float size = 140f;
+            var knobs = new Dictionary<string, float>();
+            bool editAll = false, finalOnly = false;
+            int px = 640;   // (--final: the picture's width)
+            string tag = "";
+            for (int i = 1; i < args.Count; i++)
+            {
+                switch (args[i])
+                {
+                    case "--at": { var p = args[++i].Split(','); at = new float2(float.Parse(p[0], CultureInfo.InvariantCulture), float.Parse(p[1], CultureInfo.InvariantCulture)); break; }
+                    case "--size": size = float.Parse(args[++i], CultureInfo.InvariantCulture); break;
+                    case "--knob": { var kv = args[++i].Split('='); knobs[kv[0]] = float.Parse(kv[1], CultureInfo.InvariantCulture); tag += "-" + kv[0] + kv[1]; break; }
+                    // every polished house planned at once (a whole neighbourhood outgrown again), not only the pass's own
+                    case "--edit-all": editAll = true; tag += "-all"; break;
+                    // only the gardens as planned (one picture)
+                    case "--final": finalOnly = true; break;
+                    case "--px": px = int.Parse(args[++i], CultureInfo.InvariantCulture); break;
+                }
+            }
+            string file = input;
+            if (Directory.Exists(input))
+            {
+                file = null;
+                foreach (var f in Directory.GetFiles(input, "pass-*.json").OrderBy(f => f, StringComparer.Ordinal))
+                {
+                    var (hs, _) = StitchDump.Read(File.ReadAllText(f));
+                    if (hs.Any(h => h.Edit && (at == null || math.distance(h.Position, at.Value) < size * 0.5f))) file = f;
+                }
+                if (file == null) { Console.WriteLine("no pass edits a house there"); return 1; }
+            }
+            var (houses, settings) = StitchDump.Read(File.ReadAllText(file));
+            foreach (var kv in knobs) { settings.Extra ??= new Dictionary<string, float>(); settings.Extra[kv.Key] = kv.Value; }
+            if (editAll) foreach (var h in houses) if (h.Polished) { h.Edit = true; h.Garden = null; h.Standing = null; }
+            // the planner's own order (Plan sorts its houses by id): the traced gardens are indexed so
+            var sorted = houses.OrderBy(h => h.Id).ToList();
+            var stages = new List<(string Name, float2[][] Plots)>();
+            var why = new List<string>();
+            YardStitch.Trace = (name, plots) => stages.Add((name, plots));
+            YardStitch.TraceWhy = why.Add;
+            StitchPlan plan;
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            try { plan = YardStitch.Plan(houses, settings); }
+            finally { YardStitch.Trace = null; YardStitch.TraceWhy = null; }
+            clock.Stop();
+            stages.Add(("final", sorted.Select(h => plan.Plots.TryGetValue(h.Id, out var g) ? g : null).ToArray()));
+
+            // the fence problems (Fences.Check), marked on the last picture
+            var tally = Fences.Check(houses, plan, settings);
+            var marks = tally.Marks;
+            var centre = at ?? sorted.Where(h => h.Edit).Select(h => h.Position).Aggregate(float2.zero, (a, p) => a + p) / math.max(1, sorted.Count(h => h.Edit));
+            var lo = centre - size * 0.5f;
+            var hi = centre + size * 0.5f;
+            bool InBox(float2 p) => p.x >= lo.x && p.x <= hi.x && p.y >= lo.y && p.y <= hi.y;
+            bool In(IReadOnlyList<float2> r) => r != null && r.Any(InBox);
+            var near = new HashSet<long>(sorted.Where(h => In(Lot(h))).Select(h => h.Id));
+            string Short(long id) => (id % 10000).ToString(CultureInfo.InvariantCulture);
+
+            var txt = new StringBuilder();
+            txt.Append($"pass {Path.GetFileName(file)}{tag}: {houses.Count} houses ({houses.Count(h => h.Edit)} edited) planned in {clock.Elapsed.TotalMilliseconds:F0} ms (traced), around {F(centre.x)},{F(centre.y)} ({F(size)} m)\n\n");
+            txt.Append("houses here (id: position, facing, lot w x d, edited)\n");
+            foreach (var h in sorted.Where(h => near.Contains(h.Id)))
+                txt.Append($"  {Short(h.Id)}: {F(h.Position.x)},{F(h.Position.y)} facing {F(math.degrees(math.atan2(h.Forward.x, h.Forward.y)))}°, lot {F(2 * h.HalfLot.x)} x {F(2 * h.HalfLot.y)}, {(h.Edit ? "edited" : "fixed")}\n");
+            txt.Append("\nthe planner's reasons (ids shortened to their last 4 digits)\n");
+            foreach (var w in why)
+            {
+                var ids = w.Split(' ').Skip(1).Take(4).Select(x => long.TryParse(x, out var v) ? v : -1).Where(v => v >= 0).ToList();
+                if (ids.Count == 0 || !ids.Any(near.Contains)) continue;
+                var line = w;
+                foreach (var id in ids) line = line.Replace(id.ToString(CultureInfo.InvariantCulture), Short(id));
+                txt.Append("  " + line + "\n");
+            }
+            txt.Append("\neach step that changed a garden here (area m², corners)\n");
+            for (int k = 0; k < sorted.Count; k++)
+            {
+                var h = sorted[k];
+                if (!near.Contains(h.Id) || !h.Edit) continue;
+                txt.Append($"  {Short(h.Id)}:");
+                float2[] was = null;
+                foreach (var (name, plots) in stages)
+                {
+                    var g = k < plots.Length ? plots[k] : null;
+                    if (g == null) continue;
+                    if (was != null && Same(was, g)) continue;
+                    txt.Append($"  {name} {F(Poly.Area(g))}/{g.Length}");
+                    was = g;
+                }
+                txt.Append("\n");
+            }
+            {
+                var fin = stages[stages.Count - 1].Plots;
+                var mine = Enumerable.Range(0, sorted.Count).Where(k => sorted[k].Edit && k < fin.Length && fin[k] != null).ToList();
+                if (mine.Count > 0) txt.Append($"\ngardens: {mine.Count}, corners {mine.Average(k => fin[k].Length):F1} on average, {mine.Max(k => fin[k].Length)} at most, area {mine.Sum(k => Poly.Area(fin[k])):F0} m² in all, outlines {mine.Sum(k => Poly.Perimeter(fin[k])):F0} m; fence pieces {plan.FencePieces.Count}, lines moved {plan.MoveLines.Count}, hidden {plan.HideLines.Count}\n");
+            }
+            txt.Append($"\nfences: {tally}\n");
+            foreach (var (p, kind) in marks.Where(mk => mk.Kind != "open" && mk.Kind != "short" && mk.Kind != "inside"))
+                txt.Append($"  {kind} at {F(p.x)},{F(p.y)}\n");
+            txt.Append("\nnotes\n");
+            foreach (var n in plan.Notes) txt.Append("  " + n + "\n");
+
+            // the pictures: one per step, the gardens that changed in it outlined in black
+            var html = new StringBuilder();
+            html.Append("<!doctype html><meta charset=utf-8><title>Outgrow explain</title><style>body{font:13px system-ui;margin:12px;background:#fafafa}"
+                + (finalOnly ? ".g{display:grid;grid-template-columns:1fr;gap:10px}" : ".g{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:10px}")
+                + "figure{margin:0;background:#fff;border:1px solid #ddd}"
+                + "figcaption{padding:4px 8px;font-weight:600}pre{background:#fff;border:1px solid #ddd;padding:8px;white-space:pre-wrap}</style>\n");
+            html.Append($"<h3>{Path.GetFileName(file)} around {F(centre.x)}, {F(centre.y)}</h3><div class=g>\n");
+            float2[][] prev = null;
+            foreach (var (name, plots) in finalOnly ? stages.Where(st => st.Name == "final").ToList() : stages)
+            {
+                html.Append($"<figure><figcaption>{name}</figcaption>");
+                html.Append(Picture(sorted, settings, plots, prev, lo, hi, name == "final" ? plan : null, In, name == "final" ? marks : null));
+                html.Append("</figure>\n");
+                prev = plots;
+            }
+            html.Append("</div><pre>" + System.Net.WebUtility.HtmlEncode(txt.ToString()) + "</pre>\n");
+            var outDir = Path.GetDirectoryName(Path.GetFullPath(file));
+            var stem = Path.GetFileNameWithoutExtension(file) + tag + (finalOnly ? "-final" : "");
+            File.WriteAllText(Path.Combine(outDir, stem + "-explain.html"), html.ToString());
+            File.WriteAllText(Path.Combine(outDir, stem + "-explain.txt"), txt.ToString());
+            Console.Write(txt.ToString());
+            Console.WriteLine($"\n{Path.Combine(outDir, stem + "-explain.html")}");
+            // a picture of the page (Edge, headless), for sending on
+            var png = Path.Combine(outDir, stem + "-explain.png");
+            if (Shoot(Path.Combine(outDir, stem + "-explain.html"), png, finalOnly ? px : 1500, finalOnly ? px + 60 : (stages.Count + 2) / 3 * 540 + 140)) Console.WriteLine(png);
+            return 0;
+        }
+
+        private static bool Shoot(string html, string png, int w, int h)
+        {
+            var edge = new[] { Environment.GetEnvironmentVariable("ProgramFiles(x86)"), Environment.GetEnvironmentVariable("ProgramFiles") }
+                .Where(p => p != null).Select(p => Path.Combine(p, "Microsoft", "Edge", "Application", "msedge.exe")).FirstOrDefault(File.Exists);
+            if (edge == null) return false;
+            try
+            {
+                File.Delete(png);
+                var psi = new System.Diagnostics.ProcessStartInfo(edge) { UseShellExecute = false, CreateNoWindow = true };
+                foreach (var a in new[] { "--headless=new", "--disable-gpu", "--hide-scrollbars", $"--window-size={w},{h}", $"--screenshot={png}",
+                    "--user-data-dir=" + Path.Combine(Path.GetTempPath(), "pm-explain-edge"), "file:///" + html.Replace('\\', '/') })
+                    psi.ArgumentList.Add(a);
+                using var p = System.Diagnostics.Process.Start(psi);
+                p.WaitForExit(30000);
+                // (the page is drawn by a child process that can outlive the one started)
+                for (int k = 0; k < 50 && !File.Exists(png); k++) System.Threading.Thread.Sleep(200);
+                return File.Exists(png);
+            }
+            catch { return false; }
+        }
+
+        private static float2[] Lot(StitchHouse h) => new[] { h.BackLeft, h.BackRight, h.FrontRight, h.FrontLeft };
+
+        private static bool Same(float2[] a, float2[] b) => a.Length == b.Length && a.Zip(b, (p, q) => math.distancesq(p, q) < 1e-4f).All(x => x);
+
+        private static string Colour(long id)
+        {
+            ulong z = (ulong)id;
+            z ^= z >> 33; z *= 0xff51afd7ed558ccdUL; z ^= z >> 33; z *= 0xc4ceb9fe1a85ec53UL; z ^= z >> 33;
+            return $"hsl({z % 360},60%,{50 + (z >> 20) % 20}%)";
+        }
+
+        private static string Picture(List<StitchHouse> sorted, StitchSettings settings, float2[][] plots, float2[][] prev, float2 lo, float2 hi, StitchPlan plan, Func<IReadOnlyList<float2>, bool> In, List<(float2 At, string Kind)> marks = null)
+        {
+            var size = hi - lo;
+            string X(float2 p) => F(p.x - lo.x);
+            string Y(float2 p) => F(hi.y - p.y);
+            string Pts(IEnumerable<float2> ring) => string.Join(" ", ring.Select(p => X(p) + "," + Y(p)));
+            var sb = new StringBuilder();
+            sb.Append($"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {F(size.x)} {F(size.y)}\" width=\"100%\">");
+            sb.Append($"<rect width=\"{F(size.x)}\" height=\"{F(size.y)}\" fill=\"#eef2e6\"/>");
+            if (settings.Barriers != null)
+                for (int k = 0; k < settings.Barriers.Count; k++)
+                {
+                    var r = settings.Barriers[k];
+                    if (!In(r)) continue;
+                    int kind = settings.BarrierKinds != null && k < settings.BarrierKinds.Count ? settings.BarrierKinds[k] : 0;
+                    sb.Append($"<polygon points=\"{Pts(r)}\" fill=\"{(kind == 0 ? "#9a9a9a" : kind == 2 ? "#9cc3e6" : "#d6d6d6")}\"/>");
+                }
+            for (int k = 0; k < sorted.Count; k++)
+            {
+                var h = sorted[k];
+                var g = k < plots.Length ? plots[k] : null;
+                if (!h.Edit) g = h.Garden;
+                if (g == null || !In(g)) continue;
+                bool changed = prev != null && h.Edit && (k >= prev.Length || prev[k] == null || !Same(prev[k], g));
+                sb.Append(h.Edit
+                    ? $"<polygon points=\"{Pts(g)}\" fill=\"{Colour(h.Id)}\" fill-opacity=\"0.5\" stroke=\"{(changed ? "#000" : Colour(h.Id))}\" stroke-width=\"{(changed ? "0.6" : "0.35")}\"/>"
+                    : $"<polygon points=\"{Pts(g)}\" fill=\"none\" stroke=\"#6d8f5a\" stroke-width=\"0.3\" stroke-dasharray=\"1,1\"/>");
+            }
+            foreach (var h in sorted)
+            {
+                var lot = Lot(h);
+                if (!In(lot)) continue;
+                sb.Append($"<polygon points=\"{Pts(lot)}\" fill=\"none\" stroke=\"{(h.Edit ? "#333" : "#999")}\" stroke-width=\"0.25\" stroke-dasharray=\"{(h.Edit ? "none" : "1,1")}\"/>");
+                if (h.Footprint != null) sb.Append($"<polygon points=\"{Pts(h.Footprint)}\" fill=\"#b9a99a\" fill-opacity=\"0.7\"/>");
+                var front = (h.FrontLeft + h.FrontRight) * 0.5f;
+                sb.Append($"<line x1=\"{X(front)}\" y1=\"{Y(front)}\" x2=\"{X(front + h.Forward * 3f)}\" y2=\"{Y(front + h.Forward * 3f)}\" stroke=\"#333\" stroke-width=\"0.4\"/>");
+                sb.Append($"<text x=\"{X(h.Position)}\" y=\"{Y(h.Position)}\" font-size=\"3.2\" text-anchor=\"middle\" fill=\"#111\">{h.Id % 10000}</text>");
+            }
+            // the houses' own fence and hedge lines as the plan leaves them (a neighbour another pass planned: as it stands), thin
+            if (plan != null)
+                foreach (var h in sorted)
+                {
+                    if (h.Polished && !h.Edit && h.Standing != null)
+                    {
+                        foreach (var (a, b) in h.Standing)
+                            if (In(new[] { a, b })) sb.Append($"<line x1=\"{X(a)}\" y1=\"{Y(a)}\" x2=\"{X(b)}\" y2=\"{Y(b)}\" stroke=\"#6a5a4a\" stroke-width=\"0.35\"/>");
+                        continue;
+                    }
+                    foreach (var l in h.Lines)
+                    {
+                        if (plan.HideLines.Contains(l.Id)) continue;
+                        var (a, b) = plan.MoveLines.TryGetValue(l.Id, out var mv) ? mv : (l.A, l.B);
+                        if (!In(new[] { a, b })) continue;
+                        bool moved = plan.MoveLines.ContainsKey(l.Id);
+                        sb.Append($"<line x1=\"{X(a)}\" y1=\"{Y(a)}\" x2=\"{X(b)}\" y2=\"{Y(b)}\" stroke=\"{(moved ? "#0a8a8a" : "#3a2a1a")}\" stroke-width=\"0.45\"/>");
+                    }
+                }
+            if (plan != null)
+                foreach (var (house, p, yaw, name) in plan.FencePieces)
+                {
+                    if (!In(new[] { p })) continue;
+                    var d = new float2(math.sin(yaw), math.cos(yaw));
+                    sb.Append($"<line x1=\"{X(p - d)}\" y1=\"{Y(p - d)}\" x2=\"{X(p + d)}\" y2=\"{Y(p + d)}\" stroke=\"{(name != null && name.Contains("Hedge") ? "#1f5a1f" : "#7a4a1a")}\" stroke-width=\"0.7\"/>");
+                }
+            // the fence problems: gap magenta, crossing red ring, double orange, inside blue, open edge red dots, stub black,
+            // short edge purple
+            if (marks != null)
+                foreach (var (p, kind) in marks)
+                {
+                    if (!In(new[] { p })) continue;
+                    string c = kind == "gap" ? "#e000c0" : kind == "double" ? "#ff8c00" : kind == "inside" ? "#1060ff" : kind == "open" || kind == "crossing" ? "#e00000" : kind == "stub" ? "#000" : "#9020c0";
+                    float r = kind == "open" ? 0.35f : kind == "gap" || kind == "crossing" ? 2.2f : 1.2f;
+                    sb.Append(kind == "open"
+                        ? $"<circle cx=\"{X(p)}\" cy=\"{Y(p)}\" r=\"{F(r)}\" fill=\"{c}\"/>"
+                        : $"<circle cx=\"{X(p)}\" cy=\"{Y(p)}\" r=\"{F(r)}\" fill=\"none\" stroke=\"{c}\" stroke-width=\"0.6\"/>");
+                }
+            sb.Append("</svg>");
+            return sb.ToString();
+        }
+    }
+}

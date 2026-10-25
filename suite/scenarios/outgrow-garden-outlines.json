@@ -1,0 +1,19 @@
+{
+  "_about": "Options: Show Outgrow garden outlines (OutgrowDebugOverlaySystem): every outgrown garden drawn on the city as its last plan wrote it, a dot at every corner, edges under 2 m red, the lot white. Loads 'PM Askew Corner' (outgrow-askew-make.json), plans every garden again and pictures the corner and the two curves cases with the outlines on. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-garden-outlines.json -Who outgrow-outlines",
+  "scenarios": [
+    {
+      "id": "outlines",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "loadCity", "name": "PM Askew Corner" },
+        { "do": "lab", "op": "polishSettings", "settings": { "emergent": 1 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "setting", "name": "ShowGardenOutlines", "value": true },
+        { "do": "shot", "name": "corner", "camera": { "target": "point", "at": [4464, -10], "abs": true, "view": "top", "distance": 210 }, "shotMode": "overlay" },
+        { "do": "shot", "name": "curves", "camera": { "target": "point", "at": [3280, -15], "abs": true, "view": "top", "distance": 210 }, "shotMode": "overlay" },
+        { "do": "shot", "name": "corner-45", "camera": { "target": "point", "at": [4464, -10], "abs": true, "view": "oblique", "pitch": 50, "distance": 160 }, "shotMode": "overlay" }
+      ]
+    }
+  ]
+}

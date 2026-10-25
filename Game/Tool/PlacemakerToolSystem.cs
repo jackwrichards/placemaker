@@ -298,6 +298,7 @@ namespace Placemaker.Game.Tool
             CheckPolishType();
             RebuildShapeIfDirty(false);
             UpdateLivePolish();
+            UpdateGardenPreview();
             UpdatePlanning();
             TickPlanningProgress();
             var facts = Facts();

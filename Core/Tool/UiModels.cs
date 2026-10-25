@@ -133,6 +133,8 @@ namespace Placemaker.Core.Tool
         /// <summary>The zone types of the buildings in the selection (a Zoning type's Only edit existing): key (the zone's name
         /// without EU / NA, lower case), a zone prefab of it, its icon, how many buildings.</summary>
         public List<(string Key, string Zone, string Icon, int Count)> AreaZones = new List<(string, string, string, int)>();
+        /// <summary>The editor's garden picture: a small made-up street planned with the rows' values (null: not planned yet).</summary>
+        public Placemaker.Core.Neighbours.GardenPreview.Picture Preview;
     }
 
     /// <summary>What Global outgrow shows (NeighbourPolishSystem.Stats and its last two minutes).</summary>
@@ -301,9 +303,18 @@ namespace Placemaker.Core.Tool
                     .Set("brush", p.Brush ?? "").Set("brushLook", p.BrushLook ?? "").Set("brushSize", JsonValue.Num(p.BrushSize)).Set("outgrowMode", p.OutgrowMode)
                     .Set("stats", p.Stats == null ? JsonValue.Null : StatsJson(p.Stats))
                     .Set("zones", Arr(p.Zones.Select(z => JsonValue.Obj().Set("id", z.Id).Set("kind", z.Kind).Set("look", z.Look).Set("own", z.Own).Set("icon", z.Icon ?? "").Set("def", z.Default ?? ""))))
-                    .Set("areaZones", Arr(p.AreaZones.Select(z => JsonValue.Obj().Set("key", z.Key).Set("zone", z.Zone).Set("icon", z.Icon ?? "").Set("count", z.Count)))));
+                    .Set("areaZones", Arr(p.AreaZones.Select(z => JsonValue.Obj().Set("key", z.Key).Set("zone", z.Zone).Set("icon", z.Icon ?? "").Set("count", z.Count))))
+                    .Set("preview", p.Preview == null ? JsonValue.Null : PreviewJson(p.Preview)));
             }
             return o;
+        }
+
+        private static JsonValue PreviewJson(Placemaker.Core.Neighbours.GardenPreview.Picture pic)
+        {
+            JsonValue Pt(Unity.Mathematics.float2 v) => Arr(new[] { JsonValue.Num(Math.Round(v.x, 1)), JsonValue.Num(Math.Round(v.y, 1)) });
+            JsonValue Rings(List<Unity.Mathematics.float2[]> rs) => Arr(rs.Select(r => Arr(r.Select(Pt))));
+            return JsonValue.Obj().Set("lo", Pt(pic.Lo)).Set("hi", Pt(pic.Hi)).Set("roads", Rings(pic.Roads)).Set("lots", Rings(pic.Lots))
+                .Set("houses", Rings(pic.Houses)).Set("gardens", Rings(pic.Gardens)).Set("limits", Rings(pic.Limits)).Set("ms", Math.Round(pic.Ms, 1));
         }
 
         private static JsonValue StatsJson(PainterStats s)

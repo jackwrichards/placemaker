@@ -153,6 +153,7 @@ namespace Placemaker.Game.UI
             {
                 PollHotkey();
                 _tool.PollBuildWhileInactive();
+                _tool.PollGardenPreview();
                 // While the tool is closed only "open" changes; refresh rarely.
                 if (!_tool.IsActive && _stateStamp == _tool.ViewVersion && _frame % 30 != 0) return;
                 PushState();

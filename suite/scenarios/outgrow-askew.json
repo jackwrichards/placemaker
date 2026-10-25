@@ -1,0 +1,254 @@
+{
+  "_about": "The fast loop for outgrown rows meeting at the back at an angle (the user, 24 Oct: \"jagged edges ... steal land from each other\"). Loads PM Askew Corner (saved by outgrow-askew-make.json: all five cases, the same buildings every time: angle at x 2096, curve 2688, curves 3280, cul-de-sac 3872, corner 4464) and plans every garden again in each way, twice (the second time against gardens of the same way): the old rules (emergent 0), the emergent split measured from the street (emergentFront 1), half from the street and half from the lot (0.5) and from the lot (0), the last two without yard strips under 6 m. Every pass is written down (passes/<way>/, for OutgrowBench --explain <dir> --at x,z), the fences mapped (fenceMap) and each case pictured from the top. No growing. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-askew.json -Who outgrow-askew",
+  "scenarios": [
+    {
+      "id": "askew",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "loadCity",
+          "name": "PM Askew Corner"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 60
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 0
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 400,
+          "label": "old"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 0
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "box": "gardens",
+          "label": "old",
+          "closeups": 0,
+          "junctions": 0,
+          "edges": 0
+        },
+        {
+          "do": "shot",
+          "name": "old-angle",
+          "camera": {
+            "target": "point",
+            "at": [
+              2096,
+              -6
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "old-curve",
+          "camera": {
+            "target": "point",
+            "at": [
+              2688,
+              -10
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "old-curves",
+          "camera": {
+            "target": "point",
+            "at": [
+              3280,
+              -15
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "old-culdesac",
+          "camera": {
+            "target": "point",
+            "at": [
+              3872,
+              0
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "old-corner",
+          "camera": {
+            "target": "point",
+            "at": [
+              4464,
+              -10
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 1
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 400,
+          "label": "new"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "emergent": 1
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "box": "gardens",
+          "label": "new",
+          "closeups": 0,
+          "junctions": 0,
+          "edges": 0
+        },
+        {
+          "do": "shot",
+          "name": "new-angle",
+          "camera": {
+            "target": "point",
+            "at": [
+              2096,
+              -6
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "new-curve",
+          "camera": {
+            "target": "point",
+            "at": [
+              2688,
+              -10
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "new-curves",
+          "camera": {
+            "target": "point",
+            "at": [
+              3280,
+              -15
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "new-culdesac",
+          "camera": {
+            "target": "point",
+            "at": [
+              3872,
+              0
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "new-corner",
+          "camera": {
+            "target": "point",
+            "at": [
+              4464,
+              -10
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 210
+          },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}
