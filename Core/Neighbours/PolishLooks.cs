@@ -57,7 +57,7 @@ namespace Placemaker.Core.Neighbours
             // bays with a car or van (%), the chance of a worn painted edge instead of a grass strip (%; a works always)
             ["parkReach"] = 60f, ["parkCars"] = 60f, ["parkWorn"] = 50f,
             // reach and joining
-            ["sideReach"] = 100f, ["maxFrontGap"] = 100f, ["maxBackGap"] = 150f, ["maxRearGap"] = 60f, ["maxFacingGap"] = 50f,
+            ["gardenWidth"] = 60f, ["gardenDepth"] = 50f, ["sideReach"] = 100f, ["maxFrontGap"] = 100f, ["maxBackGap"] = 150f, ["maxRearGap"] = 60f, ["maxFacingGap"] = 50f,
             ["maxDeepen"] = 60f, ["hug"] = 1f, ["hugReach"] = 80f, ["openReach"] = 20f, ["wrap"] = 1f, ["closeBacks"] = 1f,
             ["alleys"] = 1f, ["alleyChance"] = 45f,
             // the land a garden grows onto: no steeper than this (%), no further above or below the house (m); 0: no limit.
@@ -89,7 +89,7 @@ namespace Placemaker.Core.Neighbours
         };
 
         /// <summary>The knobs that say how far a garden reaches: the plan looks this far around its houses.</summary>
-        public static readonly string[] ReachKnobs = { "sideReach", "maxFrontGap", "maxBackGap", "maxRearGap", "maxFacingGap", "maxDeepen", "hugReach", "openReach" };
+        public static readonly string[] ReachKnobs = { "gardenWidth", "gardenDepth", "sideReach", "maxFrontGap", "maxBackGap", "maxRearGap", "maxFacingGap", "maxDeepen", "hugReach", "openReach" };
 
         /// <summary>What the land past the lot becomes (knob "fill"; FillAuto is only an old value, read as a garden).</summary>
         public const int FillAuto = 0, FillGarden = 1, FillCarPark = 2, FillPaved = 3;
@@ -125,15 +125,19 @@ namespace Placemaker.Core.Neighbours
             new Knob("parkCars", "land", KnobKind.Slider, ControlTier.Essential, 0, 100, 5, "%"),
             new Knob("parkWorn", "land", KnobKind.Slider, ControlTier.Essential, 0, 100, 5, "%"),
             new Knob("waterGap", "land", KnobKind.Slider, ControlTier.Essential, 0, 200, 1, "m"),
-            new Knob("sideReach", "reach", KnobKind.Slider, ControlTier.Essential, 0, 500, 1, "m"),
+            // how far the fresh split lets a garden grow: sideways past its lot (toward a neighbour too) and how far behind its street
+            new Knob("gardenWidth", "reach", KnobKind.Slider, ControlTier.Essential, 0, 150, 1, "m"),
+            new Knob("gardenDepth", "reach", KnobKind.Slider, ControlTier.Essential, 0, 200, 1, "m"),
+            // (the older splits' reach: the fresh split, the default, does not read them)
+            new Knob("sideReach", "reach", KnobKind.Slider, ControlTier.More, 0, 500, 1, "m"),
             new Knob("maxFrontGap", "reach", KnobKind.Slider, ControlTier.More, 0, 500, 1, "m"),
             new Knob("maxBackGap", "reach", KnobKind.Slider, ControlTier.More, 0, 500, 1, "m"),
             new Knob("maxRearGap", "reach", KnobKind.Slider, ControlTier.More, 0, 500, 1, "m"),
             new Knob("maxFacingGap", "reach", KnobKind.Slider, ControlTier.More, 0, 500, 1, "m"),
             new Knob("maxDeepen", "reach", KnobKind.Slider, ControlTier.More, 0, 500, 1, "m"),
-            new Knob("hug", "reach", KnobKind.Toggle, ControlTier.Essential),
+            new Knob("hug", "reach", KnobKind.Toggle, ControlTier.More),
             new Knob("hugReach", "reach", KnobKind.Slider, ControlTier.More, 0, 500, 1, "m"),
-            new Knob("openReach", "reach", KnobKind.Slider, ControlTier.Essential, 0, 500, 1, "m"),
+            new Knob("openReach", "reach", KnobKind.Slider, ControlTier.More, 0, 500, 1, "m"),
             new Knob("maxSlope", "reach", KnobKind.Slider, ControlTier.Essential, 0, 150, 5, "%"),
             new Knob("maxRise", "reach", KnobKind.Slider, ControlTier.More, 0, 40, 0.5, "m"),
             new Knob("deckClearance", "reach", KnobKind.Slider, ControlTier.More, 0, 40, 0.5, "m"),

@@ -62,6 +62,8 @@ namespace Placemaker.OutgrowBench
             if (args[0] == "--bootcamp") return Bootcamp.Run(args.Skip(1).ToList());
             // the black-box towns, the score alone: --blackbox <dir> [--knob k=v] (Bootcamp.Blackbox)
             if (args[0] == "--blackbox") return Bootcamp.Blackbox(args.Skip(1).ToList());
+            // the garden picture of Outgrow's editor: --preview <out.svg> [--knob k=v] (Preview)
+            if (args[0] == "--preview") return Preview.Run(args.Skip(1).ToList());
             if (args[0] == "--score") return Score.Run(args[1], args[2], args.Skip(3).ToList());
             // the tuner: --serve PORT label=pass.json ... (Serve.cs)
             if (args[0] == "--serve")

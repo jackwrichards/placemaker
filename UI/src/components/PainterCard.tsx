@@ -60,7 +60,16 @@ const LOOK_ICON: Record<string, string> = {
     houses: "people", rows: "block", apartments: "building", towers: "column", mixed: "awning",
     shops: "shop", bigShops: "bag", offices: "board", officeTowers: "obelisk", industry: "factory",
 };
-const GROUPS: { id: string; en: string; icon: string; open?: boolean; knobs: Knob[] }[] = [
+const GROUPS: { id: string; en: string; icon: string; open?: boolean; picture?: boolean; knobs: Knob[] }[] = [
+    {
+        // the fresh split reads these two (the older splits' reach rows, sideReach … closeBacks, are gone from the editor: it
+        // does not read them); the picture above them is the real planner on a small made-up street (GardenPicture)
+        id: "reach", en: "Garden shape", icon: "ruler", open: true, picture: true,
+        knobs: [
+            { id: "gardenWidth", en: "Grow sideways", tip: "How far a garden may grow past its lot on each side, into land no neighbour takes. Between two neighbours they meet on one straight line.", kind: "slider", min: 0, max: 150, step: 1, unit: "m" },
+            { id: "gardenDepth", en: "Garden depth", tip: "How far behind its street a garden may reach. Between two rows of houses the gardens meet in the middle.", kind: "slider", min: 0, max: 200, step: 1, unit: "m" },
+        ],
+    },
     {
         id: "land", en: "What the land becomes", icon: "layers", open: true,
         knobs: [
@@ -76,22 +85,6 @@ const GROUPS: { id: string; en: string; icon: string; open?: boolean; knobs: Kno
             { id: "parkCars", en: "Parked cars", tip: "The share of parking bays with a car or van in them.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
             { id: "parkWorn", en: "Worn edge", tip: "The chance a car park's edge is worn, as the strip malls' are: the ground painted, dirt fading into dry grass out from the paving, no grass strip. Otherwise a grass strip with trees. Industrial car parks are always worn.", kind: "slider", min: 0, max: 100, step: 5, unit: "%" },
             { id: "waterGap", en: "Water gap", tip: "How far the land keeps from water: gardens, yards and car parks stop this far from the shore, along a smooth line. The building's own lot is never cut.", kind: "slider", min: 0, max: 200, step: 1, unit: "m" },
-        ],
-    },
-    {
-        id: "reach", en: "Reach and joining", icon: "ruler", open: true,
-        knobs: [
-            { id: "sideReach", en: "Side reach", tip: "How far a garden reaches sideways to meet the neighbour beside it. Very large values make the polish slower in big cities.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
-            { id: "maxFrontGap", en: "Street gap", tip: "Two neighbours this far apart at the street still join (one shared fence or hedge).", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
-            { id: "maxBackGap", en: "Back gap", tip: "How far apart their back corners may be (wedges on the outside of a curve).", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
-            { id: "maxRearGap", en: "Back to back", tip: "Two gardens back to back this far apart meet in the middle.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
-            { id: "maxFacingGap", en: "Block corners", tip: "Two lots this far apart meet halfway, at any angle (a block's corners, two streets that meet): the land between them is shared on one line.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
-            { id: "maxDeepen", en: "Line up backs", tip: "A shallow garden reaches back to its row's deepest by up to this much.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
-            { id: "hug", en: "Reach out to roads and buildings", tip: "A side or back nobody else has grows out to a road, path or building near it and hugs it.", kind: "toggle" },
-            { id: "hugReach", en: "Reach out", tip: "How far a garden reaches out to a road, path or building. Very large values make the polish slower in big cities.", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
-            { id: "openReach", en: "Into open land", tip: "A side or back with nothing near it to meet still grows this far into open land (a car park or paving: only its back). Very large values fill whole fields (and make the polish slower in big cities).", kind: "slider", min: 0, max: 500, step: 1, unit: "m" },
-            { id: "wrap", en: "Meet behind a shallow lot", tip: "Two deep gardens meet behind a shallow one between them.", kind: "toggle" },
-            { id: "closeBacks", en: "Close open backs", tip: "A garden open at the back closes with a fence or hedge the joining freed.", kind: "toggle" },
         ],
     },
     {
@@ -160,6 +153,28 @@ const GROUPS: { id: string; en: string; icon: string; open?: boolean; knobs: Kno
         ],
     },
 ];
+
+/** The garden picture: a small made-up street (a row with one plot empty, a side street, open land behind and at the row's
+ *  end) planned by the game with the rows' values as they are now, so a slider shows what it does as it moves. */
+const GardenPicture = ({ pic }: { pic: NonNullable<PainterState["preview"]> }) => {
+    const { t } = useT();
+    const w = pic.hi[0] - pic.lo[0], h = pic.hi[1] - pic.lo[1];
+    // (a new svg element for every new picture: the game's view does not repaint polygons whose points change)
+    const sig = pic.gardens.reduce((n, r) => r.reduce((m, q) => m + q[0] * 3 + q[1], n), 0).toFixed(1);
+    const pts = (r: number[][]) => r.map((q) => (q[0] - pic.lo[0]).toFixed(1) + "," + (pic.hi[1] - q[1]).toFixed(1)).join(" ");
+    return (
+        <div className={s.gardenPicture} data-testid="polish-garden-picture">
+            <svg key={sig} width="100%" height="100%" viewBox={"0 0 " + w + " " + h} preserveAspectRatio="xMidYMid meet">
+                <rect width={w} height={h} fill="rgba(232, 226, 210, 0.92)" />
+                {pic.gardens.map((r, i) => <polygon key={"g" + i} points={pts(r)} fill="#a9d18e" stroke="#3f6e2c" strokeWidth={0.8} strokeLinejoin="round" />)}
+                {pic.roads.map((r, i) => <polygon key={"r" + i} points={pts(r)} fill="#8a8a8a" />)}
+                {pic.lots.map((r, i) => <polygon key={"l" + i} points={pts(r)} fill="none" stroke="#ffffff" strokeWidth={0.5} strokeDasharray="1.6 1.2" />)}
+                {pic.houses.map((r, i) => <polygon key={"h" + i} points={pts(r)} fill="#c8704b" />)}
+            </svg>
+            <div className={s.gardenPictureNote}>{t("Placemaker.UI.Polish.Picture", "Gardens (green) on a sample street: dashed boxes are lots, one plot is empty")}</div>
+        </div>
+    );
+};
 
 const changedIn = (knobs: Knob[], p: PainterState) => knobs.filter((k) => Math.abs((p.values?.[k.id] ?? 0) - (p.lookValues?.[k.id] ?? 0)) > 1e-4).length;
 
@@ -435,6 +450,7 @@ const LookEditor = ({ p }: { p: PainterState }) => {
                     testId={"polish-group-" + g.id}
                     summary={changedIn(g.knobs, p) > 0 ? t("Placemaker.UI.Polish.GroupChanged", "{0} changed", [changedIn(g.knobs, p)]) : undefined}
                 >
+                    {g.picture && p.preview ? <GardenPicture pic={p.preview} /> : null}
                     {g.knobs.map((k) => (
                         <KnobRow key={k.id} k={k} p={p} />
                     ))}
@@ -724,7 +740,7 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
     // what the long tabs show (they are drawn again only when it changes)
     const looksFp = JSON.stringify((p.looks ?? []).map((l) => [l.id, l.name, l.color, l.edited, l.theme]));
     const zonesFp = tab === "zones" ? JSON.stringify([p.zones, looksFp, st?.zones, st?.kindTotal, st?.kindPolished, picking, p.newHouses, p.levelUps, p.gameChanges, p.gameRemovals]) : "";
-    const editFp = tab === "edit" ? JSON.stringify([p.theme, p.looks, p.values, p.lookValues, p.lookTheme, p.lookSavedTheme, p.modified, p.swatches, st?.looks?.[p.theme ?? ""]]) : "";
+    const editFp = tab === "edit" ? JSON.stringify([p.theme, p.looks, p.values, p.lookValues, p.lookTheme, p.lookSavedTheme, p.modified, p.swatches, st?.looks?.[p.theme ?? ""], p.preview?.gardens]) : "";
     return (
         <div className={s.cityEmbedded} data-testid="polish-city" onMouseDown={(e) => e.stopPropagation()}>
                 {/* this city's master switch (saved with it): off pauses Outgrow, nothing is put back */}

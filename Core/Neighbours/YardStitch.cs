@@ -516,7 +516,7 @@ namespace Placemaker.Core.Neighbours
                         if (!hugOn || !Hug(houses, i, e, s, out hcut, out reach))
                         {
                             // nothing near to meet: it still grows this far into open land (cut back later at anything there)
-                            float open = K(h, s, "openReach", 0f);
+                            float open = math.min(K(h, s, "openReach", 0f), K(h, s, "gardenWidth", float.MaxValue));
                             if (open < 1f || HardLand(h, s) && e != 2) continue;
                             extra[i, e] = open;
                             touched[i] = true;
@@ -552,9 +552,18 @@ namespace Placemaker.Core.Neighbours
                 var h = houses[i];
                 if (!touched[i]) continue;
                 float reachH = K(h, s, "sideReach", 100f);
+                // (Grow sideways set below its default: no side reaches further, toward a neighbour or a road or open land; 0: no
+                // garden past the lot's sides)
+                float widthH = K(h, s, "gardenWidth", s.Knob("push", 60f));
+                bool widthCap = widthH < s.Knob("push", 60f);
+                if (widthCap) { reachH = math.min(reachH, widthH); extra[i, 0] = math.min(extra[i, 0], widthH); extra[i, 1] = math.min(extra[i, 1], widthH); }
                 float xl = -h.HalfLot.x - (left[i] >= 0 ? reachH : extra[i, 0]);
                 float xr = h.HalfLot.x + (right[i] >= 0 ? reachH : extra[i, 1]);
                 float zb = -h.HalfLot.y - math.max(math.max(deepen[i] ? K(h, s, "maxRearGap", 60f) : 0f, extra[i, 2]), rowDeepen[i]);
+                // (Garden depth set below its default: no further behind its street than this, backs lined up along a row too;
+                // two lots back to back still meet; knob depthCap 0: off)
+                float depthH = K(h, s, "gardenDepth", s.Knob("pushDepth", 50f));
+                if (!deepen[i] && s.Knob("depthCap", 1f) > 0.5f && depthH < s.Knob("pushDepth", 50f)) zb = math.max(zb, -h.HalfLot.y - math.max(0f, depthH - 2f * h.HalfLot.y));
                 // in front of the lot as far as its street: where the street curves away from the lot's front line, the
                 // triangles between the lot's front corners and the kerb were nobody's (the user: "it kind of has to play to its
                 // back"). Only for a lot whose street lies right in front of it: the street, cut back below, ends it. Only paved
@@ -4539,11 +4548,14 @@ namespace Placemaker.Core.Neighbours
         /// </summary>
         private static void Push(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, List<(int I, int J)> alleys, List<Cut>[] cuts, StitchSettings s)
         {
-            float reach = s.Knob("push", 60f);
+            // (how far: each garden's outgrow type's "Grow sideways" (gardenWidth: the box round its lot) and "Garden depth"
+            // (gardenDepth: how far from a road a side may stand), else the knobs)
+            float reachAll = s.Knob("push", 60f), depthAll = s.Knob("pushDepth", 50f);
+            float reach = 0f;
+            foreach (var hh in houses) if (hh.Polished) reach = math.max(reach, K(hh, s, "gardenWidth", reachAll));
             if (reach <= 0f) return;
             float step = math.max(0.5f, s.Knob("pushStep", 2f));
             // (a side never wholly further than this from a road: the land to share is near the streets, not the fields behind a town)
-            float depth = s.Knob("pushDepth", 50f);
             float margin = s.Knob("barrierMargin", 0.8f);
             int n = houses.Count;
             var who = new List<int>();
@@ -4657,6 +4669,7 @@ namespace Placemaker.Core.Neighbours
                 var ring = plots[i];
                 int m = ring.Length;
                 var h = houses[i];
+                float reachH = K(h, s, "gardenWidth", reachAll), depth = K(h, s, "gardenDepth", depthAll);
                 var a = ring[k];
                 var b = ring[(k + 1) % m];
                 var p = ring[(k + m - 1) % m];
@@ -4684,10 +4697,10 @@ namespace Placemaker.Core.Neighbours
                 foreach (var c in new[] { a2, b2 })
                 {
                     var l = h.ToLocal(c);
-                    if (math.abs(l.x) > h.HalfLot.x + reach || l.y < -h.HalfLot.y - reach || l.y > h.HalfLot.y + 0.5f) { why = "box"; return 0; }
+                    if (math.abs(l.x) > h.HalfLot.x + reachH || l.y < -h.HalfLot.y - reachH || l.y > h.HalfLot.y + 0.5f) { why = "box"; return 0; }
                 }
                 // (an end or its middle: a side whose far corner is past it already still moves where the side is near a road)
-                if (depth > 0f && !RoadNear((a2 + b2) * 0.5f, depth) && !RoadNear(a2, depth) && !RoadNear(b2, depth)) { why = "far from roads"; return 0; }
+                if (depth >= 0f && !RoadNear((a2 + b2) * 0.5f, depth) && !RoadNear(a2, depth) && !RoadNear(b2, depth)) { why = "far from roads"; return 0; }
                 // (a side carried on alongside another garden's side a hair off it: two fences side by side with a strip between,
                 // as behind a walkway; the user, 22 Oct: "who would want two fences running parallel to each other?")
                 if (Walk(i, a, a2) || Walk(i, b, b2) || Slit(i, a, a2) || Slit(i, b, b2)) { why = "walkway/slit"; return -1; }

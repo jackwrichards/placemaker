@@ -74,6 +74,41 @@ namespace Placemaker.Game.Tool
             Touch();
         }
 
+        // the editor's garden picture (Core GardenPreview): planned on a worker for the rows' values, again when they change
+        private Placemaker.Core.Neighbours.GardenPreview.Picture _gardenPicture;
+        private System.Threading.Tasks.Task<Placemaker.Core.Neighbours.GardenPreview.Picture> _gardenPictureJob;
+        private Dictionary<string, float> _gardenPictureFor;
+
+        /// <summary>The UI system, every frame (the tool itself updates only while it is open: the Global outgrow window's editor
+        /// is there with it closed).</summary>
+        public void PollGardenPreview() => UpdateGardenPreview();
+
+        /// <summary>Every frame: the garden picture planned again once its last plan is done and the rows' values differ from
+        /// what it was planned with (a slider dragged: the picture follows, one plan at a time).</summary>
+        private void UpdateGardenPreview()
+        {
+            if (_gardenPictureJob != null)
+            {
+                if (!_gardenPictureJob.IsCompleted) return;
+                if (_gardenPictureJob.Status == System.Threading.Tasks.TaskStatus.RanToCompletion)
+                {
+                    _gardenPicture = _gardenPictureJob.Result;
+                    Touch();
+                }
+                else Mod.Log.Info($"Placemaker: the garden picture could not be planned: {_gardenPictureJob.Exception?.GetBaseException().Message}");
+                _gardenPictureJob = null;
+            }
+            if (_gardenPictureFor != null && _gardenPictureFor.Count == _lookValues.Count)
+            {
+                bool same = true;
+                foreach (var kv in _lookValues) if (!_gardenPictureFor.TryGetValue(kv.Key, out var v) || Math.Abs(v - kv.Value) >= 1e-4f) { same = false; break; }
+                if (same) return;
+            }
+            var values = new Dictionary<string, float>(_lookValues);
+            _gardenPictureFor = values;
+            _gardenPictureJob = System.Threading.Tasks.Task.Run(() => Placemaker.Core.Neighbours.GardenPreview.Plan(values));
+        }
+
         private void LiveChanged()
         {
             _liveVersion++;
@@ -587,6 +622,7 @@ namespace Placemaker.Game.Tool
             v.Live = _polishLive;
             v.Modified = LookChanges() != null;
             v.Values = new Dictionary<string, float>(_lookValues);
+            v.Preview = _gardenPicture;
             v.LookValues = current != null ? current.Values() : new Dictionary<string, float>(PolishLooks.Defaults);
             v.LookSavedTheme = current?.Theme ?? "garden";
             foreach (var l in NeighbourPolishSystem.Looks) v.Looks.Add((l.Id, l.Name, l.Custom, l.Theme, l.Edited, l.Knobs, PolishLooks.ColorOf(l)));

@@ -1,0 +1,31 @@
+{
+  "_about": "Outgrow's editor, the Garden shape group: a street of houses grows and is outgrown, then the Global outgrow window's Edit tab with the garden picture (a small made-up street planned live with the rows' values) and its two sliders, Grow sideways and Garden depth, shot at the defaults, then with each slider moved (the picture must follow). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-shape-editor.json -Who outgrow-shape-editor",
+  "scenarios": [
+    {
+      "id": "outgrow-shape-editor",
+      "land": { "shape": "rect", "size": [300, 240], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 220, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 60 },
+        { "do": "lab", "op": "polishIdle", "seconds": 60 },
+        { "do": "polish", "stamp": "pick" },
+        { "do": "polish", "click": "panel-mode-outgrow" },
+        { "do": "polish", "click": "polish-city-tab-edit", "shot": "editor-default", "shotMode": "ui" },
+        { "do": "polish", "knob": "gardenWidth", "value": 5 },
+        { "do": "wait", "seconds": 1 },
+        { "do": "shot", "name": "editor-width-5", "shotMode": "ui" },
+        { "do": "polish", "knob": "gardenWidth", "value": 120 },
+        { "do": "wait", "seconds": 1 },
+        { "do": "shot", "name": "editor-width-120", "shotMode": "ui" },
+        { "do": "polish", "knob": "gardenDepth", "value": 25 },
+        { "do": "wait", "seconds": 1 },
+        { "do": "shot", "name": "editor-depth-25", "shotMode": "ui" },
+        { "do": "polish", "knob": "gardenDepth", "value": 150 },
+        { "do": "wait", "seconds": 1 },
+        { "do": "shot", "name": "editor-depth-150", "shotMode": "ui" }
+      ]
+    }
+  ]
+}
