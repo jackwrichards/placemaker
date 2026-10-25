@@ -4428,9 +4428,15 @@ namespace Placemaker.Core.Neighbours
             // town: a garden never gets land under a deck its neighbour's look calls a crack)
             float room = s.Knob("deckClearance", PolishLooks.Defaults["deckClearance"]);
             foreach (var h in houses) room = math.max(room, K(h, s, "deckClearance", room));
+            var stubs = StubBoxes(s, houses);
             for (int k = 0; k < s.Barriers.Count; k++)
             {
                 var r = s.Barriers[k];
+                if (stubs != null && stubs.TryGetValue(k, out var box))
+                {
+                    if (box == null) continue;
+                    r = box;
+                }
                 if (r == null || r.Length < 3 || Poly.Area(r) < 0.5f) continue;
                 var ring = Ccw(r);
                 var lo = MinOf(ring);
@@ -4469,6 +4475,72 @@ namespace Placemaker.Core.Neighbours
                         l.Add(k);
                     }
             }
+        }
+
+        /// <summary>A short path stub outside every house's lot (a small group of narrow pieces, its dead end rounded: a driveway
+        /// left where a house was taken away) as one plain box: the first piece
+        /// becomes the group's smallest enclosing rectangle, the others nothing (null). A garden beside it then meets one straight
+        /// side and one square end, not a fan of short edges round the rounded end (its fence pieces crossing each other there).
+        /// Knob "stubBox" (m2, 0 off): the largest group boxed.</summary>
+        private static Dictionary<int, float2[]> StubBoxes(StitchSettings s, IReadOnlyList<StitchHouse> houses)
+        {
+            float most = s.Knob("stubBox", 40f);
+            if (most <= 0f || s.BarrierGroups == null) return null;
+            Dictionary<long, List<int>> groups = null;
+            Dictionary<long, float> areas = null;
+            for (int k = 0; k < s.Barriers.Count && k < s.BarrierGroups.Count; k++)
+            {
+                var r = s.Barriers[k];
+                if (r == null || r.Length < 3) continue;
+                if (s.BarrierKinds != null && k < s.BarrierKinds.Count && s.BarrierKinds[k] != 0) continue;
+                float a = Math.Abs(Poly.Area(r));
+                long g = s.BarrierGroups[k];
+                groups ??= new Dictionary<long, List<int>>();
+                areas ??= new Dictionary<long, float>();
+                if (!groups.TryGetValue(g, out var l)) { groups[g] = l = new List<int>(); areas[g] = 0f; }
+                l.Add(k);
+                areas[g] += a;
+            }
+            if (groups == null) return null;
+            Dictionary<int, float2[]> boxes = null;
+            foreach (var (g, l) in groups)
+            {
+                float area = areas[g];
+                if (l.Count < 2 || area > most || area < 1f) continue;
+                if (houses.Any(h => l.Any(k => Poly.Contains(Lot(h), s.Barriers[k].Aggregate(new float2(0f), (a, q) => a + q) / s.Barriers[k].Length)))) continue;   // a house's own: its lot holds it
+                var hull = Hull(l.SelectMany(k => s.Barriers[k]).ToList());
+                if (hull.Length < 3) continue;
+                var box = MinBox(hull);
+                if (box == null || Math.Abs(Poly.Area(box)) > area * 1.4f) continue;   // not a straight stub (a bend, a fork)
+                boxes ??= new Dictionary<int, float2[]>();
+                boxes[l[0]] = box;
+                for (int i = 1; i < l.Count; i++) boxes[l[i]] = null;
+            }
+            return boxes;
+        }
+
+        /// <summary>The smallest rectangle round a convex hull (one side on a hull edge), counter-clockwise.</summary>
+        private static float2[] MinBox(float2[] hull)
+        {
+            float best = float.MaxValue;
+            float2[] box = null;
+            for (int i = 0; i < hull.Length; i++)
+            {
+                var u = math.normalizesafe(hull[(i + 1) % hull.Length] - hull[i]);
+                if (math.lengthsq(u) < 0.5f) continue;
+                var v = new float2(-u.y, u.x);
+                float u0 = float.MaxValue, u1 = float.MinValue, v0 = float.MaxValue, v1 = float.MinValue;
+                foreach (var p in hull)
+                {
+                    float a = math.dot(p, u), b = math.dot(p, v);
+                    u0 = math.min(u0, a); u1 = math.max(u1, a); v0 = math.min(v0, b); v1 = math.max(v1, b);
+                }
+                float area = (u1 - u0) * (v1 - v0);
+                if (area >= best) continue;
+                best = area;
+                box = new[] { u * u0 + v * v0, u * u1 + v * v0, u * u1 + v * v1, u * u0 + v * v1 };
+            }
+            return box;
         }
 
         private const float BarrierCell = 24f;
