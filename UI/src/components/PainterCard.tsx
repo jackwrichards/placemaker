@@ -64,10 +64,10 @@ const GROUPS: { id: string; en: string; icon: string; open?: boolean; picture?: 
     {
         // the fresh split reads these two (the older splits' reach rows, sideReach … closeBacks, are gone from the editor: it
         // does not read them); the picture above them is the real planner on a small made-up street (GardenPicture)
-        id: "reach", en: "Garden shape", icon: "ruler", open: true, picture: true,
+        id: "reach", en: "Outgrow shape", icon: "ruler", open: true, picture: true,
         knobs: [
-            { id: "gardenWidth", en: "Grow sideways", tip: "How far a garden may grow past its lot on each side, into land no neighbour takes. Between two neighbours they meet on one straight line.", kind: "slider", min: 0, max: 150, step: 1, unit: "m" },
-            { id: "gardenDepth", en: "Garden depth", tip: "How far behind its street a garden may reach. Between two rows of houses the gardens meet in the middle.", kind: "slider", min: 0, max: 200, step: 1, unit: "m" },
+            { id: "gardenWidth", en: "Grow sideways", tip: "How far the outgrow may reach past the lot on each side, into land no neighbour takes. Between two neighbours they meet on one straight line.", kind: "slider", min: 0, max: 150, step: 1, unit: "m" },
+            { id: "gardenDepth", en: "Outgrow depth", tip: "How far the outgrow may reach back, measured from the street (the front of the lot): a lot deeper than this grows nothing out its back. Between two rows the outgrow meets in the middle.", kind: "slider", min: 0, max: 200, step: 1, unit: "m" },
         ],
     },
     {
@@ -166,12 +166,11 @@ const GardenPicture = ({ pic }: { pic: NonNullable<PainterState["preview"]> }) =
         <div className={s.gardenPicture} data-testid="polish-garden-picture">
             <svg key={sig} width="100%" height="100%" viewBox={"0 0 " + w + " " + h} preserveAspectRatio="xMidYMid meet">
                 <rect width={w} height={h} fill="rgba(232, 226, 210, 0.92)" />
-                {pic.gardens.map((r, i) => <polygon key={"g" + i} points={pts(r)} fill="#a9d18e" stroke="#3f6e2c" strokeWidth={0.8} strokeLinejoin="round" />)}
+                {pic.gardens.map((r, i) => <polygon key={"g" + i} points={pts(r)} fill="#b5dc95" stroke="#4d7a36" strokeWidth={0.7} strokeLinejoin="round" />)}
+                {pic.lots.map((r, i) => <polygon key={"l" + i} points={pts(r)} fill="#3f7a2c" />)}
                 {pic.roads.map((r, i) => <polygon key={"r" + i} points={pts(r)} fill="#8a8a8a" />)}
-                {pic.lots.map((r, i) => <polygon key={"l" + i} points={pts(r)} fill="none" stroke="#ffffff" strokeWidth={0.5} strokeDasharray="1.6 1.2" />)}
-                {pic.houses.map((r, i) => <polygon key={"h" + i} points={pts(r)} fill="#c8704b" />)}
             </svg>
-            <div className={s.gardenPictureNote}>{t("Placemaker.UI.Polish.Picture", "Gardens (green) on a sample street: dashed boxes are lots, one plot is empty")}</div>
+            <div className={s.gardenPictureNote}>{t("Placemaker.UI.Polish.Picture", "A sample street: dark green the lots, light green their outgrow; one plot is empty")}</div>
         </div>
     );
 };
