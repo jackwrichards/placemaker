@@ -1,12 +1,18 @@
 // Browser stand-in for cs2/l10n: translate() over Lang/en-US*.json (repo files + /api/lang from the
 // mock host), and a LocalizedNumber that formats like the game (¢ money, digit grouping).
+// ?lang=de-DE shows the panel in that language: Lang/de-DE.*.json over the English, as the game merges them
+// (Game/Localization/LocalizationLoader.cs).
 import React, { useSyncExternalStore } from "react";
-// Every Lang/en-US*.json in the repo (core, tool, layers, ui), bundled so the mock reads like the game
+// Every Lang/<locale>.<area>.json in the repo (core, tool, layers, ui), bundled so the mock reads like the game
 // even without the host.
 declare const require: any;
-const langCtx = require.context("../../../Lang", false, /^\.\/en-US\..*\.json$/);
+const langCtx = require.context("../../../Lang", false, /^\.\/[A-Za-z-]+\.[^.]+\.json$/);
 const all: Record<string, string> = {};
-langCtx.keys().forEach((k: string) => Object.assign(all, langCtx(k)));
+langCtx.keys().filter((k: string) => k.startsWith("./en-US.")).forEach((k: string) => Object.assign(all, langCtx(k)));
+const lang = new URLSearchParams(location.search).get("lang") ?? "en-US";
+const own: Record<string, string> = {};
+if (lang !== "en-US") langCtx.keys().filter((k: string) => k.startsWith("./" + lang + ".")).forEach((k: string) => Object.assign(own, langCtx(k)));
+Object.assign(all, own);
 import uiStrings from "../../../Lang/en-US.ui.json";
 
 let dict: Record<string, string> = { ...all };
@@ -17,6 +23,7 @@ export function addStrings(more: Record<string, string>) {
     dict = { ...more, ...dict, ...(uiStrings as Record<string, string>) };
     // Layer-owned files (from the host) win for their own keys.
     for (const k of Object.keys(more)) if (!k.startsWith("Placemaker.UI.")) dict[k] = more[k];
+    Object.assign(dict, own);
     version++;
     listeners.forEach((l) => l());
 }

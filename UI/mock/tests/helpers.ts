@@ -6,7 +6,7 @@ import path from "path";
 export const SHOTS = path.join(__dirname, "..", "screenshots");
 
 /** Opens the mock. Default: fake catalog (stable for UX tests); { real: true } uses the Core host. */
-export async function open(page: Page, opts: { width?: number; height?: number; real?: boolean } = {}) {
+export async function open(page: Page, opts: { width?: number; height?: number; real?: boolean; lang?: string } = {}) {
     if (opts.width && opts.height) await page.setViewportSize({ width: opts.width, height: opts.height });
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
@@ -15,7 +15,8 @@ export async function open(page: Page, opts: { width?: number; height?: number; 
         // the Icon component falls back to our glyph, so their 404s are expected here.
         if (m.type() === "error" && !(m.location()?.url ?? "").includes("/Media/")) errors.push(m.text());
     });
-    await page.goto(opts.real ? "/" : "/?fake=1");
+    const lang = opts.lang && opts.lang !== "en-US" ? "lang=" + opts.lang : "";
+    await page.goto(opts.real ? "/" + (lang ? "?" + lang : "") : "/?fake=1" + (lang ? "&" + lang : ""));
     await page.evaluate(() => {
         try {
             localStorage.removeItem("placemaker.panelPos.v2");
