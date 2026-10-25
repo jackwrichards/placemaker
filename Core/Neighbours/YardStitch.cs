@@ -775,6 +775,8 @@ namespace Placemaker.Core.Neighbours
                 StraightBacks(houses, plots, touched, left, right, sideCuts, sharesEnd, s, plan);
             }
             T("straightBacks");
+            if (s.Knob("trimSpikes", 1f) > 0.5f) TrimSpikes(houses, plots, touched, s);
+            T("trimSpikes");
             Stage("fixed");
 
             // ── 3. fences on plot edges ──
@@ -3998,6 +4000,57 @@ namespace Placemaker.Core.Neighbours
         }
 
         /// <summary>A polished garden this plan does not edit and whose garden another pass wrote (StitchHouse.Garden): fixed.</summary>
+        /// <summary>
+        /// A garden never ends in a spike: a corner sharper than 45° is cut square to its middle line where the garden is a
+        /// short fence piece wide (its own garden only: the land past the cut is nobody's; never into the house's lot, never a
+        /// garden another pass wrote).
+        /// </summary>
+        private static void TrimSpikes(IReadOnlyList<StitchHouse> houses, float2[][] plots, bool[] touched, StitchSettings s)
+        {
+            float width = s.Knob("spikeWidth", 4f), sharp = math.cos(math.radians(s.Knob("spikeAngle", 45f)));
+            for (int i = 0; i < houses.Count; i++)
+            {
+                if (!touched[i] || plots[i] == null || plots[i].Length < 3 || IsFixed(houses[i])) continue;
+                var h = houses[i];
+                var lot = Lot(h);
+                var ring = plots[i];
+                for (int pass = 0; pass < 4; pass++)
+                {
+                    int n = ring.Length;
+                    float sign = Poly.IsCcw(ring) ? 1f : -1f;
+                    int at = -1;
+                    float2 bis = default;
+                    float half = 0f;
+                    for (int k = 0; k < n && at < 0; k++)
+                    {
+                        var p = ring[k];
+                        var a = math.normalizesafe(ring[(k + n - 1) % n] - p);
+                        var b = math.normalizesafe(ring[(k + 1) % n] - p);
+                        float cross = (b.x * a.y - b.y * a.x) * sign;   // > 0: a convex corner
+                        if (cross <= 0f || math.dot(a, b) < sharp) continue;
+                        at = k;
+                        bis = math.normalizesafe(a + b);
+                        half = math.acos(math.clamp(math.dot(a, b), -1f, 1f)) * 0.5f;
+                    }
+                    if (at < 0) break;
+                    var tip = ring[at];
+                    float d = width * 0.5f / math.max(0.05f, math.tan(half));
+                    var cutAt = tip + bis * d;
+                    var dir = new float2(-bis.y, bis.x);
+                    // (never into the lot: the cut moves back to the lot's nearest corner; a lot reaching the tip keeps it)
+                    float lotNear = float.MaxValue;
+                    foreach (var q in lot) lotNear = math.min(lotNear, math.dot(q - tip, bis));
+                    if (lotNear <= 0.05f) break;
+                    if (d > lotNear) cutAt = tip + bis * lotNear;
+                    var cut = ClipHalfPlane(ring.ToList(), cutAt, dir, tip + bis * (d + 1000f));
+                    // (only the tip goes: a cut taking more than the tip's triangle crossed some other part of the garden)
+                    if (cut.Count < 3 || Poly.Area(cut) < 1f || math.abs(Poly.Area(ring)) - math.abs(Poly.Area(cut)) > width * d * 0.6f + 0.5f) break;
+                    ring = cut.ToArray();
+                }
+                plots[i] = ring;
+            }
+        }
+
         private static bool IsFixed(StitchHouse h) => !h.Edit && h.Polished && h.Garden != null && h.Garden.Length >= 3;
 
         // the smallest and largest x and y of some points (Aggregate with math.min made a delegate each time: 19 MB of a city's
