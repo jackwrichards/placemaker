@@ -67,7 +67,7 @@ const GROUPS: { id: string; en: string; icon: string; open?: boolean; picture?: 
         id: "reach", en: "Outgrow shape", icon: "ruler", open: true, picture: true,
         knobs: [
             { id: "gardenWidth", en: "Grow sideways", tip: "How far the outgrow may reach past the lot on each side, into land no neighbour takes. Between two neighbours they meet on one straight line.", kind: "slider", min: 0, max: 150, step: 1, unit: "m" },
-            { id: "gardenDepth", en: "Outgrow depth", tip: "How far the outgrow may reach back, measured from the street (the front of the lot): a lot deeper than this grows nothing out its back. Between two rows the outgrow meets in the middle.", kind: "slider", min: 0, max: 200, step: 1, unit: "m" },
+            { id: "gardenDepth", en: "Outgrow depth", tip: "How far behind its street the outgrow may reach. Between two rows of houses the outgrow meets in the middle.", kind: "slider", min: 0, max: 200, step: 1, unit: "m" },
         ],
     },
     {
