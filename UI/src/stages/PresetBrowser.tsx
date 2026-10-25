@@ -1,6 +1,6 @@
 // s42 — the Place library: pick a place, which is also what you are editing (docs/proposals/s42.md; the Editing bar merged
 // in, the user, 25 Oct: "they essentially do the same thing"; "you're like browsing your place library").
-//   The section header (SectionHead: PLACE LIBRARY · pick a place to start · shuffle · search), then one bordered panel,
+//   The section header (SectionHead: PLACEMAKER LIBRARY · pick a place · shuffle · search), then one bordered panel,
 //     three numbered rows of equal-height chips: 1 Category · 2 Type · 3 Style; the lit chip of each row is what is being
 //     edited. Always open (user: no collapse button for it).
 //     Each chip = coloured icon tile (category colour; types and styles inherit it) + name + small count. Styles start with
@@ -378,10 +378,10 @@ export const TypeBrowser = ({
     const head = (
         <SectionHead
             icon="layers"
-            title={t("Placemaker.UI.Library.Title", "Place library")}
+            title={t("Placemaker.UI.Library.Title", "Placemaker library")}
             first
             testId="make-head"
-            sub={searching ? undefined : t("Placemaker.UI.Library.Sub", "pick a place to start")}
+            sub={searching ? undefined : t("Placemaker.UI.Library.Sub", "pick a place")}
             fill={
                 searching ? (
                     <div className={s.search}>
