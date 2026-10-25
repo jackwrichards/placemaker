@@ -727,7 +727,7 @@ namespace Placemaker.Core.Neighbours
             Stage("share");
             if (s.Knob("separate", 1f) > 0.5f) Separate(houses, plots, touched, plan, s.Knob("separateKept", 1f) > 0.5f ? kept : null);
             T("separate");
-            if (s.Knob("trimSlivers", 1f) > 0.5f && !emergent) TrimSlivers(houses, plots, touched, s, plan);
+            if (s.Knob("trimSlivers", 0f) > 0.5f && !emergent) TrimSlivers(houses, plots, touched, s, plan);
             T("trimSlivers");
             if (gapsLate && s.Knob("fillGaps", 0f) > 0.5f && !emergent) FillGaps(houses, plots, touched, raw, kept, s, plan);
             T("fillGaps");
