@@ -65,3 +65,12 @@ where the outline turns 63 -> 42.
 Left: a few small corner gaps within one garden's own pieces (in the game 10 gaps against 7), and junctions where a garden meets
 fences another pass laid; the fixed piece lengths (4 m, 2 m) still overshoot at some bends: one stretchable lane per run
 (teardown 12, section 6) would end that.
+
+## 5. 25 Oct: the older rules are the default again (branch og-classic)
+
+Knob `classic` (1 by default) selects the older rules whatever `emergent` says (lots polished earlier carry `emergent` 1 in
+their settings); `classic=0` with `emergent=1` gives this split back. The older rules gained one step, `Push`: after the cut
+and tidy, every garden pushes its free sides straight out, parallel, into land nobody has (no new corner, angles kept), all
+gardens a step at a time in turn, to exact contact; never a front, a side on a line shared with a neighbour, a walkway's side,
+past a road's margin, more than `push` (60) m past its lot, or wholly further than `pushDepth` (50) m from a road. Offline
+scores (Outgrow-Score.ps1, no knobs): boot camp 182.2, thinned town 131.2, black box 162.9.
