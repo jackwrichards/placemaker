@@ -57,6 +57,9 @@ namespace Placemaker.Gallery
                     case "--water": Renderer.WaterTypes = new HashSet<string>(next.Split(','), StringComparer.OrdinalIgnoreCase); i++; break;
                     case "--shores": Renderer.Shores = next.Split(','); i++; break;
                     case "--slopes": Renderer.Slopes = next.Split(','); i++; break;
+                    case "--bench": Renderer.BenchOnly = true; break;   // (perf) plan only, one job at a time, timings per step (Bench.cs)
+                    case "--repeat": Renderer.BenchRepeat = int.Parse(next); i++; break;
+                    case "--corners": Renderer.Corners = int.Parse(next); i++; break;   // (perf) the site outline resampled to N wobbly corners (a painted outline)
                     case "--size": Renderer.ImageSize = float.Parse(next, CultureInfo.InvariantCulture); i++; break;
                     case "--zoom": Renderer.Zoom = next.Split(',').Select(x => float.Parse(x, CultureInfo.InvariantCulture)).ToArray(); i++; break;
                     case "--roads":
@@ -94,6 +97,7 @@ namespace Placemaker.Gallery
             Console.WriteLine($"Gallery: {jobs.Count} images, {GeneratorRegistry.All.Count} layers, catalog {catalog.Items.Count} items → {outDir}");
             var results = new Result[jobs.Count];
             var sw = Stopwatch.StartNew();
+            if (Renderer.BenchOnly) return Bench.Run(jobs, catalog, outDir);
             Parallel.For(0, jobs.Count, new ParallelOptions { MaxDegreeOfParallelism = Math.Max(1, Environment.ProcessorCount - 1) }, i =>
             {
                 results[i] = Renderer.Run(jobs[i], catalog, outDir);
@@ -501,6 +505,9 @@ namespace Placemaker.Gallery
     public sealed class Result
     {
         public string Summary = "", File = "";
+        /// <summary>(perf) --bench: the composed plan (its Timings) and the site's area in m².</summary>
+        public ComposedPlan Plan;
+        public double Area;
         public double Ms;
         public int Objects, Nets, Surfaces, Errors, Warnings, BenchesOffPath, Overlaps, Outside, Decals, EdgeSpikes, BadSurfaces;
         /// <summary>(shops2) The first layer plan's facts (the composition's own numbers).</summary>
@@ -530,7 +537,29 @@ namespace Placemaker.Gallery
             double a = 0;
             for (int i = 0, j = BaseRing.Length - 1; i < BaseRing.Length; j = i++) a += BaseRing[j].x * BaseRing[i].y - BaseRing[i].x * BaseRing[j].y;
             float s = (float)math.sqrt(targetArea / math.abs(a * 0.5));
-            return BaseRing.Select(p => new float3(p.x * s, 0, p.y * s)).ToArray();
+            var ring = BaseRing.Select(p => new float3(p.x * s, 0, p.y * s)).ToArray();
+            return Corners > ring.Length ? Wobbly(ring, Corners) : ring;
+        }
+
+        /// <summary>(perf) --corners N: the default site resampled to N corners with a ±0.4 m wobble, like a painted area's traced outline.</summary>
+        public static int Corners;
+
+        private static float3[] Wobbly(float3[] ring, int n)
+        {
+            float per = 0f;
+            for (int i = 0; i < ring.Length; i++) per += math.distance(ring[i], ring[(i + 1) % ring.Length]);
+            var rng = new Unity.Mathematics.Random(12345u);
+            var res = new List<float3>();
+            float step = per / n, acc = 0f;
+            for (int i = 0; i < ring.Length; i++)
+            {
+                var a = ring[i]; var b = ring[(i + 1) % ring.Length];
+                float len = math.distance(a, b);
+                var nrm = math.normalize(new float3(-(b.z - a.z), 0, b.x - a.x));
+                for (float t = acc; t < len; t += step) res.Add(math.lerp(a, b, t / len) + nrm * rng.NextFloat(-0.4f, 0.4f));
+                acc = (acc - len) % step; if (acc < 0) acc += step;
+            }
+            return res.ToArray();
         }
 
         /// <summary>Layout size the gallery renders at (--scale; default = the game option default, 0.5).</summary>
@@ -551,6 +580,9 @@ namespace Placemaker.Gallery
         public static string[] Slopes;
         /// <summary>(s34) --roads flat,gentle,hill,valley,steep: road-scale sites for the roads type.</summary>
         public static string[] RoadSiteKinds;
+        /// <summary>(perf) --bench: compose only (no drawing), one job at a time, timings per step (Bench.cs).</summary>
+        public static bool BenchOnly;
+        public static int BenchRepeat = 2;
         /// <summary>(s34) --size N: longest image side in pixels (default 880).</summary>
         public static float ImageSize = 880f;
         /// <summary>(s34) --zoom fx0,fz0,fx1,fz1: render only this part of the site (fractions of its bounds).</summary>
@@ -743,6 +775,12 @@ namespace Placemaker.Gallery
             }
             res.Ms = sw.Elapsed.TotalMilliseconds;
             if (plan.Layers.Count > 0) foreach (var kv in plan.Layers[0].Facts) res.Facts[kv.Key] = kv.Value;
+            if (BenchOnly)
+            {
+                res.Plan = plan;
+                res.Area = Placemaker.Core.Geometry.Poly.Area(ring.Select(p => p.xz).ToArray());
+                return res;
+            }
 
             var dir = Path.Combine(outDir, job.Type);
             Directory.CreateDirectory(dir);
