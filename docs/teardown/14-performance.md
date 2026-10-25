@@ -7,6 +7,18 @@ the lag spike when the build happens ("Done placing").
 Labels: **[P]** proven by a run (named below), **[C]** from code, **[H]** hypothesis with how to check it.
 Nothing here was seen in the game runner yet; the runs are offline benches of the real Core and the runner's old logs.
 
+## Where it stands (25 Oct, end of day)
+
+Planning in the game's runtime (PlanBench.Mono, 12.5 ha, 400-corner outline, master `975212aa` → this branch, fastest of 2
+alternated runs): parking 4713 → 421 ms (11×), park 1316 → 206 (6.4×), plaza 747 → 207 (3.6×), mall park 2726 → 931
+(2.9×), car yard 1768 → 697, junk yard 1370 → 616, adventure playground 450 → 183, botanical garden 1712 → 977, mall district
+2573 → 1819, formal garden 1294 → 937, community garden 1052 → 786, beach 569 → 420; the 12 together 20.3 → 8.2 s (2.5×).
+
+Game runner (10 ha blocks, 25 Oct 15:05–15:16): five park styles, mall park and plaza build with the worst frame of the
+mod's own work 16–35 ms (was 135–190 ms three times per park build), the preview ghost 7–21 ms (was up to 349 ms on a big
+lot), every parking style with all its stall markings. Still the biggest costs: site harmony on plazas (450 ms of a 560 ms
+plan), mall park's parking and zone guard (2–3 s), the game's own frames when the ghost is rebuilt (100–300 ms, §2.2 item 6).
+
 ## Tools made for this
 
 - `Placemaker.Gallery --bench` (`Tests/Placemaker.Gallery/Bench.cs`): every type × preset at the given sizes, one plan at a
