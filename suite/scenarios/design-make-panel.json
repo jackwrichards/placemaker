@@ -1,0 +1,16 @@
+{
+  "_about": "The Design page's top section: Pick what to make and Editing merged into one (the user, 25 Oct: 'they essentially do the same thing'). A dog park picked (the Place library as picked, its save strip), then one setting changed (unsaved changes: Undo, Save over, Save as new). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/design-make-panel.json -Build -Who <you>",
+  "scenarios": [
+    {
+      "id": "design-make-panel",
+      "site": "flat",
+      "steps": [
+        { "do": "area", "tool": "bucket" },
+        { "do": "type", "layer": "dogPark" },
+        { "do": "shot", "name": "picked", "shotMode": "ui" },
+        { "do": "value", "path": "0", "id": "benches", "value": 9 },
+        { "do": "shot", "name": "edited", "shotMode": "ui" }
+      ]
+    }
+  ]
+}

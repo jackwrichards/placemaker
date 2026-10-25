@@ -141,8 +141,7 @@ test("modify a built-in → modified → Save over it (edited) → Reset to defa
     await expect(page.getByTestId("feature-playground")).toHaveAttribute("data-enabled", "true");
     await expect(page.getByTestId("preset-modified")).toHaveCount(0);
 
-    // ⋯ → Reset to default (confirmed) — built-ins can't be renamed or deleted
-    await page.getByTestId("preset-more").click();
+    // Reset to default (confirmed) — built-ins can't be renamed or deleted
     await expect(page.getByTestId("preset-rename")).toHaveCount(0);
     await expect(page.getByTestId("preset-delete")).toHaveCount(0);
     await page.getByTestId("preset-reset").click();
@@ -154,7 +153,7 @@ test("modify a built-in → modified → Save over it (edited) → Reset to defa
     expect(errors).toEqual([]);
 });
 
-test("Save as → own preset (★, active) → save changes → rename → delete; export shows the file", async ({ page }) => {
+test("Save as → own preset (★, active) → save changes → rename → delete", async ({ page }) => {
     const errors = await open(page);
     await toDesign(page, "park");
     const park = page.getByTestId("presets-park");
@@ -191,7 +190,6 @@ test("Save as → own preset (★, active) → save changes → rename → delet
     await expect(page.getByTestId("feature-playground")).toHaveAttribute("data-enabled", "true");
 
     // rename
-    await page.getByTestId("preset-more").click();
     await panelShot(page, "p-menu");
     await page.getByTestId("preset-rename").click();
     await page.getByTestId("preset-name-input").fill("Family lawn");
@@ -199,24 +197,14 @@ test("Save as → own preset (★, active) → save changes → rename → delet
     await expect(own).toContainText("Family lawn");
     await expect(page.getByTestId("preset-bar-name")).toHaveText("Family lawn");
 
-    // export: shows where presets.json is, with the note
-    await page.getByTestId("preset-more").click();
-    await page.getByTestId("preset-export").click();
-    await expect(page.getByTestId("presets-file")).toContainText("Send this file to share your styles");
-    await expect(page.getByTestId("presets-file-path")).toContainText("ModsData\\Placemaker\\presets.json");
-    await noTextOverflow(page, "export note");
-    await panelShot(page, "p-export");
-
     // delete: cancel keeps it, confirm removes it
-    await page.getByTestId("preset-more").click();
     await page.getByTestId("preset-delete").click();
     await page.getByTestId("confirm-cancel").click();
     await expect(own).toHaveCount(1);
-    await page.getByTestId("preset-more").click();
     await page.getByTestId("preset-delete").click();
     await page.getByTestId("confirm-ok").click();
     await expect(own).toHaveCount(0);
-    await expect(page.getByTestId("preset-bar-name")).toHaveText("Default");
+    await expect(page.getByTestId("preset-bar-name")).toHaveText("Standard");
     // the settings stay (they now differ from the type's defaults)
     await expect(page.getByTestId("preset-modified")).toBeVisible();
     expect(errors).toEqual([]);

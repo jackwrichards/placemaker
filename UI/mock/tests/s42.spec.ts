@@ -26,7 +26,7 @@ async function pick(page: Page, group: string, recipe: string) {
     await page.waitForTimeout(150);
 }
 
-test("s42 design: picker rows, editing bar, two-column Shape and Extras for real types", async ({ page }) => {
+test("s42 design: library rows, save strip, two-column Parameters with Add-ons for real types", async ({ page }) => {
     const errors = await realDesign(page);
     test.skip(!(await page.evaluate(() => (window as any).pm.backend.hostLayers.has("waterfront"))), "no real Core layers");
 
@@ -76,7 +76,7 @@ test("s42 design: picker rows, editing bar, two-column Shape and Extras for real
     expect(errors).toEqual([]);
 });
 
-test("s42 editing bar: unsaved changes, undo changes, save as new from the + chip", async ({ page }) => {
+test("s42 editing bar: unsaved changes, undo changes, save as new from the strip", async ({ page }) => {
     const errors = await open(page);
     await drawPolygon(page, FIELD);
     await page.getByTestId("primary").click();
@@ -85,11 +85,11 @@ test("s42 editing bar: unsaved changes, undo changes, save as new from the + chi
     await expect(page.getByTestId("preset-revert")).toHaveAttribute("aria-disabled", "true");
     await page.getByTestId("randomize").click();
     await waitPlanned(page);
-    await expect(page.getByTestId("preset-modified")).toContainText("unsaved changes");
+    await expect(page.getByTestId("preset-modified")).toBeVisible();
     await panelShot(page, "s42-editing-modified");
     await page.getByTestId("preset-revert").click();
     await expect(page.getByTestId("preset-modified")).toHaveCount(0);
-    await page.getByTestId("preset-new").click();
+    await page.getByTestId("preset-save-as").click();
     await page.getByTestId("preset-name-input").fill("My park");
     await page.getByTestId("preset-name-save").click();
     await expect(page.getByTestId("preset-bar-name")).toHaveText("My park");

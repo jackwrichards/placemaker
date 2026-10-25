@@ -1,5 +1,5 @@
 // The Design page reads as one story, top to bottom (user 2026-10-20: "the whole font should match ... it should tell a
-// story"): Pick what to make → Editing → Add entrances → Shape (or Zoning) → Extras. Every section opens with this one
+// story"): Placemaker library → the style card (Parameters or Zoning, Add-ons) → Entrances. Every section opens with this one
 // header line, the same everywhere: a round icon badge · TITLE · count · a short note · hairline rule · its buttons.
 import React, { ReactNode } from "react";
 import classNames from "classnames";
@@ -18,6 +18,7 @@ export const SectionHead = ({
     right,
     first,
     wrap,
+    shrink,
     testId,
 }: {
     icon: string;
@@ -38,10 +39,12 @@ export const SectionHead = ({
     first?: boolean;
     /** The buttons take the next line when they do not fit beside the title. */
     wrap?: boolean;
+    /** A long title shortens (…) before the buttons do (a style's name with its words). */
+    shrink?: boolean;
     testId?: string;
 }) => {
     const warn = tone === "warn";
-    const label = <div className={s.title}>{title}</div>;
+    const label = <div className={classNames(s.title, { [s.titleShrink]: shrink })} data-ellipsis={shrink ? true : undefined}>{title}</div>;
     return (
         <div className={classNames(s.head, { [s.headFirst]: first, [s.headWrap]: wrap })} data-testid={testId} data-tone={tone ?? ""}>
             <div className={classNames(s.badge, { [s.badgeWarn]: warn })}>

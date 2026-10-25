@@ -1,0 +1,131 @@
+@use "../styles/tokens" as *;
+
+// The style you are editing (StyleCard.tsx): a section line (SectionHead) and one bordered panel, built like the
+// Placemaker library above it (browser.module.scss .browser). Gameface: flexbox + margins only.
+
+.card {
+    @include col;
+    position: relative;
+    min-width: 0;
+}
+
+.plain {
+    @include col;
+    min-width: 0;
+}
+
+// the panel: the library's, amber while there are unsaved changes
+.panel {
+    @include col;
+    min-width: 0;
+    padding: 0 5rem 5rem 5rem;
+    border-radius: $radius;
+    background-color: rgba(0, 0, 0, 0.18);
+    @include border(1rem, $c-line-strong);
+}
+
+.panelChanged {
+    @include border-color(rgba(255, 181, 71, 0.65));
+}
+
+// the lit Style chip again, small: what is being edited
+.chip {
+    @include row;
+    flex: 0 1 auto;
+    min-width: 0;
+    height: 20rem;
+    padding: 0 7rem 0 3rem;
+    border-radius: $radius;
+    background-color: rgba(143, 209, 255, 0.2);
+    @include border(1rem, #8fd1ff);
+}
+
+.chipName {
+    min-width: 0;
+    margin-left: 5rem;
+    font-size: $fs-s;
+    font-weight: bold;
+    color: #ffffff;
+    @include ellipsis;
+}
+
+// ● unsaved changes, after the chip
+.dot {
+    flex-shrink: 0;
+    margin-left: 6rem;
+    width: 7rem;
+    height: 7rem;
+    border-radius: 4rem;
+    background-color: $c-warning;
+}
+
+// the words on the line: Revert · Save · Save as… · Rename · Delete / Reset
+.words {
+    @include row;
+    flex-shrink: 0;
+}
+
+.word {
+    flex-shrink: 0;
+    height: 20rem;
+    margin-left: 2rem;
+    padding: 0 6rem;
+    font-size: $fs-s;
+    & > div {
+        margin-left: 0;
+    }
+}
+
+.wordDanger {
+    color: #ff9c90;
+}
+
+// naming (Save as, Rename) in place of the line's rule
+.nameForm {
+    @include row;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 8rem;
+}
+
+.nameInput {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 20rem;
+    margin-right: 2rem;
+    padding: 0 6rem;
+    border-radius: $radius-s;
+    @include border(1rem, rgba(143, 209, 255, 0.45));
+    background-color: $c-shade;
+    font-size: $fs-s;
+    font-family: var(--fontFamily);
+    color: #ffffff;
+    outline-width: 0;
+}
+
+// one light line per part, the same for each: icon · TITLE · rule · (Shuffle, didn't fit)
+.subHead {
+    @include row;
+    min-width: 0;
+    height: 20rem;
+    margin: 4rem 0 3rem 3rem;
+}
+
+.subTitle {
+    flex-shrink: 0;
+    margin-left: 5rem;
+    font-size: 10rem;
+    font-weight: bold;
+    letter-spacing: 0.6rem;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap;
+}
+
+.subRule {
+    flex: 1 1 auto;
+    min-width: 6rem;
+    height: 1rem;
+    margin: 0 4rem 0 8rem;
+    background-color: $c-line;
+}

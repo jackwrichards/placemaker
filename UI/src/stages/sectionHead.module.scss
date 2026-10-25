@@ -47,6 +47,13 @@
     white-space: nowrap;
 }
 
+// a title that shortens before the buttons do
+.titleShrink {
+    flex: 0 1 auto;
+    min-width: 0;
+    @include ellipsis;
+}
+
 .count {
     flex-shrink: 0;
     margin-left: 5rem;

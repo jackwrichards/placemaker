@@ -1,6 +1,6 @@
 @use "../styles/tokens" as *;
 
-// s42 Design stage: picker + editing bar (browser.module.scss), then Entrances, Shape and Extras as dense,
+// s42 Design stage: the picker, also what is being edited (browser.module.scss), then the style card's Parameters and Add-ons and Entrances as dense,
 // aligned one-line rows with hairline dividers. Gameface: flexbox + margins only.
 
 .stage {
@@ -35,7 +35,7 @@
     @include col;
 }
 
-// Section headers (Shape, Extras, Zoning, Add entrances) are SectionHead.tsx (sectionHead.module.scss).
+// Section headers (Entrances) are SectionHead.tsx (sectionHead.module.scss); the card's parts StyleCard.tsx SubHead.
 
 // ── one step ──
 .step {
@@ -263,7 +263,7 @@
     height: 22rem;
 }
 
-// ── extras ──
+// ── add-ons: in the style card, under its Add-ons line (StyleCard.tsx SubHead) ──
 .extras {
     @include col;
     min-width: 0;
@@ -436,7 +436,7 @@
     color: $c-text-dim;
 }
 
-// "2 didn't fit" in the Extras heading.
+// "2 didn't fit" on the Add-ons line.
 .misfit {
     @include row;
     flex-shrink: 0;

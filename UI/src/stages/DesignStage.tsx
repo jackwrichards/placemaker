@@ -1,15 +1,18 @@
 // Stage 2 — what to make, then how it is built (s42, docs/proposals/s42.md), top to bottom, one story: every section
 // opens with the same header line (SectionHead.tsx: icon badge · TITLE · note · rule · buttons).
-//   1. Pick what to make: 1 Category · 2 Type · 3 Style (PresetBrowser.tsx TypeBrowser), always open.
-//   2. Editing: [Category] › [Type] › [Style] + undo changes · shuffle · save as new · save · more.
-//   3. Add entrances (types that need them): "add one to build" + typed entrance buttons on the header line, then the
-//      placed ones.
-//   4. Shape — how it's built (Zoning for a zoning type): the type's control groups as one-line heads in two columns;
-//      an open one unfolds full width under its pair (Controls.tsx ControlList).
-//   5. Extras — optional add-ons: the built-in features as one-line rows in two columns (tile · name · fit or
-//      summary · switch), their options under the pair when open, the rest behind "N more".
+//   1. Placemaker library: 1 Category · 2 Type · 3 Style (PresetBrowser.tsx TypeBrowser), always open; the lit Style chip
+//      is the style being edited.
+//   2. The style card (StyleCard.tsx, the user, 25 Oct: "I've selected the formal garden and I'm now editing it"; "it's
+//      like a file"): its line is EDITING · that style's chip again, small · ● with Revert · Save · Save as… (Rename · Delete, or Reset); its
+//      panel everything the style keeps, each part under the same light line: Parameters (Shuffle at its end; Zoning for
+//      a zoning type: the type's control
+//      groups as one-line heads in two columns, an open one unfolding full width under its pair, Controls.tsx
+//      ControlList), then Add-ons (the built-in features as one-line rows in two columns: tile · name · fit or summary ·
+//      switch, their options under the pair when open, the rest behind "N more").
+//   3. Entrances (types that need them; this build's, not the style's): "add one to build" + typed entrance buttons on
+//      the header line, then the placed ones.
 //   "Places inside": reserved slot for round 3, hidden for now.
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import classNames from "classnames";
 import { Catalog, DesignState, FeatureFit, FeatureView, LayerType, StepView, ToolState } from "../contract";
 import { act, playSound } from "../lib/bindings";
@@ -30,7 +33,8 @@ import { SettingValue } from "../contract";
 import { ControlEx, valueOf } from "../lib/schema";
 import { useAssetName } from "../components/picker";
 import { ZoneOutgrowInline, ZoneOutgrowPick } from "../components/PainterCard";
-import { BarMode, PresetBar, Tile, TypeBrowser } from "./PresetBrowser";
+import { Tile, TypeBrowser } from "./PresetBrowser";
+import { ShuffleBtn, StyleCard, SubHead } from "./StyleCard";
 import { SectionHead } from "./SectionHead";
 import s from "./design.module.scss";
 
@@ -310,7 +314,7 @@ type ExtraModel = {
     key: string;
 };
 
-/** One extra: [chevron] [tile] name · fit or summary · [switch], one fixed line. */
+/** One add-on: [chevron] [tile] name · fit or summary · [switch], one fixed line. */
 const ExtraRow = ({ m, parent, width }: { m: ExtraModel; parent: StepView; width: number }) => {
     const { t } = useT();
     const { f, name, why, blocked, open, foldable, summary } = m;
@@ -386,7 +390,7 @@ const ExtraRow = ({ m, parent, width }: { m: ExtraModel; parent: StepView; width
     );
 };
 
-/** Extras listed before "N more" (enabled ones are always listed). */
+/** Add-ons listed before "N more" (enabled ones are always listed). */
 const EXTRAS_SHOWN = 8;
 
 const Extras = ({ catalog, design, state, step }: { catalog: Catalog; design: DesignState; state: ToolState; step: StepView }) => {
@@ -421,18 +425,11 @@ const Extras = ({ catalog, design, state, step }: { catalog: Catalog; design: De
     const listed = models.map((m, i) => i < EXTRAS_SHOWN || m.f.enabled);
     const hidden = listed.filter((x) => !x).length;
     const shown = more ? models : models.filter((_, i) => listed[i]);
-    const on = list.filter((f) => f.enabled).length;
     const pairs: ExtraModel[][] = [];
     for (let i = 0; i < shown.length; i += cols) pairs.push(shown.slice(i, i + cols));
     return (
         <div className={s.extras} data-testid="features">
-            <SectionHead
-                icon="addon"
-                title={t("Placemaker.UI.Extras", "Extras")}
-                sub={t("Placemaker.UI.Extras.Sub", "optional add-ons")}
-                count={on || undefined}
-                right={<MisfitChip step={step} catalog={catalog} />}
-            />
+            <SubHead icon="addon" title={t("Placemaker.UI.AddOns", "Add-ons")} right={<MisfitChip step={step} catalog={catalog} />} testId="features-head" />
             <div className={s.featureGrid} data-testid="feature-grid" data-cols={cols}>
                 {pairs.map((pair) => (
                     <React.Fragment key={pair.map((m) => m.f.layer).join("|")}>
@@ -490,7 +487,7 @@ function featurePaths(root: StepView | null, step: StepView): Set<string> {
     return out;
 }
 
-/** "2 didn't fit" in the Extras heading: enabled extras the latest plan had to shrink or drop. */
+/** "2 didn't fit" on the Add-ons line: enabled add-ons the latest plan had to shrink or drop. */
 const MisfitChip = ({ step, catalog }: { step: StepView; catalog: Catalog }) => {
     const { t } = useT();
     const list = misfits(step);
@@ -566,7 +563,7 @@ const ZoningShape = ({ step, layer, state, scope }: { step: StepView; layer: Lay
     };
     return (
         <div className={s.shape} data-testid="zoning">
-            <SectionHead icon="zone" title={t("Placemaker.UI.Zoning", "Zoning")} sub={t("Placemaker.UI.Zoning.Sub2", "zones, and how their lots outgrow")} />
+            <SubHead icon="zone" title={t("Placemaker.UI.Zoning", "Zoning")} />
             <ErrorBoundary name="zoning">
                 <ZoneMix
                     step={step}
@@ -588,6 +585,27 @@ const StepOptions = ({ catalog, design, state, step }: { catalog: Catalog; desig
     const hidden = featurePaths(design.root, step);
     const subSteps = [...step.children.filter((c) => !hidden.has(c.path)), ...Object.keys(step.overrides).map((k) => step.overrides[k])];
     const scope = parent ? parent.layer + ">" + layer.id : layer.id;
+    // What the style keeps: Parameters (or Zoning), Add-ons and any sub-steps; the root's go in the style card.
+    const body = (
+        <>
+            {!parent && isZoneMix(layer) ? (
+                <ZoningShape step={step} layer={layer} state={state} scope={scope} />
+            ) : (
+                <div className={s.shape} data-testid="shape">
+                    {parent ? null : <SubHead icon="gear" title={t("Placemaker.UI.Parameters", "Parameters")} right={<ShuffleBtn step={step} />} />}
+                    <ErrorBoundary name="controls">
+                        <ControlList step={step} layer={layer} state={state} scope={scope} exclude={featureOptionIds(step)} />
+                    </ErrorBoundary>
+                </div>
+            )}
+            <Extras catalog={catalog} design={design} state={state} step={step} />
+            {subSteps.map((c) => (
+                <ErrorBoundary key={c.path} name={"step-" + c.path}>
+                    <StepOptions catalog={catalog} design={design} state={state} step={c} />
+                </ErrorBoundary>
+            ))}
+        </>
+    );
     return (
         <div className={classNames(s.step, { [s.stepOff]: !step.enabled, [s.stepChild]: !!parent })} data-testid={`step-${step.path}`}>
             {parent ? (
@@ -617,23 +635,19 @@ const StepOptions = ({ catalog, design, state, step }: { catalog: Catalog; desig
                             </div>
                         </Tip>
                     ) : null}
-                    {typed ? <Entrances step={step} state={state} /> : null}
-                    {!parent && isZoneMix(layer) ? (
-                        <ZoningShape step={step} layer={layer} state={state} scope={scope} />
+                    {parent ? (
+                        <>
+                            {typed ? <Entrances step={step} state={state} /> : null}
+                            {body}
+                        </>
                     ) : (
-                        <div className={s.shape} data-testid="shape">
-                            {parent ? null : <SectionHead icon="cube" title={t("Placemaker.UI.Shape", "Shape")} sub={t("Placemaker.UI.Shape.Sub", "how it's built")} />}
-                            <ErrorBoundary name="controls">
-                                <ControlList step={step} layer={layer} state={state} scope={scope} exclude={featureOptionIds(step)} />
-                            </ErrorBoundary>
-                        </div>
+                        <>
+                            <StyleCard catalog={catalog} design={design} step={step}>
+                                {body}
+                            </StyleCard>
+                            {typed ? <Entrances step={step} state={state} /> : null}
+                        </>
                     )}
-                    <Extras catalog={catalog} design={design} state={state} step={step} />
-                    {subSteps.map((c) => (
-                        <ErrorBoundary key={c.path} name={"step-" + c.path}>
-                            <StepOptions catalog={catalog} design={design} state={state} step={c} />
-                        </ErrorBoundary>
-                    ))}
                 </div>
             ) : null}
         </div>
@@ -645,20 +659,16 @@ const StepOptions = ({ catalog, design, state, step }: { catalog: Catalog; desig
 export const DesignStage = ({ catalog, design, state }: { catalog: Catalog; design: DesignState; state: ToolState }) => {
     const { t } = useT();
     const root = design.root;
-    const [mode, setMode] = useState<BarMode>("idle");
     return (
         <div className={s.stage} data-testid="stage-design">
             <ErrorBoundary name="recipes">
-                <TypeBrowser catalog={catalog} design={design} onNew={() => setMode("saveAs")} />
+                <TypeBrowser catalog={catalog} design={design} />
             </ErrorBoundary>
             <PlacesInside />
             {!root ? (
                 <div className={s.emptyNote}>{t("Placemaker.UI.PickRecipe", "Nothing picked yet: pick a category to start")}</div>
             ) : (
                 <div className={s.options} data-testid="options">
-                    <ErrorBoundary name="preset-bar">
-                        <PresetBar catalog={catalog} design={design} step={root} mode={mode} setMode={setMode} />
-                    </ErrorBoundary>
                     <ErrorBoundary name={"step-" + root.path}>
                         <StepOptions catalog={catalog} design={design} state={state} step={root} />
                     </ErrorBoundary>
