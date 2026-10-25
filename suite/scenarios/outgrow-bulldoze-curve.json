@@ -16,12 +16,12 @@
         { "do": "lab", "op": "outgrowFrames", "seconds": 20, "speed": 1, "outgrow": true },
         { "do": "lab", "op": "polishIdle", "seconds": 60 },
         { "do": "shot", "name": "after-one", "shotMode": "render", "camera": { "target": "point", "at": [0, 40], "view": "top", "distance": 230 } },
-        { "do": "shot", "name": "after-one-45", "shotMode": "render", "camera": { "target": "point", "at": [0, 40], "view": "45", "distance": 200 } },
+        { "do": "shot", "name": "after-one-45", "shotMode": "render", "camera": { "target": "point", "at": [0, 40], "view": "oblique", "distance": 200 } },
         { "do": "lab", "op": "bulldozeHouses", "near": [0, 40], "rel": true, "radius": 80, "nearest": 3 },
         { "do": "lab", "op": "outgrowFrames", "seconds": 20, "speed": 1, "outgrow": true },
         { "do": "lab", "op": "polishIdle", "seconds": 60 },
         { "do": "shot", "name": "after-four", "shotMode": "render", "camera": { "target": "point", "at": [0, 40], "view": "top", "distance": 230 } },
-        { "do": "shot", "name": "after-four-45", "shotMode": "render", "camera": { "target": "point", "at": [0, 40], "view": "45", "distance": 200 } },
+        { "do": "shot", "name": "after-four-45", "shotMode": "render", "camera": { "target": "point", "at": [0, 40], "view": "oblique", "distance": 200 } },
         { "do": "lab", "op": "gardenReport", "label": "curve", "rel": true, "places": [{ "name": "curve", "at": [0, 0], "size": 420 }] },
         { "do": "lab", "op": "polishPassDump", "max": 0, "label": "off" }
       ]
