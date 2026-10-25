@@ -1,0 +1,391 @@
+{
+  "_about": "The player's bulldozer in the saved boot camp town (PM Bootcamp: odd angles, circles, curves, blocks, triangles, wedges), outgrown with the default rules: two houses bulldozed at the densest spot of each place, their neighbours planned again; top views before and after, oblique after; every pass after the town is outgrown recorded (passes/bcdz). The user, 25 Oct: after a bulldoze, 'insane amounts of squiggle'. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-bulldoze-bootcamp.json -Who outgrow-bulldoze -Fresh",
+  "scenarios": [
+    {
+      "id": "outgrow-bulldoze-bootcamp",
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "loadCity",
+          "name": "PM Bootcamp"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 60
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "classic": 1
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 3000,
+          "label": "bcdz"
+        },
+        {
+          "do": "shot",
+          "name": "circles-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3104,
+              47
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "blocks-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              4866,
+              -110
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "triangles-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              5296,
+              -145
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "wedges-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              6332,
+              -106
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "curves-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3848,
+              -201
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "grid-before",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              2358,
+              -91
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            3104,
+            47
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            4866,
+            -110
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            5296,
+            -145
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            6332,
+            -106
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            3848,
+            -201
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "near": [
+            2358,
+            -91
+          ],
+          "radius": 60,
+          "nearest": 2
+        },
+        {
+          "do": "lab",
+          "op": "outgrowFrames",
+          "seconds": 20,
+          "speed": 1,
+          "outgrow": true
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 90
+        },
+        {
+          "do": "shot",
+          "name": "circles-after",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3104,
+              47
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "circles-after-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3104,
+              47
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "shot",
+          "name": "blocks-after",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              4866,
+              -110
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "blocks-after-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              4866,
+              -110
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "shot",
+          "name": "triangles-after",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              5296,
+              -145
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "triangles-after-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              5296,
+              -145
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "shot",
+          "name": "wedges-after",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              6332,
+              -106
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "wedges-after-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              6332,
+              -106
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "shot",
+          "name": "curves-after",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3848,
+              -201
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "curves-after-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              3848,
+              -201
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "shot",
+          "name": "grid-after",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              2358,
+              -91
+            ],
+            "abs": true,
+            "view": "top",
+            "distance": 170
+          }
+        },
+        {
+          "do": "shot",
+          "name": "grid-after-oblique",
+          "shotMode": "render",
+          "camera": {
+            "target": "point",
+            "at": [
+              2358,
+              -91
+            ],
+            "abs": true,
+            "view": "oblique",
+            "distance": 150
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 0,
+          "label": "off"
+        }
+      ]
+    }
+  ]
+}
