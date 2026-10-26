@@ -3,10 +3,9 @@
 	<ModId Value="163638" />
 	<DisplayName Value="Placemaker" />
 	<ShortDescription Value="Your plot's edges connect to each other and to the roads around them. Draw any area and turn it into a park, parking lot, plaza, beach or other amenity. Preview it, tweak it, build it." />
-	<!--Same text as docs/publish/MOD-PAGE.md. Markdown; no leading spaces; &amp; for "and" signs-->
+	<!--The mod page as the user keeps it: every upload sends exactly this (Properties/ModPage/LongDescription.md, Thumbnail.jpg, Screenshots/). Change the page here, not on the website: the next upload overwrites the website-->
 	<LongDescription>
 [Here's a 4-minute showcase.](https://www.youtube.com/watch?v=Fa5TWC3B-Ps)
-
 
 ### What you can make
 
@@ -21,19 +20,16 @@
 - **Industrial**: container yards, car yards, junk yards and industrial works
 - **Zoning**: Specify percentage breakdown of zone types and min and max lot sizes, and it auto zones for you in your selection.
 
-
 ### ⚠️ Early access (please read this bit)
 
 - I consider **anarchy** essentially required to work with this mod, though it's not necessarily a requirement.
-
 - This mod won't stop you building dumb looking stuff. I didn't want to box anyone in. So **double check your selection before you hit Build.**
 
 Expect some bugs. Use it at your own risk.
 
 **Back up your save before you try it.**
 
-Built for game version **1.6.\***
-
+Built for game version **1.6.***
 
 ### Will it wreck my save?
 
@@ -41,7 +37,6 @@ It wont.
 
 - I've tested it extensively, but obviously I can't speak for every other mod compatibility.
 - Still. **Make a backup.**
-
 
 ### Can I remove it?
 
@@ -53,39 +48,32 @@ Yep. Your save still loads without it.
 
 2. Select an area with **Points**, **Paint bucket** or **Paint area**. More on those below.
 
-   You get three tools.
+You get three tools.
 
-   - **Points**: click the corners. It snaps to curbs, buildings, right angles and road nodes.
-   - **Paint bucket**: click a city block to fill it. **Shift+click** adds more.
-   - **Paint area**: just brush it on. **Right-click** erases.
+- **Points**: click the corners. It snaps to curbs, buildings, right angles and road nodes.
+- **Paint bucket**: click a city block to fill it. **Shift+click** adds more.
+- **Paint area**: just brush it on. **Right-click** erases.
 
-   You also choose what the selection stops at. Roads, paths, water, buildings, zoning and more.
+You also choose what the selection stops at. Roads, paths, water, buildings, zoning and more.
 
 3. Under **Pick what to make**, choose a category. Then a type and a style.
 
-   Every type has a few styles to pick from. Don't love one? Mess with it.
+Every type has a few styles to pick from. Don't love one? Mess with it.
 
 4. Check out the live preview. Tweak whatever you want.
 
-   Layout, paths, planting, surfaces, the works. Then save it as your own if you want.
+Layout, paths, planting, surfaces, the works. Then save it as your own if you want.
 
 5. Hit **Build**. Done!
-
 
 ### Outgrow (beta)
 
 - **Outgrow** settings can be found using a button at the top of the panel. It lets lots connect other to lots and roads that are nearby.
-
 - There are many different styles of outgrow. You can mix and match any zone type with any outgrow type, and set their defaults.
-
 - You can also paint an outgrow types on to the world with the **Outgrow Paint** button.
-
 - It's **off by default** for new buildings.
-
 - Want to try it? Turn it on for certain buildings. Or use the Outgrow brush on an area.
-
 - **Careful with outgrowing every building on a huge save.** It is to iterate through each lot and the have to calculate how to connect to each other. It can take a while on larger saves, but once it's caught up, its smooth. I haven't tested this on saves beyond 1 million population.
-
 
 ### Found a bug?
 
@@ -93,37 +81,35 @@ Tell me on [GitHub](https://github.com/jackwrichards/placemaker/issues). Throw i
 
 It's in AppData\LocalLow\Colossal Order\Cities Skylines II\Logs. The log helps me a ton.
 
-
 ### Credits
 
 Parts of Placemaker are built on these awesome mods. Go show them some love:
 
-**Parking** has been overhauled, but some code ported from **Parking Lot Tool**, Copyright (c) 2026 KruemelGames, GPL-3.0 https://github.com/KruemelGames/ParkingLotTool
+**Parking** has been overhauled, but some code ported from **Parking Lot Tool**, Copyright (c) 2026 KruemelGames, GPL-3.0 [https://github.com/KruemelGames/ParkingLotTool](https://github.com/KruemelGames/ParkingLotTool)
 
-Includes **Harmony 2.2.2**, Copyright (c) 2017 Andreas Pardeike, MIT (see 0Harmony-LICENSE.txt) https://github.com/pardeike/Harmony
+Includes **Harmony 2.2.2**, Copyright (c) 2017 Andreas Pardeike, MIT (see 0Harmony-LICENSE.txt) [https://github.com/pardeike/Harmony](https://github.com/pardeike/Harmony)
 
 **Placemaker** Licensed under the GNU General Public License v3.0
-
 
 Have fun :)
 	</LongDescription>
 	<!--A missing picture is silently replaced by a default one: add it before uploading-->
-	<Thumbnail Value="Properties/Thumbnail.png" />
+	<Thumbnail Value="Properties/Thumbnail.jpg" />
 	<!--At most 10 (Paradox Mods refuses more): roads first, then one picture per category, related types paired; settings pills from the panel or the preset-->
-	<Screenshot Value="Properties/Screenshots/01-streets.jpg" />
-	<Screenshot Value="Properties/Screenshots/02-street-patterns.jpg" />
-	<Screenshot Value="Properties/Screenshots/03-preview.jpg" />
-	<Screenshot Value="Properties/Screenshots/04-parking-lot.jpg" />
-	<Screenshot Value="Properties/Screenshots/05-shops.jpg" />
-	<Screenshot Value="Properties/Screenshots/06-parks.jpg" />
-	<Screenshot Value="Properties/Screenshots/07-sports-park.jpg" />
-	<Screenshot Value="Properties/Screenshots/08-nature.jpg" />
-	<Screenshot Value="Properties/Screenshots/09-beach.jpg" />
-	<Screenshot Value="Properties/Screenshots/10-farms.jpg" />
+	<Screenshot Value="Properties/Screenshots/01.jpg" />
+	<Screenshot Value="Properties/Screenshots/02.jpg" />
+	<Screenshot Value="Properties/Screenshots/03.jpg" />
+	<Screenshot Value="Properties/Screenshots/04.jpg" />
+	<Screenshot Value="Properties/Screenshots/05.jpg" />
+	<Screenshot Value="Properties/Screenshots/06.jpg" />
+	<Screenshot Value="Properties/Screenshots/07.jpg" />
+	<Screenshot Value="Properties/Screenshots/08.jpg" />
+	<Screenshot Value="Properties/Screenshots/09.jpg" />
+	<Screenshot Value="Properties/Screenshots/10.jpg" />
 	<!--"Code Mod" is added by the publisher itself-->
 	<Tag Value="Code Mod" />
-	<ForumLink Value="" />
-	<ModVersion Value="0.3.2" />
+	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/placemaker.1946787/" />
+	<ModVersion Value="0.3.3" />
 	<GameVersion Value="1.6.*" />
 	<ChangeLog Value="- Changed: the Zoning tool always zones empty land. &quot;Only edit existing&quot; is gone: use Outgrow's painter for existing buildings.&#10;- New: a note in the Zoning tool. It places vanilla zoning, the same as zoning by hand. Outgrow is a separate feature." />
 	<ExternalLink Type="youtube" Url="https://www.youtube.com/watch?v=Fa5TWC3B-Ps" />

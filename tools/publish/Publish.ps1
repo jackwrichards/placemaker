@@ -11,21 +11,22 @@
   The uploader logs in with the Paradox account last signed in in the game (it never takes a password here).
 
     -Command Publish     the first upload; ModId must be empty. The new id is written back into the config.
-    -Command NewVersion  a new version of the mod's files; needs ModId, a new ModVersion and a ChangeLog. Sends only those:
-                         the page (thumbnail, screenshots, descriptions, links) stays as it is on the website. Not the
-                         game's uploader (it writes every page field from this config, and its own placeholder
-                         thumbnail when none is named): tools/publish/NewVersion, which starts from the live page and
-                         changes only the files, version and changelog, then reads the page back.
-    -Command Update      the page only (text, pictures, links, AccessLevel); the files stay as they are. REFUSED unless
-                         -OverwritePage: the page is the user's, kept up on the website (forum link, pictures, text);
-                         this config's copy of it is old and would replace all of it.
-    -StageOnly           build and stage, print what would go up, upload nothing (NewVersion: also reads the live page
-                         and prints what would be sent back).
+    -Command NewVersion  a new version of the mod's files; needs ModId, a new ModVersion and a ChangeLog.
+    -Command Update      the page only (text, pictures, links, AccessLevel); the files stay as they are.
+    -StageOnly           build and stage, print the page that would go up, upload nothing.
+    -PageApproved        the user has seen that page (-StageOnly) and said yes: without it nothing is uploaded.
+
+  THE PAGE: every upload sends the whole mod page with it (Paradox keeps a page per version; there is no files-only
+  upload). So the page lives here, as the user keeps it: Properties\PublishConfiguration.xml (name, short description,
+  links, forum link, tags), Properties\ModPage\LongDescription.md (the description, copied into the config),
+  Properties\Thumbnail.jpg and Properties\Screenshots\01-10.jpg. An edit made on the website is overwritten by the next
+  upload: the page is changed here. (0.3.0 sent an old copy of the page; 0.3.2 sent the copy the upload API reads back,
+  which is not the page the user edits on the website. Both rolled the user's page back, 26 Oct.)
 #>
 param(
     [ValidateSet('Publish', 'NewVersion', 'Update')][string]$Command = 'Publish',
     [switch]$StageOnly,
-    [switch]$OverwritePage
+    [switch]$PageApproved
 )
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -49,12 +50,13 @@ $pictures = @($p.Thumbnail.Value) + @($p.Screenshot | ForEach-Object { $_.Value 
 $shots = @($p.Screenshot | Where-Object { $_.Value })
 if ($shots.Count -gt 10) { $problems += "$($shots.Count) screenshots: Paradox Mods takes at most 10" }
 foreach ($pic in $pictures) { if ($pic -and -not (Test-Path -LiteralPath (Join-Path $root $pic))) { $problems += "missing picture: $pic" } }
-# The mod page belongs to the user (they edit it on the website): only an explicit -OverwritePage replaces it.
-if ($Command -eq 'Update' -and -not $OverwritePage) { $problems += 'Update replaces the whole mod page (pictures, text, forum link) with this config''s old copy; the user keeps the page on the website. Change it there, or pass -OverwritePage if the user asked for exactly that' }
-# Every upload replaces the page: a new version carries its own full page (description, pictures, links), and the page
-# the upload API reads back is not the one the user edits on the website (0.3.2, 26 Oct: an old copy went up, the user's
-# pictures, thumbnail and forum link were rolled back). No upload from here until a way is proven that leaves the page.
-if (-not $StageOnly) { $problems += 'uploads are blocked: every upload replaces the mod page with an old copy (0.3.2, 26 Oct). Build with -StageOnly; the user uploads' }
+# The description sent is Properties\ModPage\LongDescription.md, word for word
+$md = Join-Path $root 'Properties\ModPage\LongDescription.md'
+if (-not (Test-Path -LiteralPath $md)) { $problems += 'missing Properties\ModPage\LongDescription.md' }
+elseif ((Get-Content -Raw -Encoding utf8 -LiteralPath $md).Replace("`r`n", "`n").Trim() -ne "$($p.LongDescription)".Replace("`r`n", "`n").Trim()) { $problems += 'the description in PublishConfiguration.xml is not Properties\ModPage\LongDescription.md: copy it in' }
+if (-not $p.ForumLink.Value) { $problems += 'no ForumLink: the upload would clear the forum link on the page' }
+# Every upload replaces the whole page with this one: only after the user said yes to it
+if (-not $StageOnly -and -not $PageApproved) { $problems += 'every upload replaces the whole mod page with this one: show it with -StageOnly, and upload with -PageApproved only after the user said yes to it' }
 if ($problems) { $problems | ForEach-Object { Write-Host "STOP: $_" }; exit 1 }
 
 # --- a fresh release build and the content folder ---
@@ -77,8 +79,17 @@ if ($Command -ne 'Update') {
     Write-Host "content: $($files.Count) files, $mb MB, Placemaker $version"
     Get-ChildItem -LiteralPath $content -Force | ForEach-Object { Write-Host "  $($_.Name)" }
 }
-Write-Host "page: $($p.DisplayName.Value) $($p.ModVersion.Value), $access, $($pictures.Count) pictures, command $Command"
-if ($StageOnly -and $Command -ne 'NewVersion') { Write-Host 'stage only: nothing uploaded'; exit 0 }
+Write-Host "THE PAGE THAT GOES UP (it replaces the whole page on the website):"
+Write-Host "  name: $($p.DisplayName.Value), version $($p.ModVersion.Value), game $($p.GameVersion.Value), $access"
+Write-Host "  short description: $($p.ShortDescription.Value)"
+Write-Host "  description: Properties\ModPage\LongDescription.md, $("$($p.LongDescription)".Trim().Length) chars"
+Write-Host "  thumbnail: $($p.Thumbnail.Value)"
+$shots | ForEach-Object { Write-Host "  picture: $($_.Value)" }
+Write-Host "  forum link: $($p.ForumLink.Value)"
+@($p.ExternalLink) | ForEach-Object { Write-Host "  link: $($_.Type) $($_.Url)" }
+@($p.Tag) | ForEach-Object { Write-Host "  tag: $($_.Value)" }
+Write-Host "  changelog: $("$($p.ChangeLog.Value)$($p.ChangeLog.InnerText)".Trim())"
+if ($StageOnly) { Write-Host 'stage only: nothing uploaded'; exit 0 }
 
 # --- the upload ---
 # The uploader and the game share one saved Paradox login (.pdxsdk): an upload while a game runs (the user's or the
@@ -87,26 +98,7 @@ if (Get-Process Cities2 -ErrorAction SilentlyContinue) { Write-Host 'STOP: a gam
 $publisher = $env:CSII_MODPUBLISHERPATH
 if (-not $publisher) { $publisher = [Environment]::GetEnvironmentVariable('CSII_MODPUBLISHERPATH', 'User') }
 if (-not $publisher -or -not (Test-Path -LiteralPath $publisher)) { Write-Host "STOP: ModPublisher not found (CSII_MODPUBLISHERPATH = '$publisher')"; exit 1 }
-# NewVersion: the files, version and changelog only, the page left as the user made it on the website. The game's
-# uploader cannot do that (it writes every page field from this config; the 0.3.0 upload, 26 Oct, wiped the user's
-# thumbnail, pictures and forum link): tools/publish/NewVersion starts from the live page instead.
-if ($Command -eq 'NewVersion') {
-    $tool = Join-Path $root 'bin\Publish\newversion-tool'
-    $env:CSII_MODPUBLISHERPATH = $publisher
-    & dotnet build (Join-Path $root 'tools\publish\NewVersion\NewVersion.csproj') -c Release -o $tool -nologo -v:minimal
-    if ($LASTEXITCODE -ne 0) { Write-Host 'STOP: the NewVersion tool did not build'; exit 1 }
-    $changes = Join-Path $root 'bin\Publish\changelog.txt'
-    [IO.File]::WriteAllText($changes, "$($p.ChangeLog.Value)$($p.ChangeLog.InnerText)".Trim(), (New-Object Text.UTF8Encoding $false))
-    $toolArgs = @($modId, "$($p.ModVersion.Value)", $changes, $content)
-    if ($StageOnly) { $toolArgs += '--dry-run' }
-    $out = & dotnet (Join-Path $tool 'NewVersion.dll') @toolArgs 2>&1 | ForEach-Object { "$_" }
-    $code = $LASTEXITCODE
-    $out | ForEach-Object { Write-Host $_ }
-    $log = Join-Path $root "bin\Publish\publish-$(Get-Date -Format yyyyMMdd-HHmmss).log"
-    $out | Set-Content -Encoding utf8 -LiteralPath $log
-    Write-Host "NewVersion exit code $code; its output is in $log"
-    exit $code
-}
+# The game's uploader sends this config's whole page (above) with the files
 $send = $config
 Push-Location $root   # the config's picture paths are relative to the project folder
 try {
