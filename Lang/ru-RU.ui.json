@@ -449,5 +449,11 @@
   "Placemaker.UI.Review.UpkeepTip": "Сколько город платит за это каждый месяц.",
   "Placemaker.UI.Review.UpkeepPark": "Включает содержание парка: ¢{0} в месяц, как у такого же хорошего ванильного парка.",
   "Placemaker.UI.ParkStats.Ungrouped": "Не сгруппировано в один объект: нет показателей парка и содержания. Включите «Объединить в один объект», чтобы сделать парк.",
-  "Placemaker.UI.ParkStats.UngroupedShort": "Не сгруппировано: без показателей"
+  "Placemaker.UI.ParkStats.UngroupedShort": "Не сгруппировано: без показателей",
+  "Placemaker.UI.Polish.BrushPaint": "Рисовать",
+  "Placemaker.UI.Polish.BrushPaintTip5": "Кисть: здания, по которым вы проводите, получают этот тип Outgrow. Правый клик отменяет мазок.",
+  "Placemaker.UI.Polish.BrushOff": "Выкл.",
+  "Placemaker.UI.Polish.BrushOffTip": "Кисть: здания, по которым вы проводите, теряют Outgrow (тип Outgrow «Выкл.»).",
+  "Placemaker.UI.Polish.BrushZone": "По зоне",
+  "Placemaker.UI.Polish.BrushZoneTip": "Кисть: здания, по которым вы проводите, снова получают тип Outgrow своей зоны по умолчанию."
 }

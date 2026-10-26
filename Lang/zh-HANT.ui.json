@@ -449,5 +449,11 @@
   "Placemaker.UI.Review.UpkeepTip": "城市每月為此支付的費用。",
   "Placemaker.UI.Review.UpkeepPark": "包含公園營運費：每月 ¢{0}，與同等原版公園相同。",
   "Placemaker.UI.ParkStats.Ungrouped": "未群組為一個素材：沒有公園數據，也沒有維護費。開啟「群組為一個素材」即可成為公園。",
-  "Placemaker.UI.ParkStats.UngroupedShort": "未組合：無公園數據"
+  "Placemaker.UI.ParkStats.UngroupedShort": "未組合：無公園數據",
+  "Placemaker.UI.Polish.BrushPaint": "繪製",
+  "Placemaker.UI.Polish.BrushPaintTip5": "筆刷：拖過的建築獲得此外擴類型。右鍵放棄這一筆。",
+  "Placemaker.UI.Polish.BrushOff": "關閉",
+  "Placemaker.UI.Polish.BrushOffTip": "筆刷：拖過的建築取消外擴（外擴類型為關閉）。",
+  "Placemaker.UI.Polish.BrushZone": "功能區預設",
+  "Placemaker.UI.Polish.BrushZoneTip": "筆刷：拖過的建築恢復其功能區的預設外擴類型。"
 }

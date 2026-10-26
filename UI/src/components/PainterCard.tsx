@@ -732,7 +732,10 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
     const st = p.stats;
     const L = (id: string, en: string, args?: (string | number)[]) => t("Placemaker.UI.Polish." + id, en, args);
     const zones: PolishZone[] = p.zones ?? [];
-    const brushType = brushLook || p.brushLook || (editable(p, p.theme) ? p.theme : "houses");
+    // the Paint brush's type (never Off: Off is its own brush)
+    const brushType = brushLook || (p.brushLook && p.brushLook !== "off" ? p.brushLook : "") || (editable(p, p.theme) ? p.theme : "houses");
+    const paintingOff = p.brush === "paint" && p.brushLook === "off";
+    const painting = p.brush === "paint" && !paintingOff;
     const editLook = (id: string) => {
         setTab("edit");
         setPicking(null);
@@ -745,9 +748,9 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
     const editFp = tab === "edit" ? JSON.stringify([p.theme, p.looks, p.values, p.lookValues, p.lookTheme, p.lookSavedTheme, p.modified, p.swatches, st?.looks?.[p.theme ?? ""], p.preview?.gardens]) : "";
     return (
         <div className={s.cityEmbedded} data-testid="polish-city" onMouseDown={(e) => e.stopPropagation()}>
-                {/* one card, two rows (the user, 25 Oct: "outgrow on off, and then a paint button and erase button, and then a
-                    dropdown to the right of that"). 1: this city's one switch (every building keeps its outgrow type), Paint or
-                    Erase (its zone's default again) and the type painted. 2: what the map shows, and the count. */}
+                {/* one card, two rows, vertical room above all (the user, 26 Oct). 1: this city's one switch (every building
+                    keeps its outgrow type), then what the map shows and the count. 2: the three brushes (Paint with its type,
+                    Off, Zone default), then the brush size while one is on. The type list opens under them. */}
                 <div className={classNames(s.rows, { [s.rowsOff]: !p.featureOn })} data-testid="polish-master">
                     <div className={s.crow}>
                         <div className={s.crowLabel}>{L("RowOutgrow", "Outgrow")}</div>
@@ -760,33 +763,7 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                                 { value: "hide", label: L("Off", "Off"), description: L("ShowOffTip", "Every building as the game made it; each keeps its outgrow type for later") },
                             ]}
                         />
-                        <div className={s.crowGap} />
-                        <div className={s.toolGroup} data-testid="polish-brush">
-                            <Btn icon="brush" iconSize={11} label={L("BrushPaint", "Paint")} selected={p.brush === "paint"} title={L("BrushPaintTip4", "Drag over buildings: they get this outgrow type. Right-click drops the stroke.")} onClick={() => act.polishCity("brush", p.brush === "paint" ? "off" : "paint:" + brushType)} testId="polish-brush-paint" />
-                            <Btn icon="reset" iconSize={11} label={L("BrushErase", "Erase")} selected={p.brush === "erase"} title={L("BrushEraseTip4", "Drag over buildings: they get their zone's default outgrow type back")} onClick={() => act.polishCity("brush", p.brush === "erase" ? "off" : "erase")} testId="polish-brush-erase" />
-                        </div>
-                        <TypeButton p={p} id={brushType} on={picking === "brush"} onClick={() => setPicking(picking === "brush" ? null : "brush")} testId="polish-brush-type" />
-                    </div>
-                    {p.brush ? (
-                        <div className={s.crowSub} data-testid="polish-brush-size">
-                            <Slider testId="polish-brush-size-slider" value={Math.round(p.brushSize ?? 40)} min={8} max={200} step={2} unit=" m" onPreview={() => {}} onCommit={(v) => act.polishCity("brushSize", String(v))} />
-                        </div>
-                    ) : null}
-                    {picking === "brush" ? (
-                        <div className={s.crowSub}>
-                            <LookChips
-                                p={p}
-                                value={brushType}
-                                testId="polish-brush-pick"
-                                onPick={(v) => {
-                                    setBrushLook(v);
-                                    if (p.brush === "paint") act.polishCity("brush", "paint:" + v);
-                                    setPicking(null);
-                                }}
-                            />
-                        </div>
-                    ) : null}
-                    <div className={s.crow} data-testid="polish-lens">
+                        <div className={s.flex} />
                         <div className={s.crowLabel}>{L("RowMap", "Map")}</div>
                         <Segmented
                             testId="polish-lens-mode"
@@ -804,7 +781,6 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                                 { value: "types", label: L("LensTypes", "Types"), description: L("LensTypesTip", "Every building in its outgrow type's color") },
                             ]}
                         />
-                        <div className={s.flex} />
                         <div className={s.crowCount} data-testid="polish-summary">
                             {`${num(city.polished)} / ${num(city.total)}`}
                             {city.waiting > 0 ? (
@@ -814,6 +790,37 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                             ) : null}
                         </div>
                     </div>
+                    {/* row 2: the three brushes, the brush size beside them while one is on */}
+                    <div className={s.crow}>
+                        {/* three brushes, each named by what it puts down (the user, 26 Oct, layout C): the type picked, Off
+                            (no outgrow: what "Erase" should have been), or each building's zone default (the old Erase) */}
+                        <div className={s.toolGroup} data-testid="polish-brush">
+                            <Btn icon="brush" iconSize={11} label={t("Placemaker.UI.Polish.BrushPaint", "Paint")} selected={painting} title={t("Placemaker.UI.Polish.BrushPaintTip5", "Brush: buildings you drag over get this outgrow type. Right-click drops the stroke.")} onClick={() => act.polishCity("brush", painting ? "off" : "paint:" + brushType)} testId="polish-brush-paint" />
+                            <TypeButton p={p} id={brushType} on={picking === "brush"} onClick={() => setPicking(picking === "brush" ? null : "brush")} testId="polish-brush-type" />
+                            <Btn icon="brush" iconSize={11} label={t("Placemaker.UI.Polish.BrushOff", "Off")} selected={paintingOff} title={t("Placemaker.UI.Polish.BrushOffTip", "Brush: buildings you drag over lose their outgrow (outgrow type Off).")} onClick={() => act.polishCity("brush", paintingOff ? "off" : "paint:off")} testId="polish-brush-off" />
+                            <Btn icon="brush" iconSize={11} label={t("Placemaker.UI.Polish.BrushZone", "Zone default")} selected={p.brush === "erase"} title={t("Placemaker.UI.Polish.BrushZoneTip", "Brush: buildings you drag over get their zone's default outgrow type back.")} onClick={() => act.polishCity("brush", p.brush === "erase" ? "off" : "erase")} testId="polish-brush-zone" />
+                        </div>
+                        <div className={s.flex} />
+                        {p.brush ? (
+                            <div className={s.brushSize} data-testid="polish-brush-size">
+                                <Slider testId="polish-brush-size-slider" value={Math.round(p.brushSize ?? 40)} min={8} max={200} step={2} unit=" m" onPreview={() => {}} onCommit={(v) => act.polishCity("brushSize", String(v))} />
+                            </div>
+                        ) : null}
+                    </div>
+                    {picking === "brush" ? (
+                        <div className={s.crowSub}>
+                            <LookChips
+                                p={p}
+                                value={brushType}
+                                testId="polish-brush-pick"
+                                onPick={(v) => {
+                                    setBrushLook(v);
+                                    if (painting) act.polishCity("brush", "paint:" + v);
+                                    setPicking(null);
+                                }}
+                            />
+                        </div>
+                    ) : null}
                 </div>
                 <ScrollArea className={pn.bodyWrap} testId="polish-city-body">
                     <div className={classNames(pn.body, s.cityBody)}>

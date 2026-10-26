@@ -449,5 +449,11 @@
   "Placemaker.UI.Review.UpkeepTip": "도시가 매달 내는 금액입니다.",
   "Placemaker.UI.Review.UpkeepPark": "공원 운영비 월 ¢{0} 포함(같은 수준의 바닐라 공원과 같음).",
   "Placemaker.UI.ParkStats.Ungrouped": "하나의 에셋으로 묶지 않아 공원 수치도 유지비도 없습니다. 공원으로 만들려면 \"하나의 에셋으로 묶기\"를 켜세요.",
-  "Placemaker.UI.ParkStats.UngroupedShort": "묶지 않음: 공원 수치 없음"
+  "Placemaker.UI.ParkStats.UngroupedShort": "묶지 않음: 공원 수치 없음",
+  "Placemaker.UI.Polish.BrushPaint": "칠하기",
+  "Placemaker.UI.Polish.BrushPaintTip5": "브러시: 드래그한 건물이 이 확장 유형을 받습니다. 우클릭하면 획을 취소합니다.",
+  "Placemaker.UI.Polish.BrushOff": "끄기",
+  "Placemaker.UI.Polish.BrushOffTip": "브러시: 드래그한 건물의 확장을 없앱니다(확장 유형 끄기).",
+  "Placemaker.UI.Polish.BrushZone": "구역 기본값",
+  "Placemaker.UI.Polish.BrushZoneTip": "브러시: 드래그한 건물이 구역의 기본 확장 유형으로 돌아갑니다."
 }

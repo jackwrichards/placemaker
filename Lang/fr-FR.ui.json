@@ -449,5 +449,11 @@
   "Placemaker.UI.Review.UpkeepTip": "Ce que la ville paie chaque mois.",
   "Placemaker.UI.Review.UpkeepPark": "Inclut le coût du parc : ¢{0} par mois, comme un parc vanilla aussi bon.",
   "Placemaker.UI.ParkStats.Ungrouped": "Pas groupé en un élément : ni statistiques de parc ni entretien. Active « Grouper en un seul objet » pour en faire un parc.",
-  "Placemaker.UI.ParkStats.UngroupedShort": "Non groupé : pas de stats"
+  "Placemaker.UI.ParkStats.UngroupedShort": "Non groupé : pas de stats",
+  "Placemaker.UI.Polish.BrushPaint": "Peindre",
+  "Placemaker.UI.Polish.BrushPaintTip5": "Pinceau : les bâtiments survolés reçoivent ce type d'Outgrow. Clic droit annule le trait.",
+  "Placemaker.UI.Polish.BrushOff": "Désactivé",
+  "Placemaker.UI.Polish.BrushOffTip": "Pinceau : les bâtiments survolés perdent leur Outgrow (type d'Outgrow Désactivé).",
+  "Placemaker.UI.Polish.BrushZone": "Défaut de zone",
+  "Placemaker.UI.Polish.BrushZoneTip": "Pinceau : les bâtiments survolés retrouvent le type d'Outgrow par défaut de leur zone."
 }

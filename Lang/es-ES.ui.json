@@ -449,5 +449,11 @@
   "Placemaker.UI.Review.UpkeepTip": "Lo que la ciudad paga por ello cada mes.",
   "Placemaker.UI.Review.UpkeepPark": "Incluye el coste del parque: ¢{0} al mes, como un parque vanilla igual de bueno.",
   "Placemaker.UI.ParkStats.Ungrouped": "No agrupado como un recurso: sin estadísticas de parque ni mantenimiento. Activa «Agrupar como un solo recurso» para que sea un parque.",
-  "Placemaker.UI.ParkStats.UngroupedShort": "Sin agrupar: sin estadísticas"
+  "Placemaker.UI.ParkStats.UngroupedShort": "Sin agrupar: sin estadísticas",
+  "Placemaker.UI.Polish.BrushPaint": "Pintar",
+  "Placemaker.UI.Polish.BrushPaintTip5": "Pincel: los edificios por los que arrastras reciben este tipo de Outgrow. Clic derecho descarta el trazo.",
+  "Placemaker.UI.Polish.BrushOff": "Desactivado",
+  "Placemaker.UI.Polish.BrushOffTip": "Pincel: los edificios por los que arrastras pierden su Outgrow (tipo de Outgrow Desactivado).",
+  "Placemaker.UI.Polish.BrushZone": "Por zona",
+  "Placemaker.UI.Polish.BrushZoneTip": "Pincel: los edificios por los que arrastras recuperan el tipo de Outgrow por defecto de su zona."
 }

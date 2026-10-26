@@ -449,5 +449,11 @@
   "Placemaker.UI.Review.UpkeepTip": "Was die Stadt dafür jeden Monat zahlt.",
   "Placemaker.UI.Review.UpkeepPark": "Enthält die Betriebskosten des Parks: ¢{0} im Monat, wie bei einem gleich guten Vanilla-Park.",
   "Placemaker.UI.ParkStats.Ungrouped": "Nicht als ein Objekt gruppiert: keine Parkwerte und keine Unterhaltskosten. Schalte „Als ein Asset gruppieren“ ein, damit es ein Park wird.",
-  "Placemaker.UI.ParkStats.UngroupedShort": "Nicht gruppiert: keine Parkwerte"
+  "Placemaker.UI.ParkStats.UngroupedShort": "Nicht gruppiert: keine Parkwerte",
+  "Placemaker.UI.Polish.BrushPaint": "Malen",
+  "Placemaker.UI.Polish.BrushPaintTip5": "Pinsel: Gebäude, über die du ziehst, bekommen diesen Outgrow-Typ. Rechtsklick verwirft den Strich.",
+  "Placemaker.UI.Polish.BrushOff": "Aus",
+  "Placemaker.UI.Polish.BrushOffTip": "Pinsel: Gebäude, über die du ziehst, verlieren ihr Outgrow (Outgrow-Typ Aus).",
+  "Placemaker.UI.Polish.BrushZone": "Zonen-Standard",
+  "Placemaker.UI.Polish.BrushZoneTip": "Pinsel: Gebäude, über die du ziehst, bekommen wieder den Standard-Outgrow-Typ ihrer Zone."
 }

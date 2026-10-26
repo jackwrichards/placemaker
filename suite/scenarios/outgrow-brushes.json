@@ -1,0 +1,217 @@
+{
+  "_about": "The Outgrow brushes (the user, 26 Oct, layout C: Paint with its type, Off, Zone default): a street of houses grows outgrown; the window with the brush row; the Off brush over half the street (those houses lose their outgrow: the audit counts them), then the Zone default brush over the same half (they get their zone's type back). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-brushes.json -Who outgrow-brushes",
+  "scenarios": [
+    {
+      "id": "outgrow-brushes",
+      "land": {
+        "shape": "rect",
+        "size": [
+          360,
+          260
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "length": 300,
+          "at": [
+            0,
+            0
+          ],
+          "zone": "NA Residential Low"
+        },
+        {
+          "do": "grow",
+          "seconds": 60
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowAudit",
+          "label": "grown"
+        },
+        {
+          "do": "polish",
+          "click": "panel-mode-outgrow",
+          "shot": "window",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "polish-brush-off",
+          "shot": "off-brush",
+          "shotMode": "ui",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 420
+          }
+        },
+        {
+          "do": "locale",
+          "locale": "de-DE"
+        },
+        {
+          "do": "shot",
+          "name": "off-brush-de",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "ru-RU"
+        },
+        {
+          "do": "shot",
+          "name": "off-brush-ru",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "en-US"
+        },
+        {
+          "do": "area",
+          "tool": "outgrowBrush",
+          "stroke": [
+            [
+              -150,
+              20
+            ],
+            [
+              0,
+              20
+            ]
+          ],
+          "size": 60
+        },
+        {
+          "do": "area",
+          "tool": "outgrowBrush",
+          "stroke": [
+            [
+              -150,
+              -20
+            ],
+            [
+              0,
+              -20
+            ]
+          ],
+          "size": 60
+        },
+        {
+          "do": "wait",
+          "seconds": 4
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowAudit",
+          "label": "after the Off brush (west half)"
+        },
+        {
+          "do": "shot",
+          "name": "after-off",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 420
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "polish",
+          "click": "polish-brush-zone"
+        },
+        {
+          "do": "area",
+          "tool": "outgrowBrush",
+          "stroke": [
+            [
+              -150,
+              20
+            ],
+            [
+              0,
+              20
+            ]
+          ],
+          "size": 60
+        },
+        {
+          "do": "area",
+          "tool": "outgrowBrush",
+          "stroke": [
+            [
+              -150,
+              -20
+            ],
+            [
+              0,
+              -20
+            ]
+          ],
+          "size": 60
+        },
+        {
+          "do": "wait",
+          "seconds": 4
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowAudit",
+          "label": "after the Zone default brush (west half)"
+        },
+        {
+          "do": "shot",
+          "name": "after-zone",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "top",
+            "distance": 420
+          },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

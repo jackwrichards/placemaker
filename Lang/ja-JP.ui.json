@@ -449,5 +449,11 @@
   "Placemaker.UI.Review.UpkeepTip": "都市が毎月支払う額です。",
   "Placemaker.UI.Review.UpkeepPark": "公園の運営費 ¢{0}/月 を含みます（同等のバニラ公園と同じ）。",
   "Placemaker.UI.ParkStats.Ungrouped": "1つのアセットにまとめていないため、公園の数値も維持費もありません。公園にするには「1つのアセットとしてまとめる」をオンにしてください。",
-  "Placemaker.UI.ParkStats.UngroupedShort": "まとめていない：数値なし"
+  "Placemaker.UI.ParkStats.UngroupedShort": "まとめていない：数値なし",
+  "Placemaker.UI.Polish.BrushPaint": "塗る",
+  "Placemaker.UI.Polish.BrushPaintTip5": "ブラシ: ドラッグした建物にこのOutgrowの種類を付けます。右クリックでストロークを取り消します。",
+  "Placemaker.UI.Polish.BrushOff": "オフ",
+  "Placemaker.UI.Polish.BrushOffTip": "ブラシ: ドラッグした建物のOutgrowを外します（Outgrowの種類オフ）。",
+  "Placemaker.UI.Polish.BrushZone": "区画の既定",
+  "Placemaker.UI.Polish.BrushZoneTip": "ブラシ: ドラッグした建物を区画の既定のOutgrowの種類に戻します。"
 }
