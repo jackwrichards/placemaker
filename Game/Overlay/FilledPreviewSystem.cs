@@ -98,7 +98,9 @@ namespace Placemaker.Game.Overlay
             if (layer.Mesh == null || layer.Signature != signature)
             {
                 layer.Signature = signature;
+                var sw = System.Diagnostics.Stopwatch.StartNew();
                 BuildMesh(layer, rings, convex);
+                if (sw.ElapsedMilliseconds > 15) Mod.Log.Info($"Placemaker fill layer {key}: {sw.ElapsedMilliseconds} ms, {rings?.Count ?? 0} rings, {(layer.Mesh != null ? layer.Mesh.vertexCount : 0)} vertices");
             }
             if (layer.Mesh == null) return;
             ApplyStyle(layer, color, priority);
@@ -233,7 +235,9 @@ namespace Placemaker.Game.Overlay
                 _stack.RemoveRange(n - 3, 3);
                 if (tris.Count / 3 >= MaxTriangles) return;
                 float pq = math.distance(p, q), qr = math.distance(q, r), rp = math.distance(r, p);
-                if (math.max(pq, math.max(qr, rp)) > MaxEdge)
+                float longest = math.max(pq, math.max(qr, rp));
+                // (sketch study) split only where the ground bends: a flat car park was 200,000 points at 8 m everywhere
+                if (longest > MaxEdge && !(longest <= MaxFlatEdge && FlatUnder(p, q, r, ref heights)))
                 {
                     if (pq >= qr && pq >= rp) { var m = (p + q) * 0.5f; Push(p, m, r); Push(m, q, r); }
                     else if (qr >= rp) { var m = (q + r) * 0.5f; Push(p, q, m); Push(p, m, r); }
@@ -246,6 +250,19 @@ namespace Placemaker.Game.Overlay
                 verts.Add(OnTerrain(r, ref heights, ref min, ref max));
                 tris.Add(i); tris.Add(i + 1); tris.Add(i + 2);
             }
+        }
+
+        /// <summary>Longest edge of a triangle kept whole on ground that does not bend under it.</summary>
+        private const float MaxFlatEdge = 48f;
+
+        /// <summary>The ground under the triangle is its own plane within 8 cm (edge middles and centre against the corners).</summary>
+        private static bool FlatUnder(float2 p, float2 q, float2 r, ref TerrainHeightData heights)
+        {
+            float H(float2 v) => TerrainUtils.SampleHeight(ref heights, new float3(v.x, 0f, v.y));
+            float hp = H(p), hq = H(q), hr = H(r);
+            const float tol = 0.08f;
+            return math.abs(H((p + q) * 0.5f) - (hp + hq) * 0.5f) < tol && math.abs(H((q + r) * 0.5f) - (hq + hr) * 0.5f) < tol
+                && math.abs(H((r + p) * 0.5f) - (hr + hp) * 0.5f) < tol && math.abs(H((p + q + r) / 3f) - (hp + hq + hr) / 3f) < tol;
         }
 
         /// <summary>Spans less than two subdivision edges: flat enough to follow the ground with its corners only.</summary>
