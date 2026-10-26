@@ -161,7 +161,7 @@ namespace Placemaker.Core.Build
         public readonly List<(int band, float2[] ring)> Heat = new List<(int, float2[])>();
 
         // Budgets for the panel picture (the overlay draws everything): far more than a panel can show.
-        public const int MaxTrees = 4000, MaxBushes = 3000, MaxStalls = 12000, MaxSmall = 3000, MaxHeat = 2000, MaxProps = 8000, MaxPaint = 400;
+        public const int MaxTrees = 4000, MaxBushes = 3000, MaxStalls = 12000, MaxSmall = 3000, MaxHeat = 2000, MaxProps = 8000, MaxPaint = 6000;
         public const float MaxStallSpan = 320f;
 
         public sealed class Input
@@ -196,21 +196,14 @@ namespace Placemaker.Core.Build
                 if (l.Count < 400) l.Add(p);
             }
             var aisles = new List<float2[]>();
-            int paintRings = 0;
+            var paints = new List<PlannedPaint>();
             var bayRects = new List<float2[]>();
             int bays = 0;
             bool grass = false, paved = false, water = false;
             foreach (var l in plan.Layers)
             {
                 if (l == null) continue;
-                // ground paint (the beach's sand, a yard's dirt): its outline in the texture's colour, strong paints only
-                foreach (var pt in l.Paint)
-                {
-                    if (pt?.Ring == null || pt.Ring.Length < 3 || pt.Strength < 0.4f || pt.Layer < 1 || pt.Layer > 4 || paintRings++ >= MaxPaint) continue;
-                    string pm = pt.Layer == 1 ? "paint:dry" : pt.Layer == 2 ? "paint:lush" : pt.Layer == 3 ? "paint:dirt" : "paint:sand";
-                    sp.Fills.Add((pm, Poly.To2D(pt.Ring)));
-                    if (pt.Layer >= 3) paved = true;
-                }
+                foreach (var pt in l.Paint) if (pt?.Ring != null && pt.Ring.Length >= 3) paints.Add(pt);
                 foreach (var s in l.Surfaces)
                 {
                     if (s?.Ring == null || s.Ring.Length < 3) continue;
@@ -282,6 +275,25 @@ namespace Placemaker.Core.Build
                     }
                 }
             }
+            // Ground paint (the beach's sand, a yard's dirt) as the game paints it: the paint field (edges, noise, gradients) where
+            // it is strong (3/4 and more), in 2 m steps; a whole-site worn tint or a fading gradient is not drawn (the game shows
+            // it faintly, the first cut drew it as a solid brown site)
+            if (paints.Count > 0)
+            {
+                try
+                {
+                    var stamps = PaintRaster.Build(paints, new PaintRasterOptions { Cell = 2f, Align = 2f, TileCells = 256, MaxStamps = 64, MaxCells = 1 << 18, MaxCell = 16f });
+                    foreach (var (layer, level, ring) in PaintRaster.PreviewRects(stamps, 4, 2f, MaxPaint))
+                    {
+                        // dirt and sand only: dry and lush grass are shades of the lawn (drawn, they mottled every park)
+                        if (level < 3 || layer < 3 || layer > 4) continue;
+                        sp.Fills.Add((layer == 1 ? "paint:dry" : layer == 2 ? "paint:lush" : layer == 3 ? "paint:dirt" : "paint:sand", ring));
+                        if (layer >= 3) paved = true;
+                    }
+                }
+                catch (Exception) { /* no paint shown rather than no site plan */ }
+            }
+
             // Stalls once every aisle is known (an aisle grid: a 3,573-space lot asked every aisle for every space)
             if (bayRects.Count > 0)
             {
