@@ -238,7 +238,8 @@ export const SitePlanPicture = ({ sp, w, h, hover, hidden, hiddenKey }: PicProps
             ) : null}
             <div className={s.scale}>
                 <div className={s.scaleBar} style={{ width: Math.round(bar * fr.pxPerM) + "px" }} />
-                <div className={s.scaleText}>{bar} m</div>
+                {/* one text piece with a no-break space: the game's view broke "50" and "m" apart */}
+                <div className={s.scaleText}>{bar + " m"}</div>
             </div>
         </>
     );
