@@ -11,7 +11,7 @@
   <PropertyGroup>
     <AssemblyName>Placemaker</AssemblyName>
     <RootNamespace>Placemaker</RootNamespace>
-    <Version>0.3.1</Version>
+    <Version>0.3.2</Version>
     <Configurations>Debug;Release</Configurations>
     <Nullable>disable</Nullable>
     <CS2ToolPath Condition="'$(CSII_TOOLPATH)' != ''">$(CSII_TOOLPATH)</CS2ToolPath>

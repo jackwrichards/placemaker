@@ -123,9 +123,9 @@ Have fun :)
 	<!--"Code Mod" is added by the publisher itself-->
 	<Tag Value="Code Mod" />
 	<ForumLink Value="" />
-	<ModVersion Value="0.3.1" />
+	<ModVersion Value="0.3.2" />
 	<GameVersion Value="1.6.*" />
-	<ChangeLog Value="- Fixed: Outgrow car parks have parked cars again.&#10;- Fixed: Outgrow car park bays are marked like real bays (open to the driveway, one line between bays).&#10;- Changed: every parked car in an Outgrow car park has its own colour; industry car parks have a few company cars alike.&#10;- Fixed: no more box trucks squeezed into car bays." />
+	<ChangeLog Value="- Changed: the Zoning tool always zones empty land. &quot;Only edit existing&quot; is gone: use Outgrow's painter for existing buildings.&#10;- New: a note in the Zoning tool. It places vanilla zoning, the same as zoning by hand. Outgrow is a separate feature." />
 	<ExternalLink Type="youtube" Url="https://www.youtube.com/watch?v=Fa5TWC3B-Ps" />
 	<ExternalLink Type="github" Url="https://github.com/jackwrichards/placemaker" />
 	<!--Public, Unlisted or Private, exactly as written (a typo falls back to Public). Made Public by the user on the website, 2026-10-17-->
