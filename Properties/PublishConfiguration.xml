@@ -109,7 +109,7 @@ Have fun :)
 	<!--"Code Mod" is added by the publisher itself-->
 	<Tag Value="Code Mod" />
 	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/placemaker.1946787/" />
-	<ModVersion Value="0.3.4" />
+	<ModVersion Value="0.3.5" />
 	<GameVersion Value="1.6.*" />
 	<ChangeLog Value="- Fixed: loading a city showed &quot;Data size mismatch when deserializing PolishCitySwitches&quot; (since 0.3.0), and the city lost its Outgrow settings, so every new building was outgrown. Cities load cleanly now and keep their Outgrow settings. Set them once more after updating, then save." />
 	<ExternalLink Type="youtube" Url="https://www.youtube.com/watch?v=Fa5TWC3B-Ps" />
