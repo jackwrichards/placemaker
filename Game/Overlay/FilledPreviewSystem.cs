@@ -166,6 +166,8 @@ namespace Placemaker.Game.Overlay
             layer.Material.SetBuffer(Shader.PropertyToID("colossal_OverlayCustomMeshBuffer"), layer.Data);
             // Vanilla surfaces draw at −100…−95; above them so the preview is visible over existing areas.
             layer.Material.SetFloat("_TransparentSortPriority", priority);
+            // the queue too: setting the priority alone does not reorder the material at run time (whole steps only)
+            layer.Material.renderQueue = _template.renderQueue + Mathf.RoundToInt(priority);
         }
 
         private void BuildMesh(Layer layer, IReadOnlyList<float3[]> rings, bool convex = false)
