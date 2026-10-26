@@ -81,7 +81,7 @@ export const StylePreview = ({ layer, preset }: { layer: string; preset: string 
                     </div>
                 ))}
             </div>
-            <div className={s.note}>{t("Placemaker.UI.Preview.Note", "Example build")}</div>
+            <div className={s.note}>{t("Placemaker.UI.Preview.Note", "Preview")}</div>
         </div>
     );
 };
