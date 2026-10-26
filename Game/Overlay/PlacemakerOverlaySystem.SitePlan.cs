@@ -60,8 +60,6 @@ namespace Placemaker.Game.Overlay
         private readonly List<float3> _spIssues = new List<float3>();
 
         private const string Highlight = "#ffe14d";
-        /// <summary>The asphalt under the Real preview: the built lots' mid grey.</summary>
-        private const string RealAsphalt = "#6b6e73";
 
         private static bool SitePlanStyle => (ToolRegistration.Settings?.SketchStyle ?? Placemaker.Game.Settings.SketchStyle.SitePlan) == Placemaker.Game.Settings.SketchStyle.SitePlan;
 
@@ -198,76 +196,8 @@ namespace Placemaker.Game.Overlay
             }
             Curves(sp.Cars, _spCars);
             Curves(sp.Walks, _spWalks);
-            BuildRealGround(sp);
-            if (_spRealStrips.Count > 0) Mod.Log.Info($"Placemaker site plan: {_spRealStrips.Count} ground strips for the Real preview");
             _spCaps.Clear(); foreach (var d in sp.Caps) _spCaps.Add((G(d.At), d.R));
             _spIssues.Clear(); foreach (var b in sp.IssueBadges) _spIssues.Add(G(b.At));
-        }
-
-        private readonly List<(Line3.Segment seg, float width, Color color, string row)> _spRealStrips = new List<(Line3.Segment, float, Color, string)>();
-        /// <summary>The widest strip: 4 m (the first version's 1 m strips and stall lines lagged on big lots, the user, 25 Oct).</summary>
-        private const float RealStrip = 4f;
-
-        /// <summary>
-        /// The paved ground under the Real preview (asphalt, paving, plaza): the game draws planned surfaces as outlines only, and our
-        /// fill meshes draw after its see-through trees (a fog), so projected overlay strips (drawn under them). Coarse and few: each
-        /// piece is tiled by strips along its longest edge, as wide as fits (up to 4 m), so a rectangle is covered exactly; slanted
-        /// edges step by up to a strip. No stall lines: the game's line decals lie under the strips.
-        /// </summary>
-        private void BuildRealGround(SitePlan sp)
-        {
-            _spRealStrips.Clear();
-            var xs = new List<float>();
-            foreach (var (mat, ring) in sp.Fills)
-            {
-                string hex = mat == "asphalt" ? RealAsphalt : mat == "paving" || mat == "plaza" ? SitePlan.Palette.Fill(mat) : null;
-                if (hex == null || ring == null || ring.Length < 3) continue;
-                var color = SpColor(hex, 1f);
-                float2 dir = new float2(1, 0);
-                float best = -1f;
-                for (int i = 0; i < ring.Length; i++)
-                {
-                    float2 e = ring[(i + 1) % ring.Length] - ring[i];
-                    float l = math.lengthsq(e);
-                    if (l > best) { best = l; dir = e; }
-                }
-                dir = math.normalizesafe(dir, new float2(1, 0));
-                float2 n = new float2(-dir.y, dir.x);
-                float lo = float.MaxValue, hi = float.MinValue;
-                foreach (var p in ring) { float t = math.dot(p, n); lo = math.min(lo, t); hi = math.max(hi, t); }
-                int rows = math.max(1, (int)math.ceil((hi - lo) / RealStrip - 0.01f));
-                float width = (hi - lo) / rows;
-                for (int r = 0; r < rows; r++)
-                {
-                    float t = lo + (r + 0.5f) * width;
-                    xs.Clear();
-                    for (int i = 0; i < ring.Length; i++)
-                    {
-                        float2 a = ring[i], b = ring[(i + 1) % ring.Length];
-                        float da = math.dot(a, n) - t, db = math.dot(b, n) - t;
-                        if ((da < 0f) == (db < 0f)) continue;
-                        xs.Add(math.dot(math.lerp(a, b, da / (da - db)), dir));
-                    }
-                    xs.Sort();
-                    for (int i = 0; i + 1 < xs.Count; i += 2)
-                    {
-                        if (xs[i + 1] - xs[i] < 0.1f) continue;
-                        float2 pa = dir * xs[i] + n * t, pb = dir * xs[i + 1] + n * t;
-                        _spRealStrips.Add((new Line3.Segment(OnGround(pa), OnGround(pb)), width + 0.1f, color, SitePlan.RowOfMaterial(mat)));
-                    }
-                }
-            }
-        }
-
-        private void DrawRealGround(OverlayRenderSystem.Buffer buffer, float alpha, OverlayRenderSystem.StyleFlags projected)
-        {
-            bool lot = SpShows(SitePlan.Parking), ground = SpShows(SitePlan.Ground);
-            foreach (var (seg, width, color, row) in _spRealStrips)
-            {
-                if (!(row == SitePlan.Parking ? lot : ground)) continue;
-                var c = new Color(color.r, color.g, color.b, alpha);
-                buffer.DrawLine(c, c, 0f, projected, seg, width, default);
-            }
         }
 
         /// <summary>A site-plan row shown? The player's show / hide only: hovering highlights, it never hides the rest.</summary>
@@ -327,8 +257,8 @@ namespace Placemaker.Game.Overlay
 
             if (underGhost)
             {
-                // the Real preview: the game's ghost, the paved ground it cannot draw as a few coarse strips, the red problem badges
-                DrawRealGround(buffer, alpha, P);
+                // the Real preview is the game's ghost alone (the user, 25 Oct: lag with thousands of asphalt strips a frame, and the
+                // fill meshes fogged the ghost's see-through trees): only the red problem badges stay
                 DrawSitePlanIssues(buffer, w, alpha);
                 return;
             }
