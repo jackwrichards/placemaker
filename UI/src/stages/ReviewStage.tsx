@@ -10,7 +10,7 @@
 // The "OK, permanent" tick sits beside the Build button in the footer (Panel.tsx).
 import React, { useState } from "react";
 import classNames from "classnames";
-import { Catalog, Issue, LocText, Stat, Summary, ToolState } from "../contract";
+import { Catalog, Issue, LocText, SitePlanView, Stat, Summary, ToolState } from "../contract";
 import { act, useSitePlan } from "../lib/bindings";
 import { SitePlanCard } from "../components/SitePlanCard";
 import { area as fmtArea, formatValue, Money } from "../lib/format";
@@ -65,6 +65,28 @@ export function mergeStats(t: TFunc, stats: Stat[]): Stat[] {
         } else hit.value += st.value;
     }
     return out;
+}
+
+/**
+ * (sketch study) What the top view's legend already says: a stat whose label is one of its rows ("552 spaces" beside
+ * "Parking 552") is not repeated as a chip, and the area moves to the section's head (the user: "we just shouldn't repeat
+ * ourselves"). What stays are the details the legend has no row for (EV spaces, lanes, play equipment…).
+ */
+const COVERED: Record<string, string> = {
+    spaces: "parking", trees: "trees", bushes: "planting", flowerbeds: "planting", paths: "paths", walkways: "paths", footpaths: "paths",
+    benches: "objects", lamps: "objects", bins: "objects", "road length": "roads",
+};
+
+export function extraStats(t: TFunc, stats: Stat[], sp: SitePlanView | null): Stat[] {
+    const merged = mergeStats(t, stats).filter((st) => st.value !== 0);
+    if (!sp) return merged;
+    const rows = new Set(sp.legend.map((r) => r.id));
+    return merged.filter((st) => {
+        if (st.unit === "m2" || st.unit === "area") return false;
+        const label = t(st.key + ".Short", t(st.key, humanize(st.key))).toLowerCase();
+        const row = COVERED[label];
+        return !(row && rows.has(row));
+    });
 }
 
 // ───────────── cost buckets ─────────────
@@ -164,9 +186,7 @@ const MoneyCard = ({ catalog, state, summary, pending }: { catalog: Catalog; sta
                         <Icon name="cost" size={11} tint="danger" />
                         <div className={s.cantText}>{t("Placemaker.UI.Review.CantAffordShort", "Too expensive")}</div>
                     </div>
-                ) : (
-                    <div className={s.area}>{fmtArea(state.area.areaM2)}</div>
-                )}
+                ) : null}
             </div>
             {total > 0 && list.length ? (
                 <Tip title={t("Placemaker.UI.Review.Breakdown", "Cost breakdown")} description={detail}>
@@ -392,13 +412,19 @@ export const ReviewStage = ({ catalog, state, summary }: { catalog: Catalog; sta
                     {/* the same story as the Design page: what it costs, what you get, what to check */}
                     <SectionHead first icon="cost" title={t("Placemaker.UI.Review.CostHead", "Cost")} testId="review-head-cost" />
                     <MoneyCard catalog={catalog} state={state} summary={summary} pending={pending} />
-                    <SectionHead icon="layers" title={t("Placemaker.UI.Review.StatsHead", "What you get")} testId="review-head-stats" />
+                    {/* one section: the top view, its legend, then only the details the legend has no row for; the area in the head */}
+                    <SectionHead icon="layers" title={t("Placemaker.UI.Review.StatsHead", "What you get")} sub={fmtArea(state.area.areaM2)} testId="review-head-stats" />
                     {sitePlan && sitePlan.style !== "classic" ? <SitePlanCard sp={sitePlan} state={state} layout="row" /> : null}
-                    <div className={classNames(s.stats, { [s.shimmer]: pending })} data-testid="review-stats">
-                        {mergeStats(t, summary.stats).map((st) => (
-                            <StatChip key={st.key + st.unit} k={st.key} value={st.value} unit={st.unit} />
-                        ))}
-                    </div>
+                    {(() => {
+                        const extras = extraStats(t, summary.stats, sitePlan && sitePlan.style !== "classic" ? sitePlan : null);
+                        return extras.length ? (
+                            <div className={classNames(s.stats, { [s.shimmer]: pending })} data-testid="review-stats">
+                                {extras.map((st) => (
+                                    <StatChip key={st.key + st.unit} k={st.key} value={st.value} unit={st.unit} />
+                                ))}
+                            </div>
+                        ) : null;
+                    })()}
                     <SectionHead
                         icon={clean ? "check" : "warning"}
                         title={t("Placemaker.UI.Review.ChecksHead", "Checks")}

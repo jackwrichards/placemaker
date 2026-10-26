@@ -257,11 +257,28 @@ namespace Placemaker.Game.Overlay
                 foreach (var l in _spCars)
                     if (l.Mark ? roads : lot) buffer.DrawCurve(asphalt, asphalt, 0f, P, l.Curve, l.Width, ends);
                 if (roads && !underGhost) foreach (var c in _spCaps) buffer.DrawCircle(asphalt, asphalt, 0f, P, up, c.at, c.r * 2f);
-                if (roads && !underGhost)
+                if (!underGhost)
                 {
-                    var mark = SpColor(SitePlan.Palette.RoadMark, 0.7f * alpha);
-                    float mw = math.max(0.25f, w * 0.35f);
-                    foreach (var l in _spCars) if (l.Mark) buffer.DrawDashedCurve(mark, mark, 0f, P, l.Curve, mw, 3f, 3f);
+                    // markings, so roads read as roads and not grey bands (the user): a dashed centre line and solid edge lines on
+                    // roads, a fainter dashed centre line along car-park aisles
+                    var mark = SpColor(SitePlan.Palette.RoadMark, 0.8f * alpha);
+                    var edge = SpColor(SitePlan.Palette.RoadMark, 0.55f * alpha);
+                    var aisle = SpColor(SitePlan.Palette.RoadMark, 0.4f * alpha);
+                    float mw = math.max(0.2f, w * 0.3f);
+                    foreach (var l in _spCars)
+                    {
+                        if (l.Mark && roads)
+                        {
+                            buffer.DrawDashedCurve(mark, mark, 0f, P, l.Curve, mw, 3f, 3f);
+                            float off = l.Width * 0.5f - 0.9f;
+                            if (off > 1.5f)
+                            {
+                                buffer.DrawCurve(edge, edge, 0f, P, OffsetCurve(l.Curve, off), mw);
+                                buffer.DrawCurve(edge, edge, 0f, P, OffsetCurve(l.Curve, -off), mw);
+                            }
+                        }
+                        else if (!l.Mark && lot && l.Width >= 5f) buffer.DrawDashedCurve(aisle, aisle, 0f, P, l.Curve, mw, 2f, 3f);
+                    }
                 }
             }
             bool paths = SpShows(SitePlan.Paths);

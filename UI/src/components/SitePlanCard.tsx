@@ -133,9 +133,17 @@ function layers(sp: SitePlanView, pxPerM: number): Layer[] {
     const roads = sp.cars.filter((c) => c.mark), aisles = sp.cars.filter((c) => !c.mark);
     const asphalt = over(ASPHALT, 0.92);
     byWidth(aisles, px(1.5)).forEach((g) => add("parking", <path d={g.d} stroke={asphalt} strokeWidth={g.w} fill="none" strokeLinecap="round" strokeLinejoin="round" />));
-    byWidth(roads, px(1.5)).forEach((g) => add("roads", <path d={g.d} stroke={asphalt} strokeWidth={g.w} fill="none" strokeLinecap="round" strokeLinejoin="round" />));
+    // roads read as roads (the user: "not just gray blobs"): a light kerb under the carriageway and a dashed centre line, the
+    // dashes long enough to see at any size; aisles a fainter dashed line
+    const roadGroups = byWidth(roads, px(1.5));
+    roadGroups.forEach((g) => add("roads", <path d={g.d} stroke="#c9ccd0" strokeWidth={g.w + Math.max(0.6, px(1.4))} fill="none" strokeLinecap="round" strokeLinejoin="round" />));
+    if (sp.caps.length) add("roads", <path d={circlesD(sp.caps, (r) => r + Math.max(0.3, px(0.7)))} fill="#c9ccd0" />);
+    roadGroups.forEach((g) => add("roads", <path d={g.d} stroke={asphalt} strokeWidth={g.w} fill="none" strokeLinecap="round" strokeLinejoin="round" />));
     if (sp.caps.length) add("roads", <path d={circlesD(sp.caps, (r) => r)} fill={asphalt} />);
-    if (roads.length && pxPerM > 0.6) add("roads", <path d={roads.map((r) => lineD(r.p)).join("")} stroke="#f3f1e8" strokeOpacity={0.7} strokeWidth={Math.max(0.3, px(0.6))} strokeDasharray="3 3" fill="none" />);
+    const dash = Math.max(3, px(4));
+    if (roads.length) add("roads", <path d={roads.map((r) => lineD(r.p)).join("")} stroke="#f3f1e8" strokeOpacity={0.85} strokeWidth={Math.max(0.3, px(0.8))} strokeDasharray={f1(dash) + " " + f1(dash)} fill="none" />);
+    const wideAisles = aisles.filter((a) => a.w >= 5);
+    if (wideAisles.length) add("parking", <path d={wideAisles.map((r) => lineD(r.p)).join("")} stroke="#f3f1e8" strokeOpacity={0.45} strokeWidth={Math.max(0.2, px(0.6))} strokeDasharray={f1(dash * 0.6) + " " + f1(dash)} fill="none" />);
     byWidth(sp.walks, px(1.2)).forEach((g) => add("paths", <path d={g.d} stroke="#eadfc2" strokeWidth={g.w} fill="none" strokeLinecap="round" strokeLinejoin="round" />));
     if (sp.fences.length) add("objects", <path d={sp.fences.map(lineD).join("")} stroke="#6b5440" strokeWidth={Math.max(0.35, px(0.8))} fill="none" />);
     if (sp.stalls.length && pxPerM * 2.5 > 3) {
