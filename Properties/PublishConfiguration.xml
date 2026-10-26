@@ -96,16 +96,15 @@ Have fun :)
 	<!--A missing picture is silently replaced by a default one: add it before uploading-->
 	<Thumbnail Value="Properties/Thumbnail.jpg" />
 	<!--At most 10 (Paradox Mods refuses more): roads first, then one picture per category, related types paired; settings pills from the panel or the preset-->
-	<Screenshot Value="Properties/Screenshots/01.jpg" />
+	<Screenshot Value="Properties/Screenshots/01.png" />
 	<Screenshot Value="Properties/Screenshots/02.jpg" />
-	<Screenshot Value="Properties/Screenshots/03.jpg" />
+	<Screenshot Value="Properties/Screenshots/03.png" />
 	<Screenshot Value="Properties/Screenshots/04.jpg" />
 	<Screenshot Value="Properties/Screenshots/05.jpg" />
 	<Screenshot Value="Properties/Screenshots/06.jpg" />
 	<Screenshot Value="Properties/Screenshots/07.jpg" />
 	<Screenshot Value="Properties/Screenshots/08.jpg" />
 	<Screenshot Value="Properties/Screenshots/09.jpg" />
-	<Screenshot Value="Properties/Screenshots/10.jpg" />
 	<!--"Code Mod" is added by the publisher itself-->
 	<Tag Value="Code Mod" />
 	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/placemaker.1946787/" />
