@@ -36,7 +36,8 @@ namespace Placemaker.Core.Build
         public const string Terrain = PreviewLegend.Terrain;
 
         /// <summary>Fill materials, drawn in this order (later on top).</summary>
-        public static readonly string[] Materials = { "ground", "grass", "deco", "paving", "plaza", "asphalt", "water" };
+        /// <summary>The ground paints (the game's terrain textures: dry grass, lush grass, dirt, sand) come first, under the surfaces.</summary>
+        public static readonly string[] Materials = { "paint:dry", "paint:lush", "paint:dirt", "paint:sand", "ground", "grass", "deco", "paving", "plaza", "asphalt", "water" };
 
         // ── The palette (one place: the overlay, the panel picture and its legend swatches all use it) ──
         public static class Palette
@@ -63,6 +64,8 @@ namespace Placemaker.Core.Build
                     case "plaza": return 0.8f;
                     case "water": return 0.8f;
                     case "deco": return 0.7f;
+                    case "paint:dry": case "paint:lush": return 0.6f;
+                    case "paint:dirt": case "paint:sand": return 0.85f;
                     default: return 0.3f;
                 }
             }
@@ -77,6 +80,10 @@ namespace Placemaker.Core.Build
                     case "plaza": return Plaza;
                     case "water": return Water;
                     case "deco": return Deco;
+                    case "paint:dry": return "#b5a86a";
+                    case "paint:lush": return "#4f8f3c";
+                    case "paint:dirt": return "#9c7d58";
+                    case "paint:sand": return "#e3d2a0";
                     default: return GroundSurf;
                 }
             }
@@ -154,7 +161,7 @@ namespace Placemaker.Core.Build
         public readonly List<(int band, float2[] ring)> Heat = new List<(int, float2[])>();
 
         // Budgets for the panel picture (the overlay draws everything): far more than a panel can show.
-        public const int MaxTrees = 4000, MaxBushes = 3000, MaxStalls = 12000, MaxSmall = 3000, MaxHeat = 2000, MaxProps = 8000;
+        public const int MaxTrees = 4000, MaxBushes = 3000, MaxStalls = 12000, MaxSmall = 3000, MaxHeat = 2000, MaxProps = 8000, MaxPaint = 400;
         public const float MaxStallSpan = 320f;
 
         public sealed class Input
@@ -189,12 +196,21 @@ namespace Placemaker.Core.Build
                 if (l.Count < 400) l.Add(p);
             }
             var aisles = new List<float2[]>();
+            int paintRings = 0;
             var bayRects = new List<float2[]>();
             int bays = 0;
             bool grass = false, paved = false, water = false;
             foreach (var l in plan.Layers)
             {
                 if (l == null) continue;
+                // ground paint (the beach's sand, a yard's dirt): its outline in the texture's colour, strong paints only
+                foreach (var pt in l.Paint)
+                {
+                    if (pt?.Ring == null || pt.Ring.Length < 3 || pt.Strength < 0.4f || pt.Layer < 1 || pt.Layer > 4 || paintRings++ >= MaxPaint) continue;
+                    string pm = pt.Layer == 1 ? "paint:dry" : pt.Layer == 2 ? "paint:lush" : pt.Layer == 3 ? "paint:dirt" : "paint:sand";
+                    sp.Fills.Add((pm, Poly.To2D(pt.Ring)));
+                    if (pt.Layer >= 3) paved = true;
+                }
                 foreach (var s in l.Surfaces)
                 {
                     if (s?.Ring == null || s.Ring.Length < 3) continue;

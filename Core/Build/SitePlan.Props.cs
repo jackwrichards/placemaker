@@ -49,6 +49,7 @@ namespace Placemaker.Core.Build
             (Furniture, "furniture", "Placemaker.SitePlan.Furniture", "Furniture"),
         };
 
+        private static readonly string[] CarColors = { "#d8dadc", "#2c2f33", "#3f78c0", "#c9473b", "#e8c440", "#5fb8c8", "#8a8f96", "#e8e6e0" };
         private static readonly string[] ContainerColors = { "#b8453a", "#3d6ea8", "#4f8a4a", "#d98a32", "#7a7f86", "#a8b0b8" };
 
         private static bool Has(string cat, params string[] words)
@@ -71,9 +72,10 @@ namespace Placemaker.Core.Build
                     return Has(cat, "fountain") ? ("#7fb6e6", Places, true, 1.5f) : ("#b9b4aa", Stone, false, 3f);
             }
             // vehicles and machines
-            if (Has(cat, "wreck")) return (pick(new[] { "#8a5a3c", "#6e5546", "#9a6a48" }), Vehicles, false, 1.5f);
+            // cars in car colours (the built yard is a sea of colourful wrecks)
+            if (Has(cat, "wreck")) return (pick(CarColors), Vehicles, false, 1.5f);
             if (Has(cat, "machine", "machinery", "golf.cart", "plant")) return ("#e0b030", Vehicles, false, 3f);
-            if (Has(cat, "truck", "foodtruck", "boat", "car")) return (pick(new[] { "#c8503e", "#3d6ea8", "#e8e6e0", "#4a4d52" }), Vehicles, false, 2f);
+            if (Has(cat, "truck", "foodtruck", "boat", "car")) return (pick(CarColors), Vehicles, false, 2f);
             // storage
             if (Has(cat, "container", "skip")) return (pick(ContainerColors), Storage, false, 2.6f);
             if (Has(cat, "pallet", "crate", "lumber", "material", "bulk")) return ("#b08a5a", Storage, false, 1f);
