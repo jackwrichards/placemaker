@@ -136,10 +136,9 @@ namespace Placemaker.Game.Overlay
             }
 
             // what the ghost shows itself (sketch only): stalls, places, furniture, planting, crowns last
-            // the stall lines stay under the Real preview too: the game's own line decals sit under our asphalt there
             if (sp.Stalls.Count > 0)
             {
-                var s = Shape("sp:stalls", SitePlan.Palette.Stall, 1f, SitePlan.Parking, -91f, true);
+                var s = Shape("sp:stalls", SitePlan.Palette.Stall, 1f, SitePlan.Parking, -91f, false);
                 // 0.3 m: a mesh line has no smoothing, at the real 0.15 m it faded to grey from the usual camera height
                 foreach (var (a, b) in sp.Stalls) s.Rings.Add(BarRing(a, b, 0.3f));
             }
