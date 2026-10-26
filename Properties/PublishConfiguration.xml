@@ -108,9 +108,9 @@ Have fun :)
 	<!--"Code Mod" is added by the publisher itself-->
 	<Tag Value="Code Mod" />
 	<ForumLink Value="https://forum.paradoxplaza.com/forum/threads/placemaker.1946787/" />
-	<ModVersion Value="0.3.5" />
+	<ModVersion Value="0.3.6" />
 	<GameVersion Value="1.6.*" />
-	<ChangeLog Value="- Fixed: loading a city showed &quot;Data size mismatch when deserializing PolishCitySwitches&quot; (since 0.3.0), and the city lost its Outgrow settings, so every new building was outgrown. Cities load cleanly now and keep their Outgrow settings. Set them once more after updating, then save." />
+	<ChangeLog Value="- Changed: the Outgrow brushes are Paint (the type you pick), Off (removes outgrow) and Zone default (back to the zone&apos;s type). Erase used to give buildings their zone&apos;s type back instead of removing outgrow.&#10;- Changed: the Outgrow window is shorter: the switch and the map share a row, the brushes have their own, the brush size shows only while a brush is on." />
 	<ExternalLink Type="youtube" Url="https://www.youtube.com/watch?v=Fa5TWC3B-Ps" />
 	<ExternalLink Type="github" Url="https://github.com/jackwrichards/placemaker" />
 	<!--Public, Unlisted or Private, exactly as written (a typo falls back to Public). Made Public by the user on the website, 2026-10-17-->
