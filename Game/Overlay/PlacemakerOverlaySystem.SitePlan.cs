@@ -60,8 +60,6 @@ namespace Placemaker.Game.Overlay
         private readonly List<float3> _spIssues = new List<float3>();
 
         private const string Highlight = "#ffe14d";
-        /// <summary>The asphalt under the Real preview: the built lots' mid grey (the sketch's darker tone read as black there).</summary>
-        private const string RealAsphalt = "#6b6e73";
 
         private static bool SitePlanStyle => (ToolRegistration.Settings?.SketchStyle ?? Placemaker.Game.Settings.SketchStyle.SitePlan) == Placemaker.Game.Settings.SketchStyle.SitePlan;
 
@@ -198,75 +196,8 @@ namespace Placemaker.Game.Overlay
             }
             Curves(sp.Cars, _spCars);
             Curves(sp.Walks, _spWalks);
-            BuildRealGround(sp);
             _spCaps.Clear(); foreach (var d in sp.Caps) _spCaps.Add((G(d.At), d.R));
             _spIssues.Clear(); foreach (var b in sp.IssueBadges) _spIssues.Add(G(b.At));
-        }
-
-        private readonly List<(Line3.Segment seg, float width, string color, string row)> _spRealStrips = new List<(Line3.Segment, float, string, string)>();
-        private const float RealStrip = 1f;
-        private readonly List<Line3.Segment> _spRealLines = new List<Line3.Segment>();
-        /// <summary>Stall lines drawn as overlay lines under the Real preview at most (a frame's cost; beyond it the lot shows plain).</summary>
-        private const int MaxRealLines = 6000;
-
-        /// <summary>
-        /// The paved ground under the Real preview (asphalt, paving, plaza) as projected overlay strips, 1 m wide, along each
-        /// piece's longest edge: the game's projected lines draw under its see-through ghost trees, where our fill meshes drew
-        /// over them as a fog, and a solid lit mesh was not drawn at all (the game leaves out the standard shaders).
-        /// </summary>
-        private void BuildRealGround(SitePlan sp)
-        {
-            _spRealStrips.Clear();
-            _spRealLines.Clear();
-            if (sp.Stalls.Count <= MaxRealLines) foreach (var (a, b) in sp.Stalls) _spRealLines.Add(new Line3.Segment(OnGround(a), OnGround(b)));
-            foreach (var (mat, ring) in sp.Fills)
-            {
-                string color = mat == "asphalt" ? RealAsphalt : mat == "paving" || mat == "plaza" ? SitePlan.Palette.Fill(mat) : null;
-                if (color == null || ring == null || ring.Length < 3) continue;
-                // the strips run along the longest edge (exact on the car parks' rectangles)
-                float2 dir = new float2(1, 0);
-                float best = -1f;
-                for (int i = 0; i < ring.Length; i++)
-                {
-                    float2 e = ring[(i + 1) % ring.Length] - ring[i];
-                    float l = math.lengthsq(e);
-                    if (l > best) { best = l; dir = e; }
-                }
-                dir = math.normalizesafe(dir, new float2(1, 0));
-                float2 n = new float2(-dir.y, dir.x);
-                float lo = float.MaxValue, hi = float.MinValue;
-                foreach (var p in ring) { float t = math.dot(p, n); lo = math.min(lo, t); hi = math.max(hi, t); }
-                var xs = new List<float>();
-                for (float t = lo + RealStrip * 0.5f; t < hi; t += RealStrip)
-                {
-                    xs.Clear();
-                    for (int i = 0; i < ring.Length; i++)
-                    {
-                        float2 a = ring[i], b = ring[(i + 1) % ring.Length];
-                        float da = math.dot(a, n) - t, db = math.dot(b, n) - t;
-                        if ((da < 0f) == (db < 0f)) continue;
-                        float k = da / (da - db);
-                        xs.Add(math.dot(math.lerp(a, b, k), dir));
-                    }
-                    xs.Sort();
-                    for (int i = 0; i + 1 < xs.Count; i += 2)
-                    {
-                        if (xs[i + 1] - xs[i] < 0.05f) continue;
-                        float2 pa = dir * xs[i] + n * t, pb = dir * xs[i + 1] + n * t;
-                        _spRealStrips.Add((new Line3.Segment(OnGround(pa), OnGround(pb)), RealStrip + 0.05f, color, SitePlan.RowOfMaterial(mat)));
-                    }
-                }
-            }
-        }
-
-        private void DrawRealGround(OverlayRenderSystem.Buffer buffer, float alpha, OverlayRenderSystem.StyleFlags projected)
-        {
-            foreach (var (seg, width, color, row) in _spRealStrips)
-            {
-                if (!SpShows(row)) continue;
-                var c = SpColor(color, alpha);
-                buffer.DrawLine(c, c, 0f, projected, seg, width, default);
-            }
         }
 
         /// <summary>A site-plan row shown? The player's show / hide only: hovering highlights, it never hides the rest.</summary>
@@ -310,7 +241,7 @@ namespace Placemaker.Game.Overlay
                 bool on = SpShows(s.Row);
                 float a = s.Alpha * (s.Ground ? alpha : objAlpha);
                 // under the Real preview the mesh fills draw after the ghost's see-through trees and fogged them (the user: "it has
-                // this weird haze"): none there; the paved ground is drawn as projected strips instead (DrawRealGround)
+                // this weird haze"): none there
                 if (underGhost) a = 0f;
                 var c = PreviewLegend.Hex(s.Color);
                 float pulse = SpPulse(s.Row);
@@ -326,14 +257,8 @@ namespace Placemaker.Game.Overlay
 
             if (underGhost)
             {
-                // the Real preview: the paved ground and the stall lines (the game's own line decals are under it); the ghost
-                // draws the roads and paths itself
-                DrawRealGround(buffer, alpha, P);
-                if (SpShows(SitePlan.Parking) && _spRealLines.Count <= MaxRealLines)
-                {
-                    var line = SpColor(SitePlan.Palette.Stall, 0.9f * alpha);
-                    foreach (var seg in _spRealLines) buffer.DrawLine(line, line, 0f, P, seg, 0.15f, default);
-                }
+                // the Real preview is the game's ghost alone (the user, 25 Oct: lag with thousands of asphalt strips a frame, and the
+                // fill meshes fogged the ghost's see-through trees): only the red problem badges stay
                 DrawSitePlanIssues(buffer, w, alpha);
                 return;
             }
