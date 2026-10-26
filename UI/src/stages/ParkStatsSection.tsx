@@ -118,10 +118,10 @@ export const ParkStatsSection = ({ ps, pending }: { ps: ParkStatsView; pending: 
                         </div>
                     </div>
                     {ps.companion === "ungrouped" ? (
-                        <Tip title={t("Placemaker.UI.ParkStats.Ungrouped", "Built in pieces, it is no park: no park stats and no upkeep. Group it as one asset to make it a park.")}>
+                        <Tip title={t("Placemaker.UI.ParkStats.Ungrouped", "Not grouped as one asset: no park stats and no upkeep. Turn on \"Group as one asset\" to make it a park.")}>
                             <div className={s.warn} data-testid="park-stats-ungrouped">
                                 <Icon name="warning" size={11} tint="warn" />
-                                <div className={s.warnText}>{t("Placemaker.UI.ParkStats.UngroupedShort", "In pieces: no park stats")}</div>
+                                <div className={s.warnText}>{t("Placemaker.UI.ParkStats.UngroupedShort", "Not grouped: no park stats")}</div>
                             </div>
                         </Tip>
                     ) : null}

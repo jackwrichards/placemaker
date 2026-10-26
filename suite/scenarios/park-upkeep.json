@@ -3,27 +3,88 @@
   "scenarios": [
     {
       "id": "upkeep-grouped",
-      "land": { "shape": "rect", "size": [200, 180], "roads": "around" },
+      "land": {
+        "shape": "rect",
+        "size": [
+          200,
+          180
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
       "steps": [
-        { "do": "area", "tool": "land" },
-        { "do": "type", "layer": "park", "preset": "natural" },
-        { "do": "entrances" },
-        { "do": "preview" },
-        { "do": "camera", "target": "area", "view": "oblique", "shot": "review", "shotMode": "ui" },
-        { "do": "build" }
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "natural"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "group",
+          "on": true
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "review",
+          "shotMode": "ui"
+        },
+        {
+          "do": "build"
+        }
       ]
     },
     {
       "id": "upkeep-pieces",
-      "land": { "shape": "rect", "size": [200, 180], "roads": "around" },
+      "land": {
+        "shape": "rect",
+        "size": [
+          200,
+          180
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
       "steps": [
-        { "do": "area", "tool": "land" },
-        { "do": "type", "layer": "park", "preset": "natural" },
-        { "do": "entrances" },
-        { "do": "preview" },
-        { "do": "group", "on": false },
-        { "do": "camera", "target": "area", "view": "oblique", "shot": "review", "shotMode": "ui" },
-        { "do": "build" }
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "natural"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "group",
+          "on": false
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "review",
+          "shotMode": "ui"
+        },
+        {
+          "do": "build"
+        }
       ]
     }
   ]

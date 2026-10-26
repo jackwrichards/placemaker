@@ -383,6 +383,6 @@
   "Placemaker.Settings.SketchStyle.SitePlan": "Planimetria",
   "Placemaker.Settings.SketchStyle.Classic": "Classico",
   "Placemaker.Settings.SketchStyle.Desc": "La planimetria disegna dall'alto ciò che verrà costruito: strade, sentieri, prato, alberi, posti auto e ogni oggetto, a grandi linee. Classico disegna colori per ruolo e linee tratteggiate.",
-  "Placemaker.Issue.UngroupedNoPark": "Costruito a pezzi (non raggruppato come un unico elemento) non è un parco: nessun edificio del parco, quindi nessuna manutenzione, e turismo, svago e benessere non si applicano. Raggruppalo per farne un parco.",
-  "Placemaker.Issue.UngroupedNoPark.Short": "A pezzi: niente parco"
+  "Placemaker.Issue.UngroupedNoPark": "Non raggruppato come un unico elemento, quindi non funziona come parco: niente manutenzione, ma neanche turismo, svago o benessere. Attiva «Raggruppa come un elemento» per farne un parco.",
+  "Placemaker.Issue.UngroupedNoPark.Short": "Non raggruppato"
 }

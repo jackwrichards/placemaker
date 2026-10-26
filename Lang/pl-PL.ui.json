@@ -454,6 +454,6 @@
   "Placemaker.UI.Review.Later.Plots.Tip": "Sklepy i domy wyrastają na strefach po budowie, gdy miasto ich potrzebuje.",
   "Placemaker.UI.Review.UpkeepTip": "Ile miasto płaci za to co miesiąc.",
   "Placemaker.UI.Review.UpkeepPark": "Obejmuje koszt parku: ¢{0} miesięcznie, jak równie dobry park vanilla.",
-  "Placemaker.UI.ParkStats.Ungrouped": "W częściach to nie park: brak statystyk parku i utrzymania. Zgrupuj jako jeden obiekt, aby był parkiem.",
-  "Placemaker.UI.ParkStats.UngroupedShort": "W częściach: brak statystyk"
+  "Placemaker.UI.ParkStats.Ungrouped": "Niezgrupowane w jeden obiekt: brak statystyk parku i utrzymania. Włącz „Grupuj jako jeden zasób”, aby był parkiem.",
+  "Placemaker.UI.ParkStats.UngroupedShort": "Niezgrupowane: brak statystyk"
 }

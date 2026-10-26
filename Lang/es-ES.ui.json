@@ -454,6 +454,6 @@
   "Placemaker.UI.Review.Later.Plots.Tip": "Las tiendas y viviendas crecen en las parcelas zonificadas tras la construcción, según lo necesite la ciudad.",
   "Placemaker.UI.Review.UpkeepTip": "Lo que la ciudad paga por ello cada mes.",
   "Placemaker.UI.Review.UpkeepPark": "Incluye el coste del parque: ¢{0} al mes, como un parque vanilla igual de bueno.",
-  "Placemaker.UI.ParkStats.Ungrouped": "Por piezas no es un parque: sin estadísticas de parque ni mantenimiento. Agrúpalo como un solo recurso para que sea un parque.",
-  "Placemaker.UI.ParkStats.UngroupedShort": "Por piezas: sin estadísticas"
+  "Placemaker.UI.ParkStats.Ungrouped": "No agrupado como un recurso: sin estadísticas de parque ni mantenimiento. Activa «Agrupar como un solo recurso» para que sea un parque.",
+  "Placemaker.UI.ParkStats.UngroupedShort": "Sin agrupar: sin estadísticas"
 }

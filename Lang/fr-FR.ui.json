@@ -454,6 +454,6 @@
   "Placemaker.UI.Review.Later.Plots.Tip": "Commerces et logements poussent sur les parcelles zonées après la construction, selon les besoins de la ville.",
   "Placemaker.UI.Review.UpkeepTip": "Ce que la ville paie chaque mois.",
   "Placemaker.UI.Review.UpkeepPark": "Inclut le coût du parc : ¢{0} par mois, comme un parc vanilla aussi bon.",
-  "Placemaker.UI.ParkStats.Ungrouped": "En pièces, ce n'est pas un parc : ni statistiques de parc ni entretien. Groupe-le en un seul élément pour en faire un parc.",
-  "Placemaker.UI.ParkStats.UngroupedShort": "En pièces : pas de stats"
+  "Placemaker.UI.ParkStats.Ungrouped": "Pas groupé en un élément : ni statistiques de parc ni entretien. Active « Grouper en un seul objet » pour en faire un parc.",
+  "Placemaker.UI.ParkStats.UngroupedShort": "Non groupé : pas de stats"
 }

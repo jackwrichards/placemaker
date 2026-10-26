@@ -454,6 +454,6 @@
   "Placemaker.UI.Review.Later.Plots.Tip": "店や住宅は建設後、都市の需要に応じてゾーンの区画に建ちます。",
   "Placemaker.UI.Review.UpkeepTip": "都市が毎月支払う額です。",
   "Placemaker.UI.Review.UpkeepPark": "公園の運営費 ¢{0}/月 を含みます（同等のバニラ公園と同じ）。",
-  "Placemaker.UI.ParkStats.Ungrouped": "ばらばらでは公園になりません。公園の数値も維持費もありません。1つのアセットにまとめると公園になります。",
-  "Placemaker.UI.ParkStats.UngroupedShort": "ばらばら：数値なし"
+  "Placemaker.UI.ParkStats.Ungrouped": "1つのアセットにまとめていないため、公園の数値も維持費もありません。公園にするには「1つのアセットとしてまとめる」をオンにしてください。",
+  "Placemaker.UI.ParkStats.UngroupedShort": "まとめていない：数値なし"
 }

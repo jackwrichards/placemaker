@@ -203,6 +203,8 @@
   "Placemaker.UI.ParkStats.Tile.Tourism": "Tourism",
   "Placemaker.UI.ParkStats.Tile.Wellbeing": "Wellbeing",
   "Placemaker.UI.ParkStats.Title": "Park stats",
+  "Placemaker.UI.ParkStats.Ungrouped": "Not grouped as one asset: no park stats and no upkeep. Turn on \"Group as one asset\" to make it a park.",
+  "Placemaker.UI.ParkStats.UngroupedShort": "Not grouped: no park stats",
   "Placemaker.UI.ParkStats.Upkeep": "Upkeep",
   "Placemaker.UI.ParkStats.Upkeep.Meaning": "Monthly running cost a vanilla park this good would have.",
   "Placemaker.UI.PerMonth": "/mo",
@@ -341,6 +343,8 @@
   "Placemaker.UI.Review.PlusN": "+{0} more",
   "Placemaker.UI.Review.StatsHead": "What you get",
   "Placemaker.UI.Review.Upkeep": "Upkeep",
+  "Placemaker.UI.Review.UpkeepPark": "Includes the park's running cost: ¢{0} a month, like a vanilla park this good.",
+  "Placemaker.UI.Review.UpkeepTip": "What the city pays for it each month.",
   "Placemaker.UI.Review.WarningsHead": "Warnings",
   "Placemaker.UI.Rules.AllStops": "All of them",
   "Placemaker.UI.Rules.AllStopsTip": "Lit when it stops at everything here. Click to turn them all on, or all off when they are all on.",
@@ -451,9 +455,5 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "On: this zone's buildings outgrow their lots with the outgrow type beside it. Off: they stay as the game makes them.",
   "Placemaker.UI.ZoneMix.Remove": "Remove this zone",
   "Placemaker.UI.ZoneMix.RoadTip3": "Allowed road width: the roads this zone may line, by their width (two lanes 16 m, four lanes 24 m, six lanes 32 m). Its lots are only placed along roads in this range.",
-  "Placemaker.UI.Zoning": "Zoning",
-  "Placemaker.UI.Review.UpkeepTip": "What the city pays for it each month.",
-  "Placemaker.UI.Review.UpkeepPark": "Includes the park's running cost: ¢{0} a month, like a vanilla park this good.",
-  "Placemaker.UI.ParkStats.Ungrouped": "Built in pieces, it is no park: no park stats and no upkeep. Group it as one asset to make it a park.",
-  "Placemaker.UI.ParkStats.UngroupedShort": "In pieces: no park stats"
+  "Placemaker.UI.Zoning": "Zoning"
 }

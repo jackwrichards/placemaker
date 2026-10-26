@@ -454,6 +454,6 @@
   "Placemaker.UI.Review.Later.Plots.Tip": "建造后，商店和住宅会根据城市需要在分区地块上建成。",
   "Placemaker.UI.Review.UpkeepTip": "城市每月为此支付的费用。",
   "Placemaker.UI.Review.UpkeepPark": "包括公园运营费：每月 ¢{0}，与同等原版公园相同。",
-  "Placemaker.UI.ParkStats.Ungrouped": "分开建造就不是公园：没有公园数据，也没有维护费。组合为一个资产即可成为公园。",
-  "Placemaker.UI.ParkStats.UngroupedShort": "分开：无公园数据"
+  "Placemaker.UI.ParkStats.Ungrouped": "未组合为一个资产：没有公园数据，也没有维护费。打开“组合为一个资产”即可成为公园。",
+  "Placemaker.UI.ParkStats.UngroupedShort": "未组合：无公园数据"
 }

@@ -383,6 +383,6 @@
   "Placemaker.Settings.SketchStyle.SitePlan": "Plan de masse",
   "Placemaker.Settings.SketchStyle.Classic": "Classique",
   "Placemaker.Settings.SketchStyle.Desc": "Le plan de masse dessine vu de dessus ce qui sera construit : routes, chemins, pelouse, arbres, places de parking et chaque objet, en gros. Classique dessine des couleurs par rôle et des lignes pointillées.",
-  "Placemaker.Issue.UngroupedNoPark": "Construit en pièces (non groupé en un seul élément), ce n'est pas un parc : pas de bâtiment de parc, donc pas d'entretien, et son tourisme, ses loisirs et son bien-être ne s'appliquent pas. Groupe-le pour en faire un parc.",
-  "Placemaker.Issue.UngroupedNoPark.Short": "En pièces : pas de parc"
+  "Placemaker.Issue.UngroupedNoPark": "Pas groupé en un seul élément : ce n'est pas un parc. Pas d'entretien, mais ni tourisme, ni loisirs, ni bien-être. Active « Grouper en un seul objet » pour en faire un parc.",
+  "Placemaker.Issue.UngroupedNoPark.Short": "Pas groupé en un élément"
 }

@@ -383,6 +383,6 @@
   "Placemaker.Settings.SketchStyle.SitePlan": "Planta do local",
   "Placemaker.Settings.SketchStyle.Classic": "Clássico",
   "Placemaker.Settings.SketchStyle.Desc": "A planta do local desenha de cima o que será construído: ruas, caminhos, gramado, árvores, vagas e cada objeto, de forma aproximada. Clássico desenha cores por função e linhas tracejadas.",
-  "Placemaker.Issue.UngroupedNoPark": "Construído em partes (sem agrupar como um único item), não é um parque: sem prédio de parque, então sem manutenção, e o turismo, lazer e bem-estar não se aplicam. Agrupe para torná-lo um parque.",
-  "Placemaker.Issue.UngroupedNoPark.Short": "Em partes: sem parque"
+  "Placemaker.Issue.UngroupedNoPark": "Não agrupado como um único item, então não funciona como parque: sem manutenção, mas também sem turismo, lazer ou bem-estar. Ative \"Agrupar como um elemento\" para ser um parque.",
+  "Placemaker.Issue.UngroupedNoPark.Short": "Não agrupado como um item"
 }
