@@ -18,6 +18,7 @@ import { categoryColor, CUSTOM_COLOR, typeIcon } from "../lib/palette";
 import { presetIcon, presetName, recipeGroup, shownActive, Tile } from "./PresetBrowser";
 import { SectionHead } from "./SectionHead";
 import s from "./styleCard.module.scss";
+import { StylePreview } from "../components/StylePreview";
 
 type Mode = "idle" | "saveAs" | "rename";
 
@@ -204,6 +205,8 @@ export const StyleCard = ({ catalog, design, step, children }: { catalog: Catalo
 
     return (
         <div className={s.card} data-testid="style-card" data-modified={changed ? "true" : "false"}>
+            {/* the style's example photo on top (none for the player's own styles) */}
+            {p && !p.custom ? <StylePreview layer={layer.id} preset={p.id} /> : null}
             {head}
             <div className={classNames(s.panel, { [s.panelChanged]: changed })}>{children}</div>
             {confirm ? (

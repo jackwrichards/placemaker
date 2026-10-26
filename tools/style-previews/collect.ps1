@@ -15,10 +15,10 @@ $ep = New-Object System.Drawing.Imaging.EncoderParameters(1)
 $ep.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality, [long]$Quality)
 $n = 0
 foreach ($r in $Run) {
-    foreach ($f in Get-ChildItem (Join-Path $r 'shots') -Filter '*-shots.*.png') {
-        # NN-prv-<type>-<style>-shots.NN-<view>.png
-        if ($f.Name -notmatch '^\d+-prv-([A-Za-z0-9]+)-(.+)-shots\.\d+-(close|45|top)\.png$') { continue }
-        $name = "$($Matches[1])~$($Matches[2])~$($Matches[3]).jpg"
+    foreach ($f in Get-ChildItem (Join-Path $r 'shots') -Filter '*.png') {
+        # NN-prv-<type>-<style>.NN-<view>.png (a trial run's ids end in -t)
+        if ($f.Name -notmatch '^\d+-prv-([A-Za-z0-9]+)-(.+?)(-t)?\.\d+-(close|iso|top)\.png$') { continue }
+        $name = "$($Matches[1])~$($Matches[2])~$($Matches[4]).jpg"
         $src = [System.Drawing.Image]::FromFile($f.FullName)
         $h = [int]($src.Height * $Width / $src.Width)
         $bmp = New-Object System.Drawing.Bitmap $Width, $h
