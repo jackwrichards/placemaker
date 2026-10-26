@@ -123,9 +123,9 @@ Have fun :)
 	<!--"Code Mod" is added by the publisher itself-->
 	<Tag Value="Code Mod" />
 	<ForumLink Value="" />
-	<ModVersion Value="0.2.0" />
+	<ModVersion Value="0.3.0" />
 	<GameVersion Value="1.6.*" />
-	<ChangeLog Value="- New: Outgrow (beta). Gardens and car parks grow past their lots and join up. Off by default.&#10;- New: Zoning. Set the zone mix and lot sizes and it zones your selection.&#10;- New: Industrial. Container yards, car yards, junk yards and industrial works.&#10;- Fixed: white boxes after loading a save (decal packs).&#10;- Smarter road grids and terraced blocks on slopes.&#10;- Odd-shaped parking lots work now.&#10;- No more lag spikes from the paint tools.&#10;- New panel: a Placemaker | Outgrow switch at the top, scrollbars, a cleaner preview." />
+	<ChangeLog Value="- New: a photo for every style, and every style has a real name (no more &quot;Standard&quot;).&#10;- New: the sketch preview is a site plan (roads, paths, lawn, parking spaces, trees, cars and benches), with a top-down map next to the panel.&#10;- New: planned ponds show as water before you build; terrain changes on request.&#10;- New: Review shows Cost &amp; park stats together, and lists what only shows once built.&#10;- New: Placemaker in 12 languages.&#10;- Changed: vanilla by default. Placemaker only picks vanilla assets on its own; you can still pick any asset yourself.&#10;- Fixed: park upkeep. What you see before building is what you pay. A park only counts as a park when grouped as one asset.&#10;- Changed: roads no longer zone (use the Zoning category).&#10;- Outgrow (beta): much faster, cleaner fences, no gardens under bridges or over streets, a simpler window.&#10;- Faster planning everywhere, plus many smaller fixes." />
 	<ExternalLink Type="youtube" Url="https://www.youtube.com/watch?v=Fa5TWC3B-Ps" />
 	<ExternalLink Type="github" Url="https://github.com/jackwrichards/placemaker" />
 	<!--Public, Unlisted or Private, exactly as written (a typo falls back to Public). Made Public by the user on the website, 2026-10-17-->

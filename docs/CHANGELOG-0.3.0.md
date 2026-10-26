@@ -1,6 +1,7 @@
-# Placemaker: what's new since 0.2.0
+# Placemaker 0.3.0
 
-Everything since the 0.2.0 upload to Paradox Mods (21 Oct 2026).
+The full list of changes since 0.2.0 (uploaded to Paradox Mods on 21 Oct 2026). The short version for players is
+in Properties/PublishConfiguration.xml (Paradox Mods) and docs/release-0.3.0-discord.md (Discord).
 
 ## New
 
@@ -83,3 +84,21 @@ Everything since the 0.2.0 upload to Paradox Mods (21 Oct 2026).
 
 - Builds could leave duplicate records after loading the same city twice in one game (GitHub issue #6).
 - Long translations no longer get cut off in the panel.
+
+## Technical notes
+
+- **Saves.** 0.2.0 saves load as before. A park's record now also keeps where its park building stands, so it can come back
+  after an ungroup. Parks built before 0.3.0 keep the upkeep they had (the game charged it before too; the panel now shows it).
+- **Park building.** Each grouped park gets one hidden 1-cell park building (a clone of a vanilla pocket park) that carries
+  its stats; its ServiceConsumption upkeep is the "Upkeep" park stat (vanilla-like, quantised). No road edge, the companion
+  option off, or the build not grouped: no park building and no upkeep.
+- **Vanilla gate.** Automatic pools, defaults and park palettes take built-in prefabs only (PrefabBase.isBuiltin). A non-vanilla
+  asset is used only when the player picked it in the design (ComposedPlan.Picks); hard-coded asset-pack names fall through to
+  their vanilla fallbacks. Vehicle props, terraform brushes and paint tools are vanilla; vanilla wins duplicate prefab names;
+  Outgrow never copies modded lawns, paths or fences from the city.
+- **Roads.** The pre-zone control (preZone) stays in saved designs but is hidden and ignored (RoadPreZone.Offered = false).
+- **Options.** New: Sketch style (Site plan, default, or Classic), Show Outgrow garden outlines, Export Outgrow settings,
+  Debug: build checks (off).
+- **Languages.** Lang/<locale>.*.json for all 12 game languages; new areas styles (Standard names) and siteplan (top-view
+  legend). tools/lang/check.js reports every language at 100 %.
+- **Mod size.** The style photos (489 JPEGs, about 32 MB) are bundled with the panel.
