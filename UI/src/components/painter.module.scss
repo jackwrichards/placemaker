@@ -833,13 +833,6 @@
     padding: 0 9rem 7rem 9rem;
 }
 
-// the brush size, short, at the end of the brushes' row while a brush is on (vertical room above all, the user 26 Oct)
-.brushSize {
-    flex: 0 1 120rem;
-    min-width: 80rem;
-    margin-left: 8rem;
-}
-
 // the brushes: a group of buttons, the look of a switch with none on
 .toolGroup {
     @include row;

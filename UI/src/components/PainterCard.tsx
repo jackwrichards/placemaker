@@ -750,7 +750,7 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
         <div className={s.cityEmbedded} data-testid="polish-city" onMouseDown={(e) => e.stopPropagation()}>
                 {/* one card, two rows, vertical room above all (the user, 26 Oct). 1: this city's one switch (every building
                     keeps its outgrow type), then what the map shows and the count. 2: the three brushes (Paint with its type,
-                    Off, Zone default), then the brush size while one is on. The type list opens under them. */}
+                    Off, Zone default); the brush size on a line of its own while one is on. The type list opens under them. */}
                 <div className={classNames(s.rows, { [s.rowsOff]: !p.featureOn })} data-testid="polish-master">
                     <div className={s.crow}>
                         <div className={s.crowLabel}>{L("RowOutgrow", "Outgrow")}</div>
@@ -790,7 +790,7 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                             ) : null}
                         </div>
                     </div>
-                    {/* row 2: the three brushes, the brush size beside them while one is on */}
+                    {/* row 2: the three brushes */}
                     <div className={s.crow}>
                         {/* three brushes, each named by what it puts down (the user, 26 Oct, layout C): the type picked, Off
                             (no outgrow: what "Erase" should have been), or each building's zone default (the old Erase) */}
@@ -800,13 +800,13 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                             <Btn icon="brush" iconSize={11} label={t("Placemaker.UI.Polish.BrushOff", "Off")} selected={paintingOff} title={t("Placemaker.UI.Polish.BrushOffTip", "Brush: buildings you drag over lose their outgrow (outgrow type Off).")} onClick={() => act.polishCity("brush", paintingOff ? "off" : "paint:off")} testId="polish-brush-off" />
                             <Btn icon="brush" iconSize={11} label={t("Placemaker.UI.Polish.BrushZone", "Zone default")} selected={p.brush === "erase"} title={t("Placemaker.UI.Polish.BrushZoneTip", "Brush: buildings you drag over get their zone's default outgrow type back.")} onClick={() => act.polishCity("brush", p.brush === "erase" ? "off" : "erase")} testId="polish-brush-zone" />
                         </div>
-                        <div className={s.flex} />
-                        {p.brush ? (
-                            <div className={s.brushSize} data-testid="polish-brush-size">
-                                <Slider testId="polish-brush-size-slider" value={Math.round(p.brushSize ?? 40)} min={8} max={200} step={2} unit=" m" onPreview={() => {}} onCommit={(v) => act.polishCity("brushSize", String(v))} />
-                            </div>
-                        ) : null}
                     </div>
+                    {/* the brush size, a line of its own while a brush is on (too short beside the brushes, the user 26 Oct) */}
+                    {p.brush ? (
+                        <div className={s.crowSub} data-testid="polish-brush-size">
+                            <Slider testId="polish-brush-size-slider" value={Math.round(p.brushSize ?? 40)} min={8} max={200} step={2} unit=" m" onPreview={() => {}} onCommit={(v) => act.polishCity("brushSize", String(v))} />
+                        </div>
+                    ) : null}
                     {picking === "brush" ? (
                         <div className={s.crowSub}>
                             <LookChips
