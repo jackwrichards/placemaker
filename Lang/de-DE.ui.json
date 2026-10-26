@@ -316,7 +316,6 @@
   "Placemaker.UI.Review.CausedBy": "Verursacht durch die Einstellung {0}.",
   "Placemaker.UI.Review.ChangeSetting": "Einstellung ändern",
   "Placemaker.UI.Review.ChecksHead": "Prüfungen",
-  "Placemaker.UI.Review.ChecksSub": "Warnungen und Dinge, die vor dem Bauen zu prüfen sind",
   "Placemaker.UI.Review.ClickEdit": "Klick: bearbeiten",
   "Placemaker.UI.Review.ClickShow": "Klick: auf Karte zeigen",
   "Placemaker.UI.Review.Cost": "Kosten",
@@ -442,5 +441,15 @@
   "Placemaker.UI.Preview.NoteOf": "Beispiel: {0}",
   "Placemaker.UI.SitePlan.Title": "Draufsicht",
   "Placemaker.UI.SitePlan.Expand": "Draufsicht groß zeigen",
-  "Placemaker.UI.SitePlan.Close": "Große Ansicht schließen"
+  "Placemaker.UI.SitePlan.Close": "Große Ansicht schließen",
+  "Placemaker.UI.Review.CostStatsHead": "Kosten & Parkwerte",
+  "Placemaker.UI.Review.WarningsHead": "Warnungen",
+  "Placemaker.UI.Review.Later.Terrain": "Geländeformung erst nach dem Bau",
+  "Placemaker.UI.Review.Later.Terrain.Tip": "Der Boden wird beim Bau angehoben und abgesenkt; die Vorschau kann das nicht zeigen. Schalte in der Draufsicht Gelände ein, um zu sehen, wo.",
+  "Placemaker.UI.Review.Later.Paint": "Bodenfarbe erst nach dem Bau",
+  "Placemaker.UI.Review.Later.Paint.Tip": "Der Boden wird beim Bau bemalt; die Vorschau kann das nicht zeigen.",
+  "Placemaker.UI.Review.Later.Water": "Wasser erst nach dem Bau",
+  "Placemaker.UI.Review.Later.Water.Tip": "Teiche und Becken füllen sich nach dem Bau mit Wasser.",
+  "Placemaker.UI.Review.Later.Plots": "Gebäude wachsen später",
+  "Placemaker.UI.Review.Later.Plots.Tip": "Läden und Wohnhäuser entstehen nach dem Bau auf den Zonen, sobald die Stadt sie braucht."
 }

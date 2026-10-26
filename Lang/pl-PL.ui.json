@@ -316,7 +316,6 @@
   "Placemaker.UI.Review.CausedBy": "Spowodowane ustawieniem {0}.",
   "Placemaker.UI.Review.ChangeSetting": "Zmień ustawienie",
   "Placemaker.UI.Review.ChecksHead": "Kontrola",
-  "Placemaker.UI.Review.ChecksSub": "ostrzeżenia i rzeczy do sprawdzenia przed budową",
   "Placemaker.UI.Review.ClickEdit": "Klik: edytuj",
   "Placemaker.UI.Review.ClickShow": "Klik: pokaż na mapie",
   "Placemaker.UI.Review.Cost": "Koszt",
@@ -442,5 +441,15 @@
   "Placemaker.UI.Preview.NoteOf": "Przykład: {0}",
   "Placemaker.UI.SitePlan.Title": "Widok z góry",
   "Placemaker.UI.SitePlan.Expand": "Pokaż widok z góry w dużym rozmiarze",
-  "Placemaker.UI.SitePlan.Close": "Zamknij duży widok"
+  "Placemaker.UI.SitePlan.Close": "Zamknij duży widok",
+  "Placemaker.UI.Review.CostStatsHead": "Koszt i statystyki",
+  "Placemaker.UI.Review.WarningsHead": "Ostrzeżenia",
+  "Placemaker.UI.Review.Later.Terrain": "Teren zmienia się po budowie",
+  "Placemaker.UI.Review.Later.Terrain.Tip": "Teren jest podnoszony i obniżany podczas budowy; podgląd tego nie pokaże. Włącz Teren w widoku z góry, aby zobaczyć gdzie.",
+  "Placemaker.UI.Review.Later.Paint": "Malowanie terenu po budowie",
+  "Placemaker.UI.Review.Later.Paint.Tip": "Teren jest malowany podczas budowy; podgląd tego nie pokaże.",
+  "Placemaker.UI.Review.Later.Water": "Woda pojawi się po budowie",
+  "Placemaker.UI.Review.Later.Water.Tip": "Stawy i baseny napełniają się wodą po budowie.",
+  "Placemaker.UI.Review.Later.Plots": "Budynki wyrosną później",
+  "Placemaker.UI.Review.Later.Plots.Tip": "Sklepy i domy wyrastają na strefach po budowie, gdy miasto ich potrzebuje."
 }

@@ -203,10 +203,11 @@ test("Review is compact: issues as short chips (tooltip has the sentence), +N mo
     await expect(page.getByTestId("stage-review")).toBeVisible();
     await waitPlanned(page);
     const long = "This is a deliberately very long issue text that would wrap over several lines and used to overlap the next line in Gameface";
-    // Seven long issues (NoRoom = "{0}: no free spot left, skipped.") and a two-layer breakdown.
+    // Seven long errors and warnings (Warnings), one note (Checks) (NoRoom = "{0}: no free spot left, skipped.") and a two-layer breakdown.
     await page.evaluate((text) => {
         const raw = (window as any).pm.backend.summary();
-        raw.issues = Array.from({ length: 7 }, (_, i) => ({ severity: ["error", "warning", "info"][i % 3], text: { key: "Placemaker.Test.Issue" + i, args: [text + " #" + i] }, stepPath: "0", at: [600, 0, 380] }));
+        raw.issues = Array.from({ length: 7 }, (_, i) => ({ severity: ["error", "warning"][i % 2], text: { key: "Placemaker.Test.Issue" + i, args: [text + " #" + i] }, stepPath: "0", at: [600, 0, 380] }));
+        raw.issues.push({ severity: "info", text: { key: "Placemaker.Test.Note", args: ["a note"] }, stepPath: "0" });
         // s45: the same issue from two layers is one chip
         raw.issues.push({ severity: "warning", text: { key: "Placemaker.Test.Issue1", args: [text + " again"] }, stepPath: "0" });
         raw.layers = [{ stepPath: "0", layer: "park", regionKey: "root", stats: [], cost: 1000, upkeep: 10 }, { stepPath: "0/0", layer: "plaza", regionKey: "core", stats: [], cost: 2000, upkeep: 20 }];
@@ -220,6 +221,9 @@ test("Review is compact: issues as short chips (tooltip has the sentence), +N mo
     for (const b of await chips.all()) expect((await b.boundingBox())!.height).toBeLessThanOrEqual(24);
     // errors first
     await expect(chips.first()).toHaveAttribute("data-testid", "issue-error");
+    // notes are in Checks, apart from the warnings
+    await expect(page.getByTestId("checks").locator('[data-testid="issue-info"]')).toHaveCount(1);
+    await expect(issues.locator('[data-testid="issue-info"]')).toHaveCount(0);
     await expect(page.getByTestId("breakdown")).toHaveAttribute("data-open", "false");
     await expect(page.getByTestId("cost-bar")).toBeVisible();
     await noTextOverflow(page, "review with long issues");

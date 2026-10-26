@@ -316,7 +316,6 @@
   "Placemaker.UI.Review.CausedBy": "Causado pela configuração {0}.",
   "Placemaker.UI.Review.ChangeSetting": "Mudar configuração",
   "Placemaker.UI.Review.ChecksHead": "Verificações",
-  "Placemaker.UI.Review.ChecksSub": "avisos e pontos a conferir antes de construir",
   "Placemaker.UI.Review.ClickEdit": "Clique: editar",
   "Placemaker.UI.Review.ClickShow": "Clique: mostrar no mapa",
   "Placemaker.UI.Review.Cost": "Custo",
@@ -442,5 +441,15 @@
   "Placemaker.UI.Preview.NoteOf": "Exemplo: {0}",
   "Placemaker.UI.SitePlan.Title": "Vista de cima",
   "Placemaker.UI.SitePlan.Expand": "Mostrar a vista de cima ampliada",
-  "Placemaker.UI.SitePlan.Close": "Fechar a vista ampliada"
+  "Placemaker.UI.SitePlan.Close": "Fechar a vista ampliada",
+  "Placemaker.UI.Review.CostStatsHead": "Custo e estatísticas",
+  "Placemaker.UI.Review.WarningsHead": "Avisos",
+  "Placemaker.UI.Review.Later.Terrain": "Terreno muda ao construir",
+  "Placemaker.UI.Review.Later.Terrain.Tip": "O terreno é elevado e rebaixado ao construir; a prévia não consegue mostrar. Ative Terreno na vista de cima para ver onde.",
+  "Placemaker.UI.Review.Later.Paint": "Pintura do solo ao construir",
+  "Placemaker.UI.Review.Later.Paint.Tip": "O solo é pintado ao construir; a prévia não consegue mostrar.",
+  "Placemaker.UI.Review.Later.Water": "A água enche ao construir",
+  "Placemaker.UI.Review.Later.Water.Tip": "Lagos e piscinas se enchem de água depois da construção.",
+  "Placemaker.UI.Review.Later.Plots": "Os prédios surgem depois",
+  "Placemaker.UI.Review.Later.Plots.Tip": "Lojas e casas surgem nos lotes zoneados após a construção, conforme a cidade precisa."
 }

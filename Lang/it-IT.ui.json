@@ -316,7 +316,6 @@
   "Placemaker.UI.Review.CausedBy": "Causato dall'impostazione {0}.",
   "Placemaker.UI.Review.ChangeSetting": "Cambia impostazione",
   "Placemaker.UI.Review.ChecksHead": "Controlli",
-  "Placemaker.UI.Review.ChecksSub": "avvisi e cose da guardare prima di costruire",
   "Placemaker.UI.Review.ClickEdit": "Clic: modifica",
   "Placemaker.UI.Review.ClickShow": "Clic: mostra sulla mappa",
   "Placemaker.UI.Review.Cost": "Costo",
@@ -442,5 +441,15 @@
   "Placemaker.UI.Preview.NoteOf": "Esempio: {0}",
   "Placemaker.UI.SitePlan.Title": "Vista dall'alto",
   "Placemaker.UI.SitePlan.Expand": "Mostra la vista dall'alto in grande",
-  "Placemaker.UI.SitePlan.Close": "Chiudi la vista grande"
+  "Placemaker.UI.SitePlan.Close": "Chiudi la vista grande",
+  "Placemaker.UI.Review.CostStatsHead": "Costo e statistiche",
+  "Placemaker.UI.Review.WarningsHead": "Avvisi",
+  "Placemaker.UI.Review.Later.Terrain": "Terreno modellato alla costruzione",
+  "Placemaker.UI.Review.Later.Terrain.Tip": "Il terreno viene alzato e abbassato quando costruisci; l'anteprima non può mostrarlo. Attiva Terreno nella vista dall'alto per vedere dove.",
+  "Placemaker.UI.Review.Later.Paint": "Pittura del suolo alla costruzione",
+  "Placemaker.UI.Review.Later.Paint.Tip": "Il suolo viene dipinto quando costruisci; l'anteprima non può mostrarlo.",
+  "Placemaker.UI.Review.Later.Water": "L'acqua arriva alla costruzione",
+  "Placemaker.UI.Review.Later.Water.Tip": "Stagni e vasche si riempiono d'acqua dopo la costruzione.",
+  "Placemaker.UI.Review.Later.Plots": "Gli edifici crescono dopo",
+  "Placemaker.UI.Review.Later.Plots.Tip": "Negozi e case crescono sui lotti zonizzati dopo la costruzione, quando la città ne ha bisogno."
 }

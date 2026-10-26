@@ -260,7 +260,8 @@ export function shortText(t: TFunc, loc: LocText | undefined): string {
 }
 const STOP = new Set(["a", "an", "the", "of", "to", "in", "on", "for", "with", "and", "or", "is", "are", "was", "were", "be", "been", "has", "have", "will", "can", "not", "no", "at", "by", "from", "this", "that", "it"]);
 
-type Alert = { kind: "error" | "warn" | "info"; text: string; full: string; issue?: Issue; permanent?: boolean; loc?: LocText };
+/** later: something the preview cannot show before the build (laterAlerts). */
+type Alert = { kind: "error" | "warn" | "info"; text: string; full: string; issue?: Issue; permanent?: boolean; loc?: LocText; later?: boolean };
 
 /**
  * (s45) One chip per thing: alerts with the same text key merge (number arguments add up: "12 trees cut"), then
@@ -304,9 +305,8 @@ export function mergeAlerts(t: TFunc, raw: Alert[]): Alert[] {
 
 const ALERT_ICON = { error: ["error", "danger"], warn: ["warning", "warn"], info: ["info", "accent"] } as const;
 
-const Alerts = ({ summary }: { summary: Summary }) => {
-    const { t, tl } = useT();
-    const [all, setAll] = useState(false);
+/** Every alert of the review, merged (errors first, then permanent changes, warnings, info). */
+function buildAlerts(t: TFunc, tl: (loc: LocText | undefined | null, fallback?: string) => string, summary: Summary): Alert[] {
     const raw: Alert[] = [];
     const paintOnly = summary.permanentNeedsAck === false;
     for (const p of summary.permanent)
@@ -324,11 +324,35 @@ const Alerts = ({ summary }: { summary: Summary }) => {
     // errors first, then permanent changes, warnings, info
     const order = (a: Alert) => (a.kind === "error" ? 0 : a.permanent ? 1 : a.kind === "warn" ? 2 : 3);
     raw.sort((a, b) => order(a) - order(b));
-    const alerts = mergeAlerts(t, raw);
+    return mergeAlerts(t, raw);
+}
+
+/**
+ * What the preview cannot show before the build, read from the plan (the user: "show everything that won't be visible"):
+ * the ground's height changes, ground paint, water filling the basins, buildings growing on zoned plots.
+ */
+function laterAlerts(t: TFunc, sp: SitePlanView | null): Alert[] {
+    if (!sp) return [];
+    const out: Alert[] = [];
+    const add = (text: string, full: string) => out.push({ kind: "info", text, full, later: true });
+    if (sp.heat && sp.heat.length)
+        add(t("Placemaker.UI.Review.Later.Terrain", "Ground shaping shows once built"), t("Placemaker.UI.Review.Later.Terrain.Tip", "The ground is raised and lowered when you build; the preview cannot show it. Turn on Terrain in the top view to see where."));
+    if (sp.fills.some((x) => x.m.startsWith("paint:")))
+        add(t("Placemaker.UI.Review.Later.Paint", "Ground paint shows once built"), t("Placemaker.UI.Review.Later.Paint.Tip", "The ground is painted when you build; the preview cannot show it."));
+    if (sp.fills.some((x) => x.m === "water"))
+        add(t("Placemaker.UI.Review.Later.Water", "Water fills in once built"), t("Placemaker.UI.Review.Later.Water.Tip", "Ponds and pools fill with water after the build."));
+    if (sp.plots && sp.plots.length)
+        add(t("Placemaker.UI.Review.Later.Plots", "Buildings grow later"), t("Placemaker.UI.Review.Later.Plots.Tip", "Shops and homes grow on the zoned plots after the build, as the city needs them."));
+    return out;
+}
+
+const Alerts = ({ alerts, testId }: { alerts: Alert[]; testId: string }) => {
+    const { t } = useT();
+    const [all, setAll] = useState(false);
     if (!alerts.length) return null;
     const shown = all ? alerts : alerts.slice(0, ALERTS_SHOWN);
     return (
-        <div className={s.alerts} data-testid="issues">
+        <div className={s.alerts} data-testid={testId}>
             {shown.map((a, n) => {
                 const [icon, tint] = ALERT_ICON[a.kind];
                 const i = a.issue;
@@ -343,7 +367,7 @@ const Alerts = ({ summary }: { summary: Summary }) => {
                         <button
                             type="button"
                             className={classNames(s.alert, s["alert_" + a.kind])}
-                            data-testid={a.permanent ? "permanent" : `issue-${i?.severity}`}
+                            data-testid={a.later ? "later" : a.permanent ? "permanent" : `issue-${i?.severity}`}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 if (i?.at) act.locate(i.at as [number, number, number]);
@@ -381,7 +405,7 @@ const Alerts = ({ summary }: { summary: Summary }) => {
                 <button
                     type="button"
                     className={classNames(s.alert, s.alertMore)}
-                    data-testid="issues-more"
+                    data-testid={testId + "-more"}
                     onClick={(e) => {
                         e.stopPropagation();
                         setAll(!all);
@@ -398,9 +422,13 @@ const Alerts = ({ summary }: { summary: Summary }) => {
 
 export const ReviewStage = ({ catalog, state, summary }: { catalog: Catalog; state: ToolState; summary: Summary }) => {
     const { t } = useT();
+    const { tl } = useT();
     const pending = summary.stale || state.planning;
-    const clean = summary.issues.length === 0 && summary.permanent.length === 0 && !pending;
     const sitePlan = useSitePlan();
+    const alerts = buildAlerts(t, tl, summary);
+    const warnings = alerts.filter((a) => a.kind !== "info");
+    const checks = [...alerts.filter((a) => a.kind === "info"), ...laterAlerts(t, sitePlan && sitePlan.style !== "classic" ? sitePlan : null)];
+    const parkStats = summary.parkStats && summary.parkStats.stats && summary.parkStats.stats.length ? summary.parkStats : null;
     return (
         <div className={s.stage} data-testid="stage-review">
             {!summary.ready ? (
@@ -410,8 +438,10 @@ export const ReviewStage = ({ catalog, state, summary }: { catalog: Catalog; sta
             ) : (
                 <>
                     {/* the same story as the Design page: what it costs, what you get, what to check */}
-                    <SectionHead first icon="cost" title={t("Placemaker.UI.Review.CostHead", "Cost")} testId="review-head-cost" />
+                    {/* cost and the park's stats together (the user: they belong together) */}
+                    <SectionHead first icon="cost" title={parkStats ? t("Placemaker.UI.Review.CostStatsHead", "Cost & park stats") : t("Placemaker.UI.Review.CostHead", "Cost")} testId="review-head-cost" />
                     <MoneyCard catalog={catalog} state={state} summary={summary} pending={pending} />
+                    {parkStats ? <ParkStatsSection ps={parkStats} pending={pending} /> : null}
                     {/* one section: the top view, its legend, then only the details the legend has no row for; the area in the head */}
                     <SectionHead icon="layers" title={t("Placemaker.UI.Review.StatsHead", "What you get")} sub={fmtArea(state.area.areaM2)} testId="review-head-stats" />
                     {sitePlan && sitePlan.style !== "classic" ? <SitePlanCard sp={sitePlan} state={state} layout="row" /> : null}
@@ -425,16 +455,21 @@ export const ReviewStage = ({ catalog, state, summary }: { catalog: Catalog; sta
                             </div>
                         ) : null;
                     })()}
+                    {/* warnings (problems, permanent changes) apart from the checks (notes, what shows only once built) */}
+                    {warnings.length ? (
+                        <>
+                            <SectionHead icon="warning" title={t("Placemaker.UI.Review.WarningsHead", "Warnings")} count={warnings.length} tone="warn" testId="review-head-warnings" />
+                            <Alerts alerts={warnings} testId="issues" />
+                        </>
+                    ) : null}
                     <SectionHead
-                        icon={clean ? "check" : "warning"}
+                        icon="check"
                         title={t("Placemaker.UI.Review.ChecksHead", "Checks")}
-                        count={summary.issues.length + summary.permanent.length}
-                        tone={clean ? undefined : "warn"}
-                        sub={clean ? t("Placemaker.UI.Review.AllGood", "No problems") : t("Placemaker.UI.Review.ChecksSub", "warnings and things to look at before building")}
+                        count={checks.length || undefined}
+                        sub={!warnings.length && !pending ? t("Placemaker.UI.Review.AllGood", "No problems") : undefined}
                         testId="review-head-checks"
                     />
-                    <Alerts summary={summary} />
-                    {summary.parkStats && summary.parkStats.stats && summary.parkStats.stats.length ? <ParkStatsSection ps={summary.parkStats} pending={pending} /> : null}
+                    <Alerts alerts={checks} testId="checks" />
                 </>
             )}
         </div>

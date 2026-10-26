@@ -316,7 +316,6 @@
   "Placemaker.UI.Review.CausedBy": "Из-за настройки «{0}».",
   "Placemaker.UI.Review.ChangeSetting": "Изменить настройку",
   "Placemaker.UI.Review.ChecksHead": "Проверки",
-  "Placemaker.UI.Review.ChecksSub": "предупреждения и что проверить перед строительством",
   "Placemaker.UI.Review.ClickEdit": "Щелчок: изменить",
   "Placemaker.UI.Review.ClickShow": "Щелчок: показать на карте",
   "Placemaker.UI.Review.Cost": "Стоимость",
@@ -442,5 +441,15 @@
   "Placemaker.UI.Preview.NoteOf": "Пример: {0}",
   "Placemaker.UI.SitePlan.Title": "Вид сверху",
   "Placemaker.UI.SitePlan.Expand": "Показать вид сверху крупно",
-  "Placemaker.UI.SitePlan.Close": "Закрыть крупный вид"
+  "Placemaker.UI.SitePlan.Close": "Закрыть крупный вид",
+  "Placemaker.UI.Review.CostStatsHead": "Стоимость и показатели",
+  "Placemaker.UI.Review.WarningsHead": "Предупреждения",
+  "Placemaker.UI.Review.Later.Terrain": "Рельеф изменится после стройки",
+  "Placemaker.UI.Review.Later.Terrain.Tip": "Земля поднимается и опускается при стройке; превью этого не покажет. Включите «Рельеф» на виде сверху, чтобы увидеть где.",
+  "Placemaker.UI.Review.Later.Paint": "Покраска земли после стройки",
+  "Placemaker.UI.Review.Later.Paint.Tip": "Земля окрашивается при стройке; превью этого не покажет.",
+  "Placemaker.UI.Review.Later.Water": "Вода наполнится после стройки",
+  "Placemaker.UI.Review.Later.Water.Tip": "Пруды и бассейны наполнятся водой после стройки.",
+  "Placemaker.UI.Review.Later.Plots": "Здания вырастут позже",
+  "Placemaker.UI.Review.Later.Plots.Tip": "Магазины и дома вырастут на зонированных участках после стройки, когда они понадобятся городу."
 }

@@ -316,7 +316,6 @@
   "Placemaker.UI.Review.CausedBy": "Lo causa el ajuste {0}.",
   "Placemaker.UI.Review.ChangeSetting": "Cambiar ajuste",
   "Placemaker.UI.Review.ChecksHead": "Revisión",
-  "Placemaker.UI.Review.ChecksSub": "avisos y cosas a revisar antes de construir",
   "Placemaker.UI.Review.ClickEdit": "Clic: editar",
   "Placemaker.UI.Review.ClickShow": "Clic: ver en el mapa",
   "Placemaker.UI.Review.Cost": "Coste",
@@ -442,5 +441,15 @@
   "Placemaker.UI.Preview.NoteOf": "Ejemplo: {0}",
   "Placemaker.UI.SitePlan.Title": "Vista superior",
   "Placemaker.UI.SitePlan.Expand": "Ver la vista superior en grande",
-  "Placemaker.UI.SitePlan.Close": "Cerrar la vista grande"
+  "Placemaker.UI.SitePlan.Close": "Cerrar la vista grande",
+  "Placemaker.UI.Review.CostStatsHead": "Coste y estadísticas",
+  "Placemaker.UI.Review.WarningsHead": "Avisos",
+  "Placemaker.UI.Review.Later.Terrain": "El terreno cambia al construir",
+  "Placemaker.UI.Review.Later.Terrain.Tip": "El suelo se eleva y se rebaja al construir; la vista previa no puede mostrarlo. Activa Terreno en la vista superior para ver dónde.",
+  "Placemaker.UI.Review.Later.Paint": "La pintura aparece al construir",
+  "Placemaker.UI.Review.Later.Paint.Tip": "El suelo se pinta al construir; la vista previa no puede mostrarlo.",
+  "Placemaker.UI.Review.Later.Water": "El agua llega al construir",
+  "Placemaker.UI.Review.Later.Water.Tip": "Los estanques y las piscinas se llenan de agua después de construir.",
+  "Placemaker.UI.Review.Later.Plots": "Los edificios crecen después",
+  "Placemaker.UI.Review.Later.Plots.Tip": "Las tiendas y viviendas crecen en las parcelas zonificadas tras la construcción, según lo necesite la ciudad."
 }

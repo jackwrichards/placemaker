@@ -316,7 +316,6 @@
   "Placemaker.UI.Review.CausedBy": "由設定{0}造成。",
   "Placemaker.UI.Review.ChangeSetting": "更改設定",
   "Placemaker.UI.Review.ChecksHead": "檢查",
-  "Placemaker.UI.Review.ChecksSub": "建造前的警告和注意事項",
   "Placemaker.UI.Review.ClickEdit": "點擊：編輯",
   "Placemaker.UI.Review.ClickShow": "點擊：在地圖上顯示",
   "Placemaker.UI.Review.Cost": "花費",
@@ -442,5 +441,15 @@
   "Placemaker.UI.Preview.NoteOf": "{0}範例",
   "Placemaker.UI.SitePlan.Title": "俯視圖",
   "Placemaker.UI.SitePlan.Expand": "放大顯示俯視圖",
-  "Placemaker.UI.SitePlan.Close": "關閉放大視圖"
+  "Placemaker.UI.SitePlan.Close": "關閉放大視圖",
+  "Placemaker.UI.Review.CostStatsHead": "費用與公園數據",
+  "Placemaker.UI.Review.WarningsHead": "警告",
+  "Placemaker.UI.Review.Later.Terrain": "地形變化在建造後顯示",
+  "Placemaker.UI.Review.Later.Terrain.Tip": "地面在建造時抬高與降低，預覽無法顯示。在俯視圖中開啟地形即可看到位置。",
+  "Placemaker.UI.Review.Later.Paint": "地面塗刷在建造後顯示",
+  "Placemaker.UI.Review.Later.Paint.Tip": "地面在建造時塗刷，預覽無法顯示。",
+  "Placemaker.UI.Review.Later.Water": "建造後注水",
+  "Placemaker.UI.Review.Later.Water.Tip": "池塘與水池在建造後注滿水。",
+  "Placemaker.UI.Review.Later.Plots": "建築稍後建成",
+  "Placemaker.UI.Review.Later.Plots.Tip": "建造後，商店與住宅會依城市需要在分區地塊上建成。"
 }

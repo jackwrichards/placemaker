@@ -316,7 +316,6 @@
   "Placemaker.UI.Review.CausedBy": "Causé par le réglage {0}.",
   "Placemaker.UI.Review.ChangeSetting": "Changer le réglage",
   "Placemaker.UI.Review.ChecksHead": "Vérifications",
-  "Placemaker.UI.Review.ChecksSub": "avertissements et points à voir avant de construire",
   "Placemaker.UI.Review.ClickEdit": "Clic : modifier",
   "Placemaker.UI.Review.ClickShow": "Clic : voir sur la carte",
   "Placemaker.UI.Review.Cost": "Coût",
@@ -442,5 +441,15 @@
   "Placemaker.UI.Preview.NoteOf": "Exemple : {0}",
   "Placemaker.UI.SitePlan.Title": "Vue de dessus",
   "Placemaker.UI.SitePlan.Expand": "Afficher la vue de dessus en grand",
-  "Placemaker.UI.SitePlan.Close": "Fermer la grande vue"
+  "Placemaker.UI.SitePlan.Close": "Fermer la grande vue",
+  "Placemaker.UI.Review.CostStatsHead": "Coût et statistiques",
+  "Placemaker.UI.Review.WarningsHead": "Avertissements",
+  "Placemaker.UI.Review.Later.Terrain": "Terrain modelé à la construction",
+  "Placemaker.UI.Review.Later.Terrain.Tip": "Le sol est relevé et abaissé à la construction ; l'aperçu ne peut pas le montrer. Active Terrain dans la vue de dessus pour voir où.",
+  "Placemaker.UI.Review.Later.Paint": "Peinture du sol à la construction",
+  "Placemaker.UI.Review.Later.Paint.Tip": "Le sol est peint à la construction ; l'aperçu ne peut pas le montrer.",
+  "Placemaker.UI.Review.Later.Water": "L'eau arrive à la construction",
+  "Placemaker.UI.Review.Later.Water.Tip": "Les étangs et bassins se remplissent d'eau après la construction.",
+  "Placemaker.UI.Review.Later.Plots": "Les bâtiments poussent ensuite",
+  "Placemaker.UI.Review.Later.Plots.Tip": "Commerces et logements poussent sur les parcelles zonées après la construction, selon les besoins de la ville."
 }
