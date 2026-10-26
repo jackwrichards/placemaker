@@ -178,9 +178,19 @@ namespace Placemaker.Game.Overlay
                     if (ring == null || ring.Length < 3 || tris.Count / 3 >= MaxTriangles) continue;
                     if (convex && Small(ring))
                     {
-                        // a fan over the ring's own corners, each sampled once
+                        // a fan over the ring's own corners at the ground height of its middle (one sample: a stall line or a
+                        // crown is too small for the slope to show)
                         int b = verts.Count;
-                        foreach (var p in ring) verts.Add(OnTerrain(p.xz, ref heights, ref min, ref max));
+                        float2 mid = float2.zero;
+                        foreach (var p in ring) mid += p.xz;
+                        var g = OnTerrain(mid / ring.Length, ref heights, ref min, ref max);
+                        foreach (var p in ring)
+                        {
+                            var v = new Vector3(p.x, g.y, p.z);
+                            min = math.min(min, (float3)v);
+                            max = math.max(max, (float3)v);
+                            verts.Add(v);
+                        }
                         for (int i = 1; i + 1 < ring.Length; i++) { tris.Add(b); tris.Add(b + i); tris.Add(b + i + 1); }
                         continue;
                     }

@@ -270,8 +270,15 @@ namespace Placemaker.Core.Build
             if (bayRects.Count > 0)
             {
                 var grid = new AisleGrid(aisles);
+                // a separator is shared by two neighbours: drawn once (half the lines on a big lot)
+                var seen = new HashSet<(long, long)>();
+                long K(float2 p) => ((long)math.round(p.x * 5f) << 32) ^ (uint)(int)math.round(p.y * 5f);
                 foreach (var r in bayRects)
-                    foreach (var seg in BayLines(r, grid)) sp.Stalls.Add(seg);
+                    foreach (var seg in BayLines(r, grid))
+                    {
+                        long ka = K(seg.a), kb = K(seg.b);
+                        if (seen.Add(ka < kb ? (ka, kb) : (kb, ka))) sp.Stalls.Add(seg);
+                    }
             }
 
             // Shop plots: the zone cells the build zones (else the planned quads).

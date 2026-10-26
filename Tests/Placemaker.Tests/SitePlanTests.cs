@@ -45,8 +45,8 @@ namespace Placemaker.Tests
             Assert.Equal(1, rows[SitePlan.Entrances].Count);
             Assert.Equal(135, rows[SitePlan.Paths].Count, 0);
             Assert.False(rows.ContainsKey(SitePlan.Roads));   // a car park's aisles are not roads
-            // stalls: two separators each, plus a back line once the aisle is known (the side away from it)
-            Assert.Equal(18, sp.Stalls.Count);
+            // stalls: a back line each (the side away from the aisle) and the separators, a shared one drawn once: 6 + 7
+            Assert.Equal(13, sp.Stalls.Count);
             Assert.All(sp.Legend, r => Assert.True(Poly.Contains(T, r.Anchor) || r.Id == SitePlan.Entrances, r.Id + " note outside the outline"));
         }
 
@@ -77,7 +77,7 @@ namespace Placemaker.Tests
             var json = JsonValue.Parse(sp.ToUi("7").ToString());
             Assert.Equal("7", json["stamp"].AsString());
             Assert.Equal(T.Length * 2, json["outline"].Count);
-            Assert.Equal(18 * 4, json["stalls"].Count);
+            Assert.Equal(13 * 4, json["stalls"].Count);
             Assert.Equal(sp.Legend.Count, json["legend"].Count);
             Assert.Equal(3, json["entrances"].Count);
         }
