@@ -439,6 +439,7 @@
   "Placemaker.UI.Preview.Iso": "斜視",
   "Placemaker.UI.Preview.Top": "俯視",
   "Placemaker.UI.Preview.Note": "預覽",
+  "Placemaker.UI.Preview.NoteOf": "{0}預覽",
   "Placemaker.UI.SitePlan.Title": "俯視圖",
   "Placemaker.UI.SitePlan.Expand": "放大顯示俯視圖",
   "Placemaker.UI.SitePlan.Close": "關閉放大視圖"

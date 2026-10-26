@@ -439,6 +439,7 @@
   "Placemaker.UI.Preview.Iso": "사선",
   "Placemaker.UI.Preview.Top": "위",
   "Placemaker.UI.Preview.Note": "미리보기",
+  "Placemaker.UI.Preview.NoteOf": "{0} 미리보기",
   "Placemaker.UI.SitePlan.Title": "평면도",
   "Placemaker.UI.SitePlan.Expand": "평면도 크게 보기",
   "Placemaker.UI.SitePlan.Close": "큰 보기 닫기"

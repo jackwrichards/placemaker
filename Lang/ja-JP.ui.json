@@ -439,6 +439,7 @@
   "Placemaker.UI.Preview.Iso": "斜め",
   "Placemaker.UI.Preview.Top": "真上",
   "Placemaker.UI.Preview.Note": "プレビュー",
+  "Placemaker.UI.Preview.NoteOf": "{0}のプレビュー",
   "Placemaker.UI.SitePlan.Title": "上面図",
   "Placemaker.UI.SitePlan.Expand": "上面図を大きく表示",
   "Placemaker.UI.SitePlan.Close": "拡大表示を閉じる"

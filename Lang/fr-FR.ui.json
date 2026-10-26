@@ -439,6 +439,7 @@
   "Placemaker.UI.Preview.Iso": "Angle",
   "Placemaker.UI.Preview.Top": "Dessus",
   "Placemaker.UI.Preview.Note": "Aperçu",
+  "Placemaker.UI.Preview.NoteOf": "Aperçu : {0}",
   "Placemaker.UI.SitePlan.Title": "Vue de dessus",
   "Placemaker.UI.SitePlan.Expand": "Afficher la vue de dessus en grand",
   "Placemaker.UI.SitePlan.Close": "Fermer la grande vue"

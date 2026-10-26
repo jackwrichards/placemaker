@@ -70,15 +70,15 @@ foreach ($r in $Run) {
         $ia.SetColorMatrix($grade)
         $g.DrawImage($src, (New-Object System.Drawing.Rectangle 0, 0, $Width, $h), $sx, $sy, $sw, $sh, [System.Drawing.GraphicsUnit]::Pixel, $ia)
         [PmSharpen]::Apply($bmp, 0.12)
-        # a soft vignette: the corners a little darker
+        # a vignette: the edges and corners darker (stronger, the user 26 Oct)
         $path = New-Object System.Drawing.Drawing2D.GraphicsPath
         $path.AddEllipse([int](-$Width * 0.25), [int](-$h * 0.25), [int]($Width * 1.5), [int]($h * 1.5))
         $vb = New-Object System.Drawing.Drawing2D.PathGradientBrush $path
         $vb.CenterColor = [System.Drawing.Color]::FromArgb(0, 0, 0, 0)
-        $vb.SurroundColors = @([System.Drawing.Color]::FromArgb(110, 0, 0, 0))
+        $vb.SurroundColors = @([System.Drawing.Color]::FromArgb(170, 0, 0, 0))
         $blend = New-Object System.Drawing.Drawing2D.Blend
-        $blend.Positions = [single[]](0, 0.35, 1)
-        $blend.Factors = [single[]](0, 0.55, 1)
+        $blend.Positions = [single[]](0, 0.3, 1)
+        $blend.Factors = [single[]](0, 0.6, 1)
         $vb.Blend = $blend
         $g.FillRectangle($vb, 0, 0, $Width, $h)
         $vb.Dispose(); $path.Dispose(); $ia.Dispose()

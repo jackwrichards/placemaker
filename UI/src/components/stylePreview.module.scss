@@ -78,7 +78,11 @@
 .note {
     position: absolute;
     left: 9rem;
+    right: 40rem;
     top: 7rem;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     color: rgba(255, 255, 255, 0.85);
     font-size: 10rem;
     font-weight: 600;
@@ -126,6 +130,10 @@
 
 .foldedLabel {
     flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
     color: $c-text-dim;
     font-size: 11rem;
 }

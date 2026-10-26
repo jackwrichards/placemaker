@@ -439,6 +439,7 @@
   "Placemaker.UI.Preview.Iso": "Под углом",
   "Placemaker.UI.Preview.Top": "Сверху",
   "Placemaker.UI.Preview.Note": "Превью",
+  "Placemaker.UI.Preview.NoteOf": "Превью: {0}",
   "Placemaker.UI.SitePlan.Title": "Вид сверху",
   "Placemaker.UI.SitePlan.Expand": "Показать вид сверху крупно",
   "Placemaker.UI.SitePlan.Close": "Закрыть крупный вид"

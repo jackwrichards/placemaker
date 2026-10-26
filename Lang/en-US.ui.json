@@ -293,6 +293,7 @@
   "Placemaker.UI.Preview.Close": "Close",
   "Placemaker.UI.Preview.Iso": "Angle",
   "Placemaker.UI.Preview.Note": "Preview",
+  "Placemaker.UI.Preview.NoteOf": "{0} preview",
   "Placemaker.UI.Preview.Real": "Real",
   "Placemaker.UI.Preview.RealTip": "See-through game models and textures, exactly what will be built.",
   "Placemaker.UI.Preview.RealTitle": "Real preview",

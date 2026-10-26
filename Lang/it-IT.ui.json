@@ -439,6 +439,7 @@
   "Placemaker.UI.Preview.Iso": "Angolo",
   "Placemaker.UI.Preview.Top": "Dall'alto",
   "Placemaker.UI.Preview.Note": "Anteprima",
+  "Placemaker.UI.Preview.NoteOf": "Anteprima: {0}",
   "Placemaker.UI.SitePlan.Title": "Vista dall'alto",
   "Placemaker.UI.SitePlan.Expand": "Mostra la vista dall'alto in grande",
   "Placemaker.UI.SitePlan.Close": "Chiudi la vista grande"

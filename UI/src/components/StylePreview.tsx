@@ -77,8 +77,10 @@ function loadOpen(): boolean {
     }
 }
 
-export const StylePreview = ({ layer, preset }: { layer: string; preset: string | null }) => {
+export const StylePreview = ({ layer, preset, name }: { layer: string; preset: string | null; name?: string }) => {
     const { t } = useT();
+    // "Playing fields preview" (the user): the style's name with the word
+    const note = name ? t("Placemaker.UI.Preview.NoteOf", "{0} preview", [name]) : t("Placemaker.UI.Preview.Note", "Preview");
     const [view, setViewState] = useState<View>(() => shared ?? (shared = loadView()));
     const [open, setOpenState] = useState<boolean>(() => sharedOpen ?? (sharedOpen = loadOpen()));
     // 16:9 (the photos, collect.ps1) from the measured width: the game's view gives an absolute picture no height inside a padding-sized box
@@ -137,7 +139,7 @@ export const StylePreview = ({ layer, preset }: { layer: string; preset: string 
     if (!open)
         return (
             <div className={s.folded} data-testid="style-preview" data-open="0" onClick={() => setOpen(true)}>
-                <div className={s.foldedLabel}>{t("Placemaker.UI.Preview.Note", "Preview")}</div>
+                <div className={s.foldedLabel} data-ellipsis="1">{note}</div>
                 <Icon name="chevronDown" size={11} tint="dim" />
             </div>
         );
@@ -166,7 +168,7 @@ export const StylePreview = ({ layer, preset }: { layer: string; preset: string 
             <div className={s.fold} data-testid="style-preview-fold" onClick={() => setOpen(false)}>
                 <Icon name="chevronUp" size={11} />
             </div>
-            <div className={s.note}>{t("Placemaker.UI.Preview.Note", "Preview")}</div>
+            <div className={s.note} data-ellipsis="1">{note}</div>
         </div>
     );
 };
