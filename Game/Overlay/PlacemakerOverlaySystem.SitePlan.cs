@@ -134,8 +134,9 @@ namespace Placemaker.Game.Overlay
             // what the ghost shows itself (sketch only): stalls, places, furniture, planting, crowns last
             if (sp.Stalls.Count > 0)
             {
-                var s = Shape("sp:stalls", SitePlan.Palette.Stall, 0.9f, SitePlan.Parking, -93.1f, false);
-                foreach (var (a, b) in sp.Stalls) s.Rings.Add(BarRing(a, b, 0.18f));
+                var s = Shape("sp:stalls", SitePlan.Palette.Stall, 1f, SitePlan.Parking, -93.1f, false);
+                // 0.3 m: a mesh line has no smoothing, at the real 0.15 m it faded to grey from the usual camera height
+                foreach (var (a, b) in sp.Stalls) s.Rings.Add(BarRing(a, b, 0.3f));
             }
             if (sp.Chargers.Count > 0) { var s = Shape("sp:chargers", SitePlan.Palette.Charger, 1f, SitePlan.Parking, -93.09f, false); foreach (var p in sp.Chargers) s.Rings.Add(DiscRing(p, 0.7f)); }
             if (sp.PlaceFootprints.Count > 0)
