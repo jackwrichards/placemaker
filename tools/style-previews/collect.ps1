@@ -54,11 +54,13 @@ foreach ($r in $Run) {
         if ($f.Name -notmatch '^\d+-prv-([A-Za-z0-9]+)-(.+?)(-t)?\.\d+-(close|iso|top)\.png$') { continue }
         $name = "$($Matches[1])__$($Matches[2])__$($Matches[4]).jpg"
         $src = [System.Drawing.Image]::FromFile($f.FullName)
-        # Cropped in a touch and panned down (the user, 25 Oct): 95 % of the width, 2:1 (StylePreview's box has the same shape, smaller in
-        # the panel than 16:9), the window at the bottom for iso (its camera leaves spare grass at the top) and 2/3 down for the
-        # others.
-        $sw = [int]($src.Width * 0.95); $sh = [int]($sw / 2); $sx = [int](($src.Width - $sw) / 2)
-        $sy = if ($Matches[4] -eq 'iso') { $src.Height - $sh } else { [int](($src.Height - $sh) * 0.67) }
+        # 2:1 (StylePreview's box has the same shape, smaller in the panel than 16:9; the user, 25 Oct). Close and top: the full
+        # width, an even trim top and bottom. Iso (its camera leaves spare grass at the top): cropped in a touch, 95 % of the
+        # width, the window 4/5 of the way down.
+        $iso = $Matches[4] -eq 'iso'
+        $sw = if ($iso) { [int]($src.Width * 0.95) } else { $src.Width }
+        $sh = [int]($sw / 2); $sx = [int](($src.Width - $sw) / 2)
+        $sy = [int](($src.Height - $sh) * $(if ($iso) { 0.8 } else { 0.5 }))
         $h = [int]($sh * $Width / $sw)
         $bmp = New-Object System.Drawing.Bitmap $Width, $h
         $g = [System.Drawing.Graphics]::FromImage($bmp)
