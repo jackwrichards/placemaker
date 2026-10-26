@@ -868,7 +868,7 @@ namespace Placemaker.Core.Layers.Roads
             }
 
             // ── 6b. (s34) Pre-zone every new road ───────────────────────
-            string zoneId = RoadPreZone.ZoneId(settings.S(RoadsIds.PreZone, RoadPreZone.None));
+            string zoneId = RoadPreZone.Offered ? RoadPreZone.ZoneId(settings.S(RoadsIds.PreZone, RoadPreZone.None)) : "";
             if (zoneId.Length > 0 && plan.Nets.Count > 0)
             {
                 // (s52) Terraces zone only the level rows of each block (the terrace's cells, never the bank).

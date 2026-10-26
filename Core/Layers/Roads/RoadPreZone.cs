@@ -22,6 +22,8 @@ namespace Placemaker.Core.Layers.Roads
         /// <summary>New roads are not zoned unless the player picks a zone (the user: "that should be off by default"); the
         /// zone picked stays for later builds of the type (the tool remembers its last design) and across style changes.</summary>
         public const string Default = None;
+        /// <summary>False: roads never zone, whatever a recipe says (the user, 26 Oct: zoning is the Zoning category's job).</summary>
+        public const bool Offered = false;
         /// <summary>AreaPlan fact: the plan's zoning quads are "zone the new roads whole" (the game re-snaps them to the live blocks).</summary>
         public const string Fact = "roads.preZone";
 

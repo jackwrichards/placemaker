@@ -301,7 +301,11 @@ namespace Placemaker.Core.Layers.Roads
             // Smarter roads: no terracing unless the player asks for it (the user: terrain flattening and terracing off by default).
             c.Add(Choice(RoadsIds.LandShape, ControlTier.Essential, "terrain", "natural", new[] { "terrace", "natural" }));
             c.Add(Slider(RoadsIds.MaxGrade, ControlTier.More, "terrain", 4, 16, 1, "%", 10));
+            // No zoning in Roads (the user, 26 Oct: the Zoning category zones): the control stays for old recipes, never shown
+            // (no value is "offered") and never used (RoadsPlanner, RoadPreZone.Offered).
             var preZone = Choice(RoadsIds.PreZone, ControlTier.Essential, "zoning", RoadPreZone.Default, RoadPreZone.Values());
+            preZone.VisibleWhen = RoadsIds.PreZone + "=offered";
+            preZone.HideWhenOff = true;
             // The zone types read like everywhere else (Placemaker.Zone.<kind>).
             foreach (var o in preZone.Options)
                 if (o.Value != RoadPreZone.None) { o.LabelKey = "Placemaker.Zone." + o.Value; o.TooltipKey = "Placemaker.Zone." + o.Value + ".Tooltip"; }

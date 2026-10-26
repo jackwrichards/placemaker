@@ -390,16 +390,15 @@ namespace Placemaker.Tests
         // ───────────────────────── zoning ─────────────────────────
 
         [Fact]
-        public void PreZoneZonesEveryPredictedBlockOfEveryNewRoad()
+        public void RoadsNeverZoneEvenWithAPreZoneValue()
         {
+            // The user (26 Oct): no zoning in Roads, the Zoning category zones. A saved pre-zone value changes nothing.
             var s = Pattern("grid");
             s.Values[RoadsIds.PreZone] = ZoneKinds.ResidentialRow;
-            var input = SiteInput(s, "flat", out var site);
-            var plan = Run(input);
-            Assert.Equal(1.0, plan.Facts[RoadPreZone.Fact]);
-            int blocks = plan.Nets.Where(n => ZoneBlockPredictor.Zones(n.Role)).Sum(n => ZoneBlockPredictor.Blocks(n.A, n.B, n.C, n.D, ZoneGuard.NetWidth(n, site)).Count);
-            Assert.Equal(blocks, plan.Zoning.Count);
-            Assert.All(plan.Zoning, z => Assert.Equal("EU Residential Medium Row", z.ZoneId));
+            var plan = Run(SiteInput(s, "flat", out _));
+            Assert.False(RoadPreZone.Offered);
+            Assert.Empty(plan.Zoning);
+            Assert.False(plan.Facts.ContainsKey(RoadPreZone.Fact));
             // Default: no zoning at all.
             var none = Run(SiteInput(Pattern("grid"), "flat", out _));
             Assert.Empty(none.Zoning);

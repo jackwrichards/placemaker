@@ -145,7 +145,7 @@ namespace Placemaker.Tests
             Assert.Empty(failures);
         }
 
-        [Fact]
+        [Fact(Skip = "Roads no longer zone (the user, 26 Oct: the Zoning category zones); RoadPreZone.Offered is false")]
         public void ZoneCellsLieLevelAcrossTheirStreet()
         {
             foreach (var (pattern, kind) in new[] { ("grid", "steep"), ("grid", "hill"), ("organic", "steep"), ("superblock", "valley") })
@@ -209,7 +209,7 @@ namespace Placemaker.Tests
             Assert.Empty(r.Ground.Walls);
             Assert.DoesNotContain(r.Plan.Nets, n => n.Category == AssetCategories.NetQuay);
             Assert.NotEmpty(r.Plan.Terraform);
-            Assert.NotEmpty(r.Plan.Zoning);
+            Assert.Empty(r.Plan.Zoning);   // roads never zone (the user, 26 Oct)
         }
 
         // The old wall checks, kept for the wall code (no road plan builds walls now): skipped.

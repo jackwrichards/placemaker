@@ -279,17 +279,16 @@ namespace Placemaker.Tests
         }
 
         [Fact]
-        public void RoadsPreZoneTheirOwnRoads()
+        public void RoadsNeverZoneTheirOwnRoads()
         {
-            // s34: "Pre-zone new roads" replaced the edge-zoning feature: the roads layer zones its new roads' blocks itself.
+            // s34 "Pre-zone new roads" is retired (the user, 26 Oct: the Zoning category zones): a saved value zones nothing.
             var gen = GeneratorRegistry.Get("roads");
             var recipe = Recipe.Single(gen, 1);
             recipe.Root.Settings.Values[Placemaker.Core.Layers.Roads.RoadsIds.PreZone] = "residentialLow";
             var plan = Composer.Compose(recipe, new AreaShape { Ring = TestKit.Rect(600, 400), Source = AreaSource.Drawn }, new SiteContext(), System.Threading.CancellationToken.None);
             Assert.False(plan.HasErrors, Errors(plan));
             var roads = plan.Layers.Single(l => l.GeneratorId == "roads");
-            Assert.NotEmpty(roads.Zoning);
-            Assert.All(roads.Zoning, z => Assert.Equal("EU Residential Low", z.ZoneId));
+            Assert.Empty(roads.Zoning);
             Assert.DoesNotContain(plan.Layers, l => l.GeneratorId == "edgeZoning");
         }
 

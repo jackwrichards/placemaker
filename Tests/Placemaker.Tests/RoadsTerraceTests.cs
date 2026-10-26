@@ -178,7 +178,7 @@ namespace Placemaker.Tests
             Assert.Empty(failures);
         }
 
-        [Fact]
+        [Fact(Skip = "Roads no longer zone (the user, 26 Oct: the Zoning category zones); RoadPreZone.Offered is false")]
         public void ZoneCellsLieLevelOnTheTerraces()
         {
             foreach (var (preset, kind) in new[] { ("terraced-hillside", "steep"), ("terraced-hillside", "hill"), ("hill-town", "steep") })
@@ -472,7 +472,8 @@ namespace Placemaker.Tests
             Assert.True(Preset("hill-town").B(RoadsIds.TerraceAvenues, false));
             Assert.Equal("wall", Preset("vineyard-terraces").S(RoadsIds.TerraceBank, ""));
             Assert.Equal(RoadPreZone.Default, new RoadsLayer().Defaults().S(RoadsIds.PreZone, ""));
-            Assert.NotEqual(RoadPreZone.None, Preset("terraced-hillside").S(RoadsIds.PreZone, RoadPreZone.None));
+            // no road style zones any more (the user, 26 Oct)
+            foreach (var p in layer.Presets) Assert.Equal(RoadPreZone.None, p.Values.S(RoadsIds.PreZone, RoadPreZone.None));
             // The links show for the terraces pattern only; the ground controls for every pattern on terraced land.
             var linkIds = new[] { RoadsIds.TerraceLinks, RoadsIds.TerraceLinkSpacing, RoadsIds.TerraceAvenues };
             foreach (var c in layer.Controls.Where(c => c.Id.StartsWith("terrace")))
