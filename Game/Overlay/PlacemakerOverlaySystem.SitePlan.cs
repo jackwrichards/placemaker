@@ -60,6 +60,8 @@ namespace Placemaker.Game.Overlay
         private readonly List<float3> _spIssues = new List<float3>();
 
         private const string Highlight = "#ffe14d";
+        /// <summary>The asphalt under the Real preview: the built lots' mid grey (the sketch's darker tone read as black there).</summary>
+        private const string RealAsphalt = "#6b6e73";
 
         private static bool SitePlanStyle => (ToolRegistration.Settings?.SketchStyle ?? Placemaker.Game.Settings.SketchStyle.SitePlan) == Placemaker.Game.Settings.SketchStyle.SitePlan;
 
@@ -205,7 +207,7 @@ namespace Placemaker.Game.Overlay
         {
             switch (key)
             {
-                case "sp:asphalt": return 1f;
+                case "sp:asphalt": return 0.92f;
                 case "sp:paving": case "sp:plaza": return 0.95f;
                 case "sp:water": return 0.85f;
                 case "sp:plotGrid": return 0f;
@@ -256,7 +258,7 @@ namespace Placemaker.Game.Overlay
                 // under the Real preview only what the game cannot show itself, solid, so it reads as the real thing: asphalt,
                 // paving, water and the shop plots; no lawn tone or grass tint over the ground (the user: "it has this weird haze")
                 if (underGhost && s.Ground) a = RealAlpha(key) * alpha;
-                var c = PreviewLegend.Hex(s.Color);
+                var c = PreviewLegend.Hex(underGhost && key == "sp:asphalt" ? RealAsphalt : s.Color);
                 float pulse = SpPulse(s.Row);
                 if (pulse > 0f) { c = math.lerp(c, hi, pulse * 0.85f); a = math.max(a, 0.9f * pulse); }
                 _fill.SetLayer(key, s.Rings, new Color(c.x, c.y, c.z, on ? math.min(1f, a) : 0f), s.Priority, s.Sig, s.Convex);

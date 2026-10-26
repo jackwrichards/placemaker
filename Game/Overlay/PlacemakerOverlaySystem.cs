@@ -56,6 +56,7 @@ namespace Placemaker.Game.Overlay
         private PlacemakerToolSystem _tool;
         private FilledPreviewSystem _fill;
         private AreaBorderRenderSystem _areaBorders;
+        private BuildingLotRenderSystem _objectLots;
         private int _paintVersion = -1;
         private List<(float2 a, float2 b)> _paintBoundary = new List<(float2, float2)>();
 
@@ -68,6 +69,7 @@ namespace Placemaker.Game.Overlay
             _tool = World.GetOrCreateSystemManaged<PlacemakerToolSystem>();
             _fill = World.GetOrCreateSystemManaged<FilledPreviewSystem>();
             _areaBorders = World.GetOrCreateSystemManaged<AreaBorderRenderSystem>();
+            _objectLots = World.GetOrCreateSystemManaged<BuildingLotRenderSystem>();
         }
 
         [Preserve]
@@ -77,6 +79,8 @@ namespace Placemaker.Game.Overlay
             bool realPreview = _toolSystem.activeTool == _tool && _tool.PreviewModeEffective == PreviewMode.Ghost && _tool.Plan != null
                 && (_tool.Stage == ToolStage.Design || _tool.Stage == ToolStage.Review);
             if (_areaBorders != null && _areaBorders.Enabled == realPreview) _areaBorders.Enabled = !realPreview;
+            // and the dashed rings and lines round every planned tree, bush and lamp (the game's lots of temporary objects)
+            if (_objectLots != null && _objectLots.Enabled == realPreview) _objectLots.Enabled = !realPreview;
             if (_toolSystem.activeTool != _tool)
             {
                 if (_wasDrawing) { _fill.ClearAll(); _wasDrawing = false; }

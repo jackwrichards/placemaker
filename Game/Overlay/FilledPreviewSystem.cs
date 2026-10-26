@@ -68,6 +68,7 @@ namespace Placemaker.Game.Overlay
                 var config = prefabs.GetSingletonPrefab<OverlayConfigurationPrefab>(query);
                 if (config == null || config.m_SolidObjectMaterial == null) return false;
                 _template = config.m_SolidObjectMaterial;
+                Mod.Log.Info("Placemaker: overlay fill material queue " + _template.renderQueue + ", sort priority " + (_template.HasFloat("_TransparentSortPriority") ? _template.GetFloat("_TransparentSortPriority").ToString() : "-"));
                 return true;
             }
             catch (Exception e)
@@ -166,6 +167,11 @@ namespace Placemaker.Game.Overlay
             layer.Material.SetBuffer(Shader.PropertyToID("colossal_OverlayCustomMeshBuffer"), layer.Data);
             // Vanilla surfaces draw at −100…−95; above them so the preview is visible over existing areas.
             layer.Material.SetFloat("_TransparentSortPriority", priority);
+            // A fixed slot in the draw order (the priority alone does not reorder a material at run time, as the game's own
+            // ManagedBatchSystem sets renderQueue itself): without it Unity sorted these see-through layers by camera distance and
+            // the site plan's crowns, shadows and lines swapped as the camera moved (the user, 25 Oct). Above the template's queue
+            // only: below it (template + priority, -95) the meshes were not drawn at all.
+            layer.Material.renderQueue = _template.renderQueue + math.clamp((int)math.round(priority) + 100, 0, 40);
         }
 
         private void BuildMesh(Layer layer, IReadOnlyList<float3[]> rings, bool convex = false)
