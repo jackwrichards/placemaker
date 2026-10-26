@@ -51,6 +51,10 @@ if ($shots.Count -gt 10) { $problems += "$($shots.Count) screenshots: Paradox Mo
 foreach ($pic in $pictures) { if ($pic -and -not (Test-Path -LiteralPath (Join-Path $root $pic))) { $problems += "missing picture: $pic" } }
 # The mod page belongs to the user (they edit it on the website): only an explicit -OverwritePage replaces it.
 if ($Command -eq 'Update' -and -not $OverwritePage) { $problems += 'Update replaces the whole mod page (pictures, text, forum link) with this config''s old copy; the user keeps the page on the website. Change it there, or pass -OverwritePage if the user asked for exactly that' }
+# Every upload replaces the page: a new version carries its own full page (description, pictures, links), and the page
+# the upload API reads back is not the one the user edits on the website (0.3.2, 26 Oct: an old copy went up, the user's
+# pictures, thumbnail and forum link were rolled back). No upload from here until a way is proven that leaves the page.
+if (-not $StageOnly) { $problems += 'uploads are blocked: every upload replaces the mod page with an old copy (0.3.2, 26 Oct). Build with -StageOnly; the user uploads' }
 if ($problems) { $problems | ForEach-Object { Write-Host "STOP: $_" }; exit 1 }
 
 # --- a fresh release build and the content folder ---
