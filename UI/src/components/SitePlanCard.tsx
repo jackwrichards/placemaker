@@ -152,10 +152,13 @@ function layers(sp: SitePlanView, pxPerM: number): Layer[] {
         add("parking", <path d={d} stroke="#ffffff" strokeOpacity={0.9} strokeWidth={Math.max(0.18, px(0.7))} fill="none" />);
     }
     if (sp.chargers.length) add("parking", <path d={dotsD(sp.chargers, Math.max(0.7, px(1.2)))} fill="#3fd28a" />);
-    if (sp.places.length) add("features", <path d={sp.places.map(ringD).join("")} fill="#f0a868" stroke="#a95f24" strokeWidth={Math.max(0.25, px(0.7))} />);
-    if (sp.benches.length) add("objects", <path d={sp.benches.map(ringD).join("")} fill="#7a5a3a" />);
-    if (sp.bins.length) add("objects", <path d={dotsD(sp.bins, Math.max(0.35, px(0.8)))} fill="#26272a" />);
-    if (sp.lamps.length) add("objects", <path d={dotsD(sp.lamps, Math.max(0.45, px(1)))} fill="#fff3c4" stroke="#333333" strokeWidth={Math.max(0.12, px(0.4))} />);
+    // every object as a rough model at its footprint (C# SitePlan.Props): the tall ones' shadows, then each row and colour with a
+    // thin dark edge, so packed rows of containers or cars read as separate things
+    if (sp.propShadows.length) add("", <path d={sp.propShadows.map(ringD).join("")} fill="#08140a" fillOpacity={0.28} />);
+    for (const g of sp.props) {
+        if (g.rings.length) add(g.row, <path d={g.rings.map(ringD).join("")} fill={g.color} stroke="#1e1f1d" strokeOpacity={0.45} strokeWidth={Math.max(0.12, px(0.5))} />);
+        if (g.discs.length) add(g.row, <path d={circlesD(g.discs, (r) => Math.max(r, px(0.9)))} fill={g.color} />);
+    }
     if (sp.bushes.length) add("planting", <path d={circlesD(sp.bushes, (r) => Math.max(r, px(1)))} fill={over("#5f9e48", 0.9)} />);
     if (sp.trees.length) {
         const rr = (r: number) => Math.max(r, px(1.6));
@@ -292,6 +295,42 @@ export const Swatch = ({ sym }: { sym: string }) => {
             return g(<path d={circlesD([9, -9, 2.3, 15, -10, 1.9, 21, -8, 2.1], (r) => r)} fill={over("#5f9e48", 0.9)} />);
         case "place":
             return g(<rect x="9" y="4" width="12" height="10" fill="#f0a868" stroke="#a95f24" strokeWidth="0.9" />);
+        case "building":
+            return g(<>
+                <rect x="7" y="5" width="10" height="9" fill="#08140a" fillOpacity="0.3" />
+                <rect x="5" y="3" width="11" height="9" fill="#d9d4c8" stroke="#1e1f1d" strokeOpacity="0.45" strokeWidth="0.6" />
+                <rect x="18" y="5" width="8" height="7" fill="#f0efe8" stroke="#1e1f1d" strokeOpacity="0.45" strokeWidth="0.6" />
+            </>);
+        case "vehicle":
+            return g(<>
+                <rect x="5" y="4" width="4.5" height="10" rx="1" fill="#c8503e" />
+                <rect x="12" y="4" width="4.5" height="10" rx="1" fill="#3d6ea8" />
+                <rect x="19" y="4" width="6" height="10" rx="1" fill="#e0b030" />
+            </>);
+        case "storage":
+            return g(<>
+                <rect x="4" y="3" width="22" height="5" fill="#b8453a" stroke="#1e1f1d" strokeOpacity="0.45" strokeWidth="0.6" />
+                <rect x="4" y="9.5" width="14" height="5" fill="#3d6ea8" stroke="#1e1f1d" strokeOpacity="0.45" strokeWidth="0.6" />
+                <rect x="20" y="9.5" width="6" height="5" fill="#b08a5a" />
+            </>);
+        case "junk":
+            return g(<>
+                <circle cx="8" cy="10" r="3" fill="#2b2b2d" />
+                <path d="M13,13L17,5L22,7L25,13Z" fill="#7b6e62" />
+            </>);
+        case "crop":
+            return g(<path d="M4,4h22v2h-22ZM4,8h22v2h-22ZM4,12h22v2h-22Z" fill="#b8c86a" />);
+        case "stone":
+            return g(<>
+                <rect x="6" y="5" width="5" height="8" fill="#b9b4aa" />
+                <rect x="13" y="5" width="5" height="8" fill="#b9b4aa" />
+                <circle cx="23" cy="9" r="3" fill="#8f8f8a" />
+            </>);
+        case "barrier":
+            return g(<>
+                <rect x="4" y="8" width="14" height="2.5" fill="#e8e4dc" />
+                <circle cx="22" cy="9" r="2.2" fill="#f07a20" />
+            </>);
         case "furniture":
             return g(<>
                 <circle cx="8" cy="9" r="1.6" fill="#fff3c4" stroke="#333333" strokeWidth="0.4" />

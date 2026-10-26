@@ -603,10 +603,10 @@ export interface SitePlanView {
   /** [ax, az, bx, bz, …] painted stall lines. */
   stalls: number[];
   chargers: number[];
-  places: number[][];
-  benches: number[][];
-  lamps: number[];
-  bins: number[];
+  /** Every object as a rough model at its footprint, grouped by legend row and colour (rings: footprints; discs: [x, z, r, …]). */
+  props: { row: string; color: string; rings: number[][]; discs: number[] }[];
+  /** The footprints of the tall objects, moved to where their shadow falls. */
+  propShadows: number[][];
   trees: number[];
   bushes: number[];
   plots: { color: string; q: number[] }[];
@@ -622,7 +622,8 @@ export interface SitePlanStroke { w: number; p: number[]; mark?: boolean }
 /** One legend row: what is drawn, in plain words; the id is the map layer it hovers / hides (state.legendVisibility). */
 export interface SitePlanRow {
   id: string;
-  /** Swatch shape: road, bays, path, grass, paving, water, zone, tree, bush, place, furniture, entrance, issue. */
+  /** Swatch shape: road, bays, path, grass, paving, water, zone, terrain, tree, bush, place, building, vehicle, storage, junk,
+   *  crop, stone, barrier, furniture, entrance, issue. */
   sym: string;
   label: LocText;
   /** English fallback of the label. */

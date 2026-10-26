@@ -17,7 +17,7 @@ using Unity.Mathematics;
 
 namespace Placemaker.Core.Build
 {
-    public sealed class SitePlan
+    public sealed partial class SitePlan
     {
         // ── Row ids (the legend; hover / hide use PreviewLegend.Visible with these ids) ──
         public const string Roads = "roads";
@@ -142,10 +142,6 @@ namespace Placemaker.Core.Build
         public readonly List<float2[]> Fences = new List<float2[]>();
         public readonly List<(float2 a, float2 b)> Stalls = new List<(float2, float2)>();
         public readonly List<float2> Chargers = new List<float2>();
-        public readonly List<float2[]> PlaceFootprints = new List<float2[]>();
-        public readonly List<float2[]> Benches = new List<float2[]>();
-        public readonly List<float2> Lamps = new List<float2>();
-        public readonly List<float2> Bins = new List<float2>();
         public readonly List<Disc> TreeCrowns = new List<Disc>();
         public readonly List<Disc> Bushes = new List<Disc>();
         public readonly List<(string zone, float2[] quad)> PlotCells = new List<(string, float2[])>();
@@ -158,7 +154,7 @@ namespace Placemaker.Core.Build
         public readonly List<(int band, float2[] ring)> Heat = new List<(int, float2[])>();
 
         // Budgets for the panel picture (the overlay draws everything): far more than a panel can show.
-        public const int MaxTrees = 4000, MaxBushes = 3000, MaxStalls = 12000, MaxSmall = 3000, MaxHeat = 2000;
+        public const int MaxTrees = 4000, MaxBushes = 3000, MaxStalls = 12000, MaxSmall = 3000, MaxHeat = 2000, MaxProps = 8000;
         public const float MaxStallSpan = 320f;
 
         public sealed class Input
@@ -251,19 +247,23 @@ namespace Placemaker.Core.Build
                             continue;
                     }
                     string lay = PreviewLegend.Of(o);
-                    if (lay == PreviewLegend.Planting)
+                    string ocat = RoleCategories.ForObject(o) ?? "";
+                    if (ocat.StartsWith(AssetCategories.Hedge, StringComparison.Ordinal))
+                    {
+                        // a hedge is a dark green bar along its piece
+                        sp.Props.Add(new Prop { Poly = Footprint(o, assets), Color = "#3f7a35", Row = Planting, Height = 1.5f });
+                        Anchor(Planting, p);
+                    }
+                    else if (lay == PreviewLegend.Planting)
                     {
                         sp.Bushes.Add(new Disc { At = p, R = math.clamp(Radius(o, assets), 0.5f, 1.6f) });
                         Anchor(Planting, p);
                     }
-                    else if (lay == PreviewLegend.Features)
+                    else if (ToProp(o, assets) is Prop prop)
                     {
-                        sp.PlaceFootprints.Add(Footprint(o, assets));
-                        Anchor(Places, p);
+                        sp.Props.Add(prop);
+                        Anchor(prop.Row, p);
                     }
-                    else if (o.Role == ObjectRole.Lamp) { sp.Lamps.Add(p); Anchor(Furniture, p); }
-                    else if (o.Role == ObjectRole.Bench) { sp.Benches.Add(Footprint(o, assets)); Anchor(Furniture, p); }
-                    else if (o.Role != ObjectRole.FencePiece) { sp.Bins.Add(p); Anchor(Furniture, p); }
                 }
             }
             // Stalls once every aisle is known (an aisle grid: a 3,573-space lot asked every aisle for every space)
@@ -348,10 +348,13 @@ namespace Placemaker.Core.Build
             }
             if (sp.PlotCells.Count > 0) Row(Plots, "zone", "Placemaker.SitePlan.Plots", "Shop plots", sp.PlotCells.Count, "cells");
             if (sp.TreeCrowns.Count > 0) Row(Trees, "tree", "Placemaker.SitePlan.Trees", "Trees", sp.TreeCrowns.Count, "count");
-            if (sp.Bushes.Count > 0) Row(Planting, "bush", "Placemaker.SitePlan.Planting", "Planting", sp.Bushes.Count, "count");
-            if (sp.PlaceFootprints.Count > 0) Row(Places, "place", "Placemaker.SitePlan.Places", "Places", sp.PlaceFootprints.Count, "count");
-            int small = sp.Lamps.Count + sp.Benches.Count + sp.Bins.Count;
-            if (small > 0) Row(Furniture, "furniture", "Placemaker.SitePlan.Furniture", "Furniture", small, "count");
+            int hedges = 0;
+            foreach (var pr in sp.Props) if (pr.Row == Planting) hedges++;
+            if (sp.Bushes.Count + hedges > 0) Row(Planting, "bush", "Placemaker.SitePlan.Planting", "Planting", sp.Bushes.Count + hedges, "count");
+            var perRow = new Dictionary<string, int>(StringComparer.Ordinal);
+            foreach (var pr in sp.Props) if (pr.Row != Planting) { perRow.TryGetValue(pr.Row, out int c0); perRow[pr.Row] = c0 + 1; }
+            foreach (var (row, sym, key, label) in PropRows)
+                if (perRow.TryGetValue(row, out int c1)) Row(row, sym, key, label, c1, "count");
             if (sp.EntranceBadges.Count > 0) Row(Entrances, "entrance", "Placemaker.SitePlan.Entrances", "Entrances", sp.EntranceBadges.Count, "count");
             if (red > 0) Row(Issues, "issue", "Placemaker.SitePlan.Issues", "Problems", red, "count");
             return sp;
@@ -571,15 +574,29 @@ namespace Placemaker.Core.Build
             }
             o.Set("stalls", stalls);
             o.Set("chargers", Points(Chargers, MaxSmall));
-            var places = JsonValue.Arr();
-            foreach (var p in PlaceFootprints) places.Add(Flat(p));
-            o.Set("places", places);
-            var benches = JsonValue.Arr();
-            int bn = 0;
-            foreach (var p in Benches) { if (bn++ >= MaxSmall) break; benches.Add(Flat(p)); }
-            o.Set("benches", benches);
-            o.Set("lamps", Points(Lamps, MaxSmall));
-            o.Set("bins", Points(Bins, MaxSmall));
+            // props grouped by row and colour: { row, color, rings: [[x, z, …]], discs: [x, z, r, …] }; shadows: rings of the tall ones
+            var groups = new Dictionary<(string, string), (JsonValue rings, JsonValue discs)>();
+            var shadows = JsonValue.Arr();
+            int pn = 0;
+            foreach (var pr in Props)
+            {
+                if (pn++ >= MaxProps) break;
+                if (!groups.TryGetValue((pr.Row, pr.Color), out var g)) groups[(pr.Row, pr.Color)] = g = (JsonValue.Arr(), JsonValue.Arr());
+                if (pr.Round) g.discs.Add(R(pr.At.x)).Add(R(pr.At.y)).Add(R(pr.R));
+                else g.rings.Add(Flat(pr.Poly));
+                if (pr.Height >= 1.5f && !pr.Round)
+                {
+                    var off = ShadowOffset(pr.Height);
+                    var sh = new float2[pr.Poly.Length];
+                    for (int i = 0; i < sh.Length; i++) sh[i] = pr.Poly[i] + off;
+                    shadows.Add(Flat(sh));
+                }
+            }
+            var props = JsonValue.Arr();
+            foreach (var kv in groups)
+                props.Add(JsonValue.Obj().Set("row", kv.Key.Item1).Set("color", kv.Key.Item2).Set("rings", kv.Value.rings).Set("discs", kv.Value.discs));
+            o.Set("props", props);
+            o.Set("propShadows", shadows);
             o.Set("trees", Discs(TreeCrowns, MaxTrees));
             o.Set("bushes", Discs(Bushes, MaxBushes));
             var plots = JsonValue.Arr();

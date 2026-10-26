@@ -311,7 +311,7 @@ export function normalizeSitePlan(raw: unknown): SitePlanView | null {
         stamp: String(v.stamp ?? ""),
         min: list("min"), max: list("max"), centre: list("centre"), outline: list("outline"),
         fills: list("fills"), cars: list("cars"), walks: list("walks"), streets: list("streets"), caps: list("caps"), fences: list("fences"),
-        stalls: list("stalls"), chargers: list("chargers"), places: list("places"), benches: list("benches"), lamps: list("lamps"), bins: list("bins"),
+        stalls: list("stalls"), chargers: list("chargers"), props: list("props"), propShadows: list("propShadows"),
         trees: list("trees"), bushes: list("bushes"), plots: list("plots"), entrances: list("entrances"), issues: list("issues"), legend: list("legend"),
         areaM2: typeof v.areaM2 === "number" ? v.areaM2 : 0,
     } as SitePlanView;

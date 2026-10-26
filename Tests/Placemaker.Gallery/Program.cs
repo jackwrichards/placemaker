@@ -1032,6 +1032,13 @@ namespace Placemaker.Gallery
         private static void Draw(ComposedPlan plan, float3[] ring, Catalog cat, string file, Result res)
         {
             if (PlanJson) WritePlanJson(plan, ring, cat, Path.ChangeExtension(file, ".plan.json"));
+            if (PlanJson)
+            {
+                // the site plan itself, as the panel's top view receives it (tools/sketch-mockups/siteplan-svg.js draws it)
+                var entrances = (_markers ?? new List<EdgeMarker>()).Select(m => m.Position.xz).ToList();
+                var sp = SitePlan.Compute(new SitePlan.Input { Plan = plan, Outline = ring.Select(p => p.xz).ToArray(), Assets = cat.Items, Entrances = entrances });
+                File.WriteAllText(Path.ChangeExtension(file, ".siteplan.json"), sp.ToUi("gallery").ToString());
+            }
             var ring2 = ring.Select(p => p.xz).ToArray();
             float2 min = ring2[0], max = ring2[0];
             foreach (var p in ring2) { min = math.min(min, p); max = math.max(max, p); }

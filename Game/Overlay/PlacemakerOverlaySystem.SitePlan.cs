@@ -143,24 +143,34 @@ namespace Placemaker.Game.Overlay
                 foreach (var (a, b) in sp.Stalls) s.Rings.Add(BarRing(a, b, 0.3f));
             }
             if (sp.Chargers.Count > 0) { var s = Shape("sp:chargers", SitePlan.Palette.Charger, 1f, SitePlan.Parking, -90f, false); foreach (var p in sp.Chargers) s.Rings.Add(DiscRing(p, 0.7f)); }
-            if (sp.PlaceFootprints.Count > 0)
-            {
-                var s = Shape("sp:places", SitePlan.Palette.Place, 1f, SitePlan.Places, -90f, false);
-                var e = Shape("sp:placeEdges", SitePlan.Palette.PlaceEdge, 1f, SitePlan.Places, -89f, false);
-                foreach (var q in sp.PlaceFootprints)
-                {
-                    s.Rings.Add(Flat(q));
-                    for (int i = 0; i < q.Length; i++) e.Rings.Add(BarRing(q[i], q[(i + 1) % q.Length], 0.3f));
-                }
-            }
             if (sp.Fences.Count > 0)
             {
                 var s = Shape("sp:fences", SitePlan.Palette.Fence, 0.9f, SitePlan.Furniture, -88f, false);
                 foreach (var f in sp.Fences) for (int i = 1; i < f.Length; i++) s.Rings.Add(BarRing(f[i - 1], f[i], 0.35f));
             }
-            if (sp.Benches.Count > 0) { var s = Shape("sp:benches", SitePlan.Palette.Bench, 1f, SitePlan.Furniture, -88f, false); foreach (var q in sp.Benches) s.Rings.Add(Flat(q)); }
-            if (sp.Bins.Count > 0) { var s = Shape("sp:bins", SitePlan.Palette.Bin, 1f, SitePlan.Furniture, -87f, false); foreach (var p in sp.Bins) s.Rings.Add(DiscRing(p, 0.35f)); }
-            if (sp.Lamps.Count > 0) { var s = Shape("sp:lamps", SitePlan.Palette.Lamp, 1f, SitePlan.Furniture, -87f, false); foreach (var p in sp.Lamps) s.Rings.Add(DiscRing(p, 0.5f)); }
+            // every object as a rough model at its footprint (SitePlan.Props): a soft shadow for the tall ones, the fill, a thin dark
+            // edge so packed rows (containers, cars) read as separate things; one mesh per row and colour
+            if (sp.Props.Count > 0)
+            {
+                var fills = new Dictionary<string, SpShape>();
+                var edges = new Dictionary<string, SpShape>();
+                var shadows = new Dictionary<string, SpShape>();
+                foreach (var pr in sp.Props)
+                {
+                    string fk = pr.Row + "|" + pr.Color;
+                    if (!fills.TryGetValue(fk, out var fill)) fills[fk] = fill = Shape("sp:prop:" + fk, pr.Color, 1f, pr.Row, -89f, false);
+                    if (pr.Round) { fill.Rings.Add(DiscRing(pr.At, pr.R)); continue; }
+                    fill.Rings.Add(Flat(pr.Poly));
+                    if (!edges.TryGetValue(pr.Row, out var edge)) edges[pr.Row] = edge = Shape("sp:propEdge:" + pr.Row, "#1e1f1d", 0.45f, pr.Row, -88f, false);
+                    for (int i = 0; i < pr.Poly.Length; i++) edge.Rings.Add(BarRing(pr.Poly[i], pr.Poly[(i + 1) % pr.Poly.Length], 0.15f));
+                    if (pr.Height < 1.5f) continue;
+                    if (!shadows.TryGetValue(pr.Row, out var shadow)) shadows[pr.Row] = shadow = Shape("sp:propShadow:" + pr.Row, SitePlan.Palette.Shadow, 0.3f, pr.Row, -90f, false);
+                    var off = SitePlan.ShadowOffset(pr.Height);
+                    var sh = new float2[pr.Poly.Length];
+                    for (int i = 0; i < sh.Length; i++) sh[i] = pr.Poly[i] + off;
+                    shadow.Rings.Add(Flat(sh));
+                }
+            }
             if (sp.Bushes.Count > 0) { var s = Shape("sp:bushes", SitePlan.Palette.Bush, 0.85f, SitePlan.Planting, -86f, false); foreach (var d in sp.Bushes) s.Rings.Add(DiscRing(d.At, d.R)); }
             if (sp.TreeCrowns.Count > 0)
             {
