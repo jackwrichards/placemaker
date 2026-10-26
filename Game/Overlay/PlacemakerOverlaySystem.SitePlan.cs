@@ -44,6 +44,8 @@ namespace Placemaker.Game.Overlay
             public float Priority;
             /// <summary>Drawn under the Real preview too (ground), or only in the sketch (what the ghost shows itself).</summary>
             public bool Ground;
+            /// <summary>Every ring a small convex shape (discs, bars): the fill mesh's fast path.</summary>
+            public bool Convex;
         }
 
         private int _spVersion = -1;
@@ -168,7 +170,12 @@ namespace Placemaker.Game.Overlay
                     lit.Rings.Add(DiscRing(t.At + new float2(-t.R * 0.22f, -t.R * 0.22f), t.R * 0.55f));
                 }
             }
-            foreach (var (_, s) in _spShapes) s.Sig = FilledPreviewSystem.Signature(s.Rings);
+            foreach (var (key, s) in _spShapes)
+            {
+                s.Sig = FilledPreviewSystem.Signature(s.Rings);
+                // generated discs and bars (everything but the planned surfaces and the outline) are small and convex
+                s.Convex = key != "sp:base" && !s.Ground || key == "sp:plotGrid";
+            }
 
             // roads and paths stay overlay curves (a few hundred): one smooth piece per net, round ends
             void Curves(List<SitePlan.Stroke> from, List<SpCurve> to)
@@ -231,7 +238,7 @@ namespace Placemaker.Game.Overlay
                 var c = PreviewLegend.Hex(s.Color);
                 float pulse = SpPulse(s.Row);
                 if (pulse > 0f) { c = math.lerp(c, hi, pulse * 0.85f); a = math.max(a, 0.9f * pulse); }
-                _fill.SetLayer(key, s.Rings, new Color(c.x, c.y, c.z, on ? math.min(1f, a) : 0f), s.Priority, s.Sig);
+                _fill.SetLayer(key, s.Rings, new Color(c.x, c.y, c.z, on ? math.min(1f, a) : 0f), s.Priority, s.Sig, s.Convex);
             }
             if (rebuilt && sw.ElapsedMilliseconds > 20)
             {

@@ -87,8 +87,10 @@ namespace Placemaker.Game.Overlay
         /// <summary>
         /// Shows <paramref name="rings"/> (CCW or CW, simple) filled with <paramref name="color"/> under
         /// <paramref name="key"/>. <paramref name="signature"/> must change whenever the rings change.
+        /// <paramref name="convex"/>: every ring is small and convex (discs, bars, stalls): fanned with shared corners, no ear
+        /// clipping (the site plan's 15,000 crowns and stall lines took 290 ms the slow way).
         /// </summary>
-        public void SetLayer(string key, IReadOnlyList<float3[]> rings, Color color, float priority, long signature)
+        public void SetLayer(string key, IReadOnlyList<float3[]> rings, Color color, float priority, long signature, bool convex = false)
         {
             if (!EnsureTemplate()) return;
             if (!_layers.TryGetValue(key, out var layer)) _layers[key] = layer = new Layer();
@@ -96,7 +98,7 @@ namespace Placemaker.Game.Overlay
             if (layer.Mesh == null || layer.Signature != signature)
             {
                 layer.Signature = signature;
-                BuildMesh(layer, rings);
+                BuildMesh(layer, rings, convex);
             }
             if (layer.Mesh == null) return;
             ApplyStyle(layer, color, priority);
@@ -164,7 +166,7 @@ namespace Placemaker.Game.Overlay
             layer.Material.SetFloat("_TransparentSortPriority", priority);
         }
 
-        private void BuildMesh(Layer layer, IReadOnlyList<float3[]> rings)
+        private void BuildMesh(Layer layer, IReadOnlyList<float3[]> rings, bool convex = false)
         {
             var heights = _terrain.GetHeightData(false);
             var verts = new List<Vector3>();
@@ -174,6 +176,14 @@ namespace Placemaker.Game.Overlay
                 foreach (var ring in rings)
                 {
                     if (ring == null || ring.Length < 3 || tris.Count / 3 >= MaxTriangles) continue;
+                    if (convex && Small(ring))
+                    {
+                        // a fan over the ring's own corners, each sampled once
+                        int b = verts.Count;
+                        foreach (var p in ring) verts.Add(OnTerrain(p.xz, ref heights, ref min, ref max));
+                        for (int i = 1; i + 1 < ring.Length; i++) { tris.Add(b); tris.Add(b + i); tris.Add(b + i + 1); }
+                        continue;
+                    }
                     var flat = Poly.EnsureCcw(Poly.To2D(ring));
                     if (!EarClip.Triangulate(flat, out var triangles))
                     {
@@ -226,6 +236,14 @@ namespace Placemaker.Game.Overlay
                 verts.Add(OnTerrain(r, ref heights, ref min, ref max));
                 tris.Add(i); tris.Add(i + 1); tris.Add(i + 2);
             }
+        }
+
+        /// <summary>Spans less than two subdivision edges: flat enough to follow the ground with its corners only.</summary>
+        private static bool Small(float3[] ring)
+        {
+            float2 lo = ring[0].xz, hi = lo;
+            foreach (var p in ring) { lo = math.min(lo, p.xz); hi = math.max(hi, p.xz); }
+            return math.cmax(hi - lo) <= MaxEdge * 2f;
         }
 
         private void Push(float2 a, float2 b, float2 c)
