@@ -438,8 +438,8 @@
   "Placemaker.UI.Preview.Close": "Blisko",
   "Placemaker.UI.Preview.Iso": "Skos",
   "Placemaker.UI.Preview.Top": "Z góry",
-  "Placemaker.UI.Preview.Note": "Podgląd",
-  "Placemaker.UI.Preview.NoteOf": "Podgląd: {0}",
+  "Placemaker.UI.Preview.Note": "Przykład",
+  "Placemaker.UI.Preview.NoteOf": "Przykład: {0}",
   "Placemaker.UI.SitePlan.Title": "Widok z góry",
   "Placemaker.UI.SitePlan.Expand": "Pokaż widok z góry w dużym rozmiarze",
   "Placemaker.UI.SitePlan.Close": "Zamknij duży widok"

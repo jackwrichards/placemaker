@@ -438,8 +438,8 @@
   "Placemaker.UI.Preview.Close": "近景",
   "Placemaker.UI.Preview.Iso": "斜视",
   "Placemaker.UI.Preview.Top": "俯视",
-  "Placemaker.UI.Preview.Note": "预览",
-  "Placemaker.UI.Preview.NoteOf": "{0}预览",
+  "Placemaker.UI.Preview.Note": "示例",
+  "Placemaker.UI.Preview.NoteOf": "{0}示例",
   "Placemaker.UI.SitePlan.Title": "俯视图",
   "Placemaker.UI.SitePlan.Expand": "放大显示俯视图",
   "Placemaker.UI.SitePlan.Close": "关闭放大视图"

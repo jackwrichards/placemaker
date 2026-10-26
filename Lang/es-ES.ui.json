@@ -438,8 +438,8 @@
   "Placemaker.UI.Preview.Close": "Cerca",
   "Placemaker.UI.Preview.Iso": "Ángulo",
   "Placemaker.UI.Preview.Top": "Arriba",
-  "Placemaker.UI.Preview.Note": "Vista previa",
-  "Placemaker.UI.Preview.NoteOf": "Vista previa: {0}",
+  "Placemaker.UI.Preview.Note": "Ejemplo",
+  "Placemaker.UI.Preview.NoteOf": "Ejemplo: {0}",
   "Placemaker.UI.SitePlan.Title": "Vista superior",
   "Placemaker.UI.SitePlan.Expand": "Ver la vista superior en grande",
   "Placemaker.UI.SitePlan.Close": "Cerrar la vista grande"

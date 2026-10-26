@@ -88,8 +88,8 @@ function loadOpen(): boolean {
 
 export const StylePreview = ({ layer, preset, name }: { layer: string; preset: string | null; name?: string }) => {
     const { t } = useT();
-    // "Playing fields preview" (the user): the style's name with the word
-    const note = name ? t("Placemaker.UI.Preview.NoteOf", "{0} preview", [name]) : t("Placemaker.UI.Preview.Note", "Preview");
+    // "Playing fields example" (the user): the style's name with the word
+    const note = name ? t("Placemaker.UI.Preview.NoteOf", "{0} example", [name]) : t("Placemaker.UI.Preview.Note", "Example");
     const [, setViewState] = useState(0);
     const vk = viewKey(layer);
     const view: View = shared[vk] ?? (shared[vk] = loadView(layer));

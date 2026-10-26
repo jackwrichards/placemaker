@@ -438,8 +438,8 @@
   "Placemaker.UI.Preview.Close": "Nah",
   "Placemaker.UI.Preview.Iso": "Schräg",
   "Placemaker.UI.Preview.Top": "Oben",
-  "Placemaker.UI.Preview.Note": "Vorschau",
-  "Placemaker.UI.Preview.NoteOf": "Vorschau: {0}",
+  "Placemaker.UI.Preview.Note": "Beispiel",
+  "Placemaker.UI.Preview.NoteOf": "Beispiel: {0}",
   "Placemaker.UI.SitePlan.Title": "Draufsicht",
   "Placemaker.UI.SitePlan.Expand": "Draufsicht groß zeigen",
   "Placemaker.UI.SitePlan.Close": "Große Ansicht schließen"

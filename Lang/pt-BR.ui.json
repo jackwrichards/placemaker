@@ -438,8 +438,8 @@
   "Placemaker.UI.Preview.Close": "Perto",
   "Placemaker.UI.Preview.Iso": "Ângulo",
   "Placemaker.UI.Preview.Top": "De cima",
-  "Placemaker.UI.Preview.Note": "Prévia",
-  "Placemaker.UI.Preview.NoteOf": "Prévia: {0}",
+  "Placemaker.UI.Preview.Note": "Exemplo",
+  "Placemaker.UI.Preview.NoteOf": "Exemplo: {0}",
   "Placemaker.UI.SitePlan.Title": "Vista de cima",
   "Placemaker.UI.SitePlan.Expand": "Mostrar a vista de cima ampliada",
   "Placemaker.UI.SitePlan.Close": "Fechar a vista ampliada"
