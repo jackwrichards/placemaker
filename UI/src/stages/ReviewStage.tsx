@@ -177,9 +177,15 @@ const MoneyCard = ({ catalog, state, summary, pending }: { catalog: Catalog; sta
                     <Money value={summary.cost} />
                 </div>
                 <div className={s.moneyLabel} data-ellipsis>{t("Placemaker.UI.Review.Upkeep", "Upkeep")}</div>
-                <div className={s.moneyValue} data-testid="review-upkeep">
-                    <Money value={summary.upkeep} perMonth />
-                </div>
+                {/* what the game charges each month: the roads and paths, and the park building (vanilla-like) */}
+                <Tip
+                    title={t("Placemaker.UI.Review.UpkeepTip", "What the city pays for it each month.")}
+                    description={summary.parkUpkeep ? t("Placemaker.UI.Review.UpkeepPark", "Includes the park's running cost: ¢{0} a month, like a vanilla park this good.", [formatValue(summary.parkUpkeep, "count")]) : undefined}
+                >
+                    <div className={s.moneyValue} data-testid="review-upkeep">
+                        <Money value={summary.upkeep} perMonth />
+                    </div>
+                </Tip>
                 <div className={s.flex} />
                 {!summary.canAfford ? (
                     <div className={s.cantAfford} data-testid="cant-afford">

@@ -382,5 +382,7 @@
   "Placemaker.Settings.SketchStyle": "草圖樣式",
   "Placemaker.Settings.SketchStyle.SitePlan": "總平面圖",
   "Placemaker.Settings.SketchStyle.Classic": "經典",
-  "Placemaker.Settings.SketchStyle.Desc": "總平面圖從上方繪製將要建造的內容：道路、小徑、草坪、樹木、停車位以及每個物件的大致形狀。經典樣式以功能顏色和虛線繪製。"
+  "Placemaker.Settings.SketchStyle.Desc": "總平面圖從上方繪製將要建造的內容：道路、小徑、草坪、樹木、停車位以及每個物件的大致形狀。經典樣式以功能顏色和虛線繪製。",
+  "Placemaker.Issue.UngroupedNoPark": "分開建造（未組合為一個資產）就不是公園：沒有公園建築，因此沒有維護費，觀光、休閒與幸福度也不生效。組合起來即可成為公園。",
+  "Placemaker.Issue.UngroupedNoPark.Short": "分開：不是公園"
 }

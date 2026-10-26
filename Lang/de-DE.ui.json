@@ -451,5 +451,9 @@
   "Placemaker.UI.Review.Later.Water": "Wasser erst nach dem Bau",
   "Placemaker.UI.Review.Later.Water.Tip": "Teiche und Becken füllen sich nach dem Bau mit Wasser.",
   "Placemaker.UI.Review.Later.Plots": "Gebäude wachsen später",
-  "Placemaker.UI.Review.Later.Plots.Tip": "Läden und Wohnhäuser entstehen nach dem Bau auf den Zonen, sobald die Stadt sie braucht."
+  "Placemaker.UI.Review.Later.Plots.Tip": "Läden und Wohnhäuser entstehen nach dem Bau auf den Zonen, sobald die Stadt sie braucht.",
+  "Placemaker.UI.Review.UpkeepTip": "Was die Stadt dafür jeden Monat zahlt.",
+  "Placemaker.UI.Review.UpkeepPark": "Enthält die Betriebskosten des Parks: ¢{0} im Monat, wie bei einem gleich guten Vanilla-Park.",
+  "Placemaker.UI.ParkStats.Ungrouped": "In Einzelteilen ist es kein Park: keine Parkwerte und keine Unterhaltskosten. Gruppiere es als ein Objekt, um einen Park daraus zu machen.",
+  "Placemaker.UI.ParkStats.UngroupedShort": "In Teilen: keine Parkwerte"
 }

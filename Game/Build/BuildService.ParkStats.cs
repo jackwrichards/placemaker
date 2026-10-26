@@ -65,6 +65,9 @@ namespace Placemaker.Game.Build
             double attr = stats.ValueOf(ParkStatIds.Attractiveness);
             rec.Stats.Add(new PlanStat("Placemaker.Stat.Attractiveness", attr, "count"));
             if (!ApplyParkStats) return;
+            // built in pieces (the Review switch "Group as one asset" off): no park, so no park building (no upkeep) and no
+            // attractiveness on the lot; where its park building would stand is kept for grouping it later
+            if (_request.Ungrouped) { RequestParkCompanion(rec, stats); return; }
             try
             {
                 var owner = Entity.Null;
@@ -109,6 +112,15 @@ namespace Placemaker.Game.Build
                 {
                     NoteSkip("Placemaker.Build.NoRoadEdge", null, IssueSeverity.Info, 0);
                     Mod.Log.Info($"Placemaker: group {_groupId} has no road frontage for a park companion; only attractiveness applies.");
+                    return;
+                }
+                rec.ParkStats.Applied[Groups.GroupRegistrySystem.CompanionX] = site.Position.x;
+                rec.ParkStats.Applied[Groups.GroupRegistrySystem.CompanionZ] = site.Position.y;
+                rec.ParkStats.Applied[Groups.GroupRegistrySystem.CompanionYaw] = site.Yaw;
+                if (_request.Ungrouped)
+                {
+                    rec.ParkStats.Applied[ParkStatIds.Companion] = 0;   // wanted once grouped
+                    Mod.Log.Info($"Placemaker: group {_groupId} is built in pieces: no park building (no upkeep, no park stats) until it is grouped.");
                     return;
                 }
                 string name = ParkStatsEstimator.KeyOf(stats).Name;

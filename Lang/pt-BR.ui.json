@@ -451,5 +451,9 @@
   "Placemaker.UI.Review.Later.Water": "A água enche ao construir",
   "Placemaker.UI.Review.Later.Water.Tip": "Lagos e piscinas se enchem de água depois da construção.",
   "Placemaker.UI.Review.Later.Plots": "Os prédios surgem depois",
-  "Placemaker.UI.Review.Later.Plots.Tip": "Lojas e casas surgem nos lotes zoneados após a construção, conforme a cidade precisa."
+  "Placemaker.UI.Review.Later.Plots.Tip": "Lojas e casas surgem nos lotes zoneados após a construção, conforme a cidade precisa.",
+  "Placemaker.UI.Review.UpkeepTip": "O que a cidade paga por isso todo mês.",
+  "Placemaker.UI.Review.UpkeepPark": "Inclui o custo do parque: ¢{0} por mês, como um parque vanilla igualmente bom.",
+  "Placemaker.UI.ParkStats.Ungrouped": "Em partes não é um parque: sem estatísticas de parque e sem manutenção. Agrupe como um único item para ser um parque.",
+  "Placemaker.UI.ParkStats.UngroupedShort": "Em partes: sem estatísticas"
 }

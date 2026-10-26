@@ -451,5 +451,9 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "On: this zone's buildings outgrow their lots with the outgrow type beside it. Off: they stay as the game makes them.",
   "Placemaker.UI.ZoneMix.Remove": "Remove this zone",
   "Placemaker.UI.ZoneMix.RoadTip3": "Allowed road width: the roads this zone may line, by their width (two lanes 16 m, four lanes 24 m, six lanes 32 m). Its lots are only placed along roads in this range.",
-  "Placemaker.UI.Zoning": "Zoning"
+  "Placemaker.UI.Zoning": "Zoning",
+  "Placemaker.UI.Review.UpkeepTip": "What the city pays for it each month.",
+  "Placemaker.UI.Review.UpkeepPark": "Includes the park's running cost: ¢{0} a month, like a vanilla park this good.",
+  "Placemaker.UI.ParkStats.Ungrouped": "Built in pieces, it is no park: no park stats and no upkeep. Group it as one asset to make it a park.",
+  "Placemaker.UI.ParkStats.UngroupedShort": "In pieces: no park stats"
 }

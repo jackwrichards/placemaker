@@ -1,0 +1,30 @@
+{
+  "_about": "Park upkeep (the user, 26 Oct: the panel said 50 a month, the park budget showed 20k): the Review's upkeep includes the park building's (vanilla-like) upkeep; a park built in pieces (Group as one asset off) gets no park building, no upkeep, and a warning. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/park-upkeep.json -Build -Who park-upkeep",
+  "scenarios": [
+    {
+      "id": "upkeep-grouped",
+      "land": { "shape": "rect", "size": [200, 180], "roads": "around" },
+      "steps": [
+        { "do": "area", "tool": "land" },
+        { "do": "type", "layer": "park", "preset": "natural" },
+        { "do": "entrances" },
+        { "do": "preview" },
+        { "do": "camera", "target": "area", "view": "oblique", "shot": "review", "shotMode": "ui" },
+        { "do": "build" }
+      ]
+    },
+    {
+      "id": "upkeep-pieces",
+      "land": { "shape": "rect", "size": [200, 180], "roads": "around" },
+      "steps": [
+        { "do": "area", "tool": "land" },
+        { "do": "type", "layer": "park", "preset": "natural" },
+        { "do": "entrances" },
+        { "do": "preview" },
+        { "do": "group", "on": false },
+        { "do": "camera", "target": "area", "view": "oblique", "shot": "review", "shotMode": "ui" },
+        { "do": "build" }
+      ]
+    }
+  ]
+}

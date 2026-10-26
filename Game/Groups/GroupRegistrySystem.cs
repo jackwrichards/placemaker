@@ -252,6 +252,9 @@ namespace Placemaker.Game.Groups
             }
             if (ungrouped) { _ungrouped.Add(groupId); _releasePending.Add(groupId); } else _ungrouped.Remove(groupId);
             Mod.Log.Info($"Placemaker: group {groupId} {(ungrouped ? "ungrouped (its parts are picked one by one)" : "grouped again")}.");
+            // in pieces it is no park (no park building, no upkeep); grouped again, the park building comes back
+            var counts = new ParkSyncCounts();
+            SyncParkStatsOf(groupId, entity, ref counts);
             Bump();
             return true;
         }

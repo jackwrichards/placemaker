@@ -553,7 +553,9 @@ export interface Summary {
   stale: boolean;           // inputs changed, new plan pending
   stats: Stat[];            // merged across layers ("trees", "stalls", "roadLength"…)
   cost: number;             // one-off construction cost (money)
-  upkeep: number;           // per month
+  upkeep: number;           // per month (what the game charges: the roads and paths, and the park building)
+  /** The park building's share of upkeep (vanilla-like, a park's running cost), when the build gets one. */
+  parkUpkeep?: number;
   canAfford: boolean;
   /** Per-layer breakdown for the review stage. */
   layers: { stepPath: string; layer: string; regionKey: string; stats: Stat[]; cost: number; upkeep: number }[];
@@ -672,7 +674,7 @@ export interface ParkStatsView {
   keepVanilla: boolean;
   /** s17 companion park building: "yes" = every stat is real (hidden park building at the road edge), "noRoad" = the
    *  setting is on but no road frontage was found (only attractiveness applies), "off" = setting off (attractiveness only). */
-  companion?: "yes" | "noRoad" | "off";
+  companion?: "yes" | "noRoad" | "off" | "ungrouped";
   /** Quality multiplier 0.55–2 (trees, water, landmarks, amenities, play, seating). */
   quality: number;
   stats: ParkStatView[];

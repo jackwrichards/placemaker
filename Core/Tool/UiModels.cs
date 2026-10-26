@@ -183,6 +183,8 @@ namespace Placemaker.Core.Tool
         public double AreaM2;
         /// <summary>(s17) Setting "Real park stats (companion building)".</summary>
         public bool ParkCompanion;
+        /// <summary>The Review switch "Group as one asset" is off: the build is born in pieces (no park building).</summary>
+        public bool Ungrouped;
         /// <summary>(s17) Outline (XZ) and the nets around it, to find the companion's road frontage. Null = none.</summary>
         public IReadOnlyList<float2> Outline;
         public IReadOnlyList<NearbyNet> Roads;
@@ -942,6 +944,30 @@ namespace Placemaker.Core.Tool
             return o;
         }
 
+        public const string UngroupedNoParkKey = "Placemaker.Issue.UngroupedNoPark";
+
+        /// <summary>The park stats of the planned build with its companion state, or null when the build is no park.</summary>
+        private static Placemaker.Core.Build.ParkStatsResult ParkStatsOf(SummaryInput s, ComposedPlan plan)
+        {
+            if (s.AreaM2 <= 0 || s.Recipe == null || plan == null) return null;
+            Placemaker.Core.Build.ParkStatsResult stats;
+            try { stats = Placemaker.Core.Build.ParkStatsEstimator.Estimate(Placemaker.Core.Build.ParkStatsInput.From(plan, s.AreaM2, s.Recipe), s.Recipe.ParkStats); }
+            catch (Exception) { return null; }
+            if (stats == null || !stats.Applicable) return null;
+            var site = new Placemaker.Core.Build.ParkCompanionSite { ReasonKey = Placemaker.Core.Build.ParkCompanionPlanner.NoRoadKey };
+            if (s.ParkCompanion && !s.Ungrouped)
+                try
+                {
+                    var objs = new List<float2>();
+                    var paths = new List<(float2, float2, float)>();
+                    Placemaker.Core.Build.ParkCompanionPlanner.Obstacles(plan, objs, paths);
+                    site = Placemaker.Core.Build.ParkCompanionPlanner.Find(s.Outline, s.Roads, objs, paths);
+                }
+                catch (Exception) { }
+            Placemaker.Core.Build.ParkStatsEstimator.WithCompanion(stats, s.ParkCompanion, site, s.Ungrouped);
+            return stats;
+        }
+
         private static JsonValue SummaryCore(SummaryInput s)
         {
             var o = JsonValue.Obj();
@@ -960,8 +986,13 @@ namespace Placemaker.Core.Tool
             }
             o.Set("stats", Stats(plan.MergedStats()));
             var total = Pricing.Of(plan, assets);
+            // the park building's upkeep (vanilla-like, what the game charges for it) is part of the upkeep shown (the user, 26 Oct:
+            // the panel said ¢50 a month, the park budget showed thousands)
+            var parkStats = ParkStatsOf(s, plan);
+            int parkUpkeep = Placemaker.Core.Build.ParkStatsEstimator.GameUpkeep(parkStats);
             o.Set("cost", Math.Round(total.Cost));
-            o.Set("upkeep", Math.Round(total.Upkeep));
+            o.Set("upkeep", Math.Round(total.Upkeep) + parkUpkeep);
+            if (parkUpkeep > 0) o.Set("parkUpkeep", parkUpkeep);
             o.Set("canAfford", s.CanAfford);
             // (s45, PROTOCOL 22) the cost by friendly category for the Review cost bar.
             var buckets = JsonValue.Arr();
@@ -1001,26 +1032,12 @@ namespace Placemaker.Core.Tool
             // Extension (docs/proposals/gametool.md): whether acknowledgePermanent(true) covers the current effects.
             o.Set("permanentAcknowledged", !needsAck || s.PermanentAcknowledged);
             // Extension (docs/proposals/s17.md): park stats of the planned build.
-            if (s.AreaM2 > 0 && s.Recipe != null)
+            if (parkStats != null)
             {
-                Placemaker.Core.Build.ParkStatsResult stats = null;
-                try { stats = Placemaker.Core.Build.ParkStatsEstimator.Estimate(Placemaker.Core.Build.ParkStatsInput.From(plan, s.AreaM2, s.Recipe), s.Recipe.ParkStats); }
-                catch (Exception) { stats = null; }
-                if (stats != null && stats.Applicable)
-                {
-                    var site = new Placemaker.Core.Build.ParkCompanionSite { ReasonKey = Placemaker.Core.Build.ParkCompanionPlanner.NoRoadKey };
-                    if (s.ParkCompanion)
-                        try
-                        {
-                            var objs = new List<float2>();
-                            var paths = new List<(float2, float2, float)>();
-                            Placemaker.Core.Build.ParkCompanionPlanner.Obstacles(plan, objs, paths);
-                            site = Placemaker.Core.Build.ParkCompanionPlanner.Find(s.Outline, s.Roads, objs, paths);
-                        }
-                        catch (Exception) { }
-                    Placemaker.Core.Build.ParkStatsEstimator.WithCompanion(stats, s.ParkCompanion, site);
-                    o.Set("parkStats", ParkStats(stats));
-                }
+                o.Set("parkStats", ParkStats(parkStats));
+                // in pieces it is no park: no upkeep, no park stats (the Review warning says so)
+                if (parkStats.Companion == Placemaker.Core.Build.ParkCompanionState.Ungrouped)
+                    issues.Add(Issue(new PlanIssue { Severity = IssueSeverity.Warning, Key = UngroupedNoParkKey }, null, s.Recipe));
             }
             // s22: what the preview shows, by layer (the legend window).
             var legend = Legend(plan, s.Recipe, s.AssetLabel);
@@ -1086,7 +1103,8 @@ namespace Placemaker.Core.Tool
                 .Set("leisureType", r.LeisureType == Placemaker.Core.Build.LeisureKind.CityBeach ? "beach" : "park")
                 .Set("keepVanilla", r.KeepVanilla)
                 .Set("companion", r.Companion == Placemaker.Core.Build.ParkCompanionState.Yes ? "yes"
-                    : r.Companion == Placemaker.Core.Build.ParkCompanionState.NoRoad ? "noRoad" : "off")
+                    : r.Companion == Placemaker.Core.Build.ParkCompanionState.NoRoad ? "noRoad"
+                    : r.Companion == Placemaker.Core.Build.ParkCompanionState.Ungrouped ? "ungrouped" : "off")
                 .Set("quality", Math.Round(r.Quality, 2));
             var arr = JsonValue.Arr();
             foreach (var st in r.Stats)

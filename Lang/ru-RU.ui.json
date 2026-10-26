@@ -451,5 +451,9 @@
   "Placemaker.UI.Review.Later.Water": "Вода наполнится после стройки",
   "Placemaker.UI.Review.Later.Water.Tip": "Пруды и бассейны наполнятся водой после стройки.",
   "Placemaker.UI.Review.Later.Plots": "Здания вырастут позже",
-  "Placemaker.UI.Review.Later.Plots.Tip": "Магазины и дома вырастут на зонированных участках после стройки, когда они понадобятся городу."
+  "Placemaker.UI.Review.Later.Plots.Tip": "Магазины и дома вырастут на зонированных участках после стройки, когда они понадобятся городу.",
+  "Placemaker.UI.Review.UpkeepTip": "Сколько город платит за это каждый месяц.",
+  "Placemaker.UI.Review.UpkeepPark": "Включает содержание парка: ¢{0} в месяц, как у такого же хорошего ванильного парка.",
+  "Placemaker.UI.ParkStats.Ungrouped": "По частям это не парк: нет показателей парка и содержания. Сгруппируйте в один объект, чтобы сделать парк.",
+  "Placemaker.UI.ParkStats.UngroupedShort": "По частям: без показателей"
 }

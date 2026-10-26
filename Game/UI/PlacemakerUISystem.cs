@@ -289,7 +289,7 @@ namespace Placemaker.Game.UI
             var failure = _tool.BuildFailure;
             bool ack = _tool.PermanentAcknowledged;
             string stamp = _tool.PlanRevision + "|" + _tool.PlanStale + "|" + afford + "|" + _tool.FeedbackVersion + "|" + (failure?.Key ?? "") + "|"
-                + (Services.Assets?.Version ?? -1) + "|" + _tool.AssetsResolvedStamp + "|" + ack + "|" + _tool.GhostDropped + "|" + _tool.ParkStatsVersion + "|" + _tool.DesignVersion + "|" + global::Placemaker.Game.Economy.ParkCompanionSystem.Enabled;
+                + (Services.Assets?.Version ?? -1) + "|" + _tool.AssetsResolvedStamp + "|" + ack + "|" + _tool.GhostDropped + "|" + _tool.ParkStatsVersion + "|" + _tool.DesignVersion + "|" + global::Placemaker.Game.Economy.ParkCompanionSystem.Enabled + "|" + _tool.BuildUngrouped;
             if (stamp == _summaryStamp) return;
             _summaryStamp = stamp;
             var input = new SummaryInput
@@ -302,6 +302,7 @@ namespace Placemaker.Game.UI
                 PermanentAcknowledged = ack,
                 AreaM2 = _tool.Plan != null ? _tool.AreaM2 : 0,
                 ParkCompanion = global::Placemaker.Game.Economy.ParkCompanionSystem.Enabled && global::Placemaker.Game.Build.BuildService.ApplyParkStats,
+                Ungrouped = _tool.BuildUngrouped,
                 AssetLabel = AssetLabelOf,
             };
             if (input.ParkCompanion && _tool.Plan != null)

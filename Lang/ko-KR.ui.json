@@ -451,5 +451,9 @@
   "Placemaker.UI.Review.Later.Water": "물은 건설 후 채워짐",
   "Placemaker.UI.Review.Later.Water.Tip": "연못과 수조는 건설 후 물로 채워집니다.",
   "Placemaker.UI.Review.Later.Plots": "건물은 나중에 들어섬",
-  "Placemaker.UI.Review.Later.Plots.Tip": "상점과 주택은 건설 후 도시가 필요로 할 때 구역 부지에 들어섭니다."
+  "Placemaker.UI.Review.Later.Plots.Tip": "상점과 주택은 건설 후 도시가 필요로 할 때 구역 부지에 들어섭니다.",
+  "Placemaker.UI.Review.UpkeepTip": "도시가 매달 내는 금액입니다.",
+  "Placemaker.UI.Review.UpkeepPark": "공원 운영비 월 ¢{0} 포함(같은 수준의 바닐라 공원과 같음).",
+  "Placemaker.UI.ParkStats.Ungrouped": "조각으로는 공원이 아닙니다. 공원 수치도 유지비도 없습니다. 하나의 에셋으로 묶으면 공원이 됩니다.",
+  "Placemaker.UI.ParkStats.UngroupedShort": "조각: 공원 수치 없음"
 }

@@ -382,5 +382,7 @@
   "Placemaker.Settings.SketchStyle": "Skizzenstil",
   "Placemaker.Settings.SketchStyle.SitePlan": "Lageplan",
   "Placemaker.Settings.SketchStyle.Classic": "Klassisch",
-  "Placemaker.Settings.SketchStyle.Desc": "Lageplan zeichnet von oben, was gebaut wird: Straßen, Wege, Rasen, Bäume, Parkplätze und jedes Objekt in groben Formen. Klassisch zeichnet Rollenfarben und gestrichelte Linien."
+  "Placemaker.Settings.SketchStyle.Desc": "Lageplan zeichnet von oben, was gebaut wird: Straßen, Wege, Rasen, Bäume, Parkplätze und jedes Objekt in groben Formen. Klassisch zeichnet Rollenfarben und gestrichelte Linien.",
+  "Placemaker.Issue.UngroupedNoPark": "In Einzelteilen gebaut (nicht als ein Objekt gruppiert) ist das kein Park: kein Parkgebäude, also keine Unterhaltskosten, und Tourismus, Freizeit und Wohlbefinden gelten nicht. Gruppiere es, um daraus einen Park zu machen.",
+  "Placemaker.Issue.UngroupedNoPark.Short": "In Teilen: kein Park"
 }

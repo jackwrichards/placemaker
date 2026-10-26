@@ -451,5 +451,9 @@
   "Placemaker.UI.Review.Later.Water": "水は建設後に満ちる",
   "Placemaker.UI.Review.Later.Water.Tip": "池やプールは建設後に水で満たされます。",
   "Placemaker.UI.Review.Later.Plots": "建物は後から建つ",
-  "Placemaker.UI.Review.Later.Plots.Tip": "店や住宅は建設後、都市の需要に応じてゾーンの区画に建ちます。"
+  "Placemaker.UI.Review.Later.Plots.Tip": "店や住宅は建設後、都市の需要に応じてゾーンの区画に建ちます。",
+  "Placemaker.UI.Review.UpkeepTip": "都市が毎月支払う額です。",
+  "Placemaker.UI.Review.UpkeepPark": "公園の運営費 ¢{0}/月 を含みます（同等のバニラ公園と同じ）。",
+  "Placemaker.UI.ParkStats.Ungrouped": "ばらばらでは公園になりません。公園の数値も維持費もありません。1つのアセットにまとめると公園になります。",
+  "Placemaker.UI.ParkStats.UngroupedShort": "ばらばら：数値なし"
 }

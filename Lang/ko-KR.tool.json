@@ -382,5 +382,7 @@
   "Placemaker.Settings.SketchStyle": "스케치 스타일",
   "Placemaker.Settings.SketchStyle.SitePlan": "배치도",
   "Placemaker.Settings.SketchStyle.Classic": "클래식",
-  "Placemaker.Settings.SketchStyle.Desc": "배치도는 지어질 것을 위에서 그립니다. 도로, 길, 잔디, 나무, 주차 공간과 모든 오브젝트를 대략적으로 보여줍니다. 클래식은 역할별 색과 점선으로 그립니다."
+  "Placemaker.Settings.SketchStyle.Desc": "배치도는 지어질 것을 위에서 그립니다. 도로, 길, 잔디, 나무, 주차 공간과 모든 오브젝트를 대략적으로 보여줍니다. 클래식은 역할별 색과 점선으로 그립니다.",
+  "Placemaker.Issue.UngroupedNoPark": "조각으로 지으면(하나의 에셋으로 묶지 않으면) 공원이 아닙니다. 공원 건물이 없어 유지비가 없고, 관광·여가·행복도도 적용되지 않습니다. 공원으로 만들려면 묶으세요.",
+  "Placemaker.Issue.UngroupedNoPark.Short": "조각: 공원 아님"
 }

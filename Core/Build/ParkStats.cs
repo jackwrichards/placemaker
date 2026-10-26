@@ -217,7 +217,9 @@ namespace Placemaker.Core.Build
     }
 
     /// <summary>(s17) Does the build get a companion park building (all stats real) or only lot attractiveness?</summary>
-    public enum ParkCompanionState { Off = 0, Yes = 1, NoRoad = 2 }
+    /// <summary>Ungrouped (the Review switch "Group as one asset" off): no park building, so no upkeep and no park stats (the
+    /// user, 26 Oct: a Placemaker park acts like one vanilla park; in pieces it is not one).</summary>
+    public enum ParkCompanionState { Off = 0, Yes = 1, NoRoad = 2, Ungrouped = 3 }
 
     public sealed class ParkStatsResult
     {
@@ -367,14 +369,17 @@ namespace Placemaker.Core.Build
         /// Marks which stats reach the game: all of them with a companion building, else attractiveness only (on the
         /// owner lot). <paramref name="enabled"/> = setting "Real park stats (companion building)".
         /// </summary>
-        public static ParkStatsResult WithCompanion(ParkStatsResult r, bool enabled, ParkCompanionSite site)
+        public static ParkStatsResult WithCompanion(ParkStatsResult r, bool enabled, ParkCompanionSite site, bool ungrouped = false)
         {
             if (r == null || !r.Applicable) return r;
             r.Site = site;
-            r.Companion = !enabled ? ParkCompanionState.Off : site.Found ? ParkCompanionState.Yes : ParkCompanionState.NoRoad;
-            foreach (var s in r.Stats) s.Applied = r.Companion == ParkCompanionState.Yes || s.Id == ParkStatIds.Attractiveness;
+            r.Companion = ungrouped ? ParkCompanionState.Ungrouped : !enabled ? ParkCompanionState.Off : site.Found ? ParkCompanionState.Yes : ParkCompanionState.NoRoad;
+            foreach (var s in r.Stats) s.Applied = r.Companion == ParkCompanionState.Yes || (s.Id == ParkStatIds.Attractiveness && r.Companion != ParkCompanionState.Ungrouped);
             return r;
         }
+
+        /// <summary>The monthly upkeep the game charges for the park building (its prefab's, quantised), 0 without one.</summary>
+        public static int GameUpkeep(ParkStatsResult r) => r != null && r.Applicable && r.Companion == ParkCompanionState.Yes ? KeyOf(r).Upkeep : 0;
 
         /// <summary>Prefab key of the companion for these (final) values.</summary>
         public static ParkPrefabKey KeyOf(ParkStatsResult r)

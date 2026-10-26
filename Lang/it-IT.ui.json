@@ -451,5 +451,9 @@
   "Placemaker.UI.Review.Later.Water": "L'acqua arriva alla costruzione",
   "Placemaker.UI.Review.Later.Water.Tip": "Stagni e vasche si riempiono d'acqua dopo la costruzione.",
   "Placemaker.UI.Review.Later.Plots": "Gli edifici crescono dopo",
-  "Placemaker.UI.Review.Later.Plots.Tip": "Negozi e case crescono sui lotti zonizzati dopo la costruzione, quando la città ne ha bisogno."
+  "Placemaker.UI.Review.Later.Plots.Tip": "Negozi e case crescono sui lotti zonizzati dopo la costruzione, quando la città ne ha bisogno.",
+  "Placemaker.UI.Review.UpkeepTip": "Quanto la città paga ogni mese.",
+  "Placemaker.UI.Review.UpkeepPark": "Include il costo del parco: ¢{0} al mese, come un parco vanilla altrettanto buono.",
+  "Placemaker.UI.ParkStats.Ungrouped": "A pezzi non è un parco: niente statistiche del parco né manutenzione. Raggruppalo come un unico elemento per farne un parco.",
+  "Placemaker.UI.ParkStats.UngroupedShort": "A pezzi: niente statistiche"
 }

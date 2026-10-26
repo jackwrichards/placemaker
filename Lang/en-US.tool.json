@@ -382,5 +382,7 @@
   "Placemaker.Settings.AreaGap": "Gaps (m)",
   "Placemaker.Settings.AreaGap.Desc": "Openings narrower than this count as closed for the Paint bucket and Paint area's One block, and places narrower than it are left out. 0 = off.",
   "Placemaker.Settings.AreaReach": "Paint bucket reach (m)",
-  "Placemaker.Settings.AreaReach.Desc": "How far the Paint bucket spreads from where you click. In open land it fills a circle this size."
+  "Placemaker.Settings.AreaReach.Desc": "How far the Paint bucket spreads from where you click. In open land it fills a circle this size.",
+  "Placemaker.Issue.UngroupedNoPark": "Built in pieces (not grouped as one asset), this is no park: no park building, so no upkeep, and its tourism, leisure and wellbeing do not apply. Group it to make it a park.",
+  "Placemaker.Issue.UngroupedNoPark.Short": "In pieces: no park"
 }

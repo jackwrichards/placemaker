@@ -320,6 +320,9 @@ namespace Placemaker.Game.Economy
             if (rec?.ParkStats != null)
             {
                 rec.ParkStats.Applied[ParkStatIds.Companion] = 1;
+                rec.ParkStats.Applied[GroupRegistrySystem.CompanionX] = p.Position.x;
+                rec.ParkStats.Applied[GroupRegistrySystem.CompanionZ] = p.Position.y;
+                rec.ParkStats.Applied[GroupRegistrySystem.CompanionYaw] = p.Yaw;
                 _registry.WriteRecord(record, rec);
             }
             _registry.MarkDirty();

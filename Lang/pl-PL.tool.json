@@ -382,5 +382,7 @@
   "Placemaker.Settings.SketchStyle": "Styl szkicu",
   "Placemaker.Settings.SketchStyle.SitePlan": "Plan sytuacyjny",
   "Placemaker.Settings.SketchStyle.Classic": "Klasyczny",
-  "Placemaker.Settings.SketchStyle.Desc": "Plan sytuacyjny rysuje z góry to, co zostanie zbudowane: drogi, ścieżki, trawnik, drzewa, miejsca parkingowe i każdy obiekt w przybliżeniu. Klasyczny rysuje kolory ról i linie przerywane."
+  "Placemaker.Settings.SketchStyle.Desc": "Plan sytuacyjny rysuje z góry to, co zostanie zbudowane: drogi, ścieżki, trawnik, drzewa, miejsca parkingowe i każdy obiekt w przybliżeniu. Klasyczny rysuje kolory ról i linie przerywane.",
+  "Placemaker.Issue.UngroupedNoPark": "Zbudowane w częściach (niezgrupowane jako jeden obiekt) nie jest parkiem: brak budynku parku, więc brak utrzymania, a turystyka, wypoczynek i dobrostan nie działają. Zgrupuj, aby stało się parkiem.",
+  "Placemaker.Issue.UngroupedNoPark.Short": "W częściach: brak parku"
 }

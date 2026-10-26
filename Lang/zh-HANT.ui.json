@@ -451,5 +451,9 @@
   "Placemaker.UI.Review.Later.Water": "建造後注水",
   "Placemaker.UI.Review.Later.Water.Tip": "池塘與水池在建造後注滿水。",
   "Placemaker.UI.Review.Later.Plots": "建築稍後建成",
-  "Placemaker.UI.Review.Later.Plots.Tip": "建造後，商店與住宅會依城市需要在分區地塊上建成。"
+  "Placemaker.UI.Review.Later.Plots.Tip": "建造後，商店與住宅會依城市需要在分區地塊上建成。",
+  "Placemaker.UI.Review.UpkeepTip": "城市每月為此支付的費用。",
+  "Placemaker.UI.Review.UpkeepPark": "包含公園營運費：每月 ¢{0}，與同等原版公園相同。",
+  "Placemaker.UI.ParkStats.Ungrouped": "分開建造就不是公園：沒有公園數據，也沒有維護費。組合為一個資產即可成為公園。",
+  "Placemaker.UI.ParkStats.UngroupedShort": "分開：無公園數據"
 }

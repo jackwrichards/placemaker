@@ -382,5 +382,7 @@
   "Placemaker.Settings.SketchStyle": "Estilo del boceto",
   "Placemaker.Settings.SketchStyle.SitePlan": "Plano del sitio",
   "Placemaker.Settings.SketchStyle.Classic": "Clásico",
-  "Placemaker.Settings.SketchStyle.Desc": "El plano del sitio dibuja desde arriba lo que se construirá: calles, caminos, césped, árboles, plazas de aparcamiento y cada objeto, a grandes rasgos. Clásico dibuja colores por función y líneas discontinuas."
+  "Placemaker.Settings.SketchStyle.Desc": "El plano del sitio dibuja desde arriba lo que se construirá: calles, caminos, césped, árboles, plazas de aparcamiento y cada objeto, a grandes rasgos. Clásico dibuja colores por función y líneas discontinuas.",
+  "Placemaker.Issue.UngroupedNoPark": "Construido por piezas (sin agrupar como un solo recurso), no es un parque: no hay edificio de parque, así que no hay mantenimiento, y su turismo, ocio y bienestar no se aplican. Agrúpalo para que sea un parque.",
+  "Placemaker.Issue.UngroupedNoPark.Short": "Por piezas: sin parque"
 }
