@@ -36,7 +36,7 @@ namespace Placemaker.Game.Overlay
         /// <summary>
         /// A prebuilt mesh layer: its rings, signature, colour, legend row and draw order. The order is a whole number per layer
         /// (the game sorts these meshes by whole steps: at -93.1 and -93.35 the asphalt drew over the stall lines at random). The
-        /// ground stays at -95..-93, where it was, under the game's own decals (the Real preview's stall lines show through it).
+        /// ground stays at -95..-94, under the game's own decals (the Real preview's stall lines show through it).
         /// </summary>
         private sealed class SpShape
         {
@@ -122,14 +122,14 @@ namespace Placemaker.Game.Overlay
                 string mat = SitePlan.Materials[m];
                 SpShape s = null;
                 foreach (var f in sp.Fills)
-                    if (f.material == mat) (s ??= Shape("sp:" + mat, SitePlan.Palette.Fill(mat), SitePlan.Palette.Alpha(mat), SitePlan.RowOfMaterial(mat), (m >= 5 ? -93f : -94f), true)).Rings.Add(Flat(f.ring));
+                    if (f.material == mat) (s ??= Shape("sp:" + mat, SitePlan.Palette.Fill(mat), SitePlan.Palette.Alpha(mat), SitePlan.RowOfMaterial(mat), -94f, true)).Rings.Add(Flat(f.ring));
             }
             var byZone = new Dictionary<string, SpShape>();
             SpShape grid = null;
             foreach (var (zone, quad) in sp.PlotCells)
             {
                 string c = SitePlan.Palette.Zone(zone);
-                if (!byZone.TryGetValue(c, out var s)) byZone[c] = s = Shape("sp:plot:" + c, c, 0.5f, SitePlan.Plots, -93f, true);
+                if (!byZone.TryGetValue(c, out var s)) byZone[c] = s = Shape("sp:plot:" + c, c, 0.5f, SitePlan.Plots, -94f, true);
                 s.Rings.Add(Flat(quad));
                 grid ??= Shape("sp:plotGrid", "#ffffff", 0.45f, SitePlan.Plots, -92f, true);
                 for (int i = 0; i < quad.Length; i++) grid.Rings.Add(BarRing(quad[i], quad[(i + 1) % quad.Length], 0.3f));
