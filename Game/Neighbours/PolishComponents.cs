@@ -225,7 +225,10 @@ namespace Placemaker.Game.Neighbours
     /// (new, or saved before the switches were per city) has new buildings off and Outgrow running.</summary>
     public struct PolishCitySwitches : IComponentData, IQueryTypeParameter, ISerializable
     {
-        public const int CurrentVersion = 2;
+        // 3: the five switches. 0.3.0-0.3.2 wrote the five under version 2 (the number was not raised with the last two:
+        // "Data size mismatch when deserializing PolishCitySwitches" on every load, a player, 26 Oct), so a 2 is read as
+        // five too; 0.2.0 wrote version 1 (two). (Only a test build of 22-23 Oct wrote a 2 with three.)
+        public const int CurrentVersion = 3;
         /// <summary>"Outgrow new buildings": buildings that grow get their zone's look.</summary>
         public bool NewBuildings;
         /// <summary>The master switch is off: nothing new outgrows and nothing is planned; nothing is put back either.</summary>
@@ -251,9 +254,9 @@ namespace Placemaker.Game.Neighbours
             reader.Read(out NewBuildings);
             reader.Read(out Paused);
             LevelUps = GameChanges = GameRemovals = false;
-            if (version >= 2) reader.Read(out LevelUps);
-            if (version >= 3)
+            if (version >= 2)
             {
+                reader.Read(out LevelUps);
                 reader.Read(out GameChanges);
                 reader.Read(out GameRemovals);
             }
