@@ -326,9 +326,15 @@ namespace Placemaker.Game.Overlay
 
             if (underGhost)
             {
-                // the Real preview: the paved ground and the stall lines (the game's own line decals are under it); the ghost
-                // draws the roads and paths itself
+                // the Real preview: the paved ground and the stall lines (the game's own line decals are under it), and solid
+                // asphalt under new roads (the game draws planned roads see-through, pale on the grass); its markings stay the ghost's
                 DrawRealGround(buffer, alpha, P);
+                if (SpShows(SitePlan.Roads))
+                {
+                    var road = SpColor(RealAsphalt, alpha);
+                    foreach (var l in _spCars) if (l.Mark) buffer.DrawCurve(road, road, 0f, P, l.Curve, l.Width - 0.5f, new float2(1, 1));
+                    foreach (var c in _spCaps) buffer.DrawCircle(road, road, 0f, P, up, c.at, c.r * 2f - 0.5f);
+                }
                 if (SpShows(SitePlan.Parking) && _spRealLines.Count <= MaxRealLines)
                 {
                     var line = SpColor(SitePlan.Palette.Stall, 0.9f * alpha);
