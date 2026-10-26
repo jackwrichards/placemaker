@@ -1055,6 +1055,14 @@ namespace Placemaker.Tests
             Assert.True(bays.Count >= 8, $"{bays.Count} bays");
             Assert.True(cars.Count >= bays.Count / 3 && cars.Count < bays.Count, $"{cars.Count} cars on {bays.Count} bays");
             foreach (var c in cars) Assert.Contains(bays, b => math.distance(b.Position, c.Position) < 0.5f);
+            // a car's nose to the aisle, its bay's mark the other way (the mark's closed end at the back, as the parking lots lay it)
+            foreach (var c in cars)
+            {
+                var bay = bays.First(b => math.distance(b.Position, c.Position) < 0.5f);
+                Assert.True(math.abs(math.cos(bay.Yaw - c.Yaw) + 1f) < 1e-3f, $"bay mark at {bay.Position} turned {math.degrees(bay.Yaw - c.Yaw):F0}° from its car");
+            }
+            // neighbours' marks share a side line (3.2 m apart, the mark's width)
+            Assert.Contains(bays, b => bays.Any(o => math.abs(math.distance(b.Position, o.Position) - 3.2f) < 0.02f));
             // nothing on the shop's own lot or outside its plot, and nothing on top of anything else
             var placed = mine.Where(b => b.Kind >= 29 && !Name(b.Kind).StartsWith("Placemaker Vehicle") && !Name(b.Kind).Contains("Tree")).ToList();
             foreach (var b in placed)

@@ -6,7 +6,7 @@
 //   * a grass strip inside the fence (not along the street) with a few slim trees and bushes between them;
 //   * near the shop: paved, a service corner behind one of the building's back corners (dumpsters, a gas cage; pallets,
 //     crates, cardboard, a skip on a bigger lot, a shed or a backup generator on a big one) and an overflow car park in
-//     marked rows, most bays with a parked car or van (Placemaker's vehicle props; decoration: nobody drives in);
+//     marked rows, most bays with a parked car (Placemaker's vehicle props; decoration: nobody drives in);
 //   * further out (past shopFar of the lot): no concrete, the ground painted green with a few trees and bushes.
 // Pieces are the house's own (StitchPlan.Paths and Bushes), made and kept like every garden piece.
 //
@@ -15,7 +15,7 @@
 //   * clean: a wider grass strip, trees in planters at the ends of the rows, fewer cars, a tidy service corner (bins; an
 //     office's generator);
 //   * everyday: as above;
-//   * industrial: concrete, no grass strip or trees, more vans, a fuller service corner (pallets, crates, barrels, a skip, a
+//   * industrial: concrete, no grass strip or trees, a fuller service corner (pallets, crates, barrels, a skip, a
 //     container, a shed), and waste ground further out (dirt, dry grass, rubble, barrels, weeds).
 // The edge of the paving: worn (as the strip malls': the ground painted, dirt fading into dry grass out from the paving; a
 // works always, any other yard by chance, knob "parkWorn") or a grass strip with a faint dry halo.
@@ -316,15 +316,16 @@ namespace Placemaker.Core.Neighbours
             return true;
         }
 
-        /// <summary>An overflow car park in marked rows (3.3 m bays, 6 m deep, 6.5 m aisles) over one piece of paved land; most bays
-        /// with a parked car or van (industrial: more vans, fewer cars; clean: fewer, and a tree in a planter at both ends of a
-        /// row of six or more). At least four bays, else none.</summary>
+        /// <summary>An overflow car park in marked rows (3.2 m bays, 6.2 m deep, 6.5 m aisles) over one piece of paved land; most bays
+        /// with a parked car (clean: a tree in a planter at both ends of a row of six or more). At least four bays, else none.</summary>
         private static void Parking(StitchHouse h, Region land, Obstacle built, List<float2[]> taken, StitchPlan plan, StitchSettings s, uint seed, int style, bool planting, ref int stalls, ref int cars, ref int planters)
         {
-            bool clean = style == PolishLooks.ParkClean, works = style == PolishLooks.ParkIndustrial;
-            uint carShare = (uint)math.clamp(K(h, s, "parkCars", 60f), 0f, 100f), vanShare = works ? 45u : 15u;
+            bool clean = style == PolishLooks.ParkClean;
+            uint carShare = (uint)math.clamp(K(h, s, "parkCars", 60f), 0f, 100f);
             if (land.Area < 80f) return;
-            const float W = 3.3f, D = 6f, Aisle = 6.5f;
+            // a bay the size of its mark (ParkingLotDecal01, 3.2 x 6.2 m, drawn at full size): neighbours' side lines and
+            // back-to-back rows' back lines fall on one line (3.3 x 6 m bays drew every line twice, the game runner 26 Oct)
+            const float W = 3.2f, D = 6.2f, Aisle = 6.5f;
             // rows along the land's longer side (in the house's frame)
             var local = land.Outer.Select(h.ToLocal).ToArray();
             float2 lo = MinOf(local), hi = MaxOf(local);
@@ -376,10 +377,14 @@ namespace Placemaker.Core.Neighbours
                     planters++;
                     continue;
                 }
-                plan.Bushes.Add((h.Id, at, yaw, StallLine));
+                // the mark's +z from the aisle to the bay's back, as the parking lots lay it (Bay.Axis): its closed end at the
+                // back (turned the other way, two rows back to back read as long closed boxes, the user 26 Oct)
+                plan.Bushes.Add((h.Id, at, yaw + math.PI, StallLine));
                 stalls++;
                 if (!car) continue;
-                int kind = (hk >> 8) % 100 < vanShare ? FirstVan + (int)((hk >> 12) % VanCount) : FirstCar + (int)((hk >> 12) % CarCount);
+                // cars only (the vanilla cars include a small van): the van slots are 8 m box trucks, wider and longer than a
+                // bay (the game runner 26 Oct: they lay across two bays)
+                int kind = FirstCar + (int)((hk >> 12) % CarCount);
                 // nose to the aisle, a little off the bay's back
                 var to = new float2(math.sin(yaw), math.cos(yaw));
                 plan.Bushes.Add((h.Id, at + to * 0.2f, yaw, kind));
