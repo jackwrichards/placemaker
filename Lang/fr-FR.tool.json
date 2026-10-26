@@ -378,5 +378,9 @@
   "Placemaker.Settings.AreaGap": "Trous (m)",
   "Placemaker.Settings.AreaGap.Desc": "Les ouvertures plus étroites que ceci comptent comme fermées pour le Pot de peinture et l'option Un îlot de Peindre la zone, et les endroits plus étroits sont omis. 0 = désactivé.",
   "Placemaker.Settings.AreaReach": "Portée du pot (m)",
-  "Placemaker.Settings.AreaReach.Desc": "Jusqu'où le Pot de peinture s'étend depuis l'endroit cliqué. En terrain libre, il remplit un cercle de cette taille."
+  "Placemaker.Settings.AreaReach.Desc": "Jusqu'où le Pot de peinture s'étend depuis l'endroit cliqué. En terrain libre, il remplit un cercle de cette taille.",
+  "Placemaker.Settings.SketchStyle": "Style du croquis",
+  "Placemaker.Settings.SketchStyle.SitePlan": "Plan de masse",
+  "Placemaker.Settings.SketchStyle.Classic": "Classique",
+  "Placemaker.Settings.SketchStyle.Desc": "Le plan de masse dessine vu de dessus ce qui sera construit : routes, chemins, pelouse, arbres, places de parking et chaque objet, en gros. Classique dessine des couleurs par rôle et des lignes pointillées."
 }

@@ -321,14 +321,12 @@
   "Placemaker.UI.Review.ClickShow": "Clic: mostra sulla mappa",
   "Placemaker.UI.Review.Cost": "Costo",
   "Placemaker.UI.Review.CostHead": "Costo",
-  "Placemaker.UI.Review.CostSub": "per costruire e per gestire",
   "Placemaker.UI.Review.Fewer": "Meno",
   "Placemaker.UI.Review.Issue": "Problema",
   "Placemaker.UI.Review.PaintOnly": "La pittura del terreno resta quando la costruzione viene rimossa.",
   "Placemaker.UI.Review.Planning": "Pianificazione…",
   "Placemaker.UI.Review.PlusN": "+{0} altri",
   "Placemaker.UI.Review.StatsHead": "Cosa ottieni",
-  "Placemaker.UI.Review.StatsSub": "cosa verrà costruito",
   "Placemaker.UI.Review.Upkeep": "Mantenimento",
   "Placemaker.UI.Rules.AllStops": "Tutti",
   "Placemaker.UI.Rules.AllStopsTip": "Acceso quando si ferma a tutto ciò che c'è qui. Clicca per attivarli tutti, o disattivarli tutti se sono tutti attivi.",
@@ -436,5 +434,12 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "Attivo: gli edifici di questa zona crescono oltre i loro lotti con il tipo di outgrow accanto. Disattivato: restano come li fa il gioco.",
   "Placemaker.UI.ZoneMix.Remove": "Rimuovi questa zona",
   "Placemaker.UI.ZoneMix.RoadTip3": "Larghezza strade ammessa: le strade che questa zona può costeggiare, in base alla larghezza (due corsie 16 m, quattro corsie 24 m, sei corsie 32 m). I suoi lotti vengono messi solo lungo strade in questo intervallo.",
-  "Placemaker.UI.Zoning": "Zonizzazione"
+  "Placemaker.UI.Zoning": "Zonizzazione",
+  "Placemaker.UI.Preview.Close": "Vicino",
+  "Placemaker.UI.Preview.Iso": "Angolo",
+  "Placemaker.UI.Preview.Top": "Dall'alto",
+  "Placemaker.UI.Preview.Note": "Anteprima",
+  "Placemaker.UI.SitePlan.Title": "Vista dall'alto",
+  "Placemaker.UI.SitePlan.Expand": "Mostra la vista dall'alto in grande",
+  "Placemaker.UI.SitePlan.Close": "Chiudi la vista grande"
 }

@@ -321,14 +321,12 @@
   "Placemaker.UI.Review.ClickShow": "Klik: pokaż na mapie",
   "Placemaker.UI.Review.Cost": "Koszt",
   "Placemaker.UI.Review.CostHead": "Koszt",
-  "Placemaker.UI.Review.CostSub": "budowy i utrzymania",
   "Placemaker.UI.Review.Fewer": "Mniej",
   "Placemaker.UI.Review.Issue": "Problem",
   "Placemaker.UI.Review.PaintOnly": "Malowanie gruntu zostaje po usunięciu obiektu.",
   "Placemaker.UI.Review.Planning": "Planowanie…",
   "Placemaker.UI.Review.PlusN": "+{0} więcej",
   "Placemaker.UI.Review.StatsHead": "Co dostajesz",
-  "Placemaker.UI.Review.StatsSub": "co zostanie zbudowane",
   "Placemaker.UI.Review.Upkeep": "Koszty utrzymania",
   "Placemaker.UI.Rules.AllStops": "Wszystkie",
   "Placemaker.UI.Rules.AllStopsTip": "Podświetlone, gdy zatrzymuje się na wszystkim tutaj. Kliknij, by włączyć wszystkie, albo wyłączyć, gdy wszystkie są włączone.",
@@ -436,5 +434,12 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "Wł.: budynki tej strefy rozrastają się poza działki z typem Outgrow obok. Wył.: zostają takie, jakie robi je gra.",
   "Placemaker.UI.ZoneMix.Remove": "Usuń tę strefę",
   "Placemaker.UI.ZoneMix.RoadTip3": "Dozwolona szerokość drogi: drogi, przy których może leżeć ta strefa, według szerokości (dwa pasy 16 m, cztery pasy 24 m, sześć pasów 32 m). Jej działki są stawiane tylko przy drogach w tym zakresie.",
-  "Placemaker.UI.Zoning": "Strefy"
+  "Placemaker.UI.Zoning": "Strefy",
+  "Placemaker.UI.Preview.Close": "Blisko",
+  "Placemaker.UI.Preview.Iso": "Skos",
+  "Placemaker.UI.Preview.Top": "Z góry",
+  "Placemaker.UI.Preview.Note": "Podgląd",
+  "Placemaker.UI.SitePlan.Title": "Widok z góry",
+  "Placemaker.UI.SitePlan.Expand": "Pokaż widok z góry w dużym rozmiarze",
+  "Placemaker.UI.SitePlan.Close": "Zamknij duży widok"
 }

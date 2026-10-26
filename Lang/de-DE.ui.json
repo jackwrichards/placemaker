@@ -321,14 +321,12 @@
   "Placemaker.UI.Review.ClickShow": "Klick: auf Karte zeigen",
   "Placemaker.UI.Review.Cost": "Kosten",
   "Placemaker.UI.Review.CostHead": "Kosten",
-  "Placemaker.UI.Review.CostSub": "Bau und Betrieb",
   "Placemaker.UI.Review.Fewer": "Weniger",
   "Placemaker.UI.Review.Issue": "Problem",
   "Placemaker.UI.Review.PaintOnly": "Bodenfarbe bleibt, wenn der Bau entfernt wird.",
   "Placemaker.UI.Review.Planning": "Wird geplant…",
   "Placemaker.UI.Review.PlusN": "+{0} weitere",
   "Placemaker.UI.Review.StatsHead": "Was Sie bekommen",
-  "Placemaker.UI.Review.StatsSub": "was gebaut wird",
   "Placemaker.UI.Review.Upkeep": "Unterhaltungskosten",
   "Placemaker.UI.Rules.AllStops": "Alle",
   "Placemaker.UI.Rules.AllStopsTip": "Leuchtet, wenn es hier an allem stoppt. Klicken, um alle einzuschalten, oder alle aus, wenn alle an sind.",
@@ -436,5 +434,12 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "An: Die Gebäude dieser Zone erweitern ihre Grundstücke mit dem Outgrow-Typ daneben. Aus: Sie bleiben, wie das Spiel sie macht.",
   "Placemaker.UI.ZoneMix.Remove": "Diese Zone entfernen",
   "Placemaker.UI.ZoneMix.RoadTip3": "Erlaubte Straßenbreite: die Straßen, an denen diese Zone liegen darf, nach Breite (zwei Spuren 16 m, vier Spuren 24 m, sechs Spuren 32 m). Ihre Grundstücke werden nur an Straßen in diesem Bereich gesetzt.",
-  "Placemaker.UI.Zoning": "Zonen"
+  "Placemaker.UI.Zoning": "Zonen",
+  "Placemaker.UI.Preview.Close": "Nah",
+  "Placemaker.UI.Preview.Iso": "Schräg",
+  "Placemaker.UI.Preview.Top": "Oben",
+  "Placemaker.UI.Preview.Note": "Vorschau",
+  "Placemaker.UI.SitePlan.Title": "Draufsicht",
+  "Placemaker.UI.SitePlan.Expand": "Draufsicht groß zeigen",
+  "Placemaker.UI.SitePlan.Close": "Große Ansicht schließen"
 }

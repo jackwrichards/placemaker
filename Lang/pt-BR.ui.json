@@ -321,14 +321,12 @@
   "Placemaker.UI.Review.ClickShow": "Clique: mostrar no mapa",
   "Placemaker.UI.Review.Cost": "Custo",
   "Placemaker.UI.Review.CostHead": "Custo",
-  "Placemaker.UI.Review.CostSub": "para construir e manter",
   "Placemaker.UI.Review.Fewer": "Menos",
   "Placemaker.UI.Review.Issue": "Problema",
   "Placemaker.UI.Review.PaintOnly": "A pintura do solo fica quando a construção é removida.",
   "Placemaker.UI.Review.Planning": "Planejando…",
   "Placemaker.UI.Review.PlusN": "+{0} mais",
   "Placemaker.UI.Review.StatsHead": "O que você ganha",
-  "Placemaker.UI.Review.StatsSub": "o que será construído",
   "Placemaker.UI.Review.Upkeep": "Manutenção",
   "Placemaker.UI.Rules.AllStops": "Todos",
   "Placemaker.UI.Rules.AllStopsTip": "Aceso quando para em tudo aqui. Clique para ligar todos, ou desligar todos quando estiverem todos ligados.",
@@ -436,5 +434,12 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "Ligado: os edifícios desta zona fazem outgrow dos lotes com o tipo de outgrow ao lado. Desligado: ficam como o jogo os faz.",
   "Placemaker.UI.ZoneMix.Remove": "Remover esta zona",
   "Placemaker.UI.ZoneMix.RoadTip3": "Largura de via permitida: as vias que esta zona pode ladear, pela largura (duas faixas 16 m, quatro faixas 24 m, seis faixas 32 m). Os lotes dela só são colocados ao longo de vias nesta faixa.",
-  "Placemaker.UI.Zoning": "Zoneamento"
+  "Placemaker.UI.Zoning": "Zoneamento",
+  "Placemaker.UI.Preview.Close": "Perto",
+  "Placemaker.UI.Preview.Iso": "Ângulo",
+  "Placemaker.UI.Preview.Top": "De cima",
+  "Placemaker.UI.Preview.Note": "Prévia",
+  "Placemaker.UI.SitePlan.Title": "Vista de cima",
+  "Placemaker.UI.SitePlan.Expand": "Mostrar a vista de cima ampliada",
+  "Placemaker.UI.SitePlan.Close": "Fechar a vista ampliada"
 }

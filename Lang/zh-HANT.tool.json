@@ -378,5 +378,9 @@
   "Placemaker.Settings.AreaGap": "缺口（m）",
   "Placemaker.Settings.AreaGap.Desc": "比這更窄的開口，對油漆桶和塗刷區域的「一個街廓」來說視為封閉，比這更窄的地方會被省略。0 = 關閉。",
   "Placemaker.Settings.AreaReach": "油漆桶範圍（m）",
-  "Placemaker.Settings.AreaReach.Desc": "油漆桶從點擊處向外擴散多遠。在空地上會填滿這個大小的圓。"
+  "Placemaker.Settings.AreaReach.Desc": "油漆桶從點擊處向外擴散多遠。在空地上會填滿這個大小的圓。",
+  "Placemaker.Settings.SketchStyle": "草圖樣式",
+  "Placemaker.Settings.SketchStyle.SitePlan": "總平面圖",
+  "Placemaker.Settings.SketchStyle.Classic": "經典",
+  "Placemaker.Settings.SketchStyle.Desc": "總平面圖從上方繪製將要建造的內容：道路、小徑、草坪、樹木、停車位以及每個物件的大致形狀。經典樣式以功能顏色和虛線繪製。"
 }

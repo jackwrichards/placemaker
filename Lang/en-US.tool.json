@@ -312,7 +312,7 @@
   "Placemaker.Settings.PreviewDetail.Normal": "Normal",
   "Placemaker.Settings.PreviewDetail.Detailed": "Detailed",
   "Placemaker.Settings.SketchStyle": "Sketch style",
-  "Placemaker.Settings.SketchStyle.Desc": "Site plan draws what gets built: asphalt, paths, lawn, tree crowns and painted parking spaces, and keeps the ground under the Real preview. Classic draws role colours and dashed lines.",
+  "Placemaker.Settings.SketchStyle.Desc": "Site plan draws what gets built, from above: roads, paths, lawn, trees, parking spaces and every object, roughly. Classic draws role colours and dashed lines.",
   "Placemaker.Settings.SketchStyle.SitePlan": "Site plan",
   "Placemaker.Settings.SketchStyle.Classic": "Classic",
   "Placemaker.Settings.SnapToRoadsWhenDrawing": "Snap to curbs when drawing",

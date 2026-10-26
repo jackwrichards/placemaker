@@ -378,5 +378,9 @@
   "Placemaker.Settings.AreaGap": "Lücken (m)",
   "Placemaker.Settings.AreaGap.Desc": "Öffnungen schmaler als dies gelten für Farbeimer und Ein Block von Fläche malen als geschlossen, und schmalere Stellen werden weggelassen. 0 = aus.",
   "Placemaker.Settings.AreaReach": "Farbeimer-Reichweite (m)",
-  "Placemaker.Settings.AreaReach.Desc": "Wie weit sich der Farbeimer vom Klickpunkt ausbreitet. Im offenen Land füllt er einen Kreis dieser Größe."
+  "Placemaker.Settings.AreaReach.Desc": "Wie weit sich der Farbeimer vom Klickpunkt ausbreitet. Im offenen Land füllt er einen Kreis dieser Größe.",
+  "Placemaker.Settings.SketchStyle": "Skizzenstil",
+  "Placemaker.Settings.SketchStyle.SitePlan": "Lageplan",
+  "Placemaker.Settings.SketchStyle.Classic": "Klassisch",
+  "Placemaker.Settings.SketchStyle.Desc": "Lageplan zeichnet von oben, was gebaut wird: Straßen, Wege, Rasen, Bäume, Parkplätze und jedes Objekt in groben Formen. Klassisch zeichnet Rollenfarben und gestrichelte Linien."
 }

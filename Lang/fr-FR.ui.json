@@ -321,14 +321,12 @@
   "Placemaker.UI.Review.ClickShow": "Clic : voir sur la carte",
   "Placemaker.UI.Review.Cost": "Coût",
   "Placemaker.UI.Review.CostHead": "Coût",
-  "Placemaker.UI.Review.CostSub": "construction et fonctionnement",
   "Placemaker.UI.Review.Fewer": "Moins",
   "Placemaker.UI.Review.Issue": "Problème",
   "Placemaker.UI.Review.PaintOnly": "La peinture du sol reste quand la construction est retirée.",
   "Placemaker.UI.Review.Planning": "Planification…",
   "Placemaker.UI.Review.PlusN": "+{0} de plus",
   "Placemaker.UI.Review.StatsHead": "Ce que vous obtenez",
-  "Placemaker.UI.Review.StatsSub": "ce qui sera construit",
   "Placemaker.UI.Review.Upkeep": "Entretien",
   "Placemaker.UI.Rules.AllStops": "Tous",
   "Placemaker.UI.Rules.AllStopsTip": "Allumé quand tout ici l'arrête. Cliquez pour tout activer, ou tout désactiver si tout est activé.",
@@ -436,5 +434,12 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "Activé : les bâtiments de cette zone débordent de leurs lots avec le type d'Outgrow à côté. Désactivé : ils restent comme le jeu les fait.",
   "Placemaker.UI.ZoneMix.Remove": "Retirer cette zone",
   "Placemaker.UI.ZoneMix.RoadTip3": "Largeur de route permise : les routes que cette zone peut border, selon leur largeur (deux voies 16 m, quatre voies 24 m, six voies 32 m). Ses lots ne sont placés que le long des routes de cette plage.",
-  "Placemaker.UI.Zoning": "Zonage"
+  "Placemaker.UI.Zoning": "Zonage",
+  "Placemaker.UI.Preview.Close": "Près",
+  "Placemaker.UI.Preview.Iso": "Angle",
+  "Placemaker.UI.Preview.Top": "Dessus",
+  "Placemaker.UI.Preview.Note": "Aperçu",
+  "Placemaker.UI.SitePlan.Title": "Vue de dessus",
+  "Placemaker.UI.SitePlan.Expand": "Afficher la vue de dessus en grand",
+  "Placemaker.UI.SitePlan.Close": "Fermer la grande vue"
 }

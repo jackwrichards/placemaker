@@ -378,5 +378,9 @@
   "Placemaker.Settings.AreaGap": "Huecos (m)",
   "Placemaker.Settings.AreaGap.Desc": "Las aberturas más estrechas que esto cuentan como cerradas para el Cubo de pintura y la opción Una manzana de Pintar zona, y los sitios más estrechos se omiten. 0 = desactivado.",
   "Placemaker.Settings.AreaReach": "Alcance del cubo (m)",
-  "Placemaker.Settings.AreaReach.Desc": "Hasta dónde se extiende el Cubo de pintura desde donde haces clic. En terreno abierto rellena un círculo de este tamaño."
+  "Placemaker.Settings.AreaReach.Desc": "Hasta dónde se extiende el Cubo de pintura desde donde haces clic. En terreno abierto rellena un círculo de este tamaño.",
+  "Placemaker.Settings.SketchStyle": "Estilo del boceto",
+  "Placemaker.Settings.SketchStyle.SitePlan": "Plano del sitio",
+  "Placemaker.Settings.SketchStyle.Classic": "Clásico",
+  "Placemaker.Settings.SketchStyle.Desc": "El plano del sitio dibuja desde arriba lo que se construirá: calles, caminos, césped, árboles, plazas de aparcamiento y cada objeto, a grandes rasgos. Clásico dibuja colores por función y líneas discontinuas."
 }

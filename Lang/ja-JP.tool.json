@@ -378,5 +378,9 @@
   "Placemaker.Settings.AreaGap": "隙間（m）",
   "Placemaker.Settings.AreaGap.Desc": "これより狭い開口部は、バケツとブラシ塗りの「1つの街区」で閉じているとみなし、これより狭い場所は省きます。0 = オフ。",
   "Placemaker.Settings.AreaReach": "バケツの届く範囲（m）",
-  "Placemaker.Settings.AreaReach.Desc": "クリックした所からバケツがどれだけ広がるかです。開けた土地ではこの大きさの円を塗りつぶします。"
+  "Placemaker.Settings.AreaReach.Desc": "クリックした所からバケツがどれだけ広がるかです。開けた土地ではこの大きさの円を塗りつぶします。",
+  "Placemaker.Settings.SketchStyle": "スケッチのスタイル",
+  "Placemaker.Settings.SketchStyle.SitePlan": "配置図",
+  "Placemaker.Settings.SketchStyle.Classic": "クラシック",
+  "Placemaker.Settings.SketchStyle.Desc": "配置図は建設されるものを上から描きます。道路、小道、芝生、木、駐車スペース、すべてのオブジェクトを大まかに表示します。クラシックは役割ごとの色と破線で描きます。"
 }

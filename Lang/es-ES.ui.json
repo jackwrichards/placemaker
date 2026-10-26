@@ -321,14 +321,12 @@
   "Placemaker.UI.Review.ClickShow": "Clic: ver en el mapa",
   "Placemaker.UI.Review.Cost": "Coste",
   "Placemaker.UI.Review.CostHead": "Coste",
-  "Placemaker.UI.Review.CostSub": "de construcción y mantenimiento",
   "Placemaker.UI.Review.Fewer": "Menos",
   "Placemaker.UI.Review.Issue": "Problema",
   "Placemaker.UI.Review.PaintOnly": "La pintura del suelo se queda al quitar la construcción.",
   "Placemaker.UI.Review.Planning": "Planificando…",
   "Placemaker.UI.Review.PlusN": "+{0} más",
   "Placemaker.UI.Review.StatsHead": "Lo que obtienes",
-  "Placemaker.UI.Review.StatsSub": "lo que se construirá",
   "Placemaker.UI.Review.Upkeep": "Mantenimiento",
   "Placemaker.UI.Rules.AllStops": "Todos",
   "Placemaker.UI.Rules.AllStopsTip": "Encendido cuando se detiene en todo lo de aquí. Haz clic para activarlos todos, o para desactivarlos si ya están todos activados.",
@@ -436,5 +434,12 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "Activado: los edificios de esta zona amplían sus solares con el tipo de ampliación de al lado. Desactivado: se quedan como los hace el juego.",
   "Placemaker.UI.ZoneMix.Remove": "Quitar esta zona",
   "Placemaker.UI.ZoneMix.RoadTip3": "Ancho de calle permitido: las calles que puede bordear esta zona, según su anchura (dos carriles 16 m, cuatro carriles 24 m, seis carriles 32 m). Sus solares solo se colocan junto a calles de este rango.",
-  "Placemaker.UI.Zoning": "Zonificación"
+  "Placemaker.UI.Zoning": "Zonificación",
+  "Placemaker.UI.Preview.Close": "Cerca",
+  "Placemaker.UI.Preview.Iso": "Ángulo",
+  "Placemaker.UI.Preview.Top": "Arriba",
+  "Placemaker.UI.Preview.Note": "Vista previa",
+  "Placemaker.UI.SitePlan.Title": "Vista superior",
+  "Placemaker.UI.SitePlan.Expand": "Ver la vista superior en grande",
+  "Placemaker.UI.SitePlan.Close": "Cerrar la vista grande"
 }

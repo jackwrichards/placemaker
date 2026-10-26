@@ -1,10 +1,11 @@
 // Style previews (the user, 25 Oct): a photo of the chosen style as it was built, so the player does not have to guess from the
 // name. Three views from the same cameras for every style (a cinematic close-up, an isometric-looking view, from above); the view
-// picked is remembered for every style after it. Taken by the game runner (tools/style-previews), shrunk into
+// picked is remembered for every style after it, and so is the photo folded away to one line (the user: it takes a lot of room). Taken by the game runner (tools/style-previews), shrunk into
 // assets/previews/<type>~<style>~<view>.jpg. A style with no photo (the player's own, a new one) shows nothing.
 import React, { useState } from "react";
 import classNames from "classnames";
 import { useT } from "../lib/l10n";
+import { Icon } from "./common";
 import s from "./stylePreview.module.scss";
 
 declare const require: any;
@@ -12,6 +13,7 @@ declare const require: any;
 const VIEWS = ["close", "iso", "top"] as const;
 type View = (typeof VIEWS)[number];
 const VIEW_KEY = "placemaker.previewView.v2";
+const OPEN_KEY = "placemaker.previewOpen.v1";
 
 function loadPhotos(): Record<string, string> {
     const out: Record<string, string> = {};
@@ -43,10 +45,20 @@ function loadView(): View {
 }
 
 let shared: View | null = null;
+let sharedOpen: boolean | null = null;
+
+function loadOpen(): boolean {
+    try {
+        return window.localStorage?.getItem(OPEN_KEY) !== "0";
+    } catch {
+        return true;
+    }
+}
 
 export const StylePreview = ({ layer, preset }: { layer: string; preset: string | null }) => {
     const { t } = useT();
     const [view, setViewState] = useState<View>(() => shared ?? (shared = loadView()));
+    const [open, setOpenState] = useState<boolean>(() => sharedOpen ?? (sharedOpen = loadOpen()));
     if (!preset) return null;
     const any = VIEWS.some((v) => photoOf(layer, preset, v));
     if (!any) return null;
@@ -59,6 +71,22 @@ export const StylePreview = ({ layer, preset }: { layer: string; preset: string 
             /* not remembered */
         }
     };
+    const setOpen = (o: boolean) => {
+        sharedOpen = o;
+        setOpenState(o);
+        try {
+            window.localStorage?.setItem(OPEN_KEY, o ? "1" : "0");
+        } catch {
+            /* not remembered */
+        }
+    };
+    if (!open)
+        return (
+            <div className={s.folded} data-testid="style-preview" data-open="0" onClick={() => setOpen(true)}>
+                <div className={s.foldedLabel}>{t("Placemaker.UI.Preview.Note", "Preview")}</div>
+                <Icon name="chevronDown" size={11} tint="dim" />
+            </div>
+        );
     const shown = photoOf(layer, preset, view) ? view : VIEWS.find((v) => photoOf(layer, preset, v))!;
     const label: Record<View, string> = {
         close: t("Placemaker.UI.Preview.Close", "Close"),
@@ -66,7 +94,7 @@ export const StylePreview = ({ layer, preset }: { layer: string; preset: string 
         top: t("Placemaker.UI.Preview.Top", "Above"),
     };
     return (
-        <div className={s.preview} data-testid="style-preview" data-view={shown}>
+        <div className={s.preview} data-testid="style-preview" data-open="1" data-view={shown}>
             {/* a new img per photo: the game's view keeps the old picture while a new src loads */}
             <img key={layer + preset + shown} className={s.photo} src={photoOf(layer, preset, shown)} alt="" />
             <div className={s.views}>
@@ -80,6 +108,9 @@ export const StylePreview = ({ layer, preset }: { layer: string; preset: string 
                         {label[v]}
                     </div>
                 ))}
+            </div>
+            <div className={s.fold} data-testid="style-preview-fold" onClick={() => setOpen(false)}>
+                <Icon name="chevronUp" size={11} />
             </div>
             <div className={s.note}>{t("Placemaker.UI.Preview.Note", "Preview")}</div>
         </div>

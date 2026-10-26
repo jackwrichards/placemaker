@@ -321,14 +321,12 @@
   "Placemaker.UI.Review.ClickShow": "クリック: マップに表示",
   "Placemaker.UI.Review.Cost": "費用",
   "Placemaker.UI.Review.CostHead": "費用",
-  "Placemaker.UI.Review.CostSub": "建設費と運営費",
   "Placemaker.UI.Review.Fewer": "減らす",
   "Placemaker.UI.Review.Issue": "問題",
   "Placemaker.UI.Review.PaintOnly": "作品を削除しても地面のペイントは残ります。",
   "Placemaker.UI.Review.Planning": "計画中…",
   "Placemaker.UI.Review.PlusN": "他 +{0}件",
   "Placemaker.UI.Review.StatsHead": "できるもの",
-  "Placemaker.UI.Review.StatsSub": "建設されるもの",
   "Placemaker.UI.Review.Upkeep": "維持費",
   "Placemaker.UI.Rules.AllStops": "すべて",
   "Placemaker.UI.Rules.AllStopsTip": "ここですべてで止まるときに点灯します。クリックですべてオン、すべてオンのときはすべてオフにします。",
@@ -436,5 +434,12 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "オン: この区画の建物は、横のOutgrowの種類で用地をOutgrowします。オフ: ゲームが作ったままです。",
   "Placemaker.UI.ZoneMix.Remove": "この区画を削除",
   "Placemaker.UI.ZoneMix.RoadTip3": "許可する道路の幅: この区画が沿ってよい道路の幅です（2車線 16 m、4車線 24 m、6車線 32 m）。用地はこの範囲の道路沿いにだけ置かれます。",
-  "Placemaker.UI.Zoning": "区画"
+  "Placemaker.UI.Zoning": "区画",
+  "Placemaker.UI.Preview.Close": "近景",
+  "Placemaker.UI.Preview.Iso": "斜め",
+  "Placemaker.UI.Preview.Top": "真上",
+  "Placemaker.UI.Preview.Note": "プレビュー",
+  "Placemaker.UI.SitePlan.Title": "上面図",
+  "Placemaker.UI.SitePlan.Expand": "上面図を大きく表示",
+  "Placemaker.UI.SitePlan.Close": "拡大表示を閉じる"
 }

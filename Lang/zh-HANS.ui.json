@@ -321,14 +321,12 @@
   "Placemaker.UI.Review.ClickShow": "点击：在地图上显示",
   "Placemaker.UI.Review.Cost": "成本",
   "Placemaker.UI.Review.CostHead": "成本",
-  "Placemaker.UI.Review.CostSub": "建造和运营",
   "Placemaker.UI.Review.Fewer": "收起",
   "Placemaker.UI.Review.Issue": "问题",
   "Placemaker.UI.Review.PaintOnly": "移除建造后，地面涂刷仍会保留。",
   "Placemaker.UI.Review.Planning": "规划中……",
   "Placemaker.UI.Review.PlusN": "另外 +{0} 项",
   "Placemaker.UI.Review.StatsHead": "你将得到",
-  "Placemaker.UI.Review.StatsSub": "将要建造的内容",
   "Placemaker.UI.Review.Upkeep": "维护费用",
   "Placemaker.UI.Rules.AllStops": "全部",
   "Placemaker.UI.Rules.AllStopsTip": "在这里遇到所有东西都停止时点亮。点击全部开启，全部开启时再点击则全部关闭。",
@@ -436,5 +434,12 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "开：此功能区的建筑会用旁边的 Outgrow 类型 Outgrow 它们的地块。关：它们保持游戏生成的样子。",
   "Placemaker.UI.ZoneMix.Remove": "移除此功能区",
   "Placemaker.UI.ZoneMix.RoadTip3": "允许的道路宽度：此功能区可以沿哪些道路分布，按宽度计（两车道 16 m，四车道 24 m，六车道 32 m）。它的地块只会沿此范围内的道路放置。",
-  "Placemaker.UI.Zoning": "功能区"
+  "Placemaker.UI.Zoning": "功能区",
+  "Placemaker.UI.Preview.Close": "近景",
+  "Placemaker.UI.Preview.Iso": "斜视",
+  "Placemaker.UI.Preview.Top": "俯视",
+  "Placemaker.UI.Preview.Note": "预览",
+  "Placemaker.UI.SitePlan.Title": "俯视图",
+  "Placemaker.UI.SitePlan.Expand": "放大显示俯视图",
+  "Placemaker.UI.SitePlan.Close": "关闭放大视图"
 }

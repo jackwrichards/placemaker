@@ -321,14 +321,12 @@
   "Placemaker.UI.Review.ClickShow": "Щелчок: показать на карте",
   "Placemaker.UI.Review.Cost": "Стоимость",
   "Placemaker.UI.Review.CostHead": "Стоимость",
-  "Placemaker.UI.Review.CostSub": "строительство и содержание",
   "Placemaker.UI.Review.Fewer": "Меньше",
   "Placemaker.UI.Review.Issue": "Проблема",
   "Placemaker.UI.Review.PaintOnly": "Окраска земли останется после удаления постройки.",
   "Placemaker.UI.Review.Planning": "Планирование…",
   "Placemaker.UI.Review.PlusN": "еще +{0}",
   "Placemaker.UI.Review.StatsHead": "Что получится",
-  "Placemaker.UI.Review.StatsSub": "что будет построено",
   "Placemaker.UI.Review.Upkeep": "Содержание",
   "Placemaker.UI.Rules.AllStops": "Все",
   "Placemaker.UI.Rules.AllStopsTip": "Горит, когда учитывается все здесь. Щелкните, чтобы включить все, или выключить все, если все включено.",
@@ -436,5 +434,12 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "Вкл.: здания этой зоны благоустраивают свои участки по типу Outgrow рядом. Выкл.: они остаются такими, какими их делает игра.",
   "Placemaker.UI.ZoneMix.Remove": "Убрать эту зону",
   "Placemaker.UI.ZoneMix.RoadTip3": "Допустимая ширина дороги: дороги, вдоль которых может идти эта зона, по их ширине (две полосы 16 m, четыре полосы 24 m, шесть полос 32 m). Ее участки размещаются только вдоль дорог в этом диапазоне.",
-  "Placemaker.UI.Zoning": "Зонирование"
+  "Placemaker.UI.Zoning": "Зонирование",
+  "Placemaker.UI.Preview.Close": "Близко",
+  "Placemaker.UI.Preview.Iso": "Под углом",
+  "Placemaker.UI.Preview.Top": "Сверху",
+  "Placemaker.UI.Preview.Note": "Превью",
+  "Placemaker.UI.SitePlan.Title": "Вид сверху",
+  "Placemaker.UI.SitePlan.Expand": "Показать вид сверху крупно",
+  "Placemaker.UI.SitePlan.Close": "Закрыть крупный вид"
 }

@@ -378,5 +378,9 @@
   "Placemaker.Settings.AreaGap": "Varchi (m)",
   "Placemaker.Settings.AreaGap.Desc": "Le aperture più strette di così contano come chiuse per il Secchiello e per Un isolato di Dipingi area, e i punti più stretti vengono omessi. 0 = disattivato.",
   "Placemaker.Settings.AreaReach": "Portata secchiello (m)",
-  "Placemaker.Settings.AreaReach.Desc": "Fin dove si espande il Secchiello da dove clicchi. Su terreno aperto riempie un cerchio di questa dimensione."
+  "Placemaker.Settings.AreaReach.Desc": "Fin dove si espande il Secchiello da dove clicchi. Su terreno aperto riempie un cerchio di questa dimensione.",
+  "Placemaker.Settings.SketchStyle": "Stile dello schizzo",
+  "Placemaker.Settings.SketchStyle.SitePlan": "Planimetria",
+  "Placemaker.Settings.SketchStyle.Classic": "Classico",
+  "Placemaker.Settings.SketchStyle.Desc": "La planimetria disegna dall'alto ciò che verrà costruito: strade, sentieri, prato, alberi, posti auto e ogni oggetto, a grandi linee. Classico disegna colori per ruolo e linee tratteggiate."
 }

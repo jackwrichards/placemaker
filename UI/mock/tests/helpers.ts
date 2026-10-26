@@ -122,9 +122,9 @@ export async function noTextOverflow(page: Page, where: string) {
                     out.push(`spills: "${text}" out of ${String(a.className).split(" ")[0] || a.tagName}`);
                     break;
                 }
-                // the panel and the picker flyout beside it are the outermost boxes
+                // the panel and the windows beside it (picker, legend, top view) are the outermost boxes
                 const id = a.getAttribute("data-testid");
-                if (id === "placemaker-panel" || id === "picker-flyout" || id === "legend-window") break;
+                if (id === "placemaker-panel" || id === "picker-flyout" || id === "legend-window" || id === "siteplan-window" || id === "siteplan-flyout") break;
             }
         }
         return out;

@@ -378,5 +378,9 @@
   "Placemaker.Settings.AreaGap": "Зазоры (m)",
   "Placemaker.Settings.AreaGap.Desc": "Проемы уже этого значения считаются закрытыми для «Заливки» и режима «Один квартал» кисти, а места уже него пропускаются. 0 = выкл.",
   "Placemaker.Settings.AreaReach": "Охват заливки (m)",
-  "Placemaker.Settings.AreaReach.Desc": "Как далеко распространяется заливка от точки щелчка. На открытой местности она заливает круг такого размера."
+  "Placemaker.Settings.AreaReach.Desc": "Как далеко распространяется заливка от точки щелчка. На открытой местности она заливает круг такого размера.",
+  "Placemaker.Settings.SketchStyle": "Стиль эскиза",
+  "Placemaker.Settings.SketchStyle.SitePlan": "Генплан",
+  "Placemaker.Settings.SketchStyle.Classic": "Классический",
+  "Placemaker.Settings.SketchStyle.Desc": "Генплан рисует сверху то, что будет построено: дороги, дорожки, газон, деревья, парковочные места и каждый объект в общих чертах. Классический рисует цвета ролей и пунктирные линии."
 }

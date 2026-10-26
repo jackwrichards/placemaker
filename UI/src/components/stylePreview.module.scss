@@ -70,3 +70,45 @@
     font-size: 10rem;
     line-height: 20rem;
 }
+
+// top right: folds the photo away to one line
+.fold {
+    @include row;
+    position: absolute;
+    right: 6rem;
+    top: 6rem;
+    width: 22rem;
+    height: 22rem;
+    justify-content: center;
+    align-items: center;
+    border-radius: $radius;
+    background-color: rgba(11, 18, 26, 0.72);
+    cursor: pointer;
+    transition-property: background-color;
+    transition-duration: $t-fast;
+    &:hover {
+        background-color: $c-surface-hover;
+    }
+}
+
+// folded: one slim line that opens it again
+.folded {
+    @include row;
+    align-items: center;
+    height: 22rem;
+    padding: 0 8rem;
+    margin-bottom: 6rem;
+    border-radius: $radius-l;
+    background-color: #1a2229;
+    @include border(1rem, $c-line);
+    cursor: pointer;
+    &:hover {
+        background-color: $c-surface-hover;
+    }
+}
+
+.foldedLabel {
+    flex: 1 1 auto;
+    color: $c-text-dim;
+    font-size: 11rem;
+}

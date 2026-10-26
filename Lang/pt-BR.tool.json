@@ -378,5 +378,9 @@
   "Placemaker.Settings.AreaGap": "Vãos (m)",
   "Placemaker.Settings.AreaGap.Desc": "Aberturas mais estreitas que isto contam como fechadas para o Balde de tinta e para Uma quadra do Pintar área, e lugares mais estreitos que isto ficam de fora. 0 = desligado.",
   "Placemaker.Settings.AreaReach": "Alcance do balde (m)",
-  "Placemaker.Settings.AreaReach.Desc": "Até onde o Balde de tinta se espalha a partir de onde você clica. Em terreno aberto, preenche um círculo deste tamanho."
+  "Placemaker.Settings.AreaReach.Desc": "Até onde o Balde de tinta se espalha a partir de onde você clica. Em terreno aberto, preenche um círculo deste tamanho.",
+  "Placemaker.Settings.SketchStyle": "Estilo do esboço",
+  "Placemaker.Settings.SketchStyle.SitePlan": "Planta do local",
+  "Placemaker.Settings.SketchStyle.Classic": "Clássico",
+  "Placemaker.Settings.SketchStyle.Desc": "A planta do local desenha de cima o que será construído: ruas, caminhos, gramado, árvores, vagas e cada objeto, de forma aproximada. Clássico desenha cores por função e linhas tracejadas."
 }

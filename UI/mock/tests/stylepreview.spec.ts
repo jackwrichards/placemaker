@@ -4,7 +4,10 @@ import { drawPolygon, FIELD, open, panelShot, pickType, waitPlanned } from "./he
 
 test("style preview: photo on top, views switch and stay", async ({ page }) => {
     const errors = await open(page, { real: true });
-    await page.evaluate(() => localStorage.removeItem("placemaker.previewView.v2"));
+    await page.evaluate(() => {
+        localStorage.removeItem("placemaker.previewView.v2");
+        localStorage.removeItem("placemaker.previewOpen.v1");
+    });
     await drawPolygon(page, FIELD);
     await page.getByTestId("primary").click();
     await pickType(page, "park");
@@ -23,5 +26,14 @@ test("style preview: photo on top, views switch and stay", async ({ page }) => {
     await waitPlanned(page);
     await page.evaluate(() => (window as any).pm.trigger("Placemaker", "selectPreset", "adventurePlayground", "adventure"));
     await expect(page.getByTestId("style-preview")).toHaveAttribute("data-view", "close", { timeout: 10000 });
+    // folded to one line, and it stays folded for the next style; opens again
+    await page.getByTestId("style-preview-fold").click();
+    await expect(page.getByTestId("style-preview")).toHaveAttribute("data-open", "0");
+    await panelShot(page, "style-preview-folded");
+    await page.evaluate(() => (window as any).pm.trigger("Placemaker", "selectPreset", "adventurePlayground", "jungle"));
+    await expect(page.getByTestId("style-preview")).toHaveAttribute("data-open", "0");
+    await page.getByTestId("style-preview").click();
+    await expect(page.getByTestId("style-preview")).toHaveAttribute("data-open", "1");
+    await panelShot(page, "style-preview-reopened");
     expect(errors).toEqual([]);
 });

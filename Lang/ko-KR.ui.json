@@ -321,14 +321,12 @@
   "Placemaker.UI.Review.ClickShow": "클릭: 지도에 표시",
   "Placemaker.UI.Review.Cost": "비용",
   "Placemaker.UI.Review.CostHead": "비용",
-  "Placemaker.UI.Review.CostSub": "건설비와 운영비",
   "Placemaker.UI.Review.Fewer": "접기",
   "Placemaker.UI.Review.Issue": "문제",
   "Placemaker.UI.Review.PaintOnly": "건설물을 지워도 지면 칠은 남습니다.",
   "Placemaker.UI.Review.Planning": "계획 중…",
   "Placemaker.UI.Review.PlusN": "+{0}개 더",
   "Placemaker.UI.Review.StatsHead": "얻는 것",
-  "Placemaker.UI.Review.StatsSub": "지어질 것",
   "Placemaker.UI.Review.Upkeep": "유지비",
   "Placemaker.UI.Rules.AllStops": "전부",
   "Placemaker.UI.Rules.AllStopsTip": "여기의 모든 것에서 멈출 때 켜집니다. 클릭하면 모두 켜고, 모두 켜져 있으면 모두 끕니다.",
@@ -436,5 +434,12 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "켜면: 이 구역의 건물이 옆의 확장 유형으로 부지를 넘어 확장됩니다. 끄면: 게임이 만든 그대로 둡니다.",
   "Placemaker.UI.ZoneMix.Remove": "이 구역 제거",
   "Placemaker.UI.ZoneMix.RoadTip3": "허용 도로 폭: 이 구역이 늘어설 수 있는 도로를 폭으로 정합니다(2차로 16 m, 4차로 24 m, 6차로 32 m). 부지는 이 범위의 도로를 따라서만 놓입니다.",
-  "Placemaker.UI.Zoning": "구역 설정"
+  "Placemaker.UI.Zoning": "구역 설정",
+  "Placemaker.UI.Preview.Close": "근접",
+  "Placemaker.UI.Preview.Iso": "사선",
+  "Placemaker.UI.Preview.Top": "위",
+  "Placemaker.UI.Preview.Note": "미리보기",
+  "Placemaker.UI.SitePlan.Title": "평면도",
+  "Placemaker.UI.SitePlan.Expand": "평면도 크게 보기",
+  "Placemaker.UI.SitePlan.Close": "큰 보기 닫기"
 }
