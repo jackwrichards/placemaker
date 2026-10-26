@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- A new version of the mod's files on Paradox Mods that leaves the page as it is (Program.cs). Built and run by
+       tools/publish/Publish.ps1 -Command NewVersion. It uses the game's own uploader library (the ModPublisher folder). -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <ModPublisherDir Condition="'$(CSII_MODPUBLISHERPATH)' != ''">$([System.IO.Path]::GetDirectoryName($(CSII_MODPUBLISHERPATH)))</ModPublisherDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="PDX.SDK"><HintPath>$(ModPublisherDir)\PDX.SDK.dll</HintPath></Reference>
+    <Reference Include="PDX.SDK.Contracts"><HintPath>$(ModPublisherDir)\PDX.SDK.Contracts.dll</HintPath></Reference>
+    <Reference Include="PDX.SDK.Network"><HintPath>$(ModPublisherDir)\PDX.SDK.Network.dll</HintPath></Reference>
+    <Reference Include="External"><HintPath>$(ModPublisherDir)\External.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

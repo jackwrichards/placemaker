@@ -12,11 +12,15 @@
 
     -Command Publish     the first upload; ModId must be empty. The new id is written back into the config.
     -Command NewVersion  a new version of the mod's files; needs ModId, a new ModVersion and a ChangeLog. Sends only those:
-                         the page (thumbnail, screenshots, descriptions, links) stays as it is on the website.
+                         the page (thumbnail, screenshots, descriptions, links) stays as it is on the website. Not the
+                         game's uploader (it writes every page field from this config, and its own placeholder
+                         thumbnail when none is named): tools/publish/NewVersion, which starts from the live page and
+                         changes only the files, version and changelog, then reads the page back.
     -Command Update      the page only (text, pictures, links, AccessLevel); the files stay as they are. REFUSED unless
                          -OverwritePage: the page is the user's, kept up on the website (forum link, pictures, text);
                          this config's copy of it is old and would replace all of it.
-    -StageOnly           build and stage, print what would go up, upload nothing.
+    -StageOnly           build and stage, print what would go up, upload nothing (NewVersion: also reads the live page
+                         and prints what would be sent back).
 #>
 param(
     [ValidateSet('Publish', 'NewVersion', 'Update')][string]$Command = 'Publish',
@@ -70,7 +74,7 @@ if ($Command -ne 'Update') {
     Get-ChildItem -LiteralPath $content -Force | ForEach-Object { Write-Host "  $($_.Name)" }
 }
 Write-Host "page: $($p.DisplayName.Value) $($p.ModVersion.Value), $access, $($pictures.Count) pictures, command $Command"
-if ($StageOnly) { Write-Host 'stage only: nothing uploaded'; exit 0 }
+if ($StageOnly -and $Command -ne 'NewVersion') { Write-Host 'stage only: nothing uploaded'; exit 0 }
 
 # --- the upload ---
 # The uploader and the game share one saved Paradox login (.pdxsdk): an upload while a game runs (the user's or the
@@ -79,18 +83,27 @@ if (Get-Process Cities2 -ErrorAction SilentlyContinue) { Write-Host 'STOP: a gam
 $publisher = $env:CSII_MODPUBLISHERPATH
 if (-not $publisher) { $publisher = [Environment]::GetEnvironmentVariable('CSII_MODPUBLISHERPATH', 'User') }
 if (-not $publisher -or -not (Test-Path -LiteralPath $publisher)) { Write-Host "STOP: ModPublisher not found (CSII_MODPUBLISHERPATH = '$publisher')"; exit 1 }
-# NewVersion sends the files and the changelog only: the page (thumbnail, screenshots, descriptions, links) stays as the
-# user made it on the website. A full config replaced the user's own thumbnail and pictures with the project's (0.3.0,
-# 26 Oct). The page itself is changed only with -Command Update, on purpose.
-$send = $config
+# NewVersion: the files, version and changelog only, the page left as the user made it on the website. The game's
+# uploader cannot do that (it writes every page field from this config; the 0.3.0 upload, 26 Oct, wiped the user's
+# thumbnail, pictures and forum link): tools/publish/NewVersion starts from the live page instead.
 if ($Command -eq 'NewVersion') {
-    [xml]$nv = Get-Content -Raw -Encoding utf8 -LiteralPath $config
-    $keep = @('ModId', 'ModVersion', 'GameVersion', 'ChangeLog')
-    foreach ($node in @($nv.Publish.ChildNodes)) { if ($node.NodeType -eq 'Element' -and $keep -notcontains $node.Name) { [void]$nv.Publish.RemoveChild($node) } }
-    $send = Join-Path $root 'bin\Publish\newversion-config.xml'
-    $nv.Save($send)
-    Write-Host "NewVersion: files and changelog only (page left as it is): $send"
+    $tool = Join-Path $root 'bin\Publish\newversion-tool'
+    $env:CSII_MODPUBLISHERPATH = $publisher
+    & dotnet build (Join-Path $root 'tools\publish\NewVersion\NewVersion.csproj') -c Release -o $tool -nologo -v:minimal
+    if ($LASTEXITCODE -ne 0) { Write-Host 'STOP: the NewVersion tool did not build'; exit 1 }
+    $changes = Join-Path $root 'bin\Publish\changelog.txt'
+    [IO.File]::WriteAllText($changes, "$($p.ChangeLog.Value)$($p.ChangeLog.InnerText)".Trim(), (New-Object Text.UTF8Encoding $false))
+    $toolArgs = @($modId, "$($p.ModVersion.Value)", $changes, $content)
+    if ($StageOnly) { $toolArgs += '--dry-run' }
+    $out = & dotnet (Join-Path $tool 'NewVersion.dll') @toolArgs 2>&1 | ForEach-Object { "$_" }
+    $code = $LASTEXITCODE
+    $out | ForEach-Object { Write-Host $_ }
+    $log = Join-Path $root "bin\Publish\publish-$(Get-Date -Format yyyyMMdd-HHmmss).log"
+    $out | Set-Content -Encoding utf8 -LiteralPath $log
+    Write-Host "NewVersion exit code $code; its output is in $log"
+    exit $code
 }
+$send = $config
 Push-Location $root   # the config's picture paths are relative to the project folder
 try {
     $out = & $publisher $Command $send -c $content -v 2>&1 | ForEach-Object { "$_" }
