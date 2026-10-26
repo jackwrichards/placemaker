@@ -125,6 +125,19 @@ namespace Placemaker.Game.Overlay
             {
                 layer.Signature = signature;
                 BuildMesh(layer, rings);
+                if (layer.Mesh != null && layer.Mesh.vertexCount > 0)
+                {
+                    // a lit surface needs normals and uvs (the overlay mesh has neither)
+                    var up = new Vector3[layer.Mesh.vertexCount];
+                    var uv = new Vector2[up.Length];
+                    var tan = new Vector4[up.Length];
+                    var vs = layer.Mesh.vertices;
+                    for (int i = 0; i < up.Length; i++) { up[i] = Vector3.up; uv[i] = new Vector2(vs[i].x * 0.1f, vs[i].z * 0.1f); tan[i] = new Vector4(1, 0, 0, 1); }
+                    layer.Mesh.normals = up;
+                    layer.Mesh.uv = uv;
+                    layer.Mesh.tangents = tan;
+                    if (!_solidLogged) { _solidLogged = true; Mod.Log.Info("Placemaker: solid ground layer " + key + ": " + up.Length + " vertices, bounds " + layer.Mesh.bounds); }
+                }
             }
             if (layer.Props == null || !layer.Color.Equals(color))
             {
@@ -136,6 +149,7 @@ namespace Placemaker.Game.Overlay
         }
 
         private Material _solid;
+        private bool _solidLogged;
         private int _solidAttempts;
 
         private bool EnsureSolid()
