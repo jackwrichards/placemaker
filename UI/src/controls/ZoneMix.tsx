@@ -374,22 +374,40 @@ const ShareBar = ({ parts, onCommit, t }: { parts: Part[]; onCommit: (shares: Re
     );
 };
 
+/** A caption's words for a wrapping row: [underlined] parts kept whole, other text a word at a time (Chinese and Japanese a
+ * character at a time, they have no spaces); gap: a space followed it. */
+export const captionWords = (text: string) => {
+    const out: { text: string; under: boolean; gap: boolean }[] = [];
+    const piece = /\[([^\]]+)\]|([　-ヿ㐀-鿿＀-￯])|([^\s[　-ヿ㐀-鿿＀-￯]+)|(\s+)/g;
+    for (let m = piece.exec(text); m; m = piece.exec(text)) {
+        if (m[4]) {
+            if (out.length) out[out.length - 1].gap = true;
+        } else out.push({ text: m[1] ?? m[2] ?? m[3], under: !!m[1], gap: false });
+    }
+    return out;
+};
+
 /**
- * The Zoning types' two warnings, on the Design page between the Style row and the style card (the user, 26 Oct: players
- * take the Zoning tool for Outgrow): one quiet caption, a warning icon on its first line, then: it places the game's own
- * zoning; Outgrow is a separate feature.
+ * The Zoning types' warning, on the Design page between the Style row and the style card (the user, 26 Oct: players take
+ * the Zoning tool for Outgrow): one orange caption, a warning icon on its first line: it places vanilla zoning, the same
+ * as zoning by hand; Outgrow is a separate feature ("vanilla zoning" and "Outgrow" underlined, [marked] in the text).
  */
 export const ZoningNotes = () => {
     const { t } = useT();
+    // Gameface lays out every element as a box, so an underlined word cannot sit inside running text: the caption is a
+    // wrapping row of words
+    const words = captionWords(t("Placemaker.UI.ZoningCaption", "Places [vanilla zoning], same as zoning by hand. [Outgrow] is a separate feature."));
     return (
         <div className={z.warn} data-testid="zoning-note">
             <div className={z.warnIcon}>
-                <Icon name="warning" size={11} tint="warn" />
+                <Icon name="warning" size={13} tint="warn" />
             </div>
-            {/* one text, the two sentences back to back: Gameface lays out every element as a box, so two coloured pieces
-                cannot run on as one paragraph */}
             <div className={z.warnText}>
-                {[t("Placemaker.UI.ZoningNote", "This places vanilla zoning, the same as zoning by hand."), t("Placemaker.UI.ZoningNoteOutgrow", "Outgrow is a separate feature.")].reduce((a, b) => (/[。．！]$/.test(a) ? a + b : a + " " + b))}
+                {words.map((w, i) => (
+                    <div key={i} className={classNames(z.warnWord, { [z.warnUnder]: w.under, [z.warnGap]: w.gap })}>
+                        {w.text}
+                    </div>
+                ))}
             </div>
         </div>
     );

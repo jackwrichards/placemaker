@@ -9,8 +9,8 @@ $text: rgba(234, 242, 246, 0.95);   // buttons in the game UI do not inherit the
     min-width: 0;
 }
 
-// the Zoning types' two warnings (ZoningNotes) on the Design page, under the Style row and above the style card: one quiet
-// caption in the warning colour, no box; the warning icon sits on its first line
+// the Zoning types' warning (ZoningNotes) on the Design page, under the Style row and above the style card: one orange
+// caption, no box, a row of words that wraps (Gameface has no inline text); the warning icon sits on its first line
 .warn {
     @include row(flex-start);
     min-width: 0;
@@ -19,16 +19,36 @@ $text: rgba(234, 242, 246, 0.95);   // buttons in the game UI do not inherit the
 
 .warnIcon {
     flex: 0 0 auto;
-    margin-top: 2.5rem;   // the icon's middle on the first line's (16rem line, 11rem icon)
+    margin-top: 1rem;   // the icon's middle on the first line's (15rem line, 13rem icon)
 }
 
 .warnText {
+    @include row(flex-start);
+    flex-wrap: wrap;
     flex: 1 1 auto;
     min-width: 0;
     margin-left: 6rem;
-    font-size: $fs-s;
-    line-height: 16rem;
+}
+
+.warnWord {
+    flex: 0 1 auto;
+    min-width: 0;
+    font-size: 11rem;
+    line-height: 15rem;
     color: $c-warning;
+}
+
+.warnGap {
+    margin-right: 3rem;   // the space after a word
+}
+
+// the underline: the word's own bottom border, its line box trimmed so the border sits under the letters and the text stays
+// level with its neighbours (1.5 + 12 + 1 = 14.5rem, the text's middle at 7.5rem as theirs; the row aligns tops). A
+// separate 1rem line was not always drawn by Gameface (under a pixel); a border is.
+.warnUnder {
+    padding-top: 1.5rem;
+    line-height: 12rem;
+    border-bottom: 1rem solid rgba(255, 181, 71, 0.85);
 }
 
 // ── the land as a bar ──

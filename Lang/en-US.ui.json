@@ -449,6 +449,5 @@
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "On: this zone's buildings outgrow their lots with the outgrow type beside it. Off: they stay as the game makes them.",
   "Placemaker.UI.ZoneMix.Remove": "Remove this zone",
   "Placemaker.UI.ZoneMix.RoadTip3": "Allowed road width: the roads this zone may line, by their width (two lanes 16 m, four lanes 24 m, six lanes 32 m). Its lots are only placed along roads in this range.",
-  "Placemaker.UI.ZoningNote": "This places vanilla zoning, the same as zoning by hand.",
-  "Placemaker.UI.ZoningNoteOutgrow": "Outgrow is a separate feature."
+  "Placemaker.UI.ZoningCaption": "Places [vanilla zoning], same as zoning by hand. [Outgrow] is a separate feature."
 }
