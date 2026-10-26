@@ -1,0 +1,1953 @@
+{
+  "_about": "Style previews, Parks: every visible style built in a small neighbourhood, the city grown, three pictures each (close, 45, top). Made by tools/style-previews/make-scenarios.js; collect with tools/style-previews/collect.js. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/previews-parks.json -Build -Who style-previews",
+  "scenarios": [
+    {
+      "id": "prv-park-natural",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "natural"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-park-garden",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "garden"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-park-urban",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "urban"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-park-picnic",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "picnic"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-botanicalGarden-flowerShow",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "botanicalGarden",
+          "preset": "flowerShow"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-botanicalGarden-shrubbery",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "botanicalGarden",
+          "preset": "shrubbery"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-amphitheatre-classic",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "amphitheatre",
+          "preset": "classic"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-amphitheatre-bandstand",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "amphitheatre",
+          "preset": "bandstand"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-adventurePlayground-adventure",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "adventurePlayground",
+          "preset": "adventure"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-adventurePlayground-toddler",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "adventurePlayground",
+          "preset": "toddler"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-adventurePlayground-nature",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "adventurePlayground",
+          "preset": "nature"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-adventurePlayground-jungle",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "adventurePlayground",
+          "preset": "jungle"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-memorialPark-garden",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "memorialPark",
+          "preset": "garden"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-memorialPark-war",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "memorialPark",
+          "preset": "war"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-memorialPark-reflection",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "memorialPark",
+          "preset": "reflection"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-memorialPark-sculpture",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "memorialPark",
+          "preset": "sculpture"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-zenGarden-karesansui",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "zenGarden",
+          "preset": "karesansui"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-zenGarden-stroll",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "zenGarden",
+          "preset": "stroll"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-zenGarden-tea",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "zenGarden",
+          "preset": "tea"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            -110.5,
+            120,
+            -86.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -120,
+            86.5,
+            120,
+            110.5
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            -115.5,
+            -72,
+            -91.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        },
+        {
+          "do": "lab",
+          "op": "zoneRect",
+          "rect": [
+            91.5,
+            -72,
+            115.5,
+            72
+          ],
+          "zone": "EU Residential Low"
+        }
+      ]
+    },
+    {
+      "id": "prv-grow-parks",
+      "on": "prv-zenGarden-tea",
+      "steps": [
+        {
+          "do": "grow",
+          "seconds": 90
+        }
+      ]
+    },
+    {
+      "id": "prv-park-natural-shots",
+      "on": "prv-park-natural",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-park-garden-shots",
+      "on": "prv-park-garden",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-park-urban-shots",
+      "on": "prv-park-urban",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-park-picnic-shots",
+      "on": "prv-park-picnic",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-botanicalGarden-flowerShow-shots",
+      "on": "prv-botanicalGarden-flowerShow",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-botanicalGarden-shrubbery-shots",
+      "on": "prv-botanicalGarden-shrubbery",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-amphitheatre-classic-shots",
+      "on": "prv-amphitheatre-classic",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-amphitheatre-bandstand-shots",
+      "on": "prv-amphitheatre-bandstand",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-adventurePlayground-adventure-shots",
+      "on": "prv-adventurePlayground-adventure",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-adventurePlayground-toddler-shots",
+      "on": "prv-adventurePlayground-toddler",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-adventurePlayground-nature-shots",
+      "on": "prv-adventurePlayground-nature",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-adventurePlayground-jungle-shots",
+      "on": "prv-adventurePlayground-jungle",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-memorialPark-garden-shots",
+      "on": "prv-memorialPark-garden",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-memorialPark-war-shots",
+      "on": "prv-memorialPark-war",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-memorialPark-reflection-shots",
+      "on": "prv-memorialPark-reflection",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-memorialPark-sculpture-shots",
+      "on": "prv-memorialPark-sculpture",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-zenGarden-karesansui-shots",
+      "on": "prv-zenGarden-karesansui",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-zenGarden-stroll-shots",
+      "on": "prv-zenGarden-stroll",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-zenGarden-tea-shots",
+      "on": "prv-zenGarden-tea",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}
