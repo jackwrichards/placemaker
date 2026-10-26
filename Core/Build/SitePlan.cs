@@ -193,6 +193,7 @@ namespace Placemaker.Core.Build
                 if (l.Count < 400) l.Add(p);
             }
             var aisles = new List<float2[]>();
+            var bayRects = new List<float2[]>();
             int bays = 0;
             bool grass = false, paved = false, water = false;
             foreach (var l in plan.Layers)
@@ -240,7 +241,7 @@ namespace Placemaker.Core.Build
                         case ObjectRole.ParkingBay:
                             bays++;
                             Anchor(Parking, p);
-                            foreach (var seg in BayLines(Footprint(o, assets), aisles)) if (sp.Stalls.Count < MaxStalls * 4) sp.Stalls.Add(seg);
+                            bayRects.Add(Footprint(o, assets));
                             continue;
                         case ObjectRole.Charger: sp.Chargers.Add(p); continue;
                         case ObjectRole.CulDeSacCap: case ObjectRole.RoundaboutIsland:
@@ -265,15 +266,12 @@ namespace Placemaker.Core.Build
                     else if (o.Role != ObjectRole.FencePiece) { sp.Bins.Add(p); Anchor(Furniture, p); }
                 }
             }
-            // Stalls were measured against the aisles found so far: redo them now that every aisle is known.
-            if (aisles.Count > 0 && bays > 0)
+            // Stalls once every aisle is known (an aisle grid: a 3,573-space lot asked every aisle for every space)
+            if (bayRects.Count > 0)
             {
-                sp.Stalls.Clear();
-                foreach (var l in plan.Layers)
-                    if (l != null)
-                        foreach (var o in l.Objects)
-                            if (o != null && o.Role == ObjectRole.ParkingBay && sp.Stalls.Count < MaxStalls * 4)
-                                foreach (var seg in BayLines(Footprint(o, assets), aisles)) sp.Stalls.Add(seg);
+                var grid = new AisleGrid(aisles);
+                foreach (var r in bayRects)
+                    foreach (var seg in BayLines(r, grid)) sp.Stalls.Add(seg);
             }
 
             // Shop plots: the zone cells the build zones (else the planned quads).
@@ -463,31 +461,65 @@ namespace Placemaker.Core.Build
         /// A stall as painted: the two long sides (the separators shared with the neighbours) and the back line; the side to the
         /// nearest aisle stays open. No aisle known: both short sides are left out.
         /// </summary>
-        public static IEnumerable<(float2 a, float2 b)> BayLines(float2[] p, List<float2[]> aisles)
+        public static IEnumerable<(float2 a, float2 b)> BayLines(float2[] p, List<float2[]> aisles) => BayLines(p, new AisleGrid(aisles));
+
+        public static IEnumerable<(float2 a, float2 b)> BayLines(float2[] p, AisleGrid aisles)
         {
             if (p == null || p.Length != 4) yield break;
             bool long01 = math.distance(p[0], p[1]) >= math.distance(p[1], p[2]);
             if (long01) { yield return (p[0], p[1]); yield return (p[3], p[2]); }
             else { yield return (p[1], p[2]); yield return (p[0], p[3]); }
-            if (aisles == null || aisles.Count == 0) yield break;
+            if (aisles == null || aisles.Empty) yield break;
             var s0 = long01 ? (p[1], p[2]) : (p[0], p[1]);
             var s1 = long01 ? (p[3], p[0]) : (p[2], p[3]);
-            float d0 = Nearest((s0.Item1 + s0.Item2) * 0.5f, aisles), d1 = Nearest((s1.Item1 + s1.Item2) * 0.5f, aisles);
+            float d0 = aisles.Nearest((s0.Item1 + s0.Item2) * 0.5f), d1 = aisles.Nearest((s1.Item1 + s1.Item2) * 0.5f);
             yield return d0 > d1 ? s0 : s1;
         }
 
-        private static float Nearest(float2 m, List<float2[]> aisles)
+        /// <summary>Aisle segments bucketed in 16 m cells: the nearest aisle to a stall end looks at its own and the next cells only.</summary>
+        public sealed class AisleGrid
         {
-            float best = float.MaxValue;
-            foreach (var a in aisles)
-                for (int i = 1; i < a.Length; i++)
-                {
-                    float2 d = a[i] - a[i - 1];
-                    float l = math.lengthsq(d);
-                    float t = l < 1e-9f ? 0f : math.saturate(math.dot(m - a[i - 1], d) / l);
-                    best = math.min(best, math.distance(m, a[i - 1] + d * t));
-                }
-            return best;
+            private const float Cell = 16f;
+            private readonly Dictionary<long, List<(float2 a, float2 b)>> _cells = new Dictionary<long, List<(float2, float2)>>();
+            public bool Empty => _cells.Count == 0;
+            private static long Key(int x, int z) => ((long)x << 32) ^ (uint)z;
+
+            public AisleGrid(List<float2[]> aisles)
+            {
+                if (aisles == null) return;
+                foreach (var a in aisles)
+                    for (int i = 1; i < a.Length; i++)
+                    {
+                        float2 lo = math.min(a[i - 1], a[i]), hi = math.max(a[i - 1], a[i]);
+                        int2 c0 = (int2)math.floor(lo / Cell), c1 = (int2)math.floor(hi / Cell);
+                        for (int x = c0.x; x <= c1.x; x++)
+                            for (int z = c0.y; z <= c1.y; z++)
+                            {
+                                if (!_cells.TryGetValue(Key(x, z), out var l)) _cells[Key(x, z)] = l = new List<(float2, float2)>();
+                                l.Add((a[i - 1], a[i]));
+                            }
+                    }
+            }
+
+            /// <summary>Distance to the nearest aisle within about 32 m (farther counts as far).</summary>
+            public float Nearest(float2 m)
+            {
+                float best = 1e6f;
+                int2 c = (int2)math.floor(m / Cell);
+                for (int x = c.x - 1; x <= c.x + 1; x++)
+                    for (int z = c.y - 1; z <= c.y + 1; z++)
+                    {
+                        if (!_cells.TryGetValue(Key(x, z), out var l)) continue;
+                        foreach (var (a, b) in l)
+                        {
+                            float2 d = b - a;
+                            float len = math.lengthsq(d);
+                            float t = len < 1e-9f ? 0f : math.saturate(math.dot(m - a, d) / len);
+                            best = math.min(best, math.distance(m, a + d * t));
+                        }
+                    }
+                return best;
+            }
         }
 
         // ───────────── the panel picture (binding "sitePlan") ─────────────

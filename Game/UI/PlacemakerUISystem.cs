@@ -274,10 +274,13 @@ namespace Placemaker.Game.UI
             if (stamp == _sitePlanStamp) return;
             _sitePlanStamp = stamp;
             if (sp == null || sp.Outline.Length < 3) { _sitePlan.Update("null"); return; }
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             var json = sp.ToUi(_tool.SitePlanVersion.ToString());
             json.Set("style", classic ? "classic" : "siteplan");
             if (_tool.PlanStale) json.Set("stale", true);
-            _sitePlan.Update(json.ToString());
+            string text = json.ToString();
+            _sitePlan.Update(text);
+            if (sw.ElapsedMilliseconds > 20) Mod.Log.Info($"Placemaker site plan: panel picture sent in {sw.ElapsedMilliseconds} ms ({text.Length / 1024} KB)");
         }
 
         private void PushSummary()

@@ -208,11 +208,15 @@ namespace Placemaker.Game.Overlay
         {
             var sp = _tool.SitePlan;
             if (sp == null) return;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            bool rebuilt = false;
             if (_spVersion != _tool.SitePlanVersion)
             {
                 _spVersion = _tool.SitePlanVersion;
                 BuildSitePlan3D(sp);
+                rebuilt = true;
             }
+            long buildMs = sw.ElapsedMilliseconds;
             bool underGhost = objects == SketchObjects.Hidden;
             float objAlpha = objects == SketchObjects.Dimmed ? alpha * 0.3f : underGhost ? 0f : alpha;
             var P = OverlayRenderSystem.StyleFlags.Projected;
@@ -228,6 +232,12 @@ namespace Placemaker.Game.Overlay
                 float pulse = SpPulse(s.Row);
                 if (pulse > 0f) { c = math.lerp(c, hi, pulse * 0.85f); a = math.max(a, 0.9f * pulse); }
                 _fill.SetLayer(key, s.Rings, new Color(c.x, c.y, c.z, on ? math.min(1f, a) : 0f), s.Priority, s.Sig);
+            }
+            if (rebuilt && sw.ElapsedMilliseconds > 20)
+            {
+                int rings = 0;
+                foreach (var (_, s) in _spShapes) rings += s.Rings.Count;
+                Mod.Log.Info($"Placemaker site plan: map layers built in {sw.ElapsedMilliseconds} ms (geometry {buildMs} ms, meshes {sw.ElapsedMilliseconds - buildMs} ms; {_spShapes.Count} layers, {rings} shapes)");
             }
 
             // 2. roads, aisles and paths: their real width, round ends so joins merge (flat under the see-through ghost)

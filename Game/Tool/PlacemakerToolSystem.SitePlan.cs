@@ -40,6 +40,7 @@ namespace Placemaker.Game.Tool
                 if (_recipe != null)
                     foreach (var kv in RecipePaths.Walk(_recipe))
                         foreach (var m in kv.Value.Markers) entrances.Add(m.Position.xz);
+                var sw = System.Diagnostics.Stopwatch.StartNew();
                 try
                 {
                     _sitePlan = SitePlan.Compute(new SitePlan.Input { Plan = plan, Outline = Poly.To2D(_shape.Ring), Assets = info, Entrances = entrances });
@@ -49,6 +50,7 @@ namespace Placemaker.Game.Tool
                     Mod.Log.Warn("Placemaker: site plan failed (" + e.Message + ")");
                     _sitePlan = new SitePlan();
                 }
+                if (sw.ElapsedMilliseconds > 20) Mod.Log.Info($"Placemaker site plan: computed in {sw.ElapsedMilliseconds} ms ({_sitePlan.Stalls.Count} stall lines, {_sitePlan.TreeCrowns.Count} crowns, {_sitePlan.Bushes.Count} bushes)");
                 _sitePlanVersion++;
                 return _sitePlan;
             }
