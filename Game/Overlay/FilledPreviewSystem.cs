@@ -258,12 +258,13 @@ namespace Placemaker.Game.Overlay
         /// <summary>The ground under the triangle is its own plane within 8 cm (edge middles and centre against the corners).</summary>
         private static bool FlatUnder(float2 p, float2 q, float2 r, ref TerrainHeightData heights)
         {
-            float H(float2 v) => TerrainUtils.SampleHeight(ref heights, new float3(v.x, 0f, v.y));
-            float hp = H(p), hq = H(q), hr = H(r);
+            float hp = H(p, ref heights), hq = H(q, ref heights), hr = H(r, ref heights);
             const float tol = 0.08f;
-            return math.abs(H((p + q) * 0.5f) - (hp + hq) * 0.5f) < tol && math.abs(H((q + r) * 0.5f) - (hq + hr) * 0.5f) < tol
-                && math.abs(H((r + p) * 0.5f) - (hr + hp) * 0.5f) < tol && math.abs(H((p + q + r) / 3f) - (hp + hq + hr) / 3f) < tol;
+            return math.abs(H((p + q) * 0.5f, ref heights) - (hp + hq) * 0.5f) < tol && math.abs(H((q + r) * 0.5f, ref heights) - (hq + hr) * 0.5f) < tol
+                && math.abs(H((r + p) * 0.5f, ref heights) - (hr + hp) * 0.5f) < tol && math.abs(H((p + q + r) / 3f, ref heights) - (hp + hq + hr) / 3f) < tol;
         }
+
+        private static float H(float2 v, ref TerrainHeightData heights) => TerrainUtils.SampleHeight(ref heights, new float3(v.x, 0f, v.y));
 
         /// <summary>Spans less than two subdivision edges: flat enough to follow the ground with its corners only.</summary>
         private static bool Small(float3[] ring)
