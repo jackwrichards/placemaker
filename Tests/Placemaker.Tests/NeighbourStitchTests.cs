@@ -1022,6 +1022,29 @@ namespace Placemaker.Tests
             return new[] { c - rx - rz, c + rx - rz, c + rx + rz, c - rx + rz };
         }
 
+        [Theory]
+        [InlineData(PolishLooks.ParkEveryday)]
+        [InlineData(PolishLooks.ParkClean)]
+        [InlineData(PolishLooks.ParkIndustrial)]
+        public void Parked_cars_each_have_their_own_colour_and_a_works_has_a_loose_fleet(int style)
+        {
+            // the user, 26 Oct: a shop's or an office's car park has no colour theme; a works' a loose one
+            var a = new StitchHouse { Id = 1, Position = new float2(0f, 0f), Forward = new float2(0f, 1f), HalfLot = new float2(20f, 16f), MainSurface = "Concrete Surface 01", Zone = "shop" };
+            a.Footprint = new[] { a.ToWorld(new float2(-14f, -14f)), a.ToWorld(new float2(14f, -14f)), a.ToWorld(new float2(14f, 2f)), a.ToWorld(new float2(-14f, 2f)) };
+            a.Options = new Dictionary<string, float>(PolishLooks.Defaults) { ["openReach"] = 60f, ["fill"] = PolishLooks.FillCarPark, ["parkStyle"] = style, ["parkCars"] = 100f, ["parkReach"] = 60f };
+            var plan = YardStitch.Plan(new[] { a }, MiddleLine());
+            var cars = plan.Bushes.Where(b => b.House == 1 && YardStitch.BushKinds[b.Kind].StartsWith("Placemaker Vehicle")).ToList();
+            Assert.True(cars.Count >= 30, $"{cars.Count} cars");
+            var looks = cars.Select(c => plan.Looks.TryGetValue((1L, StitchPlan.LookSpot(c.Position)), out var l) ? l : 0).ToList();
+            Assert.All(looks, l => Assert.InRange(l, 1, 65535));
+            // the biggest group of cars sharing a model and a look
+            int fleet = cars.Zip(looks, (c, l) => (c.Kind, l)).GroupBy(x => x).Max(g => g.Count());
+            if (style == PolishLooks.ParkIndustrial)
+                Assert.InRange(fleet / (float)cars.Count, 0.2f, 0.5f);
+            else
+                Assert.True(fleet <= 2, $"{fleet} of {cars.Count} cars the same model in the same colour");
+        }
+
         [Fact]
         public void A_shops_big_back_lot_gets_green_edges_a_service_corner_an_overflow_car_park_and_green_ground_further_out()
         {

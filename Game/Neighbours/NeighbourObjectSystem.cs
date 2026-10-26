@@ -110,7 +110,7 @@ namespace Placemaker.Game.Neighbours
                     EntityManager.SetComponentData(def, new CreationDefinition
                     {
                         m_Prefab = prefab, m_Owner = r.Owner, m_Flags = CreationFlags.Permanent,
-                        m_RandomSeed = r.Seed != 0 ? r.Seed : (int)math.hash(new float2(math.round(r.Position.x * 4f), math.round(r.Position.y * 4f))),
+                        m_RandomSeed = r.Seed != 0 ? r.Seed : SpotSeed(r.Position),
                     });
                     EntityManager.SetComponentData(def, new ObjectDefinition
                     {
@@ -125,6 +125,15 @@ namespace Placemaker.Game.Neighbours
             }
             catch (Exception e) { Mod.Log.Warn("Placemaker neighbourhood bushes failed: " + e.Message); Queue.Clear(); return; }
             Queue.RemoveRange(0, Math.Min(Queue.Count, MaxPerFrame));
+        }
+
+        /// <summary>A piece's look by where it stands, well mixed: the game keeps 16 bits of it (PseudoRandomSeed), and the hash
+        /// of a rounded float position left those bits nearly the same across a yard (its parked cars one colour, 26 Oct).</summary>
+        private static int SpotSeed(float2 at)
+        {
+            uint h = math.hash((int2)math.round(at * 4f));
+            h ^= h >> 16; h *= 0x85EBCA6Bu; h ^= h >> 13; h *= 0xC2B2AE35u; h ^= h >> 16;
+            return (int)h;
         }
 
         /// <summary>The house already owns this piece: of this kind, at this spot, at this angle (PieceIdentity; after a load our

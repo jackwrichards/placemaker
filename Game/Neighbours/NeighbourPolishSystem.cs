@@ -1160,7 +1160,11 @@ namespace Placemaker.Game.Neighbours
                         NeighbourAreaSystem.Queue.Add(new NeighbourAreaSystem.Request { Name = surface, Ring = ring, Owner = owner });
                 foreach (var (house, at, yaw, kind) in plan.Bushes)
                     if (coreIds.Contains(house) && !skip.Contains(house) && _houseOf.TryGetValue(house, out var owner) && kind >= 0 && kind < YardStitch.BushKinds.Length)
-                        NeighbourObjectSystem.Queue.Add(new NeighbourObjectSystem.Request { Name = YardStitch.BushKinds[kind], Position = at, Yaw = yaw, Owner = owner });
+                        NeighbourObjectSystem.Queue.Add(new NeighbourObjectSystem.Request
+                        {
+                            Name = YardStitch.BushKinds[kind], Position = at, Yaw = yaw, Owner = owner,
+                            Seed = plan.Looks.TryGetValue((house, StitchPlan.LookSpot(at)), out var look) ? look : 0,   // a parked car's colour
+                        });
                 // the fence and hedge pieces closing the gardens
                 foreach (var (house, at, yaw, name) in plan.FencePieces)
                     if (coreIds.Contains(house) && !skip.Contains(house) && _houseOf.TryGetValue(house, out var owner))

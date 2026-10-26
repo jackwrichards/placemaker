@@ -233,7 +233,7 @@ namespace Placemaker.Game.Neighbours
                         if (owner != Entity.Null && EntityManager.Exists(owner) && !EntityManager.HasComponent<Deleted>(owner) && IsYes(owner)) KeepSurface(lawn, owner, PolishPieceKind.Garden);
                     }
             if (_lostPieces.IsEmptyIgnoreFilter) return;
-            List<(Entity Owner, Entity Prefab, float2 At, float Yaw)> objects = null;
+            List<(Entity Owner, Entity Prefab, float2 At, float Yaw, int Seed)> objects = null;
             using (var pieces = _lostPieces.ToEntityArray(Allocator.Temp))
                 foreach (var p in pieces)
                 {
@@ -254,12 +254,14 @@ namespace Placemaker.Game.Neighbours
                     if (!EntityManager.HasComponent<global::Game.Objects.Transform>(p)) continue;
                     TotalLostObjects++;
                     var t = EntityManager.GetComponentData<global::Game.Objects.Transform>(p);
-                    (objects ??= new List<(Entity, Entity, float2, float)>()).Add((owner, EntityManager.GetComponentData<PrefabRef>(p).m_Prefab, t.m_Position.xz, PieceIdentity.YawOf(t.m_Rotation)));
+                    // the look it had (a parked car's colour: a works' fleet shares one), else by its spot
+                    int look = EntityManager.HasComponent<PseudoRandomSeed>(p) ? EntityManager.GetComponentData<PseudoRandomSeed>(p).m_Seed : 0;
+                    (objects ??= new List<(Entity, Entity, float2, float, int)>()).Add((owner, EntityManager.GetComponentData<PrefabRef>(p).m_Prefab, t.m_Position.xz, PieceIdentity.YawOf(t.m_Rotation), look));
                 }
             if (objects == null) return;
             int remade = 0, owners = 0;
             Entity last = Entity.Null;
-            foreach (var (owner, prefab, at, yaw) in objects)
+            foreach (var (owner, prefab, at, yaw, look) in objects)
             {
                 // planned again (another model than it was planned with, already waiting, the polish off): its plan makes what
                 // it wants. A building with the model it was planned with (people or a company moved in or out, the game marked
@@ -282,11 +284,11 @@ namespace Placemaker.Game.Neighbours
                 var name = NameOf(prefab);
                 bool piece = name.IndexOf("Piece", System.StringComparison.OrdinalIgnoreCase) >= 0
                     && (name.IndexOf("Fence", System.StringComparison.OrdinalIgnoreCase) >= 0 || name.IndexOf("Hedge", System.StringComparison.OrdinalIgnoreCase) >= 0);
-                // the look it was made with: a fence or hedge piece one look for the whole garden (FinishPlan), the rest by spot
+                // the look it was made with: a fence or hedge piece one look for the whole garden (FinishPlan), the rest its own
                 NeighbourObjectSystem.Queue.Add(new NeighbourObjectSystem.Request
                 {
                     Name = name, Prefab = prefab, Position = at, Yaw = yaw, Owner = owner,
-                    Seed = piece ? PieceSeed(owner, name) : 0,
+                    Seed = piece ? PieceSeed(owner, name) : look,
                 });
                 remade++;
             }

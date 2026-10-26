@@ -210,6 +210,11 @@ namespace Placemaker.Core.Neighbours
         public readonly List<(long House, float2[] Ring)> Beds = new List<(long, float2[])>();
         /// <summary>Bushes on those beds, and rocks by the street, owned by the house: Kind indexes <see cref="YardStitch.BushKinds"/>.</summary>
         public readonly List<(long House, float2 Position, float Yaw, int Kind)> Bushes = new List<(long, float2, float, int)>();
+        /// <summary>The look (the game's colour seed, 1-65535) of a bush-list piece that must not take the one by its spot, by
+        /// house and <see cref="LookSpot"/>: a parked car's colour (a shop's random, a works' fleet shared).</summary>
+        public readonly Dictionary<(long House, int2 Spot), int> Looks = new Dictionary<(long, int2), int>();
+        /// <summary>A piece's spot for <see cref="Looks"/> (a decimetre grid).</summary>
+        public static int2 LookSpot(float2 at) => (int2)math.round(at * 10f);
         /// <summary>Fence or hedge pieces (objects of the house's own fence kind, "…PieceHigh01") closing a garden's open
         /// edges, owned by the house: where it stands, which way it runs, the piece.</summary>
         public readonly List<(long House, float2 Position, float Yaw, string Name)> FencePieces = new List<(long, float2, float, string)>();

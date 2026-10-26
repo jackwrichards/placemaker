@@ -364,6 +364,10 @@ namespace Placemaker.Core.Neighbours
                     ends.Add(row[row.Count - 1].i);
                 }
             int treeKind = FirstStreetTree + (int)((seed >> 5) % StreetTreeCount);
+            // the cars' colours: a shop's or an office's all its own (no theme); a works' loosely themed, about a third its
+            // fleet (one model in one colour), the rest anyone's (the user, 26 Oct)
+            bool works = style == PolishLooks.ParkIndustrial;
+            int fleetKind = FirstCar + (int)((seed >> 7) % CarCount), fleetLook = 1 + (int)(Hash(seed ^ 0xF1EEu) % 65535u);
             for (int i = 0; i < bays.Count; i++)
             {
                 var (at, yaw, car, hk, _) = bays[i];
@@ -384,10 +388,12 @@ namespace Placemaker.Core.Neighbours
                 if (!car) continue;
                 // cars only (the vanilla cars include a small van): the van slots are 8 m box trucks, wider and longer than a
                 // bay (the game runner 26 Oct: they lay across two bays)
-                int kind = FirstCar + (int)((hk >> 12) % CarCount);
+                bool fleet = works && Hash(hk ^ 0xF1EE7u) % 100 < 35;
+                int kind = fleet ? fleetKind : FirstCar + (int)((hk >> 12) % CarCount);
                 // nose to the aisle, a little off the bay's back
                 var to = new float2(math.sin(yaw), math.cos(yaw));
                 plan.Bushes.Add((h.Id, at + to * 0.2f, yaw, kind));
+                plan.Looks[(h.Id, StitchPlan.LookSpot(at + to * 0.2f))] = fleet ? fleetLook : 1 + (int)(Hash(hk ^ 0xC010u) % 65535u);
                 cars++;
             }
         }
