@@ -3,9 +3,13 @@
 // The style's example photo (StylePreview.tsx): 16:9 (its height set from the measured width), the word Preview top left,
 // the fold chevron top right, the view switch over its bottom edge.
 
+// smaller than the card, centred (the user: smaller overall on the panel)
 .preview {
     position: relative;
-    width: 100%;
+    width: 86%;
+    align-self: center;
+    margin-left: auto;
+    margin-right: auto;
     margin-bottom: 6rem;
     border-radius: $radius-l;
     overflow: hidden;

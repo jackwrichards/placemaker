@@ -81,7 +81,7 @@ export const StylePreview = ({ layer, preset }: { layer: string; preset: string 
     const { t } = useT();
     const [view, setViewState] = useState<View>(() => shared ?? (shared = loadView()));
     const [open, setOpenState] = useState<boolean>(() => sharedOpen ?? (sharedOpen = loadOpen()));
-    // 2:1 (the photos, collect.ps1) from the measured width: the game's view gives an absolute picture no height inside a padding-sized box
+    // 16:9 (the photos, collect.ps1) from the measured width: the game's view gives an absolute picture no height inside a padding-sized box
     const box = useRef<HTMLDivElement>(null);
     const measured = useBoxWidth(box);
     if (measured) lastW = measured;
@@ -148,7 +148,7 @@ export const StylePreview = ({ layer, preset }: { layer: string; preset: string 
         top: t("Placemaker.UI.Preview.Top", "Above"),
     };
     return (
-        <div ref={box} className={s.preview} style={{ height: (w ? Math.round(w * 0.5) : 200) + "px" }} data-photo={next || base} data-testid="style-preview" data-open="1" data-view={shown}>
+        <div ref={box} className={s.preview} style={{ height: (w ? Math.round(w * 0.5625) : 200) + "px" }} data-photo={next || base} data-testid="style-preview" data-open="1" data-view={shown}>
             {base ? <img key={"b" + base} className={s.photo} src={base} alt="" /> : null}
             {next ? <img key={"n" + next} className={classNames(s.photo, s.photoNext, { [s.photoOn]: nextOn })} src={next} alt="" onLoad={() => setNextOn(true)} /> : null}
             <div className={s.views}>

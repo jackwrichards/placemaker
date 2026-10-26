@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Style previews: shrinks a previews run's pictures into UI/src/assets/previews/<type>__<style>__<view>.jpg (800 x 400, JPEG 80, lightly sharpened),
+  Style previews: shrinks a previews run's pictures into UI/src/assets/previews/<type>__<style>__<view>.jpg (800 x 450, JPEG 80, lightly sharpened),
   the files the panel's StylePreview bundles. Made with tools/style-previews/make-scenarios.js.
 .EXAMPLE
   powershell -File tools/style-previews/collect.ps1 -Run C:\Users\jack\cs2-area-tool\.forensics\suite\runs\send-previews-parks-1025-2120
@@ -54,13 +54,12 @@ foreach ($r in $Run) {
         if ($f.Name -notmatch '^\d+-prv-([A-Za-z0-9]+)-(.+?)(-t)?\.\d+-(close|iso|top)\.png$') { continue }
         $name = "$($Matches[1])__$($Matches[2])__$($Matches[4]).jpg"
         $src = [System.Drawing.Image]::FromFile($f.FullName)
-        # 2:1 (StylePreview's box has the same shape, smaller in the panel than 16:9; the user, 25 Oct). Close and top: the full
-        # width, an even trim top and bottom. Iso (its camera leaves spare grass at the top): cropped in a touch, 95 % of the
-        # width, the window 4/5 of the way down.
+        # 16:9 like the shot. Close and top: the whole picture (the user, 25 Oct: perfect as they were). Iso (its camera leaves
+        # spare grass at the top and the near road at the bottom edge): cropped in a touch, 95 %, the window 4/5 of the way down.
         $iso = $Matches[4] -eq 'iso'
-        $sw = if ($iso) { [int]($src.Width * 0.95) } else { $src.Width }
-        $sh = [int]($sw / 2); $sx = [int](($src.Width - $sw) / 2)
-        $sy = [int](($src.Height - $sh) * $(if ($iso) { 0.8 } else { 0.5 }))
+        $k = if ($iso) { 0.95 } else { 1.0 }
+        $sw = [int]($src.Width * $k); $sh = [int]($src.Height * $k); $sx = [int](($src.Width - $sw) / 2)
+        $sy = [int](($src.Height - $sh) * 0.8)
         $h = [int]($sh * $Width / $sw)
         $bmp = New-Object System.Drawing.Bitmap $Width, $h
         $g = [System.Drawing.Graphics]::FromImage($bmp)
