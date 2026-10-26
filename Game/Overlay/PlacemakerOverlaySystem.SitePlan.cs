@@ -35,7 +35,8 @@ namespace Placemaker.Game.Overlay
 
         /// <summary>
         /// A prebuilt mesh layer: its rings, signature, colour, legend row and draw order. The order is a whole number per layer
-        /// (the game sorts these meshes by whole steps: at -93.1 and -93.35 the asphalt drew over the stall lines at random).
+        /// (the game sorts these meshes by whole steps: at -93.1 and -93.35 the asphalt drew over the stall lines at random). The
+        /// ground stays at -95..-93, where it was, under the game's own decals (the Real preview's stall lines show through it).
         /// </summary>
         private sealed class SpShape
         {
@@ -115,37 +116,37 @@ namespace Placemaker.Game.Overlay
             _spShapes.Clear();
 
             // ground: the site's own lawn tone, the materials, shop plots (kept under the Real preview)
-            Shape("sp:base", SitePlan.Palette.Base, SitePlan.Palette.BaseAlpha, "", -97f, true).Rings.Add(Flat(sp.Outline));
+            Shape("sp:base", SitePlan.Palette.Base, SitePlan.Palette.BaseAlpha, "", -95f, true).Rings.Add(Flat(sp.Outline));
             for (int m = 0; m < SitePlan.Materials.Length; m++)
             {
                 string mat = SitePlan.Materials[m];
                 SpShape s = null;
                 foreach (var f in sp.Fills)
-                    if (f.material == mat) (s ??= Shape("sp:" + mat, SitePlan.Palette.Fill(mat), SitePlan.Palette.Alpha(mat), SitePlan.RowOfMaterial(mat), -96f + m, true)).Rings.Add(Flat(f.ring));
+                    if (f.material == mat) (s ??= Shape("sp:" + mat, SitePlan.Palette.Fill(mat), SitePlan.Palette.Alpha(mat), SitePlan.RowOfMaterial(mat), (m >= 5 ? -93f : -94f), true)).Rings.Add(Flat(f.ring));
             }
             var byZone = new Dictionary<string, SpShape>();
             SpShape grid = null;
             foreach (var (zone, quad) in sp.PlotCells)
             {
                 string c = SitePlan.Palette.Zone(zone);
-                if (!byZone.TryGetValue(c, out var s)) byZone[c] = s = Shape("sp:plot:" + c, c, 0.5f, SitePlan.Plots, -89f, true);
+                if (!byZone.TryGetValue(c, out var s)) byZone[c] = s = Shape("sp:plot:" + c, c, 0.5f, SitePlan.Plots, -93f, true);
                 s.Rings.Add(Flat(quad));
-                grid ??= Shape("sp:plotGrid", "#ffffff", 0.45f, SitePlan.Plots, -88f, true);
+                grid ??= Shape("sp:plotGrid", "#ffffff", 0.45f, SitePlan.Plots, -92f, true);
                 for (int i = 0; i < quad.Length; i++) grid.Rings.Add(BarRing(quad[i], quad[(i + 1) % quad.Length], 0.3f));
             }
 
             // what the ghost shows itself (sketch only): stalls, places, furniture, planting, crowns last
             if (sp.Stalls.Count > 0)
             {
-                var s = Shape("sp:stalls", SitePlan.Palette.Stall, 1f, SitePlan.Parking, -87f, false);
+                var s = Shape("sp:stalls", SitePlan.Palette.Stall, 1f, SitePlan.Parking, -91f, false);
                 // 0.3 m: a mesh line has no smoothing, at the real 0.15 m it faded to grey from the usual camera height
                 foreach (var (a, b) in sp.Stalls) s.Rings.Add(BarRing(a, b, 0.3f));
             }
-            if (sp.Chargers.Count > 0) { var s = Shape("sp:chargers", SitePlan.Palette.Charger, 1f, SitePlan.Parking, -86f, false); foreach (var p in sp.Chargers) s.Rings.Add(DiscRing(p, 0.7f)); }
+            if (sp.Chargers.Count > 0) { var s = Shape("sp:chargers", SitePlan.Palette.Charger, 1f, SitePlan.Parking, -90f, false); foreach (var p in sp.Chargers) s.Rings.Add(DiscRing(p, 0.7f)); }
             if (sp.PlaceFootprints.Count > 0)
             {
-                var s = Shape("sp:places", SitePlan.Palette.Place, 1f, SitePlan.Places, -85f, false);
-                var e = Shape("sp:placeEdges", SitePlan.Palette.PlaceEdge, 1f, SitePlan.Places, -84f, false);
+                var s = Shape("sp:places", SitePlan.Palette.Place, 1f, SitePlan.Places, -90f, false);
+                var e = Shape("sp:placeEdges", SitePlan.Palette.PlaceEdge, 1f, SitePlan.Places, -89f, false);
                 foreach (var q in sp.PlaceFootprints)
                 {
                     s.Rings.Add(Flat(q));
@@ -154,19 +155,19 @@ namespace Placemaker.Game.Overlay
             }
             if (sp.Fences.Count > 0)
             {
-                var s = Shape("sp:fences", SitePlan.Palette.Fence, 0.9f, SitePlan.Furniture, -83f, false);
+                var s = Shape("sp:fences", SitePlan.Palette.Fence, 0.9f, SitePlan.Furniture, -88f, false);
                 foreach (var f in sp.Fences) for (int i = 1; i < f.Length; i++) s.Rings.Add(BarRing(f[i - 1], f[i], 0.35f));
             }
-            if (sp.Benches.Count > 0) { var s = Shape("sp:benches", SitePlan.Palette.Bench, 1f, SitePlan.Furniture, -82f, false); foreach (var q in sp.Benches) s.Rings.Add(Flat(q)); }
-            if (sp.Bins.Count > 0) { var s = Shape("sp:bins", SitePlan.Palette.Bin, 1f, SitePlan.Furniture, -81f, false); foreach (var p in sp.Bins) s.Rings.Add(DiscRing(p, 0.35f)); }
-            if (sp.Lamps.Count > 0) { var s = Shape("sp:lamps", SitePlan.Palette.Lamp, 1f, SitePlan.Furniture, -80f, false); foreach (var p in sp.Lamps) s.Rings.Add(DiscRing(p, 0.5f)); }
-            if (sp.Bushes.Count > 0) { var s = Shape("sp:bushes", SitePlan.Palette.Bush, 0.85f, SitePlan.Planting, -79f, false); foreach (var d in sp.Bushes) s.Rings.Add(DiscRing(d.At, d.R)); }
+            if (sp.Benches.Count > 0) { var s = Shape("sp:benches", SitePlan.Palette.Bench, 1f, SitePlan.Furniture, -88f, false); foreach (var q in sp.Benches) s.Rings.Add(Flat(q)); }
+            if (sp.Bins.Count > 0) { var s = Shape("sp:bins", SitePlan.Palette.Bin, 1f, SitePlan.Furniture, -87f, false); foreach (var p in sp.Bins) s.Rings.Add(DiscRing(p, 0.35f)); }
+            if (sp.Lamps.Count > 0) { var s = Shape("sp:lamps", SitePlan.Palette.Lamp, 1f, SitePlan.Furniture, -87f, false); foreach (var p in sp.Lamps) s.Rings.Add(DiscRing(p, 0.5f)); }
+            if (sp.Bushes.Count > 0) { var s = Shape("sp:bushes", SitePlan.Palette.Bush, 0.85f, SitePlan.Planting, -86f, false); foreach (var d in sp.Bushes) s.Rings.Add(DiscRing(d.At, d.R)); }
             if (sp.TreeCrowns.Count > 0)
             {
                 // a soft shadow to the north (the sun is south), the crown, its lit side
-                var sh = Shape("sp:treeShadow", SitePlan.Palette.Shadow, 0.28f, SitePlan.Trees, -78f, false);
-                var cr = Shape("sp:tree", SitePlan.Palette.Tree, 0.95f, SitePlan.Trees, -77f, false);
-                var lit = Shape("sp:treeLit", SitePlan.Palette.TreeHi, 0.95f, SitePlan.Trees, -76f, false);
+                var sh = Shape("sp:treeShadow", SitePlan.Palette.Shadow, 0.28f, SitePlan.Trees, -85f, false);
+                var cr = Shape("sp:tree", SitePlan.Palette.Tree, 0.95f, SitePlan.Trees, -84f, false);
+                var lit = Shape("sp:treeLit", SitePlan.Palette.TreeHi, 0.95f, SitePlan.Trees, -83f, false);
                 foreach (var t in sp.TreeCrowns)
                 {
                     sh.Rings.Add(DiscRing(t.At + new float2(t.R * 0.25f, t.R * 0.3f), t.R));
