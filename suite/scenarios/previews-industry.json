@@ -1,0 +1,2513 @@
+{
+  "_about": "Style previews, Industrial: every visible style built on its own land, three pictures each (close, iso, top); the zoning styles grown first. Made by tools/style-previews/make-scenarios.js; collect with tools/style-previews/collect.ps1. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/previews-industry.json -Build -Who style-previews",
+  "scenarios": [
+    {
+      "id": "prv-containerYard-terminal",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "containerYard",
+          "preset": "terminal"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-containerYard-depot",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "containerYard",
+          "preset": "depot"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-containerYard-storage",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "containerYard",
+          "preset": "storage"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-carYard-salvage",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "carYard",
+          "preset": "salvage"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-carYard-crusher",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "carYard",
+          "preset": "crusher"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-carYard-breakers",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "carYard",
+          "preset": "breakers"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-junkYard-sorted",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "junkYard",
+          "preset": "sorted"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-junkYard-reclaim",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "junkYard",
+          "preset": "reclaim"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-junkYard-tip",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "junkYard",
+          "preset": "tip"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-industrialWorks-recycling",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "industrialWorks",
+          "preset": "recycling"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-industrialWorks-salvage",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "industrialWorks",
+          "preset": "salvage"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-industrialWorks-works",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "industrialWorks",
+          "preset": "works"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-constructionSite-foundation",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "constructionSite",
+          "preset": "foundation"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-constructionSite-roadworks",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "constructionSite",
+          "preset": "roadworks"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-constructionSite-compound",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "constructionSite",
+          "preset": "compound"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-constructionSite-demolition",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "constructionSite",
+          "preset": "demolition"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-constructionSite-earthworks",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "constructionSite",
+          "preset": "earthworks"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-quarry-openPit",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "quarry",
+          "preset": "openPit"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-quarry-gravelPit",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "quarry",
+          "preset": "gravelPit"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-quarry-sandPit",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "quarry",
+          "preset": "sandPit"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-quarry-lakeDig",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "quarry",
+          "preset": "lakeDig"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-quarry-flooded",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "quarry",
+          "preset": "flooded"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-quarry-abandoned",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "quarry",
+          "preset": "abandoned"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-logisticsYard-containerStacks",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "logisticsYard",
+          "preset": "containerStacks"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-logisticsYard-palletYard",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "logisticsYard",
+          "preset": "palletYard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-logisticsYard-lumberYard",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "logisticsYard",
+          "preset": "lumberYard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-logisticsYard-storageYard",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "logisticsYard",
+          "preset": "storageYard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-logisticsYard-loadingYard",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "logisticsYard",
+          "preset": "loadingYard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-logisticsYard-shipmentYard",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "logisticsYard",
+          "preset": "shipmentYard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-scrapyard-scrapyard",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "scrapyard",
+          "preset": "scrapyard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-scrapyard-salvage",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "scrapyard",
+          "preset": "salvage"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-scrapyard-containers",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "scrapyard",
+          "preset": "containers"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-scrapyard-tires",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "scrapyard",
+          "preset": "tires"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-scrapyard-cars",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "scrapyard",
+          "preset": "cars"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-abandonedLot-overgrown",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "abandonedLot",
+          "preset": "overgrown"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-abandonedLot-rubbleField",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "abandonedLot",
+          "preset": "rubbleField"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-abandonedLot-demolished",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "abandonedLot",
+          "preset": "demolished"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-abandonedLot-squatterCamp",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "abandonedLot",
+          "preset": "squatterCamp"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-abandonedLot-fencedWasteland",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "abandonedLot",
+          "preset": "fencedWasteland"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-landfill-active",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "landfill",
+          "preset": "active"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-landfill-capped",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "landfill",
+          "preset": "capped"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-landfill-compost",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "landfill",
+          "preset": "compost"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-landfill-recycling",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "landfill",
+          "preset": "recycling"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-landfill-flytip",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "landfill",
+          "preset": "flytip"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

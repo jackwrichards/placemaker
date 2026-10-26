@@ -1,0 +1,974 @@
+{
+  "_about": "Style previews, Nature: every visible style built on its own land, three pictures each (close, iso, top); the zoning styles grown first. Made by tools/style-previews/make-scenarios.js; collect with tools/style-previews/collect.ps1. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/previews-nature.json -Build -Who style-previews",
+  "scenarios": [
+    {
+      "id": "prv-campground-forest",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "campground",
+          "preset": "forest"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-natureReserve-forest",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "natureReserve",
+          "preset": "forest"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-natureReserve-heath",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "natureReserve",
+          "preset": "heath"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-greenwayPark-leafy",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "greenwayPark",
+          "preset": "leafy"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-lookoutHill-hilltop",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "lookoutHill",
+          "preset": "hilltop"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-lookoutHill-sledding",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "lookoutHill",
+          "preset": "sledding"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-lookoutHill-terraces",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "lookoutHill",
+          "preset": "terraces"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-lookoutHill-kiteHill",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "lookoutHill",
+          "preset": "kiteHill"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-hikingTrail-forestTrail",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "hikingTrail",
+          "preset": "forestTrail"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-hikingTrail-meadowWalk",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "hikingTrail",
+          "preset": "meadowWalk"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-hikingTrail-ridgeHike",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "hikingTrail",
+          "preset": "ridgeHike"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-hikingTrail-canyonTrail",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "hikingTrail",
+          "preset": "canyonTrail"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-wetland-wetlandPark",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "wetland",
+          "preset": "wetlandPark"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-wetland-waterGarden",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "wetland",
+          "preset": "waterGarden"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-wetland-reedMarsh",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "wetland",
+          "preset": "reedMarsh"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-wetland-rainGarden",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "wetland",
+          "preset": "rainGarden"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-wetland-birdReserve",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "wetland",
+          "preset": "birdReserve"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

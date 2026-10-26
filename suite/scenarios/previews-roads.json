@@ -1,0 +1,853 @@
+{
+  "_about": "Style previews, Roads: every visible style built on its own land, three pictures each (close, iso, top); the zoning styles grown first. Made by tools/style-previews/make-scenarios.js; collect with tools/style-previews/collect.ps1. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/previews-roads.json -Build -Who style-previews",
+  "scenarios": [
+    {
+      "id": "prv-roads-downtown",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "downtown"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-suburb",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "suburb"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-village",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "village"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-hillside",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "hillside"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-garden-city",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "garden-city"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-walkable-grid",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "walkable-grid"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-terraced-grid",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "terraced-grid"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-suburban-loops",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "suburban-loops"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-rural-village",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "rural-village"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-superblocks",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "superblocks"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-old-town",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "old-town"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-strict-grid",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "strict-grid"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-terraced-hillside",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "terraced-hillside"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-serpentine-village",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "serpentine-village"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-vineyard-terraces",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "vineyard-terraces"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-roads-hill-town",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "hill-town"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

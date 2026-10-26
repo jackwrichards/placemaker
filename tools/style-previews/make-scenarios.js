@@ -3,7 +3,8 @@
 //
 // Per category one file suite/scenarios/previews-<category>.json: one build per style, each on its own 150 x 140 m land with a
 // ring road (roads: open 420 x 320 m land); the zoning styles grown in place (debug fast spawn, the simulation running); three
-// pictures from fixed cameras: close (a close look at its middle), 45 (45 degrees from the south) and top (straight down). Same
+// pictures from fixed cameras: close (a low cinematic look into its middle), iso (an isometric-looking view: 45 degrees round,
+// 35 down, a narrow lens) and top (straight down). Same
 // angles for every style. No neighbourhood around it (the user: zoned plots that never grew looked wrong).
 // Then tools/style-previews/collect.ps1 shrinks the pictures into UI/src/assets/previews, which the panel bundles.
 //
@@ -31,9 +32,10 @@ function styles(shelf) {
 const LAND = { shape: 'rect', size: [150, 140], gap: 10, roads: 'around' };
 const OPEN = { shape: 'rect', size: [420, 320], roads: 'none' };
 
+// (the user: "a cooler cinematic, really close up, and then an isometric looking view, and then a top down")
 const CAMERAS = [
-  { name: 'close', camera: { do: 'camera', target: 'build', view: 'closeup' } },
-  { name: '45', camera: { do: 'camera', target: 'build', view: 'oblique', pitch: 45 } },
+  { name: 'close', camera: { do: 'camera', target: 'build', view: 'closeup', pitch: 26, distance: 62, yaw: 30 } },
+  { name: 'iso', camera: { do: 'camera', target: 'build', view: 'oblique', yaw: 45, pitch: 35, fov: 22 } },
   { name: 'top', camera: { do: 'camera', target: 'build', view: 'top' } },
 ];
 
@@ -55,7 +57,7 @@ function file(shelf, done) {
   }
   if (!scenarios.length) return null;
   return {
-    _about: 'Style previews, ' + shelf.name + ': every visible style built on its own land, three pictures each (close, 45, top); ' +
+    _about: 'Style previews, ' + shelf.name + ': every visible style built on its own land, three pictures each (close, iso, top); ' +
       'the zoning styles grown first. Made by tools/style-previews/make-scenarios.js; collect with tools/style-previews/collect.ps1. ' +
       'Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/previews-' + shelf.id + '.json -Build -Who style-previews',
     scenarios,

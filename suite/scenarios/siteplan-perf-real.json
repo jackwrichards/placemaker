@@ -1,0 +1,65 @@
+{
+  "_about": "Real preview speed on a big car park.",
+  "scenarios": [
+    {
+      "id": "spperf-real",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          460,
+          340
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 4
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "real-45",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "wait",
+          "seconds": 5
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "closeup",
+          "shot": "real-close",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "wait",
+          "seconds": 5
+        }
+      ]
+    }
+  ]
+}

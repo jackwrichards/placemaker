@@ -1,5 +1,5 @@
 {
-  "_about": "Style previews, Parks: every visible style built on its own land, three pictures each (close, 45, top); the zoning styles grown first. Made by tools/style-previews/make-scenarios.js; collect with tools/style-previews/collect.ps1. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/previews-parks.json -Build -Who style-previews",
+  "_about": "Style previews, Parks: every visible style built on its own land, three pictures each (close, iso, top); the zoning styles grown first. Made by tools/style-previews/make-scenarios.js; collect with tools/style-previews/collect.ps1. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/previews-parks.json -Build -Who style-previews",
   "scenarios": [
     {
       "id": "prv-park-natural",
@@ -33,6 +33,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -40,8 +43,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -85,6 +90,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -92,8 +100,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -137,6 +147,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -144,8 +157,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -189,6 +204,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -196,8 +214,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -241,6 +261,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -248,8 +271,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -293,6 +318,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -300,8 +328,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -345,6 +375,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -352,8 +385,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -397,6 +432,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -404,8 +442,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -449,6 +489,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -456,8 +499,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -501,6 +546,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -508,8 +556,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -553,6 +603,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -560,8 +613,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -605,6 +660,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -612,8 +670,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -657,6 +717,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -664,8 +727,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -709,6 +774,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -716,8 +784,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -761,6 +831,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -768,8 +841,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -813,6 +888,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -820,8 +898,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -865,6 +945,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -872,8 +955,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -917,6 +1002,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -924,8 +1012,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {
@@ -969,6 +1059,9 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
           "shot": "close",
           "shotMode": "render"
         },
@@ -976,8 +1069,10 @@
           "do": "camera",
           "target": "build",
           "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
           "shotMode": "render"
         },
         {

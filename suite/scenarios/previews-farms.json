@@ -1,0 +1,461 @@
+{
+  "_about": "Style previews, Farms: every visible style built on its own land, three pictures each (close, iso, top); the zoning styles grown first. Made by tools/style-previews/make-scenarios.js; collect with tools/style-previews/collect.ps1. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/previews-farms.json -Build -Who style-previews",
+  "scenarios": [
+    {
+      "id": "prv-animalPark-pettingFarm",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "animalPark",
+          "preset": "pettingFarm"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-animalPark-paddocks",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "animalPark",
+          "preset": "paddocks"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-animalPark-horsePaddock",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "animalPark",
+          "preset": "horsePaddock"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-animalPark-deerPark",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "animalPark",
+          "preset": "deerPark"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-farmstead-dairy",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "farmstead",
+          "preset": "dairy"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-farmstead-arable",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "farmstead",
+          "preset": "arable"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-farmstead-mixed",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "farmstead",
+          "preset": "mixed"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "prv-farmstead-ranch",
+      "pace": "settled",
+      "land": {
+        "shape": "rect",
+        "size": [
+          150,
+          140
+        ],
+        "gap": 10,
+        "roads": "around"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "farmstead",
+          "preset": "ranch"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "pitch": 26,
+          "distance": 62,
+          "yaw": 30,
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "yaw": 45,
+          "pitch": 35,
+          "fov": 22,
+          "shot": "iso",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}
