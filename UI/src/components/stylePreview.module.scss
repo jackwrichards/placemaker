@@ -6,11 +6,13 @@
 // smaller than the card, centred (the user: smaller overall on the panel)
 .preview {
     position: relative;
-    width: 86%;
+    width: 78%;
     align-self: center;
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 6rem;
+    // even gaps: the Editing line below brings its own space
+    margin-top: 10rem;
+    margin-bottom: -6rem;
     border-radius: $radius-l;
     overflow: hidden;
     background-color: #1a2229;
