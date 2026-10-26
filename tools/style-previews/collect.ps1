@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-  Style previews: shrinks a previews run's pictures into UI/src/assets/previews/<type>__<style>__<view>.jpg (480 x 270, JPEG 78),
+  Style previews: shrinks a previews run's pictures into UI/src/assets/previews/<type>__<style>__<view>.jpg (800 x 400, JPEG 80, lightly sharpened),
   the files the panel's StylePreview bundles. Made with tools/style-previews/make-scenarios.js.
 .EXAMPLE
   powershell -File tools/style-previews/collect.ps1 -Run C:\Users\jack\cs2-area-tool\.forensics\suite\runs\send-previews-parks-1025-2120
 #>
-param([Parameter(Mandatory = $true)][string[]]$Run, [int]$Width = 480, [int]$Quality = 78)
+param([Parameter(Mandatory = $true)][string[]]$Run, [int]$Width = 800, [int]$Quality = 80)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $out = Join-Path $PSScriptRoot '..\..\UI\src\assets\previews'
@@ -14,6 +14,26 @@ $codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Obj
 $ep = New-Object System.Drawing.Imaging.EncoderParameters(1)
 $ep.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality, [long]$Quality)
 $n = 0
+# a light sharpen after the shrink (the user: "up the sharpness ever so slightly"): centre 1 + 4a, its four neighbours -a
+Add-Type -ReferencedAssemblies System.Drawing -TypeDefinition @'
+using System; using System.Drawing; using System.Drawing.Imaging; using System.Runtime.InteropServices;
+public static class PmSharpen {
+    public static void Apply(Bitmap bmp, float a) {
+        var r = new Rectangle(0, 0, bmp.Width, bmp.Height);
+        var d = bmp.LockBits(r, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        int n = d.Stride * bmp.Height; var src = new byte[n]; Marshal.Copy(d.Scan0, src, 0, n); var dst = (byte[])src.Clone();
+        for (int y = 1; y < bmp.Height - 1; y++)
+            for (int x = 1; x < bmp.Width - 1; x++) {
+                int i = y * d.Stride + x * 4;
+                for (int c = 0; c < 3; c++) {
+                    float v = src[i + c] * (1 + 4 * a) - a * (src[i + c - 4] + src[i + c + 4] + src[i + c - d.Stride] + src[i + c + d.Stride]);
+                    dst[i + c] = (byte)Math.Max(0, Math.Min(255, (int)Math.Round(v)));
+                }
+            }
+        Marshal.Copy(dst, 0, d.Scan0, n); bmp.UnlockBits(d);
+    }
+}
+'@
 # the grade: saturation 1.12 (luminance weights 0.3086 / 0.6094 / 0.0820), contrast 1.08 round mid grey, brightness +0.025
 $sat = 1.12; $con = 1.08; $off = 0.5 * (1 - $con) + 0.025
 $lr = 0.3086 * (1 - $sat); $lg = 0.6094 * (1 - $sat); $lb = 0.0820 * (1 - $sat)
@@ -34,7 +54,12 @@ foreach ($r in $Run) {
         if ($f.Name -notmatch '^\d+-prv-([A-Za-z0-9]+)-(.+?)(-t)?\.\d+-(close|iso|top)\.png$') { continue }
         $name = "$($Matches[1])__$($Matches[2])__$($Matches[4]).jpg"
         $src = [System.Drawing.Image]::FromFile($f.FullName)
-        $h = [int]($src.Height * $Width / $src.Width)
+        # Cropped in a touch and panned down (the user, 25 Oct): 95 % of the width, 2:1 (StylePreview's box has the same shape, smaller in
+        # the panel than 16:9), the window at the bottom for iso (its camera leaves spare grass at the top) and 2/3 down for the
+        # others.
+        $sw = [int]($src.Width * 0.95); $sh = [int]($sw / 2); $sx = [int](($src.Width - $sw) / 2)
+        $sy = if ($Matches[4] -eq 'iso') { $src.Height - $sh } else { [int](($src.Height - $sh) * 0.67) }
+        $h = [int]($sh * $Width / $sw)
         $bmp = New-Object System.Drawing.Bitmap $Width, $h
         $g = [System.Drawing.Graphics]::FromImage($bmp)
         $g.InterpolationMode = 'HighQualityBicubic'
@@ -42,7 +67,8 @@ foreach ($r in $Run) {
         # a mild grade, the same for every picture (the user, 25 Oct): contrast, saturation and brightness a touch up
         $ia = New-Object System.Drawing.Imaging.ImageAttributes
         $ia.SetColorMatrix($grade)
-        $g.DrawImage($src, (New-Object System.Drawing.Rectangle 0, 0, $Width, $h), 0, 0, $src.Width, $src.Height, [System.Drawing.GraphicsUnit]::Pixel, $ia)
+        $g.DrawImage($src, (New-Object System.Drawing.Rectangle 0, 0, $Width, $h), $sx, $sy, $sw, $sh, [System.Drawing.GraphicsUnit]::Pixel, $ia)
+        [PmSharpen]::Apply($bmp, 0.12)
         # a soft vignette: the corners a little darker
         $path = New-Object System.Drawing.Drawing2D.GraphicsPath
         $path.AddEllipse([int](-$Width * 0.25), [int](-$h * 0.25), [int]($Width * 1.5), [int]($h * 1.5))

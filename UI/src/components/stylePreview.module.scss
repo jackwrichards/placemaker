@@ -21,6 +21,17 @@
     height: 100%;
 }
 
+// the next photo, over the one on screen: fades in once loaded
+.photoNext {
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 200ms;
+}
+
+.photoOn {
+    opacity: 1;
+}
+
 .views {
     @include row;
     position: absolute;

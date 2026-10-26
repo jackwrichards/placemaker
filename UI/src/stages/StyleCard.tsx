@@ -6,7 +6,7 @@
 //     the line into the name field (Save · Cancel).
 //   The panel: everything the style keeps, each part under the same light line (SubHead): Parameters (or Zoning; Shuffle
 //     at its end) and Add-ons. Its border turns amber while there are unsaved changes, as does the lit Style chip's dot.
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useRef, useState } from "react";
 import classNames from "classnames";
 import { Catalog, DesignState, StepView } from "../contract";
 import { act } from "../lib/bindings";
@@ -77,7 +77,11 @@ export const StyleCard = ({ catalog, design, step, children }: { catalog: Catalo
     const { t } = useT();
     const [mode, setMode] = useState<Mode>("idle");
     const [confirm, setConfirm] = useState<"delete" | "reset" | null>(null);
-    const ap = design.activePreset;
+    // While a new style is being applied the design comes back once without one: keep the last style of this type on screen
+    // (else the card, its photo and the Editing line blink out and the panel jumps; the user)
+    const lastAp = useRef(design.activePreset);
+    if (design.activePreset) lastAp.current = design.activePreset;
+    const ap = design.activePreset ?? (lastAp.current && lastAp.current.layer === step.layer ? lastAp.current : null);
     const layer = catalog.layers.find((l) => l.id === step.layer);
     if (!ap || !layer) return <div className={s.plain}>{children}</div>;
 

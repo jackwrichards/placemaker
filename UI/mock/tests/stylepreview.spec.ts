@@ -20,6 +20,15 @@ test("style preview: photo on top, views switch and stay", async ({ page }) => {
     await page.getByTestId("style-preview-close").click();
     await expect(preview).toHaveAttribute("data-view", "close");
     await panelShot(page, "style-preview-close");
+    // switching style: the old photo stays until the new one is in (no blank box), the box keeps its height
+    const h0 = (await preview.boundingBox())!.height;
+    await page.evaluate(() => (window as any).pm.trigger("Placemaker", "selectPreset", "park", "garden"));
+    for (let i = 0; i < 8; i++) {
+        expect(await preview.locator("img").count()).toBeGreaterThan(0);
+        expect(Math.abs((await preview.boundingBox())!.height - h0)).toBeLessThan(2);
+        await page.waitForTimeout(40);
+    }
+    await expect(preview).toHaveAttribute("data-photo", /park__garden__close/, { timeout: 3000 });
     // another type with a photo keeps the close view
     await page.getByTestId("primary").count();
     await pickType(page, "adventurePlayground");
