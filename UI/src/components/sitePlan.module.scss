@@ -79,31 +79,6 @@
     }
 }
 
-.scale {
-    @include row;
-    position: absolute;
-    left: 5rem;
-    bottom: 5rem;
-    pointer-events: none;
-}
-
-.scaleBar {
-    flex-shrink: 0;
-    height: 2rem;
-    background-color: #ffffff;
-    border-radius: 1rem;
-}
-
-// a set width: the game's view wraps "50 m" in a flex row even with nowrap
-.scaleText {
-    flex-shrink: 0;
-    width: 40rem;
-    margin-left: 4rem;
-    color: #ffffff;
-    font-size: 10rem;
-    white-space: nowrap;
-}
-
 .rows {
     @include row(flex-start);
     flex-wrap: wrap;

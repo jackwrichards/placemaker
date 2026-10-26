@@ -221,7 +221,6 @@ export const SitePlanPicture = ({ sp, w, h, hover, hidden, hiddenKey }: PicProps
     }, [all, hiddenKey]);
     const vb = [fr.vx, fr.vy, fr.vw, fr.vh].map(f1).join(" ");
     const lit = hover && !hidden(hover) ? all.filter((l) => l.row === hover) : [];
-    const bar = fr.vw > 600 ? 100 : fr.vw > 250 ? 50 : fr.vw > 100 ? 20 : 10;
     return (
         <>
             {/* a new svg element per plan: the game's view does not repaint paths whose points change */}
@@ -236,11 +235,6 @@ export const SitePlanPicture = ({ sp, w, h, hover, hidden, hiddenKey }: PicProps
                     </svg>
                 </div>
             ) : null}
-            <div className={s.scale}>
-                <div className={s.scaleBar} style={{ width: Math.round(bar * fr.pxPerM) + "px" }} />
-                {/* one text piece with a no-break space: the game's view broke "50" and "m" apart */}
-                <div className={s.scaleText}>{bar + " m"}</div>
-            </div>
         </>
     );
 };
