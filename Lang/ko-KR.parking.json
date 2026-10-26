@@ -118,7 +118,7 @@
   "Placemaker.Parking.Control.AccessibleShare.Tip": "장애인 운전자를 위한 넓은 칸의 비율로, 입구와 가장 가까이 놓입니다.",
   "Placemaker.Parking.Control.Fee": "주차비",
   "Placemaker.Parking.Control.Fee.Tip": "차가 여기에 주차할 때 내는 요금입니다.",
-  "Placemaker.Parking.Preset.standard": "표준",
+  "Placemaker.Parking.Preset.standard": "가로수 주차장",
   "Placemaker.Parking.Preset.compact": "소형",
   "Placemaker.Parking.Preset.green": "녹색",
   "Placemaker.Parking.Preset.angled": "사선",

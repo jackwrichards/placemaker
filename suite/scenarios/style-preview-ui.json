@@ -1,0 +1,16 @@
+{
+  "_about": "Style previews in the real panel: the chosen style's photo under the style list (sports park's Standard, a park style), the real screen with the panel. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/style-preview-ui.json -Build -Who style-preview-ui",
+  "scenarios": [
+    {
+      "id": "style-preview-ui",
+      "land": { "shape": "rect", "size": [150, 140], "roads": "around" },
+      "steps": [
+        { "do": "area", "tool": "land" },
+        { "do": "type", "layer": "sportsPark", "preset": "standard" },
+        { "do": "camera", "target": "area", "view": "oblique", "shot": "sports-standard", "shotMode": "ui" },
+        { "do": "type", "layer": "park", "preset": "natural" },
+        { "do": "camera", "target": "area", "view": "oblique", "shot": "park-natural", "shotMode": "ui" }
+      ]
+    }
+  ]
+}

@@ -15,7 +15,7 @@ import { Tip } from "../lib/tips";
 import { Btn, Icon } from "../components/common";
 import { Confirm } from "../components/dialog";
 import { categoryColor, CUSTOM_COLOR, typeIcon } from "../lib/palette";
-import { presetIcon, presetName, recipeGroup, shownActive, Tile } from "./PresetBrowser";
+import { presetIcon, presetName, recipeGroup, shownActive, standardName, Tile } from "./PresetBrowser";
 import { SectionHead } from "./SectionHead";
 import s from "./styleCard.module.scss";
 import { StylePreview } from "../components/StylePreview";
@@ -84,7 +84,7 @@ export const StyleCard = ({ catalog, design, step, children }: { catalog: Catalo
     // Standard is a style like the others: revert, save over (reset to shipped), save as all work on it.
     const id = shownActive(layer, ap);
     const p = id ? layer.presets.find((x) => x.id === id) ?? null : null;
-    const name = p ? presetName(t, p) : t("Placemaker.UI.Preset.Standard", "Standard");
+    const name = p ? presetName(t, p, layer.id) : standardName(t, layer.id);
     const recipe = catalog.recipes.find((r) => r.id === design.recipeId);
     const group = recipe ? recipeGroup(recipe) : "other";
     const tIcon = typeIcon(layer.id, group);

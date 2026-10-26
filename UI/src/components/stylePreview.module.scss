@@ -1,12 +1,11 @@
 @use "../styles/tokens" as *;
 
-// The style's example photo (StylePreview.tsx): 16:9, the view switch over its bottom edge.
+// The style's example photo (StylePreview.tsx): 16:9 (its height set from the measured width), the word Preview top left,
+// the fold chevron top right, the view switch over its bottom edge.
 
 .preview {
     position: relative;
     width: 100%;
-    height: 0;
-    padding-bottom: 56.25%;
     margin-bottom: 6rem;
     border-radius: $radius-l;
     overflow: hidden;
@@ -58,17 +57,18 @@
     cursor: default;
 }
 
+// plain words on the picture, not a button
 .note {
     position: absolute;
-    left: 6rem;
-    bottom: 6rem;
-    height: 20rem;
-    padding: 0 7rem;
-    border-radius: $radius;
-    background-color: rgba(11, 18, 26, 0.6);
-    color: $c-text-dim;
+    left: 9rem;
+    top: 7rem;
+    color: rgba(255, 255, 255, 0.85);
     font-size: 10rem;
-    line-height: 20rem;
+    font-weight: 600;
+    letter-spacing: 0.6rem;
+    text-transform: uppercase;
+    text-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.9);
+    pointer-events: none;
 }
 
 // top right: folds the photo away to one line

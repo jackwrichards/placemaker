@@ -9,6 +9,7 @@
 // Then tools/style-previews/collect.ps1 shrinks the pictures into UI/src/assets/previews, which the panel bundles.
 //
 //   node tools/style-previews/make-scenarios.js [category ...]      (default: every visible category)
+//   node tools/style-previews/make-scenarios.js --standard          (only each type's Standard, one file previews-standard.json)
 //   powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/previews-parks.json -Build -Who style-previews
 
 const fs = require('fs'), path = require('path');
@@ -17,14 +18,16 @@ const cat = JSON.parse(fs.readFileSync(path.join(repo, 'suite', 'catalog.json'),
 const shelfDir = path.join(repo, 'Recipes', 'shelf');
 const shelves = fs.readdirSync(shelfDir).map((f) => JSON.parse(fs.readFileSync(path.join(shelfDir, f), 'utf8'))).filter((s) => !s.hidden);
 
-/** Every visible type and style of a category, as the Make row shows them. */
+/** Every visible type and style of a category, as the Make row shows them (Standard first: every type has it, the catalog
+ *  lists it only where the type ships its own). */
 function styles(shelf) {
   const hiddenTypes = new Set(shelf.hiddenTypes || []);
   const out = [];
   for (const t of cat.types) {
     if (!((shelf.groups || []).includes(t.group) || (shelf.types || []).includes(t.layer)) || hiddenTypes.has(t.layer)) continue;
     const hidden = new Set((shelf.hiddenStyles || {})[t.layer] || []);
-    for (const p of t.presets) if (!hidden.has(p)) out.push({ layer: t.layer, preset: p, group: t.group });
+    const presets = t.presets.includes('standard') ? t.presets : ['standard', ...t.presets];
+    for (const p of presets) if (!hidden.has(p) && (!onlyStandard || p === 'standard')) out.push({ layer: t.layer, preset: p, group: t.group });
   }
   return out;
 }
@@ -64,8 +67,23 @@ function file(shelf, done) {
   };
 }
 
-const want = process.argv.slice(2);
+const onlyStandard = process.argv.includes('--standard');
+const want = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const done = new Set();
+if (onlyStandard) {
+  // every visible type's Standard in one file (zoning has none: the user wants no zoning photos)
+  const all = [];
+  for (const shelf of shelves.sort((a, b) => a.order - b.order)) {
+    if (shelf.id === 'zoning') continue;
+    const f = file(shelf, done);
+    if (f) all.push(...f.scenarios);
+  }
+  const out = path.join(repo, 'suite', 'scenarios', 'previews-standard.json');
+  const about = "Style previews: every visible type's Standard, three pictures each. Made by tools/style-previews/make-scenarios.js --standard.";
+  fs.writeFileSync(out, JSON.stringify({ _about: about, scenarios: all }, null, 2));
+  console.log(out + ': ' + all.length + ' styles');
+  process.exit(0);
+}
 for (const shelf of shelves.sort((a, b) => a.order - b.order)) {
   if (want.length && !want.includes(shelf.id)) { styles(shelf).forEach((s) => done.has(idOf(s))); continue; }
   const f = file(shelf, done);

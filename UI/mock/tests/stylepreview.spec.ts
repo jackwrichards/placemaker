@@ -35,5 +35,11 @@ test("style preview: photo on top, views switch and stay", async ({ page }) => {
     await page.getByTestId("style-preview").click();
     await expect(page.getByTestId("style-preview")).toHaveAttribute("data-open", "1");
     await panelShot(page, "style-preview-reopened");
+    // every type's Standard has its own name and photo (sports park: Playing fields)
+    await pickType(page, "sportsPark");
+    await waitPlanned(page);
+    await expect(page.getByTestId("placemaker-panel")).toContainText("Playing fields");
+    await expect(page.getByTestId("style-preview")).toHaveAttribute("data-open", "1");
+    await panelShot(page, "style-preview-standard");
     expect(errors).toEqual([]);
 });

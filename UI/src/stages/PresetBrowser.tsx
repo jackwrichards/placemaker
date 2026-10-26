@@ -97,8 +97,16 @@ function typeLayer(catalog: Catalog, r: RecipeInfo): LayerType | undefined {
  */
 export const STANDARD_ID = "standard";
 
-export const presetName = (t: TFunc, p: PresetView) =>
-    p.custom ? p.name : p.id === STANDARD_ID && !p.name ? t("Placemaker.UI.Preset.Standard", "Standard") : t(p.name, humanize(p.name || p.id));
+/** Standard's name: each type gives its Standard its own (Placemaker.Standard.<layer>, Lang/*.styles.json; the user 25 Oct), else the plain word. */
+export const standardName = (t: TFunc, layerId?: string) =>
+    (layerId && t("Placemaker.Standard." + layerId, "")) || t("Placemaker.UI.Preset.Standard", "Standard");
+
+export const presetName = (t: TFunc, p: PresetView, layerId?: string) =>
+    p.custom
+        ? p.name
+        : p.id === STANDARD_ID && (!p.name || p.name === "Placemaker.UI.Preset.Standard")
+          ? standardName(t, layerId)
+          : t(p.name, humanize(p.name || p.id));
 const recipeName = (t: TFunc, r: RecipeInfo) => (r.custom ? r.name : t(r.name, humanize(r.name || r.id)));
 
 /** A style's glyph: the player's own a star, Standard the type's own glyph, the others by keyword (lib/palette styleIcon). */
@@ -127,7 +135,7 @@ export function makeSummary(t: TFunc, catalog: Catalog, design: DesignState): st
     const layer = typeLayer(catalog, r);
     const id = shownActive(layer, design.activePreset);
     const p = id && layer ? layer.presets.find((x) => x.id === id) : undefined;
-    return p ? recipeName(t, r) + " · " + presetName(t, p) : recipeName(t, r);
+    return p ? recipeName(t, r) + " · " + presetName(t, p, layer?.id) : recipeName(t, r);
 }
 
 // ───────────── remembered choices ─────────────
@@ -275,7 +283,7 @@ export const TypeBrowser = ({ catalog, design }: { catalog: Catalog; design: Des
             const catHit = has(c.title);
             for (const r of c.types) {
                 const layer = typeLayer(catalog, r);
-                const ps = layer ? layer.presets.filter((p) => !p.shelved && has(presetName(t, p))) : [];
+                const ps = layer ? layer.presets.filter((p) => !p.shelved && has(presetName(t, p, layer.id))) : [];
                 if (layer) for (const p of ps) styleHits.push({ r, layer, p });
                 if (catHit || has(recipeName(t, r)) || ps.length) {
                     typeHits.push(r);
@@ -406,7 +414,7 @@ export const TypeBrowser = ({ catalog, design }: { catalog: Catalog; design: Des
     const color = (r: RecipeInfo) => categoryColor(recipeGroup(r));
     const tIcon = (r: RecipeInfo) => typeIcon(r.id, recipeGroup(r));
     const styleChip = (r: RecipeInfo, layer: LayerType, p: PresetView, inSearch: boolean) => {
-        const name = presetName(t, p);
+        const name = presetName(t, p, layer.id);
         const active = r.id === design.recipeId && activeId === p.id;
         return (
             <Chip

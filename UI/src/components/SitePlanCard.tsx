@@ -383,7 +383,7 @@ const Rows = ({ sp, state, hover, setHover, columns }: { sp: SitePlanView; state
 // ───────────── the card ─────────────
 
 /** The width of a box in px, measured once and on resize (the panel is resizable; no ResizeObserver in the game's view). */
-function useBoxWidth(ref: React.RefObject<HTMLDivElement>): number {
+export function useBoxWidth(ref: React.RefObject<HTMLDivElement>): number {
     const [w, setW] = useState(0);
     useEffect(() => {
         const measure = () => {
