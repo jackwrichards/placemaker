@@ -58,6 +58,7 @@ namespace Placemaker.Game.Overlay
         private readonly List<SpCurve> _spCars = new List<SpCurve>(), _spWalks = new List<SpCurve>();
         private readonly List<(float3 at, float r)> _spCaps = new List<(float3, float)>();
         private readonly List<float3> _spIssues = new List<float3>();
+        private readonly HashSet<string> _spSolid = new HashSet<string>();
 
         private const string Highlight = "#ffe14d";
         /// <summary>The asphalt under the Real preview: the built lots' mid grey (the sketch's darker tone read as black there).</summary>
@@ -261,7 +262,16 @@ namespace Placemaker.Game.Overlay
                 var c = PreviewLegend.Hex(underGhost && key == "sp:asphalt" ? RealAsphalt : s.Color);
                 float pulse = SpPulse(s.Row);
                 if (pulse > 0f) { c = math.lerp(c, hi, pulse * 0.85f); a = math.max(a, 0.9f * pulse); }
-                _fill.SetLayer(key, s.Rings, new Color(c.x, c.y, c.z, on ? math.min(1f, a) : 0f), s.Priority, s.Sig, s.Convex);
+                // under the Real preview the asphalt and paving are a solid lit surface (below the ghost's see-through trees); the overlay
+                // copy is hidden then, and the solid one hidden in the sketch
+                bool solid = underGhost && (key == "sp:asphalt" || key == "sp:paving" || key == "sp:plaza");
+                _fill.SetLayer(key, s.Rings, new Color(c.x, c.y, c.z, on && !solid ? math.min(1f, a) : 0f), s.Priority, s.Sig, s.Convex);
+                if (solid || _spSolid.Contains(key))
+                {
+                    _spSolid.Add(key);
+                    var sc = PreviewLegend.Hex(key == "sp:asphalt" ? RealAsphalt : s.Color);
+                    _fill.SetSolidLayer("solid:" + key, s.Rings, new Color(sc.x, sc.y, sc.z, solid && on ? 1f : 0f), s.Sig);
+                }
             }
             if (rebuilt && sw.ElapsedMilliseconds > 50)
             {

@@ -39,6 +39,9 @@ namespace Placemaker.Game.Overlay
             public Color Color;
             public float Priority = float.NaN;
             public bool Used;
+            /// <summary>A solid, lit ground surface (SetSolidLayer), not an overlay.</summary>
+            public bool Solid;
+            public MaterialPropertyBlock Props;
         }
 
         private readonly Dictionary<string, Layer> _layers = new Dictionary<string, Layer>(StringComparer.Ordinal);
@@ -105,6 +108,56 @@ namespace Placemaker.Game.Overlay
             }
             if (layer.Mesh == null) return;
             ApplyStyle(layer, color, priority);
+        }
+
+        /// <summary>
+        /// (sketch study) <paramref name="rings"/> as a solid, lit ground surface: drawn with the opaque things, so the Real
+        /// preview's see-through trees sit on it as on the built lot. The overlay material draws after everything and fogged over
+        /// them (the user, 25 Oct: "it has this weird haze"). Falls back to nothing when no lit shader is found.
+        /// </summary>
+        public void SetSolidLayer(string key, IReadOnlyList<float3[]> rings, Color color, long signature)
+        {
+            if (!EnsureSolid()) return;
+            if (!_layers.TryGetValue(key, out var layer)) _layers[key] = layer = new Layer();
+            layer.Used = true;
+            layer.Solid = true;
+            if (layer.Mesh == null || layer.Signature != signature)
+            {
+                layer.Signature = signature;
+                BuildMesh(layer, rings);
+            }
+            if (layer.Props == null || !layer.Color.Equals(color))
+            {
+                layer.Color = color;
+                layer.Props ??= new MaterialPropertyBlock();
+                layer.Props.SetColor("_BaseColor", color);
+                layer.Props.SetColor("_UnlitColor", color);
+            }
+        }
+
+        private Material _solid;
+        private int _solidAttempts;
+
+        private bool EnsureSolid()
+        {
+            if (_solid != null) return true;
+            if (_solidAttempts++ > 0) return false;
+            try
+            {
+                var shader = Shader.Find("HDRP/Lit") ?? Shader.Find("HDRP/Unlit");
+                if (shader == null) { Mod.Log.Warn("Placemaker: no lit shader, the Real preview's ground stays an overlay"); return false; }
+                _solid = new Material(shader) { hideFlags = HideFlags.HideAndDontSave, name = "Placemaker ground" };
+                if (_solid.HasFloat("_Smoothness")) _solid.SetFloat("_Smoothness", 0.15f);
+                if (_solid.HasFloat("_Metallic")) _solid.SetFloat("_Metallic", 0f);
+                try { UnityEngine.Rendering.HighDefinition.HDMaterial.ValidateMaterial(_solid); } catch (Exception) { }
+                Mod.Log.Info("Placemaker: solid ground material " + shader.name + ", queue " + _solid.renderQueue);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Mod.Log.Warn("Placemaker: solid ground material unavailable (" + e.Message + ")");
+                return false;
+            }
         }
 
         public void EndFrame()
@@ -299,7 +352,13 @@ namespace Placemaker.Game.Overlay
         {
             foreach (var l in _layers.Values)
             {
-                if (!l.Used || l.Mesh == null || l.Material == null || l.Mesh.vertexCount == 0) continue;
+                if (!l.Used || l.Mesh == null || l.Mesh.vertexCount == 0) continue;
+                if (l.Solid)
+                {
+                    if (_solid != null && l.Color.a > 0.01f) Graphics.DrawMesh(l.Mesh, Matrix4x4.identity, _solid, 0, null, 0, l.Props, UnityEngine.Rendering.ShadowCastingMode.Off, true);
+                    continue;
+                }
+                if (l.Material == null) continue;
                 try { Draw(l); }
                 catch (Exception e)
                 {
@@ -333,6 +392,7 @@ namespace Placemaker.Game.Overlay
                 if (l.Material != null) UnityEngine.Object.Destroy(l.Material);
             }
             _layers.Clear();
+            if (_solid != null) UnityEngine.Object.Destroy(_solid);
             base.OnDestroy();
         }
 
