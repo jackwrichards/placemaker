@@ -205,6 +205,9 @@ namespace Placemaker.Game.Overlay
 
         private readonly List<(Line3.Segment seg, float width, string color, string row)> _spRealStrips = new List<(Line3.Segment, float, string, string)>();
         private const float RealStrip = 1f;
+        private readonly List<Line3.Segment> _spRealLines = new List<Line3.Segment>();
+        /// <summary>Stall lines drawn as overlay lines under the Real preview at most (a frame's cost; beyond it the lot shows plain).</summary>
+        private const int MaxRealLines = 6000;
 
         /// <summary>
         /// The paved ground under the Real preview (asphalt, paving, plaza) as projected overlay strips, 1 m wide, along each
@@ -214,6 +217,8 @@ namespace Placemaker.Game.Overlay
         private void BuildRealGround(SitePlan sp)
         {
             _spRealStrips.Clear();
+            _spRealLines.Clear();
+            if (sp.Stalls.Count <= MaxRealLines) foreach (var (a, b) in sp.Stalls) _spRealLines.Add(new Line3.Segment(OnGround(a), OnGround(b)));
             foreach (var (mat, ring) in sp.Fills)
             {
                 string color = mat == "asphalt" ? RealAsphalt : mat == "paving" || mat == "plaza" ? SitePlan.Palette.Fill(mat) : null;
@@ -304,8 +309,6 @@ namespace Placemaker.Game.Overlay
             {
                 bool on = SpShows(s.Row);
                 float a = s.Alpha * (s.Ground ? alpha : objAlpha);
-                // under the Real preview only what the game cannot show itself, solid, so it reads as the real thing: asphalt,
-                // paving, water and the shop plots; no lawn tone or grass tint over the ground (the user: "it has this weird haze")
                 // under the Real preview the mesh fills draw after the ghost's see-through trees and fogged them (the user: "it has
                 // this weird haze"): none there; the paved ground is drawn as projected strips instead (DrawRealGround)
                 if (underGhost) a = 0f;
@@ -321,12 +324,24 @@ namespace Placemaker.Game.Overlay
                 Mod.Log.Info($"Placemaker site plan: map layers built in {sw.ElapsedMilliseconds} ms (geometry {buildMs} ms, meshes {sw.ElapsedMilliseconds - buildMs} ms; {_spShapes.Count} layers, {rings} shapes)");
             }
 
-            if (underGhost) DrawRealGround(buffer, alpha, P);
+            if (underGhost)
+            {
+                // the Real preview: the paved ground and the stall lines (the game's own line decals are under it); the ghost
+                // draws the roads and paths itself
+                DrawRealGround(buffer, alpha, P);
+                if (SpShows(SitePlan.Parking) && _spRealLines.Count <= MaxRealLines)
+                {
+                    var line = SpColor(SitePlan.Palette.Stall, 0.9f * alpha);
+                    foreach (var seg in _spRealLines) buffer.DrawLine(line, line, 0f, P, seg, 0.15f, default);
+                }
+                DrawSitePlanIssues(buffer, w, alpha);
+                return;
+            }
 
-            // 2. roads, aisles and paths: their real width, round ends so joins merge (flat under the see-through ghost)
-            float carA = (underGhost ? 0.55f : 1f) * alpha;
+            // 2. roads, aisles and paths: their real width, round ends so joins merge
+            float carA = alpha;
             bool roads = SpShows(SitePlan.Roads), lot = SpShows(SitePlan.Parking);
-            var ends = underGhost ? default : new float2(1, 1);
+            var ends = new float2(1, 1);
             if (roads || lot)
             {
                 var asphalt = SpColor(SitePlan.Palette.Asphalt, carA);

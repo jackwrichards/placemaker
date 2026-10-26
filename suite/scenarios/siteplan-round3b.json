@@ -1,0 +1,67 @@
+{
+  "_about": "Site plan round 3: roads markings, What you get, terrain in the top view only.",
+  "scenarios": [
+    {
+      "id": "spui-parking-stalls",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "wait",
+          "seconds": 1
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "review-ui",
+          "shotMode": "ui",
+          "pitch": 45
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "sketch-45",
+          "shotMode": "overlay",
+          "pitch": 45
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "real-45",
+          "shotMode": "overlay",
+          "pitch": 45
+        }
+      ],
+      "site": "flat"
+    }
+  ]
+}

@@ -1,0 +1,187 @@
+{
+  "_about": "Real preview check: a block car park, a road grid and the big rounded lot.",
+  "scenarios": [
+    {
+      "id": "spreal-block",
+      "pace": "settled",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 4
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "real-45",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "closeup",
+          "shot": "real-close",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "wait",
+          "seconds": 2
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "sketch-45",
+          "shotMode": "overlay"
+        }
+      ]
+    },
+    {
+      "id": "spreal-roads",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "suburb"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "wait",
+          "seconds": 1
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "real-45",
+          "shotMode": "overlay",
+          "pitch": 45
+        }
+      ],
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          320
+        ],
+        "roads": "none"
+      }
+    },
+    {
+      "id": "spang-real",
+      "pace": "settled",
+      "land": {
+        "shape": "circle",
+        "size": [
+          300,
+          240
+        ],
+        "ground": "slope",
+        "grade": 4,
+        "toward": "north",
+        "gap": 10,
+        "roads": "follow"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "wait",
+          "seconds": 2
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 4
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "shot": "real-far",
+          "shotMode": "overlay",
+          "pitch": 50
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "low",
+          "shot": "real-low",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "closeup",
+          "shot": "real-close",
+          "shotMode": "overlay"
+        }
+      ]
+    }
+  ]
+}
