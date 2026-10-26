@@ -1,4 +1,4 @@
-// The Zoning types' zoning editor (ZoneMix.tsx): the mode switch, the land as a bar with draggable dividers, one line per
+// The Zoning types' zoning editor (ZoneMix.tsx): its two warnings, the land as a bar with draggable dividers, one line per
 // zone (button, width, depth, roads, remove), a short menu of zone types.
 @use "../styles/tokens" as *;
 
@@ -9,47 +9,26 @@ $text: rgba(234, 242, 246, 0.95);   // buttons in the game UI do not inherit the
     min-width: 0;
 }
 
-.modeGap {
-    height: 6rem;
-}
-
-.mode {
-    @include row;
+// the Zoning types' two warnings (ZoningNotes) on the Design page, under the Style row and above the style card: one quiet
+// caption in the warning colour, no box; the warning icon sits on its first line
+.warn {
+    @include row(flex-start);
     min-width: 0;
-    margin-bottom: 4rem;
-    padding: 2rem;
-    border-radius: 6rem;
-    background-color: rgba(0, 0, 0, 0.22);
-    @include border(1rem, $c-line);
+    margin: 8rem 2rem 2rem;
 }
 
-.modeButton {
-    @include row;
-    justify-content: center;
-    flex: 1 1 0;
+.warnIcon {
+    flex: 0 0 auto;
+    margin-top: 2.5rem;   // the icon's middle on the first line's (16rem line, 11rem icon)
+}
+
+.warnText {
+    flex: 1 1 auto;
     min-width: 0;
-    height: 24rem;
-    border-radius: 4rem;
-    color: $c-text-dim;
-    font-size: $fs-s;
-    cursor: pointer;
-}
-
-.modeButton:hover {
-    color: $text;
-    background-color: $c-surface;
-}
-
-.modeOn {
-    color: #ffffff;
-    background-color: rgba(143, 209, 255, 0.2);
-    @include border(1rem, rgba(143, 209, 255, 0.6));
-}
-
-.modeText {
     margin-left: 6rem;
-    font-weight: 600;
-    @include ellipsis;
+    font-size: $fs-s;
+    line-height: 16rem;
+    color: $c-warning;
 }
 
 // ── the land as a bar ──
@@ -675,23 +654,3 @@ $text: rgba(234, 242, 246, 0.95);   // buttons in the game UI do not inherit the
     margin: 0 6rem 0 8rem;
 }
 
-.foundName {
-    @include row;
-    flex: 1 1 auto;
-    min-width: 0;
-    color: $text;
-    font-size: $fs-s;
-}
-
-.foundCount {
-    flex: 0 0 auto;
-    margin: 0 10rem;
-    font-size: 11rem;
-    color: $c-text-dim;
-}
-
-.none {
-    padding: 10rem 4rem;
-    font-size: $fs-s;
-    color: $c-text-dim;
-}

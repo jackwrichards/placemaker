@@ -57,9 +57,11 @@ namespace Placemaker.Tests
         }
 
         [Fact]
-        public void OffZonesNothing()
+        public void AnOldOnlyEditStyleZonesTheEmptyLandToo()
         {
-            Assert.Empty(Cells(Plan(("zoneArea", false))));
+            // "Only edit existing" is gone (the user, 26 Oct): an old style's zoneArea false zones as true does
+            Assert.Equal(Cells(Plan(("zoneArea", true))).Length, Cells(Plan(("zoneArea", false))).Length);
+            Assert.NotEmpty(Cells(Plan(("zoneArea", false))));
         }
 
         [Fact]

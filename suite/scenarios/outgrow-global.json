@@ -259,12 +259,6 @@
         {
           "do": "type",
           "layer": "zoningSuburb"
-        },
-        {
-          "do": "polish",
-          "click": "zonemix-mode-edit",
-          "shot": "zone-existing",
-          "shotMode": "ui"
         }
       ]
     }

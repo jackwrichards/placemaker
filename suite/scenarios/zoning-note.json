@@ -1,0 +1,96 @@
+{
+  "_about": "The Zoning section's note (the user, 26 Oct: players take the Zoning tool for Outgrow; it only places the game's own zoning): a zoning type picked on an unzoned street, the panel in English, German, French, Russian and Japanese. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/zoning-note.json -Who zoning-note",
+  "scenarios": [
+    {
+      "id": "zoning-note",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          240
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "length": 160,
+          "zone": "none"
+        },
+        {
+          "do": "area",
+          "tool": "paint",
+          "size": 80,
+          "cameraDistance": 520,
+          "stroke": [
+            [
+              -60,
+              30
+            ],
+            [
+              0,
+              30
+            ],
+            [
+              60,
+              30
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "zoningSuburb",
+          "preset": "suburbCornerShops"
+        },
+        {
+          "do": "shot",
+          "name": "zoning-note-en",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "de-DE"
+        },
+        {
+          "do": "shot",
+          "name": "zoning-note-de",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "fr-FR"
+        },
+        {
+          "do": "shot",
+          "name": "zoning-note-fr",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "ru-RU"
+        },
+        {
+          "do": "shot",
+          "name": "zoning-note-ru",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "ja-JP"
+        },
+        {
+          "do": "shot",
+          "name": "zoning-note-ja",
+          "shotMode": "ui"
+        },
+        {
+          "do": "locale",
+          "locale": "en-US"
+        }
+      ]
+    }
+  ]
+}

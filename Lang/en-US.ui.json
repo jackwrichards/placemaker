@@ -433,7 +433,6 @@
   "Placemaker.UI.X": "English",
   "Placemaker.UI.ZoneMix.Add": "Mix in another zone",
   "Placemaker.UI.ZoneMix.AnyRoad": "any",
-  "Placemaker.UI.ZoneMix.Buildings": "{0} buildings",
   "Placemaker.UI.ZoneMix.CapOutgrow": "Outgrow",
   "Placemaker.UI.ZoneMix.CapRoads2": "Allowed road width",
   "Placemaker.UI.ZoneMix.CapZone": "Zone",
@@ -446,14 +445,10 @@
   "Placemaker.UI.ZoneMix.GridTip": "Its lots, in zone cells (one cell is 8 m), the road along the bottom: the solid block is the smallest lot, the lighter one the biggest; each lot picks a size between. Click or drag near a corner to move it.",
   "Placemaker.UI.ZoneMix.Max": "max lot",
   "Placemaker.UI.ZoneMix.Min": "min",
-  "Placemaker.UI.ZoneMix.ModeEdit": "Only edit existing",
-  "Placemaker.UI.ZoneMix.ModeEditTip": "Nothing is zoned: the buildings in the area outgrow their lots, each zone type by its own settings (a type not listed: the first one's).",
-  "Placemaker.UI.ZoneMix.ModeZone": "Zone empty land",
-  "Placemaker.UI.ZoneMix.ModeZoneTip": "The empty zone cells of the area get these zones, as lots that start at the road; the buildings there outgrow their lots too.",
-  "Placemaker.UI.ZoneMix.NoZones": "No zoned buildings in the selection: pick an area with buildings.",
   "Placemaker.UI.ZoneMix.OutgrowOn": "Outgrow",
   "Placemaker.UI.ZoneMix.OutgrowOnTip": "On: this zone's buildings outgrow their lots with the outgrow type beside it. Off: they stay as the game makes them.",
   "Placemaker.UI.ZoneMix.Remove": "Remove this zone",
   "Placemaker.UI.ZoneMix.RoadTip3": "Allowed road width: the roads this zone may line, by their width (two lanes 16 m, four lanes 24 m, six lanes 32 m). Its lots are only placed along roads in this range.",
-  "Placemaker.UI.Zoning": "Zoning"
+  "Placemaker.UI.ZoningNote": "This places vanilla zoning, the same as zoning by hand.",
+  "Placemaker.UI.ZoningNoteOutgrow": "Outgrow is a separate feature."
 }

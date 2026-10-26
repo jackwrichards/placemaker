@@ -159,7 +159,8 @@ namespace Placemaker.Core.Layers.Types.Zoning
 
         protected override void DefineControls(ControlSet c)
         {
-            // Zoning: zone the empty land (true) or only edit the buildings there (false)
+            // Zoning: it always zones the empty land; "only edit the buildings there" (false) is gone (the user, 26 Oct:
+            // Outgrow's painter does that) and an old style's false is read as true. Kept so saved styles load as they are.
             c.Toggle("zoneArea", true, ControlTier.Essential, "zone").Tip();
             var slots = Slots;
             for (int i = 0; i < 3; i++)
@@ -172,17 +173,17 @@ namespace Placemaker.Core.Layers.Types.Zoning
                 z.Tier = slot == "A" ? ControlTier.Essential : ControlTier.More;
                 c.List.Add(z);
                 c.Asset("zoneAsset" + slot, AssetCategories.Zone, ControlTier.More, "zone").Tip();
-                c.Slider("share" + slot, zs.Share, 0, 100, 1, "%", slot == "A" ? ControlTier.Essential : ControlTier.More, "zone").Tip().When("zoneArea=true");
-                c.Slider("widthMin" + slot, zs.W0, 1, MaxWidth, 1, "count", ControlTier.More, "zone").Tip().When("zoneArea=true");
-                c.Slider("widthMax" + slot, zs.W1, 1, MaxWidth, 1, "count", ControlTier.More, "zone").Tip().When("zoneArea=true");
-                c.Slider("depthMin" + slot, zs.D0, 1, MaxDepth, 1, "count", ControlTier.More, "zone").Tip().When("zoneArea=true");
-                c.Slider("depthMax" + slot, zs.D1, 1, MaxDepth, 1, "count", ControlTier.More, "zone").Tip().When("zoneArea=true");
-                c.Slider("roadMin" + slot, zs.R0, 0, MaxRoad, 1, "m", ControlTier.More, "zone").Tip().When("zoneArea=true");
-                c.Slider("roadMax" + slot, zs.R1, 0, MaxRoad, 1, "m", ControlTier.More, "zone").Tip().When("zoneArea=true");
+                c.Slider("share" + slot, zs.Share, 0, 100, 1, "%", slot == "A" ? ControlTier.Essential : ControlTier.More, "zone").Tip();
+                c.Slider("widthMin" + slot, zs.W0, 1, MaxWidth, 1, "count", ControlTier.More, "zone").Tip();
+                c.Slider("widthMax" + slot, zs.W1, 1, MaxWidth, 1, "count", ControlTier.More, "zone").Tip();
+                c.Slider("depthMin" + slot, zs.D0, 1, MaxDepth, 1, "count", ControlTier.More, "zone").Tip();
+                c.Slider("depthMax" + slot, zs.D1, 1, MaxDepth, 1, "count", ControlTier.More, "zone").Tip();
+                c.Slider("roadMin" + slot, zs.R0, 0, MaxRoad, 1, "m", ControlTier.More, "zone").Tip();
+                c.Slider("roadMax" + slot, zs.R1, 0, MaxRoad, 1, "m", ControlTier.More, "zone").Tip();
                 foreach (var id in new[] { "zone", "zoneAsset", "share", "widthMin", "widthMax", "depthMin", "depthMax", "roadMin", "roadMax" }) c.Fixed(id + slot);
             }
-            c.Choice("zonePattern", DefaultPattern, ControlTier.Essential, "zone", Patterns).Tip().When("zoneArea=true");
-            c.Toggle("levelLots", true, ControlTier.Essential, "zone").Tip().When("zoneArea=true");
+            c.Choice("zonePattern", DefaultPattern, ControlTier.Essential, "zone", Patterns).Tip();
+            c.Toggle("levelLots", true, ControlTier.Essential, "zone").Tip();
             c.Slider("levelEarth", 4, 1, 8, 0.5, "m", ControlTier.More, "zone").Tip().When("levelLots=true");
             c.Slider("levelBank", 40, 20, 50, 5, "%", ControlTier.More, "zone").Tip().When("levelLots=true");
             c.Toggle("levelWalls", false, ControlTier.More, "zone").Tip().When("levelLots=true");
@@ -241,7 +242,7 @@ namespace Placemaker.Core.Layers.Types.Zoning
                 ctx.Plan.Stats.Add(new PlanStat(StatBuildings, buildings, "count"));
                 ctx.Plan.Facts["polishBuildings"] = buildings;
             }
-            if (ctx.B("zoneArea")) PlanZoning(ctx);
+            PlanZoning(ctx);
         }
 
         private sealed class LotZone

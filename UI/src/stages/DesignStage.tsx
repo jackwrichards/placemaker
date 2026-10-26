@@ -4,8 +4,8 @@
 //      is the style being edited.
 //   2. The style card (StyleCard.tsx, the user, 25 Oct: "I've selected the formal garden and I'm now editing it"; "it's
 //      like a file"): its line is EDITING · that style's chip again, small · ● with Revert · Save · Save as… (Rename · Delete, or Reset); its
-//      panel everything the style keeps, each part under the same light line: Parameters (Shuffle at its end; Zoning for
-//      a zoning type: the type's control
+//      panel everything the style keeps, each part under the same light line: Parameters (Shuffle at its end; for
+//      a zoning type its zoning control, no heading: its two warnings sit above the card, under the Style row)
 //      groups as one-line heads in two columns, an open one unfolding full width under its pair, Controls.tsx
 //      ControlList), then Add-ons (the built-in features as one-line rows in two columns: tile · name · fit or summary ·
 //      switch, their options under the pair when open, the rest behind "N more").
@@ -27,7 +27,7 @@ import { usePanelLayout } from "../lib/layout";
 import { Tip } from "../lib/tips";
 import { Btn, Icon, Section, Switch } from "../components/common";
 import { ControlList, controlsSummary } from "../controls/Controls";
-import { isZoneMix, ZoneMix, ZoneOutgrow } from "../controls/ZoneMix";
+import { isZoneMix, ZoneMix, ZoneOutgrow, ZoningNotes } from "../controls/ZoneMix";
 import { ValueSinkContext } from "../controls/Controls";
 import { SettingValue } from "../contract";
 import { ControlEx, valueOf } from "../lib/schema";
@@ -565,15 +565,8 @@ const ZoningShape = ({ step, layer, state, scope }: { step: StepView; layer: Lay
     };
     return (
         <div className={s.shape} data-testid="zoning">
-            <SubHead icon="zone" title={t("Placemaker.UI.Zoning", "Zoning")} />
             <ErrorBoundary name="zoning">
-                <ZoneMix
-                    step={step}
-                    layer={layer}
-                    rows={(ids) => <ControlList step={step} layer={layer} state={state} only={ids} flat />}
-                    found={state.painter?.areaZones ?? []}
-                    outgrow={outgrow}
-                />
+                <ZoneMix step={step} layer={layer} rows={(ids) => <ControlList step={step} layer={layer} state={state} only={ids} flat />} outgrow={outgrow} />
             </ErrorBoundary>
         </div>
     );
@@ -670,6 +663,8 @@ export const DesignStage = ({ catalog, design, state }: { catalog: Catalog; desi
                 <TypeBrowser catalog={catalog} design={design} />
             </ErrorBoundary>
             <PlacesInside />
+            {/* a Zoning type: its two warnings between the Style row and the style card, outside both (the user, 26 Oct) */}
+            {root && isZoneMix(layerOf(catalog, root.layer)) ? <ZoningNotes /> : null}
             {!root ? (
                 <div className={s.emptyNote}>{t("Placemaker.UI.PickRecipe", "Nothing picked yet: pick a category to start")}</div>
             ) : (
