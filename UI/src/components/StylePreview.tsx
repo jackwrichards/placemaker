@@ -38,16 +38,25 @@ export function photoOf(layer: string, preset: string, view: View): string | und
     return PHOTOS[layer + "__" + preset + "__" + view];
 }
 
-function loadView(): View {
+/** Types with their own view, remembered apart from the others: roads open on Above (the user: a street layout reads best from above). */
+const OWN_VIEW: Record<string, View> = { roads: "top" };
+
+function viewKey(layer: string) {
+    return OWN_VIEW[layer] ? VIEW_KEY + "." + layer : VIEW_KEY;
+}
+
+function loadView(layer: string): View {
+    const fallback = OWN_VIEW[layer] ?? "iso";
     try {
-        const v = window.localStorage?.getItem(VIEW_KEY) as View | null;
-        return v && (VIEWS as readonly string[]).includes(v) ? v : "iso";
+        const v = window.localStorage?.getItem(viewKey(layer)) as View | null;
+        return v && (VIEWS as readonly string[]).includes(v) ? v : fallback;
     } catch {
-        return "iso";
+        return fallback;
     }
 }
 
-let shared: View | null = null;
+/** The remembered view per key (viewKey): every type shares one, roads has its own. */
+const shared: Record<string, View> = {};
 let sharedOpen: boolean | null = null;
 /** Kept across remounts (another type, another stage): the box width, the photo last on screen. */
 let lastW = 0;
@@ -81,7 +90,9 @@ export const StylePreview = ({ layer, preset, name }: { layer: string; preset: s
     const { t } = useT();
     // "Playing fields preview" (the user): the style's name with the word
     const note = name ? t("Placemaker.UI.Preview.NoteOf", "{0} preview", [name]) : t("Placemaker.UI.Preview.Note", "Preview");
-    const [view, setViewState] = useState<View>(() => shared ?? (shared = loadView()));
+    const [, setViewState] = useState(0);
+    const vk = viewKey(layer);
+    const view: View = shared[vk] ?? (shared[vk] = loadView(layer));
     const [open, setOpenState] = useState<boolean>(() => sharedOpen ?? (sharedOpen = loadOpen()));
     // 16:9 (the photos, collect.ps1) from the measured width: the game's view gives an absolute picture no height inside a padding-sized box
     const box = useRef<HTMLDivElement>(null);
@@ -119,10 +130,10 @@ export const StylePreview = ({ layer, preset, name }: { layer: string; preset: s
     const any = VIEWS.some((v) => photoOf(layer, preset, v));
     if (!any) return null;
     const setView = (v: View) => {
-        shared = v;
-        setViewState(v);
+        shared[vk] = v;
+        setViewState((n) => n + 1);
         try {
-            window.localStorage?.setItem(VIEW_KEY, v);
+            window.localStorage?.setItem(vk, v);
         } catch {
             /* not remembered */
         }

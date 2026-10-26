@@ -106,6 +106,7 @@ namespace Placemaker.Game.Overlay
                 case "paint:sand": return -96f;
                 case "paving": case "plaza": return -94f;
                 case "asphalt": case "water": return -93f;
+                case "isle": return -92f;   // dry land inside the water, over it
                 default: return -95f;
             }
         }
@@ -229,7 +230,8 @@ namespace Placemaker.Game.Overlay
         {
             if (string.IsNullOrEmpty(row)) return true;
             var v = _tool.LegendVisibility;
-            return v != null && v.TryGetValue(row, out var on) ? on : PreviewLegend.DefaultVisible(row);
+            // the ground change starts hidden (the user: on when asked for, then on the map and in the top view alike)
+            return v != null && v.TryGetValue(row, out var on) ? on : row != PreviewLegend.Terrain && PreviewLegend.DefaultVisible(row);
         }
 
         /// <summary>0..1 blink of the hovered row (1 = full highlight).</summary>

@@ -780,7 +780,8 @@ export const PlacemakerPanel = () => {
             break;
     }
 
-    const showPreviewToggle = !polish && !outgrow && (state.stage === "design" || state.stage === "review");
+    // Design is always Sketch; Review opens on Real and has the switch (the user: one mode per stage, room for the photo)
+    const showPreviewToggle = !polish && !outgrow && state.stage === "review";
     // Header tips open UPWARDS (over the game's top bar), so they never sit on the stage bar below.
     const header = (
         <TipDirectionContext.Provider value="up">

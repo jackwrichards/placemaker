@@ -3,16 +3,11 @@
 // The style's example photo (StylePreview.tsx): 16:9 (its height set from the measured width), the word Preview top left,
 // the fold chevron top right, the view switch over its bottom edge.
 
-// smaller than the card, centred (the user: smaller overall on the panel)
+// the full width of the stage, on top of the library
 .preview {
     position: relative;
-    width: 78%;
-    align-self: center;
-    margin-left: auto;
-    margin-right: auto;
-    // even gaps: the Editing line below brings its own space
-    margin-top: 10rem;
-    margin-bottom: -6rem;
+    width: 100%;
+    margin-bottom: 8rem;
     border-radius: $radius-l;
     overflow: hidden;
     background-color: #1a2229;
@@ -118,7 +113,7 @@
     align-items: center;
     height: 22rem;
     padding: 0 8rem;
-    margin-bottom: 6rem;
+    margin-bottom: 8rem;
     border-radius: $radius-l;
     background-color: #1a2229;
     @include border(1rem, $c-line);

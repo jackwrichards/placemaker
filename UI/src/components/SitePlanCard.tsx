@@ -349,9 +349,12 @@ export const Swatch = ({ sym }: { sym: string }) => {
     }
 };
 
+/** Rows hidden until clicked (C# PreviewLegend.DefaultVisible and SpShows): the ground change, blocked cells, decals. */
+const HIDDEN_FIRST = new Set(["terrain", "blocked", "decals"]);
+
 export function rowVisible(id: string, state: ToolState): boolean {
     const v = state.legendVisibility?.[id];
-    return v !== undefined ? v : true;
+    return v !== undefined ? v : !HIDDEN_FIRST.has(id);
 }
 
 /** The legend in columns (2, or 3 in the large view): hover = blink, click = hide / show. */
@@ -407,8 +410,9 @@ function ratioOf(sp: SitePlanView, maxRatio: number): number {
     return Math.min(maxRatio, Math.max(0.6, ratio));
 }
 
+// every choice made (a row turned on counts too: some start hidden)
 const hiddenKeyOf = (state: ToolState) =>
-    Object.entries(state.legendVisibility ?? {}).filter(([, v]) => !v).map(([k]) => k).sort().join(",");
+    Object.entries(state.legendVisibility ?? {}).map(([k, v]) => k + (v ? "+" : "-")).sort().join(",");
 
 /**
  * The top view. "row" (Review): the picture beside its legend; "stack" (the Design window): the picture over its legend.

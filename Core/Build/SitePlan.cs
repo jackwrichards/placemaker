@@ -37,7 +37,7 @@ namespace Placemaker.Core.Build
 
         /// <summary>Fill materials, drawn in this order (later on top).</summary>
         /// <summary>The ground paints (the game's terrain textures: dry grass, lush grass, dirt, sand) come first, under the surfaces.</summary>
-        public static readonly string[] Materials = { "paint:dry", "paint:lush", "paint:dirt", "paint:sand", "ground", "grass", "deco", "paving", "plaza", "asphalt", "water" };
+        public static readonly string[] Materials = { "paint:dry", "paint:lush", "paint:dirt", "paint:sand", "ground", "grass", "deco", "paving", "plaza", "asphalt", "water", "isle" };
 
         // ── The palette (one place: the overlay, the panel picture and its legend swatches all use it) ──
         public static class Palette
@@ -63,6 +63,7 @@ namespace Placemaker.Core.Build
                     case "paving": return 0.75f;
                     case "plaza": return 0.8f;
                     case "water": return 0.8f;
+                    case "isle": return 0.30f;
                     case "deco": return 0.7f;
                     case "paint:dry": case "paint:lush": return 0.6f;
                     case "paint:dirt": case "paint:sand": return 0.85f;
@@ -75,7 +76,7 @@ namespace Placemaker.Core.Build
                 switch (material)
                 {
                     case "asphalt": return Asphalt;
-                    case "grass": return Grass;
+                    case "grass": case "isle": return Grass;
                     case "paving": return Paving;
                     case "plaza": return Plaza;
                     case "water": return Water;
@@ -212,6 +213,27 @@ namespace Placemaker.Core.Build
                     if (m == "grass") grass = true; else if (m == "water") water = true; else if (m != "asphalt" && m != "ground") paved = true;
                     if (m != "asphalt") Anchor(m == "water" ? Water : Ground, Poly.Centroid(Poly.To2D(s.Ring)));
                 }
+                // planned water: a basin with a water level (ponds, lakes, flooded pits, pools; the user: "show where the water is
+                // expected to eventually go"); land raised above that level inside it stays dry (islands, drawn over the water)
+                var basins = new List<(float2[] ring, float level)>();
+                foreach (var t in l.Terraform)
+                {
+                    if (t?.Ring == null || t.Ring.Length < 3 || !math.isfinite(t.WaterLevel)) continue;
+                    var ring = Poly.To2D(t.Ring);
+                    basins.Add((ring, t.WaterLevel));
+                    sp.Fills.Add(("water", ring));
+                    water = true;
+                    Anchor(Water, Poly.Centroid(ring));
+                }
+                if (basins.Count > 0)
+                    foreach (var t in l.Terraform)
+                    {
+                        if (t?.Ring == null || t.Ring.Length < 3 || math.isfinite(t.WaterLevel) || t.Kind != TerraformKind.Raise) continue;
+                        var ring = Poly.To2D(t.Ring);
+                        var c = Poly.Centroid(ring);
+                        foreach (var (b, level) in basins)
+                            if (t.TargetHeight > level && Poly.Contains(b, c)) { sp.Fills.Add(("isle", ring)); break; }
+                    }
                 foreach (var n in l.Nets)
                 {
                     if (n == null) continue;
@@ -363,7 +385,7 @@ namespace Placemaker.Core.Build
             if (roadLen > 0) Row(Roads, "road", "Placemaker.SitePlan.Roads", "Roads", roadLen, "m");
             if (bays > 0) Row(Parking, "bays", "Placemaker.SitePlan.Parking", "Parking", bays, "count");
             else if (aisles.Count > 0) Row(Parking, "bays", "Placemaker.SitePlan.CarPark", "Car park", 0, "");
-            if (walkLen > 0) Row(Paths, "path", "Placemaker.SitePlan.Paths", "Footpaths", walkLen, "m");
+            if (walkLen > 0) Row(Paths, "path", "Placemaker.SitePlan.Paths", "Paths", walkLen, "m");
             if (grass) Row(Ground, "grass", "Placemaker.SitePlan.Lawn", "Lawn", 0, "");
             else if (paved) Row(Ground, "paving", "Placemaker.SitePlan.Paving", "Paving", 0, "");
             if (water) Row(Water, "water", "Placemaker.SitePlan.Water", "Water", 0, "");
@@ -374,7 +396,7 @@ namespace Placemaker.Core.Build
                 // the number: the biggest change either way, in metres
                 Row(Terrain, "terrain", "Placemaker.SitePlan.Terrain", "Terrain", Math.Round(Math.Max(Math.Abs(heat.MinDelta), Math.Abs(heat.MaxDelta)), 1), "delta");
             }
-            if (sp.PlotCells.Count > 0) Row(Plots, "zone", "Placemaker.SitePlan.Plots", "Shop plots", sp.PlotCells.Count, "cells");
+            if (sp.PlotCells.Count > 0) Row(Plots, "zone", "Placemaker.SitePlan.Plots", "Plots", sp.PlotCells.Count, "cells");
             if (sp.TreeCrowns.Count > 0) Row(Trees, "tree", "Placemaker.SitePlan.Trees", "Trees", sp.TreeCrowns.Count, "count");
             int hedges = 0;
             foreach (var pr in sp.Props) if (pr.Row == Planting) hedges++;
@@ -404,7 +426,7 @@ namespace Placemaker.Core.Build
         }
 
         /// <summary>The legend row a fill belongs to (the overlay's hover / hide per row).</summary>
-        public static string RowOfMaterial(string material) => material == "water" ? Water : material == "asphalt" ? Parking : Ground;
+        public static string RowOfMaterial(string material) => material == "water" ? Water : material == "asphalt" ? Parking : material == "isle" ? Water : Ground;
 
         /// <summary>
         /// Where a row's annotation goes: the member nearest the middle of its members, pulled inside the outline. Rows with

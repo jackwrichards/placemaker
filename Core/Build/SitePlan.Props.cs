@@ -39,13 +39,13 @@ namespace Placemaker.Core.Build
         public static readonly (string row, string sym, string key, string label)[] PropRows =
         {
             (Places, "place", "Placemaker.SitePlan.Places", "Places"),
-            (Buildings, "building", "Placemaker.SitePlan.Buildings", "Buildings and stalls"),
-            (Vehicles, "vehicle", "Placemaker.SitePlan.Vehicles", "Vehicles and machines"),
-            (Storage, "storage", "Placemaker.SitePlan.Storage", "Containers and storage"),
-            (Junk, "junk", "Placemaker.SitePlan.Junk", "Junk and rubble"),
+            (Buildings, "building", "Placemaker.SitePlan.Buildings", "Buildings"),
+            (Vehicles, "vehicle", "Placemaker.SitePlan.Vehicles", "Vehicles"),
+            (Storage, "storage", "Placemaker.SitePlan.Storage", "Storage"),
+            (Junk, "junk", "Placemaker.SitePlan.Junk", "Junk"),
             (Crops, "crop", "Placemaker.SitePlan.Crops", "Crops"),
-            (Stone, "stone", "Placemaker.SitePlan.Stone", "Stones and monuments"),
-            (Barriers, "barrier", "Placemaker.SitePlan.Barriers", "Barriers and signs"),
+            (Stone, "stone", "Placemaker.SitePlan.Stone", "Stones"),
+            (Barriers, "barrier", "Placemaker.SitePlan.Barriers", "Barriers"),
             (Furniture, "furniture", "Placemaker.SitePlan.Furniture", "Furniture"),
         };
 

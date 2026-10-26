@@ -73,6 +73,25 @@ const NameInput = ({ initial, onSave, onCancel }: { initial: string; onSave: (na
     );
 };
 
+/**
+ * The chosen style's photo, at the top of the Design stage above the library (the user: under the library it jumped up and
+ * down as types and styles came and went). None for the player's own styles.
+ */
+export const DesignPreview = ({ catalog, design }: { catalog: Catalog; design: DesignState }) => {
+    const { t } = useT();
+    const root = design.root;
+    const lastAp = useRef(design.activePreset);
+    if (design.activePreset) lastAp.current = design.activePreset;
+    if (!root) return null;
+    const ap = design.activePreset ?? (lastAp.current && lastAp.current.layer === root.layer ? lastAp.current : null);
+    const layer = catalog.layers.find((l) => l.id === root.layer);
+    if (!ap || !layer) return null;
+    const id = shownActive(layer, ap);
+    const p = id ? layer.presets.find((x) => x.id === id) ?? null : null;
+    if (!p || p.custom) return null;
+    return <StylePreview layer={layer.id} preset={p.id} name={presetName(t, p, layer.id)} />;
+};
+
 export const StyleCard = ({ catalog, design, step, children }: { catalog: Catalog; design: DesignState; step: StepView; children: ReactNode }) => {
     const { t } = useT();
     const [mode, setMode] = useState<Mode>("idle");
@@ -209,8 +228,6 @@ export const StyleCard = ({ catalog, design, step, children }: { catalog: Catalo
 
     return (
         <div className={s.card} data-testid="style-card" data-modified={changed ? "true" : "false"}>
-            {/* the style's example photo on top (none for the player's own styles) */}
-            {p && !p.custom ? <StylePreview layer={layer.id} preset={p.id} name={name} /> : null}
             {head}
             <div className={classNames(s.panel, { [s.panelChanged]: changed })}>{children}</div>
             {confirm ? (

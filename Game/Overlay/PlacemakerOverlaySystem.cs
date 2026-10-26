@@ -562,8 +562,14 @@ namespace Placemaker.Game.Overlay
             if (SitePlanStyle)
             {
                 DrawSitePlan(buffer, w, alpha, objects);
-                // the ground change (red raised, blue lowered) is drawn only in the panel's top view in this style (the user: "it's
-                // hard to see when it's in the world"); its legend row shows and hides it there
+                // the ground change (red raised, blue lowered): hidden until its legend row (Terrain) turns it on, then on the map and in
+                // the panel's top view alike (the user: the world always matches the top view)
+                bool showHeat = Shows(PreviewLegend.Terrain);
+                foreach (var kv in _heatGroups)
+                {
+                    var (hex, a) = TerrainHeat.Style(kv.Key);
+                    _fill.SetLayer("heat:" + kv.Key, kv.Value, WithAlpha(Hex(hex), showHeat ? a * (stale ? 0.5f : 1f) : 0f), -92.8f + kv.Key * 0.001f, FilledPreviewSystem.Signature(kv.Value));
+                }
                 if (Shows(PreviewLegend.Entrances) || Shows(PreviewLegend.Paths)) DrawCrosswalks(buffer, plan, w, stale ? 0.45f : 1f);
                 return;
             }

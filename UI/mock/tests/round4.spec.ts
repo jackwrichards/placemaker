@@ -154,28 +154,27 @@ test("decals: multi-select picker with theme tabs, chips with thumbnails, densit
     await panelShot(page, "r4-decals-chips");
 });
 
-test("preview toggle: Sketch | Real in the header, spinner while the ghost rebuilds, Review defaults to Real", async ({ page }) => {
+test("preview: Design is always Sketch (no switch); Review opens on Real with the Sketch | Real switch, spinner while the ghost rebuilds", async ({ page }) => {
     await open(page);
     await toDesign(page, "plaza");
-    const toggle = page.getByTestId("preview-mode");
-    await expect(toggle).toHaveAttribute("data-mode", "sketch");
+    await expect(page.getByTestId("preview-mode")).toHaveCount(0);
     await page.evaluate(() => ((window as any).pm.backend.ghostMs = 1500));
+    await page.getByTestId("primary").click();
+    await expect(page.getByTestId("stage-review")).toBeVisible();
+    const toggle = page.getByTestId("preview-mode");
+    await expect(toggle).toHaveAttribute("data-mode", "ghost");
+    await expect(page.getByTestId("preview-mode-ghost")).toHaveAttribute("aria-pressed", "true");
     let from = await logLength(page);
+    await page.getByTestId("preview-mode-sketch").click();
+    expect((await calls(page, from)).find((c) => c.name === "setPreviewMode")!.args).toEqual(["sketch"]);
+    await expect(toggle).toHaveAttribute("data-mode", "sketch");
+    from = await logLength(page);
     await page.getByTestId("preview-mode-ghost").click();
-    expect((await calls(page, from)).find((c) => c.name === "setPreviewMode")!.args).toEqual(["ghost"]);
     await expect(toggle).toHaveAttribute("data-mode", "ghost");
     await expect(page.getByTestId("ghost-pending")).toBeVisible();
-    await expect(page.getByTestId("busy")).toContainText("Updating preview");
     await panelShot(page, "r4-preview-real-pending");
     await expect(page.getByTestId("ghost-pending")).toHaveCount(0, { timeout: 4000 });
     await shot(page, "r4-real-preview-map");
-    await page.getByTestId("preview-mode-sketch").click();
-    await expect(toggle).toHaveAttribute("data-mode", "sketch");
-
-    await page.getByTestId("primary").click();
-    await expect(page.getByTestId("stage-review")).toBeVisible();
-    await expect(toggle).toHaveAttribute("data-mode", "ghost");
-    await expect(page.getByTestId("preview-mode-ghost")).toHaveAttribute("aria-pressed", "true");
     await noTextOverflow(page, "header with preview toggle");
 });
 

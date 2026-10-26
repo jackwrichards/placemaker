@@ -34,7 +34,7 @@ import { ControlEx, valueOf } from "../lib/schema";
 import { useAssetName } from "../components/picker";
 import { ZoneOutgrowInline, ZoneOutgrowPick } from "../components/PainterCard";
 import { Tile, TypeBrowser } from "./PresetBrowser";
-import { ShuffleBtn, StyleCard, SubHead } from "./StyleCard";
+import { DesignPreview, ShuffleBtn, StyleCard, SubHead } from "./StyleCard";
 import { SectionHead } from "./SectionHead";
 import s from "./design.module.scss";
 
@@ -663,6 +663,9 @@ export const DesignStage = ({ catalog, design, state }: { catalog: Catalog; desi
     const root = design.root;
     return (
         <div className={s.stage} data-testid="stage-design">
+            <ErrorBoundary name="style-preview">
+                <DesignPreview catalog={catalog} design={design} />
+            </ErrorBoundary>
             <ErrorBoundary name="recipes">
                 <TypeBrowser catalog={catalog} design={design} />
             </ErrorBoundary>
