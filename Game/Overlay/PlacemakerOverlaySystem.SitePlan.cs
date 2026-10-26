@@ -200,6 +200,19 @@ namespace Placemaker.Game.Overlay
             _spIssues.Clear(); foreach (var b in sp.IssueBadges) _spIssues.Add(G(b.At));
         }
 
+        /// <summary>The opacity of a ground layer under the Real preview (0 = left to the ground and the ghost).</summary>
+        private static float RealAlpha(string key)
+        {
+            switch (key)
+            {
+                case "sp:asphalt": return 1f;
+                case "sp:paving": case "sp:plaza": return 0.95f;
+                case "sp:water": return 0.85f;
+                case "sp:plotGrid": return 0f;
+                default: return key.StartsWith("sp:plot:", System.StringComparison.Ordinal) ? 0.35f : 0f;
+            }
+        }
+
         /// <summary>A site-plan row shown? The player's show / hide only: hovering highlights, it never hides the rest.</summary>
         private bool SpShows(string row)
         {
@@ -239,7 +252,10 @@ namespace Placemaker.Game.Overlay
             foreach (var (key, s) in _spShapes)
             {
                 bool on = SpShows(s.Row);
-                float a = s.Alpha * (s.Ground ? alpha * (underGhost && key != "sp:asphalt" && key != "sp:base" ? 0.8f : 1f) : objAlpha);
+                float a = s.Alpha * (s.Ground ? alpha : objAlpha);
+                // under the Real preview only what the game cannot show itself, solid, so it reads as the real thing: asphalt,
+                // paving, water and the shop plots; no lawn tone or grass tint over the ground (the user: "it has this weird haze")
+                if (underGhost && s.Ground) a = RealAlpha(key) * alpha;
                 var c = PreviewLegend.Hex(s.Color);
                 float pulse = SpPulse(s.Row);
                 if (pulse > 0f) { c = math.lerp(c, hi, pulse * 0.85f); a = math.max(a, 0.9f * pulse); }

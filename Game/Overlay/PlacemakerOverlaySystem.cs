@@ -55,6 +55,7 @@ namespace Placemaker.Game.Overlay
         private ToolSystem _toolSystem;
         private PlacemakerToolSystem _tool;
         private FilledPreviewSystem _fill;
+        private AreaBorderRenderSystem _areaBorders;
         private int _paintVersion = -1;
         private List<(float2 a, float2 b)> _paintBoundary = new List<(float2, float2)>();
 
@@ -66,11 +67,16 @@ namespace Placemaker.Game.Overlay
             _toolSystem = World.GetOrCreateSystemManaged<ToolSystem>();
             _tool = World.GetOrCreateSystemManaged<PlacemakerToolSystem>();
             _fill = World.GetOrCreateSystemManaged<FilledPreviewSystem>();
+            _areaBorders = World.GetOrCreateSystemManaged<AreaBorderRenderSystem>();
         }
 
         [Preserve]
         protected override void OnUpdate()
         {
+            // the game's borders of planned areas (cyan lines, dashed rings round every piece) are off while our Real preview shows
+            bool realPreview = _toolSystem.activeTool == _tool && _tool.PreviewModeEffective == PreviewMode.Ghost && _tool.Plan != null
+                && (_tool.Stage == ToolStage.Design || _tool.Stage == ToolStage.Review);
+            if (_areaBorders != null && _areaBorders.Enabled == realPreview) _areaBorders.Enabled = !realPreview;
             if (_toolSystem.activeTool != _tool)
             {
                 if (_wasDrawing) { _fill.ClearAll(); _wasDrawing = false; }
@@ -227,8 +233,14 @@ namespace Placemaker.Game.Overlay
                 case SelectionMode.BlockPaint: DrawBlockPaintMode(buffer, w, shape); break;
             }
             if ((clipped || cutBack) && shape != null && _tool.Mode == SelectionMode.Draw) Ring(buffer, shape.Ring, Outline, w);
-            // the Real preview: what will be built, its outline thick (the game's outlines on every piece are hidden meanwhile)
-            if (_tool.PreviewModeEffective == PreviewMode.Ghost && shape != null && shape.Ring.Length >= 3 && !stroke) Ring(buffer, shape.Ring, Outline, w * 3f);
+            // the Real preview: what will be built and a thin line on the ground round it (the user, 25 Oct: "I just want to see what it
+            // would really look like"; the thick outline stood up as a glass wall), the game's borders of every piece hidden meanwhile
+            if (_tool.PreviewModeEffective == PreviewMode.Ghost && shape != null && shape.Ring.Length >= 3 && !stroke)
+            {
+                var line = new Color(Outline.r, Outline.g, Outline.b, 0.7f);
+                for (int i = 0; i < shape.Ring.Length; i++)
+                    buffer.DrawLine(line, line, 0f, OverlayRenderSystem.StyleFlags.Projected, new Line3.Segment(shape.Ring[i], shape.Ring[(i + 1) % shape.Ring.Length]), math.max(0.5f, w * 0.8f), new float2(1, 1));
+            }
         }
 
         private void Ring(OverlayRenderSystem.Buffer buffer, float3[] ring, Color c, float w, bool dashed = false)
