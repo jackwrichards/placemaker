@@ -13,12 +13,15 @@
     -Command Publish     the first upload; ModId must be empty. The new id is written back into the config.
     -Command NewVersion  a new version of the mod's files; needs ModId, a new ModVersion and a ChangeLog. Sends only those:
                          the page (thumbnail, screenshots, descriptions, links) stays as it is on the website.
-    -Command Update      the page only (text, pictures, AccessLevel); the files stay as they are.
+    -Command Update      the page only (text, pictures, links, AccessLevel); the files stay as they are. REFUSED unless
+                         -OverwritePage: the page is the user's, kept up on the website (forum link, pictures, text);
+                         this config's copy of it is old and would replace all of it.
     -StageOnly           build and stage, print what would go up, upload nothing.
 #>
 param(
     [ValidateSet('Publish', 'NewVersion', 'Update')][string]$Command = 'Publish',
-    [switch]$StageOnly
+    [switch]$StageOnly,
+    [switch]$OverwritePage
 )
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -42,6 +45,8 @@ $pictures = @($p.Thumbnail.Value) + @($p.Screenshot | ForEach-Object { $_.Value 
 $shots = @($p.Screenshot | Where-Object { $_.Value })
 if ($shots.Count -gt 10) { $problems += "$($shots.Count) screenshots: Paradox Mods takes at most 10" }
 foreach ($pic in $pictures) { if ($pic -and -not (Test-Path -LiteralPath (Join-Path $root $pic))) { $problems += "missing picture: $pic" } }
+# The mod page belongs to the user (they edit it on the website): only an explicit -OverwritePage replaces it.
+if ($Command -eq 'Update' -and -not $OverwritePage) { $problems += 'Update replaces the whole mod page (pictures, text, forum link) with this config''s old copy; the user keeps the page on the website. Change it there, or pass -OverwritePage if the user asked for exactly that' }
 if ($problems) { $problems | ForEach-Object { Write-Host "STOP: $_" }; exit 1 }
 
 # --- a fresh release build and the content folder ---
