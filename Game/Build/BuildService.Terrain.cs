@@ -556,7 +556,8 @@ namespace Placemaker.Game.Build
             using var prefabs = _allPrefabs.ToEntityArray(Allocator.Temp);
             for (int i = 0; i < prefabs.Length; i++)
             {
-                if (!_prefabs.TryGetPrefab<PrefabBase>(prefabs[i], out var prefab) || prefab == null) continue;
+                // vanilla tools and brushes only (a mod brush shape would shape the ground its own way)
+                if (!_prefabs.TryGetPrefab<PrefabBase>(prefabs[i], out var prefab) || prefab == null || !prefab.isBuiltin) continue;
                 if (prefab is TerraformingPrefab tf && tf.m_Type == TerraformingType.Level && tf.m_Target == TerraformingTarget.Height)
                 {
                     if (_levelTool == Entity.Null) _levelTool = prefabs[i];

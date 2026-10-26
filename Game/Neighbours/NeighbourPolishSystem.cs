@@ -1124,10 +1124,10 @@ namespace Placemaker.Game.Neighbours
                 var newLawns = new List<(long House, float2[] Ring, Entity Prefab)>();
                 foreach (var (house, ring) in plan.NewLawns)
                 {
+                    // the house's own (vanilla) lawn, else the city's usual one, else vanilla grass
                     var prefab = _lawnPrefabOf.TryGetValue(house, out var own) ? own : usual;
-                    if (prefab == Entity.Null) continue;
                     newLawns.Add((house, ring, prefab));
-                    Want(house, NameOf(prefab), Centre(ring), ring: ring);
+                    Want(house, prefab == Entity.Null ? "Grass Surface 01" : NameOf(prefab), Centre(ring), ring: ring);
                 }
                 foreach (var (house, ring) in plan.Beds) Want(house, "Forestry Surface 01", Centre(ring), ring: ring);
                 foreach (var (house, ring, surface) in plan.Paths) Want(house, surface, Centre(ring), ring: ring);
@@ -1310,8 +1310,10 @@ namespace Placemaker.Game.Neighbours
                         var sn = EntityManager.GetBuffer<global::Game.Areas.Node>(area, true);
                         float a2 = 0f;
                         for (int i = 0; i < sn.Length; i++) { var p = sn[i].m_Position.xz; var q = sn[(i + 1) % sn.Length].m_Position.xz; a2 += p.x * q.y - q.x * p.y; }
-                        var nm = NameOf(EntityManager.GetComponentData<PrefabRef>(area).m_Prefab);
-                        surfaceArea[nm] = (surfaceArea.TryGetValue(nm, out var had) ? had : 0f) + math.abs(a2) * 0.5f;
+                        var surf = EntityManager.GetComponentData<PrefabRef>(area).m_Prefab;
+                        var nm = NameOf(surf);
+                        // vanilla surfaces only: a modded one is never copied to the neighbours (the user, 26 Oct)
+                        if (IsVanilla(surf)) surfaceArea[nm] = (surfaceArea.TryGetValue(nm, out var had) ? had : 0f) + math.abs(a2) * 0.5f;
                     }
                     if (!IsGrass(EntityManager.GetComponentData<PrefabRef>(area).m_Prefab))
                     {
@@ -1345,7 +1347,8 @@ namespace Placemaker.Game.Neighbours
                         _lawnOriginal[area] = ring;
                     }
                     long id = Id(area);
-                    if (!_lawnPrefabOf.ContainsKey(sh.Id)) _lawnPrefabOf[sh.Id] = EntityManager.GetComponentData<PrefabRef>(area).m_Prefab;
+                    var lawnPrefab = EntityManager.GetComponentData<PrefabRef>(area).m_Prefab;
+                    if (!_lawnPrefabOf.ContainsKey(sh.Id) && IsVanilla(lawnPrefab)) _lawnPrefabOf[sh.Id] = lawnPrefab;   // a modded lawn is not copied
                     if (lawnsOf != null) lawnsOf[id] = area;
                     sh.Lawns.Add(new StitchLawn { Id = id, Ring = ring });
                 }
@@ -1468,6 +1471,12 @@ namespace Placemaker.Game.Neighbours
             g = NameOf(prefab).IndexOf("grass", StringComparison.OrdinalIgnoreCase) >= 0 || NameOf(prefab).IndexOf("lawn", StringComparison.OrdinalIgnoreCase) >= 0;
             _grassPrefab[prefab] = g;
             return g;
+        }
+
+        private bool IsVanilla(Entity prefab)
+        {
+            try { return prefab != Entity.Null && _prefabs.TryGetPrefab<PrefabBase>(prefab, out var p) && p != null && p.isBuiltin; }
+            catch (Exception) { return false; }
         }
 
         private string NameOf(Entity prefab)

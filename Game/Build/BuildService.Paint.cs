@@ -328,7 +328,7 @@ namespace Placemaker.Game.Build
             var names = new List<string>();
             for (int i = 0; i < prefabs.Length; i++)
             {
-                if (!_prefabs.TryGetPrefab<PrefabBase>(prefabs[i], out var prefab) || !(prefab is TerraformingPrefab tf)) continue;
+                if (!_prefabs.TryGetPrefab<PrefabBase>(prefabs[i], out var prefab) || !(prefab is TerraformingPrefab tf) || !prefab.isBuiltin) continue;   // vanilla paint tools only
                 if (tf.m_Target != TerraformingTarget.Material || !tf.TryGet<TerrainMaterialProperties>(out var mat) || mat == null) continue;
                 int layer;
                 switch (mat.m_Type)

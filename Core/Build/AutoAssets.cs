@@ -23,6 +23,9 @@ namespace Placemaker.Core.Build
         public IReadOnlyList<string> Palettes;
         /// <summary>(palette, category) → ordered eligible items of that category seen in the palette.</summary>
         public Func<string, string, IReadOnlyList<string>> PaletteItems;
+        /// <summary>True for a built-in (vanilla) prefab; null = everything counts as vanilla (pure tests). A non-vanilla prefab is
+        /// used only when the player picked it (ComposedPlan.Picks): Placemaker's own choices are vanilla (the user, 26 Oct).</summary>
+        public Func<string, bool> Vanilla;
     }
 
     public static class AutoAssets
@@ -89,7 +92,9 @@ namespace Placemaker.Core.Build
         public static int Resolve(ComposedPlan plan, AutoAssetSource source)
         {
             if (plan?.Layers == null || source?.Pool == null) return 0;
-            var exists = source.Exists;
+            // usable = loaded, and vanilla unless the player picked it (hard-coded pack names, modded palette items: left out)
+            Func<string, bool> exists = source.Vanilla == null ? source.Exists
+                : id => (source.Exists == null || source.Exists(id)) && (source.Vanilla(id) || plan.Picks.Contains(id));
             int resolved = 0;
             var poolCache = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
             var candCache = new Dictionary<(string, string), IReadOnlyList<string>>();

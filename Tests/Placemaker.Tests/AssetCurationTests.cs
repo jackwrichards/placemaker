@@ -114,7 +114,7 @@ namespace Placemaker.Tests
         {
             var pool = AutoPoolRanking.Build(AssetCategories.WaterJets, new[]
             {
-                new PoolCandidate("BigRig", false, footprint: 16f), new PoolCandidate("Jet", false, footprint: 0.6f),
+                new PoolCandidate("BigRig", true, footprint: 16f), new PoolCandidate("Jet", true, footprint: 0.6f),
             });
             Assert.Equal(new[] { "Jet" }, pool);
             Assert.False(AssetCuration.FitsSize(AssetCategories.Bench, 143f));

@@ -158,13 +158,16 @@ namespace Placemaker.Game.Neighbours
         private void Index()
         {
             _byName = new Dictionary<string, Entity>(StringComparer.OrdinalIgnoreCase);
+            var vanillaNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             using (var q = EntityManager.CreateEntityQuery(ComponentType.ReadOnly<PrefabData>(), ComponentType.ReadOnly<AreaData>()))
             using (var all = q.ToEntityArray(Allocator.Temp))
                 foreach (var e in all)
                 {
                     string n;
-                    try { n = _prefabs.GetPrefab<PrefabBase>(e)?.name; } catch (Exception) { continue; }
-                    if (!string.IsNullOrEmpty(n) && !_byName.ContainsKey(n)) _byName[n] = e;
+                    bool vanilla;
+                    try { var p = _prefabs.GetPrefab<PrefabBase>(e); n = p?.name; vanilla = p != null && p.isBuiltin; } catch (Exception) { continue; }
+                    // a vanilla surface wins its name (a mod that reuses the name never does)
+                    if (!string.IsNullOrEmpty(n) && (!_byName.ContainsKey(n) || vanilla)) { if (!_byName.ContainsKey(n) || !vanillaNames.Contains(n)) _byName[n] = e; if (vanilla) vanillaNames.Add(n); }
                 }
         }
     }

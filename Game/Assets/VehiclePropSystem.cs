@@ -72,6 +72,7 @@ namespace Placemaker.Game.Assets
                 {
                     var e = list[i];
                     if (!_prefabs.TryGetPrefab<PrefabBase>(e, out var p) || !(p is ObjectGeometryPrefab g) || g.m_Meshes == null || g.m_Meshes.Length == 0) continue;
+                    if (!p.isBuiltin) continue;   // vanilla vehicles only (the user, 26 Oct: Placemaker's own choices are vanilla)
                     var kind = KindOf(e, g);
                     if (kind != null && byKind.TryGetValue(kind, out var l))
                     {
@@ -100,7 +101,7 @@ namespace Placemaker.Game.Assets
                 }
                 summary.Add($"{kind}: {string.Join(", ", names)}");
             }
-            Mod.Log.Info($"Placemaker made {made} vehicle props from the playset's vehicles ({string.Join("; ", summary)}).");
+            Mod.Log.Info($"Placemaker made {made} vehicle props from the vanilla vehicles ({string.Join("; ", summary)}).");
             if (made > 0) World.GetExistingSystemManaged<AssetCatalogSystem>()?.RequestRescan();
         }
 

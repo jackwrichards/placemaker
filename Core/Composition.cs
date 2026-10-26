@@ -85,6 +85,9 @@ namespace Placemaker.Core
     public sealed class ComposedPlan
     {
         public List<AreaPlan> Layers = new List<AreaPlan>();
+        /// <summary>Every text value the player's design holds (Compose, from the recipe): the assets the player picked. Placemaker
+        /// uses a non-vanilla asset only when it is one of these (AutoAssets; the user, 26 Oct).</summary>
+        public HashSet<string> Picks = new HashSet<string>(StringComparer.Ordinal);
         public List<PlanIssue> Issues = new List<PlanIssue>();
         /// <summary>
         /// Set by Build/Declutter once the objects were fitted with real footprints (runs once per plan,
@@ -178,9 +181,23 @@ namespace Placemaker.Core
         public const int MaxDepth = 6;
         public const int MaxSteps = 512;
 
+        /// <summary>The text values of every step's settings (single and lists): the assets the player picked are among them.</summary>
+        public static void CollectPicks(RecipeStep step, HashSet<string> into)
+        {
+            if (step == null) return;
+            foreach (var v in step.Settings.Values.Values)
+            {
+                if (v is string s) { if (s.Length > 0) into.Add(s); }
+                else if (v is System.Collections.IEnumerable list) foreach (var x in list) if (x is string xs && xs.Length > 0) into.Add(xs);
+            }
+            foreach (var c in step.Children) CollectPicks(c, into);
+            foreach (var o in step.RegionOverrides.Values) CollectPicks(o, into);
+        }
+
         public static ComposedPlan Compose(Recipe recipe, AreaShape area, SiteContext site, CancellationToken cancel)
         {
             var result = new ComposedPlan();
+            CollectPicks(recipe?.Root, result.Picks);
             var reserved = new ReservedSpace();
             int budget = MaxSteps;
             var dress = new Dictionary<AreaPlan, Decals.DressSettings>();

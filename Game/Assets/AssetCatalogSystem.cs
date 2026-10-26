@@ -197,8 +197,12 @@ namespace Placemaker.Game.Assets
 
         public int ResolveAutomatic(ComposedPlan plan) => ResolveAutomatic(plan, new AutoAssetSource
         {
-            Pool = AutomaticPool, Exists = PrefabExists, Palettes = _palettes, PaletteItems = PaletteItems,
+            Pool = AutomaticPool, Exists = PrefabExists, Palettes = _palettes, PaletteItems = PaletteItems, Vanilla = IsVanillaName,
         });
+
+        /// <summary>True for a built-in (vanilla) prefab of that name: Placemaker's own choices are vanilla (the user, 26 Oct).</summary>
+        public bool IsVanillaName(string name) => !string.IsNullOrEmpty(name) && _vanillaNames.Contains(name);
+        private HashSet<string> _vanillaNames = new HashSet<string>(StringComparer.Ordinal);
 
         // (perf) The preview planner resolves assets on its worker (30–60 ms of the game's thread per plan before): the same
         // resolver with "is this prefab loaded and alive" read from a set of names made here, once per catalog version.
@@ -217,9 +221,11 @@ namespace Placemaker.Game.Assets
                 _usableVersion = _version;
             }
             var usable = _usableNames;
+            var vanilla = _vanillaNames;
             return new AutoAssetSource
             {
                 Pool = AutomaticPool, Exists = n => !string.IsNullOrEmpty(n) && usable.Contains(n), Palettes = _palettes, PaletteItems = PaletteItems,
+                Vanilla = n => !string.IsNullOrEmpty(n) && vanilla.Contains(n),
             };
         }
 
@@ -288,12 +294,14 @@ namespace Placemaker.Game.Assets
             {
                 var eligible = new List<CatalogItem>();
                 foreach (var it in kv.Value) if (IsAutoFor(it, kv.Key)) eligible.Add(it);
-                // A category with no eligible item keeps a default (layers may still name it), but no automatic pool.
-                var ranked = eligible.Count > 0 ? eligible : new List<CatalogItem>(kv.Value);
+                // A category with no eligible item keeps a default (layers may still name it), but no automatic pool. Defaults are
+                // vanilla only: a category vanilla has nothing for has none, and a missing named asset is then left out.
+                var ranked = new List<CatalogItem>();
+                foreach (var it in eligible.Count > 0 ? eligible : kv.Value) if (IsVanilla(it)) ranked.Add(it);
                 ranked.Sort((a, b) => CompareAuto(kv.Key, a, b));
                 if (ranked.Count > 0) defaults[kv.Key] = ranked[0].Prefab;
                 if (eligible.Count == 0) continue;
-                // Vanilla only when vanilla has something: modded items join a pool only if no vanilla exists.
+                // Vanilla only (AutoPoolRanking.Build).
                 var cands = new List<PoolCandidate>(eligible.Count);
                 foreach (var it in eligible) cands.Add(Candidate(kv.Key, it));
                 pools[kv.Key] = AutoPoolRanking.Build(kv.Key, cands, AutoPoolSize);
@@ -434,9 +442,24 @@ namespace Placemaker.Game.Assets
             var tags = new Dictionary<string, List<string>>(StringComparer.Ordinal);
             var iconSources = new Dictionary<string, string>(StringComparer.Ordinal);
             int failed = 0;
-            using var entities = _prefabQuery.ToEntityArray(Allocator.Temp);
+            using var all = _prefabQuery.ToEntityArray(Allocator.Temp);
+            // Built-in prefabs first: a mod that reuses a vanilla name never wins a name lookup (duplicate names: first wins).
+            var entities = new List<Entity>(all.Length);
+            var later = new List<Entity>();
+            var vanillaNames = new HashSet<string>(StringComparer.Ordinal);
+            for (int i = 0; i < all.Length; i++)
+            {
+                try
+                {
+                    if (_prefabs.TryGetPrefab<PrefabBase>(all[i], out var p) && p != null && p.isBuiltin) { entities.Add(all[i]); if (!string.IsNullOrWhiteSpace(p.name)) vanillaNames.Add(p.name); }
+                    else later.Add(all[i]);
+                }
+                catch (Exception) { later.Add(all[i]); }
+            }
+            entities.AddRange(later);
+            _vanillaNames = vanillaNames;
 
-            for (int i = 0; i < entities.Length; i++)
+            for (int i = 0; i < entities.Count; i++)
             {
                 var entity = entities[i];
                 // One broken prefab (half-loaded pack, missing DLC reference) must not empty every list (PM).
@@ -721,13 +744,14 @@ namespace Placemaker.Game.Assets
         /// catalogued asset found there with "palette:&lt;park name&gt;". Layers use these to dress a
         /// park in a consistent vanilla style.
         /// </summary>
-        private void ScanParkPalettes(NativeArray<Entity> prefabs, Dictionary<string, CatalogItem> byName, Dictionary<string, List<string>> tags)
+        private void ScanParkPalettes(IReadOnlyList<Entity> prefabs, Dictionary<string, CatalogItem> byName, Dictionary<string, List<string>> tags)
         {
             int palettes = 0;
-            for (int i = 0; i < prefabs.Length; i++)
+            for (int i = 0; i < prefabs.Count; i++)
             {
                 var entity = prefabs[i];
                 if (!EntityManager.HasComponent<ParkData>(entity) || !_prefabs.TryGetPrefab<PrefabBase>(entity, out var park) || park == null) continue;
+                if (!park.isBuiltin) continue;   // a modded park is no vanilla palette
                 var tag = AssetHeuristics.PaletteTag(park.name);
                 var visited = new HashSet<Entity>();
                 int found = 0;
@@ -761,7 +785,7 @@ namespace Placemaker.Game.Assets
                 for (int i = 0; i < variants.Length; i++) copy.Add(variants[i].m_Object);
                 foreach (var v in copy) CollectPaletteObject(v, tag, visited, depth + 1, byName, tags, ref found);
             }
-            if (!_prefabs.TryGetPrefab<PrefabBase>(entity, out var prefab) || prefab == null) return;
+            if (!_prefabs.TryGetPrefab<PrefabBase>(entity, out var prefab) || prefab == null || !prefab.isBuiltin) return;
             if (byName.ContainsKey(prefab.name) && tags.TryGetValue(prefab.name, out var list) && !list.Contains(tag))
             {
                 list.Add(tag);

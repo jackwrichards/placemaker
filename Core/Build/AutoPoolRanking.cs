@@ -53,20 +53,19 @@ namespace Placemaker.Core.Build
         }
 
         /// <summary>
-        /// The automatic pool of a category from its eligible items: ranked, distinct ids, vanilla only
-        /// when vanilla has something (modded items join only if no vanilla item exists; net fences always).
+        /// The automatic pool of a category from its eligible items: ranked, distinct ids, vanilla only (the user, 26 Oct:
+        /// "everything should be vanilla by default"; a category vanilla has nothing for stays empty and is left out; the
+        /// player can still pick any installed asset).
         /// </summary>
         public static List<string> Build(string category, IEnumerable<PoolCandidate> eligible, int size = PoolSize)
         {
             var ranked = new List<PoolCandidate>(eligible);
             ranked.Sort((a, b) => Compare(category, a, b));
-            bool anyVanilla = false;
-            foreach (var c in ranked) if (c.Vanilla) { anyVanilla = true; break; }
             var names = new List<string>();
             var seen = new HashSet<string>(StringComparer.Ordinal);
             foreach (var c in ranked)
             {
-                if (anyVanilla && !c.Vanilla && !(category == AssetCategories.Fence && c.NetFence)) continue;
+                if (!c.Vanilla) continue;
                 if (string.IsNullOrEmpty(c.Id) || !AssetCuration.FitsSize(category, c.Footprint) || !seen.Add(c.Id)) continue;
                 names.Add(c.Id);
                 if (names.Count >= size) break;

@@ -130,7 +130,7 @@ namespace Placemaker.Game.Neighbours
                 string brushName = "";
                 foreach (var e in all)
                 {
-                    if (!_prefabs.TryGetPrefab<PrefabBase>(e, out var prefab) || prefab == null) continue;
+                    if (!_prefabs.TryGetPrefab<PrefabBase>(e, out var prefab) || prefab == null || !prefab.isBuiltin) continue;   // vanilla tools only
                     if (prefab is TerraformingPrefab tf && tf.m_Target == TerraformingTarget.Material && tf.TryGet<TerrainMaterialProperties>(out var mat) && mat != null)
                     {
                         int layer = mat.m_Type == TerrainMaterialType.None ? 0 : mat.m_Type == TerrainMaterialType.Extra1 ? 1 : mat.m_Type == TerrainMaterialType.Extra2 ? 2

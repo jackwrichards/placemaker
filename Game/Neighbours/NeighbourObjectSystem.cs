@@ -154,7 +154,8 @@ namespace Placemaker.Game.Neighbours
                 foreach (var e in all)
                 {
                     string n;
-                    try { n = _prefabs.GetPrefab<PrefabBase>(e)?.name; } catch (Exception) { continue; }
+                    // vanilla pieces and bushes only: the tidy-up never copies a modded fence (the user, 26 Oct)
+                    try { var p = _prefabs.GetPrefab<PrefabBase>(e); if (p == null || !p.isBuiltin) continue; n = p.name; } catch (Exception) { continue; }
                     if (string.IsNullOrEmpty(n) || _byName.ContainsKey(n)) continue;
                     // fence and hedge pieces (what fences are made of): every kind, for closing gardens
                     bool piece = n.IndexOf("Piece", StringComparison.OrdinalIgnoreCase) >= 0 && (n.IndexOf("Fence", StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("Hedge", StringComparison.OrdinalIgnoreCase) >= 0);
