@@ -11,7 +11,8 @@
   The uploader logs in with the Paradox account last signed in in the game (it never takes a password here).
 
     -Command Publish     the first upload; ModId must be empty. The new id is written back into the config.
-    -Command NewVersion  a new version of the mod's files; needs ModId, a new ModVersion and a ChangeLog.
+    -Command NewVersion  a new version of the mod's files; needs ModId, a new ModVersion and a ChangeLog. Sends only those:
+                         the page (thumbnail, screenshots, descriptions, links) stays as it is on the website.
     -Command Update      the page only (text, pictures, AccessLevel); the files stay as they are.
     -StageOnly           build and stage, print what would go up, upload nothing.
 #>
@@ -73,9 +74,21 @@ if (Get-Process Cities2 -ErrorAction SilentlyContinue) { Write-Host 'STOP: a gam
 $publisher = $env:CSII_MODPUBLISHERPATH
 if (-not $publisher) { $publisher = [Environment]::GetEnvironmentVariable('CSII_MODPUBLISHERPATH', 'User') }
 if (-not $publisher -or -not (Test-Path -LiteralPath $publisher)) { Write-Host "STOP: ModPublisher not found (CSII_MODPUBLISHERPATH = '$publisher')"; exit 1 }
+# NewVersion sends the files and the changelog only: the page (thumbnail, screenshots, descriptions, links) stays as the
+# user made it on the website. A full config replaced the user's own thumbnail and pictures with the project's (0.3.0,
+# 26 Oct). The page itself is changed only with -Command Update, on purpose.
+$send = $config
+if ($Command -eq 'NewVersion') {
+    [xml]$nv = Get-Content -Raw -Encoding utf8 -LiteralPath $config
+    $keep = @('ModId', 'ModVersion', 'GameVersion', 'ChangeLog')
+    foreach ($node in @($nv.Publish.ChildNodes)) { if ($node.NodeType -eq 'Element' -and $keep -notcontains $node.Name) { [void]$nv.Publish.RemoveChild($node) } }
+    $send = Join-Path $root 'bin\Publish\newversion-config.xml'
+    $nv.Save($send)
+    Write-Host "NewVersion: files and changelog only (page left as it is): $send"
+}
 Push-Location $root   # the config's picture paths are relative to the project folder
 try {
-    $out = & $publisher $Command $config -c $content -v 2>&1 | ForEach-Object { "$_" }
+    $out = & $publisher $Command $send -c $content -v 2>&1 | ForEach-Object { "$_" }
     $code = $LASTEXITCODE
 } finally { Pop-Location }
 $out | ForEach-Object { Write-Host $_ }
