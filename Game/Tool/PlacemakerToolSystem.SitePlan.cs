@@ -50,7 +50,7 @@ namespace Placemaker.Game.Tool
                     Mod.Log.Warn("Placemaker: site plan failed (" + e.Message + ")");
                     _sitePlan = new SitePlan();
                 }
-                if (sw.ElapsedMilliseconds > 20) Mod.Log.Info($"Placemaker site plan: computed in {sw.ElapsedMilliseconds} ms ({_sitePlan.Stalls.Count} stall lines, {_sitePlan.TreeCrowns.Count} crowns, {_sitePlan.Bushes.Count} bushes)");
+                if (sw.ElapsedMilliseconds > 50) Mod.Log.Info($"Placemaker site plan: computed in {sw.ElapsedMilliseconds} ms ({_sitePlan.Stalls.Count} stall lines, {_sitePlan.TreeCrowns.Count} crowns, {_sitePlan.Bushes.Count} bushes)");
                 _sitePlanVersion++;
                 return _sitePlan;
             }

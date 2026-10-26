@@ -240,7 +240,7 @@ namespace Placemaker.Game.Overlay
                 if (pulse > 0f) { c = math.lerp(c, hi, pulse * 0.85f); a = math.max(a, 0.9f * pulse); }
                 _fill.SetLayer(key, s.Rings, new Color(c.x, c.y, c.z, on ? math.min(1f, a) : 0f), s.Priority, s.Sig, s.Convex);
             }
-            if (rebuilt && sw.ElapsedMilliseconds > 20)
+            if (rebuilt && sw.ElapsedMilliseconds > 50)
             {
                 int rings = 0;
                 foreach (var (_, s) in _spShapes) rings += s.Rings.Count;

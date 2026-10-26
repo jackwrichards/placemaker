@@ -280,7 +280,7 @@ namespace Placemaker.Game.UI
             if (_tool.PlanStale) json.Set("stale", true);
             string text = json.ToString();
             _sitePlan.Update(text);
-            if (sw.ElapsedMilliseconds > 20) Mod.Log.Info($"Placemaker site plan: panel picture sent in {sw.ElapsedMilliseconds} ms ({text.Length / 1024} KB)");
+            if (sw.ElapsedMilliseconds > 50) Mod.Log.Info($"Placemaker site plan: panel picture sent in {sw.ElapsedMilliseconds} ms ({text.Length / 1024} KB)");
         }
 
         private void PushSummary()

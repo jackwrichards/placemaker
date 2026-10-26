@@ -344,7 +344,7 @@ namespace Placemaker.Core.Build
             {
                 foreach (var hr in heat.Rings) sp.Heat.Add(hr);
                 // the number: the biggest change either way, in metres
-                Row(Terrain, "terrain", "Placemaker.SitePlan.Terrain", "Ground change", Math.Round(Math.Max(Math.Abs(heat.MinDelta), Math.Abs(heat.MaxDelta)), 1), "delta");
+                Row(Terrain, "terrain", "Placemaker.SitePlan.Terrain", "Terrain", Math.Round(Math.Max(Math.Abs(heat.MinDelta), Math.Abs(heat.MaxDelta)), 1), "delta");
             }
             if (sp.PlotCells.Count > 0) Row(Plots, "zone", "Placemaker.SitePlan.Plots", "Shop plots", sp.PlotCells.Count, "cells");
             if (sp.TreeCrowns.Count > 0) Row(Trees, "tree", "Placemaker.SitePlan.Trees", "Trees", sp.TreeCrowns.Count, "count");

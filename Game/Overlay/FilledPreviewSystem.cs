@@ -100,7 +100,7 @@ namespace Placemaker.Game.Overlay
                 layer.Signature = signature;
                 var sw = System.Diagnostics.Stopwatch.StartNew();
                 BuildMesh(layer, rings, convex);
-                if (sw.ElapsedMilliseconds > 15) Mod.Log.Info($"Placemaker fill layer {key}: {sw.ElapsedMilliseconds} ms, {rings?.Count ?? 0} rings, {(layer.Mesh != null ? layer.Mesh.vertexCount : 0)} vertices");
+                if (sw.ElapsedMilliseconds > 40) Mod.Log.Info($"Placemaker fill layer {key}: {sw.ElapsedMilliseconds} ms, {rings?.Count ?? 0} rings, {(layer.Mesh != null ? layer.Mesh.vertexCount : 0)} vertices");
             }
             if (layer.Mesh == null) return;
             ApplyStyle(layer, color, priority);
