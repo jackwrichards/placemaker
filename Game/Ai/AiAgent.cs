@@ -167,7 +167,7 @@ namespace Placemaker.Game.Ai
                 {
                     s_brief = AiBuilder.Capture(world, tool, ring, text);
                     var (lo, _) = SiteBrief.Box(ring);
-                    s_site = new AiSite { Ring = ring, Origin = lo, Nets = s_brief.Nets, Buildings = s_brief.Buildings, Ground = GroundOf(s_brief.Ground) };
+                    s_site = new AiSite { Ring = ring, Origin = lo, Nets = s_brief.Nets, Buildings = s_brief.Buildings, Ground = GroundOf(s_brief.Ground), Water = WaterOf(s_brief.Ground) };
                     s_assets = AssetIndex();
                     foreach (var a in s_assets) if (!s_site.Assets.ContainsKey(a.Id)) s_site.Assets[a.Id] = a;
                     s_folder = Path.Combine(ModPaths.DataFolder, "ai", DateTime.Now.ToString("yyyyMMdd-HHmmss"));
@@ -367,6 +367,13 @@ namespace Placemaker.Game.Ai
             int i = (int)math.floor(fx), j = (int)math.floor(fz);
             float tx = fx - i, tz = fz - j;
             return math.lerp(math.lerp(g.HeightAt(i, j), g.HeightAt(i + 1, j), tx), math.lerp(g.HeightAt(i, j + 1), g.HeightAt(i + 1, j + 1), tx), tz);
+        };
+
+        /// <summary>Nearest-cell water depth from the brief's grid (world xz); 0 outside it.</summary>
+        private static Func<float2, float> WaterOf(BriefGround g) => p =>
+        {
+            int i = (int)math.floor((p.x - g.Origin.x) / g.Cell), j = (int)math.floor((p.y - g.Origin.y) / g.Cell);
+            return i < 0 || j < 0 || i >= g.Nx || j >= g.Nz ? 0f : g.WaterAt(i, j);
         };
 
         /// <summary>Worker: which assets have a picture (an Asset Icon Library file, or an icon in their mod package).</summary>

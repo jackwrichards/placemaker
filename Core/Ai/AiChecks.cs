@@ -56,6 +56,23 @@ namespace Placemaker.Core.Ai
         /// <summary>The ground height before anything the AI shaped (world xz -> m above sea level).</summary>
         public Func<float2, float> Ground = _ => 0f;
 
+        /// <summary>Water depth (world xz -> m, 0 = dry) when the session started.</summary>
+        public Func<float2, float> Water = _ => 0f;
+
+        /// <summary>A point past the selection that shore work may reach: within 40 m of the outline and on or within 15 m
+        /// of water (sand into the water, the beach face, piers and jetties over it).</summary>
+        public bool ByWater(float2 p)
+        {
+            if (Water(p) > 0.05f) return Poly.DistanceToBoundary(Ring, p) < 80f;
+            if (Poly.DistanceToBoundary(Ring, p) > 40f) return false;
+            for (int k = 0; k < 8; k++)
+            {
+                var d = new float2(math.cos(k * 0.785f), math.sin(k * 0.785f));
+                for (float r = 5f; r <= 15f; r += 5f) if (Water(p + d * r) > 0.05f) return true;
+            }
+            return false;
+        }
+
         /// <summary>The first finish of a request has been turned into a review (the next one ends it).</summary>
         public bool Reviewed;
 
@@ -144,7 +161,7 @@ namespace Placemaker.Core.Ai
             }
             else if (p.Ring != null)
             {
-                int outside = p.Ring.Count(q => !Poly.Contains(s.Ring, q) && Poly.DistanceToBoundary(s.Ring, q) > 1f);
+                int outside = p.Ring.Count(q => !Poly.Contains(s.Ring, q) && Poly.DistanceToBoundary(s.Ring, q) > 1f && !s.ByWater(q));
                 if (outside > 0) list.Add($"{outside} of its {p.Ring.Length} corners are outside the selection");
                 // a surface drawn over the AI's own paths hides them in the game (the paths are built, but under it)
                 if (p.Kind == AiPieceKind.Surface)
@@ -166,7 +183,7 @@ namespace Placemaker.Core.Ai
                     { list.Add($"runs under surface #{o.Id}, which hides it"); break; }
                 // an end may reach just past the outline to meet a road there (an entrance)
                 bool AtRoad(float2 q) => s.Nets.Any(n => NetDistance(n, q) - n.Width * 0.5f < 4f);
-                int outside = p.Points.Where((q, i) => !Poly.Contains(s.Ring, q) && !((i == 0 || i == p.Points.Length - 1) && AtRoad(q))).Count();
+                int outside = p.Points.Where((q, i) => !Poly.Contains(s.Ring, q) && !s.ByWater(q) && !((i == 0 || i == p.Points.Length - 1) && AtRoad(q))).Count();
                 if (outside > 0) list.Add($"{outside} of its {p.Points.Length} points are outside the selection");
                 for (int k = 0; k + 1 < p.Points.Length; k++)
                     foreach (var b in s.Buildings)

@@ -111,6 +111,8 @@ namespace Placemaker.Core.Layers.Types.Beach
             c.Slider("jetties", 0, 0, 3, 1, "count", ControlTier.More, "amenities").Tip();
             c.Slider("jettyLength", 26, 8, 80, 2, "m", ControlTier.More, "amenities").Tip();
             c.Toggle("jettyHead", true, ControlTier.More, "amenities").Tip();
+            // (appended) a bay carved into the land below the water level, so the lake flows in and the shore curves (ShoreCarve).
+            c.Slider("bay", 0, 0, 40, 2, "m", ControlTier.Essential, "shore").Tip();
 
             c.Fixed("waterSide");
             c.Fixed("carve");
@@ -135,12 +137,12 @@ namespace Placemaker.Core.Layers.Types.Beach
             // rf-beach: busier (umbrellas 70 -> 110 /ha), a swimming jetty with a T-head, boats pulled up, dunes a little higher.
             Preset("sandy", ("style", "sandy"), ("beachDepth", 56.0), ("sandBlend", 16.0), ("umbrellas", 110.0), ("layout", "scattered"), ("backdrop", "dunes"),
                 ("huts", "none"), ("lifeguards", 2.0), ("duneDepth", 26.0), ("duneHeight", 2.0), ("grassDensity", 70.0), ("treeDensity", 40.0), ("kiosks", 1.0),
-                ("jetties", 1.0), ("jettyLength", 26.0), ("jettyHead", true), ("boats", true));
+                ("jetties", 1.0), ("jettyLength", 26.0), ("jettyHead", true), ("boats", true), ("bay", 24.0));
             // Promenade beach: tidy rows, one wide promenade on a level bench with benches and kiosks, palms on a lawn.
             // rf-beach: denser rows (110 -> 150 /ha), a palm avenue along the promenade (Backdrop), a long pier with a T-head.
             Preset("resort", ("style", "sandy"), ("beachDepth", 52.0), ("sandBlend", 6.0), ("umbrellas", 150.0), ("layout", "rows"), ("backdrop", "lawn"), ("huts", "none"),
                 ("pathWidth", "wide"), ("benchSpacing", 15.0), ("kiosks", 2.0), ("lifeguards", 2.0), ("slope", 4.0), ("treeDensity", 30.0), ("accessSpacing", 45.0),
-                ("jetties", 1.0), ("jettyLength", 44.0), ("jettyHead", true));
+                ("jetties", 1.0), ("jettyLength", 44.0), ("jettyHead", true), ("bay", 16.0));
             // Rocky cove: dirt texture with sand pockets, rocks along the waterline, tide pools, a wide rough blend.
             Preset("rocky", ("style", "rocky"), ("umbrellas", 5.0), ("sandSurface", false), ("paintLayer", (double)TerrainMaterials.Dirt), ("backdrop", "none"),
                 ("huts", "none"), ("lifeguards", 0.0), ("kiosks", 0.0), ("rockClusters", 8.0), ("tidePools", 5.0), ("beachDepth", 36.0), ("sandBlend", 20.0),
@@ -151,7 +153,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             // rf-beach: real dunes (2 -> 3.5 m, deeper belt, thick marram grass; no sand fences: vanilla has no timber one), pines only far behind them.
             Preset("cove", ("style", "cove"), ("beachDepth", 44.0), ("sandBlend", 22.0), ("umbrellas", 6.0), ("backdrop", "dunes"), ("duneDepth", 36.0),
                 ("duneHeight", 3.5), ("treeDensity", 25.0), ("grassDensity", 90.0), ("fires", true), ("lifeguards", 0.0), ("huts", "none"), ("kiosks", 0.0),
-                ("lamps", false), ("rockClusters", 3.0), ("boats", true), ("benchSpacing", 0.0), ("accessSpacing", 90.0), ("showers", false));
+                ("lamps", false), ("rockClusters", 3.0), ("boats", true), ("benchSpacing", 0.0), ("accessSpacing", 90.0), ("showers", false), ("bay", 32.0));
             Preset("volleyball", ("style", "volleyball"), ("beachDepth", 66.0), ("sandBlend", 10.0), ("courts", 4.0), ("umbrellas", 25.0), ("accessSpacing", 120.0),
                 ("lifeguards", 1.0), ("kiosks", 2.0), ("huts", "none"), ("pathWidth", "wide"), ("backdrop", "lawn"), ("treeDensity", 30.0), ("slope", 3.0));
         }
@@ -186,8 +188,15 @@ namespace Placemaker.Core.Layers.Types.Beach
 
         protected override void PlanCore(LayerContext ctx)
         {
-            var shore = Shoreline.Analyze(ctx, ctx.LayerRegion, ctx.S("waterSide"));
+            var region0 = ctx.LayerRegion;
+            var shore = Shoreline.Analyze(ctx, region0, ctx.S("waterSide"));
             if (shore == null) { ctx.Issue(IssueSeverity.Warning, Keys.NoSpace, NameKey); return; }
+            // a bay first: the lake flows into it, and everything below is laid out along the curved waterline it makes
+            if (ctx.F("bay") >= 3f && ShoreCarve.Bay(ctx, shore, ctx.F("bay"), 18f, Hashing.Mix(ctx.Seed, 0xBA7u), out _))
+            {
+                var carved = Shoreline.Analyze(ctx, region0, ctx.S("waterSide"));
+                if (carved != null) shore = carved;
+            }
             ctx.LayerRegion = shore.Land;
             var b = new Work { Ctx = ctx, Shore = shore, Style = ctx.S("style") };
             b.Under = ctx.B("sandReach") ? ctx.F("underwater") : 0f;

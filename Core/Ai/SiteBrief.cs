@@ -53,6 +53,38 @@ namespace Placemaker.Core.Ai
 
         /// <summary>A ground grid's cell size and extent for a selection: about 3.5 m (the game's heightmap), coarser past
         /// <paramref name="maxCells"/> per side.</summary>
+        /// <summary>
+        /// The water in words (the shore types need it plainly): its surface level, which side it lies on, how far the
+        /// waterline is from the selection, and what that means for carving and sand.
+        /// </summary>
+        private static void WaterSummary(StringBuilder sb, BriefGround g, float2[] ring, float2 lo)
+        {
+            var levels = new List<float>();
+            float2 sum = 0; int n = 0;
+            float nearest = float.MaxValue; float2 nearestAt = 0;
+            for (int j = 0; j < g.Nz; j++)
+                for (int i = 0; i < g.Nx; i++)
+                {
+                    float d = g.WaterAt(i, j);
+                    if (d <= 0.3f) continue;
+                    var c = g.CellCentre(i, j);
+                    levels.Add(g.HeightAt(i, j) + d);
+                    sum += c; n++;
+                    float e = Poly.Contains(ring, c) ? 0f : Poly.DistanceToBoundary(ring, c);
+                    if (e < nearest) { nearest = e; nearestAt = c; }
+                }
+            if (n == 0) return;
+            levels.Sort();
+            float level = levels[levels.Count / 2];
+            float2 centre = 0; foreach (var q in ring) centre += q; centre /= ring.Length;
+            var dir = sum / n - centre;
+            string side = math.abs(dir.x) > math.abs(dir.y) ? (dir.x > 0 ? "east" : "west") : (dir.y > 0 ? "north" : "south");
+            sb.AppendLine();
+            sb.AppendLine($"Water summary: open water to the {side}, its surface at {F(level)} m above sea level; the nearest open water is {F(nearest)} m from the selection{(nearest > 0.5f ? " (outside it, near " + P(nearestAt - lo) + ")" : " (inside it)")}. " +
+                $"Ground you lower below {F(level)} m next to that water fills with it (no water_level needed: the lake flows in); never dig below it where it does not connect, or it stays a dry pit. " +
+                "On the water side your sand paint, ground shaping, paths and piers may reach past the selection to the water and out over it.");
+        }
+
         public static (float2 origin, float cell, int nx, int nz) GroundGrid(float2[] ring, float margin, float cell = 3.5f, int maxCells = 120)
         {
             var (lo, hi) = Box(ring);
@@ -139,6 +171,7 @@ namespace Placemaker.Core.Ai
                         for (int i = 0; i < g.Nx; i++) row.Append(' ').Append(F(g.WaterAt(i, j)));
                         sb.AppendLine(row.ToString());
                     }
+                    WaterSummary(sb, g, ring, lo);
                 }
                 else sb.AppendLine("No water in or near the selection.");
             }

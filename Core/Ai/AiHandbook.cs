@@ -6,7 +6,7 @@ namespace Placemaker.Core.Ai
 {
     public static class AiHandbook
     {
-        public const string Version = "handbook-5";
+        public const string Version = "handbook-6";
 
         public const string Text =
 @"# Design guide (what good builds in this game look like)
@@ -66,7 +66,13 @@ Numbers are starting points for a typical site; scale them with the site and the
 - Animal park: a visitor hub at the gate, a loop walk, pens with a shelter at the far side and hay and a trough by the gate, maybe an arena.
 - Sports park: a tree belt, a promenade loop, the main field aligned with the long edge facing a spectator terrace and a clubhouse, courts grouped by kind, fields 6-18 m apart. Field sizes with run-off: football 121x86 (smaller 87x62, 67x51), tennis 38.6x20.3 per court, basketball 34x25, skate 34x26.
 - Plaza and market: paving with a centrepiece, a tree ring or bosquet, benches between trees along the edge, stalls back to back in a grid with cross aisles.
-- Beach: bands from the waterline (sand, promenade, dunes or lawn), lifeguard posts, umbrellas in rows (resort) or scattered (natural), boats in groups.
+- Beach and waterfront (on a shore: the brief's water summary gives the water level and side):
+  1. Carve a bay: shape_ground mode lower over a crescent (an ellipse, wobble 2-3, centred on the old shoreline, 25-40 m deep into the land and most of the shore long, or a polygon) down to 1.5-2 m below the water level. It must touch the open water: the lake flows in and the shore curves. No water_level for this.
+  2. The beach face: from about 1.5 m below the water level at the waterline up to 1-2 m above it at the back of the sand, a gentle even slope (3-6 %) over 30-50 m: sloped shapes (rect or polygon with corner_heights) following the shore, never a step or a ledge at the water.
+  3. Sand: paint_ground sand from 8-12 m out into the water to the back of the beach, feather 6-10, noise 4-6, so it wraps the bay and runs under the water. Never stop the sand short of the water, and never paint sand where the ground is not lowered to the water (a sand strip on grass is wrong).
+  4. On the sand: umbrellas with two loungers each in loose groups (beach) or rows (resort) about 6-8 m apart, lifeguard towers every 60-80 m facing the water, a timber jetty (place_path with a pier or boardwalk line and height 1 m above the water) from the sand straight out 20-45 m, boats pulled up at one end.
+  5. Behind it: a promenade path parallel to the shore at the back of the sand, joined to the streets, with benches facing the water, lamps every 25 m, showers and a kiosk at the access paths; then dunes with marram grass (low mounds, bushes) or a painted lawn with palms or pines. No trees on the sand.
+  Waterfront: the same shore, but the edge is built: a timber boardwalk or quay along the water (place_path, raised), a paved promenade behind it with benches facing the water, lamps and trees in a row, T-headed piers out over the water, and a park or plaza behind; a small harbour basin carved into the land (a rect lowered below the water level, opening to the lake) with a quay round it is a strong focal point.
 - Parking (the premade car park, which players like; build it this way with the car park kit from the essentials):
   1. Ground: level it (a 1-2 % fall is fine). Surfaces never overlap (the game shows only one), so the ground is pieces side by side: grass paint (paint_ground) under the whole site as the verge, then asphalt as strips: one rect for each band between two medians (and from the outer medians to the ring's outer stall backs), the grass medians as their own rects in the gaps between the strips. Never dirt, sand or white concrete for the parking area.
   2. Lanes: the car lane (invisible, 7 m) as a ring about 10 m inside the outline, joined to the street at one or two entrances (end the lane on the street), and straight aisles across the lot parallel to its long edge, 22 m apart (centre to centre), joined to the ring at both ends. Lanes belong under the asphalt.

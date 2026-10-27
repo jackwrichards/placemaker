@@ -272,6 +272,15 @@ namespace Placemaker.Core
         public string[] ChildLayers = Array.Empty<string>();
         public string[] ChildTargets = Array.Empty<string>();
 
+        /// <summary>The same input over another site snapshot (shallow copy): a layer that carves the ground before it plans
+        /// (ShoreCarve) plans against the carved site.</summary>
+        public AreaInput WithSite(SiteContext site)
+        {
+            var c = (AreaInput)MemberwiseClone();
+            c.Site = site;
+            return c;
+        }
+
         public bool HasChild(string layerId) => ChildLayers != null && Array.IndexOf(ChildLayers, layerId) >= 0;
         public bool HasChildTarget(string target) => ChildTargets != null && Array.IndexOf(ChildTargets, target) >= 0;
     }
