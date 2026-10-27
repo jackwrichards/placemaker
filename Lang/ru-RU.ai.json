@@ -34,5 +34,6 @@
   "Placemaker.Ai.Line.Paint": "Земля покрашена, {0} м²",
   "Placemaker.Ai.Line.Surface": "Покрытие, {0} м²",
   "Placemaker.Ai.Doing.Look": "Смотрит объекты: {0}",
-  "Placemaker.Ai.Line.Looked": "Просмотрено изображений: {0}"
+  "Placemaker.Ai.Line.Looked": "Просмотрено изображений: {0}",
+  "Placemaker.Ai.Line.Review": "Проверяет свою работу"
 }

@@ -56,6 +56,9 @@ namespace Placemaker.Core.Ai
         /// <summary>The ground height before anything the AI shaped (world xz -> m above sea level).</summary>
         public Func<float2, float> Ground = _ => 0f;
 
+        /// <summary>The first finish of a request has been turned into a review (the next one ends it).</summary>
+        public bool Reviewed;
+
         public float2 World(float2 local) => local + Origin;
         public float2 Local(float2 world) => world - Origin;
     }

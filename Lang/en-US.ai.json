@@ -34,5 +34,6 @@
   "Placemaker.Ai.Line.Paint": "Ground painted, {0} m²",
   "Placemaker.Ai.Line.Surface": "Surface, {0} m²",
   "Placemaker.Ai.Doing.Look": "Looking at {0} assets",
-  "Placemaker.Ai.Line.Looked": "Looked at {0} pictures"
+  "Placemaker.Ai.Line.Looked": "Looked at {0} pictures",
+  "Placemaker.Ai.Line.Review": "Reviewing its work"
 }

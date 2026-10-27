@@ -34,5 +34,6 @@
   "Placemaker.Ai.Line.Paint": "地面已繪製，{0} 平方公尺",
   "Placemaker.Ai.Line.Surface": "鋪面，{0} 平方公尺",
   "Placemaker.Ai.Doing.Look": "正在查看 {0} 個資源",
-  "Placemaker.Ai.Line.Looked": "查看了 {0} 張圖片"
+  "Placemaker.Ai.Line.Looked": "查看了 {0} 張圖片",
+  "Placemaker.Ai.Line.Review": "正在檢查自己的作品"
 }

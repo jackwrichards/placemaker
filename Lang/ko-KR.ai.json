@@ -34,5 +34,6 @@
   "Placemaker.Ai.Line.Paint": "지면 칠함, {0} m²",
   "Placemaker.Ai.Line.Surface": "표면, {0} m²",
   "Placemaker.Ai.Doing.Look": "에셋 {0}개 보는 중",
-  "Placemaker.Ai.Line.Looked": "이미지 {0}장 확인"
+  "Placemaker.Ai.Line.Looked": "이미지 {0}장 확인",
+  "Placemaker.Ai.Line.Review": "작업 검토 중"
 }

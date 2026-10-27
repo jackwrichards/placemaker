@@ -61,7 +61,7 @@ namespace Placemaker.Game.Ai
 
         public const int MaxTurns = 60;
         /// <summary>How hard the model thinks before each step (OpenRouter reasoning effort: low, medium, high).</summary>
-        public const string Reasoning = "low";
+        public const string Reasoning = "medium";   // low was fast (10-20 s) but rushed: 3-5 steps, thin builds (eval 2)
 
         public static State Status => s_state;
         public static int Version => s_version;
@@ -210,7 +210,11 @@ namespace Placemaker.Game.Ai
                         firstMessage["content"][1]["cache_control"] = new JObject { ["type"] = "ephemeral" };   // the brief and its map: the same in every later call
                         s_messages.Add(firstMessage);
                     }
-                    else s_messages.Add(new JObject { ["role"] = "user", ["content"] = "The player says: " + text });
+                    else
+                    {
+                        s_site.Reviewed = false;
+                        s_messages.Add(new JObject { ["role"] = "user", ["content"] = "The player says: " + text });
+                    }
                     await Loop(endpoint, key, model, cancel);
                 }
                 catch (OperationCanceledException) { s_end = State.Stopped; SayKey("Placemaker.Ai.Line.Stopped"); }

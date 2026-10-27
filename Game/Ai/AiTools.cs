@@ -228,6 +228,16 @@ namespace Placemaker.Game.Ai
                     }
                     case "view_map": return new Result { Text = "the map is attached below", Map = true };
                     case "finish":
+                        // the first finish of a request is a review, not the end: the AI sees its map again and grades it
+                        if (!site.Reviewed)
+                        {
+                            site.Reviewed = true;
+                            return new Result
+                            {
+                                Text = "Not yet: review first. The map of your build is attached. Grade it A-F against the request and the design guide on each of: idea and focal point; ground (shaping, paint, surfaces); water; features people come for; planting; furniture; variety and richness; fit to the site, its slope and its streets. Then fix everything that keeps it from an A, check, and call finish again.",
+                                Map = true, LineKey = "Placemaker.Ai.Line.Review",
+                            };
+                        }
                         return new Result { Text = "handed to the player", Note = (string)args["note"] ?? "", Finished = true };
                     case "wish":
                     {

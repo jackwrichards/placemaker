@@ -34,5 +34,6 @@
   "Placemaker.Ai.Line.Paint": "Grunt pomalowany, {0} m²",
   "Placemaker.Ai.Line.Surface": "Nawierzchnia, {0} m²",
   "Placemaker.Ai.Doing.Look": "Ogląda {0} obiektów",
-  "Placemaker.Ai.Line.Looked": "Obejrzano {0} obrazów"
+  "Placemaker.Ai.Line.Looked": "Obejrzano {0} obrazów",
+  "Placemaker.Ai.Line.Review": "Sprawdza swoją pracę"
 }

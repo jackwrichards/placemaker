@@ -34,5 +34,6 @@
   "Placemaker.Ai.Line.Paint": "Suolo dipinto, {0} m²",
   "Placemaker.Ai.Line.Surface": "Superficie, {0} m²",
   "Placemaker.Ai.Doing.Look": "Guarda {0} oggetti",
-  "Placemaker.Ai.Line.Looked": "Viste {0} immagini"
+  "Placemaker.Ai.Line.Looked": "Viste {0} immagini",
+  "Placemaker.Ai.Line.Review": "Rivede il proprio lavoro"
 }
