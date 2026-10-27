@@ -21,8 +21,8 @@ namespace Placemaker.Game.Settings
     public enum SketchStyle { SitePlan = 0, Classic = 1 }
 
     [FileLocation("ModsSettings/Placemaker/Placemaker")]
-    [SettingsUIGroupOrder(GroupGeneral, GroupBrush, GroupBuild, GroupKeys, GroupMaintenance)]
-    [SettingsUIShowGroupName(GroupGeneral, GroupBrush, GroupBuild, GroupKeys, GroupMaintenance)]
+    [SettingsUIGroupOrder(GroupGeneral, GroupBrush, GroupBuild, GroupKeys, GroupAi, GroupMaintenance)]
+    [SettingsUIShowGroupName(GroupGeneral, GroupBrush, GroupBuild, GroupKeys, GroupAi, GroupMaintenance)]
     [SettingsUIKeyboardAction(ActionToggleTool, ActionType.Button)]
     [SettingsUIKeyboardAction(ActionPrimary, ActionType.Button)]
     [SettingsUIKeyboardAction(ActionUndo, ActionType.Button)]
@@ -37,6 +37,7 @@ namespace Placemaker.Game.Settings
         public const string GroupBuild = "Build";
         public const string GroupBrush = "Brush";
         public const string GroupNeighbourhood = "Neighbourhood";
+        public const string GroupAi = "Ai";
 
         public const string ActionToggleTool = "ToggleTool";
         public const string ActionPrimary = "Primary";
@@ -283,6 +284,50 @@ namespace Placemaker.Game.Settings
                 catch (Exception e) { Mod.Log.Warn("Placemaker: resetting key bindings failed: " + e.Message); }
             }
         }
+
+        // ───────────── AI builder (experimental; docs/AI-BUILDER.md) ─────────────
+
+        [SettingsUISection(SectionMain, GroupAi)]
+        public bool AiBuilderOn { get; set; }
+
+        /// <summary>The player's own key, sent only to the endpoint (never logged or written elsewhere).</summary>
+        [SettingsUISection(SectionMain, GroupAi)]
+        [SettingsUITextInput]
+        [SettingsUIHideByCondition(typeof(PlacemakerSettings), nameof(AiOff))]
+        public string AiKey { get; set; }
+
+        [SettingsUISection(SectionMain, GroupAi)]
+        [SettingsUITextInput]
+        [SettingsUIHideByCondition(typeof(PlacemakerSettings), nameof(AiOff))]
+        public string AiModel { get; set; }
+
+        [SettingsUISection(SectionMain, GroupAi)]
+        [SettingsUITextInput]
+        [SettingsUIHideByCondition(typeof(PlacemakerSettings), nameof(AiOff))]
+        public string AiEndpoint { get; set; }
+
+        [SettingsUISection(SectionMain, GroupAi)]
+        [SettingsUITextInput]
+        [SettingsUIHideByCondition(typeof(PlacemakerSettings), nameof(AiOff))]
+        public string AiPrompt { get; set; }
+
+        /// <summary>Phase one: sends the site brief of the current selection and the prompt; the reply goes to the log and ModsData/Placemaker/ai.</summary>
+        [SettingsUISection(SectionMain, GroupAi)]
+        [SettingsUIButton]
+        [SettingsUIHideByCondition(typeof(PlacemakerSettings), nameof(AiOff))]
+        public bool AiSend
+        {
+            set
+            {
+                try
+                {
+                    if (!global::Placemaker.Game.Ai.AiBuilder.Start(AiPrompt, out var why)) Mod.Log.Warn("Placemaker AI: not sent: " + why);
+                }
+                catch (Exception e) { Mod.Log.Error(e, "Placemaker AI: sending failed"); }
+            }
+        }
+
+        public bool AiOff() => !AiBuilderOn;
 
         // ───────────── Maintenance ─────────────
 
@@ -559,6 +604,11 @@ namespace Placemaker.Game.Settings
             BrushSquare = false;
             LastAreaMode = 0;
             LastRecipe = "";
+            AiBuilderOn = false;
+            AiKey = AiKey ?? "";   // kept by Reset defaults: the player pasted it
+            AiModel = global::Placemaker.Game.Ai.AiBuilder.DefaultModel;
+            AiEndpoint = global::Placemaker.Game.Ai.AiBuilder.DefaultEndpoint;
+            AiPrompt = "A small quiet park with a pond and shady paths";
             PanelCollapsed = false;
             AutoExcludeCollisions = true;
             IgnoreOwnCollisions = true;

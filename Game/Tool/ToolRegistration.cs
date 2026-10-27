@@ -80,7 +80,7 @@ namespace Placemaker.Game.Tool
 
             r[s.GetSettingsLocaleID()] = T("Placemaker.Name", "Placemaker");
             r[s.GetOptionTabLocaleID(PlacemakerSettings.SectionMain)] = T("Placemaker.Settings.Tab.Main", "Placemaker");
-            foreach (var g in new[] { PlacemakerSettings.GroupGeneral, PlacemakerSettings.GroupBrush, PlacemakerSettings.GroupBuild, PlacemakerSettings.GroupNeighbourhood, PlacemakerSettings.GroupKeys, PlacemakerSettings.GroupMaintenance })
+            foreach (var g in new[] { PlacemakerSettings.GroupGeneral, PlacemakerSettings.GroupBrush, PlacemakerSettings.GroupBuild, PlacemakerSettings.GroupNeighbourhood, PlacemakerSettings.GroupKeys, PlacemakerSettings.GroupAi, PlacemakerSettings.GroupMaintenance })
                 r[s.GetOptionGroupLocaleID(g)] = T("Placemaker.Settings.Group." + g, g);
             // Every option of the class (a hand list left newer options showing their raw ids); one that asks for confirmation
             // gets a warning text too

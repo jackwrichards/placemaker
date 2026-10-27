@@ -47,6 +47,7 @@
     "anarchy": { "keys": ["on"] },
     "group": { "keys": ["on"] },
     "setting": { "keys": ["name", "value"] },
+    "ai": { "keys": ["prompt", "timeout", "probe"] },
     "locale": { "keys": ["locale"] },
     "options": { "keys": ["scrollTo", "offset", "close"] },
     "polish": { "keys": ["stamp", "wait", "theme", "knob", "option", "value", "city", "open", "close", "click", "clickText", "drag", "by", "doubleClick"], "enums": { "stamp": ["pick", "yes", "no"], "theme": ["zone", "garden", "natural", "tidy", "yard", "meadow", "rustic", "coastal", "manicured", "houses", "rows", "apartments", "towers", "mixed", "shops", "bigShops", "offices", "officeTowers", "industry"], "open": ["look", "city"], "close": ["look", "city"] } },

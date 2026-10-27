@@ -1,0 +1,69 @@
+// AI builder (docs/AI-BUILDER.md): the site brief and its map for an odd shape (a C), a slope, a road and a building.
+
+using System.Linq;
+using Placemaker.Core;
+using Placemaker.Core.Ai;
+using Unity.Mathematics;
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Placemaker.Tests
+{
+    public class AiBriefTests
+    {
+        private readonly ITestOutputHelper _out;
+        public AiBriefTests(ITestOutputHelper output) { _out = output; }
+
+        private static SiteBriefInput CShape()
+        {
+            // a C opening east, at world (1000, 2000): 100 x 80 m, the gap 40 m wide and 60 m deep
+            var o = new float2(1000, 2000);
+            var ring = new[] { new float2(0, 0), new float2(100, 0), new float2(100, 20), new float2(40, 20), new float2(40, 60), new float2(100, 60), new float2(100, 80), new float2(0, 80) }
+                .Select(p => p + o).ToArray();
+            var (origin, cell, nx, nz) = SiteBrief.GroundGrid(ring, 30f);
+            var g = new BriefGround { Origin = origin, Cell = cell, Nx = nx, Nz = nz, Height = new float[nx * nz] };
+            for (int j = 0; j < nz; j++)
+                for (int i = 0; i < nx; i++) g.Height[j * nx + i] = 400f + 0.05f * (g.CellCentre(i, j).x - o.x);   // rises 5 % to the east
+            var s = new SiteBriefInput { Ring = ring, Ground = g, Prompt = "a park" };
+            s.Nets.Add(new NearbyNet { A = new float3(o.x - 20, 400, o.y - 10), B = new float3(o.x + 30, 400, o.y - 10), C = new float3(o.x + 80, 405, o.y - 10), D = new float3(o.x + 130, 406, o.y - 10), Width = 12, Category = NetCategory.Road, HasSidewalk = true });
+            s.Buildings.Add(new Obstacle { A = o + new float2(60, 30), B = o + new float2(80, 30), C = o + new float2(80, 50), D = o + new float2(60, 50), Kind = ObstacleKind.Building });
+            return s;
+        }
+
+        [Fact]
+        public void BriefDescribesTheShapeGroundRoadAndBuilding()
+        {
+            var s = CShape();
+            var text = SiteBrief.Write(s);
+            _out.WriteLine(text.Substring(0, System.Math.Min(text.Length, 3000)));
+            Assert.Contains("Bounding box 100 x 80 m, 8 corners, area 5600 m²", text);
+            Assert.Contains("(40,20)", text);   // outline in local metres
+            var lines = text.Split('\n').Select(l => l.TrimEnd('\r')).ToList();
+            int mask = lines.IndexOf("Mask (# = inside the selection, . = outside):");
+            Assert.True(mask > 0);
+            var rows = lines.Skip(mask + 1).Take(s.Ground.Nz).ToList();
+            Assert.All(rows, r => Assert.Equal(s.Ground.Nx, r.Length));
+            Assert.Contains(rows, r => r.Contains('#'));
+            Assert.Contains("road, 12 m wide, sidewalks, outside", text);
+            Assert.Contains("B1: 20 x 20 m centred at (70,40)", text);   // in the C's gap: outside
+            Assert.Contains("outside;", lines.First(l => l.StartsWith("B1:")));
+            Assert.Contains("steepest 5 %", text);
+            Assert.Contains("a park", text);
+        }
+
+        [Fact]
+        public void MapCoversTheGroundGrid()
+        {
+            var s = CShape();
+            var pic = BriefMap.Draw(s);
+            float size = math.max(s.Ground.Nx, s.Ground.Nz) * s.Ground.Cell;
+            Assert.True(pic.W <= 1000 && pic.H <= 1000);
+            Assert.Equal(pic.W * pic.H * 4, pic.Rgba.Length);
+            Assert.InRange(pic.MetresPerPixel, 0.25f, size / 100f);
+            // the outline is drawn white somewhere
+            bool white = false;
+            for (int k = 0; k < pic.Rgba.Length; k += 4) white |= pic.Rgba[k] == 255 && pic.Rgba[k + 1] == 255 && pic.Rgba[k + 2] == 255;
+            Assert.True(white);
+        }
+    }
+}

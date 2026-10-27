@@ -1,0 +1,18 @@
+{
+  "_about": "AI builder, phase one step 1 (docs/AI-BUILDER.md): the site brief and its map of an odd selection (a C opening east, on a slope, a ring road following it), a probe call with an invalid key (proves the network from inside the game: expect HTTP 401), a real call when a key is set (the setting or %USERPROFILE%\\.placemaker\\ai-key.txt; else 'no API key'), and the AI builder's options. Read the ai-map picture, the ai-brief.txt and ai-reply.txt next to the run.",
+  "scenarios": [
+    {
+      "id": "ai-brief-c",
+      "land": { "shape": "points", "points": [[0, 0], [120, 0], [120, 30], [50, 30], [50, 70], [120, 70], [120, 100], [0, 100]], "ground": "slope", "grade": 6, "toward": "east", "roads": "follow", "gap": 10 },
+      "steps": [
+        { "do": "area", "tool": "land" },
+        { "do": "ai", "probe": true, "prompt": "A small quiet park with a pond and shady paths", "timeout": 60 },
+        { "do": "ai", "prompt": "A small quiet park with a pond and shady paths", "timeout": 240 },
+        { "do": "setting", "name": "AiBuilderOn", "value": true },
+        { "do": "options", "scrollTo": "AI builder (experimental)", "shot": "ai-options", "shotMode": "ui" },
+        { "do": "options", "close": true },
+        { "do": "setting", "name": "AiBuilderOn", "value": false }
+      ]
+    }
+  ]
+}

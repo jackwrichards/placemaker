@@ -41,6 +41,7 @@
     <Reference Include="mscorlib"><HintPath>$(ManagedPath)\mscorlib.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="System"><HintPath>$(ManagedPath)\System.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="System.Core"><HintPath>$(ManagedPath)\System.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Net.Http"><HintPath>$(ManagedPath)\System.Net.Http.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="netstandard"><HintPath>$(ManagedPath)\netstandard.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 
