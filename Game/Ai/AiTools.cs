@@ -690,6 +690,8 @@ namespace Placemaker.Game.Ai
                     float g = site.Ground(q);
                     gmin = math.min(gmin, g); gmax = math.max(gmax, g);
                 }
+            if (gmin <= gmax && math.abs(p.Height - (gmin + gmax) * 0.5f) > 30f)
+                return new Result { Text = $"refused: height {F(p.Height)} m is far from the ground here ({F(gmin)} to {F(gmax)} m above sea level). Heights are metres above sea level, not relative. Nothing was shaped." };
             float maxStep = 0f; float2 stepAt = ring[0];
             for (int k = 0; k < ring.Length; k++)
             {
@@ -735,6 +737,15 @@ namespace Placemaker.Game.Ai
                     gmin = math.min(gmin, g); gmax = math.max(gmax, g);
                     low = math.min(low, AiTerrain.HeightAt(p, q, g));
                 }
+            // heights are above sea level: a target far from the ground here is a mistake (eval: "height 6" meant 6 m up and
+            // dug a 490 m chasm), refused with the right number
+            float target = p.LineHeights != null ? p.LineHeights.Average() : p.CornerHeights != null ? p.CornerHeights.Average() : p.Height;
+            if (gmin <= gmax && math.abs(target - (gmin + gmax) * 0.5f) > 30f)
+                return new Result { Text = $"refused: height {F(target)} m is {F(math.abs(target - (gmin + gmax) * 0.5f))} m {(target < gmin ? "below" : "above")} the ground here ({F(gmin)} to {F(gmax)} m above sea level). Heights are metres above sea level, not relative: for a 6 m hill here give about {F(gmax + 6f)}. Nothing was shaped." };
+            // no cliffs by accident: the soft edge is at least wide enough for a 60 % bank
+            float rise = gmin <= gmax ? math.max(math.abs(target - gmin), math.abs(target - gmax)) : 0f;
+            string widened = "";
+            if (p.Feather > 0.05f && rise / p.Feather > 0.6f) { float fw = math.ceil(rise / 0.6f); widened = $"; feather widened from {F(p.Feather)} to {F(fw)} m so its bank is at most 60 %"; p.Feather = fw; }
             AiPlan.Current.Add(p);
             float steep = AiTerrain.SteepestEdge(p, site.Ground);
             string water = "";
@@ -760,7 +771,7 @@ namespace Placemaker.Game.Ai
             string ground = gmin <= gmax ? $"ground before: {F(gmin)} to {F(gmax)} m" : "ground before: unknown";
             return new Result
             {
-                Text = $"ground #{p.Id} ({mode} {what}, feather {F(p.Feather)} m): {ground}; steepest slope it makes {F(math.round(steep))} %{(steep > 45f ? " (a steep bank: a wider feather softens it)" : "")}{water}; {Problems(site, p)}",
+                Text = $"ground #{p.Id} ({mode} {what}, feather {F(p.Feather)} m): {ground}; steepest slope it makes {F(math.round(steep))} %{(steep > 45f ? " (a steep bank: a wider feather softens it)" : "")}{widened}{water}; {Problems(site, p)}",
                 LineKey = "Placemaker.Ai.Line.Shape", LineArgs = new object[] { 0f },
             };
         }
