@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.2.0+f851771f-dirty",
+  "assembly": "0.3.6+bdcaa1b7",
   "categories": [
     {
       "id": "zoning",
@@ -496,6 +496,24 @@
           "step": 1.0,
           "unit": "m",
           "default": 30.0
+        },
+        {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
         },
         {
           "id": "sideReach",
@@ -1337,6 +1355,24 @@
           "default": 30.0
         },
         {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
+        },
+        {
           "id": "sideReach",
           "kind": "Slider",
           "min": 0.0,
@@ -2174,6 +2210,24 @@
           "step": 1.0,
           "unit": "m",
           "default": 30.0
+        },
+        {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
         },
         {
           "id": "sideReach",
@@ -3015,6 +3069,24 @@
           "default": 30.0
         },
         {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
+        },
+        {
           "id": "sideReach",
           "kind": "Slider",
           "min": 0.0,
@@ -3852,6 +3924,24 @@
           "step": 1.0,
           "unit": "m",
           "default": 30.0
+        },
+        {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
         },
         {
           "id": "sideReach",
@@ -4693,6 +4783,24 @@
           "default": 30.0
         },
         {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
+        },
+        {
           "id": "sideReach",
           "kind": "Slider",
           "min": 0.0,
@@ -5530,6 +5638,24 @@
           "step": 1.0,
           "unit": "m",
           "default": 30.0
+        },
+        {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
         },
         {
           "id": "sideReach",
@@ -6371,6 +6497,24 @@
           "default": 30.0
         },
         {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
+        },
+        {
           "id": "sideReach",
           "kind": "Slider",
           "min": 0.0,
@@ -7210,6 +7354,24 @@
           "default": 30.0
         },
         {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
+        },
+        {
           "id": "sideReach",
           "kind": "Slider",
           "min": 0.0,
@@ -8047,6 +8209,24 @@
           "step": 1.0,
           "unit": "m",
           "default": 30.0
+        },
+        {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
         },
         {
           "id": "sideReach",
@@ -9164,6 +9344,24 @@
           "default": 30.0
         },
         {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
+        },
+        {
           "id": "sideReach",
           "kind": "Slider",
           "min": 0.0,
@@ -10002,6 +10200,24 @@
           "step": 1.0,
           "unit": "m",
           "default": 30.0
+        },
+        {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
         },
         {
           "id": "sideReach",
@@ -10844,6 +11060,24 @@
           "default": 30.0
         },
         {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
+        },
+        {
           "id": "sideReach",
           "kind": "Slider",
           "min": 0.0,
@@ -11684,6 +11918,24 @@
           "default": 30.0
         },
         {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
+        },
+        {
           "id": "sideReach",
           "kind": "Slider",
           "min": 0.0,
@@ -12522,6 +12774,24 @@
           "step": 1.0,
           "unit": "m",
           "default": 30.0
+        },
+        {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
         },
         {
           "id": "sideReach",
@@ -13630,6 +13900,24 @@
           "default": 30.0
         },
         {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
+        },
+        {
           "id": "sideReach",
           "kind": "Slider",
           "min": 0.0,
@@ -14633,6 +14921,24 @@
           "step": 1.0,
           "unit": "m",
           "default": 30.0
+        },
+        {
+          "id": "gardenWidth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 150.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 60.0
+        },
+        {
+          "id": "gardenDepth",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 1.0,
+          "unit": "m",
+          "default": 50.0
         },
         {
           "id": "sideReach",

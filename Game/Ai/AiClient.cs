@@ -61,7 +61,7 @@ namespace Placemaker.Game.Ai
             {
                 using (var req = new HttpRequestMessage(HttpMethod.Post, endpoint))
                 {
-                    req.Headers.TryAddWithoutValidation("Authorization", "Bearer " + key);
+                    req.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", key);
                     req.Headers.TryAddWithoutValidation("HTTP-Referer", "https://mods.paradoxplaza.com/");
                     req.Headers.TryAddWithoutValidation("X-Title", "Placemaker");
                     req.Content = new StringContent(body.ToString(Newtonsoft.Json.Formatting.None), Encoding.UTF8, "application/json");

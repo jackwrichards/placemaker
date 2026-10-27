@@ -1,7 +1,7 @@
 // AI builder (docs/AI-BUILDER.md), phase one step 1: the site brief and its map of the current selection, sent to the AI
 // with the player's prompt; the reply, the tokens and the cost logged and saved to ModsData/Placemaker/ai/<time>/
-// (brief.txt, map.png, request.json without the image or key, reply.txt, call.json). The capture runs on the main
-// thread (ground, water, roads, buildings), the call on a worker.
+// (brief.txt, map.png, request.json without the image or key, reply.txt, call.json). Only the capture runs on the main
+// thread (ground, water, roads, buildings); the brief, the map and the call on a worker.
 
 using System;
 using System.IO;
@@ -16,6 +16,7 @@ using Placemaker.Game.Tool;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace Placemaker.Game.Ai
 {
@@ -67,46 +68,52 @@ namespace Placemaker.Game.Ai
             string endpoint = string.IsNullOrWhiteSpace(settings?.AiEndpoint) ? DefaultEndpoint : settings.AiEndpoint.Trim();
             string model = string.IsNullOrWhiteSpace(settings?.AiModel) ? DefaultModel : settings.AiModel.Trim();
 
-            string folder, briefText;
-            byte[] png;
+            SiteBriefInput input;
+            string folder;
             var sw = System.Diagnostics.Stopwatch.StartNew();
             try
             {
-                var input = Capture(world, tool, shape.Ring2D(), prompt ?? "");
-                var pic = BriefMap.Draw(input);
-                input.MapMetresPerPixel = pic.MetresPerPixel;
-                briefText = SiteBrief.Write(input);
-                png = Encode(pic);
+                input = Capture(world, tool, shape.Ring2D(), prompt ?? "");
                 folder = Path.Combine(ModPaths.DataFolder, "ai", DateTime.Now.ToString("yyyyMMdd-HHmmss"));
                 Directory.CreateDirectory(folder);
-                File.WriteAllText(Path.Combine(folder, "brief.txt"), briefText);
-                File.WriteAllBytes(Path.Combine(folder, "map.png"), png);
-                Mod.Log.Info($"Placemaker AI: brief of the selection ({briefText.Length} chars, map {pic.W}x{pic.H} px, {input.Nets.Count} nets, {input.Buildings.Count} building quads) in {sw.ElapsedMilliseconds} ms -> {folder}");
             }
             catch (Exception e)
             {
-                Mod.Log.Error(e, "Placemaker AI: the site brief failed");
-                why = "the site brief failed: " + e.Message;
+                Mod.Log.Error(e, "Placemaker AI: capturing the selection failed");
+                why = "capturing the selection failed: " + e.Message;
                 return false;
             }
-
-            var body = AiClient.Body(model, AiPrompts.System, briefText, Convert.ToBase64String(png), 2000);
-            var saved = (JObject)body.DeepClone();
-            foreach (var c in saved["messages"][1]["content"].Where(c => (string)c["type"] == "image_url").ToList())
-                c["image_url"]["url"] = "(map.png)";
-            File.WriteAllText(Path.Combine(folder, "request.json"), saved.ToString());
+            long captureMs = sw.ElapsedMilliseconds;
 
             s_State = State.Working;
             LastFolder = folder;
             LastError = null;
             LastReply = null;
             Runs++;
-            Mod.Log.Info($"Placemaker AI: calling {model} at {endpoint} (key from {keyFrom}, prompt {AiPrompts.Version})");
+            // the brief, the map and the call on a worker: only the capture above touches the game
             Task.Run(async () =>
             {
                 AiReply r;
-                try { r = await AiClient.Send(endpoint, key, body, CancellationToken.None); }
-                catch (Exception e) { r = new AiReply { Error = e.Message }; }
+                try
+                {
+                    var sw2 = System.Diagnostics.Stopwatch.StartNew();
+                    var pic = BriefMap.Draw(input);
+                    input.MapMetresPerPixel = pic.MetresPerPixel;
+                    string briefText = SiteBrief.Write(input);
+                    byte[] png = ImageConversion.EncodeArrayToPNG(pic.Rgba, GraphicsFormat.R8G8B8A8_UNorm, (uint)pic.W, (uint)pic.H);
+                    File.WriteAllText(Path.Combine(folder, "brief.txt"), briefText);
+                    File.WriteAllBytes(Path.Combine(folder, "map.png"), png);
+                    Mod.Log.Info($"Placemaker AI: brief of the selection ({briefText.Length} chars, map {pic.W}x{pic.H} px, {input.Nets.Count} nets, {input.Buildings.Count} building quads): capture {captureMs} ms on the main thread, brief and map {sw2.ElapsedMilliseconds} ms on a worker -> {folder}");
+
+                    var body = AiClient.Body(model, AiPrompts.System, briefText, Convert.ToBase64String(png), 2000);
+                    var saved = (JObject)body.DeepClone();
+                    foreach (var c in saved["messages"][1]["content"].Where(c => (string)c["type"] == "image_url").ToList())
+                        c["image_url"]["url"] = "(map.png)";
+                    File.WriteAllText(Path.Combine(folder, "request.json"), saved.ToString());
+                    Mod.Log.Info($"Placemaker AI: calling {model} at {endpoint} (key from {keyFrom}, prompt {AiPrompts.Version})");
+                    r = await AiClient.Send(endpoint, key, body, CancellationToken.None);
+                }
+                catch (Exception e) { r = new AiReply { Error = e.GetType().Name + ": " + e.Message }; }
                 try
                 {
                     File.WriteAllText(Path.Combine(folder, "reply.txt"), r.Text ?? "");
@@ -165,18 +172,6 @@ namespace Placemaker.Game.Ai
                 }
             }
             return input;
-        }
-
-        private static byte[] Encode(BriefMap.Picture pic)
-        {
-            var tex = new Texture2D(pic.W, pic.H, TextureFormat.RGBA32, false);
-            try
-            {
-                tex.SetPixelData(pic.Rgba, 0);
-                tex.Apply(false);
-                return tex.EncodeToPNG();
-            }
-            finally { UnityEngine.Object.Destroy(tex); }
         }
     }
 }
