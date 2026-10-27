@@ -341,6 +341,12 @@ namespace Placemaker.Game.Ai
                                 Map = true, LineKey = "Placemaker.Ai.Line.Review", Phase = "detail",
                             };
                         }
+                        // more building, not a correction (the user: "more rounds in general"): a build finished early is asked once to go on
+                        if (site.Rounds < 12 && !site.MoreAsked)
+                        {
+                            site.MoreAsked = true;
+                            return new Result { Text = $"Not yet: you have built for {site.Rounds} rounds, and a place people remember takes more. Pick the three weakest zones of your vision and build each out in its own round (its ground, its planting in layers, its own character and small details), make the signature moment bigger and richer, then finish.", Map = true };
+                        }
                         // problems left: sent back once with the list (eval: Sonnet finished with lamps on its lanes and paths under surfaces)
                         var left = AiChecks.All(site, AiPlan.Current.Snapshot());
                         if (left.Count > 0 && !site.ProblemsShown)

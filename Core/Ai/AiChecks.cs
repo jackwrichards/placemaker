@@ -91,6 +91,9 @@ namespace Placemaker.Core.Ai
         public string Vision;
         /// <summary>The placing tools sent the AI to write its vision first (once).</summary>
         public bool VisionAsked;
+        /// <summary>The AI's steps in this request (set by the agent loop), and whether it was asked once to keep building.</summary>
+        public int Rounds;
+        public bool MoreAsked;
 
         public float2 World(float2 local) => local + Origin;
         public float2 Local(float2 world) => world - Origin;

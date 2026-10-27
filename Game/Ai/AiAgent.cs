@@ -277,6 +277,8 @@ namespace Placemaker.Game.Ai
                         s_site.ProblemsShown = false;
                         s_site.DetailShown = false;
                         s_site.VisionAsked = false;
+                        s_site.Rounds = 0;
+                        s_site.MoreAsked = false;
                         s_messages.Add(new JObject { ["role"] = "user", ["content"] = "The player says: " + text + "\n\n" + SiteBrief.EntrancesText(entrancesNow, s_site.Origin) });
                     }
                     await Loop(endpoint, key, model, cancel);
@@ -376,6 +378,7 @@ namespace Placemaker.Game.Ai
                 }
 
                 s_round++;
+                if (s_site != null) s_site.Rounds++;
                 if (s_phase == "read") Phase("build");
                 bool finished = false;
                 byte[] mapAfter = null;
