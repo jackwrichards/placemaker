@@ -1,0 +1,973 @@
+{
+  "_about": "AI builder agent-12 on the fast models of OpenRouter (27 Oct): Gemini 3.8 Flash, Claude Haiku 5.5, GPT-6 Luna, DeepSeek V4.1 Flash, Qwen 3.8 Flash, MiniMax M3.1 Flash; medium thinking; three requests each.",
+  "scenarios": [
+    {
+      "id": "fast-gemini-3-8-flash-beach",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          100
+        ],
+        "water": {
+          "side": "north"
+        },
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "google/gemini-3.8-flash"
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A beach.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-gemini-3-8-flash-square",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A town square with a fountain.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-gemini-3-8-flash-farm",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A small farmstead with a yard, fields and paddocks.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-claude-haiku-5-5-beach",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          100
+        ],
+        "water": {
+          "side": "north"
+        },
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-haiku-5.5"
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A beach.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-claude-haiku-5-5-square",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A town square with a fountain.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-claude-haiku-5-5-farm",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A small farmstead with a yard, fields and paddocks.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-gpt-6-luna-beach",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          100
+        ],
+        "water": {
+          "side": "north"
+        },
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "openai/gpt-6-luna"
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A beach.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-gpt-6-luna-square",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A town square with a fountain.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-gpt-6-luna-farm",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A small farmstead with a yard, fields and paddocks.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-deepseek-v4-1-flash-1017-beach",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          100
+        ],
+        "water": {
+          "side": "north"
+        },
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "deepseek/deepseek-v4.1-flash-1017"
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A beach.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-deepseek-v4-1-flash-1017-square",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A town square with a fountain.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-deepseek-v4-1-flash-1017-farm",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A small farmstead with a yard, fields and paddocks.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-qwen3-8-flash-beach",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          100
+        ],
+        "water": {
+          "side": "north"
+        },
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "qwen/qwen3.8-flash"
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A beach.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-qwen3-8-flash-square",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A town square with a fountain.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-qwen3-8-flash-farm",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A small farmstead with a yard, fields and paddocks.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-minimax-m3-1-flash-beach",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          100
+        ],
+        "water": {
+          "side": "north"
+        },
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "minimax/minimax-m3.1-flash"
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A beach.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-minimax-m3-1-flash-square",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A town square with a fountain.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fast-minimax-m3-1-flash-farm",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A small farmstead with a yard, fields and paddocks.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        }
+      ]
+    }
+  ]
+}
