@@ -119,3 +119,20 @@ recipes into references; wobble for any polygon.
 | Opus 5.5 medium | 16-25 | $0.74-1.11 | about B+: Sundial Cove (a carved crescent bay, a T-pier like a sundial needle, umbrella rows, dune headlands, a gazebo, a beach car park, a playground) A-; Fountain Court (a stone plaza with a sculpted fountain, a ring of benches, a market row, a flower garden) B+; Duck Pond Farm (yard, barns, silos, striped fields with crops and machinery, paddocks, a pond knoll) B+; Linden Commons (loop, lawn, timber walk, playground, groves) B; Rust Hollow Salvage (sorted pads, a scrap mound, a container wall, floodlights, gravel tracks) B |
 
 Caching made Opus affordable: about $1 a build instead of $1-4. Opus is the model that uses the freedom.
+
+## Fast models, agent-12 (27 Oct, run 20261027-123958-ai-fast-models, before the give-up and retry fixes)
+
+Same three requests (beach, square, farm) on six fast OpenRouter models, thinking medium. Grades are mine from the
+45° and close pictures.
+
+| model | cost / build | minutes / build | steps | finished | grades (beach, square, farm) | what went wrong |
+|---|---|---|---|---|---|---|
+| google/gemini-3.8-flash | $0.27-0.67 | 2.5-4.4 | 22-31 | 3/3 | B-, C+, B- | symmetric and plain, but complete; the priciest |
+| openai/gpt-6-luna | $0.03-0.13 | 3.5-13 | 26-63 | 2/3 | B-, C, C | farm lost to one provider error (no retry) |
+| minimax/minimax-m3.1-flash | $0.17-0.19 | 8-11 | 90 (cap) | 0/3 | C, B, C+ | never called finish; beach loungers under water |
+| anthropic/claude-haiku-5.5 | $0.02-0.03 | 1-2 | 12-16 | 3/3 | C-, C-, D+ | sparse: few objects, finishes early |
+| deepseek/deepseek-v4.1-flash-1017 | $0.08-0.20 | 9-13 | 42-90 | 0/3 | D, F, F | sends calls with arguments missing, the same one up to 55 times; 15 min runner limit |
+| qwen/qwen3.8-flash | $0.02-0.10 | 3-15 | 7-43 | 0/3 | F, F, F | provider errors, slow, 0-22 pieces |
+
+Fixes from this run (commit 9395bf32): passing provider errors are retried twice; the same call with the same answer
+again gets a whole example call; eight steps before the cap the model is told to finish; 30 min per build in the runner.
