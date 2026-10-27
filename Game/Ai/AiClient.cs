@@ -24,6 +24,7 @@ namespace Placemaker.Game.Ai
         public long Ms;
         public string RawResponse = "";
         public string Reasoning = "";
+        public int ReasoningTokens, CachedTokens;
         public string FinishReason;
     }
 
@@ -96,6 +97,8 @@ namespace Placemaker.Game.Ai
                     r.PromptTokens = (int?)j["usage"]?["prompt_tokens"] ?? 0;
                     r.ReplyTokens = (int?)j["usage"]?["completion_tokens"] ?? 0;
                     r.Cost = (double?)j["usage"]?["cost"];
+                    r.ReasoningTokens = (int?)j["usage"]?["completion_tokens_details"]?["reasoning_tokens"] ?? 0;
+                    r.CachedTokens = (int?)j["usage"]?["prompt_tokens_details"]?["cached_tokens"] ?? 0;
                 }
             }
             catch (Exception e)

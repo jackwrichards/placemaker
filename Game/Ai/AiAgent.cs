@@ -60,6 +60,8 @@ namespace Placemaker.Game.Ai
         private static readonly List<string> s_wishes = new List<string>();
 
         public const int MaxTurns = 60;
+        /// <summary>How hard the model thinks before each step (OpenRouter reasoning effort: low, medium, high).</summary>
+        public const string Reasoning = "low";
 
         public static State Status => s_state;
         public static int Version => s_version;
@@ -252,11 +254,13 @@ namespace Placemaker.Game.Ai
                     ["messages"] = s_messages,
                     ["tools"] = AiTools.Definitions(),
                     ["usage"] = new JObject { ["include"] = true },
+                    // little thinking per step: the loop itself is the thinking (the user: too slow)
+                    ["reasoning"] = new JObject { ["effort"] = Reasoning },
                 };
                 var r = await AiClient.Send(endpoint, key, body, cancel);
                 s_cost += r.Cost ?? 0;
                 s_tokens += r.PromptTokens + r.ReplyTokens;
-                Log(new JObject { ["turn"] = turn, ["ms"] = r.Ms, ["status"] = r.Status, ["promptTokens"] = r.PromptTokens, ["replyTokens"] = r.ReplyTokens, ["cost"] = r.Cost, ["error"] = r.Error });
+                Log(new JObject { ["turn"] = turn, ["ms"] = r.Ms, ["status"] = r.Status, ["promptTokens"] = r.PromptTokens, ["replyTokens"] = r.ReplyTokens, ["reasoningTokens"] = r.ReasoningTokens, ["cachedTokens"] = r.CachedTokens, ["cost"] = r.Cost, ["error"] = r.Error });
                 if (r.Error != null) { s_end = State.Failed; Say("error", r.Error); return; }
                 var msg = JObject.Parse(r.RawResponse)["choices"]?[0]?["message"] as JObject;
                 if (msg == null) { s_end = State.Failed; Say("error", "no message in the reply"); return; }
