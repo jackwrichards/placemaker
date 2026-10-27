@@ -320,6 +320,7 @@ namespace Placemaker.Game.Ai
                         {
                             site.Reviewed = true;
                             site.DetailShown = true;
+                            site.ReviewRound = site.Rounds;
                             var now = AiPlan.Current.Snapshot();
                             var issues = AiChecks.All(site, now);
                             string vision = site.Vision != null ? "Your vision: " + site.Vision.Replace("\n", " | ") + "\n" : "";
@@ -340,6 +341,12 @@ namespace Placemaker.Game.Ai
                                 Text = AiChecks.Details(site, AiPlan.Current.Snapshot()) + "\nNot yet: the detail pass. Look at your map as the player will see it zoomed in, a few metres away, and fix the gaps listed above one by one: a bin and a bush beside a lonely bench, a setting round a bare feature, planting and lamps along a bare path. Every addition must belong exactly where it goes, as the design guide's close-up detail says: never shrubs scattered over crop fields, lawns kept for play or open paving kept for crowds. If a gap is meant to be open, leave it. Then finish again.",
                                 Map = true, LineKey = "Placemaker.Ai.Line.Review", Phase = "detail",
                             };
+                        }
+                        // the second look answered by finishing at once (eval: Sonnet finished twice in a row): sent back once
+                        if (site.Rounds - site.ReviewRound < 2 && !site.LazyAsked)
+                        {
+                            site.LazyAsked = true;
+                            return new Result { Text = "Not yet: you finished right after the second look without building anything. Act on it: walk through the place, then build at least two more rounds (the weakest zones, the signature moment, the small life), then finish.", Map = true };
                         }
                         // more building, not a correction (the user: "more rounds in general"): a build finished early is asked once to go on
                         if (site.Rounds < 12 && !site.MoreAsked)

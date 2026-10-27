@@ -94,6 +94,9 @@ namespace Placemaker.Core.Ai
         /// <summary>The AI's steps in this request (set by the agent loop), and whether it was asked once to keep building.</summary>
         public int Rounds;
         public bool MoreAsked;
+        /// <summary>The round of the second look, and whether a finish right after it (nothing built) was sent back.</summary>
+        public int ReviewRound;
+        public bool LazyAsked;
 
         public float2 World(float2 local) => local + Origin;
         public float2 Local(float2 world) => world - Origin;

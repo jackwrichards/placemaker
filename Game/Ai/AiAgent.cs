@@ -87,6 +87,15 @@ namespace Placemaker.Game.Ai
             return t == AiThinking.Low ? "low" : t == AiThinking.High ? "high" : "medium";
         }
 
+        /// <summary>The thinking request: low as an effort; medium and high as a token budget, so a model that decides
+        /// for itself (Sonnet thought 0 tokens on most steps at effort medium, eval agent-12) plans every step.</summary>
+        private static JObject Reasoning()
+        {
+            string t = Thinking();
+            if (t == "low") return new JObject { ["effort"] = "low" };
+            return new JObject { ["max_tokens"] = t == "high" ? 8000 : 3000 };
+        }
+
         public static State Status => s_state;
         public static int Version => s_version;
         public static bool Busy => s_state == State.Working;
@@ -279,6 +288,8 @@ namespace Placemaker.Game.Ai
                         s_site.VisionAsked = false;
                         s_site.Rounds = 0;
                         s_site.MoreAsked = false;
+                        s_site.LazyAsked = false;
+                        s_site.ReviewRound = 0;
                         s_messages.Add(new JObject { ["role"] = "user", ["content"] = "The player says: " + text + "\n\n" + SiteBrief.EntrancesText(entrancesNow, s_site.Origin) });
                     }
                     await Loop(endpoint, key, model, cancel);
@@ -332,7 +343,7 @@ namespace Placemaker.Game.Ai
 
         private static async Task Loop(string endpoint, string key, string model, CancellationToken cancel)
         {
-            int nudges = 0;
+            int nudges = 0, keepGoing = 0;
             for (int turn = 0; turn < MaxTurns; turn++)
             {
                 cancel.ThrowIfCancellationRequested();
@@ -341,12 +352,12 @@ namespace Placemaker.Game.Ai
                 var body = new JObject
                 {
                     ["model"] = model,
-                    ["max_tokens"] = 8000,
+                    ["max_tokens"] = 16000,
                     ["messages"] = s_messages,
                     ["tools"] = AiTools.Definitions(),
                     ["usage"] = new JObject { ["include"] = true },
                     // little thinking per step: the loop itself is the thinking (the user: too slow)
-                    ["reasoning"] = new JObject { ["effort"] = Thinking() },
+                    ["reasoning"] = Reasoning(),
                 };
                 var r = await AiClient.Send(endpoint, key, body, cancel);
                 s_cost += r.Cost ?? 0;
@@ -363,9 +374,19 @@ namespace Placemaker.Game.Ai
                 Log(new JObject { ["assistant"] = assistant });
                 // text beside tool calls is the AI thinking aloud: logged, not shown; the player reads its answers and its finish note
                 string said = AiClient.ContentText(msg["content"]);
-                if (!string.IsNullOrWhiteSpace(said) && (calls == null || calls.Count == 0)) Say("ai", said.Trim());
                 if (calls == null || calls.Count == 0)
                 {
+                    // a summary instead of work (eval: Sonnet answered the second look with a text that said the park was
+                    // "only partly finished" and the loop ended there): mid-build, a reply that is not a question goes back
+                    // to the building, three times at most; only finish (or a question for the player) ends the work
+                    bool question = !string.IsNullOrWhiteSpace(said) && said.TrimEnd().EndsWith("?", StringComparison.Ordinal);
+                    if (!string.IsNullOrWhiteSpace(said) && !question && s_site != null && s_site.Rounds > 0 && keepGoing++ < 3)
+                    {
+                        s_messages.Add(new JObject { ["role"] = "user", ["content"] = "Keep building with the tools: your words reach the player only through finish. Fix what you listed, build out what is unfinished, then call finish with your note." });
+                        Log(new JObject { ["keepGoing"] = keepGoing });
+                        continue;
+                    }
+                    if (!string.IsNullOrWhiteSpace(said)) Say("ai", said.Trim());
                     // an empty reply (it ran out of room thinking): nudge it on instead of stopping, twice at most
                     if (string.IsNullOrWhiteSpace(said) && nudges++ < 2)
                     {
