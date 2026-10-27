@@ -368,14 +368,15 @@ namespace Placemaker.Game.Ai
             {
                 if (!f.IsLiteral || f.FieldType != typeof(string)) continue;
                 var c = (string)f.GetRawConstantValue();
-                if (c.StartsWith("net.") || c.StartsWith("parking") || c == "zone") continue;
+                if ((c.StartsWith("net.") && c != AssetCategories.Pathway) || c.StartsWith("parking") || c == "zone") continue;
                 IReadOnlyList<CatalogItem> items;
                 try { items = cat.Items(c); } catch (Exception) { continue; }
                 if (items == null) continue;
                 foreach (var it in items)
                 {
                     if (string.IsNullOrEmpty(it.Id) || !seen.Add(it.Id)) continue;
-                    var a = new AiAsset { Id = it.Id, Name = it.DisplayName ?? it.Id, Category = c, Tags = it.Tags ?? Array.Empty<string>(), Icon = it.Icon ?? "" };
+                    var a = new AiAsset { Id = it.Id, Name = it.DisplayName ?? it.Id, Category = c == AssetCategories.Pathway ? "path" : c, Tags = it.Tags ?? Array.Empty<string>(), Icon = it.Icon ?? "" };
+                    a.Line = c == AssetCategories.Pathway || it.Info.NetWidth > 0f;
                     if (it.Info.BoundsMax.x > it.Info.BoundsMin.x)
                     {
                         var size = it.Info.BoundsMax - it.Info.BoundsMin;

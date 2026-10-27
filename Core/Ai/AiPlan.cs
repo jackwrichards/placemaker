@@ -26,6 +26,12 @@ namespace Placemaker.Core.Ai
         /// <summary>World xz polyline (paths).</summary>
         public float2[] Points;
         public NetRole NetRole = NetRole.Pathway;
+        /// <summary>Lines: a fixed height (m above sea level) for a raised line (boardwalk, pier, bridge); NaN = on the ground.</summary>
+        public float LineHeight = float.NaN;
+        /// <summary>Objects: size factor (1 = as made), tilt in radians (roll about its length, pitch about its width).</summary>
+        public float Scale = 1f, Roll, Pitch;
+        /// <summary>Ground: a water surface at this height (m above sea level) inside the shaped basin; NaN = none.</summary>
+        public float WaterLevel = float.NaN;
 
         /// <summary>World xz polygon (ground shaping, paint, surfaces).</summary>
         public float2[] Ring;

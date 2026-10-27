@@ -23,6 +23,8 @@ namespace Placemaker.Core.Ai
         public string Icon = "";
         /// <summary>Set by the game layer when the index is made: a picture can be shown (look_at_assets).</summary>
         public bool HasPicture = true;
+        /// <summary>A line asset (a path, a fence net): placed with place_path, not place_objects.</summary>
+        public bool Line;
         public string[] Tags = Array.Empty<string>();
         /// <summary>Width (x), depth (z), height (y) in metres, from the object's bounds.</summary>
         public float3 Size;
@@ -168,7 +170,7 @@ namespace Placemaker.Core.Ai
             return list;
         }
 
-        public static float PathHalfWidth(AiPiece p) => p.NetRole == NetRole.PathwayWide ? 3f : 2f;
+        public static float PathHalfWidth(AiPiece p) => p.NetRole == NetRole.Fence ? 0.3f : p.NetRole == NetRole.PathwayWide ? 3f : 2f;
 
         /// <summary>Every piece's problems, one line each ("#12 bench_a at (40,22): overlaps #9 ..."), problem-free pieces left out.</summary>
         public static List<string> All(AiSite s, IReadOnlyList<AiPiece> all)

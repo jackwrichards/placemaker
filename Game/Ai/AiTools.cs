@@ -51,7 +51,7 @@ namespace Placemaker.Game.Ai
                 new JObject
                 {
                     ["query"] = Str("words, e.g. 'oak tree', 'modern bench', 'street lamp', 'fountain'"),
-                    ["category"] = new JObject { ["type"] = "string", ["description"] = "optional: tree, bush, hedge, flowerbed, planter, bench, lamp, bin, centerpiece, playground, sports, kiosk, shelter, picnic, decoration, fence, bollard, rock, decal, stage, lookout, surface (areas for place_surface), or object (everything not sorted into these)" },
+                    ["category"] = new JObject { ["type"] = "string", ["description"] = "optional: tree, bush, hedge, flowerbed, planter, bench, lamp, bin, centerpiece, playground, sports, kiosk, shelter, picnic, decoration, fence, bollard, rock, decal, stage, lookout, surface (areas for place_surface), path (line assets for place_path), or object (everything not sorted into these)" },
                     ["group"] = Str("optional: one of the game's menu groups from asset_groups"),
                     ["limit"] = new JObject { ["type"] = "integer", ["description"] = "how many (default 25, max 60)" },
                 }, "query"),
@@ -73,17 +73,22 @@ namespace Placemaker.Game.Ai
                                 ["x"] = Num("local x, metres east"),
                                 ["z"] = Num("local z, metres north"),
                                 ["yaw"] = Num("degrees, 0 = facing north, 90 = facing east"),
-                                ["elevation"] = Num("optional: metres above the ground (stacking)"),
+                                ["elevation"] = Num("optional: metres above the ground (stacking); negative sinks it into the ground"),
+                                ["scale"] = Num("optional: size factor, 1 = as made (0.2-5; e.g. 2.5 for a monumental statue)"),
+                                ["roll"] = Num("optional: tilt in degrees about its length (90 = on its side)"),
+                                ["pitch"] = Num("optional: tilt in degrees about its width"),
                             },
                             ["required"] = new JArray("asset", "x", "z"),
                         },
                     },
                 }, "objects"),
-            Fn("place_path", "Place a footpath along a polyline of points. It should join a road or another path at its ends (within 3 m), or close into a loop.",
+            Fn("place_path", "Place a line along a polyline of points: a footpath by default, or any line asset from search_assets (category path: narrow, wide, gravel, dirt trails...; category fence: fences, railings, hedges made as lines). Paths should join a road, another path or a surface at their ends, or close into a loop. height raises it level above the ground (a boardwalk, a pier, a bridge).",
                 new JObject
                 {
                     ["points"] = new JObject { ["type"] = "array", ["description"] = "[[x, z], ...] local metres, at least 2", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
-                    ["wide"] = new JObject { ["type"] = "boolean", ["description"] = "a wide path (6 m) instead of a normal one (4 m)" },
+                    ["wide"] = new JObject { ["type"] = "boolean", ["description"] = "the game's wide path instead of the normal one (when no asset is given)" },
+                    ["asset"] = Str("optional: a line asset id (path or fence) from search_assets"),
+                    ["height"] = Num("optional: a fixed height, m above sea level, for a raised level line (boardwalk, pier)"),
                     ["smooth"] = new JObject { ["type"] = "boolean", ["description"] = "draw a smooth curve through the points instead of straight lines between them (default false)" },
                 }, "points"),
             Fn("scatter_objects", "Scatter many objects at once inside an area you give (a wood, a clump, a meadow of flowers, rocks): random positions at least 'spacing' apart, random yaw, the assets mixed evenly. With clumps > 0 they gather in patches (a noise field about 5 spacings across) with gaps between. Points that would sit outside the selection, on a road, path or building, or overlap something already placed are skipped. The answer lists every object placed (id, asset, x, z, yaw) and how many were skipped for what, so you can move or remove any of them.",
@@ -104,6 +109,7 @@ namespace Placemaker.Game.Ai
                     ["mode"] = new JObject { ["type"] = "string", ["enum"] = new JArray("level", "raise", "lower"), ["description"] = "level (default): exactly to height; raise: only where the ground is lower; lower: only where it is higher" },
                     ["height"] = Num("target height, m above sea level"),
                     ["corner_heights"] = new JObject { ["type"] = "array", ["description"] = "optional: one height per polygon corner for a slope (the ground becomes the surface through them)", ["items"] = new JObject { ["type"] = "number" } },
+                    ["water_level"] = Num("optional: fill the shaped basin with water up to this height (m above sea level; set it below the lowest shore, and the basin floor below it)"),
                 }, "polygon"),
             Fn("paint_ground", "Paint the ground's texture inside a polygon with one of the map's ground paints (listed in the brief: e.g. dry grass, lush grass, dirt, sand; 0 erases). Soft edge and edge noise make it look natural. Permanent in the city, like terrain shaping.",
                 new JObject
@@ -274,7 +280,7 @@ namespace Placemaker.Game.Ai
             if (top.Count == 0) return new Result { Text = "no matches; try other words or a category" };
             var sb = new StringBuilder();
             sb.AppendLine($"{top.Count} of {scored.Count} matches (id | name | category | width x depth x height m; plants: how wide the crown grows):");
-            foreach (var (a, _) in top) sb.AppendLine($"{a.Id} | {a.Name} | {a.Category}{(a.Vanilla ? "" : " (mod)")}{(a.HasPicture ? "" : " (no picture)")} | {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)}" + (a.Plant ? $" | crown about {F(a.Reach * 2f)} m across" : ""));
+            foreach (var (a, _) in top) sb.AppendLine($"{a.Id} | {a.Name} | {a.Category}{(a.Line ? " line" : "")}{(a.Vanilla ? "" : " (mod)")}{(a.HasPicture ? "" : " (no picture)")} | {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)}" + (a.Plant ? $" | crown about {F(a.Reach * 2f)} m across" : ""));
             return new Result { Text = sb.ToString() };
         }
 
@@ -289,11 +295,13 @@ namespace Placemaker.Game.Ai
             {
                 string asset = (string)it["asset"] ?? "";
                 if (!site.Assets.TryGetValue(asset, out var a)) { refused++; sb.AppendLine($"refused '{asset}': unknown asset id (use search_assets)"); continue; }
+                if (a.Line) { refused++; sb.AppendLine($"refused '{asset}': a line asset (use place_path with asset)"); continue; }
                 var p = new AiPiece
                 {
                     Kind = AiPieceKind.Object, Asset = asset, Category = a.Category, Role = RoleFor(a.Category),
                     Position = site.World(new float2((float?)it["x"] ?? 0f, (float?)it["z"] ?? 0f)),
                     Yaw = math.radians((float?)it["yaw"] ?? 0f), Elevation = (float?)it["elevation"] ?? 0f,
+                    Scale = math.clamp((float?)it["scale"] ?? 1f, 0.2f, 5f), Roll = math.radians((float?)it["roll"] ?? 0f), Pitch = math.radians((float?)it["pitch"] ?? 0f),
                 };
                 AiPlan.Current.Add(p);
                 placed.Add(p);
@@ -384,6 +392,7 @@ namespace Placemaker.Game.Ai
             {
                 Kind = AiPieceKind.Ground, Ring = ring, CornerHeights = corners, Height = height ?? corners.Average(),
                 Shape = mode == "raise" ? TerraformKind.Raise : mode == "lower" ? TerraformKind.Lower : TerraformKind.Level,
+                WaterLevel = (float?)args["water_level"] ?? float.NaN,
             };
             // the ground before, inside and along the edge (the steps it makes)
             float2 lo = new float2(float.MaxValue), hi = new float2(float.MinValue);
@@ -467,7 +476,16 @@ namespace Placemaker.Game.Ai
             var pts = (args["points"] as JArray)?.Select(t => new float2((float)t[0], (float)t[1])).Select(site.World).ToArray();
             if (pts == null || pts.Length < 2) return new Result { Text = "a path needs at least 2 points" };
             if ((bool?)args["smooth"] == true && pts.Length >= 3) pts = AiShapes.Smooth(pts, 5f);
-            var p = new AiPiece { Kind = AiPieceKind.Path, Points = pts, NetRole = (bool?)args["wide"] == true ? NetRole.PathwayWide : NetRole.Pathway, Category = AssetCategories.Pathway };
+            string asset = (string)args["asset"] ?? "";
+            AiAsset la = null;
+            if (asset.Length > 0 && (!site.Assets.TryGetValue(asset, out la) || !la.Line)) return new Result { Text = $"refused '{asset}': not a line asset (search_assets with category path or fence)" };
+            bool fence = la != null && la.Category == AssetCategories.Fence;
+            var p = new AiPiece
+            {
+                Kind = AiPieceKind.Path, Points = pts, Asset = asset, Category = fence ? AssetCategories.Fence : AssetCategories.Pathway,
+                NetRole = fence ? NetRole.Fence : (bool?)args["wide"] == true ? NetRole.PathwayWide : NetRole.Pathway,
+                LineHeight = (float?)args["height"] ?? float.NaN,
+            };
             AiPlan.Current.Add(p);
             var pr = AiChecks.Problems(site, p, AiPlan.Current.Snapshot());
             float len = 0;
