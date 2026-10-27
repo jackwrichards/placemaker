@@ -58,6 +58,8 @@ namespace Placemaker.Core.Ai
 
         /// <summary>Water depth (world xz -> m, 0 = dry) when the session started.</summary>
         public Func<float2, float> Water = _ => 0f;
+        /// <summary>The open water's surface (m above sea level), NaN without water.</summary>
+        public float WaterLevel = float.NaN;
 
         /// <summary>A point past the selection that shore work may reach: within 40 m of the outline and on or within 15 m
         /// of water (sand into the water, the beach face, piers and jetties over it).</summary>
@@ -287,6 +289,7 @@ namespace Placemaker.Core.Ai
                     spots.Add((q, math.max(0f, clear)));
                 }
             sb.AppendLine($"- ground paint on {F(100f * painted / math.max(1, cells))} % of the site, surfaces on {F(100f * surfaced / math.max(1, cells))} %");
+            if (math.isfinite(s.WaterLevel)) sb.AppendLine("- shore: " + Shore(s, all));
             var chosen = new List<(float2 p, float clear)>();
             foreach (var c in spots.OrderByDescending(c => c.clear))
             {
@@ -297,6 +300,32 @@ namespace Placemaker.Core.Ai
             sb.AppendLine(chosen.Count == 0 ? "- empty spots: none wider than 14 m"
                 : "- empty spots (nothing placed within the radius; fine if meant as a lawn, meadow or open square, else fill them): " + string.Join(", ", chosen.Select(c => { var l = s.Local(c.p); return $"({F(l.x)},{F(l.y)}) {F(c.clear)} m"; })));
             return sb.ToString();
+        }
+
+        /// <summary>The shore in numbers: whether the ground was carved below the water (a bay), and how far each paint stops short of the water.</summary>
+        private static string Shore(AiSite s, IReadOnlyList<AiPiece> all)
+        {
+            var parts = new List<string>();
+            bool bay = all.Any(p => p.Kind == AiPieceKind.Ground && p.Ring != null && (p.CornerHeights != null ? p.CornerHeights.Min() : p.Height) < s.WaterLevel - 0.3f
+                && p.Ring.Any(q => s.ByWater(q) || s.Water(q) > 0.05f));
+            parts.Add(bay ? "ground carved below the water level next to the water (the lake flows in)" : "no ground carved below the water level next to the water: the shore stays the straight line it was");
+            foreach (var g in all.Where(p => p.Kind == AiPieceKind.Paint && p.Layer > 0 && p.Ring != null).GroupBy(p => p.Layer))
+            {
+                // the paint's reach toward the water: the nearest water from any of its corners
+                float best = float.MaxValue;
+                foreach (var p in g)
+                    foreach (var q in p.Ring)
+                    {
+                        if (s.Water(q) > 0.05f) { best = 0f; break; }
+                        for (int k = 0; k < 8; k++)
+                        {
+                            var d = new float2(math.cos(k * 0.785f), math.sin(k * 0.785f));
+                            for (float r = 2f; r <= 40f; r += 2f) if (s.Water(q + d * r) > 0.05f) { best = math.min(best, r); break; }
+                        }
+                    }
+                parts.Add(best <= 0f ? $"paint layer {g.Key} reaches into the water" : best < float.MaxValue ? $"paint layer {g.Key} stops {F(best)} m short of the water" : $"paint layer {g.Key} is far from the water");
+            }
+            return string.Join("; ", parts);
         }
 
         /// <summary>Every piece's problems, one line each ("#12 bench_a at (40,22): overlaps #9 ..."), problem-free pieces left out.</summary>

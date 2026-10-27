@@ -167,7 +167,7 @@ namespace Placemaker.Game.Ai
                 {
                     s_brief = AiBuilder.Capture(world, tool, ring, text);
                     var (lo, _) = SiteBrief.Box(ring);
-                    s_site = new AiSite { Ring = ring, Origin = lo, Nets = s_brief.Nets, Buildings = s_brief.Buildings, Ground = GroundOf(s_brief.Ground), Water = WaterOf(s_brief.Ground) };
+                    s_site = new AiSite { Ring = ring, Origin = lo, Nets = s_brief.Nets, Buildings = s_brief.Buildings, Ground = GroundOf(s_brief.Ground), Water = WaterOf(s_brief.Ground), WaterLevel = LevelOf(s_brief.Ground) };
                     s_assets = AssetIndex();
                     foreach (var a in s_assets) if (!s_site.Assets.ContainsKey(a.Id)) s_site.Assets[a.Id] = a;
                     s_folder = Path.Combine(ModPaths.DataFolder, "ai", DateTime.Now.ToString("yyyyMMdd-HHmmss"));
@@ -368,6 +368,16 @@ namespace Placemaker.Game.Ai
             float tx = fx - i, tz = fz - j;
             return math.lerp(math.lerp(g.HeightAt(i, j), g.HeightAt(i + 1, j), tx), math.lerp(g.HeightAt(i, j + 1), g.HeightAt(i + 1, j + 1), tx), tz);
         };
+
+        /// <summary>The open water's surface: the median of ground + depth over clearly wet cells; NaN when dry.</summary>
+        private static float LevelOf(BriefGround g)
+        {
+            var l = new List<float>();
+            for (int j = 0; j < g.Nz; j++) for (int i = 0; i < g.Nx; i++) if (g.WaterAt(i, j) > 0.3f) l.Add(g.HeightAt(i, j) + g.WaterAt(i, j));
+            if (l.Count == 0) return float.NaN;
+            l.Sort();
+            return l[l.Count / 2];
+        }
 
         /// <summary>Nearest-cell water depth from the brief's grid (world xz); 0 outside it.</summary>
         private static Func<float2, float> WaterOf(BriefGround g) => p =>
