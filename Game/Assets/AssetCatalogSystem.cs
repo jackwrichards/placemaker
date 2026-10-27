@@ -442,6 +442,24 @@ namespace Placemaker.Game.Assets
             return list;
         }
 
+        /// <summary>(AI builder) Every road and path line asset loaded (vanilla and mods; tracks, waterways, taxiways left out), with its width. Main thread.</summary>
+        public List<(string name, string display, bool road, float width)> AllLineNets()
+        {
+            var list = new List<(string, string, bool, float)>();
+            foreach (var kv in _allPrefabsByName)
+            {
+                var e = kv.Value;
+                if (!Usable(e) || !EntityManager.HasComponent<NetData>(e) || !EntityManager.HasComponent<NetGeometryData>(e)) continue;
+                bool road = EntityManager.HasComponent<RoadData>(e), path = EntityManager.HasComponent<PathwayData>(e);
+                if (!road && !path) continue;
+                if (EntityManager.HasComponent<TrackData>(e) || EntityManager.HasComponent<TaxiwayData>(e) || EntityManager.HasComponent<WaterwayData>(e)) continue;
+                string display = kv.Key;
+                if (_prefabs.TryGetPrefab<PrefabBase>(e, out var pb) && pb != null) display = DisplayName(pb);
+                list.Add((kv.Key, display, road, EntityManager.GetComponentData<NetGeometryData>(e).m_DefaultWidth));
+            }
+            return list;
+        }
+
         /// <summary>Maximum edge length of a net prefab (0 = unknown). CS2 rejects longer edges.</summary>
         public float MaxEdgeLength(Entity prefab)
         {

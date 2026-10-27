@@ -440,6 +440,12 @@ namespace Placemaker.Game.Ai
                     });
                 }
                 foreach (var x in list) x.Vanilla = sys.IsVanillaName(x.Id);
+                // every road and path line asset (roads, alleys, the invisible lanes parking lots use, trails)
+                foreach (var (name, display, road, width) in sys.AllLineNets())
+                {
+                    if (!seen.Add(name)) continue;
+                    list.Add(new AiAsset { Id = name, Name = display, Category = road ? "road" : "path", Line = true, Size = new float3(width, 0f, 0f) });
+                }
                 // the premade types' own choices per category (search lists them first)
                 var byId = list.GroupBy(x => x.Id).ToDictionary(g => g.Key, g => g.First());
                 foreach (var f in typeof(AssetCategories).GetFields(BindingFlags.Public | BindingFlags.Static))

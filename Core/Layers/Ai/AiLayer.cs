@@ -23,6 +23,26 @@ namespace Placemaker.Core.Layers.Ai
 
         protected override void DefineControls(ControlSet c) { }
 
+        /// <summary>An end within 4 m of a city road's centre line moves onto it and is attached there.</summary>
+        private static void Attach(LayerContext ctx, ref float2 end, out long id, out float t)
+        {
+            id = -1; t = 0f;
+            float best = 4f;
+            foreach (var n in ctx.Site?.NearbyNets ?? new List<NearbyNet>())
+            {
+                if (n.Category != NetCategory.Road) continue;
+                for (int k = 0; k <= 64; k++)
+                {
+                    float u = k / 64f;
+                    var q = SiteBrief.Bez(n, u).xz;
+                    float d = math.distance(q, end);
+                    if (d < best) { best = d; id = n.ExternalId; t = u; }
+                }
+            }
+            if (id < 0) return;
+            foreach (var n in ctx.Site.NearbyNets) if (n.ExternalId == id) { end = SiteBrief.Bez(n, t).xz; break; }
+        }
+
         private static float2 Centroid(float2[] ring)
         {
             float2 s = 0;
@@ -102,10 +122,20 @@ namespace Placemaker.Core.Layers.Ai
                 }
                 else if (p.Points != null && p.Points.Length >= 2)
                 {
-                    for (int i = 0; i + 1 < p.Points.Length; i++)
+                    // a road-type line is joined to a city road its end lies on
+                    var pts = (float2[])p.Points.Clone();
+                    long startAttach = -1, endAttach = -1; float startT = 0f, endT = 0f;
+                    if (p.NetRole == NetRole.DriveAisle)
                     {
-                        if (math.distance(p.Points[i], p.Points[i + 1]) < 0.5f) continue;
-                        var n = ctx.StraightNet(p.Points[i], p.Points[i + 1], p.NetRole, new AssetRef(p.Asset));
+                        Attach(ctx, ref pts[0], out startAttach, out startT);
+                        Attach(ctx, ref pts[pts.Length - 1], out endAttach, out endT);
+                    }
+                    for (int i = 0; i + 1 < pts.Length; i++)
+                    {
+                        if (math.distance(pts[i], pts[i + 1]) < 0.5f) continue;
+                        var n = ctx.StraightNet(pts[i], pts[i + 1], p.NetRole, new AssetRef(p.Asset));
+                        if (i == 0 && startAttach >= 0) { n.StartAttach = startAttach; n.StartAttachT = startT; }
+                        if (i + 2 == pts.Length && endAttach >= 0) { n.EndAttach = endAttach; n.EndAttachT = endT; }
                         n.Category = p.Category ?? AssetCategories.Pathway;
                         if (math.isfinite(p.LineHeight))
                         {

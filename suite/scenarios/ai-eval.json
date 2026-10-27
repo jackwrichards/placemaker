@@ -1,5 +1,5 @@
 {
-  "_about": "AI builder evaluation set: ten everyday requests matching the premade types (park, plaza, botanical garden, playground, memorial, lookout hill, wetland, campground, sports park, farmstead), each on its own land, built. Compare with Show.ps1 builds of the premade types on the same land and rate each.",
+  "_about": "AI builder evaluation set: eleven everyday requests matching the premade types (park, plaza, botanical garden, playground, memorial, lookout hill, wetland, campground, sports park, farmstead, car park), each on its own land, built. Compare with Show.ps1 builds of the premade types on the same land and rate each.",
   "scenarios": [
     {
       "id": "ai-eval-park",
@@ -601,6 +601,69 @@
         {
           "do": "aiAgent",
           "prompt": "A small farmstead with a yard, fields and paddocks.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "ai-eval-parking",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A car park for about 60 cars, with trees and lamps, entered from the street.",
           "timeout": 900
         },
         {

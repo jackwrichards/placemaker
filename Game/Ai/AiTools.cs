@@ -51,7 +51,7 @@ namespace Placemaker.Game.Ai
                 new JObject
                 {
                     ["query"] = Str("words, e.g. 'oak tree', 'modern bench', 'street lamp', 'fountain'"),
-                    ["category"] = new JObject { ["type"] = "string", ["description"] = "optional: tree, bush, hedge, flowerbed, planter, bench, lamp, bin, centerpiece, playground, sports, kiosk, shelter, picnic, decoration, fence, bollard, rock, decal, stage, lookout, surface (areas for place_surface), path (line assets for place_path), or object (everything not sorted into these)" },
+                    ["category"] = new JObject { ["type"] = "string", ["description"] = "optional: tree, bush, hedge, flowerbed, planter, bench, lamp, bin, centerpiece, playground, sports, kiosk, shelter, picnic, decoration, fence, bollard, rock, decal, stage, lookout, surface (areas for place_surface), path or road (line assets for place_path), or object (everything not sorted into these)" },
                     ["group"] = Str("optional: one of the game's menu groups from asset_groups"),
                     ["limit"] = new JObject { ["type"] = "integer", ["description"] = "how many (default 25, max 60)" },
                 }, "query"),
@@ -82,7 +82,7 @@ namespace Placemaker.Game.Ai
                         },
                     },
                 }, "objects"),
-            Fn("place_path", "Place a line along a polyline of points: a footpath by default, or any line asset from search_assets (category path: narrow, wide, gravel, dirt trails...; category fence: fences, railings, hedges made as lines). Paths should join a road, another path or a surface at their ends, or close into a loop. height raises it level above the ground (a boardwalk, a pier, a bridge).",
+            Fn("place_path", "Place a line along a polyline of points: a footpath by default, or any line asset from search_assets (category path: narrow, wide, gravel, dirt trails...; category road: roads, alleys, and the invisible car lanes parking lots are made of; category fence: fences, railings, hedges made as lines). A road-type line whose end lies on an existing road (within 4 m of its centre line) is joined to that road there, so cars can drive in. Paths should join a road, another path or a surface at their ends, or close into a loop. height raises it level above the ground (a boardwalk, a pier, a bridge).",
                 new JObject
                 {
                     ["points"] = new JObject { ["type"] = "array", ["description"] = "[[x, z], ...] local metres, at least 2", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
@@ -281,7 +281,7 @@ namespace Placemaker.Game.Ai
             if (top.Count == 0) return new Result { Text = "no matches; try other words or a category" };
             var sb = new StringBuilder();
             sb.AppendLine($"{top.Count} of {scored.Count} matches, the premade types' own choices first (id | name | category | width x depth x height m; plants: how wide the crown grows):");
-            foreach (var (a, _) in top) sb.AppendLine($"{a.Id} | {a.Name} | {a.Category}{(a.Line ? " line" : "")}{(a.Vanilla ? "" : " (mod)")}{(a.HasPicture ? "" : " (no picture)")} | {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)}" + (a.Plant ? $" | crown about {F(a.Reach * 2f)} m across" : ""));
+            foreach (var (a, _) in top) sb.AppendLine($"{a.Id} | {a.Name} | {a.Category}{(a.Line ? $" line, {F(a.Size.x)} m wide" : "")}{(a.Vanilla ? "" : " (mod)")}{(a.HasPicture ? "" : " (no picture)")} | {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)}" + (a.Plant ? $" | crown about {F(a.Reach * 2f)} m across" : ""));
             return new Result { Text = sb.ToString() };
         }
 
@@ -488,10 +488,11 @@ namespace Placemaker.Game.Ai
             AiAsset la = null;
             if (asset.Length > 0 && (!site.Assets.TryGetValue(asset, out la) || !la.Line)) return new Result { Text = $"refused '{asset}': not a line asset (search_assets with category path or fence)" };
             bool fence = la != null && la.Category == AssetCategories.Fence;
+            bool road = la != null && la.Category == "road";
             var p = new AiPiece
             {
-                Kind = AiPieceKind.Path, Points = pts, Asset = asset, Category = fence ? AssetCategories.Fence : AssetCategories.Pathway,
-                NetRole = fence ? NetRole.Fence : (bool?)args["wide"] == true ? NetRole.PathwayWide : NetRole.Pathway,
+                Kind = AiPieceKind.Path, Points = pts, Asset = asset, Category = fence ? AssetCategories.Fence : road ? AssetCategories.Road : AssetCategories.Pathway,
+                NetRole = fence ? NetRole.Fence : road ? NetRole.DriveAisle : (bool?)args["wide"] == true ? NetRole.PathwayWide : NetRole.Pathway,
                 LineHeight = (float?)args["height"] ?? float.NaN,
             };
             AiPlan.Current.Add(p);

@@ -173,7 +173,7 @@ namespace Placemaker.Core.Ai
             return list;
         }
 
-        public static float PathHalfWidth(AiPiece p) => p.NetRole == NetRole.Fence ? 0.3f : p.NetRole == NetRole.PathwayWide ? 3f : 2f;
+        public static float PathHalfWidth(AiPiece p) => p.NetRole == NetRole.Fence ? 0.3f : p.NetRole == NetRole.PathwayWide ? 3f : p.NetRole == NetRole.DriveAisle ? 3.5f : 2f;
 
         /// <summary>Every piece's problems, one line each ("#12 bench_a at (40,22): overlaps #9 ..."), problem-free pieces left out.</summary>
         public static List<string> All(AiSite s, IReadOnlyList<AiPiece> all)

@@ -6,7 +6,7 @@ namespace Placemaker.Core.Ai
 {
     public static class AiHandbook
     {
-        public const string Version = "handbook-2";
+        public const string Version = "handbook-3";
 
         public const string Text =
 @"# Design guide (what good builds in this game look like)
@@ -71,6 +71,7 @@ Numbers are starting points for a typical site; scale them with the site and the
 - Industrial yards: one frame square to the street, a fenced edge band, a gate with a barrier and booth, aisles 8 m, storage blocks that each hold one kind of thing in exact rows; dirt and gravel paint (never grass or white concrete everywhere); containers 2.44 x 6.04 m stacked 2.62 m per tier; wrecks nose to the road, stacked higher toward the back.
 
 ## What you cannot build yet
-Roads joined to the city, zoning and growable buildings, buildings and service buildings, pedestrian areas with access, parking drive aisles, animals. (You can build: footpaths and trails of any kind, fences and hedges as lines, raised boardwalks and piers, ponds with real water, scaled and tilted props, terrain, ground paint and surfaces.) If the request needs one of these, build everything else well, say plainly in your note what you could not do, and note a wish.";
+Zoning and growable buildings, buildings and service buildings, pedestrian areas with access, animals. (You can build: footpaths and trails of any kind, roads, alleys and the invisible car lanes of parking lots joined to the city's roads, fences and hedges as lines, raised boardwalks and piers, ponds with real water, scaled and tilted props such as parking bay decals, terrain, ground paint and surfaces.)
+A parking lot is yours to design: drive lanes (an invisible car lane or an alley, joined to a street at the entrance) with stalls along them marked by parking decals (3.0 x 5.9 m each, square to the lane), trees in medians, lamps, a levelled and paved or painted ground. If the request needs one of these, build everything else well, say plainly in your note what you could not do, and note a wish.";
     }
 }
