@@ -335,10 +335,10 @@ namespace Placemaker.Game.Neighbours
                     var half = (float2)EntityManager.GetComponentData<BuildingData>(prefab).m_LotSize * 4f + 2f;
                     var fwd = math.normalizesafe(math.mul(t.m_Rotation, new float3(0f, 0f, 1f)).xz, new float2(0f, 1f));
                     var right = new float2(fwd.y, -fwd.x);
-                    // a new lot: polished when Outgrow runs and new buildings are on (both this city's), unless its zone's
-                    // look is Off; paused: no new lot outgrows (a replaced building still keeps its flag)
+                    // a new lot: its zone's outgrow type when "New buildings" is Zone default (this city's), unless the zone's
+                    // type is Off; New buildings Off: none (a replaced building still keeps its flag)
                     var zoneLook = LookOfZone(prefab);
-                    bool yes = FeatureEnabled && zoneLook != "off";   // (hidden too: shown once Outgrow is on)
+                    bool yes = FeatureEnabled && PolishNew && zoneLook != "off";   // (hidden too: shown once Outgrow is on)
                     bool carried = false;
                     for (int k = _goneFlags.Count - 1; k >= 0; k--)
                     {

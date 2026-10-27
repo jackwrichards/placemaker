@@ -827,7 +827,7 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                         {/* the two tabs: each zone's default outgrow type, and the outgrow types themselves */}
                         <div className={s.underTabs} data-testid="polish-city-tab">
                             {[
-                                { value: "zones", label: L("TabZoneDefaults", "Zone defaults"), tip: L("TabZoneDefaultsTip", "The default outgrow type of each zone. New buildings get it.") },
+                                { value: "zones", label: L("TabZoneDefaults", "Zone defaults"), tip: L("TabZoneDefaultsTip2", "The default outgrow type of each zone, and what new buildings get") },
                                 { value: "edit", label: L("TabEditOutgrowTypes", "Edit outgrow types"), tip: L("TabEditTip", "Every outgrow type and its settings: change one, or make your own") },
                             ].map((o) => (
                                 <Tip key={o.value} title={o.label} description={o.tip}>
@@ -840,6 +840,15 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                         {tab !== "edit" ? (
                             <Frozen fp={zonesFp}>
                             <div data-testid="polish-city-zones">
+                                {/* what buildings that grow from now on get (this city's; a new city: Off, the user 27 Oct after
+                                    players asked for "no outgrow until I paint it") */}
+                                <Tip title={L("NewBuildings", "Outgrow new buildings")} description={L("NewBuildingsTip", "On: buildings that grow get their zone's default. Off: no outgrow until you paint them.")}>
+                                    <div className={s.crow} data-testid="polish-new-buildings">
+                                        <div className={s.crowLabel}>{L("NewBuildings", "Outgrow new buildings")}</div>
+                                        <div className={s.flex} />
+                                        <Switch testId="polish-newHouses" on={!!p.newHouses} onChange={(v) => act.polishCity("newHouses", v ? "true" : "false")} />
+                                    </div>
+                                </Tip>
                                 {KINDS.map((k, ki) => {
                                     const list = zones.filter((z) => z.kind === k.id);
                                     if (!list.length) return null;
