@@ -70,3 +70,17 @@ AI (Sonnet, handbook-6 shore recipe, the brief's water summary, shore work allow
 review's shore numbers): beach C to B- (a sloped beach face with sand running under the water, umbrellas, a jetty, a
 promenade), waterfront B- then C+ (boardwalk and T-piers the first time; a basin the second time that did not fill).
 Sonnet does not carve a bay by itself yet. Runs: `20261027-085835-ai-shore`, `20261027-090449-ai-shore`.
+
+## Terrain shaping without limits (27 Oct, agent-10, handbook-8)
+
+shape_ground got soft edges (feather, default 5 m) and lines (channels, streams, ditches, berms, ramps, shelves with a
+height per point); the inside of a shape is laid as whole shapes and only the soft edge as cells (cells alone were
+smoothed by the 3.5 m terrain grid and a pond got no water). The AI's map shows in blue the water its own shaping makes,
+the tool answer gives the new waterline, and objects left under water are a problem. Never quays (the user): our
+waterfronts build timber boardwalks, the AI's quay lines are refused.
+
+Sonnet, runs `20261027-100022-ai-terrain`, `20261027-100749-ai-terrain`, `20261027-101400-ai-terrain`: it now carves
+on its own every time. Beach B- to B (a carved bay the lake flows into, sand along the new curved waterline, umbrellas
+and loungers on it), park "with a hill, a valley and a stream into a pond" B (a hill with a gazebo on top and worn
+slopes, a pond with water, a channel), waterfront C+ (a promenade and a jetty; it skipped the bay that time).
+Our harbour without quays: `show-waterfront-harbor-1027-100750-19f4` (timber boardwalk on the curved shore, two T-piers).
