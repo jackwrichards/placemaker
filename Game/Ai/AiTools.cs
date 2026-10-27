@@ -695,7 +695,8 @@ namespace Placemaker.Game.Ai
             AiAsset la = null;
             if (asset.Length > 0 && (!site.Assets.TryGetValue(asset, out la) || !la.Line)) return new Result { Text = $"refused '{asset}': not a line asset (search_assets with category path or fence)" };
             bool fence = la != null && la.Category == AssetCategories.Fence;
-            bool road = la != null && la.Category == "road";
+            // the invisible car lanes are filed with the paths (their names say Path): cars drive on them, so they are road lanes, joined to the streets
+            bool road = la != null && (la.Category == "road" || (la.Id.IndexOf("Invisible", StringComparison.OrdinalIgnoreCase) >= 0 && (la.Id.IndexOf("Road", StringComparison.OrdinalIgnoreCase) >= 0 || la.Id.IndexOf(" Car ", StringComparison.OrdinalIgnoreCase) >= 0)));
             var p = new AiPiece
             {
                 Kind = AiPieceKind.Path, Points = pts, Asset = asset, Category = fence ? AssetCategories.Fence : road ? AssetCategories.Road : AssetCategories.Pathway,
