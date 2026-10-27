@@ -362,14 +362,17 @@ namespace Placemaker.Game.Ai
             // everything else the game has loaded (not sorted into a category by the mod): the whole library, mods included
             if (cat is Placemaker.Game.Assets.AssetCatalogSystem sys)
             {
-                foreach (var (name, min, max, tree, plant) in sys.AllPlaceableObjects())
+                foreach (var o in sys.AllPlaceableObjects())
                 {
-                    if (!seen.Add(name)) continue;
-                    var size = max - min;
-                    var mid = (max + min) * 0.5f;
+                    if (!seen.Add(o.Name)) continue;
+                    var size = o.Max - o.Min;
+                    var mid = (o.Max + o.Min) * 0.5f;
+                    // sorted by what the game says it is: its own menu group, else its kind
+                    string category = o.Tree ? AssetCategories.Tree : o.Plant ? AssetCategories.Bush : o.StreetLight ? AssetCategories.Lamp : o.Decal ? AssetCategories.Decal : "object";
                     list.Add(new AiAsset
                     {
-                        Id = name, Name = name, Category = tree ? AssetCategories.Tree : plant ? AssetCategories.Bush : "object",
+                        Id = o.Name, Name = o.DisplayName, Category = category, Group = o.Group,
+                        Tags = string.IsNullOrEmpty(o.Group) ? Array.Empty<string>() : new[] { System.Text.RegularExpressions.Regex.Replace(o.Group, "([a-z])([A-Z])", "$1 $2") },
                         Size = size, Offset = new float2(mid.x, mid.z),
                     });
                 }

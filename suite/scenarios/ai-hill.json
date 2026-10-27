@@ -1,0 +1,109 @@
+{
+  "_about": "AI builder: a request that needs the ground tools (shape_ground, paint_ground, place_surface) on the same C-shaped 6 % slope as ai-park.",
+  "scenarios": [
+    {
+      "id": "ai-hill-c",
+      "land": {
+        "shape": "points",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            120,
+            0
+          ],
+          [
+            120,
+            30
+          ],
+          [
+            50,
+            30
+          ],
+          [
+            50,
+            70
+          ],
+          [
+            120,
+            70
+          ],
+          [
+            120,
+            100
+          ],
+          [
+            0,
+            100
+          ]
+        ],
+        "ground": "slope",
+        "grade": 6,
+        "toward": "east",
+        "roads": "follow",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A lookout hill: raise a grassy mound about 6 m high in the west part with a small paved viewing terrace on top and benches looking east, a path winding up to it from the road, wildflower meadows with dry grass around the foot of the hill, and a few groups of trees.",
+          "timeout": 900
+        },
+        {
+          "do": "shot",
+          "name": "panel",
+          "shotMode": "ui"
+        },
+        {
+          "do": "preview",
+          "shot": "preview",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          }
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    }
+  ]
+}

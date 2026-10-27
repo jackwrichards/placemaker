@@ -402,16 +402,38 @@ namespace Placemaker.Game.Assets
         /// or not: props, trees, plants, decals, fountains... (no buildings, nets, areas, vehicles, placeholders), with its
         /// bounds. Main thread.
         /// </summary>
-        public List<(string name, float3 min, float3 max, bool tree, bool plant)> AllPlaceableObjects()
+        public sealed class PlaceableObject
         {
-            var list = new List<(string, float3, float3, bool, bool)>();
+            public string Name, DisplayName, Group;   // Group: the game's own menu group (UIObjectData) the asset is listed in, "" = none
+            public float3 Min, Max;
+            public bool Tree, Plant, StreetLight, Decal, Animated;
+        }
+
+        public List<PlaceableObject> AllPlaceableObjects()
+        {
+            var list = new List<PlaceableObject>();
             foreach (var kv in _allPrefabsByName)
             {
                 var e = kv.Value;
                 if (!Usable(e) || !EntityManager.HasComponent<StaticObjectData>(e) || !EntityManager.HasComponent<ObjectGeometryData>(e)) continue;
                 if (EntityManager.HasComponent<BuildingData>(e) || EntityManager.HasComponent<PlaceholderObjectData>(e) || EntityManager.HasComponent<NetData>(e)) continue;
-                var b = EntityManager.GetComponentData<ObjectGeometryData>(e).m_Bounds;
-                list.Add((kv.Key, b.min, b.max, EntityManager.HasComponent<TreeData>(e), EntityManager.HasComponent<PlantData>(e)));
+                var g = EntityManager.GetComponentData<ObjectGeometryData>(e);
+                string group = "";
+                if (EntityManager.HasComponent<UIObjectData>(e))
+                {
+                    var ge = EntityManager.GetComponentData<UIObjectData>(e).m_Group;
+                    if (ge != Entity.Null && _prefabs.TryGetPrefab<PrefabBase>(ge, out var gp) && gp != null) group = gp.name;
+                }
+                string display = kv.Key;
+                if (_prefabs.TryGetPrefab<PrefabBase>(e, out var pb) && pb != null) display = DisplayName(pb);
+                list.Add(new PlaceableObject
+                {
+                    Name = kv.Key, DisplayName = display, Group = group, Min = g.m_Bounds.min, Max = g.m_Bounds.max,
+                    Tree = EntityManager.HasComponent<TreeData>(e), Plant = EntityManager.HasComponent<PlantData>(e),
+                    StreetLight = EntityManager.HasComponent<StreetLightData>(e),
+                    Decal = kv.Key.IndexOf("decal", StringComparison.OrdinalIgnoreCase) >= 0 || (g.m_Bounds.max.y - g.m_Bounds.min.y) < 0.05f,
+                    Animated = EntityManager.HasComponent<EffectData>(e),
+                });
             }
             return list;
         }

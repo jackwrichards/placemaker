@@ -17,6 +17,8 @@ namespace Placemaker.Core.Ai
         public string Id;
         public string Name;
         public string Category;
+        /// <summary>The game's own menu group the asset is listed in (e.g. "PropsPark", "SignsAndPosters"), "" = none.</summary>
+        public string Group = "";
         public string[] Tags = Array.Empty<string>();
         /// <summary>Width (x), depth (z), height (y) in metres, from the object's bounds.</summary>
         public float3 Size;

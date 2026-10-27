@@ -51,8 +51,10 @@ namespace Placemaker.Game.Ai
                 {
                     ["query"] = Str("words, e.g. 'oak tree', 'modern bench', 'street lamp', 'fountain'"),
                     ["category"] = new JObject { ["type"] = "string", ["description"] = "optional: tree, bush, hedge, flowerbed, planter, bench, lamp, bin, centerpiece, playground, sports, kiosk, shelter, picnic, decoration, fence, bollard, rock, decal, stage, lookout, surface (areas for place_surface), or object (everything not sorted into these)" },
+                    ["group"] = Str("optional: one of the game's menu groups from asset_groups"),
                     ["limit"] = new JObject { ["type"] = "integer", ["description"] = "how many (default 25, max 60)" },
                 }, "query"),
+            Fn("asset_groups", "What kinds of assets this game has: every category and every menu group of the game (vanilla and mods) with how many assets each holds. Browse it before searching, then search_assets with category or group.", new JObject()),
             Fn("place_objects", "Place objects (trees, bushes, benches, lamps, props). Each sits on the ground unless elevation is given. Answers with the ids and the problems each one caused.",
                 new JObject
                 {
@@ -167,6 +169,14 @@ namespace Placemaker.Game.Ai
                 switch (name)
                 {
                     case "search_assets": return Search(args, assets);
+                    case "asset_groups":
+                    {
+                        var sb = new StringBuilder();
+                        sb.AppendLine("categories: " + string.Join(", ", assets.GroupBy(a => a.Category).OrderByDescending(g => g.Count()).Select(g => g.Key + " " + g.Count())));
+                        sb.AppendLine("game menu groups: " + string.Join(", ", assets.Where(a => !string.IsNullOrEmpty(a.Group)).GroupBy(a => a.Group).OrderBy(g => g.Key).Select(g => g.Key + " " + g.Count())));
+                        sb.AppendLine($"{assets.Count(a => !a.Vanilla)} of {assets.Count} assets come from mods.");
+                        return new Result { Text = sb.ToString() };
+                    }
                     case "place_objects": return PlaceObjects(args, site);
                     case "place_path": return PlacePath(args, site);
                     case "shape_ground": return ShapeGround(args, site);
@@ -224,15 +234,17 @@ namespace Placemaker.Game.Ai
         {
             string query = ((string)args["query"] ?? "").ToLowerInvariant();
             string category = (string)args["category"];
+            string group = (string)args["group"];
             int limit = math.clamp((int?)args["limit"] ?? 25, 1, 60);
             var words = query.Split(new[] { ' ', ',', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
             var scored = new List<(AiAsset a, int score)>();
             foreach (var a in assets)
             {
                 if (!string.IsNullOrEmpty(category) && a.Category != category && !a.Category.StartsWith(category + ".")) continue;
-                string hay = (a.Id + " " + System.Text.RegularExpressions.Regex.Replace(a.Id, "([a-z])([A-Z])", "$1 $2") + " " + a.Name + " " + a.Category + " " + string.Join(" ", a.Tags)).ToLowerInvariant();
+                if (!string.IsNullOrEmpty(group) && !string.Equals(a.Group, group, StringComparison.OrdinalIgnoreCase)) continue;
+                string hay = (a.Group + " " + a.Id + " " + System.Text.RegularExpressions.Regex.Replace(a.Id, "([a-z])([A-Z])", "$1 $2") + " " + a.Name + " " + a.Category + " " + string.Join(" ", a.Tags)).ToLowerInvariant();
                 int score = words.Count(w => hay.Contains(w)) * 10;
-                if (words.Length > 0 && score == 0 && string.IsNullOrEmpty(category)) continue;
+                if (words.Length > 0 && score == 0 && string.IsNullOrEmpty(category) && string.IsNullOrEmpty(group)) continue;
                 if (a.Vanilla) score += 1;
                 scored.Add((a, score));
             }
