@@ -56,6 +56,7 @@ namespace Placemaker.Game.Ai
         private static string s_shapeKey;
         private static int s_maps;
         private static CancellationTokenSource s_cancel;
+        private static State s_end;
         private static readonly List<string> s_wishes = new List<string>();
 
         public const int MaxTurns = 40;
@@ -172,11 +173,12 @@ namespace Placemaker.Game.Ai
                     why = "capturing the selection failed: " + e.Message;
                     return false;
                 }
-                s_messages = new JArray { new JObject { ["role"] = "system", ["content"] = AiPrompts.Agent } };
+                s_messages = new JArray { new JObject { ["role"] = "system", ["content"] = AiPrompts.Agent + "\nThe player's game language is " + Locale() + ": write every message to the player in it." } };
                 Mod.Log.Info($"Placemaker AI: new session for {model} at {endpoint} (key from {keyFrom}, prompt {AiPrompts.AgentVersion}), {s_assets.Count} assets, {s_brief.Nets.Count} nets -> {s_folder}");
             }
             Say("you", text);
             s_state = State.Working;
+            s_end = State.Waiting;
             s_cancel = new CancellationTokenSource();
             var cancel = s_cancel.Token;
             Task.Run(async () =>
@@ -194,10 +196,10 @@ namespace Placemaker.Game.Ai
                     else s_messages.Add(new JObject { ["role"] = "user", ["content"] = "The player says: " + text });
                     await Loop(endpoint, key, model, cancel);
                 }
-                catch (OperationCanceledException) { s_state = State.Stopped; SayKey("Placemaker.Ai.Line.Stopped"); }
+                catch (OperationCanceledException) { s_end = State.Stopped; SayKey("Placemaker.Ai.Line.Stopped"); }
                 catch (Exception e)
                 {
-                    s_state = State.Failed;
+                    s_end = State.Failed;
                     Say("error", e.GetType().Name + ": " + e.Message);
                     Mod.Log.Error(e, "Placemaker AI: the loop failed");
                 }
@@ -205,6 +207,8 @@ namespace Placemaker.Game.Ai
                 {
                     Step("");
                     Summary(model);
+                    s_state = s_end;
+                    s_version++;
                 }
             });
             return true;
@@ -238,9 +242,9 @@ namespace Placemaker.Game.Ai
                 s_cost += r.Cost ?? 0;
                 s_tokens += r.PromptTokens + r.ReplyTokens;
                 Log(new JObject { ["turn"] = turn, ["ms"] = r.Ms, ["status"] = r.Status, ["promptTokens"] = r.PromptTokens, ["replyTokens"] = r.ReplyTokens, ["cost"] = r.Cost, ["error"] = r.Error });
-                if (r.Error != null) { s_state = State.Failed; Say("error", r.Error); return; }
+                if (r.Error != null) { s_end = State.Failed; Say("error", r.Error); return; }
                 var msg = JObject.Parse(r.RawResponse)["choices"]?[0]?["message"] as JObject;
-                if (msg == null) { s_state = State.Failed; Say("error", "no message in the reply"); return; }
+                if (msg == null) { s_end = State.Failed; Say("error", "no message in the reply"); return; }
                 var assistant = new JObject { ["role"] = "assistant", ["content"] = msg["content"] ?? "" };
                 var calls = msg["tool_calls"] as JArray;
                 if (calls != null && calls.Count > 0) assistant["tool_calls"] = calls;
@@ -248,10 +252,11 @@ namespace Placemaker.Game.Ai
                 Log(new JObject { ["assistant"] = assistant });
                 string said = (string)msg["content"];
                 if (!string.IsNullOrWhiteSpace(said)) Say("ai", said.Trim());
-                if (calls == null || calls.Count == 0) { s_state = State.Waiting; return; }
+                if (calls == null || calls.Count == 0) { s_end = State.Waiting; return; }
 
                 bool finished = false;
                 byte[] mapAfter = null;
+                int revBefore = AiPlan.Current.Revision;
                 foreach (var c in calls)
                 {
                     cancel.ThrowIfCancellationRequested();
@@ -269,11 +274,18 @@ namespace Placemaker.Game.Ai
                     s_messages.Add(new JObject { ["role"] = "tool", ["tool_call_id"] = (string)c["id"], ["content"] = res.Text });
                     Log(new JObject { ["tool"] = name, ["args"] = args, ["result"] = res.Text });
                 }
+                if (mapAfter == null && !finished && AiPlan.Current.Revision != revBefore) mapAfter = Map();
                 if (mapAfter != null) s_messages.Add(UserWithImage($"The map now (map-{s_maps}.png): what you placed is drawn on it, ids next to everything but plants.", mapAfter));
-                if (finished) { s_state = State.Done; return; }
+                if (finished) { s_end = State.Done; return; }
             }
-            s_state = State.Waiting;
+            s_end = State.Waiting;
             SayKey("Placemaker.Ai.Line.MaxSteps", MaxTurns);
+        }
+
+        private static string Locale()
+        {
+            try { return global::Game.SceneFlow.GameManager.instance?.localizationManager?.activeLocaleId ?? "en-US"; }
+            catch (Exception) { return "en-US"; }
         }
 
         /// <summary>The map with what is placed, saved as map-N.png.</summary>
@@ -300,11 +312,11 @@ namespace Placemaker.Game.Ai
             {
                 var s = new JObject
                 {
-                    ["model"] = model, ["prompt"] = AiPrompts.AgentVersion, ["state"] = s_state.ToString(), ["costUsd"] = Math.Round(s_cost, 4), ["tokens"] = s_tokens,
+                    ["model"] = model, ["prompt"] = AiPrompts.AgentVersion, ["state"] = s_end.ToString(), ["costUsd"] = Math.Round(s_cost, 4), ["tokens"] = s_tokens,
                     ["pieces"] = AiPlan.Current.Count, ["maps"] = s_maps, ["wishes"] = new JArray(Wishes), ["problems"] = new JArray(AiChecks.All(s_site, AiPlan.Current.Snapshot())),
                 };
                 File.WriteAllText(Path.Combine(s_folder, "summary.json"), s.ToString());
-                Mod.Log.Info($"Placemaker AI: {s_state}, {AiPlan.Current.Count} pieces, {s_tokens} tokens, ${s_cost:0.0000} so far -> {s_folder}");
+                Mod.Log.Info($"Placemaker AI: {s_end}, {AiPlan.Current.Count} pieces, {s_tokens} tokens, ${s_cost:0.0000} so far -> {s_folder}");
             }
             catch (Exception e) { Mod.Log.Warn("Placemaker AI: summary failed: " + e.Message); }
         }

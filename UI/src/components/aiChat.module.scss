@@ -35,11 +35,14 @@
     color: $c-text-faint;
 }
 
+.linesOuter {
+    margin-top: 6rem;
+}
+
 .lines {
     @include col;
-    margin-top: 6rem;
-    max-height: 320rem;
-    overflow-y: auto;
+    max-height: 360rem;
+    padding-bottom: 4rem;
 }
 
 .line {

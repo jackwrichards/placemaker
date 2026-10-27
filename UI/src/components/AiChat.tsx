@@ -8,6 +8,7 @@ import { AiLine } from "../contract";
 import { act, useAi } from "../lib/bindings";
 import { useT } from "../lib/l10n";
 import { Btn } from "./common";
+import { ScrollArea } from "./ScrollArea";
 import s from "./aiChat.module.scss";
 
 const LineView = ({ line }: { line: AiLine }) => {
@@ -63,12 +64,12 @@ export const AiChat = () => {
             </div>
             {fresh ? <div className={s.hint}>{t("Placemaker.Ai.Hint", "Describe what to build in your selection. The AI places every piece; you review it before anything is built.")}</div> : null}
             {count > 0 ? (
-                <div className={s.lines} data-testid="ai-lines">
+                <ScrollArea className={s.lines} outerClassName={s.linesOuter} testId="ai-lines">
                     {ai.lines.map((l, i) => (
                         <LineView key={i} line={l} />
                     ))}
                     <div ref={end} />
-                </div>
+                </ScrollArea>
             ) : null}
             {ai.busy ? (
                 <div className={s.working} data-testid="ai-working">

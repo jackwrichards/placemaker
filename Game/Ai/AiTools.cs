@@ -79,6 +79,7 @@ namespace Placemaker.Game.Ai
                 {
                     ["points"] = new JObject { ["type"] = "array", ["description"] = "[[x, z], ...] local metres, at least 2", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
                     ["wide"] = new JObject { ["type"] = "boolean", ["description"] = "a wide path (6 m) instead of a normal one (4 m)" },
+                    ["smooth"] = new JObject { ["type"] = "boolean", ["description"] = "draw a smooth curve through the points instead of straight lines between them (default false)" },
                 }, "points"),
             Fn("remove", "Remove placed objects or paths by id.", new JObject { ["ids"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "integer" } } }, "ids"),
             Fn("list_placed", "List everything placed so far (id, asset, position, yaw).", new JObject()),
@@ -195,8 +196,8 @@ namespace Placemaker.Game.Ai
             var top = scored.OrderByDescending(t => t.score).ThenBy(t => t.a.Id, StringComparer.Ordinal).Take(limit).ToList();
             if (top.Count == 0) return new Result { Text = "no matches; try other words or a category" };
             var sb = new StringBuilder();
-            sb.AppendLine($"{top.Count} of {scored.Count} matches (id | name | category | width x depth x height m):");
-            foreach (var (a, _) in top) sb.AppendLine($"{a.Id} | {a.Name} | {a.Category} | {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)}");
+            sb.AppendLine($"{top.Count} of {scored.Count} matches (id | name | category | width x depth x height m; plants: how wide the crown grows):");
+            foreach (var (a, _) in top) sb.AppendLine($"{a.Id} | {a.Name} | {a.Category} | {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)}" + (a.Plant ? $" | crown about {F(a.Reach * 2f)} m across" : ""));
             return new Result { Text = sb.ToString() };
         }
 
@@ -238,6 +239,7 @@ namespace Placemaker.Game.Ai
         {
             var pts = (args["points"] as JArray)?.Select(t => new float2((float)t[0], (float)t[1])).Select(site.World).ToArray();
             if (pts == null || pts.Length < 2) return new Result { Text = "a path needs at least 2 points" };
+            if ((bool?)args["smooth"] == true && pts.Length >= 3) pts = AiShapes.Smooth(pts, 5f);
             var p = new AiPiece { Kind = AiPieceKind.Path, Points = pts, NetRole = (bool?)args["wide"] == true ? NetRole.PathwayWide : NetRole.Pathway, Category = AssetCategories.Pathway };
             AiPlan.Current.Add(p);
             var pr = AiChecks.Problems(site, p, AiPlan.Current.Snapshot());

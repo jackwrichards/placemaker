@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+bdcaa1b7",
+  "assembly": "0.3.6+995e66ae",
   "categories": [
     {
       "id": "zoning",
@@ -98,6 +98,14 @@
       "hidden": true,
       "types": [
         "polishGardens"
+      ]
+    },
+    {
+      "id": "ai",
+      "name": "AI",
+      "order": 20,
+      "groups": [
+        "ai"
       ]
     },
     {
@@ -24323,6 +24331,13 @@
         }
       ],
       "shelved": true
+    },
+    {
+      "layer": "ai",
+      "group": "ai",
+      "category": "ai",
+      "presets": [],
+      "options": []
     },
     {
       "layer": "farmstead",

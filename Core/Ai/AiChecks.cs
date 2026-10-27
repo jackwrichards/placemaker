@@ -25,6 +25,13 @@ namespace Placemaker.Core.Ai
         public bool Vanilla;
 
         public float Radius => math.max(0.3f, 0.5f * math.cmax(Size.xz));
+
+        public bool Plant => Category == AssetCategories.Tree || Category == AssetCategories.Bush || Category == AssetCategories.Hedge;
+
+        /// <summary>How far it reaches sideways: a tree's crown (its bounds hold only the trunk; as the site plan sketch
+        /// sizes it, SitePlan.Crown), else its footprint.</summary>
+        public float Reach => Category == AssetCategories.Tree ? math.clamp(math.max(math.max(Radius, Size.y * 0.28f), 3.4f), 1f, 7f)
+            : Category == AssetCategories.Bush || Category == AssetCategories.Hedge ? math.clamp(math.max(Radius, Size.y * 0.5f), 0.5f, 3f) : Radius;
     }
 
     public sealed class AiSite
@@ -67,7 +74,7 @@ namespace Placemaker.Core.Ai
         private static bool IsFlat(AiPiece p) => p.Role == ObjectRole.Decal;
 
         public static float RadiusOf(AiSite s, AiPiece p) =>
-            s.Assets.TryGetValue(p.Asset ?? "", out var a) ? a.Radius : p.Role == ObjectRole.Tree ? 2f : 0.75f;
+            s.Assets.TryGetValue(p.Asset ?? "", out var a) ? a.Reach : p.Role == ObjectRole.Tree ? 3.4f : 0.75f;
 
         /// <summary>The problems of one piece against the site and the other pieces.</summary>
         public static List<string> Problems(AiSite s, AiPiece p, IReadOnlyList<AiPiece> all)
@@ -81,7 +88,7 @@ namespace Placemaker.Core.Ai
                 else
                 {
                     float edge = Poly.DistanceToBoundary(s.Ring, p.Position);
-                    if (edge < r * 0.8f && !IsFlat(p)) list.Add($"sticks out of the selection ({F(edge)} m from the edge, radius {F(r)} m)");
+                    if (edge < r * (p.Role == ObjectRole.Tree ? 0.5f : 0.8f) && !IsFlat(p)) list.Add($"sticks out of the selection ({F(edge)} m from the edge, radius {F(r)} m)");
                 }
                 for (int i = 0; i < s.Nets.Count; i++)
                 {
@@ -100,9 +107,9 @@ namespace Placemaker.Core.Ai
                             if (math.abs(o.Elevation - p.Elevation) > 1.5f) continue;
                             float ro = RadiusOf(s, o);
                             float d = math.distance(o.Position, p.Position);
-                            // trees and bushes may touch crowns: only trunks too close count
+                            // trees and bushes: crowns may touch and overlap a little, not grow into each other
                             bool soft = (p.Role == ObjectRole.Tree || p.Role == ObjectRole.Bush) && (o.Role == ObjectRole.Tree || o.Role == ObjectRole.Bush);
-                            float need = soft ? (r + ro) * 0.35f : (r + ro) * 0.75f;
+                            float need = soft ? (r + ro) * 0.6f : (r + ro) * 0.75f;
                             if (d < need) list.Add($"overlaps #{o.Id} ({o.Asset}) by {F(need - d)} m");
                         }
                         else if (o.Points != null)

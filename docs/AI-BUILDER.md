@@ -239,6 +239,13 @@ edges). The AI gets the same, two ways:
 
 Generators come first (phase two); scripts once the generators show what is missing.
 
+**Superseded (the user, 26 Oct, after the first rounds):** don't box the AI in. Every object is placed by the AI
+itself; tools are the minimum it needs to be as creative as possible. No generators that decide placement (a scatter
+tool was tried for one round and taken out). Most improvements are prompt changes (`Core/Ai/AiPrompts.cs`); a tool is
+added or changed only when the AI is literally blocked (it cannot do or cannot know something). Information tools
+(asset sizes, the map, the problems a placement caused) are fine. Paths: open; for now `place_path` takes the AI's
+points as given, with an optional smooth curve through them. Scripts (item 2) stay possible later, as the AI's own code.
+
 ## Getting better: tools the AI asks for
 
 The tools are not fixed. They grow from what the AI needed and did not have:
