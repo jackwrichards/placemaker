@@ -291,10 +291,13 @@ namespace Placemaker.Game.Ai
                 sb.AppendLine($"{c}: " + string.Join("; ", top.Select(a => $"{a.Id} {F(a.Size.x)}x{F(a.Size.z)}x{F(a.Size.y)}" + (a.Plant ? $" crown {F(a.Reach * 2f)}" : ""))));
             }
             var lines = assets.Where(a => a.Line).OrderBy(a => a.Vanilla ? 0 : 1).ThenBy(a => a.Size.x).ToList();
-            var paths = lines.Where(a => a.Category == "path" && a.Vanilla).Take(12).ToList();
-            if (paths.Count > 0) sb.AppendLine("path lines (place_path asset): " + string.Join("; ", paths.Select(a => $"{a.Id} {F(a.Size.x)} m")));
+            bool Ground(AiAsset a) => a.Id.IndexOf("Bridge", StringComparison.OrdinalIgnoreCase) < 0 && a.Id.IndexOf("Pier", StringComparison.OrdinalIgnoreCase) < 0 && a.Id.IndexOf("Quay", StringComparison.OrdinalIgnoreCase) < 0;
+            var paths = lines.Where(a => a.Category == "path" && a.Vanilla && Ground(a)).Take(12).ToList();
+            var piers = lines.Where(a => a.Category == "path" && a.Vanilla && !Ground(a)).Take(8).ToList();
+            if (piers.Count > 0) sb.AppendLine("piers, quays and bridges (place_path asset, with height): " + string.Join("; ", piers.Select(a => a.Id)));
+            if (paths.Count > 0) sb.AppendLine("path lines (place_path asset; none = the normal footpath): " + string.Join("; ", paths.Select(a => a.Size.x > 0f ? $"{a.Id} {F(a.Size.x)} m" : a.Id)));
             var roads = lines.Where(a => a.Category == "road" && a.Vanilla && (a.Id.IndexOf("Invisible", StringComparison.OrdinalIgnoreCase) >= 0 || a.Id.IndexOf("Alley", StringComparison.OrdinalIgnoreCase) >= 0 || a.Size.x <= 16f)).Take(12).ToList();
-            if (roads.Count > 0) sb.AppendLine("road lines (place_path asset; invisible car lanes make parking aisles): " + string.Join("; ", roads.Select(a => $"{a.Id} {F(a.Size.x)} m")));
+            if (roads.Count > 0) sb.AppendLine("road lines (place_path asset; the invisible car lanes are drive aisles you cannot see: paint or pave the ground under them and mark the stalls with parking decals): " + string.Join("; ", roads.Select(a => a.Size.x > 0f ? $"{a.Id} {F(a.Size.x)} m" : a.Id)));
             var fences = lines.Where(a => a.Category == AssetCategories.Fence && a.Vanilla).Take(8).ToList();
             if (fences.Count > 0) sb.AppendLine("fence lines (place_path asset): " + string.Join("; ", fences.Select(a => a.Id)));
             var surfaces = assets.Where(a => a.Category != null && a.Category.StartsWith("surface") && a.Pick >= 0).OrderBy(a => a.Pick).Take(16).ToList();

@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+995e66ae",
+  "assembly": "0.3.6+385120a3",
   "categories": [
     {
       "id": "zoning",
@@ -24337,7 +24337,22 @@
       "group": "ai",
       "category": "ai",
       "presets": [],
-      "options": []
+      "options": [
+        {
+          "id": "entrances",
+          "kind": "Markers",
+          "options": [
+            "main",
+            "pedestrian",
+            "bike",
+            "service",
+            "entrance",
+            "entry",
+            "exit",
+            "alley"
+          ]
+        }
+      ]
     },
     {
       "layer": "farmstead",

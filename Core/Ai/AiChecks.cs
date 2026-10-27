@@ -143,12 +143,20 @@ namespace Placemaker.Core.Ai
             {
                 int outside = p.Ring.Count(q => !Poly.Contains(s.Ring, q) && Poly.DistanceToBoundary(s.Ring, q) > 1f);
                 if (outside > 0) list.Add($"{outside} of its {p.Ring.Length} corners are outside the selection");
+                // a surface drawn over the AI's own paths hides them in the game (the paths are built, but under it)
+                if (p.Kind == AiPieceKind.Surface)
+                    foreach (var o in all)
+                        if (o.Kind == AiPieceKind.Path && o.Points != null && o.Points.Any(q => Poly.Contains(p.Ring, q)))
+                        { list.Add($"covers path #{o.Id}: a surface hides the paths under it (use paint_ground for a grass base, and keep surfaces to plazas and pads beside the paths)"); break; }
                 if (p.Kind == AiPieceKind.Surface)
                     foreach (var n in s.Nets)
                         if (p.Ring.Any(q => NetDistance(n, q) < n.Width * 0.5f) || Poly.Contains(p.Ring, SiteBrief.Bez(n, 0.5f).xz)) { list.Add($"covers an existing {(n.Category == NetCategory.Road ? "road" : "path")}"); break; }
             }
             else if (p.Points != null)
             {
+                foreach (var o in all)
+                    if (o.Kind == AiPieceKind.Surface && o.Ring != null && p.Points.Any(q => Poly.Contains(o.Ring, q)))
+                    { list.Add($"runs under surface #{o.Id}, which hides it"); break; }
                 // an end may reach just past the outline to meet a road there (an entrance)
                 bool AtRoad(float2 q) => s.Nets.Any(n => NetDistance(n, q) - n.Width * 0.5f < 4f);
                 int outside = p.Points.Where((q, i) => !Poly.Contains(s.Ring, q) && !((i == 0 || i == p.Points.Length - 1) && AtRoad(q))).Count();

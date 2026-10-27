@@ -455,7 +455,11 @@ namespace Placemaker.Game.Assets
                 if (EntityManager.HasComponent<TrackData>(e) || EntityManager.HasComponent<TaxiwayData>(e) || EntityManager.HasComponent<WaterwayData>(e)) continue;
                 string display = kv.Key;
                 if (_prefabs.TryGetPrefab<PrefabBase>(e, out var pb) && pb != null) display = DisplayName(pb);
-                list.Add((kv.Key, display, road, EntityManager.GetComponentData<NetGeometryData>(e).m_DefaultWidth));
+                // a bridge, a pier or a quay is no line to draw on the ground
+                if (EntityManager.HasComponent<BridgeData>(e)) continue;
+                var geo = EntityManager.GetComponentData<NetGeometryData>(e);
+                float width = geo.m_DefaultWidth > 0f ? geo.m_DefaultWidth : _byName.TryGetValue(kv.Key, out var item) ? item.Info.NetWidth : 0f;
+                list.Add((kv.Key, display, road, width));
             }
             return list;
         }
