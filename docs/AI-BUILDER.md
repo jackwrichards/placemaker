@@ -277,10 +277,23 @@ To check one by one when building:
 
 ## The setting, the key, the panel
 
-- **Experimental**, off by default, in the options: "AI builder (experimental)", a key field, and the model to use.
+- **Experimental**, off by default, in the options: "AI builder (experimental)", the key, the model, the address. Only
+  those: nothing about what to build lives in the options.
 - The key is stored in the mod's settings on the player's machine and sent only to the AI provider.
-- The panel: a category "AI" on the shelf (`Recipes/shelf/`), a "Describe what you want" box, a progress line while it
-  works ("placing the path loop", "checking"), the preview with the AI's note, Build / Change / Cancel.
+- **The panel (the user, 26 Oct):** with the setting on, the Make row has one more category, **AI**. It has no types and
+  no styles: picking it shows a text box ("What do you want here?") and the chat below it. The back and forth happens
+  there (the AI's progress lines, its questions, the player's "fewer trees").
+- **Design** works like any other type's design stage: the mini map (the site plan sketch) shows what the AI has placed
+  so far, redrawn as it works. **Review** and **Build** are exactly the other types' stages: the ghost preview, Build,
+  undo.
+
+## Who refines it
+
+Claude Code does, in the game runner, round after round: run the AI category on the standing prompts and lands, read
+its log, look at the pictures, **rate each result itself** (layout, fit to the ground and the site, what was asked),
+smooth out the AI's hiccups (prompt, brief, tool answers) and add the tools it was missing (its `feedback.wish`
+notes and Claude Code's own). This needs a key in the runner's games: `%USERPROFILE%\.placemaker\ai-key.txt`,
+put there by the user (an agent never types a key).
 - Every new text in all 12 languages (`AGENTS.md`). The AI's own replies come in the player's language by itself.
 
 ## Logs and testing
