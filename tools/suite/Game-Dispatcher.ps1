@@ -448,6 +448,9 @@ function D-Overdue($a, [datetime]$now) {
     $f = $a.feed
     if (($now - (Q-Date $f.fedAt)).TotalSeconds -gt [double]$f.timeoutSec) { return "no result after $($f.timeoutSec) s" }
     $rp = @($a.req.rowPics); $k = [int]$a.rowsSeen
+    # a request that gave its own time budget (Run-Suite -TimeoutMin: the AI builder's builds take minutes each) is held
+    # to that budget only, not to the per-build stall estimate
+    if ($a.req.timeoutMin -gt 0) { return '' }
     if ($rp.Count -gt 0 -and $k -lt $rp.Count -and $a.rowAt) {
         $rates = Q-Rates
         $est = Q-RowSec ([int]$rp[$k]) ([bool]@($a.req.rowLand)[$k]) $rates "$(@($a.req.rowType)[$k])"
