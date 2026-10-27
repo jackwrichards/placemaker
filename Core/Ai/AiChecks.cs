@@ -152,6 +152,10 @@ namespace Placemaker.Core.Ai
                         if (HiddenUnder(o, p.Ring) > 4f)
                         { list.Add($"covers path #{o.Id}: a surface hides the paths under it (use paint_ground for a grass base, and keep surfaces to plazas and pads beside the paths)"); break; }
                 if (p.Kind == AiPieceKind.Surface)
+                    foreach (var o in all)
+                        if (o.Id != p.Id && o.Kind == AiPieceKind.Surface && o.Ring != null && SurfacesOverlap(p.Ring, o.Ring))
+                        { list.Add($"overlaps surface #{o.Id}: the game shows only one surface where two overlap"); break; }
+                if (p.Kind == AiPieceKind.Surface)
                     foreach (var n in s.Nets)
                         if (p.Ring.Any(q => NetDistance(n, q) < n.Width * 0.5f) || Poly.Contains(p.Ring, SiteBrief.Bez(n, 0.5f).xz)) { list.Add($"covers an existing {(n.Category == NetCategory.Road ? "road" : "path")}"); break; }
             }
@@ -200,6 +204,22 @@ namespace Placemaker.Core.Ai
                 for (int i = 0; i < n; i++) if (Poly.Contains(ring, math.lerp(path.Points[k], path.Points[k + 1], (i + 0.5f) / n))) inside += len / n;
             }
             return inside;
+        }
+
+        /// <summary>Do two surface rings overlap by more than a sliver (the game shows only one surface where they do)?</summary>
+        public static bool SurfacesOverlap(float2[] a, float2[] b)
+        {
+            float2 alo = new float2(float.MaxValue), ahi = new float2(float.MinValue), blo = alo, bhi = ahi;
+            foreach (var q in a) { alo = math.min(alo, q); ahi = math.max(ahi, q); }
+            foreach (var q in b) { blo = math.min(blo, q); bhi = math.max(bhi, q); }
+            var lo = math.max(alo, blo); var hi = math.min(ahi, bhi);
+            if (hi.x - lo.x < 0.6f || hi.y - lo.y < 0.6f) return false;
+            // sample the shared box: any point inside both (inset so touching edges do not count)
+            int n = 0;
+            for (float x = lo.x + 0.3f; x < hi.x - 0.29f; x += math.max(0.5f, (hi.x - lo.x) / 12f))
+                for (float z = lo.y + 0.3f; z < hi.y - 0.29f; z += math.max(0.5f, (hi.y - lo.y) / 12f))
+                    if (Poly.Contains(a, new float2(x, z)) && Poly.Contains(b, new float2(x, z)) && ++n >= 2) return true;
+            return false;
         }
 
         public static float PathHalfWidth(AiPiece p) => p.NetRole == NetRole.Fence ? 0.3f : p.NetRole == NetRole.PathwayWide ? 3f : p.NetRole == NetRole.DriveAisle ? 3.5f : 2f;

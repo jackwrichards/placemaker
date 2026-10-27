@@ -681,6 +681,9 @@ namespace Placemaker.Game.Ai
             var hidden = AiPlan.Current.Snapshot().Where(o => AiChecks.HiddenUnder(o, ring) > 4f).Select(o => "#" + o.Id).ToList();
             if (hidden.Count > 0)
                 return new Result { Text = $"refused: it would cover path {string.Join(", ", hidden)}, and the game draws a surface over the paths under it. Keep surfaces to plazas, pads and yards beside or at the ends of paths (cut the polygon around them), and use paint_ground for a grass or dirt base." };
+            var under = AiPlan.Current.Snapshot().Where(o => o.Kind == AiPieceKind.Surface && o.Ring != null && AiChecks.SurfacesOverlap(ring, o.Ring)).Select(o => "#" + o.Id).ToList();
+            if (under.Count > 0)
+                return new Result { Text = $"refused: it overlaps surface {string.Join(", ", under)}, and where surfaces overlap the game shows only one of them. Surfaces sit side by side, never on top of each other: cut them into pieces that meet at their edges (e.g. asphalt strips between grass medians), or use paint_ground for a base under everything." };
             AiPlan.Current.Add(p);
             float area = math.abs(Placemaker.Core.Geometry.Poly.SignedArea(ring));
             return new Result { Text = $"surface #{p.Id} {asset}, {F(area)} m²; {Problems(site, p)}", LineKey = "Placemaker.Ai.Line.Surface", LineArgs = new object[] { (int)area } };
