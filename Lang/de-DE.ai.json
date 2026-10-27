@@ -35,5 +35,7 @@
   "Placemaker.Ai.Line.Surface": "Fläche, {0} m²",
   "Placemaker.Ai.Doing.Look": "Sieht sich {0} Objekte an",
   "Placemaker.Ai.Line.Looked": "{0} Bilder angesehen",
-  "Placemaker.Ai.Line.Review": "Prüft die eigene Arbeit"
+  "Placemaker.Ai.Line.Review": "Prüft die eigene Arbeit",
+  "Placemaker.Ai.entrances": "Eingänge (optional)",
+  "Placemaker.Ai.entrances.Tooltip": "Markiere, wo Menschen oder Autos hineinkommen sollen. Die KI baut ihre Eingänge dort; ohne Markierung wählt sie selbst."
 }

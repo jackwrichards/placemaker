@@ -35,5 +35,7 @@
   "Placemaker.Ai.Line.Surface": "Superfície, {0} m²",
   "Placemaker.Ai.Doing.Look": "Olhando {0} objetos",
   "Placemaker.Ai.Line.Looked": "Viu {0} imagens",
-  "Placemaker.Ai.Line.Review": "Revisando o trabalho"
+  "Placemaker.Ai.Line.Review": "Revisando o trabalho",
+  "Placemaker.Ai.entrances": "Entradas (opcional)",
+  "Placemaker.Ai.entrances.Tooltip": "Marque por onde pessoas ou carros devem entrar. A IA faz as entradas ali; sem marcas, ela escolhe."
 }

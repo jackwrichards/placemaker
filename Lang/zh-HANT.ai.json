@@ -35,5 +35,7 @@
   "Placemaker.Ai.Line.Surface": "鋪面，{0} 平方公尺",
   "Placemaker.Ai.Doing.Look": "正在查看 {0} 個資源",
   "Placemaker.Ai.Line.Looked": "查看了 {0} 張圖片",
-  "Placemaker.Ai.Line.Review": "正在檢查自己的作品"
+  "Placemaker.Ai.Line.Review": "正在檢查自己的作品",
+  "Placemaker.Ai.entrances": "入口（可選）",
+  "Placemaker.Ai.entrances.Tooltip": "標出行人或車輛的入口位置。AI 會在那裡建造入口；沒有標記時由它自己選擇。"
 }

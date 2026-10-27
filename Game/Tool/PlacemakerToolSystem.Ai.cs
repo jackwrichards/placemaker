@@ -15,6 +15,15 @@ namespace Placemaker.Game.Tool
 
         public bool AiTypePicked => _recipeId == AiLayer.LayerId;
 
+        /// <summary>The entrance markers the player placed for the AI type (kind, world position).</summary>
+        internal System.Collections.Generic.List<(string kind, Unity.Mathematics.float2 at)> AiEntrances()
+        {
+            var list = new System.Collections.Generic.List<(string, Unity.Mathematics.float2)>();
+            if (_recipe?.Root?.Markers == null || !AiTypePicked) return list;
+            foreach (var m in _recipe.Root.Markers) list.Add((m.Kind ?? "", m.Position.xz));
+            return list;
+        }
+
         /// <summary>Every frame: the AI's plan changed (its tools run on a worker) -> re-plan, so the ghost and the sketch follow it.</summary>
         private void AiFrame()
         {

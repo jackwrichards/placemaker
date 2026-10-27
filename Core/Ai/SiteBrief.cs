@@ -33,6 +33,8 @@ namespace Placemaker.Core.Ai
         public List<NearbyNet> Nets = new List<NearbyNet>();
         public List<Obstacle> Buildings = new List<Obstacle>();
         public string Prompt = "";
+        /// <summary>Entrances the player marked on the outline (kind, world xz); empty = none, the AI chooses.</summary>
+        public List<(string kind, float2 at)> Entrances = new List<(string, float2)>();
         /// <summary>The map's ground paints, index 1..4 (null = unknown): what paint_ground layer N looks like.</summary>
         public string[] Paints;
         /// <summary>Metres per pixel of the map that goes with the brief (0 = no map).</summary>
@@ -176,6 +178,9 @@ namespace Placemaker.Core.Ai
             }
 
             sb.AppendLine();
+            sb.AppendLine(EntrancesText(s.Entrances, lo));
+
+            sb.AppendLine();
             sb.AppendLine("## Ground paints of this map (paint_ground layer)");
             for (int i = 1; i <= 4; i++)
                 sb.AppendLine($"{i}: {(s.Paints != null && i < s.Paints.Length && !string.IsNullOrEmpty(s.Paints[i]) ? s.Paints[i] : DefaultPaint(i))}");
@@ -194,6 +199,29 @@ namespace Placemaker.Core.Ai
             sb.AppendLine("## What the player asked for");
             sb.AppendLine(string.IsNullOrWhiteSpace(s.Prompt) ? "(nothing written)" : s.Prompt.Trim());
             return sb.ToString();
+        }
+
+        /// <summary>The player's entrance markers as the brief (and follow-up messages) state them.</summary>
+        public static string EntrancesText(List<(string kind, float2 at)> entrances, float2 lo)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("## Entrances the player marked");
+            if (entrances == null || entrances.Count == 0) { sb.Append("None: choose your own entrances where people and cars come from."); return sb.ToString(); }
+            sb.AppendLine("Build an entrance at each of these, of that kind, and let your layout grow from them (you may add more):");
+            foreach (var (kind, at) in entrances)
+            {
+                string what = kind == "main" ? "main entrance (people; the grand one: a wide walk, a gate, planters or lamps)"
+                    : kind == "pedestrian" || kind == "footpath" ? "pedestrian entrance (a path from the street)"
+                    : kind == "bike" ? "bike entrance (a path with bike lanes from the street)"
+                    : kind == "service" ? "service entrance (a narrow track for maintenance)"
+                    : kind == "entrance" ? "car entrance, in and out (a road-type line joined to the street here)"
+                    : kind == "entry" ? "car way in only (a one-way road-type line from the street)"
+                    : kind == "exit" ? "car way out only (a one-way road-type line to the street)"
+                    : kind == "alley" ? "driveway (an alley joined to the street here)"
+                    : kind;
+                sb.AppendLine($"- {what} at {P(at - lo)}");
+            }
+            return sb.ToString().TrimEnd();
         }
 
         public static string DefaultPaint(int i) => i == 1 ? "dry grass" : i == 2 ? "lush grass" : i == 3 ? "dirt" : i == 4 ? "sand" : "erase";

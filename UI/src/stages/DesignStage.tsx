@@ -669,9 +669,14 @@ export const DesignStage = ({ catalog, design, state }: { catalog: Catalog; desi
             {!root ? (
                 <div className={s.emptyNote}>{t("Placemaker.UI.PickRecipe", "Nothing picked yet: pick a category to start")}</div>
             ) : root.layer === "ai" ? (
-                <ErrorBoundary name="ai-chat">
-                    <AiChat />
-                </ErrorBoundary>
+                <div className={s.options} data-testid="options">
+                    <ErrorBoundary name={"step-" + root.path}>
+                        <StepOptions catalog={catalog} design={design} state={state} step={root} />
+                    </ErrorBoundary>
+                    <ErrorBoundary name="ai-chat">
+                        <AiChat />
+                    </ErrorBoundary>
+                </div>
             ) : (
                 <div className={s.options} data-testid="options">
                     <ErrorBoundary name={"step-" + root.path}>

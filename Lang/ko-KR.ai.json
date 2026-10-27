@@ -35,5 +35,7 @@
   "Placemaker.Ai.Line.Surface": "표면, {0} m²",
   "Placemaker.Ai.Doing.Look": "에셋 {0}개 보는 중",
   "Placemaker.Ai.Line.Looked": "이미지 {0}장 확인",
-  "Placemaker.Ai.Line.Review": "작업 검토 중"
+  "Placemaker.Ai.Line.Review": "작업 검토 중",
+  "Placemaker.Ai.entrances": "입구 (선택)",
+  "Placemaker.Ai.entrances.Tooltip": "사람이나 차가 들어올 곳을 표시하세요. AI가 그곳에 입구를 만들고, 없으면 스스로 정합니다."
 }

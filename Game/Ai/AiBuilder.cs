@@ -160,7 +160,7 @@ namespace Placemaker.Game.Ai
                     for (int i = 0; i < nx; i++) { w[j * nx + i] = site.WaterDepthAt(g.CellCentre(i, j)); any |= w[j * nx + i] > 0.05f; }
                 if (any) g.Water = w;
             }
-            var input = new SiteBriefInput { Ring = ring, Ground = g, Prompt = prompt };
+            var input = new SiteBriefInput { Ring = ring, Ground = g, Prompt = prompt, Entrances = tool.AiEntrances() };
             // the map's four ground paints, named after their textures ("Grass_Dry_Temperate_01_Basecolor" -> "grass dry temperate")
             var pal = site?.Terrain;
             if (pal != null)

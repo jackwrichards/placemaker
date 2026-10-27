@@ -35,5 +35,7 @@
   "Placemaker.Ai.Line.Surface": "Покрытие, {0} м²",
   "Placemaker.Ai.Doing.Look": "Смотрит объекты: {0}",
   "Placemaker.Ai.Line.Looked": "Просмотрено изображений: {0}",
-  "Placemaker.Ai.Line.Review": "Проверяет свою работу"
+  "Placemaker.Ai.Line.Review": "Проверяет свою работу",
+  "Placemaker.Ai.entrances": "Входы (необязательно)",
+  "Placemaker.Ai.entrances.Tooltip": "Отметьте, где должны входить люди или въезжать машины. ИИ построит входы там; без отметок выберет сам."
 }

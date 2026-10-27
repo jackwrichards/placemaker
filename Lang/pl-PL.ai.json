@@ -35,5 +35,7 @@
   "Placemaker.Ai.Line.Surface": "Nawierzchnia, {0} m²",
   "Placemaker.Ai.Doing.Look": "Ogląda {0} obiektów",
   "Placemaker.Ai.Line.Looked": "Obejrzano {0} obrazów",
-  "Placemaker.Ai.Line.Review": "Sprawdza swoją pracę"
+  "Placemaker.Ai.Line.Review": "Sprawdza swoją pracę",
+  "Placemaker.Ai.entrances": "Wejścia (opcjonalne)",
+  "Placemaker.Ai.entrances.Tooltip": "Zaznacz, którędy mają wchodzić ludzie lub wjeżdżać auta. AI zbuduje tam wejścia; bez znaczników wybierze samo."
 }

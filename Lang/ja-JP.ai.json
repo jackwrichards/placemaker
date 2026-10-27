@@ -35,5 +35,7 @@
   "Placemaker.Ai.Line.Surface": "舗装面、{0} m²",
   "Placemaker.Ai.Doing.Look": "{0}個のアセットを確認中",
   "Placemaker.Ai.Line.Looked": "{0}枚の画像を確認",
-  "Placemaker.Ai.Line.Review": "作業を見直し中"
+  "Placemaker.Ai.Line.Review": "作業を見直し中",
+  "Placemaker.Ai.entrances": "入口（任意）",
+  "Placemaker.Ai.entrances.Tooltip": "人や車が入る場所を指定します。AIはそこに入口を作り、指定がなければ自分で選びます。"
 }

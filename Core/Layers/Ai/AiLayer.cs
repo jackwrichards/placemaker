@@ -21,7 +21,23 @@ namespace Placemaker.Core.Layers.Ai
         public override LayerKind Kind => LayerKind.Fill;
         public override float MinArea => 20f;
 
-        protected override void DefineControls(ControlSet c) { }
+        /// <summary>Entrance kinds the player may mark before sending (all optional): walking ones as the parks have them, car
+        /// ones as the parking type has them. The AI is told where they are and builds its entrances there.</summary>
+        public static readonly string[] EntranceKinds = { "main", "pedestrian", "bike", "service", "entrance", "entry", "exit", "alley" };
+
+        protected override void DefineControls(ControlSet c)
+        {
+            var m = c.Markers("entrances", ControlTier.Essential, EntranceKinds);
+            m.Icon = "entrance";
+            m.LabelKey = "Placemaker.Ai.entrances";
+            m.TooltipKey = "Placemaker.Ai.entrances.Tooltip";
+            Common.EntranceKinds.WithOptions(m, new[] { "main", "pedestrian", "bike", "service" });
+            foreach (var k in new[] { "entrance", "entry", "exit", "alley" })
+            {
+                string key = "Placemaker.Parking.Marker." + Tool.MarkerKinds.Pascal(k);
+                m.Options.Add(new ControlOption { Value = k, LabelKey = key, TooltipKey = key + ".Tip", Icon = Tool.MarkerKinds.IconFor(k) });
+            }
+        }
 
         /// <summary>An end within 4 m of a city road's centre line moves onto it and is attached there.</summary>
         private static void Attach(LayerContext ctx, ref float2 end, out long id, out float t)

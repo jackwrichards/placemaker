@@ -307,6 +307,8 @@
  "ai/Placemaker.Ai.Reset": "51dd91dc98a9",
  "ai/Placemaker.Ai.Send": "9bc2575c3930",
  "ai/Placemaker.Ai.Stop": "9e253470c876",
+ "ai/Placemaker.Ai.entrances": "a85704d77baf",
+ "ai/Placemaker.Ai.entrances.Tooltip": "fb496eda3f6c",
  "ai/Placemaker.Recipe.Ai": "2f271a1e35d7",
  "ai/Placemaker.Recipe.Ai.Description": "468210e5c13d",
  "amenities/Placemaker.AddOn.Bandstand.Name": "2f240f53b514",

@@ -190,6 +190,7 @@ namespace Placemaker.Game.Ai
                 };
                 Mod.Log.Info($"Placemaker AI: new session for {model} at {endpoint} (key from {keyFrom}, prompt {AiPrompts.AgentVersion}, {AiHandbook.Version}), {s_assets.Count} assets, {s_brief.Nets.Count} nets -> {s_folder}");
             }
+            var entrancesNow = tool.AiEntrances();
             Say("you", text);
             s_state = State.Working;
             s_end = State.Waiting;
@@ -213,7 +214,7 @@ namespace Placemaker.Game.Ai
                     else
                     {
                         s_site.Reviewed = false;
-                        s_messages.Add(new JObject { ["role"] = "user", ["content"] = "The player says: " + text });
+                        s_messages.Add(new JObject { ["role"] = "user", ["content"] = "The player says: " + text + "\n\n" + SiteBrief.EntrancesText(entrancesNow, s_site.Origin) });
                     }
                     await Loop(endpoint, key, model, cancel);
                 }
