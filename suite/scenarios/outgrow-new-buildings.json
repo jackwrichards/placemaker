@@ -1,5 +1,5 @@
 {
-  "_about": "Outgrow new buildings (the user, 27 Oct, after players asked for no outgrow until they paint): a switch in the Zone defaults tab, kept with each city; a new city has it off. Outgrow switched on in the window: a first street grows with none outgrown (audit 'off'); the switch on: a second street grows outgrown (audit 'on'); saved and loaded back, the switch is still on (the window's last shot, the log's switches line). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-new-buildings.json -Who outgrow-new-buildings -Fresh",
+  "_about": "Outgrow new buildings (the user, 27 Oct, after players asked for no outgrow until they paint): a row of the window's top card (New buildings: Zone default | No outgrow), kept with each city; a new city has No outgrow. Outgrow switched on in the window: a first street grows with none outgrown (audit 'off'); Zone default: a second street grows outgrown (audit 'on'); saved and loaded back, still Zone default (the window's last shot, the log's switches line); the window in German and Japanese. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-new-buildings.json -Who outgrow-new-buildings -Fresh",
   "scenarios": [
     {
       "id": "outgrow-new-buildings",
@@ -18,7 +18,12 @@
         { "do": "lab", "op": "outgrowAudit", "label": "on" },
         { "do": "lab", "op": "saveLoad" },
         { "do": "lab", "op": "polishIdle", "seconds": 60 },
-        { "do": "polish", "click": "panel-mode-outgrow", "shot": "after-load", "shotMode": "ui" }
+        { "do": "polish", "click": "panel-mode-outgrow", "shot": "after-load", "shotMode": "ui" },
+        { "do": "locale", "locale": "de-DE" },
+        { "do": "shot", "name": "window-de", "shotMode": "ui" },
+        { "do": "locale", "locale": "ja-JP" },
+        { "do": "shot", "name": "window-ja", "shotMode": "ui" },
+        { "do": "locale", "locale": "en-US" }
       ]
     }
   ]

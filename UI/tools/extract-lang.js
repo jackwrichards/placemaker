@@ -37,6 +37,24 @@ function extract() {
             if (strings[key] === undefined) strings[key] = value;
         }
     }
+    // A file's own short helper, e.g. const L = (id, en, args) => t("Placemaker.UI.Polish." + id, en, args): its L("Id", "English")
+    // calls are that prefix's keys (the Outgrow window's rows were never picked up before, so never translated).
+    const helper = /\bconst\s+([A-Za-z_$][\w$]*)\s*=\s*\(\s*([A-Za-z_$][\w$]*)\b[^=]*?\)\s*=>\s*t\(\s*"(Placemaker\.UI\.[A-Za-z0-9_.]*\.)"\s*\+\s*\2\b/g;
+    for (const f of files(SRC)) {
+        const text = fs.readFileSync(f, "utf8");
+        let h;
+        while ((h = helper.exec(text))) {
+            const call = new RegExp("(?<![\\w$.])" + h[1].replace(/\$/g, "\\$") + "\\(\\s*([\"'])([A-Za-z0-9_.]+)\\1\\s*,\\s*([\"'])((?:\\\\.|(?!\\3).)*)\\3", "g");
+            let m;
+            while ((m = call.exec(text))) {
+                const key = h[3] + m[2];
+                const value = unquote(m[4]);
+                if (strings[key] !== undefined && strings[key] !== value)
+                    console.warn(`extract-lang: ${key} has two different fallbacks:\n  "${strings[key]}"\n  "${value}" (${path.relative(ROOT, f)})`);
+                if (strings[key] === undefined) strings[key] = value;
+            }
+        }
+    }
     // Stage names and other keys referenced through tables.
     const tables = /\{\s*id:\s*"[a-z]+",\s*key:\s*"(Placemaker\.UI\.[A-Za-z.]+)",\s*en:\s*"([^"]+)"\s*\}/g;
     for (const f of files(SRC)) {

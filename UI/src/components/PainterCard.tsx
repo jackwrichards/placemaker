@@ -748,8 +748,8 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
     const editFp = tab === "edit" ? JSON.stringify([p.theme, p.looks, p.values, p.lookValues, p.lookTheme, p.lookSavedTheme, p.modified, p.swatches, st?.looks?.[p.theme ?? ""], p.preview?.gardens]) : "";
     return (
         <div className={s.cityEmbedded} data-testid="polish-city" onMouseDown={(e) => e.stopPropagation()}>
-                {/* one card, two rows, vertical room above all (the user, 26 Oct). 1: this city's one switch (every building
-                    keeps its outgrow type), then what the map shows and the count. 2: the three brushes (Paint with its type,
+                {/* one card, three rows, vertical room above all (the user, 26 Oct). 1: this city's one switch (every building
+                    keeps its outgrow type), then what the map shows and the count. 2: what new buildings get. 3: the three brushes (Paint with its type,
                     Off, Zone default); the brush size on a line of its own while one is on. The type list opens under them. */}
                 <div className={classNames(s.rows, { [s.rowsOff]: !p.featureOn })} data-testid="polish-master">
                     <div className={s.crow}>
@@ -790,7 +790,21 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                             ) : null}
                         </div>
                     </div>
-                    {/* row 2: the three brushes */}
+                    {/* what buildings that grow from now on get, this city's (a new city: Off, the user 27 Oct after players
+                        asked for "no outgrow until I paint it") */}
+                    <div className={s.crow} data-testid="polish-new-buildings">
+                        <div className={s.crowLabel}>{L("RowNewBuildings", "New buildings")}</div>
+                        <Segmented
+                            testId="polish-newHouses"
+                            value={p.newHouses ? "true" : "false"}
+                            onChange={(v) => act.polishCity("newHouses", v)}
+                            options={[
+                                { value: "true", label: L("NewZoneDefault", "Zone default"), description: L("NewZoneDefaultTip", "Buildings that grow get their zone's default outgrow type") },
+                                { value: "false", label: L("NewOff", "No outgrow"), description: L("NewOffTip", "Buildings that grow get no outgrow until you paint them") },
+                            ]}
+                        />
+                    </div>
+                    {/* the three brushes */}
                     <div className={s.crow}>
                         {/* three brushes, each named by what it puts down (the user, 26 Oct, layout C): the type picked, Off
                             (no outgrow: what "Erase" should have been), or each building's zone default (the old Erase) */}
@@ -840,15 +854,6 @@ export const PolishCityCard = ({ state }: { state: ToolState }) => {
                         {tab !== "edit" ? (
                             <Frozen fp={zonesFp}>
                             <div data-testid="polish-city-zones">
-                                {/* what buildings that grow from now on get (this city's; a new city: Off, the user 27 Oct after
-                                    players asked for "no outgrow until I paint it") */}
-                                <Tip title={L("NewBuildings", "Outgrow new buildings")} description={L("NewBuildingsTip", "On: buildings that grow get their zone's default. Off: no outgrow until you paint them.")}>
-                                    <div className={s.crow} data-testid="polish-new-buildings">
-                                        <div className={s.crowLabel}>{L("NewBuildings", "Outgrow new buildings")}</div>
-                                        <div className={s.flex} />
-                                        <Switch testId="polish-newHouses" on={!!p.newHouses} onChange={(v) => act.polishCity("newHouses", v ? "true" : "false")} />
-                                    </div>
-                                </Tip>
                                 {KINDS.map((k, ki) => {
                                     const list = zones.filter((z) => z.kind === k.id);
                                     if (!list.length) return null;
