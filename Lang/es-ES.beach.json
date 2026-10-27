@@ -94,6 +94,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "Cuánto se adentra cada embarcadero desde la arena (se detiene donde acaba el agua).",
   "Placemaker.Beach.jettyHead": "Cabezas en T",
   "Placemaker.Beach.jettyHead.Tooltip": "Una plataforma transversal al final de cada embarcadero para tirarse a nadar.",
+  "Placemaker.Beach.bay": "Bahía",
+  "Placemaker.Beach.bay.Tooltip": "Excava una bahía bajo el nivel del agua para que el agua entre y la orilla se curve. 0 deja la orilla como está.",
   "Placemaker.Beach.boats": "Barcos",
   "Placemaker.Beach.boats.Tooltip": "Barcas de remo y kayaks varados en la arena mojada.",
   "Placemaker.Beach.fires": "Hogueras",

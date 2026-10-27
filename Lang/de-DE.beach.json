@@ -94,6 +94,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "Wie weit jeder Steg vom Sand hinausreicht (er endet, wo das Wasser endet).",
   "Placemaker.Beach.jettyHead": "Steg-T-Köpfe",
   "Placemaker.Beach.jettyHead.Tooltip": "Ein Querdeck am Ende jedes Stegs, um von dort zu schwimmen.",
+  "Placemaker.Beach.bay": "Bucht",
+  "Placemaker.Beach.bay.Tooltip": "Gräbt eine Bucht unter den Wasserspiegel ins Land, damit das Wasser hineinfließt und das Ufer sich rundet. 0 lässt das Ufer, wie es ist.",
   "Placemaker.Beach.boats": "Boote",
   "Placemaker.Beach.boats.Tooltip": "Ruderboote und Kajaks, auf den nassen Sand gezogen.",
   "Placemaker.Beach.fires": "Feuerstellen",

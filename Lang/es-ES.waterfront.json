@@ -119,6 +119,8 @@
   "Placemaker.Waterfront.hillside.bank": "Talud",
   "Placemaker.Waterfront.maxWall": "Altura máx. muro",
   "Placemaker.Waterfront.maxWall.Tooltip": "El muro de contención más alto permitido en el lado de tierra del paseo; un corte más alto recibe un talud en su lugar.",
+  "Placemaker.Waterfront.bay": "Bahía",
+  "Placemaker.Waterfront.bay.Tooltip": "Excava una bahía bajo el nivel del agua: el agua entra y el paseo sigue la orilla curva. 0 deja la orilla como está.",
   "Placemaker.Waterfront.Issue.WallTooHigh": "La ladera detrás del paseo sube {0} m, por encima del límite de muro de {1} m: se hace un talud en su lugar.",
   "Placemaker.Category.net.quay": "muelles peatonales",
   "Placemaker.Category.net.pier": "muelles y pasarelas"

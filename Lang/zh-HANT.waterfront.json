@@ -119,6 +119,8 @@
   "Placemaker.Waterfront.hillside.bank": "順坡草坡",
   "Placemaker.Waterfront.maxWall": "擋土牆高度上限",
   "Placemaker.Waterfront.maxWall.Tooltip": "步道陸側允許的最高擋土牆；挖方更高時改用順坡草坡。",
+  "Placemaker.Waterfront.bay": "海灣",
+  "Placemaker.Waterfront.bay.Tooltip": "在水位以下挖出海灣：水流入，步道沿彎曲的岸線延伸。0 保持岸線不變。",
   "Placemaker.Waterfront.Issue.WallTooHigh": "步道後方的山坡升高 {0} m，超過 {1} m 的擋土牆上限：改做順坡草坡。",
   "Placemaker.Category.net.quay": "行人岸壁",
   "Placemaker.Category.net.pier": "棧橋與木棧道"

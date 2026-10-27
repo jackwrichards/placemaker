@@ -119,6 +119,8 @@
   "Placemaker.Waterfront.hillside.bank": "Пологий откос",
   "Placemaker.Waterfront.maxWall": "Предел стены",
   "Placemaker.Waterfront.maxWall.Tooltip": "Самая высокая подпорная стена со стороны суши променада; более глубокая выемка получает вместо нее плавный откос.",
+  "Placemaker.Waterfront.bay": "Бухта",
+  "Placemaker.Waterfront.bay.Tooltip": "Вырывает бухту ниже уровня воды: вода заходит, а набережная идёт вдоль изогнутого берега. 0 — берег без изменений.",
   "Placemaker.Waterfront.Issue.WallTooHigh": "Склон за променадом поднимается на {0} m, выше предела стены {1} m: вместо стены сделан откос.",
   "Placemaker.Category.net.quay": "пешеходные причалы",
   "Placemaker.Category.net.pier": "пирсы и настилы"

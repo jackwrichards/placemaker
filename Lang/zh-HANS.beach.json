@@ -94,6 +94,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "每座栈桥从沙地伸出多远（到水的尽头为止）。",
   "Placemaker.Beach.jettyHead": "T 形栈桥头",
   "Placemaker.Beach.jettyHead.Tooltip": "每座栈桥末端的横向平台，可从这里下水游泳。",
+  "Placemaker.Beach.bay": "海湾",
+  "Placemaker.Beach.bay.Tooltip": "在水位以下挖出海湾，让水流入，岸线变弯。0 保持岸线不变。",
   "Placemaker.Beach.boats": "船只",
   "Placemaker.Beach.boats.Tooltip": "拉上湿沙带的划艇和皮划艇。",
   "Placemaker.Beach.fires": "火坑",

@@ -119,6 +119,8 @@
   "Placemaker.Waterfront.hillside.bank": "Łagodna skarpa",
   "Placemaker.Waterfront.maxWall": "Maks. wys. muru",
   "Placemaker.Waterfront.maxWall.Tooltip": "Najwyższy dozwolony mur oporowy po stronie lądu promenady; wyższe wcięcie dostaje łagodną skarpę.",
+  "Placemaker.Waterfront.bay": "Zatoka",
+  "Placemaker.Waterfront.bay.Tooltip": "Wykopuje zatokę poniżej poziomu wody: woda wpływa, a promenada biegnie wzdłuż wygiętego brzegu. 0 zostawia brzeg bez zmian.",
   "Placemaker.Waterfront.Issue.WallTooHigh": "Zbocze za promenadą wznosi się o {0} m, ponad limit muru {1} m: zamiast tego wyrównano je jako skarpę.",
   "Placemaker.Category.net.quay": "nabrzeża dla pieszych",
   "Placemaker.Category.net.pier": "pomosty i promenady z desek"

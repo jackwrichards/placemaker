@@ -119,6 +119,8 @@
   "Placemaker.Waterfront.hillside.bank": "Talude",
   "Placemaker.Waterfront.maxWall": "Alt. máx. do muro",
   "Placemaker.Waterfront.maxWall.Tooltip": "Maior muro de arrimo permitido do lado de terra do calçadão; um corte mais alto ganha um talude no lugar.",
+  "Placemaker.Waterfront.bay": "Baía",
+  "Placemaker.Waterfront.bay.Tooltip": "Escava uma baía abaixo do nível da água: a água entra e o calçadão segue a margem curva. 0 mantém a margem como está.",
   "Placemaker.Waterfront.Issue.WallTooHigh": "A encosta atrás do calçadão sobe {0} m, acima do limite de {1} m do muro: virou um talude.",
   "Placemaker.Category.net.quay": "cais de pedestres",
   "Placemaker.Category.net.pier": "píeres e deques"

@@ -119,6 +119,8 @@
   "Placemaker.Waterfront.hillside.bank": "Talus",
   "Placemaker.Waterfront.maxWall": "Hauteur max mur",
   "Placemaker.Waterfront.maxWall.Tooltip": "Mur de soutènement le plus haut autorisé côté terre de la promenade ; un déblai plus haut reçoit un talus à la place.",
+  "Placemaker.Waterfront.bay": "Baie",
+  "Placemaker.Waterfront.bay.Tooltip": "Creuse une baie sous le niveau de l'eau : l'eau y entre et la promenade suit la rive arrondie. 0 laisse la rive telle quelle.",
   "Placemaker.Waterfront.Issue.WallTooHigh": "Le coteau derrière la promenade monte de {0} m, au-dessus de la limite de mur de {1} m : nivelé en talus à la place.",
   "Placemaker.Category.net.quay": "quais piétons",
   "Placemaker.Category.net.pier": "jetées et passerelles"

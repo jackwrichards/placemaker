@@ -119,6 +119,8 @@
   "Placemaker.Waterfront.hillside.bank": "平整边坡",
   "Placemaker.Waterfront.maxWall": "墙高上限",
   "Placemaker.Waterfront.maxWall.Tooltip": "沿长廊陆侧允许的最高挡土墙；更高的挖方改用平整边坡。",
+  "Placemaker.Waterfront.bay": "海湾",
+  "Placemaker.Waterfront.bay.Tooltip": "在水位以下挖出海湾：水流入，步道沿弯曲的岸线延伸。0 保持岸线不变。",
   "Placemaker.Waterfront.Issue.WallTooHigh": "长廊后方的山坡升高 {0} m，超过 {1} m 的墙高上限：已改为边坡。",
   "Placemaker.Category.net.quay": "人行码头",
   "Placemaker.Category.net.pier": "码头和木栈道"

@@ -94,6 +94,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "Как далеко каждые мостки выходят от песка (они заканчиваются там, где кончается вода).",
   "Placemaker.Beach.jettyHead": "Т-образные концы",
   "Placemaker.Beach.jettyHead.Tooltip": "Поперечный настил в конце каждых мостков, чтобы с него плавать.",
+  "Placemaker.Beach.bay": "Бухта",
+  "Placemaker.Beach.bay.Tooltip": "Вырывает бухту ниже уровня воды, чтобы вода зашла и берег изогнулся. 0 — берег без изменений.",
   "Placemaker.Beach.boats": "Лодки",
   "Placemaker.Beach.boats.Tooltip": "Весельные лодки и каяки, вытащенные на мокрый песок.",
   "Placemaker.Beach.fires": "Кострища",

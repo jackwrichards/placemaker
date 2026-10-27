@@ -119,6 +119,8 @@
   "Placemaker.Waterfront.hillside.bank": "경사 둑",
   "Placemaker.Waterfront.maxWall": "벽 높이 한도",
   "Placemaker.Waterfront.maxWall.Tooltip": "산책로 육지 쪽에 허용하는 가장 높은 옹벽입니다. 더 높게 깎이면 대신 경사 둑이 됩니다.",
+  "Placemaker.Waterfront.bay": "만",
+  "Placemaker.Waterfront.bay.Tooltip": "수면보다 낮게 땅을 파 만을 만듭니다. 물이 들어오고 산책로가 휘어진 물가를 따라갑니다. 0이면 물가를 그대로 둡니다.",
   "Placemaker.Waterfront.Issue.WallTooHigh": "산책로 뒤 비탈이 {0} m로 벽 한도 {1} m보다 높아 대신 둑으로 다듬었습니다.",
   "Placemaker.Category.net.quay": "보행 안벽",
   "Placemaker.Category.net.pier": "부두와 판자길"

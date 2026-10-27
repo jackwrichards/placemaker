@@ -119,6 +119,8 @@
   "Placemaker.Waterfront.hillside.bank": "Scarpata",
   "Placemaker.Waterfront.maxWall": "Altezza max muro",
   "Placemaker.Waterfront.maxWall.Tooltip": "Il muro di contenimento più alto consentito lungo il lato verso terra della passeggiata; uno scavo più alto riceve invece una scarpata.",
+  "Placemaker.Waterfront.bay": "Baia",
+  "Placemaker.Waterfront.bay.Tooltip": "Scava una baia sotto il livello dell'acqua: l'acqua entra e la passeggiata segue la riva curva. 0 lascia la riva com'è.",
   "Placemaker.Waterfront.Issue.WallTooHigh": "Il pendio dietro la passeggiata sale di {0} m, oltre il limite del muro di {1} m: è stato modellato a scarpata.",
   "Placemaker.Category.net.quay": "banchine pedonali",
   "Placemaker.Category.net.pier": "pontili e passerelle"

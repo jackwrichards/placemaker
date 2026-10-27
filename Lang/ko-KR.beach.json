@@ -94,6 +94,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "잔교가 모래에서 얼마나 뻗는지입니다(물이 끝나는 곳에서 멈춤).",
   "Placemaker.Beach.jettyHead": "잔교 T자 끝",
   "Placemaker.Beach.jettyHead.Tooltip": "잔교 끝마다 수영하러 뛰어드는 가로 데크를 둡니다.",
+  "Placemaker.Beach.bay": "만",
+  "Placemaker.Beach.bay.Tooltip": "수면보다 낮게 땅을 파 만을 만들어 물이 들어오고 물가가 휘어집니다. 0이면 물가를 그대로 둡니다.",
   "Placemaker.Beach.boats": "보트",
   "Placemaker.Beach.boats.Tooltip": "젖은 모래 위에 끌어올린 노 젓는 보트와 카약입니다.",
   "Placemaker.Beach.fires": "화덕",

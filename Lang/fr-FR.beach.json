@@ -94,6 +94,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "Jusqu'où chaque ponton s'avance depuis le sable (il s'arrête là où l'eau finit).",
   "Placemaker.Beach.jettyHead": "Pontons en T",
   "Placemaker.Beach.jettyHead.Tooltip": "Une plateforme transversale au bout de chaque ponton pour plonger.",
+  "Placemaker.Beach.bay": "Baie",
+  "Placemaker.Beach.bay.Tooltip": "Creuse une baie sous le niveau de l'eau pour que l'eau y entre et que la rive s'arrondisse. 0 laisse la rive telle quelle.",
   "Placemaker.Beach.boats": "Bateaux",
   "Placemaker.Beach.boats.Tooltip": "Barques et kayaks tirés sur le sable mouillé.",
   "Placemaker.Beach.fires": "Foyers",

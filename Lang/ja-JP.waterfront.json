@@ -119,6 +119,8 @@
   "Placemaker.Waterfront.hillside.bank": "緩い土手",
   "Placemaker.Waterfront.maxWall": "壁の高さの上限",
   "Placemaker.Waterfront.maxWall.Tooltip": "遊歩道の陸側に許される最も高い擁壁です。それより高い切土はなだらかな土手になります。",
+  "Placemaker.Waterfront.bay": "湾",
+  "Placemaker.Waterfront.bay.Tooltip": "水面より低く陸地を掘って湾を作ります。水が流れ込み、遊歩道が弧を描く岸に沿います。0で岸はそのままです。",
   "Placemaker.Waterfront.Issue.WallTooHigh": "遊歩道の後ろの斜面は {0} m 上がり、壁の上限 {1} m を超えています: 代わりに土手にします。",
   "Placemaker.Category.net.quay": "歩行者用の岸壁",
   "Placemaker.Category.net.pier": "埠頭と桟橋"

@@ -94,6 +94,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "Até onde cada trapiche avança a partir da areia (para onde a água acaba).",
   "Placemaker.Beach.jettyHead": "Cabeças em T",
   "Placemaker.Beach.jettyHead.Tooltip": "Um deque transversal na ponta de cada trapiche para nadar.",
+  "Placemaker.Beach.bay": "Baía",
+  "Placemaker.Beach.bay.Tooltip": "Escava uma baía abaixo do nível da água para a água entrar e a margem fazer uma curva. 0 mantém a margem como está.",
   "Placemaker.Beach.boats": "Barcos",
   "Placemaker.Beach.boats.Tooltip": "Barcos a remo e caiaques puxados para a areia molhada.",
   "Placemaker.Beach.fires": "Fogueiras",

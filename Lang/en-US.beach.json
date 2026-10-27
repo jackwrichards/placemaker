@@ -96,6 +96,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "How far each jetty reaches out from the sand (it stops where the water ends).",
   "Placemaker.Beach.jettyHead": "Jetty T-heads",
   "Placemaker.Beach.jettyHead.Tooltip": "A cross deck at the end of each jetty to swim from.",
+  "Placemaker.Beach.bay": "Bay",
+  "Placemaker.Beach.bay.Tooltip": "Carves a bay into the land below the water level, so the water flows in and the shore curves. 0 keeps the shore as drawn.",
   "Placemaker.Beach.boats": "Boats",
   "Placemaker.Beach.boats.Tooltip": "Rowing boats and kayaks pulled up on the wet sand.",
   "Placemaker.Beach.fires": "Fire pits",

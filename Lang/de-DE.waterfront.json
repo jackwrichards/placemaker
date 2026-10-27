@@ -119,6 +119,8 @@
   "Placemaker.Waterfront.hillside.bank": "Böschung",
   "Placemaker.Waterfront.maxWall": "Mauerhöhengrenze",
   "Placemaker.Waterfront.maxWall.Tooltip": "Höchste erlaubte Stützmauer an der Landseite der Promenade; ein höherer Einschnitt bekommt stattdessen eine Böschung.",
+  "Placemaker.Waterfront.bay": "Bucht",
+  "Placemaker.Waterfront.bay.Tooltip": "Gräbt eine Bucht unter den Wasserspiegel ins Land: Das Wasser fließt hinein, die Promenade folgt dem runden Ufer. 0 lässt das Ufer, wie es ist.",
   "Placemaker.Waterfront.Issue.WallTooHigh": "Der Hang hinter der Promenade steigt {0} m, über die Mauergrenze von {1} m: stattdessen als Böschung angelegt.",
   "Placemaker.Category.net.quay": "Fußgänger-Kais",
   "Placemaker.Category.net.pier": "Stege und Holzstege"

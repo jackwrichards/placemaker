@@ -94,6 +94,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "Quanto si protende ogni pontile dalla sabbia (si ferma dove finisce l'acqua).",
   "Placemaker.Beach.jettyHead": "Testate a T",
   "Placemaker.Beach.jettyHead.Tooltip": "Una piattaforma trasversale in fondo a ogni pontile da cui tuffarsi.",
+  "Placemaker.Beach.bay": "Baia",
+  "Placemaker.Beach.bay.Tooltip": "Scava una baia sotto il livello dell'acqua, così l'acqua entra e la riva si incurva. 0 lascia la riva com'è.",
   "Placemaker.Beach.boats": "Barche",
   "Placemaker.Beach.boats.Tooltip": "Barche a remi e kayak tirati in secco sulla sabbia bagnata.",
   "Placemaker.Beach.fires": "Bracieri",

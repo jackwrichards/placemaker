@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+385120a3",
+  "assembly": "0.3.6+e8dcc5eb-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -21573,6 +21573,15 @@
           "id": "jettyHead",
           "kind": "Toggle",
           "default": true
+        },
+        {
+          "id": "bay",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 40.0,
+          "step": 2.0,
+          "unit": "m",
+          "default": 0.0
         },
         {
           "id": "dressStyle",

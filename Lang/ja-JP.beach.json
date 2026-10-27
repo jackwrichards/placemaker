@@ -94,6 +94,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "各桟橋が砂浜からどれだけ伸びるかです（水が途切れる所で止まります）。",
   "Placemaker.Beach.jettyHead": "桟橋のT字の先端",
   "Placemaker.Beach.jettyHead.Tooltip": "各桟橋の先端にある、泳ぎに出られる横向きのデッキです。",
+  "Placemaker.Beach.bay": "湾",
+  "Placemaker.Beach.bay.Tooltip": "水面より低く陸地を掘って湾を作り、水が流れ込んで岸が弧を描きます。0で岸はそのままです。",
   "Placemaker.Beach.boats": "ボート",
   "Placemaker.Beach.boats.Tooltip": "濡れた砂に引き上げた手漕ぎボートとカヤックです。",
   "Placemaker.Beach.fires": "たき火台",

@@ -125,6 +125,8 @@
   "Placemaker.Waterfront.hillside.bank": "Graded bank",
   "Placemaker.Waterfront.maxWall": "Wall height limit",
   "Placemaker.Waterfront.maxWall.Tooltip": "Highest retaining wall allowed along the promenade's land side; a taller cut gets a graded bank instead.",
+  "Placemaker.Waterfront.bay": "Bay",
+  "Placemaker.Waterfront.bay.Tooltip": "Carves a bay into the land below the water level: the water flows in and the promenade follows the curved shore. 0 keeps the shore as drawn.",
   "Placemaker.Waterfront.Issue.WallTooHigh": "The hillside behind the promenade rises {0} m, above the {1} m wall limit: graded as a bank instead.",
   "Placemaker.Category.net.quay": "pedestrian quays",
   "Placemaker.Category.net.pier": "piers and boardwalks"

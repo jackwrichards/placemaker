@@ -94,6 +94,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "每座小碼頭從沙灘向外延伸多遠（到水的盡頭為止）。",
   "Placemaker.Beach.jettyHead": "小碼頭 T 形端",
   "Placemaker.Beach.jettyHead.Tooltip": "每座小碼頭末端可下水游泳的橫向平台。",
+  "Placemaker.Beach.bay": "海灣",
+  "Placemaker.Beach.bay.Tooltip": "在水位以下挖出海灣，讓水流入，岸線變彎。0 保持岸線不變。",
   "Placemaker.Beach.boats": "船隻",
   "Placemaker.Beach.boats.Tooltip": "拖上濕沙的划艇和獨木舟。",
   "Placemaker.Beach.fires": "火坑",

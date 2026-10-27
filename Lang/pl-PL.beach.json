@@ -94,6 +94,8 @@
   "Placemaker.Beach.jettyLength.Tooltip": "Jak daleko od piasku sięga każdy pomost (kończy się tam, gdzie kończy się woda).",
   "Placemaker.Beach.jettyHead": "Głowice pomostów",
   "Placemaker.Beach.jettyHead.Tooltip": "Poprzeczny pokład na końcu każdego pomostu do skakania do wody.",
+  "Placemaker.Beach.bay": "Zatoka",
+  "Placemaker.Beach.bay.Tooltip": "Wykopuje zatokę poniżej poziomu wody, by woda wpłynęła, a brzeg się wygiął. 0 zostawia brzeg bez zmian.",
   "Placemaker.Beach.boats": "Łodzie",
   "Placemaker.Beach.boats.Tooltip": "Łodzie wiosłowe i kajaki wyciągnięte na mokry piasek.",
   "Placemaker.Beach.fires": "Paleniska",

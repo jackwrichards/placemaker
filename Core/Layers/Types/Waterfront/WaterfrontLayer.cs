@@ -126,6 +126,8 @@ namespace Placemaker.Core.Layers.Types.Waterfront
             // s30 (appended): the land side of a promenade cut into a slope.
             c.Choice("hillside", "auto", ControlTier.More, "promenade", Hillsides).Tip();
             c.Slider("maxWall", 3, 1, 6, 0.5, "m", ControlTier.More, "promenade").Tip();
+            // (appended) a bay carved into the land below the water level: the promenade follows the curved shore (ShoreCarve).
+            c.Slider("bay", 0, 0, 40, 2, "m", ControlTier.Essential, "promenade").Tip();
 
             c.Fixed("waterSide");
             c.Fixed("edge");
@@ -143,7 +145,7 @@ namespace Placemaker.Core.Layers.Types.Waterfront
             // Promenade boardwalk: a timber boardwalk just off the bank, a lawn embankment up to a paved promenade
             // with benches facing the water, lamps between them, planted beds and a tree row, a park behind.
             Preset("promenade", ("style", "promenade"), ("edge", "boardwalk"), ("promWidth", 14.0), ("surface", "paved"), ("steps", "none"), ("trees", "row"),
-                ("piers", 0.0), ("backdrop", "park"), ("benchSpacing", 14.0), ("lampSpacing", 21.0), ("beds", true), ("railings", true), ("deckHeight", 1.0));
+                ("piers", 0.0), ("backdrop", "park"), ("benchSpacing", 14.0), ("lampSpacing", 21.0), ("beds", true), ("railings", true), ("deckHeight", 1.0), ("bay", 18.0));
             // Pier park: a walkway quay along the water, a promenade above a lawn bank, piers with T-heads starting
             // from the quay.
             Preset("pier", ("style", "pier"), ("edge", "walkway"), ("promWidth", 12.0), ("pathWidth", "wide"), ("surface", "paved"), ("steps", "none"), ("piers", 2.0),
@@ -151,7 +153,7 @@ namespace Placemaker.Core.Layers.Types.Waterfront
             // Harbour quay: a wide quay at the water, a paved apron at deck level with kiosks, lamps and benches, an avenue behind.
             // rf-beach: two T-headed piers off the quay (the quay used to block its own pier), bollards along it, a park behind instead of a bare lawn.
             Preset("harbor", ("style", "harbor"), ("edge", "quay"), ("promWidth", 22.0), ("railings", false), ("moorings", true), ("nautical", true), ("kiosks", 3.0),
-                ("lampSpacing", 16.0), ("trees", "row"), ("treeSpacing", 14.0), ("piers", 2.0), ("pierLength", 36.0), ("pierHeads", true), ("steps", "none"), ("backdrop", "park"), ("deckHeight", 1.8));
+                ("lampSpacing", 16.0), ("trees", "row"), ("treeSpacing", 14.0), ("piers", 2.0), ("pierLength", 36.0), ("pierHeads", true), ("steps", "none"), ("backdrop", "park"), ("deckHeight", 1.8), ("bay", 20.0));
             // River steps: a low walkway quay along the river, paved flights on the smooth bank down to it from a tree-lined promenade.
             Preset("riverSteps", ("style", "riverSteps"), ("edge", "walkway"), ("promWidth", 16.0), ("railings", true), ("steps", "spots"), ("stepCount", 3.0),
                 ("stepWidth", 10.0), ("stepLevels", 4.0), ("trees", "double"), ("backdrop", "park"), ("lampSpacing", 22.0), ("piers", 0.0), ("deckHeight", 0.9));
@@ -236,8 +238,15 @@ namespace Placemaker.Core.Layers.Types.Waterfront
 
         protected override void PlanCore(LayerContext ctx)
         {
-            var shore = Shoreline.Analyze(ctx, ctx.LayerRegion, ctx.S("waterSide"));
+            var region0 = ctx.LayerRegion;
+            var shore = Shoreline.Analyze(ctx, region0, ctx.S("waterSide"));
             if (shore == null) { ctx.Issue(IssueSeverity.Warning, Keys.NoSpace, NameKey); return; }
+            // a bay first: the promenade and its edge are laid out along the curved waterline it makes
+            if (ctx.F("bay") >= 3f && ShoreCarve.Bay(ctx, shore, ctx.F("bay"), 18f, Hashing.Mix(ctx.Seed, 0xBA7u), out _))
+            {
+                var carved = Shoreline.Analyze(ctx, region0, ctx.S("waterSide"));
+                if (carved != null) shore = carved;
+            }
             ctx.LayerRegion = shore.Land;
             var w = new Work { Ctx = ctx, Shore = shore, Style = ctx.S("style"), Edge = EdgeOf(ctx) };
             w.Water = shore.Mode != ShoreMode.Assumed && shore.HasWaterline;
