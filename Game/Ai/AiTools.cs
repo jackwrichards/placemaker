@@ -26,6 +26,7 @@ namespace Placemaker.Game.Ai
             public List<(string label, AiPictures.Picture pic)> Pictures;   // asset pictures to show after this round
             public bool Finished;
             public string Phase;          // the work enters a phase (review, detail, fix): a divider in the chat instead of a tool line
+            public string[] Vision;       // the vision tool: name, story, signature, ideas (shown in the chat as a card)
         }
 
         private static string F(float v) => Math.Round(v, 1).ToString("0.#", CultureInfo.InvariantCulture);
@@ -52,10 +53,10 @@ namespace Placemaker.Game.Ai
             var area = new JObject
             {
                 ["polygon"] = new JObject(pts) { ["description"] = "[[x, z], ...] local metres" + (polygonNote ?? "") },
-                ["rect"] = new JObject(nums) { ["description"] = "[x1, z1, x2, z2]: a rectangle from two opposite corners (its corners in order: south-west, south-east, north-east, north-west)" },
+                ["rect"] = new JObject(nums) { ["description"] = "[x1, z1, x2, z2]: a rectangle from two opposite corners, for built things (courts, car parks, fields, yards, terraces); its corners in order: south-west, south-east, north-east, north-west" },
                 ["circle"] = new JObject(nums) { ["description"] = "[x, z, radius]" },
                 ["ellipse"] = new JObject(nums) { ["description"] = "[x, z, radius_x, radius_z, turn_degrees (optional, clockwise)]" },
-                ["wobble"] = Num("optional, with circle or ellipse: metres of smooth random variation of the edge (an organic pond, grove or meadow)"),
+                ["wobble"] = Num("optional: metres of smooth random variation of the edge, for any polygon, circle or ellipse (an organic pond, grove, meadow or bed; 2-5 is natural)"),
                 ["strip"] = new JObject(pts) { ["description"] = "a band along a line [[x, z], ...] (give strip_width): worn tracks, flower borders, verges, a gravel edge" },
                 ["strip_width"] = Num("with strip: its full width in metres"),
             };
@@ -71,6 +72,8 @@ namespace Placemaker.Game.Ai
             float2[] local = null;
             if (args["polygon"] is JArray poly && poly.Count >= 3) local = poly.Select(t => new float2((float)t[0], (float)t[1])).ToArray();
             else if (args["rect"] is JArray r && r.Count >= 4) local = AiShapes.Rect(new float2((float)r[0], (float)r[1]), new float2((float)r[2], (float)r[3]));
+            float wob = math.max(0f, (float?)args["wobble"] ?? 0f);
+            if (local != null && args["polygon"] != null && wob > 0.05f) return AiShapes.Roughen(local.Select(site.World).ToArray(), wob, Seed((JArray)args["polygon"][0]));
             if (local != null) { localCorners = local; return local.Select(site.World).ToArray(); }
             if (args["strip"] is JArray st && st.Count >= 2)
                 return AiTerrain.LineRing(st.Select(t => site.World(new float2((float)t[0], (float)t[1]))).ToArray(), math.max(0.5f, (float?)args["strip_width"] ?? 3f));
@@ -187,6 +190,15 @@ namespace Placemaker.Game.Ai
             Fn("list_placed", "List everything placed so far (id, asset, position, yaw).", new JObject()),
             Fn("check", "Check everything placed: overlaps, outside the selection, on roads or buildings, dead-end paths.", new JObject()),
             Fn("view_map", "See the map again with everything placed so far drawn on it (attached after this round).", new JObject()),
+            Fn("vision", "Your vision for this place, before you build: its name, the concept story, the signature moment, at least three ideas specific to this site, and the zones with their mood. The player sees it in the chat; your second look holds the build against it. You may call it again if the idea grows.",
+                new JObject
+                {
+                    ["name"] = Str("the place's name, e.g. 'Willow Hollow'"),
+                    ["story"] = Str("the concept in one or two sentences"),
+                    ["signature"] = Str("the one thing people would remember or photograph"),
+                    ["ideas"] = new JObject { ["type"] = "array", ["description"] = "three or more distinctive ideas specific to this site", ["items"] = new JObject { ["type"] = "string" } },
+                    ["zones"] = new JObject { ["type"] = "array", ["description"] = "the zones and their mood, e.g. 'north: a shady birch grove with a hidden bench'", ["items"] = new JObject { ["type"] = "string" } },
+                }, "name", "story", "signature", "ideas"),
             Fn("finish", "Done: hand the result to the player for review.", new JObject { ["note"] = Str("two sentences for the player: what you built") }, "note"),
             Fn("wish", "Note a tool or a piece of information you needed and did not have.", new JObject { ["text"] = Str("what was missing and what it would have let you do") }, "text"),
         });
@@ -235,8 +247,22 @@ namespace Placemaker.Game.Ai
         {
             try
             {
+                bool placing = name == "place_objects" || name == "place_along" || name == "scatter_objects" || name == "place_path" || name == "shape_ground" || name == "paint_ground" || name == "place_surface";
+                if (placing && site.Vision == null && !site.VisionAsked)
+                {
+                    site.VisionAsked = true;
+                    return new Result { Text = "Not yet: write your vision first with the vision tool (name, story, signature moment, ideas specific to this site, zones), then build it. Nothing was placed." };
+                }
                 switch (name)
                 {
+                    case "vision":
+                    {
+                        var ideas = (args["ideas"] as JArray)?.Select(t => (string)t).Where(t => !string.IsNullOrWhiteSpace(t)).ToList() ?? new List<string>();
+                        var zones = (args["zones"] as JArray)?.Select(t => (string)t).Where(t => !string.IsNullOrWhiteSpace(t)).ToList() ?? new List<string>();
+                        string vName = ((string)args["name"] ?? "").Trim(), story = ((string)args["story"] ?? "").Trim(), sig = ((string)args["signature"] ?? "").Trim();
+                        site.Vision = string.Join("\n", new[] { vName, story, sig }.Concat(ideas).Concat(zones));
+                        return new Result { Text = "vision noted: now build it, boldly, in many rounds", Vision = new[] { vName, story, sig }.Concat(ideas).ToArray() };
+                    }
                     case "search_assets": return Search(args, assets);
                     case "look_at_assets": return Look(args, site);
                     case "asset_groups":
@@ -288,13 +314,20 @@ namespace Placemaker.Game.Ai
                     }
                     case "view_map": return new Result { Text = "the map is attached below", Map = true };
                     case "finish":
-                        // the first finish of a request is a review, not the end: the AI sees its map again and grades it
+                        // the first finish of a request is one second look (the user, 27 Oct: fewer correction rounds, more
+                        // building rounds): the numbers, the bare spots, the problems and the vision, then it builds on
                         if (!site.Reviewed)
                         {
                             site.Reviewed = true;
+                            site.DetailShown = true;
+                            var now = AiPlan.Current.Snapshot();
+                            var issues = AiChecks.All(site, now);
+                            string vision = site.Vision != null ? "Your vision: " + site.Vision.Replace("\n", " | ") + "\n" : "";
                             return new Result
                             {
-                                Text = AiChecks.Stats(site, AiPlan.Current.Snapshot()) + "\nNot yet: review first. The map of your build is attached. Grade it A-F against the request and the design guide on each of: idea and focal point; ground (shaping, paint, surfaces); water; features people come for; planting; furniture; variety and richness; fit to the site, its slope and its streets. Then fix everything that keeps it from an A, check, and call finish again.",
+                                Text = vision + AiChecks.Stats(site, now) + AiChecks.Details(site, now)
+                                    + (issues.Count > 0 ? $"Problems to fix ({issues.Count}):\n" + string.Join("\n", issues.Take(40)) + "\n" : "")
+                                    + "\nYour second look (the map is attached). Walk through the place as a visitor arriving from the street. Does it live up to your vision? What do you see first, what pulls you in, where do you sit, what would you photograph, what feels empty, flat or generic? Then make it unforgettable: strengthen the signature moment, give every zone its own character, shape the ground, layer the planting, add the life and small details, fix the problems. Take as many rounds as it needs, then finish with your note for the player.",
                                 Map = true, LineKey = "Placemaker.Ai.Line.Review", Phase = "review",
                             };
                         }

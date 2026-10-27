@@ -718,8 +718,8 @@ export const Values = {
 
 /** One chat line: the player's or the AI's words as written, or a step line as a localisation key. */
 export interface AiLine {
-  who: "you" | "ai" | "step" | "error" | "tool" | "phase";
-  text?: string;                   // you, ai, error: as written
+  who: "you" | "ai" | "step" | "error" | "tool" | "phase" | "vision";
+  text?: string;                   // you, ai, error: as written; vision: name, story, signature moment, ideas (one per line)
   key?: string;                    // tool, phase, step: a localisation key
   args?: (string | number)[];
   round?: number;                  // tool: the AI's step it belongs to (1 = its first reply)

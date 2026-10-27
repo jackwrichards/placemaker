@@ -79,5 +79,7 @@
   "Placemaker.Ai.Leave": "Opuść",
   "Placemaker.Ai.ResetTitle": "Zacząć od nowa?",
   "Placemaker.Ai.ResetText": "Rozmowa i wszystko, co umieściła AI, przepadnie.",
-  "Placemaker.Ai.PlaceholderBusy": "Pracuje… możesz pisać, gdy skończy"
+  "Placemaker.Ai.PlaceholderBusy": "Pracuje… możesz pisać, gdy skończy",
+  "Placemaker.Ai.Vision": "Wizja",
+  "Placemaker.Ai.VisionSignature": "Punkt kulminacyjny"
 }

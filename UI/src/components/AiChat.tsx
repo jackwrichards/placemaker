@@ -122,8 +122,47 @@ const RoundBlock = ({ round, tools, open, onToggle, live }: { round: number; too
     );
 };
 
+/** The AI's vision for the place: its name, the story, the signature moment and its ideas. */
+const VisionCard = ({ line }: { line: AiLine }) => {
+    const { t } = useT();
+    const [name, story, signature, ...ideas] = (line.text ?? "").split("\n");
+    return (
+        <div className={s.vision} data-testid="ai-vision">
+            <div className={s.visionHead}>
+                <Icon name="sparkle" size={12} tint="accent" />
+                <div className={s.visionLabel}>{t("Placemaker.Ai.Vision", "Vision")}</div>
+            </div>
+            <div className={s.visionName}>{name}</div>
+            {story ? <div className={s.visionStory}>{story}</div> : null}
+            {signature ? (
+                <div className={s.visionSig}>
+                    <Icon name="star" size={12} tint="warn" className={s.visionSigIcon} />
+                    <div className={s.visionSigText}>
+                        <span className={s.visionSigLabel}>{t("Placemaker.Ai.VisionSignature", "Signature moment")}: </span>
+                        {signature}
+                    </div>
+                </div>
+            ) : null}
+            {ideas.filter((i) => i.trim()).length ? (
+                <div className={s.visionIdeas}>
+                    {ideas
+                        .filter((i) => i.trim())
+                        .slice(0, 6)
+                        .map((i, k) => (
+                            <div key={k} className={s.visionIdea}>
+                                <div className={s.visionDot} />
+                                <div className={s.visionIdeaText}>{i}</div>
+                            </div>
+                        ))}
+                </div>
+            ) : null}
+        </div>
+    );
+};
+
 const Bubble = ({ line }: { line: AiLine }) => {
     const { t } = useT();
+    if (line.who === "vision") return <VisionCard line={line} />;
     if (line.who === "step")
         return <div className={s.note}>{t(line.key ?? "", line.key ?? "", line.args ?? [])}</div>;
     if (line.who === "you")

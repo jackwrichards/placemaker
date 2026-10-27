@@ -79,5 +79,7 @@
   "Placemaker.Ai.Leave": "離れる",
   "Placemaker.Ai.ResetTitle": "最初からやり直しますか？",
   "Placemaker.Ai.ResetText": "会話とAIが配置したものはすべて失われます。",
-  "Placemaker.Ai.PlaceholderBusy": "作業中… 完了後に入力できます"
+  "Placemaker.Ai.PlaceholderBusy": "作業中… 完了後に入力できます",
+  "Placemaker.Ai.Vision": "ビジョン",
+  "Placemaker.Ai.VisionSignature": "見どころ"
 }

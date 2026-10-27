@@ -79,5 +79,7 @@
   "Placemaker.Ai.Leave": "Verlassen",
   "Placemaker.Ai.ResetTitle": "Neu beginnen?",
   "Placemaker.Ai.ResetText": "Das Gespräch und alles, was die KI platziert hat, gehen verloren.",
-  "Placemaker.Ai.PlaceholderBusy": "Arbeitet … du kannst schreiben, wenn sie fertig ist"
+  "Placemaker.Ai.PlaceholderBusy": "Arbeitet … du kannst schreiben, wenn sie fertig ist",
+  "Placemaker.Ai.Vision": "Vision",
+  "Placemaker.Ai.VisionSignature": "Höhepunkt"
 }

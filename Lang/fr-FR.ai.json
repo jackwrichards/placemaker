@@ -79,5 +79,7 @@
   "Placemaker.Ai.Leave": "Quitter",
   "Placemaker.Ai.ResetTitle": "Recommencer ?",
   "Placemaker.Ai.ResetText": "La conversation et tout ce que l'IA a placé seront perdus.",
-  "Placemaker.Ai.PlaceholderBusy": "En cours… vous pourrez écrire une fois terminé"
+  "Placemaker.Ai.PlaceholderBusy": "En cours… vous pourrez écrire une fois terminé",
+  "Placemaker.Ai.Vision": "Vision",
+  "Placemaker.Ai.VisionSignature": "Moment phare"
 }

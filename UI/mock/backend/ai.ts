@@ -64,7 +64,8 @@ export class MockAi {
     private send(text: string) {
         if (!text.trim() || this.view.busy) return;
         const v = this.view;
-        this.view = { ...v, status: "working", busy: true, modsLocked: true, phase: "read", step: "Placemaker.Ai.Doing.Read", stepArgs: [], startedAt: Date.now(), lines: [...v.lines, { who: "you", text }] };
+        const vision = { who: "vision" as const, text: ["Willow Hollow", "A sunken garden around a reed-fringed pond, with a lookout hill and a hidden play glade.", "A timber boardwalk that zig-zags over the reeds to a gazebo on an island", "A birch grove with hammocks on the north rise", "A cherry avenue from the main gate to the water", "A sand play glade behind a willow screen"].join("\n") };
+        this.view = { ...v, status: "working", busy: true, modsLocked: true, phase: "read", step: "Placemaker.Ai.Doing.Read", stepArgs: [], startedAt: Date.now(), lines: [...v.lines, { who: "you", text }, vision] };
         let k = 0;
         const tick = () => {
             if (k >= SCRIPT.length) {

@@ -34,6 +34,7 @@ test("AI chat: welcome, work in progress, finished, mods lock, leave and start o
     await expect(page.getByTestId("ai-spinner")).toBeVisible();
     await expect(page.getByTestId("ai-input")).toBeDisabled();
     await expect(page.getByTestId("ai-round").first()).toBeVisible();
+    await expect(page.getByTestId("ai-vision")).toBeVisible();
     await page.waitForTimeout(800);
     await panelShot(page, "ai-chat-2-working");
 

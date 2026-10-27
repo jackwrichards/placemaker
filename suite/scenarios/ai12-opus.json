@@ -1,0 +1,311 @@
+{
+  "_about": "AI builder agent-12 (vision first, freedom, many rounds, one second look) on anthropic/claude-opus-5.5, medium thinking: five requests, chat pictures and close-ups.",
+  "scenarios": [
+    {
+      "id": "ai12-opus-park",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-opus-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A neighbourhood park.",
+          "timeout": 1800,
+          "uiShotAfter": 40
+        },
+        {
+          "do": "shot",
+          "name": "chat-done",
+          "shotMode": "ui"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ai12-opus-beach",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          100
+        ],
+        "water": {
+          "side": "north"
+        },
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A beach.",
+          "timeout": 1800,
+          "uiShotAfter": 40
+        },
+        {
+          "do": "shot",
+          "name": "chat-done",
+          "shotMode": "ui"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ai12-opus-farm",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A small farmstead with a yard, fields and paddocks.",
+          "timeout": 1800,
+          "uiShotAfter": 40
+        },
+        {
+          "do": "shot",
+          "name": "chat-done",
+          "shotMode": "ui"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ai12-opus-square",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A town square with a fountain.",
+          "timeout": 1800,
+          "uiShotAfter": 40
+        },
+        {
+          "do": "shot",
+          "name": "chat-done",
+          "shotMode": "ui"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ai12-opus-junkyard",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A junkyard.",
+          "timeout": 1800,
+          "uiShotAfter": 40
+        },
+        {
+          "do": "shot",
+          "name": "chat-done",
+          "shotMode": "ui"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        }
+      ]
+    }
+  ]
+}

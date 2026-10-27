@@ -86,6 +86,12 @@ namespace Placemaker.Core.Ai
         /// <summary>The detail pass was asked for (after the review, before the end).</summary>
         public bool DetailShown;
 
+        /// <summary>The AI's vision for this site (the vision tool), null until it has written one: the placing tools wait
+        /// for it once, and the second look holds the build against it.</summary>
+        public string Vision;
+        /// <summary>The placing tools sent the AI to write its vision first (once).</summary>
+        public bool VisionAsked;
+
         public float2 World(float2 local) => local + Origin;
         public float2 Local(float2 world) => world - Origin;
     }

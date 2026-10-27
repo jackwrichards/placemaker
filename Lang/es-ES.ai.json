@@ -79,5 +79,7 @@
   "Placemaker.Ai.Leave": "Salir",
   "Placemaker.Ai.ResetTitle": "¿Empezar de nuevo?",
   "Placemaker.Ai.ResetText": "Se perderán la conversación y todo lo que colocó la IA.",
-  "Placemaker.Ai.PlaceholderBusy": "Trabajando… podrás escribir cuando termine"
+  "Placemaker.Ai.PlaceholderBusy": "Trabajando… podrás escribir cuando termine",
+  "Placemaker.Ai.Vision": "Visión",
+  "Placemaker.Ai.VisionSignature": "Momento estrella"
 }

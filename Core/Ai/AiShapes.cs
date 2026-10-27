@@ -109,6 +109,26 @@ namespace Placemaker.Core.Ai
             return ring;
         }
 
+        /// <summary>A polygon with an organic edge: resampled every 3 m and pushed in or out along its normal by smooth noise up
+        /// to <paramref name="wobble"/> metres (corners keep their place, so the shape still reads).</summary>
+        public static float2[] Roughen(float2[] ring, float wobble, uint seed)
+        {
+            if (ring == null || ring.Length < 3 || wobble <= 0f) return ring;
+            var pts = Poly.Resample(ring, 3f, true);
+            int n = pts.Length;
+            var outp = new float2[n];
+            float cx = 0f; foreach (var q in pts) cx += q.x;
+            for (int i = 0; i < n; i++)
+            {
+                var a = pts[(i - 1 + n) % n]; var b = pts[(i + 1) % n];
+                var d = math.normalizesafe(b - a, new float2(1, 0));
+                var nrm = new float2(d.y, -d.x);
+                float w = wobble * (2f * Noise(pts[i] * 1.7f + seed % 997, 14f, seed) - 1f);
+                outp[i] = pts[i] + nrm * w;
+            }
+            return outp;
+        }
+
         /// <summary>A rectangle from two opposite corners, as a ring: south-west, south-east, north-east, north-west.</summary>
         public static float2[] Rect(float2 a, float2 b)
         {

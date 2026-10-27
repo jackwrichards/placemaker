@@ -79,5 +79,7 @@
   "Placemaker.Ai.Leave": "離開",
   "Placemaker.Ai.ResetTitle": "重新開始？",
   "Placemaker.Ai.ResetText": "對話和 AI 放置的所有內容都將遺失。",
-  "Placemaker.Ai.PlaceholderBusy": "工作中… 完成後即可輸入"
+  "Placemaker.Ai.PlaceholderBusy": "工作中… 完成後即可輸入",
+  "Placemaker.Ai.Vision": "構想",
+  "Placemaker.Ai.VisionSignature": "標誌性亮點"
 }

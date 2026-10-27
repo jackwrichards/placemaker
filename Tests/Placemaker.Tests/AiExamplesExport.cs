@@ -62,7 +62,7 @@ namespace Placemaker.Tests
             var sb = new StringBuilder();
             sb.AppendLine("# Rough examples (a head start, not a template)");
             sb.AppendLine();
-            sb.AppendLine("What this game's own premade types build on one standard site: 140 x 110 m, flat, a street along the south side (local metres, x east, z north, origin the south-west corner). They show scale, counts and structure that read well in this game. They are rough and they are the floor, not the ceiling: take the player's request and run with it, go further and be far more creative and complete than these. A farm should be a fully fleshed-out farm.");
+            sb.AppendLine("What this game's own premade types place on one standard site: 140 x 110 m, flat, a street along the south side (local metres, x east, z north, origin the south-west corner). They give a sense of scale, counts and which assets suit each kind of place. They are not designs to copy: yours should have its own concept, its own shapes and its own signature.");
             foreach (var (id, preset, grade) in Types)
             {
                 var gen = GeneratorRegistry.Get(id);

@@ -79,5 +79,7 @@
   "Placemaker.Ai.Leave": "Покинуть",
   "Placemaker.Ai.ResetTitle": "Начать заново?",
   "Placemaker.Ai.ResetText": "Разговор и всё, что разместил ИИ, будут потеряны.",
-  "Placemaker.Ai.PlaceholderBusy": "Работает… писать можно, когда закончит"
+  "Placemaker.Ai.PlaceholderBusy": "Работает… писать можно, когда закончит",
+  "Placemaker.Ai.Vision": "Замысел",
+  "Placemaker.Ai.VisionSignature": "Главная изюминка"
 }

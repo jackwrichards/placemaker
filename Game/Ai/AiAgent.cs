@@ -78,7 +78,7 @@ namespace Placemaker.Game.Ai
         private static State s_end;
         private static readonly List<string> s_wishes = new List<string>();
 
-        public const int MaxTurns = 60;
+        public const int MaxTurns = 90;   // many building rounds (agent-12: twenty or thirty is normal)
         /// <summary>How hard the model thinks before each step (OpenRouter reasoning effort), from the option. Low was fast
         /// (10-20 s a build) but rushed: 3-5 steps, thin builds (eval 2).</summary>
         private static string Thinking()
@@ -276,6 +276,7 @@ namespace Placemaker.Game.Ai
                         s_site.Reviewed = false;
                         s_site.ProblemsShown = false;
                         s_site.DetailShown = false;
+                        s_site.VisionAsked = false;
                         s_messages.Add(new JObject { ["role"] = "user", ["content"] = "The player says: " + text + "\n\n" + SiteBrief.EntrancesText(entrancesNow, s_site.Origin) });
                     }
                     await Loop(endpoint, key, model, cancel);
@@ -447,6 +448,14 @@ namespace Placemaker.Game.Ai
                 case "wish": SayTool(name, "Placemaker.Ai.Tool.wish", new object[] { (string)args["text"] ?? "" }, 0); break;
                 case "asset_groups": case "list_placed": case "view_map": SayTool(name, "Placemaker.Ai.Tool." + name, new object[0], 0); break;
                 case "finish": break;
+                case "vision":
+                    if (res.Vision != null && res.Vision.Length >= 3)
+                    {
+                        lock (s_lock) s_lines.Add(new Line { Who = "vision", Text = string.Join("\n", res.Vision) });
+                        s_version++;
+                        Mod.Log.Info("Placemaker AI [vision]: " + string.Join(" | ", res.Vision));
+                    }
+                    break;
                 default: if (res.LineKey != null) SayKey(res.LineKey, res.LineArgs); break;
             }
         }

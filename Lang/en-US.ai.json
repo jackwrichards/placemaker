@@ -79,5 +79,7 @@
   "Placemaker.Ai.Leave": "Leave",
   "Placemaker.Ai.ResetTitle": "Start over?",
   "Placemaker.Ai.ResetText": "The conversation and everything the AI placed will be lost.",
-  "Placemaker.Ai.PlaceholderBusy": "Working… you can write when it is done"
+  "Placemaker.Ai.PlaceholderBusy": "Working… you can write when it is done",
+  "Placemaker.Ai.Vision": "Vision",
+  "Placemaker.Ai.VisionSignature": "Signature moment"
 }
