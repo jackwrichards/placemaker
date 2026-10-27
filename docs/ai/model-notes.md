@@ -25,3 +25,19 @@ What makes the difference:
 - **Opus at medium is the sweet spot so far:** about a grade and a half above Sonnet on the same prompt, at 5-15 times the cost ($1-4 a build) and 3-9 minutes.
 
 Open: water does not show in the runner pictures (the basins are dug and the build reports water sources; the test game may be paused, so the water never fills: to check); car parks (invisible lanes need a visible ground and decal stalls the AI does not yet place); a keep-going mechanism for Sonnet that is not a quota.
+
+## Cost and steps (27 Oct, agent-9)
+
+Where the money went: input, not writing. Every step re-sent the whole conversation (every map picture too) and only
+the brief was cached: Opus's $4.10 farm read 1.7 M tokens, half at full price, and wrote 25 k. Now the conversation's
+end is marked for the cache on every step (two rolling marks beside the guide and the brief): 85-92 % of the input is
+cached. Fewer, bigger steps: a whole layer per reply, `place_along` for rows (avenues, benches facing paths, stalls along
+aisles, rings around a fountain) and rect/circle/ellipse/wobble for every area instead of long point lists.
+
+| Run | Model | Per build | Steps | Cost | Rating | Notes |
+|---|---|---|---|---|---|---|
+| sonnet 9a | Sonnet 5.5, medium, agent-9 | about 50 s | 5-7 | $0.11-0.15 | about C- | car park stalls vanished (filed as plain decals, dropped by the plan: fixed), a whole-site grass surface hid the park's paths (now refused) |
+| sonnet 9b | same + fixes | 30-70 s | 4-10 | $0.09-0.18 | about C | park C+ (curved paths, round plaza, playground on sand, a loop; sparse), car park C+ (60 stalls visible in four rows on dirt, trees between; first readable car park), wetland C+ (boardwalks between ponds, dense groves; no water visible), farm C (barn, silos, tractors, crop fields, a fenced paddock; trees planted over the fields), plaza C- (one grey slab, a ring of trees, a small fountain with benches: empty) |
+
+Still open: Sonnet stops after one review round; the plaza's emptiness was not seen by the review numbers (paving
+counted as filled: fixed); trees over crop fields are not a reported problem.

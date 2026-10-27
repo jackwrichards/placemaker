@@ -238,7 +238,8 @@ namespace Placemaker.Core.Ai
                     bool onSurface = all.Any(p => p.Kind == AiPieceKind.Surface && p.Ring != null && Poly.Contains(p.Ring, q));
                     if (onSurface) surfaced++;
                     float clear = math.min(Poly.DistanceToBoundary(s.Ring, q) * 1.5f, 999f);
-                    if (onSurface || all.Any(p => p.Kind == AiPieceKind.Ground && math.isfinite(p.WaterLevel) && Poly.Contains(p.Ring, q))) clear = 0f;
+                    // open water is a feature; bare paving is not (eval: a plaza of one grey slab read as full)
+                    if (all.Any(p => p.Kind == AiPieceKind.Ground && math.isfinite(p.WaterLevel) && Poly.Contains(p.Ring, q))) clear = 0f;
                     foreach (var p in all)
                     {
                         if (clear <= 0f) break;
@@ -257,7 +258,7 @@ namespace Placemaker.Core.Ai
                 chosen.Add(c);
             }
             sb.AppendLine(chosen.Count == 0 ? "- empty spots: none wider than 14 m"
-                : "- empty spots (nothing placed within the radius; fine if meant as a lawn or meadow, else fill them): " + string.Join(", ", chosen.Select(c => { var l = s.Local(c.p); return $"({F(l.x)},{F(l.y)}) {F(c.clear)} m"; })));
+                : "- empty spots (nothing placed within the radius; fine if meant as a lawn, meadow or open square, else fill them): " + string.Join(", ", chosen.Select(c => { var l = s.Local(c.p); return $"({F(l.x)},{F(l.y)}) {F(c.clear)} m"; })));
             return sb.ToString();
         }
 
