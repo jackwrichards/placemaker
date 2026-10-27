@@ -81,6 +81,17 @@ namespace Placemaker.Game.Ai
                     ["wide"] = new JObject { ["type"] = "boolean", ["description"] = "a wide path (6 m) instead of a normal one (4 m)" },
                     ["smooth"] = new JObject { ["type"] = "boolean", ["description"] = "draw a smooth curve through the points instead of straight lines between them (default false)" },
                 }, "points"),
+            Fn("scatter_objects", "Scatter many objects at once inside an area you give (a wood, a clump, a meadow of flowers, rocks): random positions at least 'spacing' apart, random yaw, the assets mixed evenly. With clumps > 0 they gather in patches (a noise field about 5 spacings across) with gaps between. Points that would sit outside the selection, on a road, path or building, or overlap something already placed are skipped. The answer lists every object placed (id, asset, x, z, yaw) and how many were skipped for what, so you can move or remove any of them.",
+                new JObject
+                {
+                    ["assets"] = new JObject { ["type"] = "array", ["description"] = "asset ids to mix (from search_assets)", ["items"] = new JObject { ["type"] = "string" } },
+                    ["polygon"] = new JObject { ["type"] = "array", ["description"] = "the area: [[x, z], ...] local metres (or give circle; neither = the whole selection)", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
+                    ["circle"] = new JObject { ["type"] = "array", ["description"] = "the area as [x, z, radius]", ["items"] = new JObject { ["type"] = "number" } },
+                    ["count"] = new JObject { ["type"] = "integer", ["description"] = "how many at most (up to 400)" },
+                    ["spacing"] = Num("minimum distance between them, metres"),
+                    ["clumps"] = Num("0 = spread evenly, up to 1 = strongly in patches"),
+                    ["seed"] = new JObject { ["type"] = "integer", ["description"] = "change it for a different arrangement" },
+                }, "assets", "count", "spacing"),
             Fn("remove", "Remove placed objects or paths by id.", new JObject { ["ids"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "integer" } } }, "ids"),
             Fn("list_placed", "List everything placed so far (id, asset, position, yaw).", new JObject()),
             Fn("check", "Check everything placed: overlaps, outside the selection, on roads or buildings, dead-end paths.", new JObject()),
@@ -97,6 +108,7 @@ namespace Placemaker.Game.Ai
                 case "search_assets": return ("Placemaker.Ai.Doing.Search", new object[] { (string)args["query"] ?? "" });
                 case "place_objects": return ("Placemaker.Ai.Doing.Place", new object[] { (args["objects"] as JArray)?.Count ?? 0 });
                 case "place_path": return ("Placemaker.Ai.Doing.Path", new object[0]);
+                case "scatter_objects": return ("Placemaker.Ai.Doing.Place", new object[] { (int?)args["count"] ?? 0 });
                 case "remove": return ("Placemaker.Ai.Doing.Remove", new object[] { (args["ids"] as JArray)?.Count ?? 0 });
                 case "check": return ("Placemaker.Ai.Doing.Check", new object[0]);
                 case "view_map": return ("Placemaker.Ai.Doing.Map", new object[0]);
@@ -131,6 +143,7 @@ namespace Placemaker.Game.Ai
                     case "search_assets": return Search(args, assets);
                     case "place_objects": return PlaceObjects(args, site);
                     case "place_path": return PlacePath(args, site);
+                    case "scatter_objects": return Scatter(args, site);
                     case "remove":
                     {
                         var ids = (args["ids"] as JArray)?.Select(t => (int)t).ToList() ?? new List<int>();
@@ -233,6 +246,54 @@ namespace Placemaker.Game.Ai
             }
             string head = $"placed {placed.Count} (ids {(placed.Count > 0 ? placed.First().Id + "-" + placed.Last().Id : "none")}), {withProblems} with problems{(refused > 0 ? ", " + refused + " refused" : "")}";
             return new Result { Text = head + (sb.Length > 0 ? ":\n" + sb : ""), LineKey = "Placemaker.Ai.Line.Placed", LineArgs = new object[] { placed.Count, withProblems } };
+        }
+
+        private static Result Scatter(JObject args, AiSite site)
+        {
+            var ids = (args["assets"] as JArray)?.Select(t => (string)t).Where(t => !string.IsNullOrEmpty(t)).ToList() ?? new List<string>();
+            var unknown = ids.Where(id => !site.Assets.ContainsKey(id)).ToList();
+            ids = ids.Where(id => site.Assets.ContainsKey(id)).ToList();
+            if (ids.Count == 0) return new Result { Text = "no known asset ids" + (unknown.Count > 0 ? " (unknown: " + string.Join(", ", unknown) + ")" : "") };
+            float2[] area;
+            if (args["polygon"] is JArray poly && poly.Count >= 3) area = poly.Select(t => site.World(new float2((float)t[0], (float)t[1]))).ToArray();
+            else if (args["circle"] is JArray c && c.Count >= 3) area = AiShapes.Circle(site.World(new float2((float)c[0], (float)c[1])), (float)c[2]);
+            else area = site.Ring;
+            int count = math.clamp((int?)args["count"] ?? 10, 1, 400);
+            float spacing = math.max(0.5f, (float?)args["spacing"] ?? 6f);
+            float clumps = math.saturate((float?)args["clumps"] ?? 0f);
+            uint seed = (uint)math.max(1, (int?)args["seed"] ?? 1);
+            var rng = new Unity.Mathematics.Random(seed * 7919u + 13u);
+            var existing = AiPlan.Current.Snapshot();
+            var placed = new List<AiPiece>();
+            var skipped = new Dictionary<string, int>();
+            int k = 0;
+            AiShapes.Scatter(area, count, spacing, clumps, seed, p =>
+            {
+                var id = ids[k++ % ids.Count];
+                var a = site.Assets[id];
+                var piece = new AiPiece { Kind = AiPieceKind.Object, Asset = id, Category = a.Category, Role = RoleFor(a.Category), Position = p, Yaw = rng.NextFloat(0f, 2f * math.PI) };
+                var pr = AiChecks.Problems(site, piece, existing.Concat(placed).ToList());
+                if (pr.Count > 0)
+                {
+                    // the first word group of the first problem names the reason ("outside the selection", "overlaps", "on path")
+                    string why = pr[0].Split('(')[0].Split('#')[0].Trim();
+                    skipped[why] = (skipped.TryGetValue(why, out var n) ? n : 0) + 1;
+                    return false;
+                }
+                placed.Add(piece);
+                return true;
+            });
+            foreach (var p in placed) AiPlan.Current.Add(p);
+            var sb = new StringBuilder();
+            sb.AppendLine($"scattered {placed.Count} of {count}" + (placed.Count < count ? " (the area had no room for more at that spacing)" : "") + ":");
+            foreach (var p in placed)
+            {
+                var l = site.Local(p.Position);
+                sb.AppendLine($"#{p.Id} {p.Asset} ({F(l.x)},{F(l.y)}) yaw {F(math.degrees(p.Yaw))}");
+            }
+            if (skipped.Count > 0) sb.AppendLine("points skipped: " + string.Join(", ", skipped.Select(kv => kv.Value + " " + kv.Key)));
+            if (unknown.Count > 0) sb.AppendLine("unknown ids ignored: " + string.Join(", ", unknown));
+            return new Result { Text = sb.ToString(), LineKey = "Placemaker.Ai.Line.Placed", LineArgs = new object[] { placed.Count, 0 } };
         }
 
         private static Result PlacePath(JObject args, AiSite site)
