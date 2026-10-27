@@ -213,6 +213,7 @@ namespace Placemaker.Game.Ai
                 case AssetCategories.Lamp: return ObjectRole.Lamp;
                 case AssetCategories.Bin: return ObjectRole.Bin;
                 case AssetCategories.Planter: return ObjectRole.Planter;
+                case AssetCategories.ParkingDecal: return ObjectRole.Decal;
                 default:
                     if (category != null && category.StartsWith("decal")) return ObjectRole.Decal;
                     if (category != null && category.StartsWith("centerpiece")) return ObjectRole.Centerpiece;
@@ -286,6 +287,15 @@ namespace Placemaker.Game.Ai
                                 Text = AiChecks.Stats(site, AiPlan.Current.Snapshot()) + "\nNot yet: review first. The map of your build is attached. Grade it A-F against the request and the design guide on each of: idea and focal point; ground (shaping, paint, surfaces); water; features people come for; planting; furniture; variety and richness; fit to the site, its slope and its streets. Then fix everything that keeps it from an A, check, and call finish again.",
                                 Map = true, LineKey = "Placemaker.Ai.Line.Review",
                             };
+                        }
+                        // problems left: sent back once with the list (eval: Sonnet finished with lamps on its lanes and paths under surfaces)
+                        var left = AiChecks.All(site, AiPlan.Current.Snapshot());
+                        if (left.Count > 0 && !site.ProblemsShown)
+                        {
+                            site.ProblemsShown = true;
+                            return new Result { Text = $"Not yet: {left.Count} pieces still have problems. Fix each (move, reshape or remove it), then finish again:
+" + string.Join("
+", left), LineKey = "Placemaker.Ai.Line.CheckProblems", LineArgs = new object[] { left.Count } };
                         }
                         return new Result { Text = "handed to the player", Note = (string)args["note"] ?? "", Finished = true };
                     case "wish":
@@ -395,6 +405,7 @@ namespace Placemaker.Game.Ai
                 string asset = (string)it["asset"] ?? "";
                 if (!site.Assets.TryGetValue(asset, out var a)) { refused++; sb.AppendLine($"refused '{asset}': unknown asset id (use search_assets)"); continue; }
                 if (a.Line) { refused++; sb.AppendLine($"refused '{asset}': a line asset (use place_path with asset)"); continue; }
+                if (NotBuilt(a)) { refused++; sb.AppendLine($"refused '{asset}': {NotBuiltWhy}"); continue; }
                 var p = new AiPiece
                 {
                     Kind = AiPieceKind.Object, Asset = asset, Category = a.Category, Role = RoleFor(a.Category),
@@ -422,8 +433,8 @@ namespace Placemaker.Game.Ai
         private static Result Scatter(JObject args, AiSite site)
         {
             var ids = (args["assets"] as JArray)?.Select(t => (string)t).Where(t => !string.IsNullOrEmpty(t)).ToList() ?? new List<string>();
-            var unknown = ids.Where(id => !site.Assets.ContainsKey(id)).ToList();
-            ids = ids.Where(id => site.Assets.ContainsKey(id)).ToList();
+            var unknown = ids.Where(id => !site.Assets.ContainsKey(id) || NotBuilt(site.Assets[id])).ToList();
+            ids = ids.Where(id => site.Assets.ContainsKey(id) && !NotBuilt(site.Assets[id])).ToList();
             if (ids.Count == 0) return new Result { Text = "no known asset ids" + (unknown.Count > 0 ? " (unknown: " + string.Join(", ", unknown) + ")" : "") };
             float2[] area;
             if (args["polygon"] != null || args["rect"] != null || args["circle"] != null || args["ellipse"] != null)
@@ -471,11 +482,15 @@ namespace Placemaker.Game.Ai
         }
 
 
+        /// <summary>A decal plans drop (Core/Decals/PackDecals: only the base game's markings, stalls and court lines are built).</summary>
+        private static bool NotBuilt(AiAsset a) => a.Category != null && a.Category.StartsWith("decal", StringComparison.Ordinal) && !Placemaker.Core.Decals.PackDecals.Kept(a.Category);
+        private const string NotBuiltWhy = "only the base game's markings, parking stalls and court lines are built; other decals are not";
+
         private static Result PlaceAlong(JObject args, AiSite site)
         {
             var ids = (args["assets"] as JArray)?.Select(t => (string)t).Where(t => !string.IsNullOrEmpty(t)).ToList() ?? new List<string>();
-            var unknown = ids.Where(id => !site.Assets.ContainsKey(id) || site.Assets[id].Line).ToList();
-            ids = ids.Where(id => site.Assets.ContainsKey(id) && !site.Assets[id].Line).ToList();
+            var unknown = ids.Where(id => !site.Assets.ContainsKey(id) || site.Assets[id].Line || NotBuilt(site.Assets[id])).ToList();
+            ids = ids.Where(id => site.Assets.ContainsKey(id) && !site.Assets[id].Line && !NotBuilt(site.Assets[id])).ToList();
             if (ids.Count == 0) return new Result { Text = "no known object asset ids" + (unknown.Count > 0 ? " (unknown or line assets: " + string.Join(", ", unknown) + ")" : "") };
             float2[] line; bool closed;
             if (args["circle"] is JArray c && c.Count >= 3) { line = AiShapes.Circle(site.World(new float2((float)c[0], (float)c[1])), (float)c[2], 48); closed = true; }
@@ -538,7 +553,7 @@ namespace Placemaker.Game.Ai
                 sb.AppendLine($"#{p.Id} {p.Asset} ({F(l.x)},{F(l.y)}) yaw {F((math.degrees(p.Yaw) % 360f + 360f) % 360f)}");
             }
             if (skipped.Count > 0) sb.AppendLine("skipped: " + string.Join(", ", skipped.Select(kv => kv.Value + " " + kv.Key)));
-            if (unknown.Count > 0) sb.AppendLine("unknown or line ids ignored: " + string.Join(", ", unknown));
+            if (unknown.Count > 0) sb.AppendLine("ignored (unknown ids, line assets, or decals that are not built: " + NotBuiltWhy + "): " + string.Join(", ", unknown));
             return new Result { Text = sb.ToString(), LineKey = "Placemaker.Ai.Line.Placed", LineArgs = new object[] { placed.Count, 0 } };
         }
 
@@ -644,6 +659,10 @@ namespace Placemaker.Game.Ai
             if (!site.Assets.TryGetValue(asset, out var a) || a.Category == null || !a.Category.StartsWith("surface"))
                 return new Result { Text = $"refused '{asset}': not a surface asset (search_assets with category surface)" };
             var p = new AiPiece { Kind = AiPieceKind.Surface, Ring = ring, Asset = asset, Category = a.Category, SurfaceRole = SurfaceRoleFor(a.Category) };
+            // the game draws a surface over the paths under it: refused, so the paths stay (eval: whole-site grass hid a park's paths, 27 Oct)
+            var hidden = AiPlan.Current.Snapshot().Where(o => AiChecks.HiddenUnder(o, ring) > 4f).Select(o => "#" + o.Id).ToList();
+            if (hidden.Count > 0)
+                return new Result { Text = $"refused: it would cover path {string.Join(", ", hidden)}, and the game draws a surface over the paths under it. Keep surfaces to plazas, pads and yards beside or at the ends of paths (cut the polygon around them), and use paint_ground for a grass or dirt base." };
             AiPlan.Current.Add(p);
             float area = math.abs(Placemaker.Core.Geometry.Poly.SignedArea(ring));
             return new Result { Text = $"surface #{p.Id} {asset}, {F(area)} m²; {Problems(site, p)}", LineKey = "Placemaker.Ai.Line.Surface", LineArgs = new object[] { (int)area } };

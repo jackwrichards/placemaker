@@ -59,6 +59,9 @@ namespace Placemaker.Core.Ai
         /// <summary>The first finish of a request has been turned into a review (the next one ends it).</summary>
         public bool Reviewed;
 
+        /// <summary>A finish was sent back once for the problems left (the next one ends it).</summary>
+        public bool ProblemsShown;
+
         public float2 World(float2 local) => local + Origin;
         public float2 Local(float2 world) => world - Origin;
     }
@@ -146,7 +149,7 @@ namespace Placemaker.Core.Ai
                 // a surface drawn over the AI's own paths hides them in the game (the paths are built, but under it)
                 if (p.Kind == AiPieceKind.Surface)
                     foreach (var o in all)
-                        if (o.Kind == AiPieceKind.Path && o.Points != null && o.Points.Any(q => Poly.Contains(p.Ring, q)))
+                        if (HiddenUnder(o, p.Ring) > 4f)
                         { list.Add($"covers path #{o.Id}: a surface hides the paths under it (use paint_ground for a grass base, and keep surfaces to plazas and pads beside the paths)"); break; }
                 if (p.Kind == AiPieceKind.Surface)
                     foreach (var n in s.Nets)
@@ -155,7 +158,7 @@ namespace Placemaker.Core.Ai
             else if (p.Points != null)
             {
                 foreach (var o in all)
-                    if (o.Kind == AiPieceKind.Surface && o.Ring != null && p.Points.Any(q => Poly.Contains(o.Ring, q)))
+                    if (o.Kind == AiPieceKind.Surface && o.Ring != null && HiddenUnder(p, o.Ring) > 4f)
                     { list.Add($"runs under surface #{o.Id}, which hides it"); break; }
                 // an end may reach just past the outline to meet a road there (an entrance)
                 bool AtRoad(float2 q) => s.Nets.Any(n => NetDistance(n, q) - n.Width * 0.5f < 4f);
@@ -182,6 +185,21 @@ namespace Placemaker.Core.Ai
                 if (!loop && !Joined(z)) list.Add("its end joins nothing (no road, path or surface within 3 m): a dead end");
             }
             return list;
+        }
+
+        /// <summary>How many metres of a visible path or road run inside the ring (the invisible car lanes of a parking lot belong under its surface).</summary>
+        public static float HiddenUnder(AiPiece path, float2[] ring)
+        {
+            if (path.Kind != AiPieceKind.Path || path.Points == null || path.NetRole == NetRole.Fence) return 0f;
+            if (path.NetRole == NetRole.DriveAisle && (path.Asset ?? "").IndexOf("Invisible", StringComparison.OrdinalIgnoreCase) >= 0) return 0f;
+            float inside = 0f;
+            for (int k = 0; k + 1 < path.Points.Length; k++)
+            {
+                float len = math.distance(path.Points[k], path.Points[k + 1]);
+                int n = math.max(1, (int)math.ceil(len));
+                for (int i = 0; i < n; i++) if (Poly.Contains(ring, math.lerp(path.Points[k], path.Points[k + 1], (i + 0.5f) / n))) inside += len / n;
+            }
+            return inside;
         }
 
         public static float PathHalfWidth(AiPiece p) => p.NetRole == NetRole.Fence ? 0.3f : p.NetRole == NetRole.PathwayWide ? 3f : p.NetRole == NetRole.DriveAisle ? 3.5f : 2f;

@@ -220,6 +220,7 @@ namespace Placemaker.Game.Ai
                     else
                     {
                         s_site.Reviewed = false;
+                        s_site.ProblemsShown = false;
                         s_messages.Add(new JObject { ["role"] = "user", ["content"] = "The player says: " + text + "\n\n" + SiteBrief.EntrancesText(entrancesNow, s_site.Origin) });
                     }
                     await Loop(endpoint, key, model, cancel);
@@ -384,6 +385,20 @@ namespace Placemaker.Game.Ai
             Mod.Log.Info($"Placemaker AI: {list.Count(x => x.HasPicture)} of {list.Count} assets have a picture ({ail.Count} Asset Icon Library files)");
         }
 
+        /// <summary>A decal sorted by what it shows: plans keep only the base game's kinds (parking stalls, markings, court
+        /// lines: Core/Decals/PackDecals) and drop the rest, so a parking stall must be filed as one (eval: 60 stalls
+        /// filed as plain decals vanished from the car park, 27 Oct).</summary>
+        private static string DecalCategory(string name, float sx, float sz)
+        {
+            switch (Placemaker.Core.Decals.DecalCatalog.Describe(name, sx, sz).Family)
+            {
+                case Placemaker.Core.Decals.DecalFamily.ParkingStall: return AssetCategories.ParkingDecal;
+                case Placemaker.Core.Decals.DecalFamily.Marking: return AssetCategories.DecalMarkings;
+                case Placemaker.Core.Decals.DecalFamily.SportsMarking: return "decal.court";
+                default: return AssetCategories.Decal;
+            }
+        }
+
         /// <summary>The rough examples (Recipes/ai/examples.md, made from the premade types by Tests AiExamplesExport).</summary>
         private static string Examples()
         {
@@ -475,7 +490,7 @@ namespace Placemaker.Game.Ai
                     var size = o.Max - o.Min;
                     var mid = (o.Max + o.Min) * 0.5f;
                     // sorted by what the game says it is: its own menu group, else its kind
-                    string category = o.Tree ? AssetCategories.Tree : o.Plant ? AssetCategories.Bush : o.StreetLight ? AssetCategories.Lamp : o.Decal ? AssetCategories.Decal : "object";
+                    string category = o.Tree ? AssetCategories.Tree : o.Plant ? AssetCategories.Bush : o.StreetLight ? AssetCategories.Lamp : o.Decal ? DecalCategory(o.Name, size.x, size.z) : "object";
                     list.Add(new AiAsset
                     {
                         Id = o.Name, Name = o.DisplayName, Category = category, Group = o.Group, Icon = o.Icon ?? "",
