@@ -22,6 +22,7 @@ import { defaultSurface, surfaceColor } from "./fakeAssets";
 import { area, closestOnRing, dist, perimeter, selfIntersects, simplify, V2 } from "./geometry";
 import { ComposeResult, StepModel } from "./types";
 import { SHELF_CATEGORIES, shelve, styleShelved } from "./shelf";
+import { MockAi } from "./ai";
 
 /** s33: like Core UiModels.NeedsAck — ground paint alone needs no tick. */
 function needsAck(permanent: { key: string }[]): boolean {
@@ -1077,12 +1078,14 @@ export class MockBackend {
                 this.locateAt = [Number(a[0]) || 0, Number(a[1]) || 0, Number(a[2]) || 0];
                 break;
             default:
+                if (this.ai.trigger(name, a)) break;
                 console.warn("[mock] unknown trigger", name, args);
         }
         this.publishAll();
     }
 
     locateAt: [number, number, number] | null = null;
+    ai = new MockAi(() => this.publishAll());
 
     /** s16: like C# UiModels.Step — an automatic asset control the plan does not use is greyed "Not used by this layout". */
     notInLayout(s: StepModel, path: string): Record<string, LocText> | undefined {
@@ -1215,6 +1218,7 @@ export class MockBackend {
     markersRequiredOf(s: StepModel): number {
         const l = this.layer(s.layer);
         if (l?.markersRequired !== undefined) return l.markersRequired;
+        if (s.layer === "ai") return 0;   // the AI builder's entrances are optional (Core: AiLayer is always ready)
         return this.markerKindsOf(s) ? 1 : 0;
     }
 
@@ -1775,6 +1779,7 @@ export class MockBackend {
         publish(GROUP, "summary", JSON.stringify(this.summary()));
         publish(GROUP, "assets", JSON.stringify(this.assets));
         publish(GROUP, "managed", JSON.stringify(this.managed()));
+        publish(GROUP, "ai", JSON.stringify(this.ai.view));
         const stage = this.state().stage;
         publish(GROUP, "sitePlan", JSON.stringify(this.plan?.sitePlan && (stage === "design" || stage === "review") ? { ...(this.plan.sitePlan as object), stale: this.stale || undefined } : null));
         this.listeners.forEach((l) => l());

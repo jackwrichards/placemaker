@@ -12,6 +12,7 @@ import farms from "../shelf/farms.json";
 import sports from "../shelf/sports.json";
 import industry from "../shelf/industry.json";
 import transport from "../shelf/transport.json";
+import ai from "../shelf/ai.json";
 
 type ShelfFile = {
     id: string;
@@ -25,7 +26,7 @@ type ShelfFile = {
     hiddenStyles?: Record<string, string[]>;
 };
 
-const FILES: ShelfFile[] = ([roads, parking, parks, beach, shops, nature, farms, sports, industry, transport] as ShelfFile[]).slice().sort((a, b) => a.order - b.order);
+const FILES: ShelfFile[] = ([roads, parking, parks, beach, shops, nature, farms, sports, industry, transport, ai] as ShelfFile[]).slice().sort((a, b) => a.order - b.order);
 
 function find(typeId: string, group?: string): ShelfFile | undefined {
     return FILES.find((c) => (c.types ?? []).includes(typeId)) ?? (group ? FILES.find((c) => (c.groups ?? []).includes(group)) : undefined);

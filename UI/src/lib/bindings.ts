@@ -6,6 +6,7 @@
 //    both are accepted and parsing is guarded — a malformed payload yields defaults, never a crash;
 //  * partial payloads are merged over defaults, so a C# side that lags one field behind still renders.
 import { useMemo } from "react";
+import { guardAiLeave } from "./aiLeave";
 import { bindValue, trigger, useValue, ValueBinding } from "cs2/api";
 import {
     AssetLists, Catalog, DesignState, FeatureFit, GROUP, ManagedGroup, Stage, StepView, Summary, ToolState, Triggers, Values,
@@ -325,7 +326,8 @@ function normalizeAi(raw: unknown): AiView | null {
     try {
         const v = (typeof raw === "string" ? JSON.parse(raw) : raw) as AiView | null;
         if (!v || typeof v !== "object") return null;
-        return { ...v, lines: Array.isArray(v.lines) ? v.lines : [], stepArgs: Array.isArray(v.stepArgs) ? v.stepArgs : [] };
+        const d: Partial<AiView> = { phase: "", round: 0, startedAt: 0, model: "", thinking: "", mods: false, modsLocked: false };
+        return { ...d, ...v, lines: Array.isArray(v.lines) ? v.lines : [], stepArgs: Array.isArray(v.stepArgs) ? v.stepArgs : [] };
     } catch {
         return null;
     }
@@ -348,11 +350,11 @@ const json = (v: SettingValue) => JSON.stringify(v);
 
 /** Every UI → C# call, typed after contract.ts Triggers. */
 export const act = {
-    toggleTool: () => fire(Triggers.toggleTool),
+    toggleTool: () => guardAiLeave(() => fire(Triggers.toggleTool)),
     togglePolish: () => fire(Triggers.togglePolish),
-    close: () => fire(Triggers.close),
+    close: () => guardAiLeave(() => fire(Triggers.close)),
     setPanelCollapsed: (collapsed: boolean) => fire(Triggers.setPanelCollapsed, collapsed),
-    goToStage: (stage: Stage) => fire(Triggers.goToStage, stage),
+    goToStage: (stage: Stage) => (stage === "area" ? guardAiLeave(() => fire(Triggers.goToStage, stage)) : fire(Triggers.goToStage, stage)),
     primary: () => fire(Triggers.primary),
     /** Review's second button: build, then close Placemaker (the primary builds and keeps the area). */
     buildAndClose: () => fire(Triggers.buildAndClose),
@@ -378,8 +380,8 @@ export const act = {
     setBrush: (shape: BrushShape, size: number, angle: number) => fire(Triggers.setBrush, shape, size, angle),
     setBrushRules: (rules: Partial<Omit<BrushRules, "walls">> & { walls?: Partial<BucketWalls> }) => fire(Triggers.setBrushRules, JSON.stringify(rules)),
     resetBrushRules: () => fire(Triggers.resetBrushRules),
-    clearArea: () => fire(Triggers.clearArea),
-    selectRecipe: (id: string) => fire(Triggers.selectRecipe, id),
+    clearArea: () => guardAiLeave(() => fire(Triggers.clearArea)),
+    selectRecipe: (id: string) => (id === "ai" ? fire(Triggers.selectRecipe, id) : guardAiLeave(() => fire(Triggers.selectRecipe, id))),
     focusStep: (path: string) => fire(Triggers.focusStep, path),
     addLayer: (parentPath: string, layerId: string, target: string) => fire(Triggers.addLayer, parentPath, layerId, target),
     removeStep: (path: string) => fire(Triggers.removeStep, path),
@@ -392,6 +394,7 @@ export const act = {
     aiSend: (text: string) => fire(Triggers.aiSend, text),
     aiStop: () => fire(Triggers.aiStop),
     aiReset: () => fire(Triggers.aiReset),
+    aiMods: (on: boolean) => fire(Triggers.aiMods, on),
     previewValue: (path: string, id: string, v: SettingValue) => fire(Triggers.previewValue, path, id, json(v)),
     endPreview: () => fire(Triggers.endPreview),
     resetStep: (path: string) => fire(Triggers.resetStep, path),
@@ -404,8 +407,8 @@ export const act = {
     deleteRecipe: (id: string) => fire(Triggers.deleteRecipe, id),
     saveAsDefault: (path: string) => fire(Triggers.saveAsDefault, path),
     requestAssets: (category: string) => fire(Triggers.requestAssets, category),
-    manageGroup: (id: number) => fire(Triggers.manageGroup, id),
-    editGroup: (id: number) => fire(Triggers.editGroup, id),
+    manageGroup: (id: number) => guardAiLeave(() => fire(Triggers.manageGroup, id)),
+    editGroup: (id: number) => guardAiLeave(() => fire(Triggers.editGroup, id)),
     removeGroup: (id: number) => fire(Triggers.removeGroup, id),
     renameGroup: (id: number, name: string) => fire(Triggers.renameGroup, id, name),
     setAnarchy: (enabled: boolean) => fire(Triggers.setAnarchy, enabled),

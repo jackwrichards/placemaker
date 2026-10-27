@@ -32,10 +32,13 @@ namespace Placemaker.Game.Ai
 
         public sealed class Line
         {
-            public string Who;   // you | ai | step | error
+            public string Who;   // you | ai | error | tool | phase | step
             public string Text;  // you, ai, error: as written
-            public string Key;   // step: a localisation key with Args
+            public string Key;   // tool, phase, step: a localisation key with Args
             public object[] Args;
+            public int Round;    // tool: the AI's step it belongs to (1 = its first reply)
+            public string Tool;  // tool: the tool's name (the panel picks its icon)
+            public int Problems; // tool: problems the action caused (the AI fixes them)
         }
 
         private static readonly object s_lock = new object();
@@ -46,6 +49,22 @@ namespace Placemaker.Game.Ai
         private static object[] s_statusArgs = new object[0];
         private static double s_cost;
         private static int s_tokens;
+        // the panel's view of the work: the phase (read, build, review, detail, fix, done), the AI's step, when this request started
+        private static string s_phase = "";
+        private static int s_round;
+        private static long s_startedAt;
+        private static string s_modelName = "";
+        /// <summary>Modded assets allowed for this session: chosen before the first message, fixed after it.</summary>
+        private static bool s_mods;
+        public static bool ModsLocked => s_messages != null;
+
+        /// <summary>The player's mods switch; ignored once the session has started (its asset list is fixed).</summary>
+        public static void SetMods(bool on)
+        {
+            if (ModsLocked) return;
+            s_mods = on;
+            s_version++;
+        }
 
         // the session: one selection, one conversation
         private static JArray s_messages;
@@ -88,9 +107,21 @@ namespace Placemaker.Game.Ai
                     ["cost"] = Math.Round(s_cost, 4),
                     ["tokens"] = s_tokens,
                     ["pieces"] = AiPlan.Current.Count,
-                    ["lines"] = new JArray(s_lines.Select(l => l.Key != null
-                        ? new JObject { ["who"] = l.Who, ["key"] = l.Key, ["args"] = new JArray(l.Args.Select(a => JToken.FromObject(a ?? ""))) }
-                        : new JObject { ["who"] = l.Who, ["text"] = l.Text })),
+                    ["phase"] = s_phase,
+                    ["round"] = s_round,
+                    ["startedAt"] = s_startedAt,
+                    ["model"] = s_modelName,
+                    ["thinking"] = Thinking(),
+                    ["mods"] = s_mods,
+                    ["modsLocked"] = ModsLocked,
+                    ["lines"] = new JArray(s_lines.Select(l =>
+                    {
+                        var o = new JObject { ["who"] = l.Who };
+                        if (l.Key != null) { o["key"] = l.Key; o["args"] = new JArray(l.Args.Select(a => JToken.FromObject(a ?? ""))); }
+                        else o["text"] = l.Text;
+                        if (l.Who == "tool") { o["round"] = l.Round; o["tool"] = l.Tool; if (l.Problems > 0) o["problems"] = l.Problems; }
+                        return o;
+                    })),
                 };
             }
         }
@@ -109,6 +140,26 @@ namespace Placemaker.Game.Ai
             Mod.Log.Info($"Placemaker AI [step]: {key} {string.Join(", ", args ?? new object[0])}");
         }
 
+        /// <summary>One action of the AI in the chat: what it did, in its step, with the problems it caused.</summary>
+        private static void SayTool(string tool, string key, object[] args, int problems)
+        {
+            lock (s_lock) s_lines.Add(new Line { Who = "tool", Tool = tool, Key = key, Args = args ?? new object[0], Round = s_round, Problems = problems });
+            s_version++;
+            Mod.Log.Info($"Placemaker AI [tool {s_round}]: {key} {string.Join(", ", args ?? new object[0])}{(problems > 0 ? $" ({problems} problems)" : "")}");
+        }
+
+        /// <summary>A new phase of the work (shown as a divider in the chat and in the progress bar).</summary>
+        private static void Phase(string phase)
+        {
+            if (s_phase == phase) return;
+            lock (s_lock)
+            {
+                s_phase = phase;
+                if (phase == "review" || phase == "detail" || phase == "fix") s_lines.Add(new Line { Who = "phase", Key = "Placemaker.Ai.Phase." + char.ToUpperInvariant(phase[0]) + phase.Substring(1), Args = new object[0] });
+            }
+            s_version++;
+        }
+
         /// <summary>The progress line while it works (localisation key; "" = none).</summary>
         private static void Step(string key, params object[] args)
         {
@@ -120,7 +171,7 @@ namespace Placemaker.Game.Ai
         public static void Reset()
         {
             s_cancel?.Cancel();
-            lock (s_lock) { s_lines.Clear(); s_wishes.Clear(); s_status = ""; }
+            lock (s_lock) { s_lines.Clear(); s_wishes.Clear(); s_status = ""; s_phase = ""; s_round = 0; }
             s_messages = null;
             s_shapeKey = null;
             s_cost = 0;
@@ -199,6 +250,9 @@ namespace Placemaker.Game.Ai
             var entrancesNow = tool.AiEntrances();
             Say("you", text);
             s_state = State.Working;
+            s_startedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            s_modelName = model;
+            Phase("read");
             s_end = State.Waiting;
             s_cancel = new CancellationTokenSource();
             var cancel = s_cancel.Token;
@@ -320,6 +374,8 @@ namespace Placemaker.Game.Ai
                     return;
                 }
 
+                s_round++;
+                if (s_phase == "read") Phase("build");
                 bool finished = false;
                 byte[] mapAfter = null;
                 var pictures = new List<(string label, AiPictures.Picture pic)>();
@@ -337,7 +393,8 @@ namespace Placemaker.Game.Ai
                     if (res.Map) mapAfter = Map();
                     if (res.Pictures != null) pictures.AddRange(res.Pictures);
                     if (res.Finished) finished = true;
-                    if (res.LineKey != null) SayKey(res.LineKey, res.LineArgs);
+                    if (res.Phase != null) Phase(res.Phase);
+                    else ToolLine(name, args, res);
                     if (!string.IsNullOrEmpty(res.Note)) Say("ai", res.Note);
                     s_messages.Add(new JObject { ["role"] = "tool", ["tool_call_id"] = (string)c["id"], ["content"] = res.Text });
                     Log(new JObject { ["tool"] = name, ["args"] = args, ["result"] = res.Text });
@@ -355,10 +412,43 @@ namespace Placemaker.Game.Ai
                 }
                 if (mapAfter == null && !finished && AiPlan.Current.Revision != revBefore) mapAfter = Map();
                 if (mapAfter != null) s_messages.Add(UserWithImage($"The map now (map-{s_maps}.png): what you placed is drawn on it, ids next to everything but plants.", mapAfter));
-                if (finished) { s_end = State.Done; return; }
+                if (finished) { Phase("done"); s_end = State.Done; return; }
             }
             s_end = State.Waiting;
             SayKey("Placemaker.Ai.Line.MaxSteps", MaxTurns);
+        }
+
+        /// <summary>
+        /// The chat line for one tool call: Placemaker.Ai.Tool.&lt;tool&gt; with what it did (a count, metres, square metres, the
+        /// words searched) and the problems it caused; a refused call is one line saying so.
+        /// </summary>
+        private static void ToolLine(string name, JObject args, AiTools.Result res)
+        {
+            var a = res.LineArgs ?? new object[0];
+            int Int(int i) { try { return i < a.Length ? Convert.ToInt32(a[i], CultureInfo.InvariantCulture) : 0; } catch (Exception) { return 0; } }
+            if ((res.Text ?? "").StartsWith("refused", StringComparison.Ordinal) || (res.Text ?? "").StartsWith("no ", StringComparison.Ordinal) || (res.Text ?? "").StartsWith("give ", StringComparison.Ordinal) || (res.Text ?? "").StartsWith("error", StringComparison.Ordinal))
+            {
+                SayTool(name, "Placemaker.Ai.Tool.Refused", new object[0], 1);
+                return;
+            }
+            switch (name)
+            {
+                case "place_objects": SayTool(name, "Placemaker.Ai.Tool.place_objects", new object[] { Int(0) }, Int(1)); break;
+                case "place_along": SayTool(name, "Placemaker.Ai.Tool.place_along", new object[] { Int(0) }, 0); break;
+                case "scatter_objects": SayTool(name, "Placemaker.Ai.Tool.scatter_objects", new object[] { Int(0) }, 0); break;
+                case "place_path": SayTool(name, "Placemaker.Ai.Tool.place_path", new object[] { Int(0) }, Int(1)); break;
+                case "shape_ground": SayTool(name, "Placemaker.Ai.Tool.shape_ground", new object[0], (res.Text ?? "").EndsWith("no problems", StringComparison.Ordinal) ? 0 : 1); break;
+                case "paint_ground": SayTool(name, "Placemaker.Ai.Tool.paint_ground", new object[] { Int(0) }, 0); break;
+                case "place_surface": SayTool(name, "Placemaker.Ai.Tool.place_surface", new object[] { Int(0) }, 0); break;
+                case "search_assets": SayTool(name, "Placemaker.Ai.Tool.search_assets", new object[] { (string)args["query"] ?? "" }, 0); break;
+                case "look_at_assets": SayTool(name, "Placemaker.Ai.Tool.look_at_assets", new object[] { Int(0) }, 0); break;
+                case "remove": SayTool(name, "Placemaker.Ai.Tool.remove", new object[] { (args["ids"] as JArray)?.Count ?? 0 }, 0); break;
+                case "check": SayTool(name, Int(0) == 0 ? "Placemaker.Ai.Tool.checkClean" : "Placemaker.Ai.Tool.check", new object[] { Int(0) }, Int(0)); break;
+                case "wish": SayTool(name, "Placemaker.Ai.Tool.wish", new object[] { (string)args["text"] ?? "" }, 0); break;
+                case "asset_groups": case "list_placed": case "view_map": SayTool(name, "Placemaker.Ai.Tool." + name, new object[0], 0); break;
+                case "finish": break;
+                default: if (res.LineKey != null) SayKey(res.LineKey, res.LineArgs); break;
+            }
         }
 
         /// <summary>Bilinear height from the brief's ground grid (world xz).</summary>
@@ -521,7 +611,7 @@ namespace Placemaker.Game.Ai
                 foreach (var (name, display, road, width) in sys.AllLineNets())
                 {
                     if (!seen.Add(name)) continue;
-                    list.Add(new AiAsset { Id = name, Name = display, Category = road ? "road" : "path", Line = true, Size = new float3(width, 0f, 0f) });
+                    list.Add(new AiAsset { Id = name, Name = display, Category = road ? "road" : "path", Line = true, Size = new float3(width, 0f, 0f), Vanilla = sys.IsVanillaName(name) });
                 }
                 // the premade types' own choices per category (search lists them first)
                 var byId = list.GroupBy(x => x.Id).ToDictionary(g => g.Key, g => g.First());
@@ -533,6 +623,10 @@ namespace Placemaker.Game.Ai
                         if (byId.TryGetValue(pool[i], out var x) && (x.Pick < 0 || i < x.Pick)) x.Pick = i;
                 }
             }
+            // the player's mods switch (off: the base game's assets only, plus what Placemaker's own types build with: its
+            // automatic choices, its own prefabs and the invisible car lanes of its car parks)
+            if (!s_mods)
+                list.RemoveAll(x => !x.Vanilla && x.Pick < 0 && !x.Id.StartsWith("Placemaker", StringComparison.Ordinal) && x.Id.IndexOf("Invisible", StringComparison.OrdinalIgnoreCase) < 0);
             return list;
         }
     }

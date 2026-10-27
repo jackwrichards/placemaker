@@ -1,24 +1,433 @@
 @use "../styles/tokens" as *;
 
-// AI builder (AiChat.tsx): the prompt box, the conversation, the working line.
+// AI builder (AiChat.tsx): header, welcome, conversation (bubbles, the AI's steps, phase dividers), progress, message
+// box, footer. Gameface rules (styles/_tokens): flexbox only, margins instead of gap, longhand var().
+
+$c-ai: #c58bff;
+$c-ai-soft: rgba(197, 139, 255, 0.14);
+$c-ai-line: rgba(197, 139, 255, 0.4);
 
 .card {
     @include col;
     margin-bottom: 6rem;
 }
 
-.prompt {
+.flex {
+    flex: 1 1 auto;
+}
+
+// ── header ──
+
+.header {
     @include row;
-    padding: 4rem 4rem 4rem 8rem;
+    height: 24rem;
+    margin-bottom: 6rem;
+}
+
+.headerTitle {
+    margin-left: 6rem;
+    font-size: $fs;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.chip {
+    flex-shrink: 0;
+    padding: 2rem 7rem;
+    border-radius: 9rem;
+    background-color: $c-surface-strong;
+    font-size: 11rem;
+    color: $c-text-dim;
+}
+
+// ── welcome ──
+
+.welcome {
+    @include col;
+    padding: 10rem;
+    border-radius: $radius-l;
+    background-color: $c-ai-soft;
+    @include border(1rem, $c-ai-line);
+}
+
+.welcomeTitle {
+    font-size: 15rem;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.welcomeText {
+    margin-top: 4rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
+}
+
+.examples {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 8rem;
+}
+
+.example {
+    margin: 0 5rem 5rem 0;
+    padding: 4rem 9rem;
+    border-radius: 12rem;
+    background-color: $c-surface-strong;
+    font-size: $fs-s;
+    color: #ffffff;
+    cursor: pointer;
+    transition-property: background-color;
+    transition-duration: $t-fast;
+
+    &:hover {
+        background-color: rgba(197, 139, 255, 0.32);
+    }
+}
+
+.modsRow {
+    @include row(flex-start);
+    margin-top: 6rem;
+    padding-top: 8rem;
+    border-top-width: 1rem;
+    border-top-style: solid;
+    border-top-color: $c-line;
+}
+
+.modsText {
+    @include col;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 8rem;
+}
+
+.modsTitle {
+    font-size: $fs;
+    color: #ffffff;
+}
+
+.modsHint {
+    margin-top: 2rem;
+    font-size: 11rem;
+    color: $c-text-faint;
+}
+
+// ── conversation ──
+
+.linesOuter {
+    margin-top: 2rem;
+}
+
+.lines {
+    @include col;
+    max-height: 340rem;
+    padding: 2rem 10rem 6rem 0;
+    overflow-y: auto;
+}
+
+.bubble {
+    @include row(flex-start);
+    flex-shrink: 0;
+    margin-top: 6rem;
+    padding: 6rem 9rem;
+    border-radius: $radius-l;
+    font-size: $fs;
+    line-height: 1.35;
+    color: #ffffff;
+}
+
+.you {
+    align-self: flex-end;
+    max-width: 86%;
+    background-color: rgba(143, 209, 255, 0.18);
+    border-bottom-right-radius: $radius-s;
+}
+
+.ai {
+    align-self: flex-start;
+    max-width: 96%;
+    background-color: $c-surface-strong;
+    border-bottom-left-radius: $radius-s;
+}
+
+.error {
+    align-self: stretch;
+    background-color: rgba(255, 107, 91, 0.16);
+    color: #ffd0ca;
+}
+
+.bubbleIcon {
+    flex-shrink: 0;
+    margin: 2rem 7rem 0 0;
+}
+
+.bubbleText {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.note {
+    flex-shrink: 0;
+    margin-top: 4rem;
+    padding: 0 9rem;
+    font-size: $fs-s;
+    color: $c-text-faint;
+}
+
+// one step of the AI: its actions
+.round {
+    @include col;
+    flex-shrink: 0;
+    margin-top: 6rem;
     border-radius: $radius;
     background-color: $c-surface;
+    @include border(1rem, $c-line);
+}
+
+.roundLive {
+    @include border-color($c-ai-line);
+}
+
+.roundHead {
+    @include row;
+    height: 24rem;
+    padding: 0 8rem 0 6rem;
+    cursor: pointer;
+
+    &:hover {
+        background-color: $c-surface-hover;
+    }
+}
+
+.roundChevron {
+    flex-shrink: 0;
+    margin-right: 5rem;
+}
+
+.roundTitle {
+    flex-shrink: 0;
+    font-size: $fs-s;
+    font-weight: bold;
+    color: $c-text-dim;
+}
+
+.roundCount {
+    flex-shrink: 0;
+    margin-left: 6rem;
+    font-size: 11rem;
+    color: $c-text-faint;
+}
+
+.roundIcons {
+    @include row;
+    margin-left: 8rem;
+    overflow: hidden;
+}
+
+.roundIcon {
+    flex-shrink: 0;
+    margin-right: 4rem;
+}
+
+.roundBody {
+    @include col;
+    padding: 0 8rem 5rem 8rem;
+}
+
+.tool {
+    @include row(flex-start);
+    padding: 3rem 0;
+}
+
+.toolIcon {
+    flex-shrink: 0;
+    margin: 1rem 7rem 0 2rem;
+}
+
+.toolText {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: $fs-s;
+    color: $c-text-dim;
+}
+
+.toolRefused .toolText {
+    color: $c-text-faint;
+}
+
+.badge {
+    flex-shrink: 0;
+    margin-left: 6rem;
+    padding: 1rem 6rem;
+    border-radius: 8rem;
+    background-color: rgba(255, 181, 71, 0.18);
+    font-size: 11rem;
+    color: $c-warning;
+}
+
+.divider {
+    @include row;
+    flex-shrink: 0;
+    margin-top: 10rem;
+    margin-bottom: 2rem;
+}
+
+.dividerLine {
+    flex: 1 1 auto;
+    height: 1rem;
+    background-color: $c-ai-line;
+}
+
+.dividerText {
+    flex-shrink: 0;
+    margin: 0 8rem;
+    font-size: 11rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: $c-ai;
+}
+
+// ── progress ──
+
+.progress {
+    @include col;
+    margin-top: 6rem;
+    padding: 8rem 8rem 6rem 8rem;
+    border-radius: $radius;
+    background-color: $c-ai-soft;
+    @include border(1rem, $c-ai-line);
+}
+
+.phases {
+    @include row;
+}
+
+.phase {
+    @include col;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.phaseDot {
+    width: 8rem;
+    height: 8rem;
+    border-radius: 4rem;
+    background-color: $c-line-strong;
+}
+
+.phaseLabel {
+    margin-top: 3rem;
+    font-size: 10rem;
+    color: $c-text-faint;
+}
+
+.phaseDone .phaseDot {
+    background-color: $c-ai;
+}
+
+.phaseNow .phaseDot {
+    background-color: $c-ai;
+    animation-name: aiPulse;
+    animation-duration: 1.2s;
+    animation-iteration-count: infinite;
+}
+
+.phaseNow .phaseLabel {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.phaseLine {
+    flex: 1 1 auto;
+    height: 2rem;
+    margin: 0 4rem 11rem 4rem;
+    background-color: $c-line-strong;
+}
+
+.phaseLineDone {
+    background-color: $c-ai;
+}
+
+.now {
+    @include row;
+    margin-top: 8rem;
+}
+
+.spinner {
+    flex-shrink: 0;
+    width: 14rem;
+    height: 14rem;
+    margin-right: 8rem;
+    border-radius: 7rem;
+    @include border(2rem, rgba(255, 255, 255, 0.2));
+    border-top-color: $c-ai;
+    animation-name: aiSpin;
+    animation-duration: 0.8s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+.nowText {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: $fs-s;
+    color: #ffffff;
+}
+
+.nowTime {
+    flex-shrink: 0;
+    margin: 0 6rem;
+    font-size: 11rem;
+    color: $c-text-faint;
+}
+
+@keyframes aiSpin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes aiPulse {
+    0% {
+        opacity: 0.45;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.45;
+    }
+}
+
+// ── message box ──
+
+.composer {
+    @include row;
+    margin-top: 8rem;
+    padding: 4rem 4rem 4rem 9rem;
+    border-radius: $radius-l;
+    background-color: $c-surface;
     @include border(1rem, $c-line-strong);
+    transition-property: border-top-color, border-right-color, border-bottom-color, border-left-color;
+    transition-duration: $t-fast;
+
+    &:hover {
+        @include border-color($c-ai-line);
+    }
+}
+
+.composerBusy {
+    opacity: 0.6;
 }
 
 .input {
     flex: 1 1 auto;
     min-width: 0;
-    height: 22rem;
+    height: 24rem;
     margin-right: 6rem;
     padding: 0;
     @include border(0, transparent);
@@ -29,72 +438,7 @@
     outline-width: 0;
 }
 
-.hint {
-    margin-top: 6rem;
-    font-size: $fs-s;
-    color: $c-text-faint;
-}
-
-.linesOuter {
-    margin-top: 6rem;
-}
-
-.lines {
-    @include col;
-    max-height: 360rem;
-    padding-bottom: 4rem;
-}
-
-.line {
-    margin-top: 4rem;
-    padding: 5rem 8rem;
-    border-radius: $radius;
-    font-size: $fs;
-    color: #ffffff;
-}
-
-.you {
-    align-self: flex-end;
-    max-width: 85%;
-    background-color: $c-surface-strong;
-}
-
-.ai {
-    align-self: flex-start;
-    max-width: 95%;
-    background-color: $c-surface;
-}
-
-.error {
-    background-color: rgba(255, 107, 91, 0.16);
-    color: $c-danger;
-}
-
-.step {
-    margin-top: 2rem;
-    padding: 0 8rem;
-    font-size: $fs-s;
-    color: $c-text-faint;
-}
-
-.working {
-    @include row;
-    margin-top: 6rem;
-}
-
-.dot {
-    width: 8rem;
-    height: 8rem;
-    margin-right: 6rem;
-    border-radius: 50%;
-    background-color: $c-info;
-}
-
-.workingText {
-    flex: 1 1 auto;
-    font-size: $fs-s;
-    color: $c-text-dim;
-}
+// ── footer ──
 
 .footer {
     @include row;
@@ -102,7 +446,25 @@
 }
 
 .meta {
-    flex: 1 1 auto;
-    font-size: $fs-s;
+    flex-shrink: 0;
+    font-size: 11rem;
     color: $c-text-faint;
+}
+
+.lockChip {
+    @include row;
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 8rem;
+    padding: 1rem 6rem;
+    border-radius: 8rem;
+    background-color: $c-surface;
+    font-size: 11rem;
+    color: $c-text-faint;
+    overflow: hidden;
+}
+
+.lockIcon {
+    flex-shrink: 0;
+    margin-right: 4rem;
 }

@@ -133,6 +133,7 @@ namespace Placemaker.Game.UI
             Trigger<string>("aiSend", text => { if (!Placemaker.Game.Ai.AiAgent.Send(text, out var why)) Mod.Log.Warn("Placemaker AI: not sent: " + why); });
             Trigger("aiStop", () => Placemaker.Game.Ai.AiAgent.Stop());
             Trigger("aiReset", () => Placemaker.Game.Ai.AiAgent.Reset());
+            Trigger<bool>("aiMods", on => Placemaker.Game.Ai.AiAgent.SetMods(on));
         }
 
         // Every trigger is wrapped: an exception from a UI call must never escape into the binding layer.

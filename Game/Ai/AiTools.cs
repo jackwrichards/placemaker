@@ -25,6 +25,7 @@ namespace Placemaker.Game.Ai
             public bool Map;              // attach a fresh map after this round
             public List<(string label, AiPictures.Picture pic)> Pictures;   // asset pictures to show after this round
             public bool Finished;
+            public string Phase;          // the work enters a phase (review, detail, fix): a divider in the chat instead of a tool line
         }
 
         private static string F(float v) => Math.Round(v, 1).ToString("0.#", CultureInfo.InvariantCulture);
@@ -290,7 +291,7 @@ namespace Placemaker.Game.Ai
                             return new Result
                             {
                                 Text = AiChecks.Stats(site, AiPlan.Current.Snapshot()) + "\nNot yet: review first. The map of your build is attached. Grade it A-F against the request and the design guide on each of: idea and focal point; ground (shaping, paint, surfaces); water; features people come for; planting; furniture; variety and richness; fit to the site, its slope and its streets. Then fix everything that keeps it from an A, check, and call finish again.",
-                                Map = true, LineKey = "Placemaker.Ai.Line.Review",
+                                Map = true, LineKey = "Placemaker.Ai.Line.Review", Phase = "review",
                             };
                         }
                         // the detail pass: what it looks like up close (the user: "B- from high up, D- zoomed in")
@@ -300,7 +301,7 @@ namespace Placemaker.Game.Ai
                             return new Result
                             {
                                 Text = AiChecks.Details(site, AiPlan.Current.Snapshot()) + "\nNot yet: the detail pass. Look at your map as the player will see it zoomed in, a few metres away, and fix the gaps listed above one by one: a bin and a bush beside a lonely bench, a setting round a bare feature, planting and lamps along a bare path. Every addition must belong exactly where it goes, as the design guide's close-up detail says: never shrubs scattered over crop fields, lawns kept for play or open paving kept for crowds. If a gap is meant to be open, leave it. Then finish again.",
-                                Map = true, LineKey = "Placemaker.Ai.Line.Review",
+                                Map = true, LineKey = "Placemaker.Ai.Line.Review", Phase = "detail",
                             };
                         }
                         // problems left: sent back once with the list (eval: Sonnet finished with lamps on its lanes and paths under surfaces)
@@ -308,7 +309,7 @@ namespace Placemaker.Game.Ai
                         if (left.Count > 0 && !site.ProblemsShown)
                         {
                             site.ProblemsShown = true;
-                            return new Result { Text = $"Not yet: {left.Count} pieces still have problems. Fix each (move, reshape or remove it), then finish again:\n" + string.Join("\n", left), LineKey = "Placemaker.Ai.Line.CheckProblems", LineArgs = new object[] { left.Count } };
+                            return new Result { Text = $"Not yet: {left.Count} pieces still have problems. Fix each (move, reshape or remove it), then finish again:\n" + string.Join("\n", left), LineKey = "Placemaker.Ai.Line.CheckProblems", LineArgs = new object[] { left.Count }, Phase = "fix" };
                         }
                         return new Result { Text = "handed to the player", Note = (string)args["note"] ?? "", Finished = true };
                     case "wish":

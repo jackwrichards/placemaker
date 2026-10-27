@@ -671,7 +671,7 @@ export const DesignStage = ({ catalog, design, state }: { catalog: Catalog; desi
             ) : root.layer === "ai" ? (
                 <div className={s.options} data-testid="options">
                     <ErrorBoundary name={"step-" + root.path}>
-                        <StepOptions catalog={catalog} design={design} state={state} step={root} />
+                        <Entrances step={root} state={state} />
                     </ErrorBoundary>
                     <ErrorBoundary name="ai-chat">
                         <AiChat />

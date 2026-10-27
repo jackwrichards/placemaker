@@ -717,7 +717,15 @@ export const Values = {
 // ─────────────────────────── AI builder (docs/AI-BUILDER.md) ───────────────────────────
 
 /** One chat line: the player's or the AI's words as written, or a step line as a localisation key. */
-export interface AiLine { who: "you" | "ai" | "step" | "error"; text?: string; key?: string; args?: (string | number)[] }
+export interface AiLine {
+  who: "you" | "ai" | "step" | "error" | "tool" | "phase";
+  text?: string;                   // you, ai, error: as written
+  key?: string;                    // tool, phase, step: a localisation key
+  args?: (string | number)[];
+  round?: number;                  // tool: the AI's step it belongs to (1 = its first reply)
+  tool?: string;                   // tool: the tool's name (picks the icon)
+  problems?: number;               // tool: problems the action caused
+}
 
 export interface AiView {
   status: "idle" | "working" | "waiting" | "done" | "failed" | "stopped";
@@ -727,6 +735,13 @@ export interface AiView {
   cost: number;                    // USD so far in this session
   tokens: number;
   pieces: number;                  // what it has placed
+  phase: "" | "read" | "build" | "review" | "detail" | "fix" | "done";
+  round: number;                   // the AI's steps so far in this request
+  startedAt: number;               // when this request started (ms since 1970, UTC)
+  model: string;                   // e.g. anthropic/claude-sonnet-5.5
+  thinking: string;                // low | medium | high
+  mods: boolean;                   // modded assets allowed
+  modsLocked: boolean;             // the session has started: the mods switch is fixed
   lines: AiLine[];
 }
 
@@ -807,6 +822,7 @@ export const Triggers = {
   aiSend: "aiSend",                         // (text: string) — the AI category: the player's message (starts the session for the selection, or continues it)
   aiStop: "aiStop",                         // () — stop the AI's work
   aiReset: "aiReset",                       // () — forget the conversation and what the AI placed
+  aiMods: "aiMods",                         // (on: boolean) — allow modded assets; only before the first message
   exportPresets: "exportPresets",           // () — (re)write presets.json, sets design.presetsFile
   // s17 park stats (Review). Per build: kept with the recipe (undoable) and the build's receipt; never re-plans.
   setParkStat: "setParkStat",               // (id: ParkStatId, valueJson: string) — override one stat

@@ -526,6 +526,9 @@ export const TypeBrowser = ({ catalog, design }: { catalog: Catalog; design: Des
                                 })}
                             </div>
                         </div>
+                        {/* the AI builder has no styles: no Style row (the chat is its whole design) */}
+                        {selectedRecipe?.id === "ai" && !q ? null : (
+                        <>
                         <div className={s.rule} />
                         <div className={s.row}>
                             <RowLabel n={3} label={t("Placemaker.UI.Make.Style", "Style")} />
@@ -541,6 +544,8 @@ export const TypeBrowser = ({ catalog, design }: { catalog: Catalog; design: Des
                                 <div className={s.chips} />
                             )}
                         </div>
+                        </>
+                        )}
                     </>
                 )}
             </div>

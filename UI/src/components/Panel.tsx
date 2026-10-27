@@ -8,6 +8,7 @@
 // While drawing, C# may collapse it to a slim header + primary button (state.panelCollapsed); it then
 // shows an obvious "Show options" button.
 import { Legend } from "./Legend";
+import { AiLeaveGuard } from "./AiChat";
 import { SitePlanFlyout, SitePlanWindow, useSitePlanBig } from "./SitePlanCard";
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import classNames from "classnames";
@@ -954,6 +955,7 @@ export const PlacemakerPanel = () => {
                             </div>
                         ) : null}
                         <div ref={setDialogLayer} className={s.dialogLayer} data-testid="dialog-layer" />
+                        <AiLeaveGuard />
                     </div>
                 </div>
                 </DialogLayerContext.Provider>
