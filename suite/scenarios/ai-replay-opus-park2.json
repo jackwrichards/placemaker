@@ -1,0 +1,189 @@
+{
+  "_about": "Replays the second Opus complex park (Wexley Commons) and looks closely at its path junctions and the lake leak.",
+  "scenarios": [
+    {
+      "id": "ai-replay-opus-park2",
+      "land": {
+        "shape": "rect",
+        "size": [
+          220,
+          170
+        ],
+        "ground": "hills",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "replay:C:/Users/jack/.placemaker/replay-opus-park2.jsonl"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        },
+        {
+          "do": "setting",
+          "name": "DebugBuildChecks",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A big central park for a busy city. I want a lake you can walk all the way around with a little island and a bridge to it, a hill with a lookout over everything, a formal rose garden with hedges, a big open lawn for picnics and frisbee, a playground hidden in the trees, a cafe with outdoor seating by the water, a dog run, and quiet winding woodland paths. Lots of benches and lamps, flowers, and make it feel old and loved, not brand new.",
+          "timeout": 600
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "terrain",
+          "name": "terrain",
+          "probe": [
+            [
+              107,
+              108
+            ],
+            [
+              128,
+              137
+            ],
+            [
+              150,
+              45
+            ],
+            [
+              190,
+              132
+            ],
+            [
+              106,
+              95
+            ],
+            [
+              113,
+              109
+            ],
+            [
+              100,
+              105
+            ],
+            [
+              110,
+              100
+            ],
+            [
+              116,
+              112
+            ]
+          ]
+        },
+        {
+          "do": "shot",
+          "name": "top",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "j-west",
+          "camera": {
+            "target": "point",
+            "at": [
+              -5,
+              22
+            ],
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "j-north",
+          "camera": {
+            "target": "point",
+            "at": [
+              16,
+              51
+            ],
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "j-south",
+          "camera": {
+            "target": "point",
+            "at": [
+              38,
+              -41
+            ],
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "j-east",
+          "camera": {
+            "target": "point",
+            "at": [
+              78,
+              46
+            ],
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "loop-seam",
+          "camera": {
+            "target": "point",
+            "at": [
+              -6,
+              9
+            ],
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "leak",
+          "camera": {
+            "target": "point",
+            "at": [
+              1,
+              23
+            ],
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}
