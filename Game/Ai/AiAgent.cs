@@ -439,7 +439,7 @@ namespace Placemaker.Game.Ai
         private static byte[] Map()
         {
             var pieces = AiPlan.Current.Snapshot();
-            var pic = BriefMap.Draw(s_brief, 1000, pieces, p => AiChecks.RadiusOf(s_site, p));
+            var pic = BriefMap.Draw(s_brief, 1000, pieces, p => AiChecks.RadiusOf(s_site, p), q => AiChecks.UnderWater(s_site, pieces, q, out _));
             s_brief.MapMetresPerPixel = pic.MetresPerPixel;
             var png = ImageConversion.EncodeArrayToPNG(pic.Rgba, GraphicsFormat.R8G8B8A8_UNorm, (uint)pic.W, (uint)pic.H);
             try { File.WriteAllBytes(Path.Combine(s_folder, $"map-{s_maps}.png"), png); } catch (Exception) { }

@@ -690,7 +690,21 @@ namespace Placemaker.Game.Ai
                 water = low < p.WaterLevel - 0.3f ? $"; water at {F(p.WaterLevel)} m over a floor down to {F(low)} m"
                     : $"; WARNING: the floor ({F(low)} m) is not below the water level ({F(p.WaterLevel)} m): no water will appear";
             else if (math.isfinite(site.WaterLevel) && low < site.WaterLevel - 0.2f && p.Ring.Any(q => site.ByWater(q) || site.Water(q) > 0.05f))
-                water = $"; it reaches below the open water ({F(site.WaterLevel)} m) next to it, so the water flows in";
+            {
+                // how far past the shape's edge its soft edge stays under the water: the new waterline
+                float reach = 0f;
+                var all = AiPlan.Current.Snapshot();
+                var c = AiTerrain.Centre(p);
+                for (int k = 0; k < 16; k++)
+                {
+                    var d = new float2(math.cos(k * 0.3927f), math.sin(k * 0.3927f));
+                    float edge = 0f;
+                    for (float r = 0f; r < 200f; r += 1f) { AiTerrain.Core(p, c + d * r, out _, out float e); if (e > 0f) { edge = r; break; } }
+                    for (float r = edge; r < edge + p.Feather + 2f; r += 1f)
+                        if (!AiChecks.UnderWater(site, all, c + d * r, out _)) { reach = math.max(reach, r - edge); break; }
+                }
+                water = $"; it reaches below the open water ({F(site.WaterLevel)} m), so the water flows in and covers it and about {F(reach)} m of its soft edge: the new waterline (blue on the map). Keep sand, umbrellas and paths on the dry ground beyond it";
+            }
             string ground = gmin <= gmax ? $"ground before: {F(gmin)} to {F(gmax)} m" : "ground before: unknown";
             return new Result
             {

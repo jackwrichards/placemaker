@@ -6,7 +6,7 @@ namespace Placemaker.Core.Ai
 {
     public static class AiHandbook
     {
-        public const string Version = "handbook-7";
+        public const string Version = "handbook-8";
 
         public const string Text =
 @"# Design guide (what good builds in this game look like)
@@ -67,9 +67,9 @@ Numbers are starting points for a typical site; scale them with the site and the
 - Sports park: a tree belt, a promenade loop, the main field aligned with the long edge facing a spectator terrace and a clubhouse, courts grouped by kind, fields 6-18 m apart. Field sizes with run-off: football 121x86 (smaller 87x62, 67x51), tennis 38.6x20.3 per court, basketball 34x25, skate 34x26.
 - Plaza and market: paving with a centrepiece, a tree ring or bosquet, benches between trees along the edge, stalls back to back in a grid with cross aisles.
 - Beach and waterfront (on a shore: the brief's water summary gives the water level and side):
-  1. Carve a bay, always (one call): shape_ground mode lower, an ellipse centred on the old waterline, radius along the shore most of its length, radius into the land 25-40 m, wobble 3, height 1.5-2 m below the water level, feather 15-20. It must touch the open water: the lake flows in, the shore becomes a curve, and the feather makes the beach slope up out of the water by itself. No water_level for this.
+  1. Carve a bay, always (one call): shape_ground mode lower, an ellipse centred on the old waterline, radius along the shore most of its length, radius into the land 25-40 m, wobble 3, height 1.5-2 m below the water level, feather 10. It must touch the open water: the lake flows in, the shore becomes a curve, and the feather makes the beach slope up out of the water by itself. No water_level for this. The answer tells you how far the water will reach past the ellipse, and the map shows the new water in blue: that is the new waterline. Everything below is laid out from it, not from the old shore.
   2. The beach face: the feather already slopes it. Where the land behind is high, add a line along the back of the sand (shape_ground line, width 10-20, height 1-2 m above the water, feather 15) so the sand rises gently to a level promenade; never a step or a ledge at the water.
-  3. Sand: paint_ground sand from 8-12 m out into the water to the back of the beach, feather 6-10, noise 4-6, so it wraps the bay and runs under the water. Never stop the sand short of the water, and never paint sand where the ground is not lowered to the water (a sand strip on grass is wrong).
+  3. Sand: paint_ground sand from 8-12 m out past the new waterline into the water to 30-50 m inland of it (the back of the beach), feather 6-10, noise 4-6, so it wraps the bay and runs under the water. Never stop the sand short of the water, and never paint sand where the ground is not lowered to the water (a sand strip on grass is wrong).
   4. On the sand: umbrellas with two loungers each in loose groups (beach) or rows (resort) about 6-8 m apart, lifeguard towers every 60-80 m facing the water, a timber jetty (place_path with a pier or boardwalk line and height 1 m above the water) from the sand straight out 20-45 m, boats pulled up at one end.
   5. Behind it: a promenade path parallel to the shore at the back of the sand, joined to the streets, with benches facing the water, lamps every 25 m, showers and a kiosk at the access paths; then dunes with marram grass (low mounds, bushes) or a painted lawn with palms or pines. No trees on the sand.
   Waterfront: the same shore and the same bay carve (feather 10), but the edge is built: a timber boardwalk along the curved waterline (place_path with a pier or boardwalk line, height 1 m above the water), a paved promenade behind it with benches facing the water, lamps and trees in a row, T-headed piers out over the water, and a park or plaza behind; a harbour basin (a rect lowered 2 m below the water level, opening to the lake, feather 4) with a boardwalk round it is a strong focal point. Never quays (the player does not want them).

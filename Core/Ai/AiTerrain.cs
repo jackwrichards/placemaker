@@ -114,6 +114,14 @@ namespace Placemaker.Core.Ai
 
         private static float Smooth(float x) { x = math.saturate(x); return x * x * (3f - 2f * x); }
 
+        /// <summary>The middle of the piece's core (its ring's centroid, or the line's middle point).</summary>
+        public static float2 Centre(AiPiece p)
+        {
+            if (p.LinePoints != null) return p.LinePoints[p.LinePoints.Length / 2];
+            float2 c = 0; foreach (var q in p.Ring) c += q;
+            return c / p.Ring.Length;
+        }
+
         /// <summary>The box the piece touches: its core plus the feather.</summary>
         public static void Box(AiPiece p, out float2 lo, out float2 hi)
         {

@@ -19,7 +19,7 @@ namespace Placemaker.Core.Ai
             public float MetresPerPixel;
         }
 
-        public static Picture Draw(SiteBriefInput s, int maxSide = 1000, IReadOnlyList<AiPiece> pieces = null, Func<AiPiece, float> radius = null)
+        public static Picture Draw(SiteBriefInput s, int maxSide = 1000, IReadOnlyList<AiPiece> pieces = null, Func<AiPiece, float> radius = null, Func<float2, bool> wet = null)
         {
             var g = s.Ground;
             float2 o = g.Origin, size = new float2(g.Nx, g.Nz) * g.Cell;
@@ -155,6 +155,21 @@ namespace Placemaker.Core.Ai
                         FillQuadLike(p.Ring, new float3(0.72f, 0.70f, 0.66f), 0.8f);
                         labels.Add((p.Ring[0], p.Id));
                     }
+                }
+                // the water the AI's own shaping makes (a carved bay the lake flows into, a filled pond): where it will really be
+                if (wet != null)
+                {
+                    float2 wlo = new float2(float.MaxValue), whi = new float2(float.MinValue);
+                    foreach (var p in pieces)
+                    {
+                        if (p.Kind != AiPieceKind.Ground || p.Ring == null) continue;
+                        float grow = math.max(0f, p.Feather) + 1f;
+                        foreach (var q in p.Ring) { wlo = math.min(wlo, q - grow); whi = math.max(whi, q + grow); }
+                    }
+                    float st = math.max(1.5f, mpp * 1.5f);
+                    for (float y = wlo.y; y <= whi.y; y += st)
+                        for (float x = wlo.x; x <= whi.x; x += st)
+                            if (wet(new float2(x, y))) Disc(new float2(x, y), st * 0.6f, new float3(0.24f, 0.45f, 0.75f));
                 }
                 foreach (var p in pieces)
                     if (p.Kind == AiPieceKind.Path && p.Points != null)
