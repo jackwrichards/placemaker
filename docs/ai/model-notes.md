@@ -136,3 +136,17 @@ Same three requests (beach, square, farm) on six fast OpenRouter models, thinkin
 
 Fixes from this run (commit 9395bf32): passing provider errors are retried twice; the same call with the same answer
 again gets a whole example call; eight steps before the cap the model is told to finish; 30 min per build in the runner.
+
+## Sonnet with the give-up fixes (27 Oct, run 20261027-124200-ai12-sonnet, commit c7e1694f)
+
+| | steps | thinking tokens | pieces | cost | grade |
+|---|---|---|---|---|---|
+| before (agent-12) | 4-7 | 0-628 | | about $0.15 | about C |
+| park | 16 | 3,853 | 260 | $0.42 | B |
+| beach | 14 | 7,280 | 303 | $0.42 | B |
+| farm | 12 | 5,738 | 150 | $0.34 | B+ |
+| square | 11 | 3,444 | 286 | $0.31 | B |
+| junkyard | 17 | 7,475 | 386 | $0.52 | B+ |
+
+Keeping it building (a text reply goes back to work, no instant second finish, a real thinking budget) took Sonnet from
+about C to B/B+, close to Opus (B+) at about 40 % of its price.
