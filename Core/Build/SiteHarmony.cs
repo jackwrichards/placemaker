@@ -134,9 +134,6 @@ namespace Placemaker.Core.Build
             "logisticsYard", "scrapyard", "junkPiles", "skipRow", "yardBreak",
             // Lot-graded like parking (bays on tier planes): parking grading is its own pass (s25 / s29).
             "restArea",
-            // The AI builder shapes every bit of its ground on purpose, piece by piece (Core/Layers/Ai/AiLayer.cs): harmony kept its
-            // lake basin and locked it, and the island raised inside was lost (Opus park, 27 Oct: the gazebo stood in 2 m of water).
-            "ai",
         };
 
         /// <summary>The decorative terrain layer: its change is masked out of corridors, surfaces and pads.</summary>
@@ -168,6 +165,7 @@ namespace Placemaker.Core.Build
             public SiteContext Site;
             public bool[] Part;               // per layer index
             public List<float2[]> Rings = new List<float2[]>();
+            public List<float2[]> WaterRings = new List<float2[]>();   // the kept water basins (locked, and what lies in them)
             public float2 Origin; public float C; public int Nx, Ny;
             public bool[] Free, Lock;
             public float[] K;                 // ground after the kept (locked) terraform
@@ -227,6 +225,8 @@ namespace Placemaker.Core.Build
         private static Ctx Prepare(ComposedPlan plan, SiteContext site, bool forMeasure)
         {
             var c = new Ctx { Plan = plan, Orig = site.HeightAt, Site = site, Part = new bool[plan.Layers.Count] };
+            foreach (var l in plan.Layers)
+                if (l != null) foreach (var t in l.Terraform) if (Valid(t) && IsWater(t)) c.WaterRings.Add(Poly.To2D(t.Ring));
             bool any = false;
             for (int li = 0; li < plan.Layers.Count; li++)
             {
@@ -267,8 +267,8 @@ namespace Placemaker.Core.Build
                 foreach (var t in l.Terraform)
                 {
                     if (!Valid(t)) continue;
-                    bool keep = !c.Part[li] || IsWater(t) || (!forMeasure && !InsideRings(c, t));
-                    if (forMeasure && c.Part[li] && !IsWater(t)) keep = false;
+                    bool keep = !c.Part[li] || IsWater(t) || InWater(c, t) || (!forMeasure && !InsideRings(c, t));
+                    if (forMeasure && c.Part[li] && !IsWater(t) && !InWater(c, t)) keep = false;
                     if (!keep) continue;
                     var r2 = Poly.To2D(t.Ring);
                     kept.Add((r2, t.TargetHeight, li));
@@ -342,7 +342,7 @@ namespace Placemaker.Core.Build
                     var vh = TerraformSurface.VertexHeights(t);
                     all.Add(it); allV.Add(vh);
                     if (!decor) { nonDecor.Add(it); nonDecorV.Add(vh); }
-                    if (c.Part[li] && !IsWater(t) && InsideRings(c, t)) removed.Add(t);
+                    if (c.Part[li] && !IsWater(t) && !InWater(c, t) && InsideRings(c, t)) removed.Add(t);
                 }
             }
             var rN = BuildRaster(nonDecor, nonDecorV, c.Orig);
@@ -538,6 +538,18 @@ namespace Placemaker.Core.Build
 
         private static bool Valid(PlannedTerraform t) => t?.Ring != null && t.Ring.Length >= 3 && math.isfinite(t.TargetHeight);
         private static bool IsWater(PlannedTerraform t) => math.isfinite(t.WaterLevel);
+
+        /// <summary>
+        /// Shaping inside a kept water basin (an island raised in a pond) is kept with the basin, in plan order: the basin is
+        /// locked, so the pass could not rebuild it there and it was lost (Opus park, 27 Oct: the island gazebo stood in 2 m of water).
+        /// </summary>
+        private static bool InWater(Ctx c, PlannedTerraform t)
+        {
+            if (c.WaterRings.Count == 0 || IsWater(t)) return false;
+            var at = Poly.Centroid(Poly.To2D(t.Ring));
+            foreach (var r in c.WaterRings) if (Poly.Contains(r, at)) return true;
+            return false;
+        }
 
         private static bool InsideRings(Ctx c, PlannedTerraform t)
         {
