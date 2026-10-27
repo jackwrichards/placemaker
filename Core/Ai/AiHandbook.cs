@@ -6,7 +6,7 @@ namespace Placemaker.Core.Ai
 {
     public static class AiHandbook
     {
-        public const string Version = "handbook-8";
+        public const string Version = "handbook-9";
 
         public const string Text =
 @"# Design guide (what good builds in this game look like)
@@ -87,6 +87,17 @@ Numbers are starting points for a typical site; scale them with the site and the
   3. Edge: a high industrial fence line around the whole outline with the gate gap, concrete barriers along the inside, a few trees and floodlights in the corners.
   4. Features: one or two landmarks that say what it is (a silo or tank, a crane, a weighbridge, heaps of ore or trash, a crusher), and life between the blocks (barrels, pallets, skips, trucks). Fill every block; a yard reads empty below about 250 objects per hectare.
   Containers are 2.44 x 6.04 m, stacked 2.62 m per tier; wrecks nose to the aisle, stacked higher toward the back.
+
+## Close-up detail (what the player sees zoomed in, a few metres away)
+From high up a layout reads; up close only the small things do. Every place gets a second, finer layer:
+- Paths: a lamp every 20-30 m, alternating sides; benches in pairs or facing each other at widenings, each with a bin and a bush or planter beside it; low shrubs and flowers in loose drifts along the edges (scatter in a 2-4 m strip, clumps 0.6); a bollard or a sign at each entrance and junction; worn dirt paint where paths meet and at shortcuts.
+- Features (a fountain, a playground, a gazebo, a kiosk, a stage): each has a setting: a paved pad or rubber ground under it, seats facing it, planters or flowerbeds at its corners, lamps, a bin, bicycle racks or props that say what happens there.
+- Edges: no hard line between grass and anything: a band of bushes, flowers or tall grass along fences, walls, water and paved edges; a few rocks in groups of 3-5 where ground changes; trees at the corners.
+- Ground: never one paint: patches of a second and third paint with noise (worn grass by seats, dirt under trees, dry grass in the meadows); stepping stones or gravel where people walk off the path.
+- Planting: layered: trees, then bushes under and around them, then flowers and low plants at the front; clumps of the same kind, mixed kinds between clumps.
+- Life: what people leave and use: picnic tables with a bin, bicycle racks, notice boards, signs, small stalls, crates and barrels in work areas, boats and buoys at water, toys at a playground, tools and hay at a farm, cones and pallets on a site.
+- Places of work (yards, farms, lots): each pad full of its things in rows, with the small clutter between (pallets, barrels, crates, tyres, cones, bins, signs, lamps).
+- Numbers: the premade types place 200-800 objects on a 1.5 ha site, most of them small; a finished build of yours is in that range and uses 20+ different assets. After the review comes a detail pass that lists the bare spots with coordinates: fill every one.
 
 ## What you cannot build yet
 Zoning and growable buildings, buildings and service buildings, pedestrian areas with access, animals. (You can build: footpaths and trails of any kind, roads, alleys and the invisible car lanes of parking lots joined to the city's roads, fences and hedges as lines, raised boardwalks and piers, ponds with real water, scaled and tilted props such as parking bay decals, terrain, ground paint and surfaces.)

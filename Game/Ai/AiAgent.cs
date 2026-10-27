@@ -221,6 +221,7 @@ namespace Placemaker.Game.Ai
                     {
                         s_site.Reviewed = false;
                         s_site.ProblemsShown = false;
+                        s_site.DetailShown = false;
                         s_messages.Add(new JObject { ["role"] = "user", ["content"] = "The player says: " + text + "\n\n" + SiteBrief.EntrancesText(entrancesNow, s_site.Origin) });
                     }
                     await Loop(endpoint, key, model, cancel);

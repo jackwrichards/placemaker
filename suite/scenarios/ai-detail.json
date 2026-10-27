@@ -1,0 +1,323 @@
+{
+  "_about": "AI builder close-up detail (agent-11, handbook-9: the detail pass): five requests of different kinds, each with a 45 and a close-up picture; our park first for comparison.",
+  "scenarios": [
+    {
+      "id": "type-park-close",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ai-detail-park",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A neighbourhood park.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ai-detail-plaza",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A town square with a fountain.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ai-detail-beach",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          100
+        ],
+        "water": {
+          "side": "north"
+        },
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A beach.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ai-detail-junkyard",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A junkyard.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ai-detail-farm",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A small farmstead with a yard, fields and paddocks.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    }
+  ]
+}

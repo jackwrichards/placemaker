@@ -81,6 +81,9 @@ namespace Placemaker.Core.Ai
         /// <summary>A finish was sent back once for the problems left (the next one ends it).</summary>
         public bool ProblemsShown;
 
+        /// <summary>The detail pass was asked for (after the review, before the end).</summary>
+        public bool DetailShown;
+
         public float2 World(float2 local) => local + Origin;
         public float2 Local(float2 world) => world - Origin;
     }
@@ -300,6 +303,63 @@ namespace Placemaker.Core.Ai
             }
             sb.AppendLine(chosen.Count == 0 ? "- empty spots: none wider than 14 m"
                 : "- empty spots (nothing placed within the radius; fine if meant as a lawn, meadow or open square, else fill them): " + string.Join(", ", chosen.Select(c => { var l = s.Local(c.p); return $"({F(l.x)},{F(l.y)}) {F(c.clear)} m"; })));
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// The close-range detail in numbers (the user, 27 Oct: "B- from high up, D- zoomed in: it needs intricate details"):
+        /// how dense and varied the small things are, and the places that look bare up close, with where they are. Facts.
+        /// </summary>
+        public static string Details(AiSite s, IReadOnlyList<AiPiece> all)
+        {
+            float area = math.abs(Poly.SignedArea(s.Ring));
+            float ha = math.max(0.01f, area / 10000f);
+            var objs = all.Where(p => p.Kind == AiPieceKind.Object).ToList();
+            var small = objs.Where(o => o.Role != ObjectRole.Tree).ToList();
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"Close-up detail in numbers: {objs.Count} objects ({F(objs.Count / ha)}/ha), {small.Count} of them not trees ({F(small.Count / ha)}/ha) in {small.Select(o => o.Asset).Distinct().Count()} different assets. The premade types place 200-800 objects on a site of this size, most of them small.");
+            bool Near(float2 p, float r, Func<AiPiece, bool> what) => objs.Any(o => what(o) && math.distance(o.Position, p) <= r);
+            string L(float2 p) { var l = s.Local(p); return $"({F(l.x)},{F(l.y)})"; }
+            // benches and seats without company (a bin, a lamp or planting within 6 m)
+            var lonely = objs.Where(o => o.Role == ObjectRole.Bench).Where(b => !Near(b.Position, 6f, o => o.Id != b.Id && (o.Role == ObjectRole.Bin || o.Role == ObjectRole.Lamp || o.Role == ObjectRole.Bush || o.Role == ObjectRole.Planter))).ToList();
+            if (lonely.Count > 0) sb.AppendLine($"- benches with nothing beside them (no bin, lamp, bush or planter within 6 m): {string.Join(" ", lonely.Take(8).Select(b => "#" + b.Id + " " + L(b.Position)))}");
+            // features without a setting: few things within 10 m of a feature (anything not a tree, bush, bench, bin or lamp)
+            bool Feature(AiPiece o) => o.Role == ObjectRole.Centerpiece || (o.Role == ObjectRole.Furniture && s.Assets.TryGetValue(o.Asset ?? "", out var a) && math.cmax(a.Size.xz) >= 3f);
+            var bare = objs.Where(Feature).Where(f => objs.Count(o => o.Id != f.Id && math.distance(o.Position, f.Position) <= 10f) < 4).ToList();
+            if (bare.Count > 0) sb.AppendLine($"- features standing alone (under 4 things within 10 m: give each a setting of paving, seats, planting, lamps, props): {string.Join(" ", bare.Take(8).Select(f => "#" + f.Id + " " + f.Asset + " " + L(f.Position)))}");
+            // bare stretches of path: 15 m or more with nothing within 5 m of either side
+            var stretches = new List<(float len, float2 at)>();
+            foreach (var p in all.Where(p => p.Kind == AiPieceKind.Path && p.NetRole != NetRole.Fence && p.Points != null && float.IsNaN(p.LineHeight)))
+            {
+                float run = 0f; float2 start = p.Points[0];
+                for (int k = 0; k + 1 < p.Points.Length; k++)
+                {
+                    float len = math.distance(p.Points[k], p.Points[k + 1]);
+                    for (float d = 0f; d < len; d += 2f)
+                    {
+                        var q = math.lerp(p.Points[k], p.Points[k + 1], d / math.max(0.01f, len));
+                        bool company = objs.Any(o => math.distance(o.Position, q) <= PathHalfWidth(p) + 5f);
+                        if (company) { if (run >= 15f) stretches.Add((run, start)); run = 0f; start = q; }
+                        else run += 2f;
+                    }
+                }
+                if (run >= 15f) stretches.Add((run, start));
+            }
+            if (stretches.Count > 0) sb.AppendLine($"- bare path stretches (nothing within 5 m of either side): {string.Join(", ", stretches.OrderByDescending(t => t.len).Take(8).Select(t => F(t.len) + " m from " + L(t.at)))}");
+            // paths without light: path length per lamp
+            float pathLen = all.Where(p => p.Kind == AiPieceKind.Path && p.NetRole != NetRole.Fence && p.Points != null).Sum(p => Enumerable.Range(0, p.Points.Length - 1).Sum(k => math.distance(p.Points[k], p.Points[k + 1])));
+            int lamps = objs.Count(o => o.Role == ObjectRole.Lamp);
+            if (pathLen > 40f) sb.AppendLine($"- lamps: {lamps} for {F(pathLen)} m of path ({(lamps > 0 ? F(pathLen / lamps) + " m per lamp" : "none")}; parks light a lamp every 20-30 m)");
+            // paved areas and the shapes of the ground with nothing on them
+            foreach (var p in all.Where(p => p.Kind == AiPieceKind.Surface && p.Ring != null))
+            {
+                float a = math.abs(Poly.SignedArea(p.Ring));
+                int on = objs.Count(o => Poly.Contains(p.Ring, o.Position) || Poly.DistanceToBoundary(p.Ring, o.Position) < 2f);
+                if (a > 150f && on < a / 120f) sb.AppendLine($"- surface #{p.Id} {p.Asset}: {F(a)} m² with {on} things on or at its edge (a used place has seating, planters, bollards, lamps, props every 8-12 m)");
+            }
+            // single kinds repeated many times: variety
+            var top = small.GroupBy(o => o.Asset).OrderByDescending(g => g.Count()).FirstOrDefault();
+            if (top != null && small.Count > 20 && top.Count() > small.Count * 0.4f) sb.AppendLine($"- {top.Key} is {F(100f * top.Count() / small.Count)} % of the small things: mix in other kinds");
             return sb.ToString();
         }
 
