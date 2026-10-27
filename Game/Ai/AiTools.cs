@@ -299,7 +299,7 @@ namespace Placemaker.Game.Ai
                             site.DetailShown = true;
                             return new Result
                             {
-                                Text = AiChecks.Details(site, AiPlan.Current.Snapshot()) + "\nNot yet: the detail pass. Look at your map as the player will see it zoomed in, a few metres away. Go round the site zone by zone and add the small things that make each place real (the design guide's close-up detail): fill every gap listed above, give every feature a setting, line the paths, dress the edges, and vary the kinds. Add generously: at least double the small things, in big batches with place_along and scatter_objects. Then finish again.",
+                                Text = AiChecks.Details(site, AiPlan.Current.Snapshot()) + "\nNot yet: the detail pass. Look at your map as the player will see it zoomed in, a few metres away, and fix the gaps listed above one by one: a bin and a bush beside a lonely bench, a setting round a bare feature, planting and lamps along a bare path. Every addition must belong exactly where it goes, as the design guide's close-up detail says: never shrubs scattered over crop fields, lawns kept for play or open paving kept for crowds. If a gap is meant to be open, leave it. Then finish again.",
                                 Map = true, LineKey = "Placemaker.Ai.Line.Review",
                             };
                         }

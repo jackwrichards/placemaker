@@ -84,3 +84,12 @@ on its own every time. Beach B- to B (a carved bay the lake flows into, sand alo
 and loungers on it), park "with a hill, a valley and a stream into a pond" B (a hill with a gazebo on top and worn
 slopes, a pond with water, a channel), waterfront C+ (a promenade and a jetty; it skipped the bay that time).
 Our harbour without quays: `show-waterfront-harbor-1027-100750-19f4` (timber boardwalk on the curved shore, two T-piers).
+
+## Close-up detail (27 Oct, agent-11, handbook-9; run `20261027-102735-ai-detail`, close-up pictures)
+
+The user: "B- from high up, D- zoomed in". A close-up guide for every kind of place in the handbook, and a detail pass
+after the review that lists the bare spots with coordinates. Close-up grades (ours: park B): junkyard B (514 objects in 54
+kinds: wreck rows, trash heaps, clutter, machines, floodlights; the pass worked), plaza C+ (fountain ringed by benches,
+cafe table, flowerbeds; paving still bare), beach C+ (umbrellas, loungers, towels, lamps; thin), park C (a fountain,
+flowerbeds, lamps; sparse planting), farm D+ (the pass scattered shrubs over the crop fields: bad taste). The pass now
+only fixes the listed gaps with things that belong there, no quota ("at least double" removed).
