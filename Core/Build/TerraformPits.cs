@@ -26,6 +26,7 @@ namespace Placemaker.Core.Build
             "quarry", "pond", "wetland", "landfill", "constructionSite", "amphitheatre", "golf", "animalPark", "farmstead", "zenGarden",
             "waterfront", "beach", "shore", "terrain", "terraceGarden", "lookoutHill", "spoilHeaps",
             "roads",   // Hillside terraces cut benches on purpose; its own field already guarantees no hollows (s52)
+            "ai",      // the AI builder digs lakes and ditches on purpose; the guard filled parts of an Opus park's ground
         };
 
         /// <summary>(s58) True when the plan digs a hollow by design: a type that excavates, a water surface, or a sunken/bowl terrain shape (Fact "intentionalPit").</summary>
