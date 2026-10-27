@@ -92,5 +92,62 @@ namespace Placemaker.Core.Ai
         /// <summary>A circle as a ring (world xz).</summary>
         public static float2[] Circle(float2 c, float r, int n = 32) =>
             Enumerable.Range(0, n).Select(i => c + r * new float2(math.cos(2f * math.PI * i / n), math.sin(2f * math.PI * i / n))).ToArray();
+
+        /// <summary>An ellipse as a ring (world xz), turned by <paramref name="turnDeg"/> (clockwise from north, like yaw), its radius
+        /// varied by up to <paramref name="wobble"/> metres with smooth noise for an organic edge (a pond, a grove).</summary>
+        public static float2[] Ellipse(float2 c, float rx, float rz, float turnDeg = 0f, float wobble = 0f, uint seed = 1, int n = 40)
+        {
+            float t = math.radians(turnDeg);
+            float2 ax = new float2(math.cos(t), -math.sin(t)), az = new float2(math.sin(t), math.cos(t));
+            var ring = new float2[n];
+            for (int i = 0; i < n; i++)
+            {
+                float a = 2f * math.PI * i / n;
+                float w = wobble > 0f ? wobble * (2f * Noise(new float2(math.cos(a), math.sin(a)) * 30f + 100f, 18f, seed) - 1f) : 0f;
+                ring[i] = c + ax * (math.cos(a) * math.max(0.5f, rx + w)) + az * (math.sin(a) * math.max(0.5f, rz + w));
+            }
+            return ring;
+        }
+
+        /// <summary>A rectangle from two opposite corners, as a ring: south-west, south-east, north-east, north-west.</summary>
+        public static float2[] Rect(float2 a, float2 b)
+        {
+            float2 lo = math.min(a, b), hi = math.max(a, b);
+            return new[] { lo, new float2(hi.x, lo.y), hi, new float2(lo.x, hi.y) };
+        }
+
+        /// <summary>Yaw (radians, 0 = north, clockwise) of a direction.</summary>
+        public static float YawOf(float2 dir) => math.atan2(dir.x, dir.y);
+
+        /// <summary>
+        /// Stations along a polyline (closed: back to its first point) every <paramref name="spacing"/> metres, starting
+        /// <paramref name="inset"/> from each end: the point on the line and the line's direction there.
+        /// </summary>
+        public static List<(float2 at, float2 dir)> Along(float2[] pts, bool closed, float spacing, float inset)
+        {
+            var result = new List<(float2, float2)>();
+            if (pts == null || pts.Length < 2 || spacing <= 0.1f) return result;
+            var line = closed && math.distance(pts[0], pts[pts.Length - 1]) > 0.5f ? pts.Concat(new[] { pts[0] }).ToArray() : pts;
+            var cum = new float[line.Length];
+            for (int i = 1; i < line.Length; i++) cum[i] = cum[i - 1] + math.distance(line[i - 1], line[i]);
+            float total = cum[line.Length - 1];
+            if (total < 0.1f) return result;
+            float from = closed ? 0f : math.min(inset, total * 0.5f), to = closed ? total - spacing * 0.5f : total - math.min(inset, total * 0.5f);
+            // open lines: spread the stations evenly between the insets so both ends get one
+            float step = spacing;
+            if (!closed && to > from) step = (to - from) / math.max(1, (int)math.round((to - from) / spacing));
+            else if (closed) step = total / math.max(1, (int)math.round(total / spacing));
+            int seg = 0;
+            for (float d = from; d <= to + 0.01f; d += step)
+            {
+                while (seg < line.Length - 2 && cum[seg + 1] < d) seg++;
+                float len = cum[seg + 1] - cum[seg];
+                float t = len < 1e-4f ? 0f : (d - cum[seg]) / len;
+                var dir = math.normalizesafe(line[seg + 1] - line[seg], new float2(0f, 1f));
+                result.Add((math.lerp(line[seg], line[seg + 1], t), dir));
+                if (to <= from) break;
+            }
+            return result;
+        }
     }
 }

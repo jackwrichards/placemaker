@@ -1,0 +1,420 @@
+{
+  "_about": "AI builder: the five ai-opus requests on Sonnet 5.5, medium thinking, with the leaner loop (agent-9: rows, shapes, the cache at the conversation end, the review in numbers). Compare with docs/ai/model-notes.md.",
+  "scenarios": [
+    {
+      "id": "ai-sonnet-park",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A neighbourhood park.",
+          "timeout": 600
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "ai-sonnet-plaza",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A paved town square with a fountain in the middle, trees around the edge and plenty of benches.",
+          "timeout": 600
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "ai-sonnet-wetland",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A wetland park with ponds, reeds, islands and boardwalks.",
+          "timeout": 600
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "ai-sonnet-farm",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A small farmstead with a yard, fields and paddocks.",
+          "timeout": 600
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "ai-sonnet-parking",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A car park for about 60 cars, with trees and lamps, entered from the street.",
+          "timeout": 600
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        }
+      ]
+    }
+  ]
+}

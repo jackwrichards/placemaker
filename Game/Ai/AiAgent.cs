@@ -181,6 +181,7 @@ namespace Placemaker.Game.Ai
                     return false;
                 }
                 // the instructions and the design guide are the same every call: marked for the provider's prompt cache
+                s_rolling.Clear();
                 s_messages = new JArray
                 {
                     new JObject
@@ -241,6 +242,25 @@ namespace Placemaker.Game.Ai
             return true;
         }
 
+        // the conversation's end, marked for the prompt cache on each call (the last two calls' ends: the provider finds the
+        // previous call's prefix there). Unmarked, every step paid full price for everything since the brief: half of
+        // Opus's 1.7 M prompt tokens on a farm (27 Oct).
+        private static readonly Queue<JObject> s_rolling = new Queue<JObject>();
+
+        private static void MarkCache()
+        {
+            if (s_messages == null || s_messages.Count == 0) return;
+            var last = (JObject)s_messages[s_messages.Count - 1];
+            if (last["content"] is JValue v && v.Type == JTokenType.String) last["content"] = new JArray { new JObject { ["type"] = "text", ["text"] = (string)v } };
+            if (!(last["content"] is JArray parts) || parts.Count == 0) return;
+            var part = (JObject)parts[parts.Count - 1];
+            if (part["cache_control"] != null) return;
+            part["cache_control"] = new JObject { ["type"] = "ephemeral" };
+            s_rolling.Enqueue(part);
+            // the provider takes four marks: the design guide, the brief, and these two
+            while (s_rolling.Count > 2) s_rolling.Dequeue().Remove("cache_control");
+        }
+
         private static JObject UserWithImage(string text, byte[] png) => new JObject
         {
             ["role"] = "user",
@@ -258,6 +278,7 @@ namespace Placemaker.Game.Ai
             {
                 cancel.ThrowIfCancellationRequested();
                 Step("Placemaker.Ai.Doing.Think");
+                MarkCache();
                 var body = new JObject
                 {
                     ["model"] = model,

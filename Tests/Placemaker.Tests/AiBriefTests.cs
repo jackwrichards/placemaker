@@ -65,5 +65,18 @@ namespace Placemaker.Tests
             for (int k = 0; k < pic.Rgba.Length; k += 4) white |= pic.Rgba[k] == 255 && pic.Rgba[k + 1] == 255 && pic.Rgba[k + 2] == 255;
             Assert.True(white);
         }
+
+        [Fact]
+        public void AlongSpacesStationsEvenlyAndYawPointsTheWay()
+        {
+            // a 40 m line east: stations 2 m in from each end, spaced evenly (36 m / 9 m = 4 gaps, 5 stations)
+            var st = AiShapes.Along(new[] { new float2(0, 0), new float2(40, 0) }, false, 9f, 2f);
+            Assert.Equal(5, st.Count);
+            Assert.Equal(2f, st[0].at.x, 3);
+            Assert.Equal(38f, st[4].at.x, 3);
+            Assert.Equal(90f, math.degrees(AiShapes.YawOf(st[0].dir)), 3);   // east = yaw 90
+            // a closed square, 10 m sides, every 5 m: 8 stations round it
+            Assert.Equal(8, AiShapes.Along(AiShapes.Rect(new float2(0, 0), new float2(10, 10)), true, 5f, 0f).Count);
+        }
     }
 }

@@ -186,6 +186,63 @@ namespace Placemaker.Core.Ai
 
         public static float PathHalfWidth(AiPiece p) => p.NetRole == NetRole.Fence ? 0.3f : p.NetRole == NetRole.PathwayWide ? 3f : p.NetRole == NetRole.DriveAisle ? 3.5f : 2f;
 
+        /// <summary>
+        /// The build in numbers for the review: what it holds per hectare, how much ground is treated, and the empty spots
+        /// (the places farthest from anything placed: nothing there but bare or painted ground). Facts, no verdict.
+        /// </summary>
+        public static string Stats(AiSite s, IReadOnlyList<AiPiece> all)
+        {
+            float area = math.abs(Poly.SignedArea(s.Ring));
+            float ha = math.max(0.01f, area / 10000f);
+            var objs = all.Where(p => p.Kind == AiPieceKind.Object).ToList();
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"The build in numbers (site {F(area)} m², {F(ha)} ha):");
+            int trees = objs.Count(o => o.Role == ObjectRole.Tree), bushes = objs.Count(o => o.Role == ObjectRole.Bush), flat = objs.Count(IsFlat);
+            sb.AppendLine($"- objects {objs.Count}: trees {trees} ({F(trees / ha)}/ha), bushes {bushes}, decals {flat}, everything else {objs.Count - trees - bushes - flat} in {objs.Where(o => o.Role != ObjectRole.Tree && o.Role != ObjectRole.Bush && !IsFlat(o)).Select(o => o.Asset).Distinct().Count()} kinds");
+            float pathLen = all.Where(p => p.Kind == AiPieceKind.Path && p.NetRole != NetRole.Fence && p.Points != null).Sum(p => Enumerable.Range(0, p.Points.Length - 1).Sum(k => math.distance(p.Points[k], p.Points[k + 1])));
+            float fenceLen = all.Where(p => p.Kind == AiPieceKind.Path && p.NetRole == NetRole.Fence && p.Points != null).Sum(p => Enumerable.Range(0, p.Points.Length - 1).Sum(k => math.distance(p.Points[k], p.Points[k + 1])));
+            sb.AppendLine($"- paths and roads {F(pathLen)} m, fences and hedges {F(fenceLen)} m");
+            var ground = all.Where(p => p.Kind == AiPieceKind.Ground).ToList();
+            sb.AppendLine($"- ground shaped in {ground.Count} patches, {ground.Count(g => math.isfinite(g.WaterLevel))} with water");
+
+            // a 3 m grid over the site: painted, surfaced, and the clearance to the nearest placed thing
+            float2 lo = new float2(float.MaxValue), hi = new float2(float.MinValue);
+            foreach (var q in s.Ring) { lo = math.min(lo, q); hi = math.max(hi, q); }
+            int cells = 0, painted = 0, surfaced = 0;
+            var spots = new List<(float2 p, float clear)>();
+            for (float x = lo.x + 1.5f; x < hi.x; x += 3f)
+                for (float z = lo.y + 1.5f; z < hi.y; z += 3f)
+                {
+                    var q = new float2(x, z);
+                    if (!Poly.Contains(s.Ring, q)) continue;
+                    cells++;
+                    if (all.Any(p => p.Kind == AiPieceKind.Paint && p.Layer > 0 && p.Ring != null && Poly.Contains(p.Ring, q))) painted++;
+                    bool onSurface = all.Any(p => p.Kind == AiPieceKind.Surface && p.Ring != null && Poly.Contains(p.Ring, q));
+                    if (onSurface) surfaced++;
+                    float clear = math.min(Poly.DistanceToBoundary(s.Ring, q) * 1.5f, 999f);
+                    if (onSurface || all.Any(p => p.Kind == AiPieceKind.Ground && math.isfinite(p.WaterLevel) && Poly.Contains(p.Ring, q))) clear = 0f;
+                    foreach (var p in all)
+                    {
+                        if (clear <= 0f) break;
+                        if (p.Kind == AiPieceKind.Object) clear = math.min(clear, math.distance(p.Position, q) - RadiusOf(s, p));
+                        else if (p.Kind == AiPieceKind.Path && p.Points != null)
+                            for (int k = 0; k + 1 < p.Points.Length; k++) clear = math.min(clear, SegDist(q, p.Points[k], p.Points[k + 1]) - PathHalfWidth(p));
+                    }
+                    spots.Add((q, math.max(0f, clear)));
+                }
+            sb.AppendLine($"- ground paint on {F(100f * painted / math.max(1, cells))} % of the site, surfaces on {F(100f * surfaced / math.max(1, cells))} %");
+            var chosen = new List<(float2 p, float clear)>();
+            foreach (var c in spots.OrderByDescending(c => c.clear))
+            {
+                if (c.clear < 7f || chosen.Count >= 5) break;
+                if (chosen.Any(o => math.distance(o.p, c.p) < o.clear + c.clear)) continue;
+                chosen.Add(c);
+            }
+            sb.AppendLine(chosen.Count == 0 ? "- empty spots: none wider than 14 m"
+                : "- empty spots (nothing placed within the radius; fine if meant as a lawn or meadow, else fill them): " + string.Join(", ", chosen.Select(c => { var l = s.Local(c.p); return $"({F(l.x)},{F(l.y)}) {F(c.clear)} m"; })));
+            return sb.ToString();
+        }
+
         /// <summary>Every piece's problems, one line each ("#12 bench_a at (40,22): overlaps #9 ..."), problem-free pieces left out.</summary>
         public static List<string> All(AiSite s, IReadOnlyList<AiPiece> all)
         {

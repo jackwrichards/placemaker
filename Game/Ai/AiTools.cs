@@ -43,6 +43,43 @@ namespace Placemaker.Game.Ai
         private static JObject Num(string d) => new JObject { ["type"] = "number", ["description"] = d };
         private static JObject Str(string d) => new JObject { ["type"] = "string", ["description"] = d };
 
+        /// <summary>The area properties every area tool takes (polygon, rect, circle, ellipse, wobble), added to its own.</summary>
+        private static JObject WithArea(JObject props, string polygonNote = null)
+        {
+            var pts = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } };
+            var nums = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } };
+            var area = new JObject
+            {
+                ["polygon"] = new JObject(pts) { ["description"] = "[[x, z], ...] local metres" + (polygonNote ?? "") },
+                ["rect"] = new JObject(nums) { ["description"] = "[x1, z1, x2, z2]: a rectangle from two opposite corners (its corners in order: south-west, south-east, north-east, north-west)" },
+                ["circle"] = new JObject(nums) { ["description"] = "[x, z, radius]" },
+                ["ellipse"] = new JObject(nums) { ["description"] = "[x, z, radius_x, radius_z, turn_degrees (optional, clockwise)]" },
+                ["wobble"] = Num("optional, with circle or ellipse: metres of smooth random variation of the edge (an organic pond, grove or meadow)"),
+            };
+            foreach (var kv in props) area[kv.Key] = kv.Value;
+            return area;
+        }
+
+        /// <summary>The area an area tool was given (world ring), and its local corners when given as polygon or rect (for
+        /// corner heights). Null with a reason when none or broken.</summary>
+        private static float2[] Area(JObject args, AiSite site, out float2[] localCorners, out string error)
+        {
+            localCorners = null; error = null;
+            float2[] local = null;
+            if (args["polygon"] is JArray poly && poly.Count >= 3) local = poly.Select(t => new float2((float)t[0], (float)t[1])).ToArray();
+            else if (args["rect"] is JArray r && r.Count >= 4) local = AiShapes.Rect(new float2((float)r[0], (float)r[1]), new float2((float)r[2], (float)r[3]));
+            if (local != null) { localCorners = local; return local.Select(site.World).ToArray(); }
+            float wobble = math.max(0f, (float?)args["wobble"] ?? 0f);
+            if (args["circle"] is JArray c && c.Count >= 3)
+                return AiShapes.Ellipse(site.World(new float2((float)c[0], (float)c[1])), (float)c[2], (float)c[2], 0f, wobble, Seed(c));
+            if (args["ellipse"] is JArray e && e.Count >= 4)
+                return AiShapes.Ellipse(site.World(new float2((float)e[0], (float)e[1])), (float)e[2], (float)e[3], e.Count >= 5 ? (float)e[4] : 0f, wobble, Seed(e));
+            error = "give the area: polygon (at least 3 corners), rect, circle or ellipse";
+            return null;
+        }
+
+        private static uint Seed(JArray a) => (uint)(math.abs((float)a[0] * 73.1f + (float)a[1] * 19.7f) % 65521f) + 1u;
+
         private static JArray s_defs;
 
         public static JArray Definitions() => s_defs ?? (s_defs = new JArray
@@ -91,41 +128,51 @@ namespace Placemaker.Game.Ai
                     ["height"] = Num("optional: a fixed height, m above sea level, for a raised level line (boardwalk, pier)"),
                     ["smooth"] = new JObject { ["type"] = "boolean", ["description"] = "draw a smooth curve through the points instead of straight lines between them (default false)" },
                 }, "points"),
-            Fn("scatter_objects", "Scatter many objects at once inside an area you give (a wood, a clump, a meadow of flowers, rocks): random positions at least 'spacing' apart, random yaw, the assets mixed evenly. With clumps > 0 they gather in patches (a noise field about 5 spacings across) with gaps between. Points that would sit outside the selection, on a road, path or building, or overlap something already placed are skipped. The answer lists every object placed (id, asset, x, z, yaw) and how many were skipped for what, so you can move or remove any of them.",
+            Fn("place_along", "Place objects in a row along a line or around an outline, every 'spacing' metres: an avenue of trees, lamps and benches along a path, a hedge of bushes, bollards, parking stall markings along a drive aisle, benches around a fountain, a ring of trees. offset puts them beside the line (both sides, or left or right of its direction). face turns them: along the line, toward it (benches facing a path, stalls facing an aisle), away from it, or a fixed yaw. Objects that would sit outside the selection, on a road, path or building or overlap something are skipped. The answer lists every object placed (id, asset, x, z, yaw) and the skips.",
                 new JObject
                 {
+                    ["assets"] = new JObject { ["type"] = "array", ["description"] = "asset ids, used in turn (e.g. [lamp, bench, bench])", ["items"] = new JObject { ["type"] = "string" } },
+                    ["points"] = new JObject { ["type"] = "array", ["description"] = "the line: [[x, z], ...] local metres (or give circle or rect for an outline)", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
+                    ["circle"] = new JObject { ["type"] = "array", ["description"] = "an outline [x, z, radius] (benches or trees around a centre)", ["items"] = new JObject { ["type"] = "number" } },
+                    ["rect"] = new JObject { ["type"] = "array", ["description"] = "an outline [x1, z1, x2, z2] (trees around a square)", ["items"] = new JObject { ["type"] = "number" } },
+                    ["closed"] = new JObject { ["type"] = "boolean", ["description"] = "points form a loop (circle and rect always do)" },
+                    ["spacing"] = Num("metres between neighbours"),
+                    ["offset"] = Num("metres beside the line (default 0 = on it; e.g. 3.5 for lamps beside a 4 m path; for a closed outline, positive = outside, negative = inside)"),
+                    ["side"] = new JObject { ["type"] = "string", ["enum"] = new JArray("both", "left", "right"), ["description"] = "open lines with offset: both sides (default) or one side, seen walking from the first point to the last" },
+                    ["face"] = new JObject { ["type"] = "string", ["enum"] = new JArray("along", "toward", "away", "fixed"), ["description"] = "along the line (default), toward the line (on an outline: toward its inside), away from it, or fixed (use yaw)" },
+                    ["yaw"] = Num("with face fixed: degrees; otherwise added to the facing"),
+                    ["inset"] = Num("metres kept free at each end of an open line (default spacing / 2)"),
+                }, "assets", "spacing"),
+            Fn("scatter_objects", "Scatter many objects at once inside an area you give (a wood, a clump, a meadow of flowers, rocks): random positions at least 'spacing' apart, random yaw, the assets mixed evenly. With clumps > 0 they gather in patches (a noise field about 5 spacings across) with gaps between. Points that would sit outside the selection, on a road, path or building, or overlap something already placed are skipped. The answer lists every object placed (id, asset, x, z, yaw) and how many were skipped for what, so you can move or remove any of them.",
+                WithArea(new JObject
+                {
                     ["assets"] = new JObject { ["type"] = "array", ["description"] = "asset ids to mix (from search_assets)", ["items"] = new JObject { ["type"] = "string" } },
-                    ["polygon"] = new JObject { ["type"] = "array", ["description"] = "the area: [[x, z], ...] local metres (or give circle; neither = the whole selection)", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
-                    ["circle"] = new JObject { ["type"] = "array", ["description"] = "the area as [x, z, radius]", ["items"] = new JObject { ["type"] = "number" } },
                     ["count"] = new JObject { ["type"] = "integer", ["description"] = "how many at most (up to 400)" },
                     ["spacing"] = Num("minimum distance between them, metres"),
                     ["clumps"] = Num("0 = spread evenly, up to 1 = strongly in patches"),
                     ["seed"] = new JObject { ["type"] = "integer", ["description"] = "change it for a different arrangement" },
-                }, "assets", "count", "spacing"),
-            Fn("shape_ground", "Shape the terrain inside a polygon: level it to a height, raise only (fill up to it), lower only (dig down to it), or slope it through a height per corner. Heights are metres above sea level (the brief's heights; the map's contour lines). Everything placed sits on the new ground. The answer says the ground before (lowest, highest inside) and the steps it makes at its edges, so you can soften them with sloped patches around it.",
-                new JObject
+                }, " (no area = the whole selection)"), "assets", "count", "spacing"),
+            Fn("shape_ground", "Shape the terrain inside an area: level it to a height, raise only (fill up to it), lower only (dig down to it), or slope it through a height per corner. Heights are metres above sea level (the brief's heights; the map's contour lines). Everything placed sits on the new ground. The answer says the ground before (lowest, highest inside) and the steps it makes at its edges, so you can soften them with sloped patches around it.",
+                WithArea(new JObject
                 {
-                    ["polygon"] = new JObject { ["type"] = "array", ["description"] = "[[x, z], ...] local metres", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
                     ["mode"] = new JObject { ["type"] = "string", ["enum"] = new JArray("level", "raise", "lower"), ["description"] = "level (default): exactly to height; raise: only where the ground is lower; lower: only where it is higher" },
                     ["height"] = Num("target height, m above sea level"),
-                    ["corner_heights"] = new JObject { ["type"] = "array", ["description"] = "optional: one height per polygon corner for a slope (the ground becomes the surface through them)", ["items"] = new JObject { ["type"] = "number" } },
+                    ["corner_heights"] = new JObject { ["type"] = "array", ["description"] = "optional, with polygon or rect: one height per corner for a slope (the ground becomes the surface through them)", ["items"] = new JObject { ["type"] = "number" } },
                     ["water_level"] = Num("optional: fill the shaped basin with water up to this height (m above sea level; set it below the lowest shore, and the basin floor below it)"),
-                }, "polygon"),
-            Fn("paint_ground", "Paint the ground's texture inside a polygon with one of the map's ground paints (listed in the brief: e.g. dry grass, lush grass, dirt, sand; 0 erases). Soft edge and edge noise make it look natural. Permanent in the city, like terrain shaping.",
-                new JObject
+                })),
+            Fn("paint_ground", "Paint the ground's texture inside an area with one of the map's ground paints (listed in the brief: e.g. dry grass, lush grass, dirt, sand; 0 erases). Soft edge and edge noise make it look natural. Permanent in the city, like terrain shaping.",
+                WithArea(new JObject
                 {
-                    ["polygon"] = new JObject { ["type"] = "array", ["description"] = "[[x, z], ...] local metres", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
                     ["layer"] = new JObject { ["type"] = "integer", ["description"] = "1-4: the map's ground paints from the brief; 0 = erase" },
                     ["strength"] = Num("0-1 (default 1)"),
                     ["feather"] = Num("soft edge, metres (default 3)"),
                     ["noise"] = Num("ragged edge, metres (default 0)"),
-                }, "polygon", "layer"),
-            Fn("place_surface", "Lay a surface (an area of paving, gravel, grass, sand... from search_assets with category surface) inside a polygon, e.g. a plaza, a terrace, a sandpit. The polygon must be simple; keep it off roads.",
-                new JObject
+                }), "layer"),
+            Fn("place_surface", "Lay a surface (an area of paving, gravel, grass, sand... from search_assets with category surface) inside an area, e.g. a plaza, a terrace, a sandpit. A polygon must be simple; keep it off roads.",
+                WithArea(new JObject
                 {
-                    ["polygon"] = new JObject { ["type"] = "array", ["description"] = "[[x, z], ...] local metres", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
                     ["asset"] = Str("surface asset id"),
-                }, "polygon", "asset"),
+                }), "asset"),
             Fn("remove", "Remove placed objects or paths by id.", new JObject { ["ids"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "integer" } } }, "ids"),
             Fn("list_placed", "List everything placed so far (id, asset, position, yaw).", new JObject()),
             Fn("check", "Check everything placed: overlaps, outside the selection, on roads or buildings, dead-end paths.", new JObject()),
@@ -147,6 +194,7 @@ namespace Placemaker.Game.Ai
                 case "paint_ground": return ("Placemaker.Ai.Doing.Paint", new object[0]);
                 case "place_surface": return ("Placemaker.Ai.Doing.Surface", new object[0]);
                 case "scatter_objects": return ("Placemaker.Ai.Doing.Place", new object[] { (int?)args["count"] ?? 0 });
+                case "place_along": return ("Placemaker.Ai.Doing.Place", new object[] { (args["assets"] as JArray)?.Count ?? 0 });
                 case "remove": return ("Placemaker.Ai.Doing.Remove", new object[] { (args["ids"] as JArray)?.Count ?? 0 });
                 case "check": return ("Placemaker.Ai.Doing.Check", new object[0]);
                 case "view_map": return ("Placemaker.Ai.Doing.Map", new object[0]);
@@ -194,6 +242,7 @@ namespace Placemaker.Game.Ai
                     case "paint_ground": return PaintGround(args, site);
                     case "place_surface": return PlaceSurface(args, site);
                     case "scatter_objects": return Scatter(args, site);
+                    case "place_along": return PlaceAlong(args, site);
                     case "remove":
                     {
                         var ids = (args["ids"] as JArray)?.Select(t => (int)t).ToList() ?? new List<int>();
@@ -234,7 +283,7 @@ namespace Placemaker.Game.Ai
                             site.Reviewed = true;
                             return new Result
                             {
-                                Text = "Not yet: review first. The map of your build is attached. Grade it A-F against the request and the design guide on each of: idea and focal point; ground (shaping, paint, surfaces); water; features people come for; planting; furniture; variety and richness; fit to the site, its slope and its streets. Then fix everything that keeps it from an A, check, and call finish again.",
+                                Text = AiChecks.Stats(site, AiPlan.Current.Snapshot()) + "\nNot yet: review first. The map of your build is attached. Grade it A-F against the request and the design guide on each of: idea and focal point; ground (shaping, paint, surfaces); water; features people come for; planting; furniture; variety and richness; fit to the site, its slope and its streets. Then fix everything that keeps it from an A, check, and call finish again.",
                                 Map = true, LineKey = "Placemaker.Ai.Line.Review",
                             };
                         }
@@ -317,8 +366,10 @@ namespace Placemaker.Game.Ai
             {
                 if (!string.IsNullOrEmpty(category) && a.Category != category && !a.Category.StartsWith(category + ".")) continue;
                 if (!string.IsNullOrEmpty(group) && !string.Equals(a.Group, group, StringComparison.OrdinalIgnoreCase)) continue;
-                string hay = (a.Group + " " + a.Id + " " + System.Text.RegularExpressions.Regex.Replace(a.Id, "([a-z])([A-Z])", "$1 $2") + " " + a.Name + " " + a.Category + " " + string.Join(" ", a.Tags)).ToLowerInvariant();
-                int score = words.Count(w => hay.Contains(w)) * 10;
+                string hay = (a.Group + " " + a.Id + " " + System.Text.RegularExpressions.Regex.Replace(a.Id, "([a-z])([A-Z0-9])", "$1 $2") + " " + a.Name + " " + a.Category + " " + string.Join(" ", a.Tags)).ToLowerInvariant();
+                var tokens = hay.Split(new[] { ' ', ',', '-', '_', '.', '(', ')', '/' }, StringSplitOptions.RemoveEmptyEntries);
+                bool Has(string w) { string stem = w.Length > 3 && w.EndsWith("s") ? w.Substring(0, w.Length - 1) : w; return tokens.Any(t => t.StartsWith(stem, StringComparison.Ordinal)); }
+                int score = words.Count(Has) * 10;
                 if (words.Length > 0 && score == 0 && string.IsNullOrEmpty(category) && string.IsNullOrEmpty(group)) continue;
                 if (a.Vanilla) score += 1;
                 if (a.Pick >= 0) score += 5 - math.min(4, a.Pick / 3);   // the premade types' own choices first
@@ -375,8 +426,11 @@ namespace Placemaker.Game.Ai
             ids = ids.Where(id => site.Assets.ContainsKey(id)).ToList();
             if (ids.Count == 0) return new Result { Text = "no known asset ids" + (unknown.Count > 0 ? " (unknown: " + string.Join(", ", unknown) + ")" : "") };
             float2[] area;
-            if (args["polygon"] is JArray poly && poly.Count >= 3) area = poly.Select(t => site.World(new float2((float)t[0], (float)t[1]))).ToArray();
-            else if (args["circle"] is JArray c && c.Count >= 3) area = AiShapes.Circle(site.World(new float2((float)c[0], (float)c[1])), (float)c[2]);
+            if (args["polygon"] != null || args["rect"] != null || args["circle"] != null || args["ellipse"] != null)
+            {
+                area = Area(args, site, out _, out var err);
+                if (area == null) return new Result { Text = err };
+            }
             else area = site.Ring;
             int count = math.clamp((int?)args["count"] ?? 10, 1, 400);
             float spacing = math.max(0.5f, (float?)args["spacing"] ?? 6f);
@@ -416,8 +470,77 @@ namespace Placemaker.Game.Ai
             return new Result { Text = sb.ToString(), LineKey = "Placemaker.Ai.Line.Placed", LineArgs = new object[] { placed.Count, 0 } };
         }
 
-        private static float2[] Polygon(JObject args, AiSite site) =>
-            (args["polygon"] as JArray)?.Select(t => site.World(new float2((float)t[0], (float)t[1]))).ToArray();
+
+        private static Result PlaceAlong(JObject args, AiSite site)
+        {
+            var ids = (args["assets"] as JArray)?.Select(t => (string)t).Where(t => !string.IsNullOrEmpty(t)).ToList() ?? new List<string>();
+            var unknown = ids.Where(id => !site.Assets.ContainsKey(id) || site.Assets[id].Line).ToList();
+            ids = ids.Where(id => site.Assets.ContainsKey(id) && !site.Assets[id].Line).ToList();
+            if (ids.Count == 0) return new Result { Text = "no known object asset ids" + (unknown.Count > 0 ? " (unknown or line assets: " + string.Join(", ", unknown) + ")" : "") };
+            float2[] line; bool closed;
+            if (args["circle"] is JArray c && c.Count >= 3) { line = AiShapes.Circle(site.World(new float2((float)c[0], (float)c[1])), (float)c[2], 48); closed = true; }
+            else if (args["rect"] is JArray r && r.Count >= 4) { line = AiShapes.Rect(new float2((float)r[0], (float)r[1]), new float2((float)r[2], (float)r[3])).Select(site.World).ToArray(); closed = true; }
+            else
+            {
+                line = (args["points"] as JArray)?.Select(t => site.World(new float2((float)t[0], (float)t[1]))).ToArray();
+                if (line == null || line.Length < 2) return new Result { Text = "give points (at least 2), circle or rect" };
+                closed = (bool?)args["closed"] == true;
+            }
+            // outlines run counter-clockwise: their left is the inside
+            if (closed && Placemaker.Core.Geometry.Poly.SignedArea(line) < 0) Array.Reverse(line);
+            float spacing = math.max(0.5f, (float?)args["spacing"] ?? 8f);
+            float offset = (float?)args["offset"] ?? 0f;
+            string side = ((string)args["side"] ?? "both").ToLowerInvariant();
+            string face = ((string)args["face"] ?? "along").ToLowerInvariant();
+            float yawAdd = math.radians((float?)args["yaw"] ?? 0f);
+            float inset = math.max(0f, (float?)args["inset"] ?? spacing * 0.5f);
+            var stations = AiShapes.Along(line, closed, spacing, inset);
+            // the signed distances to the left of the direction: closed outlines take offset as outside (= right)
+            var lefts = math.abs(offset) < 0.01f ? new[] { 0f } : closed ? new[] { -offset }
+                : side == "left" ? new[] { math.abs(offset) } : side == "right" ? new[] { -math.abs(offset) } : new[] { math.abs(offset), -math.abs(offset) };
+            var existing = AiPlan.Current.Snapshot();
+            var placed = new List<AiPiece>();
+            var skipped = new Dictionary<string, int>();
+            int k = 0;
+            foreach (float l in lefts)
+                foreach (var (at, dir) in stations)
+                {
+                    var left = new float2(-dir.y, dir.x);
+                    var pos = at + left * l;
+                    // toward the line; on the line itself (or an outline), toward the inside
+                    var toward = l > 0f ? -left : l < 0f ? left : left;
+                    float yaw;
+                    switch (face)
+                    {
+                        case "toward": yaw = AiShapes.YawOf(toward) + yawAdd; break;
+                        case "away": yaw = AiShapes.YawOf(-toward) + yawAdd; break;
+                        case "fixed": yaw = yawAdd; break;
+                        default: yaw = AiShapes.YawOf(dir) + yawAdd; break;
+                    }
+                    var id = ids[k++ % ids.Count];
+                    var a = site.Assets[id];
+                    var piece = new AiPiece { Kind = AiPieceKind.Object, Asset = id, Category = a.Category, Role = RoleFor(a.Category), Position = pos, Yaw = yaw };
+                    var pr = AiChecks.Problems(site, piece, existing.Concat(placed).ToList());
+                    if (pr.Count > 0)
+                    {
+                        string why = pr[0].Split('(')[0].Split('#')[0].Trim();
+                        skipped[why] = (skipped.TryGetValue(why, out var n) ? n : 0) + 1;
+                        continue;
+                    }
+                    placed.Add(piece);
+                }
+            foreach (var p in placed) AiPlan.Current.Add(p);
+            var sb = new StringBuilder();
+            sb.AppendLine($"placed {placed.Count} of {stations.Count * lefts.Length}:");
+            foreach (var p in placed)
+            {
+                var l = site.Local(p.Position);
+                sb.AppendLine($"#{p.Id} {p.Asset} ({F(l.x)},{F(l.y)}) yaw {F((math.degrees(p.Yaw) % 360f + 360f) % 360f)}");
+            }
+            if (skipped.Count > 0) sb.AppendLine("skipped: " + string.Join(", ", skipped.Select(kv => kv.Value + " " + kv.Key)));
+            if (unknown.Count > 0) sb.AppendLine("unknown or line ids ignored: " + string.Join(", ", unknown));
+            return new Result { Text = sb.ToString(), LineKey = "Placemaker.Ai.Line.Placed", LineArgs = new object[] { placed.Count, 0 } };
+        }
 
         private static string Problems(AiSite site, AiPiece p)
         {
@@ -427,13 +550,13 @@ namespace Placemaker.Game.Ai
 
         private static Result ShapeGround(JObject args, AiSite site)
         {
-            var ring = Polygon(args, site);
-            if (ring == null || ring.Length < 3) return new Result { Text = "a polygon needs at least 3 corners" };
-            if (Placemaker.Core.Geometry.Poly.SignedArea(ring) < 0) Array.Reverse(ring);
+            var ring = Area(args, site, out var localCorners, out var err);
+            if (ring == null) return new Result { Text = err };
             string mode = ((string)args["mode"] ?? "level").ToLowerInvariant();
             var corners = (args["corner_heights"] as JArray)?.Select(t => (float)t).ToArray();
+            if (corners != null && localCorners == null) return new Result { Text = "corner_heights needs the area as polygon or rect" };
             if (corners != null && corners.Length != ring.Length) return new Result { Text = $"corner_heights has {corners.Length} heights for {ring.Length} corners" };
-            if (corners != null && Placemaker.Core.Geometry.Poly.SignedArea((args["polygon"] as JArray).Select(t => new float2((float)t[0], (float)t[1])).ToArray()) < 0) Array.Reverse(corners);
+            if (Placemaker.Core.Geometry.Poly.SignedArea(ring) < 0) { Array.Reverse(ring); if (corners != null) Array.Reverse(corners); }
             float? height = (float?)args["height"];
             if (corners == null && height == null) return new Result { Text = "give height, or corner_heights for a slope" };
             var p = new AiPiece
@@ -486,8 +609,8 @@ namespace Placemaker.Game.Ai
 
         private static Result PaintGround(JObject args, AiSite site)
         {
-            var ring = Polygon(args, site);
-            if (ring == null || ring.Length < 3) return new Result { Text = "a polygon needs at least 3 corners" };
+            var ring = Area(args, site, out _, out var err);
+            if (ring == null) return new Result { Text = err };
             if (Placemaker.Core.Geometry.Poly.SignedArea(ring) < 0) Array.Reverse(ring);
             int layer = math.clamp((int?)args["layer"] ?? 1, 0, 4);
             var p = new AiPiece
@@ -514,8 +637,8 @@ namespace Placemaker.Game.Ai
 
         private static Result PlaceSurface(JObject args, AiSite site)
         {
-            var ring = Polygon(args, site);
-            if (ring == null || ring.Length < 3) return new Result { Text = "a polygon needs at least 3 corners" };
+            var ring = Area(args, site, out _, out var err);
+            if (ring == null) return new Result { Text = err };
             if (Placemaker.Core.Geometry.Poly.SignedArea(ring) < 0) Array.Reverse(ring);
             string asset = (string)args["asset"] ?? "";
             if (!site.Assets.TryGetValue(asset, out var a) || a.Category == null || !a.Category.StartsWith("surface"))
