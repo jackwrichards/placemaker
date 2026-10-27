@@ -1,0 +1,21 @@
+{
+  "_about": "AI builder, phase one (docs/AI-BUILDER.md): the AI category as a player uses it. The option on, an odd selection (a C opening east on a 6 % slope, a ring road following it), the AI type, a prompt; the AI works until it finishes; the panel (chat, sketch), the Review ghost, the build. Needs a key (%USERPROFILE%\\.placemaker\\ai-key.txt). Read the run's ai-transcript.jsonl and ai-summary.json, the ai-map picture and the shots, and rate the result.",
+  "scenarios": [
+    {
+      "id": "ai-park-c",
+      "land": { "shape": "points", "points": [[0, 0], [120, 0], [120, 30], [50, 30], [50, 70], [120, 70], [120, 100], [0, 100]], "ground": "slope", "grade": 6, "toward": "east", "roads": "follow", "gap": 10 },
+      "steps": [
+        { "do": "setting", "name": "AiBuilderOn", "value": true },
+        { "do": "area", "tool": "land" },
+        { "do": "type", "layer": "ai" },
+        { "do": "aiAgent", "prompt": "A small quiet park with shady paths, a few benches and lamps, and an open lawn.", "timeout": 900 },
+        { "do": "shot", "name": "panel", "shotMode": "ui" },
+        { "do": "preview", "shot": "preview", "camera": { "target": "build", "view": "oblique" } },
+        { "do": "build" },
+        { "do": "shot", "name": "45-built", "camera": { "target": "build", "view": "oblique" }, "shotMode": "render" },
+        { "do": "shot", "name": "top-built", "camera": { "target": "build", "view": "top" }, "shotMode": "render" },
+        { "do": "setting", "name": "AiBuilderOn", "value": false }
+      ]
+    }
+  ]
+}

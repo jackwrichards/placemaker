@@ -49,6 +49,7 @@ namespace Placemaker.Game.UI
             AddBinding(_assets = new ValueBinding<string>(Group, "assets", "{}"));
             AddBinding(_managed = new ValueBinding<string>(Group, "managed", "null"));
             AddBinding(_sitePlan = new ValueBinding<string>(Group, "sitePlan", "null"));
+            AddBinding(_ai = new ValueBinding<string>(Group, "ai", "null"));
 
             Trigger("toggleTool", () => _tool.Toggle());
             Trigger("togglePolish", () => _tool.TogglePolishTool());   // the polish tool's own button
@@ -128,6 +129,10 @@ namespace Placemaker.Game.UI
             Trigger<string>("hoverAudit", id => _tool.HoverAudit(id));   // s53: "Left out" reason row hovered ("" = none)
             Trigger<string, bool>("setLegendVisible", (id, on) => _tool.SetLegendVisible(id, on));
             Trigger("resetLegend", () => _tool.ResetLegend());
+            // AI builder (docs/AI-BUILDER.md): the AI category's prompt box and chat
+            Trigger<string>("aiSend", text => { if (!Placemaker.Game.Ai.AiAgent.Send(text, out var why)) Mod.Log.Warn("Placemaker AI: not sent: " + why); });
+            Trigger("aiStop", () => Placemaker.Game.Ai.AiAgent.Stop());
+            Trigger("aiReset", () => Placemaker.Game.Ai.AiAgent.Reset());
         }
 
         // Every trigger is wrapped: an exception from a UI call must never escape into the binding layer.
@@ -163,6 +168,7 @@ namespace Placemaker.Game.UI
                 PushDesign();
                 PushSummary();
                 PushSitePlan();
+                PushAi();
                 PushAssets();
                 PushManaged();
             }
@@ -192,12 +198,29 @@ namespace Placemaker.Game.UI
             _state.Update(UiModels.State(_tool.StateInput()).ToString());
         }
 
+        private ValueBinding<string> _ai;
+        private int _aiStamp = -1;
+
+        /// <summary>The AI category's chat (null while the AI builder option is off).</summary>
+        private void PushAi()
+        {
+            bool on = ToolRegistration.Settings?.AiBuilderOn == true;
+            int stamp = on ? Placemaker.Game.Ai.AiAgent.Version : -2;
+            if (stamp == _aiStamp) return;
+            _aiStamp = stamp;
+            _ai.Update(on ? Placemaker.Game.Ai.AiAgent.View().ToString(Newtonsoft.Json.Formatting.None) : "null");
+        }
+
+        private bool _catalogAi;
+
         private void PushCatalog()
         {
             int generators = GeneratorRegistry.All.Count;
             int stamp = _tool.Recipes.Version;
             int presets = _tool.Presets?.Version ?? -1;
-            if (stamp == _catalogStamp && generators == _catalogGenerators && presets == _catalogPresets) return;
+            bool aiOn = ToolRegistration.Settings?.AiBuilderOn == true;
+            if (stamp == _catalogStamp && generators == _catalogGenerators && presets == _catalogPresets && aiOn == _catalogAi) return;
+            _catalogAi = aiOn;
             _catalogPresets = presets;
             _catalogStamp = stamp;
             _catalogGenerators = generators;
@@ -206,6 +229,8 @@ namespace Placemaker.Game.UI
             {
                 // Make row = single types only (FEEDBACK-2); mixes and type+feature variants stay loadable by id.
                 if (!Features.ShowInMakeRow(e.Recipe, e.Custom, GeneratorRegistry.Get)) continue;
+                // the AI category only while its option is on (docs/AI-BUILDER.md)
+                if (e.Recipe.Id == Placemaker.Core.Layers.Ai.AiLayer.LayerId && !aiOn) continue;
                 entries.Add(new RecipeListEntry
                 {
                     Id = e.Recipe.Id,

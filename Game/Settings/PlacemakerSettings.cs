@@ -306,27 +306,6 @@ namespace Placemaker.Game.Settings
         [SettingsUIHideByCondition(typeof(PlacemakerSettings), nameof(AiOff))]
         public string AiEndpoint { get; set; }
 
-        [SettingsUISection(SectionMain, GroupAi)]
-        [SettingsUITextInput]
-        [SettingsUIHideByCondition(typeof(PlacemakerSettings), nameof(AiOff))]
-        public string AiPrompt { get; set; }
-
-        /// <summary>Phase one: sends the site brief of the current selection and the prompt; the reply goes to the log and ModsData/Placemaker/ai.</summary>
-        [SettingsUISection(SectionMain, GroupAi)]
-        [SettingsUIButton]
-        [SettingsUIHideByCondition(typeof(PlacemakerSettings), nameof(AiOff))]
-        public bool AiSend
-        {
-            set
-            {
-                try
-                {
-                    if (!global::Placemaker.Game.Ai.AiBuilder.Start(AiPrompt, out var why)) Mod.Log.Warn("Placemaker AI: not sent: " + why);
-                }
-                catch (Exception e) { Mod.Log.Error(e, "Placemaker AI: sending failed"); }
-            }
-        }
-
         public bool AiOff() => !AiBuilderOn;
 
         // ───────────── Maintenance ─────────────
@@ -608,7 +587,6 @@ namespace Placemaker.Game.Settings
             AiKey = AiKey ?? "";   // kept by Reset defaults: the player pasted it
             AiModel = global::Placemaker.Game.Ai.AiBuilder.DefaultModel;
             AiEndpoint = global::Placemaker.Game.Ai.AiBuilder.DefaultEndpoint;
-            AiPrompt = "A small quiet park with a pond and shady paths";
             PanelCollapsed = false;
             AutoExcludeCollisions = true;
             IgnoreOwnCollisions = true;

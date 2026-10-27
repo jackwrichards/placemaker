@@ -320,6 +320,7 @@ namespace Placemaker.Game.Suite
                 case "lab": yield return StepLab(st, step, rec); break;
                 case "polish": yield return StepPolish(st, step, rec); break;
                 case "ai": yield return StepAi(st, step, rec); break;
+                case "aiAgent": yield return StepAiAgent(st, step, rec); break;
                 default: rec["error"] = "unknown step '" + what + "' (suite/schema.json lists the steps)"; break;
             }
         }

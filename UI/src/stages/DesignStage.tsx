@@ -32,6 +32,7 @@ import { ValueSinkContext } from "../controls/Controls";
 import { SettingValue } from "../contract";
 import { ControlEx, valueOf } from "../lib/schema";
 import { useAssetName } from "../components/picker";
+import { AiChat } from "../components/AiChat";
 import { ZoneOutgrowInline, ZoneOutgrowPick } from "../components/PainterCard";
 import { Tile, TypeBrowser } from "./PresetBrowser";
 import { DesignPreview, ShuffleBtn, StyleCard, SubHead } from "./StyleCard";
@@ -667,6 +668,10 @@ export const DesignStage = ({ catalog, design, state }: { catalog: Catalog; desi
             {root && isZoneMix(layerOf(catalog, root.layer)) ? <ZoningNotes /> : null}
             {!root ? (
                 <div className={s.emptyNote}>{t("Placemaker.UI.PickRecipe", "Nothing picked yet: pick a category to start")}</div>
+            ) : root.layer === "ai" ? (
+                <ErrorBoundary name="ai-chat">
+                    <AiChat />
+                </ErrorBoundary>
             ) : (
                 <div className={s.options} data-testid="options">
                     <ErrorBoundary name={"step-" + root.path}>

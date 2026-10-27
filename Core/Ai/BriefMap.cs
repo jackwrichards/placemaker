@@ -19,7 +19,7 @@ namespace Placemaker.Core.Ai
             public float MetresPerPixel;
         }
 
-        public static Picture Draw(SiteBriefInput s, int maxSide = 1000)
+        public static Picture Draw(SiteBriefInput s, int maxSide = 1000, IReadOnlyList<AiPiece> pieces = null, Func<AiPiece, float> radius = null)
         {
             var g = s.Ground;
             float2 o = g.Origin, size = new float2(g.Nx, g.Nz) * g.Cell;
@@ -127,6 +127,32 @@ namespace Placemaker.Core.Ai
                 for (int k = 0; k <= steps; k++) Disc(SiteBrief.Bez(n, k / (float)steps).xz, math.max(1f, n.Width * 0.5f), c);
             }
 
+            // what the AI has placed: paths tan, trees green, bushes dark green, everything else orange; ids on all but plants
+            var labels = new List<(float2 at, int id)>();
+            if (pieces != null)
+            {
+                foreach (var p in pieces)
+                    if (p.Kind == AiPieceKind.Path && p.Points != null)
+                    {
+                        float half = p.NetRole == NetRole.PathwayWide ? 3f : 2f;
+                        for (int k = 0; k + 1 < p.Points.Length; k++)
+                        {
+                            int steps = math.max(2, (int)math.ceil(math.distance(p.Points[k], p.Points[k + 1]) / (mpp * 0.75f)));
+                            for (int t = 0; t <= steps; t++) Disc(math.lerp(p.Points[k], p.Points[k + 1], t / (float)steps), half, new float3(0.93f, 0.82f, 0.60f));
+                        }
+                        labels.Add((p.Points[0], p.Id));
+                    }
+                foreach (var p in pieces)
+                {
+                    if (p.Kind != AiPieceKind.Object) continue;
+                    float r = radius != null ? radius(p) : 1f;
+                    bool plant = p.Role == ObjectRole.Tree || p.Role == ObjectRole.Bush;
+                    var c = p.Role == ObjectRole.Tree ? new float3(0.10f, 0.45f, 0.12f) : p.Role == ObjectRole.Bush ? new float3(0.05f, 0.30f, 0.08f) : new float3(0.95f, 0.50f, 0.05f);
+                    Disc(p.Position, math.max(0.6f, plant ? r * 0.6f : r), c);
+                    if (!plant) labels.Add((p.Position, p.Id));
+                }
+            }
+
             // the selection's outline: white with a dark edge
             for (int k = 0; k < s.Ring.Length; k++)
             {
@@ -159,6 +185,12 @@ namespace Placemaker.Core.Ai
             {
                 int y = (int)((lz + lo.y - o.y) / mpp);
                 Text(px, w, h, 3, y + 3, ((int)lz).ToString(), scale);
+            }
+
+            foreach (var (at, id) in labels)
+            {
+                var q = Px(at);
+                Text(px, w, h, q.x + 2, q.y + 2, id.ToString(), math.max(1, scale - 1));
             }
 
             var rgba = new byte[w * h * 4];

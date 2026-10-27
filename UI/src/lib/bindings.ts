@@ -9,7 +9,7 @@ import { useMemo } from "react";
 import { bindValue, trigger, useValue, ValueBinding } from "cs2/api";
 import {
     AssetLists, Catalog, DesignState, FeatureFit, GROUP, ManagedGroup, Stage, StepView, Summary, ToolState, Triggers, Values,
-    AreaMode, BrushShape, SettingValue, BrushRules, BucketWalls, LocText, NetLegendEntry, ResolvedAsset, LegendEntry, SitePlanView,
+    AreaMode, BrushShape, SettingValue, BrushRules, BucketWalls, LocText, NetLegendEntry, ResolvedAsset, LegendEntry, SitePlanView, AiView,
 } from "../contract";
 
 const LOG = "[Placemaker]";
@@ -31,6 +31,7 @@ export const bindings = {
     assets: bindRaw(Values.assets),
     managed: bindRaw(Values.managed),
     sitePlan: bindRaw(Values.sitePlan),
+    ai: bindRaw(Values.ai),
 };
 
 const NULL_BINDING: ValueBinding<unknown> = {
@@ -319,6 +320,20 @@ export function normalizeSitePlan(raw: unknown): SitePlanView | null {
 
 export const useSitePlan = () => useBound(bindings.sitePlan, normalizeSitePlan);
 
+function normalizeAi(raw: unknown): AiView | null {
+    if (raw == null) return null;
+    try {
+        const v = (typeof raw === "string" ? JSON.parse(raw) : raw) as AiView | null;
+        if (!v || typeof v !== "object") return null;
+        return { ...v, lines: Array.isArray(v.lines) ? v.lines : [], stepArgs: Array.isArray(v.stepArgs) ? v.stepArgs : [] };
+    } catch {
+        return null;
+    }
+}
+
+/** The AI category's chat; null while the AI builder option is off. */
+export const useAi = () => useBound(bindings.ai, normalizeAi);
+
 // ───────────── triggers ─────────────
 
 function fire(name: string, ...args: unknown[]) {
@@ -374,6 +389,9 @@ export const act = {
     overrideRegion: (parentPath: string, regionKey: string, layerId: string) =>
         fire(Triggers.overrideRegion, parentPath, regionKey, layerId),
     setValue: (path: string, id: string, v: SettingValue) => fire(Triggers.setValue, path, id, json(v)),
+    aiSend: (text: string) => fire(Triggers.aiSend, text),
+    aiStop: () => fire(Triggers.aiStop),
+    aiReset: () => fire(Triggers.aiReset),
     previewValue: (path: string, id: string, v: SettingValue) => fire(Triggers.previewValue, path, id, json(v)),
     endPreview: () => fire(Triggers.endPreview),
     resetStep: (path: string) => fire(Triggers.resetStep, path),

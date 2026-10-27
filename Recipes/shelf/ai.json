@@ -1,0 +1,13 @@
+{
+  "_about": "Make-row category 'AI' (docs/AI-BUILDER.md): the AI builder, one type with no styles. Shown only while the option 'AI builder (experimental)' is on (PlacemakerUISystem.PushCatalog).",
+  "id": "ai",
+  "name": "AI",
+  "order": 20,
+  "hidden": false,
+  "groups": [
+    "ai"
+  ],
+  "types": [],
+  "hiddenTypes": [],
+  "hiddenStyles": {}
+}

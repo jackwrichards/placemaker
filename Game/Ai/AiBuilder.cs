@@ -35,7 +35,7 @@ namespace Placemaker.Game.Ai
         public const string DefaultModel = "anthropic/claude-sonnet-5.5";
 
         /// <summary>The key: the setting, else %USERPROFILE%\.placemaker\ai-key.txt (for test games). Never logged.</summary>
-        private static string Key(PlacemakerSettings s, out string from)
+        internal static string Key(PlacemakerSettings s, out string from)
         {
             from = "the setting";
             var k = s?.AiKey?.Trim();
@@ -105,7 +105,7 @@ namespace Placemaker.Game.Ai
                     File.WriteAllBytes(Path.Combine(folder, "map.png"), png);
                     Mod.Log.Info($"Placemaker AI: brief of the selection ({briefText.Length} chars, map {pic.W}x{pic.H} px, {input.Nets.Count} nets, {input.Buildings.Count} building quads): capture {captureMs} ms on the main thread, brief and map {sw2.ElapsedMilliseconds} ms on a worker -> {folder}");
 
-                    var body = AiClient.Body(model, AiPrompts.System, briefText, Convert.ToBase64String(png), 2000);
+                    var body = AiClient.Body(model, AiPrompts.System, briefText, Convert.ToBase64String(png), 8000);
                     var saved = (JObject)body.DeepClone();
                     foreach (var c in saved["messages"][1]["content"].Where(c => (string)c["type"] == "image_url").ToList())
                         c["image_url"]["url"] = "(map.png)";
@@ -121,9 +121,10 @@ namespace Placemaker.Game.Ai
                     {
                         ["model"] = r.Model, ["endpoint"] = endpoint, ["prompt"] = AiPrompts.Version, ["status"] = r.Status, ["error"] = r.Error,
                         ["ms"] = r.Ms, ["promptTokens"] = r.PromptTokens, ["replyTokens"] = r.ReplyTokens, ["costUsd"] = r.Cost,
+                        ["finish"] = r.FinishReason, ["reasoningChars"] = r.Reasoning?.Length ?? 0,
                     };
                     File.WriteAllText(Path.Combine(folder, "call.json"), call.ToString());
-                    if (r.Error != null) File.WriteAllText(Path.Combine(folder, "response.json"), r.RawResponse ?? "");
+                    File.WriteAllText(Path.Combine(folder, "response.json"), r.RawResponse ?? "");
                 }
                 catch (Exception e) { Mod.Log.Warn("Placemaker AI: saving the reply failed: " + e.Message); }
                 LastReply = r;
@@ -138,7 +139,7 @@ namespace Placemaker.Game.Ai
         }
 
         /// <summary>Main thread: the ground on the heightmap's own spacing, the water, the roads and buildings around the selection.</summary>
-        private static SiteBriefInput Capture(World world, PlacemakerToolSystem tool, float2[] ring, string prompt)
+        internal static SiteBriefInput Capture(World world, PlacemakerToolSystem tool, float2[] ring, string prompt)
         {
             var (origin, cell, nx, nz) = SiteBrief.GroundGrid(ring, margin: 30f);
             var g = new BriefGround { Origin = origin, Cell = cell, Nx = nx, Nz = nz, Height = new float[nx * nz] };

@@ -1,0 +1,105 @@
+@use "../styles/tokens" as *;
+
+// AI builder (AiChat.tsx): the prompt box, the conversation, the working line.
+
+.card {
+    @include col;
+    margin-bottom: 6rem;
+}
+
+.prompt {
+    @include row;
+    padding: 4rem 4rem 4rem 8rem;
+    border-radius: $radius;
+    background-color: $c-surface;
+    @include border(1rem, $c-line-strong);
+}
+
+.input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 22rem;
+    margin-right: 6rem;
+    padding: 0;
+    @include border(0, transparent);
+    background-color: transparent;
+    font-size: $fs;
+    font-family: var(--fontFamily);
+    color: #ffffff;
+    outline-width: 0;
+}
+
+.hint {
+    margin-top: 6rem;
+    font-size: $fs-s;
+    color: $c-text-faint;
+}
+
+.lines {
+    @include col;
+    margin-top: 6rem;
+    max-height: 320rem;
+    overflow-y: auto;
+}
+
+.line {
+    margin-top: 4rem;
+    padding: 5rem 8rem;
+    border-radius: $radius;
+    font-size: $fs;
+    color: #ffffff;
+}
+
+.you {
+    align-self: flex-end;
+    max-width: 85%;
+    background-color: $c-surface-strong;
+}
+
+.ai {
+    align-self: flex-start;
+    max-width: 95%;
+    background-color: $c-surface;
+}
+
+.error {
+    background-color: rgba(255, 107, 91, 0.16);
+    color: $c-danger;
+}
+
+.step {
+    margin-top: 2rem;
+    padding: 0 8rem;
+    font-size: $fs-s;
+    color: $c-text-faint;
+}
+
+.working {
+    @include row;
+    margin-top: 6rem;
+}
+
+.dot {
+    width: 8rem;
+    height: 8rem;
+    margin-right: 6rem;
+    border-radius: 50%;
+    background-color: $c-info;
+}
+
+.workingText {
+    flex: 1 1 auto;
+    font-size: $fs-s;
+    color: $c-text-dim;
+}
+
+.footer {
+    @include row;
+    margin-top: 6rem;
+}
+
+.meta {
+    flex: 1 1 auto;
+    font-size: $fs-s;
+    color: $c-text-faint;
+}

@@ -310,6 +310,7 @@ namespace Placemaker.Game.Tool
             UpdateLivePolish();
             UpdateGardenPreview();
             FramePart("Polish, gardens");
+            AiFrame();
             UpdatePlanning();
             FramePart("UpdatePlanning (site capture)");
             TickPlanningProgress();

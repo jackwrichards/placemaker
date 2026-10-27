@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -22,6 +23,8 @@ namespace Placemaker.Game.Ai
         public double? Cost;             // USD, when the endpoint reports it (OpenRouter's usage accounting)
         public long Ms;
         public string RawResponse = "";
+        public string Reasoning = "";
+        public string FinishReason;
     }
 
     public static class AiClient
@@ -53,6 +56,15 @@ namespace Placemaker.Game.Ai
             };
         }
 
+        /// <summary>A message content as text: a string, or the text parts of an array of parts.</summary>
+        public static string ContentText(JToken c)
+        {
+            if (c == null || c.Type == JTokenType.Null) return "";
+            if (c.Type == JTokenType.String) return (string)c;
+            if (c is JArray a) return string.Join("\n", a.Select(p => p.Type == JTokenType.String ? (string)p : (string)p["text"] ?? "").Where(t => t.Length > 0));
+            return c.ToString();
+        }
+
         public static async Task<AiReply> Send(string endpoint, string key, JObject body, CancellationToken cancel)
         {
             var r = new AiReply { Model = (string)body["model"] };
@@ -77,7 +89,9 @@ namespace Placemaker.Game.Ai
                 else if (r.Status < 200 || r.Status >= 300) r.Error = "HTTP " + r.Status;
                 if (j != null)
                 {
-                    r.Text = (string)j["choices"]?[0]?["message"]?["content"] ?? "";
+                    r.Text = ContentText(j["choices"]?[0]?["message"]?["content"]);
+                    r.Reasoning = ContentText(j["choices"]?[0]?["message"]?["reasoning"]);
+                    r.FinishReason = (string)j["choices"]?[0]?["finish_reason"];
                     r.Model = (string)j["model"] ?? r.Model;
                     r.PromptTokens = (int?)j["usage"]?["prompt_tokens"] ?? 0;
                     r.ReplyTokens = (int?)j["usage"]?["completion_tokens"] ?? 0;

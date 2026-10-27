@@ -710,8 +710,25 @@ export const Values = {
   summary: "summary",       // Summary
   assets: "assets",         // AssetLists
   managed: "managed",       // ManagedGroup | null
+  ai: "ai",                 // AiView | null (null while the AI builder option is off; docs/AI-BUILDER.md)
   sitePlan: "sitePlan",     // SitePlanView | null (additive, sketch study)
 } as const;
+
+// ─────────────────────────── AI builder (docs/AI-BUILDER.md) ───────────────────────────
+
+/** One chat line: the player's or the AI's words as written, or a step line as a localisation key. */
+export interface AiLine { who: "you" | "ai" | "step" | "error"; text?: string; key?: string; args?: (string | number)[] }
+
+export interface AiView {
+  status: "idle" | "working" | "waiting" | "done" | "failed" | "stopped";
+  busy: boolean;
+  step: string;                    // localisation key of what it is doing now ("" = nothing)
+  stepArgs: (string | number)[];
+  cost: number;                    // USD so far in this session
+  tokens: number;
+  pieces: number;                  // what it has placed
+  lines: AiLine[];
+}
 
 // ─────────────────────────── Triggers (UI → C#) ───────────────────────────
 // Arguments are primitives; structured args are JSON strings.
@@ -787,6 +804,9 @@ export const Triggers = {
   savePresetAs: "savePresetAs",             // (path: string, name: string) — new custom preset from the step's current settings+features; becomes active
   renamePreset: "renamePreset",             // (layerId: string, presetId: string, name: string) — custom only
   deletePreset: "deletePreset",             // (layerId: string, presetId: string) — custom: delete; overridden built-in: reset to default
+  aiSend: "aiSend",                         // (text: string) — the AI category: the player's message (starts the session for the selection, or continues it)
+  aiStop: "aiStop",                         // () — stop the AI's work
+  aiReset: "aiReset",                       // () — forget the conversation and what the AI placed
   exportPresets: "exportPresets",           // () — (re)write presets.json, sets design.presetsFile
   // s17 park stats (Review). Per build: kept with the recipe (undoable) and the build's receipt; never re-plans.
   setParkStat: "setParkStat",               // (id: ParkStatId, valueJson: string) — override one stat
