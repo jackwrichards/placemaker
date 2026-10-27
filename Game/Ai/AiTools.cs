@@ -50,7 +50,7 @@ namespace Placemaker.Game.Ai
                 new JObject
                 {
                     ["query"] = Str("words, e.g. 'oak tree', 'modern bench', 'street lamp', 'fountain'"),
-                    ["category"] = new JObject { ["type"] = "string", ["description"] = "optional: tree, bush, hedge, flowerbed, planter, bench, lamp, bin, centerpiece, playground, sports, kiosk, shelter, picnic, decoration, fence, bollard, rock, decal, stage, lookout, or object (everything not sorted into these)" },
+                    ["category"] = new JObject { ["type"] = "string", ["description"] = "optional: tree, bush, hedge, flowerbed, planter, bench, lamp, bin, centerpiece, playground, sports, kiosk, shelter, picnic, decoration, fence, bollard, rock, decal, stage, lookout, surface (areas for place_surface), or object (everything not sorted into these)" },
                     ["limit"] = new JObject { ["type"] = "integer", ["description"] = "how many (default 25, max 60)" },
                 }, "query"),
             Fn("place_objects", "Place objects (trees, bushes, benches, lamps, props). Each sits on the ground unless elevation is given. Answers with the ids and the problems each one caused.",
@@ -92,6 +92,29 @@ namespace Placemaker.Game.Ai
                     ["clumps"] = Num("0 = spread evenly, up to 1 = strongly in patches"),
                     ["seed"] = new JObject { ["type"] = "integer", ["description"] = "change it for a different arrangement" },
                 }, "assets", "count", "spacing"),
+            Fn("shape_ground", "Shape the terrain inside a polygon: level it to a height, raise only (fill up to it), lower only (dig down to it), or slope it through a height per corner. Heights are metres above sea level (the brief's heights; the map's contour lines). Everything placed sits on the new ground. The answer says the ground before (lowest, highest inside) and the steps it makes at its edges, so you can soften them with sloped patches around it.",
+                new JObject
+                {
+                    ["polygon"] = new JObject { ["type"] = "array", ["description"] = "[[x, z], ...] local metres", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
+                    ["mode"] = new JObject { ["type"] = "string", ["enum"] = new JArray("level", "raise", "lower"), ["description"] = "level (default): exactly to height; raise: only where the ground is lower; lower: only where it is higher" },
+                    ["height"] = Num("target height, m above sea level"),
+                    ["corner_heights"] = new JObject { ["type"] = "array", ["description"] = "optional: one height per polygon corner for a slope (the ground becomes the surface through them)", ["items"] = new JObject { ["type"] = "number" } },
+                }, "polygon"),
+            Fn("paint_ground", "Paint the ground's texture inside a polygon with one of the map's ground paints (listed in the brief: e.g. dry grass, lush grass, dirt, sand; 0 erases). Soft edge and edge noise make it look natural. Permanent in the city, like terrain shaping.",
+                new JObject
+                {
+                    ["polygon"] = new JObject { ["type"] = "array", ["description"] = "[[x, z], ...] local metres", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
+                    ["layer"] = new JObject { ["type"] = "integer", ["description"] = "1-4: the map's ground paints from the brief; 0 = erase" },
+                    ["strength"] = Num("0-1 (default 1)"),
+                    ["feather"] = Num("soft edge, metres (default 3)"),
+                    ["noise"] = Num("ragged edge, metres (default 0)"),
+                }, "polygon", "layer"),
+            Fn("place_surface", "Lay a surface (an area of paving, gravel, grass, sand... from search_assets with category surface) inside a polygon, e.g. a plaza, a terrace, a sandpit. The polygon must be simple; keep it off roads.",
+                new JObject
+                {
+                    ["polygon"] = new JObject { ["type"] = "array", ["description"] = "[[x, z], ...] local metres", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
+                    ["asset"] = Str("surface asset id"),
+                }, "polygon", "asset"),
             Fn("remove", "Remove placed objects or paths by id.", new JObject { ["ids"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "integer" } } }, "ids"),
             Fn("list_placed", "List everything placed so far (id, asset, position, yaw).", new JObject()),
             Fn("check", "Check everything placed: overlaps, outside the selection, on roads or buildings, dead-end paths.", new JObject()),
@@ -108,6 +131,9 @@ namespace Placemaker.Game.Ai
                 case "search_assets": return ("Placemaker.Ai.Doing.Search", new object[] { (string)args["query"] ?? "" });
                 case "place_objects": return ("Placemaker.Ai.Doing.Place", new object[] { (args["objects"] as JArray)?.Count ?? 0 });
                 case "place_path": return ("Placemaker.Ai.Doing.Path", new object[0]);
+                case "shape_ground": return ("Placemaker.Ai.Doing.Shape", new object[0]);
+                case "paint_ground": return ("Placemaker.Ai.Doing.Paint", new object[0]);
+                case "place_surface": return ("Placemaker.Ai.Doing.Surface", new object[0]);
                 case "scatter_objects": return ("Placemaker.Ai.Doing.Place", new object[] { (int?)args["count"] ?? 0 });
                 case "remove": return ("Placemaker.Ai.Doing.Remove", new object[] { (args["ids"] as JArray)?.Count ?? 0 });
                 case "check": return ("Placemaker.Ai.Doing.Check", new object[0]);
@@ -143,6 +169,9 @@ namespace Placemaker.Game.Ai
                     case "search_assets": return Search(args, assets);
                     case "place_objects": return PlaceObjects(args, site);
                     case "place_path": return PlacePath(args, site);
+                    case "shape_ground": return ShapeGround(args, site);
+                    case "paint_ground": return PaintGround(args, site);
+                    case "place_surface": return PlaceSurface(args, site);
                     case "scatter_objects": return Scatter(args, site);
                     case "remove":
                     {
@@ -162,7 +191,8 @@ namespace Placemaker.Game.Ai
                                 var l = site.Local(p.Position);
                                 sb.AppendLine($"#{p.Id} {p.Asset} ({F(l.x)},{F(l.y)}) yaw {F(math.degrees(p.Yaw))}{(p.Elevation != 0 ? " elev " + F(p.Elevation) : "")}");
                             }
-                            else sb.AppendLine($"#{p.Id} path{(p.NetRole == NetRole.PathwayWide ? " (wide)" : "")} " + string.Join(" ", p.Points.Select(q => { var l = site.Local(q); return $"({F(l.x)},{F(l.y)})"; })));
+                            else if (p.Kind == AiPieceKind.Path) sb.AppendLine($"#{p.Id} path{(p.NetRole == NetRole.PathwayWide ? " (wide)" : "")} " + string.Join(" ", p.Points.Select(q => { var l = site.Local(q); return $"({F(l.x)},{F(l.y)})"; })));
+                            else sb.AppendLine($"#{p.Id} {p.Kind.ToString().ToLowerInvariant()}{(p.Kind == AiPieceKind.Surface ? " " + p.Asset : p.Kind == AiPieceKind.Paint ? " layer " + p.Layer : " " + p.Shape.ToString().ToLowerInvariant() + (p.CornerHeights != null ? " sloped" : " to " + F(p.Height) + " m"))} " + string.Join(" ", p.Ring.Select(q => { var l = site.Local(q); return $"({F(l.x)},{F(l.y)})"; })));
                         }
                         return new Result { Text = sb.ToString() };
                     }
@@ -294,6 +324,108 @@ namespace Placemaker.Game.Ai
             if (skipped.Count > 0) sb.AppendLine("points skipped: " + string.Join(", ", skipped.Select(kv => kv.Value + " " + kv.Key)));
             if (unknown.Count > 0) sb.AppendLine("unknown ids ignored: " + string.Join(", ", unknown));
             return new Result { Text = sb.ToString(), LineKey = "Placemaker.Ai.Line.Placed", LineArgs = new object[] { placed.Count, 0 } };
+        }
+
+        private static float2[] Polygon(JObject args, AiSite site) =>
+            (args["polygon"] as JArray)?.Select(t => site.World(new float2((float)t[0], (float)t[1]))).ToArray();
+
+        private static string Problems(AiSite site, AiPiece p)
+        {
+            var pr = AiChecks.Problems(site, p, AiPlan.Current.Snapshot());
+            return pr.Count == 0 ? "no problems" : string.Join("; ", pr);
+        }
+
+        private static Result ShapeGround(JObject args, AiSite site)
+        {
+            var ring = Polygon(args, site);
+            if (ring == null || ring.Length < 3) return new Result { Text = "a polygon needs at least 3 corners" };
+            if (Placemaker.Core.Geometry.Poly.SignedArea(ring) < 0) Array.Reverse(ring);
+            string mode = ((string)args["mode"] ?? "level").ToLowerInvariant();
+            var corners = (args["corner_heights"] as JArray)?.Select(t => (float)t).ToArray();
+            if (corners != null && corners.Length != ring.Length) return new Result { Text = $"corner_heights has {corners.Length} heights for {ring.Length} corners" };
+            if (corners != null && Placemaker.Core.Geometry.Poly.SignedArea((args["polygon"] as JArray).Select(t => new float2((float)t[0], (float)t[1])).ToArray()) < 0) Array.Reverse(corners);
+            float? height = (float?)args["height"];
+            if (corners == null && height == null) return new Result { Text = "give height, or corner_heights for a slope" };
+            var p = new AiPiece
+            {
+                Kind = AiPieceKind.Ground, Ring = ring, CornerHeights = corners, Height = height ?? corners.Average(),
+                Shape = mode == "raise" ? TerraformKind.Raise : mode == "lower" ? TerraformKind.Lower : TerraformKind.Level,
+            };
+            // the ground before, inside and along the edge (the steps it makes)
+            float2 lo = new float2(float.MaxValue), hi = new float2(float.MinValue);
+            foreach (var q in ring) { lo = math.min(lo, q); hi = math.max(hi, q); }
+            float gmin = float.MaxValue, gmax = float.MinValue;
+            for (float x = lo.x; x <= hi.x; x += 2f)
+                for (float z = lo.y; z <= hi.y; z += 2f)
+                {
+                    var q = new float2(x, z);
+                    if (!Placemaker.Core.Geometry.Poly.Contains(ring, q)) continue;
+                    float g = site.Ground(q);
+                    gmin = math.min(gmin, g); gmax = math.max(gmax, g);
+                }
+            float maxStep = 0f; float2 stepAt = ring[0];
+            for (int k = 0; k < ring.Length; k++)
+            {
+                var a = ring[k]; var b = ring[(k + 1) % ring.Length];
+                float ta = corners != null ? corners[k] : p.Height, tb = corners != null ? corners[(k + 1) % ring.Length] : p.Height;
+                for (int i = 0; i <= 8; i++)
+                {
+                    var q = math.lerp(a, b, i / 8f);
+                    float target = math.lerp(ta, tb, i / 8f), g = site.Ground(q);
+                    float step = p.Shape == TerraformKind.Raise ? math.max(0f, target - g) : p.Shape == TerraformKind.Lower ? math.max(0f, g - target) : math.abs(target - g);
+                    if (step > maxStep) { maxStep = step; stepAt = q; }
+                }
+            }
+            AiPlan.Current.Add(p);
+            var at = site.Local(stepAt);
+            string ground = gmin <= gmax ? $"ground before: {F(gmin)} to {F(gmax)} m" : "ground before: unknown";
+            return new Result
+            {
+                Text = $"ground #{p.Id} ({mode}{(corners != null ? ", sloped" : $" to {F(p.Height)} m")}): {ground}; largest step at its edge {F(maxStep)} m near ({F(at.x)},{F(at.y)}); {Problems(site, p)}",
+                LineKey = "Placemaker.Ai.Line.Shape", LineArgs = new object[] { (int)math.round(maxStep * 10f) / 10f },
+            };
+        }
+
+        private static Result PaintGround(JObject args, AiSite site)
+        {
+            var ring = Polygon(args, site);
+            if (ring == null || ring.Length < 3) return new Result { Text = "a polygon needs at least 3 corners" };
+            if (Placemaker.Core.Geometry.Poly.SignedArea(ring) < 0) Array.Reverse(ring);
+            int layer = math.clamp((int?)args["layer"] ?? 1, 0, 4);
+            var p = new AiPiece
+            {
+                Kind = AiPieceKind.Paint, Ring = ring, Layer = layer, Strength = math.saturate((float?)args["strength"] ?? 1f),
+                Feather = math.max(0f, (float?)args["feather"] ?? 3f), Noise = math.max(0f, (float?)args["noise"] ?? 0f),
+            };
+            AiPlan.Current.Add(p);
+            float area = math.abs(Placemaker.Core.Geometry.Poly.SignedArea(ring));
+            return new Result { Text = $"paint #{p.Id}, layer {layer}, {F(area)} m²; {Problems(site, p)}", LineKey = "Placemaker.Ai.Line.Paint", LineArgs = new object[] { (int)area } };
+        }
+
+        public static SurfaceRole SurfaceRoleFor(string category)
+        {
+            switch (category)
+            {
+                case AssetCategories.SurfaceGrass: return SurfaceRole.Grass;
+                case AssetCategories.SurfaceAsphalt: return SurfaceRole.Asphalt;
+                case AssetCategories.SurfaceWater: return SurfaceRole.Water;
+                case AssetCategories.SurfacePaving: return SurfaceRole.Paving;
+                default: return category != null && category.StartsWith("surface.") && category != AssetCategories.SurfacePaving ? SurfaceRole.Ground : SurfaceRole.Paving;
+            }
+        }
+
+        private static Result PlaceSurface(JObject args, AiSite site)
+        {
+            var ring = Polygon(args, site);
+            if (ring == null || ring.Length < 3) return new Result { Text = "a polygon needs at least 3 corners" };
+            if (Placemaker.Core.Geometry.Poly.SignedArea(ring) < 0) Array.Reverse(ring);
+            string asset = (string)args["asset"] ?? "";
+            if (!site.Assets.TryGetValue(asset, out var a) || a.Category == null || !a.Category.StartsWith("surface"))
+                return new Result { Text = $"refused '{asset}': not a surface asset (search_assets with category surface)" };
+            var p = new AiPiece { Kind = AiPieceKind.Surface, Ring = ring, Asset = asset, Category = a.Category, SurfaceRole = SurfaceRoleFor(a.Category) };
+            AiPlan.Current.Add(p);
+            float area = math.abs(Placemaker.Core.Geometry.Poly.SignedArea(ring));
+            return new Result { Text = $"surface #{p.Id} {asset}, {F(area)} m²; {Problems(site, p)}", LineKey = "Placemaker.Ai.Line.Surface", LineArgs = new object[] { (int)area } };
         }
 
         private static Result PlacePath(JObject args, AiSite site)

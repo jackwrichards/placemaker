@@ -161,6 +161,18 @@ namespace Placemaker.Game.Ai
                 if (any) g.Water = w;
             }
             var input = new SiteBriefInput { Ring = ring, Ground = g, Prompt = prompt };
+            // the map's four ground paints, named after their textures ("Grass_Dry_Temperate_01_Basecolor" -> "grass dry temperate")
+            var pal = site?.Terrain;
+            if (pal != null)
+            {
+                input.Paints = new string[5];
+                for (int i = 1; i <= 4; i++)
+                {
+                    var t = pal.Slots[i]?.Texture ?? "";
+                    t = System.Text.RegularExpressions.Regex.Replace(t, "_?(Basecolor|BaseColor|Diffuse|_\\d+)", "");
+                    input.Paints[i] = string.IsNullOrEmpty(t) ? null : t.Replace('_', ' ').Trim().ToLowerInvariant();
+                }
+            }
             if (site != null)
             {
                 input.Nets.AddRange(site.NearbyNets);

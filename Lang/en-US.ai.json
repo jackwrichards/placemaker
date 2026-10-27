@@ -26,5 +26,11 @@
   "Placemaker.Ai.Line.Wish": "Wish: {0}",
   "Placemaker.Ai.Line.Stopped": "Stopped",
   "Placemaker.Ai.Line.MaxSteps": "Paused after {0} steps: tell it to go on, or review",
-  "Placemaker.Ai.Line.NoKey": "No API key: Options, Placemaker, AI builder"
+  "Placemaker.Ai.Line.NoKey": "No API key: Options, Placemaker, AI builder",
+  "Placemaker.Ai.Doing.Shape": "Shaping the ground",
+  "Placemaker.Ai.Doing.Paint": "Painting the ground",
+  "Placemaker.Ai.Doing.Surface": "Laying a surface",
+  "Placemaker.Ai.Line.Shape": "Ground shaped (edge step {0} m)",
+  "Placemaker.Ai.Line.Paint": "Ground painted, {0} m²",
+  "Placemaker.Ai.Line.Surface": "Surface, {0} m²"
 }

@@ -26,5 +26,11 @@
   "Placemaker.Ai.Line.Wish": "Życzenie: {0}",
   "Placemaker.Ai.Line.Stopped": "Zatrzymano",
   "Placemaker.Ai.Line.MaxSteps": "Pauza po {0} krokach: powiedz, by kontynuowało, albo sprawdź",
-  "Placemaker.Ai.Line.NoKey": "Brak klucza API: Opcje, Placemaker, Budowniczy AI"
+  "Placemaker.Ai.Line.NoKey": "Brak klucza API: Opcje, Placemaker, Budowniczy AI",
+  "Placemaker.Ai.Doing.Shape": "Kształtuje teren",
+  "Placemaker.Ai.Doing.Paint": "Maluje grunt",
+  "Placemaker.Ai.Doing.Surface": "Kładzie nawierzchnię",
+  "Placemaker.Ai.Line.Shape": "Teren ukształtowany (uskok {0} m)",
+  "Placemaker.Ai.Line.Paint": "Grunt pomalowany, {0} m²",
+  "Placemaker.Ai.Line.Surface": "Nawierzchnia, {0} m²"
 }

@@ -42,6 +42,9 @@ namespace Placemaker.Core.Ai
         public List<Obstacle> Buildings = new List<Obstacle>();
         public Dictionary<string, AiAsset> Assets = new Dictionary<string, AiAsset>(StringComparer.Ordinal);
 
+        /// <summary>The ground height before anything the AI shaped (world xz -> m above sea level).</summary>
+        public Func<float2, float> Ground = _ => 0f;
+
         public float2 World(float2 local) => local + Origin;
         public float2 Local(float2 world) => world - Origin;
     }
@@ -122,6 +125,14 @@ namespace Placemaker.Core.Ai
                         }
                     }
             }
+            else if (p.Ring != null)
+            {
+                int outside = p.Ring.Count(q => !Poly.Contains(s.Ring, q) && Poly.DistanceToBoundary(s.Ring, q) > 1f);
+                if (outside > 0) list.Add($"{outside} of its {p.Ring.Length} corners are outside the selection");
+                if (p.Kind == AiPieceKind.Surface)
+                    foreach (var n in s.Nets)
+                        if (p.Ring.Any(q => NetDistance(n, q) < n.Width * 0.5f) || Poly.Contains(p.Ring, SiteBrief.Bez(n, 0.5f).xz)) { list.Add($"covers an existing {(n.Category == NetCategory.Road ? "road" : "path")}"); break; }
+            }
             else if (p.Points != null)
             {
                 // an end may reach just past the outline to meet a road there (an entrance)
@@ -159,8 +170,9 @@ namespace Placemaker.Core.Ai
             {
                 var pr = Problems(s, p, all);
                 if (pr.Count == 0) continue;
-                var at = p.Kind == AiPieceKind.Object ? s.Local(p.Position) : s.Local(p.Points[0]);
-                lines.Add($"#{p.Id} {(p.Kind == AiPieceKind.Object ? (string.IsNullOrEmpty(p.Asset) ? "auto " + p.Role : p.Asset) : "path")} at ({F(at.x)},{F(at.y)}): {string.Join("; ", pr)}");
+                var at = s.Local(p.Kind == AiPieceKind.Object ? p.Position : p.Points != null ? p.Points[0] : p.Ring != null ? p.Ring[0] : p.Position);
+                string what = p.Kind == AiPieceKind.Object ? (string.IsNullOrEmpty(p.Asset) ? "auto " + p.Role : p.Asset) : p.Kind.ToString().ToLowerInvariant();
+                lines.Add($"#{p.Id} {what} at ({F(at.x)},{F(at.y)}): {string.Join("; ", pr)}");
             }
             return lines;
         }

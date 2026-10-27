@@ -8,7 +8,7 @@ using Unity.Mathematics;
 
 namespace Placemaker.Core.Ai
 {
-    public enum AiPieceKind { Object = 0, Path = 1 }
+    public enum AiPieceKind { Object = 0, Path = 1, Ground = 2, Paint = 3, Surface = 4 }
 
     public sealed class AiPiece
     {
@@ -26,6 +26,18 @@ namespace Placemaker.Core.Ai
         /// <summary>World xz polyline (paths).</summary>
         public float2[] Points;
         public NetRole NetRole = NetRole.Pathway;
+
+        /// <summary>World xz polygon (ground shaping, paint, surfaces).</summary>
+        public float2[] Ring;
+        /// <summary>Ground: level / raise only / lower only, to <see cref="Height"/> (m above sea level), or a slope through
+        /// <see cref="CornerHeights"/> (one per ring corner) when set.</summary>
+        public TerraformKind Shape = TerraformKind.Level;
+        public float Height;
+        public float[] CornerHeights;
+        /// <summary>Paint: the map's paint layer 1..4 (0 = erase), strength 0..1, soft edge and edge noise in metres.</summary>
+        public int Layer = 1;
+        public float Strength = 1f, Feather = 3f, Noise;
+        public SurfaceRole SurfaceRole = SurfaceRole.Paving;
 
         public AiPiece Copy() => (AiPiece)MemberwiseClone();
     }

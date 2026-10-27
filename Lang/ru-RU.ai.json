@@ -26,5 +26,11 @@
   "Placemaker.Ai.Line.Wish": "Пожелание: {0}",
   "Placemaker.Ai.Line.Stopped": "Остановлено",
   "Placemaker.Ai.Line.MaxSteps": "Пауза после {0} шагов: скажите продолжать или проверьте",
-  "Placemaker.Ai.Line.NoKey": "Нет ключа API: Настройки, Placemaker, ИИ-строитель"
+  "Placemaker.Ai.Line.NoKey": "Нет ключа API: Настройки, Placemaker, ИИ-строитель",
+  "Placemaker.Ai.Doing.Shape": "Формирует рельеф",
+  "Placemaker.Ai.Doing.Paint": "Красит землю",
+  "Placemaker.Ai.Doing.Surface": "Кладёт покрытие",
+  "Placemaker.Ai.Line.Shape": "Рельеф изменён (перепад у края {0} м)",
+  "Placemaker.Ai.Line.Paint": "Земля покрашена, {0} м²",
+  "Placemaker.Ai.Line.Surface": "Покрытие, {0} м²"
 }

@@ -26,5 +26,11 @@
   "Placemaker.Ai.Line.Wish": "요청: {0}",
   "Placemaker.Ai.Line.Stopped": "중지됨",
   "Placemaker.Ai.Line.MaxSteps": "{0}단계 후 일시 중지: 계속하라고 하거나 검토하세요",
-  "Placemaker.Ai.Line.NoKey": "API 키 없음: 옵션, Placemaker, AI 빌더"
+  "Placemaker.Ai.Line.NoKey": "API 키 없음: 옵션, Placemaker, AI 빌더",
+  "Placemaker.Ai.Doing.Shape": "지형 다듬는 중",
+  "Placemaker.Ai.Doing.Paint": "지면 칠하는 중",
+  "Placemaker.Ai.Doing.Surface": "표면 까는 중",
+  "Placemaker.Ai.Line.Shape": "지형 다듬음 (가장자리 단차 {0} m)",
+  "Placemaker.Ai.Line.Paint": "지면 칠함, {0} m²",
+  "Placemaker.Ai.Line.Surface": "표면, {0} m²"
 }

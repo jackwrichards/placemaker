@@ -33,6 +33,8 @@ namespace Placemaker.Core.Ai
         public List<NearbyNet> Nets = new List<NearbyNet>();
         public List<Obstacle> Buildings = new List<Obstacle>();
         public string Prompt = "";
+        /// <summary>The map's ground paints, index 1..4 (null = unknown): what paint_ground layer N looks like.</summary>
+        public string[] Paints;
         /// <summary>Metres per pixel of the map that goes with the brief (0 = no map).</summary>
         public float MapMetresPerPixel;
     }
@@ -173,6 +175,12 @@ namespace Placemaker.Core.Ai
                 sb.AppendLine($"B{++n}: {F(w)} x {F(d)} m centred at {P(L(c))}, turned {F(deg, 0)}°, {where}; corners {P(L(b.A))} {P(L(b.B))} {P(L(b.C))} {P(L(b.D))}.");
             }
 
+            sb.AppendLine();
+            sb.AppendLine("## Ground paints of this map (paint_ground layer)");
+            for (int i = 1; i <= 4; i++)
+                sb.AppendLine($"{i}: {(s.Paints != null && i < s.Paints.Length && !string.IsNullOrEmpty(s.Paints[i]) ? s.Paints[i] : DefaultPaint(i))}");
+            sb.AppendLine("0: erase (back to the map's natural grass, dirt and rock)");
+
             if (s.MapMetresPerPixel > 0f)
             {
                 sb.AppendLine();
@@ -187,6 +195,8 @@ namespace Placemaker.Core.Ai
             sb.AppendLine(string.IsNullOrWhiteSpace(s.Prompt) ? "(nothing written)" : s.Prompt.Trim());
             return sb.ToString();
         }
+
+        public static string DefaultPaint(int i) => i == 1 ? "dry grass" : i == 2 ? "lush grass" : i == 3 ? "dirt" : i == 4 ? "sand" : "erase";
 
         public static float3 Bez(NearbyNet n, float t)
         {

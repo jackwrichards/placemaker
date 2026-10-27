@@ -26,5 +26,11 @@
   "Placemaker.Ai.Line.Wish": "願望：{0}",
   "Placemaker.Ai.Line.Stopped": "已停止",
   "Placemaker.Ai.Line.MaxSteps": "{0} 步後暫停：讓它繼續，或進行審核",
-  "Placemaker.Ai.Line.NoKey": "沒有 API 金鑰：選項、Placemaker、AI 建造者"
+  "Placemaker.Ai.Line.NoKey": "沒有 API 金鑰：選項、Placemaker、AI 建造者",
+  "Placemaker.Ai.Doing.Shape": "正在塑造地形",
+  "Placemaker.Ai.Doing.Paint": "正在繪製地面",
+  "Placemaker.Ai.Doing.Surface": "正在鋪設地面",
+  "Placemaker.Ai.Line.Shape": "地形已塑造（邊緣落差 {0} 公尺）",
+  "Placemaker.Ai.Line.Paint": "地面已繪製，{0} 平方公尺",
+  "Placemaker.Ai.Line.Surface": "鋪面，{0} 平方公尺"
 }

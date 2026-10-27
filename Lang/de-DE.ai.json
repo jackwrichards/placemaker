@@ -26,5 +26,11 @@
   "Placemaker.Ai.Line.Wish": "Wunsch: {0}",
   "Placemaker.Ai.Line.Stopped": "Gestoppt",
   "Placemaker.Ai.Line.MaxSteps": "Pause nach {0} Schritten: sag ihr, sie soll weitermachen, oder prüfe",
-  "Placemaker.Ai.Line.NoKey": "Kein API-Schlüssel: Optionen, Placemaker, KI-Baumeister"
+  "Placemaker.Ai.Line.NoKey": "Kein API-Schlüssel: Optionen, Placemaker, KI-Baumeister",
+  "Placemaker.Ai.Doing.Shape": "Formt das Gelände",
+  "Placemaker.Ai.Doing.Paint": "Bemalt den Boden",
+  "Placemaker.Ai.Doing.Surface": "Legt eine Fläche an",
+  "Placemaker.Ai.Line.Shape": "Gelände geformt (Kante {0} m)",
+  "Placemaker.Ai.Line.Paint": "Boden bemalt, {0} m²",
+  "Placemaker.Ai.Line.Surface": "Fläche, {0} m²"
 }

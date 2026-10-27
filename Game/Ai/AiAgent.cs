@@ -160,7 +160,7 @@ namespace Placemaker.Game.Ai
                 {
                     s_brief = AiBuilder.Capture(world, tool, ring, text);
                     var (lo, _) = SiteBrief.Box(ring);
-                    s_site = new AiSite { Ring = ring, Origin = lo, Nets = s_brief.Nets, Buildings = s_brief.Buildings };
+                    s_site = new AiSite { Ring = ring, Origin = lo, Nets = s_brief.Nets, Buildings = s_brief.Buildings, Ground = GroundOf(s_brief.Ground) };
                     s_assets = AssetIndex();
                     foreach (var a in s_assets) if (!s_site.Assets.ContainsKey(a.Id)) s_site.Assets[a.Id] = a;
                     s_folder = Path.Combine(ModPaths.DataFolder, "ai", DateTime.Now.ToString("yyyyMMdd-HHmmss"));
@@ -282,6 +282,15 @@ namespace Placemaker.Game.Ai
             SayKey("Placemaker.Ai.Line.MaxSteps", MaxTurns);
         }
 
+        /// <summary>Bilinear height from the brief's ground grid (world xz).</summary>
+        private static Func<float2, float> GroundOf(BriefGround g) => p =>
+        {
+            float fx = (p.x - g.Origin.x) / g.Cell - 0.5f, fz = (p.y - g.Origin.y) / g.Cell - 0.5f;
+            int i = (int)math.floor(fx), j = (int)math.floor(fz);
+            float tx = fx - i, tz = fz - j;
+            return math.lerp(math.lerp(g.HeightAt(i, j), g.HeightAt(i + 1, j), tx), math.lerp(g.HeightAt(i, j + 1), g.HeightAt(i + 1, j + 1), tx), tz);
+        };
+
         private static string Locale()
         {
             try { return global::Game.SceneFlow.GameManager.instance?.localizationManager?.activeLocaleId ?? "en-US"; }
@@ -332,7 +341,7 @@ namespace Placemaker.Game.Ai
             {
                 if (!f.IsLiteral || f.FieldType != typeof(string)) continue;
                 var c = (string)f.GetRawConstantValue();
-                if (c.StartsWith("net.") || c.StartsWith("surface") || c.StartsWith("parking") || c == "zone") continue;
+                if (c.StartsWith("net.") || c.StartsWith("parking") || c == "zone") continue;
                 IReadOnlyList<CatalogItem> items;
                 try { items = cat.Items(c); } catch (Exception) { continue; }
                 if (items == null) continue;

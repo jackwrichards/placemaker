@@ -26,5 +26,11 @@
   "Placemaker.Ai.Line.Wish": "要望：{0}",
   "Placemaker.Ai.Line.Stopped": "停止しました",
   "Placemaker.Ai.Line.MaxSteps": "{0}ステップ後に一時停止：続けるよう伝えるか、確認してください",
-  "Placemaker.Ai.Line.NoKey": "APIキーがありません：オプション、Placemaker、AIビルダー"
+  "Placemaker.Ai.Line.NoKey": "APIキーがありません：オプション、Placemaker、AIビルダー",
+  "Placemaker.Ai.Doing.Shape": "地形を整形中",
+  "Placemaker.Ai.Doing.Paint": "地面を塗装中",
+  "Placemaker.Ai.Doing.Surface": "舗装面を敷設中",
+  "Placemaker.Ai.Line.Shape": "地形を整形（端の段差 {0} m）",
+  "Placemaker.Ai.Line.Paint": "地面を塗装、{0} m²",
+  "Placemaker.Ai.Line.Surface": "舗装面、{0} m²"
 }

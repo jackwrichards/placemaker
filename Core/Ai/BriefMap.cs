@@ -90,6 +90,15 @@ namespace Placemaker.Core.Ai
                     for (int x = (int)(q.x - r); x <= (int)(q.x + r) + 1; x++)
                         if (math.lengthsq(new float2(x + 0.5f, y + 0.5f) - q) <= r * r) Set(x, y, c);
             }
+            void FillQuadLike(float2[] ring, float3 c, float a)
+            {
+                float2 qlo = new float2(float.MaxValue), qhi = new float2(float.MinValue);
+                foreach (var q in ring) { qlo = math.min(qlo, q); qhi = math.max(qhi, q); }
+                var a0 = Px(qlo); var a1 = Px(qhi);
+                for (int y = math.max(0, a0.y); y <= math.min(h - 1, a1.y); y++)
+                    for (int x = math.max(0, a0.x); x <= math.min(w - 1, a1.x); x++)
+                        if (Poly.Contains(ring, o + new float2((x + 0.5f) * mpp, (y + 0.5f) * mpp))) Set(x, y, c, a);
+            }
             void FillQuad(float2[] quad, float3 c, float a)
             {
                 float2 qlo = math.min(math.min(quad[0], quad[1]), math.min(quad[2], quad[3])), qhi = math.max(math.max(quad[0], quad[1]), math.max(quad[2], quad[3]));
@@ -131,6 +140,22 @@ namespace Placemaker.Core.Ai
             var labels = new List<(float2 at, int id)>();
             if (pieces != null)
             {
+                // ground paint and surfaces tint the ground; shaped ground is outlined in magenta
+                foreach (var p in pieces)
+                {
+                    if (p.Ring == null || p.Ring.Length < 3) continue;
+                    if (p.Kind == AiPieceKind.Paint)
+                    {
+                        var pc = p.Layer == 1 ? new float3(0.62f, 0.62f, 0.38f) : p.Layer == 2 ? new float3(0.25f, 0.55f, 0.20f) : p.Layer == 3 ? new float3(0.50f, 0.38f, 0.25f) : p.Layer == 4 ? new float3(0.90f, 0.82f, 0.58f) : new float3(0.6f);
+                        FillQuadLike(p.Ring, pc, 0.55f * math.saturate(p.Strength));
+                        labels.Add((p.Ring[0], p.Id));
+                    }
+                    else if (p.Kind == AiPieceKind.Surface)
+                    {
+                        FillQuadLike(p.Ring, new float3(0.72f, 0.70f, 0.66f), 0.8f);
+                        labels.Add((p.Ring[0], p.Id));
+                    }
+                }
                 foreach (var p in pieces)
                     if (p.Kind == AiPieceKind.Path && p.Points != null)
                     {
@@ -142,6 +167,17 @@ namespace Placemaker.Core.Ai
                         }
                         labels.Add((p.Points[0], p.Id));
                     }
+                foreach (var p in pieces)
+                {
+                    if (p.Kind != AiPieceKind.Ground || p.Ring == null) continue;
+                    for (int k = 0; k < p.Ring.Length; k++)
+                    {
+                        var a = p.Ring[k]; var b2 = p.Ring[(k + 1) % p.Ring.Length];
+                        int steps = math.max(2, (int)math.ceil(math.distance(a, b2) / mpp));
+                        for (int t = 0; t <= steps; t++) if ((t / 3) % 2 == 0) Disc(math.lerp(a, b2, t / (float)steps), 0.6f, new float3(0.85f, 0.15f, 0.75f));
+                    }
+                    labels.Add((p.Ring[0], p.Id));
+                }
                 foreach (var p in pieces)
                 {
                     if (p.Kind != AiPieceKind.Object) continue;
