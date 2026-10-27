@@ -93,3 +93,14 @@ kinds: wreck rows, trash heaps, clutter, machines, floodlights; the pass worked)
 cafe table, flowerbeds; paving still bare), beach C+ (umbrellas, loungers, towels, lamps; thin), park C (a fountain,
 flowerbeds, lamps; sparse planting), farm D+ (the pass scattered shrubs over the crop fields: bad taste). The pass now
 only fixes the listed gaps with things that belong there, no quota ("at least double" removed).
+
+## Chat makeover and detail round (27 Oct; run `20261027-105156-ai-ui`, UI test `UI/mock/tests/aichat.spec.ts`)
+
+The user graded the chat D- (no spinner, overlapping, tool use unclear). New card: header with model, welcome with
+examples and the mods switch (base game assets only unless on; fixed after the first message), the AI's actions per
+step with icons and problem badges (older steps folded), review/detail/fix dividers, a progress row (phases, spinner,
+time, Stop), the message box at the bottom, footer with the asset rule and Start over (asked first), a warning before
+anything leaves the chat. The overlap was the conversation box without scrolling. Seen in the game (chat while working
+and done). Close-ups (Sonnet, handbook-10): park C+/B- (playground, kiosk, lamps, flowerbeds, tree clumps), beach C-
+(umbrellas and loungers on the lawn behind the promenade, shrubs on the sand), farm C- (shrubs and a climbing frame on
+the crop fields). Open: placement taste (what belongs on sand, crop fields, lawns) is not checked yet.
