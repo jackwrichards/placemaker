@@ -11,6 +11,7 @@ runner. Ratings are Claude Code's own, against the premade types and the user's 
 | eval 3 | Sonnet 5.5, medium, agent-7 + forced review | 27-58 s | 6-13 | $0.15-0.30 | about C- | the review was taken but light; the car park's lanes joined the streets for the first time |
 | eval 4 (27 Oct) | Sonnet 5.5, medium, agent-8 + head start (essentials, examples) | 24-55 s | 4-9 | $0.12-0.29 | about C- | almost no searching any more (the essentials work); stops early; the park and plaza lost their paths under a whole-site surface (now a reported problem) |
 | opus 1 | Opus 5.5, high, agent-8 + head start | about 40 s a step, the park unfinished after 11 min | 16+ | $2.40+ for the park | B on its map at step 12 | 7,000 thinking tokens of planning up front; a loop with entrances from all four streets, a central fountain plaza, a mound with a path up, a playground, dirt and meadow patches, dense planting; still a planted boundary ring. The queue's watchdog (no progress for 5x the estimate, 12.5 min here) stopped the game |
+| opus 2 (27 Oct) | Opus 5.5, medium, agent-8 + head start | 3.5-9 min | 12-30 | $1.08-4.10 | about B- | farm B+ (farmhouse, barns, a battery of silos, a tractor yard, gravel tracks joined to the streets with crosswalks, irrigated fields, an orchard, fenced paddocks with a shelter, hedgerows: what the user asked for), park B (main walk to a central plaza, pond basin with a loop, gazebo, playground, fitness and picnic corners, four entrances with crosswalks), wetland B (marsh basins, boardwalks crossing, a gazebo on an island; no water visible), plaza C+ (central fountain with a ring of benches, two small fountains, cafe tables, kiosks; flat grey paving, a ring of trees), car park D+ (a pale slab, invisible lanes, no stalls visible) |
 
 What makes the difference:
 - **Effort, not knowledge.** Sonnet knows the same rules (it quotes them in its notes) but stops after a first layout;
@@ -21,4 +22,6 @@ What makes the difference:
 - **Mechanical failures cost more than taste:** water anchored on islands, surfaces hiding paths, empty replies. Each
   is fixed in the tools' answers, not the prompt.
 
-Open: Opus with medium thinking (the middle ground); a "keep going" mechanism for Sonnet that is not a quota.
+- **Opus at medium is the sweet spot so far:** about a grade and a half above Sonnet on the same prompt, at 5-15 times the cost ($1-4 a build) and 3-9 minutes.
+
+Open: water does not show in the runner pictures (the basins are dug and the build reports water sources; the test game may be paused, so the water never fills: to check); car parks (invisible lanes need a visible ground and decal stalls the AI does not yet place); a keep-going mechanism for Sonnet that is not a quota.
