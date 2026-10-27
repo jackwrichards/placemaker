@@ -59,7 +59,7 @@ namespace Placemaker.Game.Ai
         private static State s_end;
         private static readonly List<string> s_wishes = new List<string>();
 
-        public const int MaxTurns = 40;
+        public const int MaxTurns = 60;
 
         public static State Status => s_state;
         public static int Version => s_version;
