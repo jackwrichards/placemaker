@@ -153,13 +153,17 @@ namespace Placemaker.Game.Ai
                     ["clumps"] = Num("0 = spread evenly, up to 1 = strongly in patches"),
                     ["seed"] = new JObject { ["type"] = "integer", ["description"] = "change it for a different arrangement" },
                 }, " (no area = the whole selection)"), "assets", "count", "spacing"),
-            Fn("shape_ground", "Shape the terrain inside an area: level it to a height, raise only (fill up to it), lower only (dig down to it), or slope it through a height per corner. Heights are metres above sea level (the brief's heights; the map's contour lines). Everything placed sits on the new ground. The answer says the ground before (lowest, highest inside) and the steps it makes at its edges, so you can soften them with sloped patches around it.",
+            Fn("shape_ground", "Shape the terrain inside an area or along a line: level it to a height, raise only (fill up to it), lower only (dig down to it), or slope it through a height per corner or per line point. Heights are metres above sea level (the brief's heights; the map's contour lines). The edge blends smoothly back into the ground around it over feather metres (default 5; 0 = a hard edge, a wall). A line (points, width, optional heights per point) makes channels, ditches, berms, embankments, ramps and shelves. Each call shapes the ground the earlier calls left (a pond dug into a terrace). Everything placed sits on the new ground. The answer says the ground before and the steepest slope the shaping makes.",
                 WithArea(new JObject
                 {
                     ["mode"] = new JObject { ["type"] = "string", ["enum"] = new JArray("level", "raise", "lower"), ["description"] = "level (default): exactly to height; raise: only where the ground is lower; lower: only where it is higher" },
                     ["height"] = Num("target height, m above sea level"),
                     ["corner_heights"] = new JObject { ["type"] = "array", ["description"] = "optional, with polygon or rect: one height per corner for a slope (the ground becomes the surface through them)", ["items"] = new JObject { ["type"] = "number" } },
-                    ["water_level"] = Num("optional: fill the shaped basin with water up to this height (m above sea level; set it below the lowest shore, and the basin floor below it)"),
+                    ["water_level"] = Num("optional: fill the shaped basin with water up to this height (m above sea level; set it below the lowest shore, and the basin floor below it). Not for ground lowered next to open water: that fills from it"),
+                    ["feather"] = Num("metres over which the edge blends back into the ground around it (default 5; 10-20 for a natural shore, a hill or a valley; 0 = a hard vertical edge)"),
+                    ["line"] = new JObject { ["type"] = "array", ["description"] = "instead of an area: the centre line [[x, z], ...] of a channel, ditch, berm, embankment, ramp or shelf (with width)", ["items"] = new JObject { ["type"] = "array", ["items"] = new JObject { ["type"] = "number" } } },
+                    ["width"] = Num("with line: full width in metres at the target height (the feather is added on both sides)"),
+                    ["line_heights"] = new JObject { ["type"] = "array", ["description"] = "with line, optional: one height per line point (a ramp, a channel falling to the water); else height", ["items"] = new JObject { ["type"] = "number" } },
                 })),
             Fn("paint_ground", "Paint the ground's texture inside an area with one of the map's ground paints (listed in the brief: e.g. dry grass, lush grass, dirt, sand; 0 erases). Soft edge and edge noise make it look natural. Permanent in the city, like terrain shaping.",
                 WithArea(new JObject
@@ -351,8 +355,8 @@ namespace Placemaker.Game.Ai
             var lines = assets.Where(a => a.Line).OrderBy(a => a.Vanilla ? 0 : 1).ThenBy(a => a.Size.x).ToList();
             bool Ground(AiAsset a) => a.Id.IndexOf("Bridge", StringComparison.OrdinalIgnoreCase) < 0 && a.Id.IndexOf("Pier", StringComparison.OrdinalIgnoreCase) < 0 && a.Id.IndexOf("Quay", StringComparison.OrdinalIgnoreCase) < 0;
             var paths = lines.Where(a => a.Category == "path" && a.Vanilla && Ground(a)).Take(12).ToList();
-            var piers = lines.Where(a => a.Category == "path" && a.Vanilla && !Ground(a)).Take(8).ToList();
-            if (piers.Count > 0) sb.AppendLine("piers, quays and bridges (place_path asset, with height): " + string.Join("; ", piers.Select(a => a.Id)));
+            var piers = lines.Where(a => a.Category == "path" && a.Vanilla && !Ground(a) && !IsQuay(a.Id)).Take(8).ToList();
+            if (piers.Count > 0) sb.AppendLine("piers, boardwalks and bridges (place_path asset, with height; never quays): " + string.Join("; ", piers.Select(a => a.Id)));
             if (paths.Count > 0) sb.AppendLine("path lines (place_path asset; none = the normal footpath): " + string.Join("; ", paths.Select(a => a.Size.x > 0f ? $"{a.Id} {F(a.Size.x)} m" : a.Id)));
             var roads = lines.Where(a => a.Category == "road" && a.Vanilla && (a.Id.IndexOf("Invisible", StringComparison.OrdinalIgnoreCase) >= 0 || a.Id.IndexOf("Alley", StringComparison.OrdinalIgnoreCase) >= 0 || a.Size.x <= 16f)).Take(12).ToList();
             if (roads.Count > 0) sb.AppendLine("road lines (place_path asset; the invisible car lanes are drive aisles you cannot see: paint or pave the ground under them and mark the stalls with parking decals): " + string.Join("; ", roads.Select(a => a.Size.x > 0f ? $"{a.Id} {F(a.Size.x)} m" : a.Id)));
@@ -391,6 +395,7 @@ namespace Placemaker.Game.Ai
             var scored = new List<(AiAsset a, int score)>();
             foreach (var a in assets)
             {
+                if (IsQuay(a.Id)) continue;
                 if (!string.IsNullOrEmpty(category) && a.Category != category && !a.Category.StartsWith(category + ".")) continue;
                 if (!string.IsNullOrEmpty(group) && !string.Equals(a.Group, group, StringComparison.OrdinalIgnoreCase)) continue;
                 string hay = (a.Group + " " + a.Id + " " + System.Text.RegularExpressions.Regex.Replace(a.Id, "([a-z])([A-Z0-9])", "$1 $2") + " " + a.Name + " " + a.Category + " " + string.Join(" ", a.Tags)).ToLowerInvariant();
@@ -503,6 +508,9 @@ namespace Placemaker.Game.Ai
         private static bool NotBuilt(AiAsset a) => a.Category != null && a.Category.StartsWith("decal", StringComparison.Ordinal) && !Placemaker.Core.Decals.PackDecals.Kept(a.Category);
         private const string NotBuiltWhy = "only the base game's markings, parking stalls and court lines are built; other decals are not";
 
+        /// <summary>The user (27 Oct): never use quays. Quay lines are left out of the asset list and refused.</summary>
+        public static bool IsQuay(string id) => (id ?? "").IndexOf("Quay", StringComparison.OrdinalIgnoreCase) >= 0;
+
         private static Result PlaceAlong(JObject args, AiSite site)
         {
             var ids = (args["assets"] as JArray)?.Select(t => (string)t).Where(t => !string.IsNullOrEmpty(t)).ToList() ?? new List<string>();
@@ -583,6 +591,25 @@ namespace Placemaker.Game.Ai
 
         private static Result ShapeGround(JObject args, AiSite site)
         {
+            float feather = math.clamp((float?)args["feather"] ?? 5f, 0f, 60f);
+            string mode0 = ((string)args["mode"] ?? "level").ToLowerInvariant();
+            var kind0 = mode0 == "raise" ? TerraformKind.Raise : mode0 == "lower" ? TerraformKind.Lower : TerraformKind.Level;
+            if (args["line"] is JArray lineArg)
+            {
+                var pts = lineArg.Select(t => site.World(new float2((float)t[0], (float)t[1]))).ToArray();
+                if (pts.Length < 2) return new Result { Text = "a line needs at least 2 points" };
+                float width = math.max(1f, (float?)args["width"] ?? 6f);
+                var lh = (args["line_heights"] as JArray)?.Select(t => (float)t).ToArray();
+                if (lh != null && lh.Length != pts.Length) return new Result { Text = $"line_heights has {lh.Length} heights for {pts.Length} points" };
+                float? lheight = (float?)args["height"];
+                if (lh == null && lheight == null) return new Result { Text = "give height, or line_heights" };
+                var lp = new AiPiece
+                {
+                    Kind = AiPieceKind.Ground, LinePoints = pts, LineWidth = width, LineHeights = lh, Height = lheight ?? lh.Average(),
+                    Ring = AiTerrain.LineRing(pts, width), Shape = kind0, Feather = feather, WaterLevel = (float?)args["water_level"] ?? float.NaN,
+                };
+                return Shaped(lp, site, mode0, $"along a line {F(width)} m wide");
+            }
             var ring = Area(args, site, out var localCorners, out var err);
             if (ring == null) return new Result { Text = err };
             string mode = ((string)args["mode"] ?? "level").ToLowerInvariant();
@@ -596,9 +623,10 @@ namespace Placemaker.Game.Ai
             {
                 Kind = AiPieceKind.Ground, Ring = ring, CornerHeights = corners, Height = height ?? corners.Average(),
                 Shape = mode == "raise" ? TerraformKind.Raise : mode == "lower" ? TerraformKind.Lower : TerraformKind.Level,
-                WaterLevel = (float?)args["water_level"] ?? float.NaN,
+                WaterLevel = (float?)args["water_level"] ?? float.NaN, Feather = feather,
             };
-            // the ground before, inside and along the edge (the steps it makes)
+            if (feather > 0.05f) return Shaped(p, site, mode, corners != null ? "sloped" : $"to {F(p.Height)} m");
+            // a hard edge: the ground before, inside and along the edge (the steps it makes)
             float2 lo = new float2(float.MaxValue), hi = new float2(float.MinValue);
             foreach (var q in ring) { lo = math.min(lo, q); hi = math.max(hi, q); }
             float gmin = float.MaxValue, gmax = float.MinValue;
@@ -637,6 +665,37 @@ namespace Placemaker.Game.Ai
             {
                 Text = $"ground #{p.Id} ({mode}{(corners != null ? ", sloped" : $" to {F(p.Height)} m")}): {ground}; largest step at its edge {F(maxStep)} m near ({F(at.x)},{F(at.y)}){water}; {Problems(site, p)}",
                 LineKey = "Placemaker.Ai.Line.Shape", LineArgs = new object[] { (int)math.round(maxStep * 10f) / 10f },
+            };
+        }
+
+        /// <summary>A soft-edged or line shape: added, and answered with the ground before and the steepest slope it makes.</summary>
+        private static Result Shaped(AiPiece p, AiSite site, string mode, string what)
+        {
+            AiTerrain.Box(p, out var lo, out var hi);
+            float gmin = float.MaxValue, gmax = float.MinValue, low = float.MaxValue;
+            for (float x = lo.x; x <= hi.x; x += 2f)
+                for (float z = lo.y; z <= hi.y; z += 2f)
+                {
+                    var q = new float2(x, z);
+                    AiTerrain.Core(p, q, out _, out float e);
+                    if (e > 0f) continue;
+                    float g = site.Ground(q);
+                    gmin = math.min(gmin, g); gmax = math.max(gmax, g);
+                    low = math.min(low, AiTerrain.HeightAt(p, q, g));
+                }
+            AiPlan.Current.Add(p);
+            float steep = AiTerrain.SteepestEdge(p, site.Ground);
+            string water = "";
+            if (math.isfinite(p.WaterLevel))
+                water = low < p.WaterLevel - 0.3f ? $"; water at {F(p.WaterLevel)} m over a floor down to {F(low)} m"
+                    : $"; WARNING: the floor ({F(low)} m) is not below the water level ({F(p.WaterLevel)} m): no water will appear";
+            else if (math.isfinite(site.WaterLevel) && low < site.WaterLevel - 0.2f && p.Ring.Any(q => site.ByWater(q) || site.Water(q) > 0.05f))
+                water = $"; it reaches below the open water ({F(site.WaterLevel)} m) next to it, so the water flows in";
+            string ground = gmin <= gmax ? $"ground before: {F(gmin)} to {F(gmax)} m" : "ground before: unknown";
+            return new Result
+            {
+                Text = $"ground #{p.Id} ({mode} {what}, feather {F(p.Feather)} m): {ground}; steepest slope it makes {F(math.round(steep))} %{(steep > 45f ? " (a steep bank: a wider feather softens it)" : "")}{water}; {Problems(site, p)}",
+                LineKey = "Placemaker.Ai.Line.Shape", LineArgs = new object[] { 0f },
             };
         }
 
@@ -697,6 +756,7 @@ namespace Placemaker.Game.Ai
             string asset = (string)args["asset"] ?? "";
             AiAsset la = null;
             if (asset.Length > 0 && (!site.Assets.TryGetValue(asset, out la) || !la.Line)) return new Result { Text = $"refused '{asset}': not a line asset (search_assets with category path or fence)" };
+            if (IsQuay(asset)) return new Result { Text = $"refused '{asset}': quays are not used (the player's rule); build the water's edge with a timber boardwalk or pier line (place_path with height), or a sloped bank" };
             bool fence = la != null && la.Category == AssetCategories.Fence;
             // the invisible car lanes are filed with the paths (their names say Path): cars drive on them, so they are road lanes, joined to the streets
             bool road = la != null && (la.Category == "road" || (la.Id.IndexOf("Invisible", StringComparison.OrdinalIgnoreCase) >= 0 && (la.Id.IndexOf("Road", StringComparison.OrdinalIgnoreCase) >= 0 || la.Id.IndexOf(" Car ", StringComparison.OrdinalIgnoreCase) >= 0)));

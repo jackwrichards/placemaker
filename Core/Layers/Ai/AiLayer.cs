@@ -71,9 +71,20 @@ namespace Placemaker.Core.Layers.Ai
             var pieces = AiPlan.Current.Snapshot();
             var waterRings = new List<(PlannedTerraform t, float2[] ring)>();
             // the ground first, so everything else sits on the reshaped ground
+            // each piece shapes the ground the earlier ones left (a dip inside a raised mound, a channel through a terrace)
+            System.Func<float2, float> shaped = ctx.H;
             foreach (var p in pieces)
             {
                 if (p.Kind != AiPieceKind.Ground || p.Ring == null || p.Ring.Length < 3) continue;
+                if (AiTerrain.IsField(p))
+                {
+                    // a soft edge or a line: the field, as terraform cells
+                    var cells = AiTerrain.Cells(p, shaped, out var deepest);
+                    ctx.Plan.Terraform.AddRange(cells);
+                    if (deepest != null && math.isfinite(p.WaterLevel)) { deepest.WaterLevel = p.WaterLevel; waterRings.Add((deepest, p.Ring)); }
+                    shaped = TerrainField.FromTerraform(ctx.Plan.Terraform, ctx.H) ?? ctx.H;
+                    continue;
+                }
                 bool sloped = p.CornerHeights != null && p.CornerHeights.Length == p.Ring.Length;
                 var ring = new float3[p.Ring.Length];
                 for (int i = 0; i < ring.Length; i++) ring[i] = new float3(p.Ring[i].x, sloped ? p.CornerHeights[i] : p.Height, p.Ring[i].y);
@@ -83,6 +94,7 @@ namespace Placemaker.Core.Layers.Ai
                     WaterLevel = p.WaterLevel,
                 });
                 waterRings.Add((ctx.Plan.Terraform[ctx.Plan.Terraform.Count - 1], p.Ring));
+                shaped = TerrainField.FromTerraform(ctx.Plan.Terraform, ctx.H) ?? ctx.H;
             }
             var after = TerrainField.FromTerraform(ctx.Plan.Terraform, ctx.H);
             if (after != null)

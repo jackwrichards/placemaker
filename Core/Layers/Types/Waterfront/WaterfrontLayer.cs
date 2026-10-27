@@ -221,10 +221,19 @@ namespace Placemaker.Core.Layers.Types.Waterfront
             }
         }
 
+        // The user (27 Oct): never use quays. The quay and walkway edges (quay nets) become the timber boardwalk; their code
+        // stays (AGENTS.md: cut, never delete), and a saved "quay" or "walkway" builds a boardwalk.
         private static string EdgeOf(LayerContext ctx)
         {
-            string e = ctx.S("edge");
+            string e = NoQuay(ctx.S("edge"));
             if (!string.IsNullOrEmpty(e) && e != "auto") return e;
+            return NoQuay(StyleEdge(ctx));
+        }
+
+        private static string NoQuay(string e) => e == "quay" || e == "walkway" ? "boardwalk" : e;
+
+        private static string StyleEdge(LayerContext ctx)
+        {
             switch (ctx.S("style"))
             {
                 case "harbor": return "quay";

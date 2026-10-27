@@ -1,0 +1,188 @@
+{
+  "_about": "AI builder terrain: a beach and a waterfront on a lakeshore, a park with a hill, a valley and a stream (handbook-7: soft edges, lines, the bay carve); the game run 40 s after each build.",
+  "scenarios": [
+    {
+      "id": "ai-shore-beach",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          100
+        ],
+        "water": {
+          "side": "north"
+        },
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "anthropic/claude-sonnet-5.5"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A beach.",
+          "timeout": 600
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ai-shore-waterfront",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          100
+        ],
+        "water": {
+          "side": "north"
+        },
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A waterfront.",
+          "timeout": 600
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ai-terrain-park",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A park with a hill, a valley and a stream running into a pond.",
+          "timeout": 600
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    }
+  ]
+}

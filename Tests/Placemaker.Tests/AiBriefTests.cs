@@ -78,5 +78,25 @@ namespace Placemaker.Tests
             // a closed square, 10 m sides, every 5 m: 8 stations round it
             Assert.Equal(8, AiShapes.Along(AiShapes.Rect(new float2(0, 0), new float2(10, 10)), true, 5f, 0f).Count);
         }
+
+        [Fact]
+        public void FeatheredShapeBlendsBackAndLineFollowsItsHeights()
+        {
+            // a bay: lowered 3 m in a 20 m circle, feather 10 m, on flat ground at 100 m
+            var bay = new AiPiece { Kind = AiPieceKind.Ground, Ring = AiShapes.Circle(new float2(0, 0), 20f), Height = 97f, Shape = TerraformKind.Lower, Feather = 10f };
+            Assert.Equal(97f, AiTerrain.HeightAt(bay, new float2(0, 0), 100f), 3);
+            float mid = AiTerrain.HeightAt(bay, new float2(25, 0), 100f);
+            Assert.InRange(mid, 97.5f, 99.5f);                                   // half way out the feather: half way up
+            Assert.Equal(100f, AiTerrain.HeightAt(bay, new float2(31, 0), 100f), 3);   // past it: untouched
+            var cells = AiTerrain.Cells(bay, _ => 100f, out var deepest);
+            Assert.InRange(cells.Count, 100, 600);
+            Assert.True(deepest.TargetHeight < 97.1f);
+            Assert.InRange(AiTerrain.SteepestEdge(bay, _ => 100f), 20f, 60f);  // a 3 m drop over 10 m: about 30-45 %
+            // a channel falling from 100 to 98 along 40 m, 6 m wide
+            var ch = new AiPiece { Kind = AiPieceKind.Ground, LinePoints = new[] { new float2(0, 0), new float2(40, 0) }, LineWidth = 6f, LineHeights = new[] { 100f, 98f }, Shape = TerraformKind.Lower, Feather = 4f };
+            ch.Ring = AiTerrain.LineRing(ch.LinePoints, ch.LineWidth);
+            Assert.Equal(99f, AiTerrain.HeightAt(ch, new float2(20, 2), 101f), 2);
+            Assert.Equal(101f, AiTerrain.HeightAt(ch, new float2(20, 8), 101f), 2);
+        }
     }
 }

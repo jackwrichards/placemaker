@@ -40,6 +40,11 @@ namespace Placemaker.Core.Ai
         public TerraformKind Shape = TerraformKind.Level;
         public float Height;
         public float[] CornerHeights;
+        /// <summary>Ground along a line (AiTerrain): its points (world xz), width, and a height per point (null = Height).
+        /// Ground uses <see cref="Feather"/> as its soft edge (0 = a hard edge, one ring as before).</summary>
+        public float2[] LinePoints;
+        public float LineWidth;
+        public float[] LineHeights;
         /// <summary>Paint: the map's paint layer 1..4 (0 = erase), strength 0..1, soft edge and edge noise in metres.</summary>
         public int Layer = 1;
         public float Strength = 1f, Feather = 3f, Noise;
