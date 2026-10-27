@@ -46,8 +46,10 @@ namespace Placemaker.Core.Layers.Types.Beach
             {
                 float s = math.lerp(a, b, i / (float)steps);
                 var c = shore.At(s, out var inw, out _);
+                var w = shore.WaterAt(s, out _);
+                if (!math.all(math.isfinite(w))) w = c;   // no measured waterline here: the shore itself
                 inner.Add(c + inw * Reach(s));
-                outer.Add(shore.WaterAt(s, out _) - inw * 4f);   // into the real water, so the bay joins the lake
+                outer.Add(w - inw * 4f);   // into the real water, so the bay joins the lake
             }
             var pts = new List<float2>(outer);
             for (int i = inner.Count - 1; i >= 0; i--) pts.Add(inner[i]);
@@ -106,7 +108,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             ctx.Input = ctx.Input.WithSite(carved);
             ctx.Plan.Facts["bayDepth"] = depth;
             ctx.Plan.Facts["bayCells"] = cells;
-            ctx.Plan.Facts["bayArea"] = math.abs(Poly.SignedArea(bay));
+            ctx.Plan.Facts["bayArea"] = math.abs(Poly.SignedArea(r));
             return true;
         }
     }

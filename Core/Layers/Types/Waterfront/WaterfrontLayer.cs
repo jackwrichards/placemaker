@@ -937,7 +937,8 @@ namespace Placemaker.Core.Layers.Types.Waterfront
             // (rf-beach) A shore drawn along the water (Edge) gets its piers too: they reach out past the outline over the real
             // water (the site's water snapshot reaches 60 m beyond it). In the game runner a waterfront drawn to the waterline
             // got no piers at all, so "Pier park" built none.
-            bool beyond = shore.Mode == ShoreMode.Edge && w.Water;
+            // a carved bay makes the shore Inside, but the lake is still out past the outline: piers reach it as on an Edge shore
+            bool beyond = (shore.Mode == ShoreMode.Edge || ctx.Plan.Facts.ContainsKey("bayCells")) && w.Water;
             if (shore.Mode != ShoreMode.Inside && !beyond)
             {
                 ctx.Issue(IssueSeverity.Info, "Placemaker.Waterfront.Issue.PiersNeedWater");

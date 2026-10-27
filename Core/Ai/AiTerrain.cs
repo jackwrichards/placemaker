@@ -125,13 +125,16 @@ namespace Placemaker.Core.Ai
         }
 
         /// <summary>
-        /// The piece as permanent terraform cells (squares about 3 m, larger for big shapes), each to the shaped height at its
-        /// centre. <paramref name="deepest"/> is the cell at the lowest shaped height (it carries a pond's water).
+        /// The piece as permanent terraform: its core as whole shapes (the area at its level or slope; a line as one sloped quad
+        /// per segment), last so they win, and the feather band around it as cells (squares about 3 m, larger for big shapes),
+        /// each to the blended height at its centre. Cells alone were smoothed by the game's 3.5 m terrain grid: a pond floor
+        /// ended 1.3 m above its target and got no water (27 Oct). <paramref name="deepest"/> is the core (it carries a pond's water).
         /// </summary>
         public static List<PlannedTerraform> Cells(AiPiece p, Func<float2, float> ground, out PlannedTerraform deepest)
         {
             deepest = null;
             var list = new List<PlannedTerraform>();
+            var core = CoreShapes(p);
             Box(p, out var lo, out var hi);
             float cell = math.max(3f, math.sqrt((hi.x - lo.x) * (hi.y - lo.y) / MaxCells));
             float low = float.MaxValue;
@@ -139,6 +142,8 @@ namespace Placemaker.Core.Ai
                 for (float x = lo.x + cell * 0.5f; x < hi.x; x += cell)
                 {
                     var c = new float2(x, y);
+                    Core(p, c, out _, out float e);
+                    if (e <= 0f) continue;   // the core shapes cover it
                     float g = ground(c);
                     float h = HeightAt(p, c, g);
                     if (math.abs(h - g) < MinChange) continue;
@@ -150,8 +155,38 @@ namespace Placemaker.Core.Ai
                         Kind = h > g ? TerraformKind.Raise : TerraformKind.Lower, TargetHeight = h, Permanent = true,
                     };
                     list.Add(t);
-                    if (h < low) { low = h; deepest = t; }
                 }
+            list.AddRange(core);
+            foreach (var t in core) if (t.TargetHeight < low) { low = t.TargetHeight; deepest = t; }
+            return list;
+        }
+
+        /// <summary>The core: the area at its height or through its corner heights; a line as sloped quads, one per segment.</summary>
+        private static List<PlannedTerraform> CoreShapes(AiPiece p)
+        {
+            var list = new List<PlannedTerraform>();
+            if (p.LinePoints != null)
+            {
+                var pts = p.LinePoints;
+                float hw = math.max(0.5f, p.LineWidth * 0.5f);
+                for (int k = 0; k + 1 < pts.Length; k++)
+                {
+                    var d = math.normalizesafe(pts[k + 1] - pts[k], new float2(1, 0));
+                    var n = new float2(-d.y, d.x) * hw;
+                    // a little past each end so the quads of a bent line overlap at the joints
+                    var a = pts[k] - d * math.min(hw, 2f); var b = pts[k + 1] + d * math.min(hw, 2f);
+                    float ha = p.LineHeights != null ? p.LineHeights[k] : p.Height, hb = p.LineHeights != null ? p.LineHeights[k + 1] : p.Height;
+                    var ring = new[] { new float3(a.x - n.x, ha, a.y - n.y), new float3(b.x - n.x, hb, b.y - n.y), new float3(b.x + n.x, hb, b.y + n.y), new float3(a.x + n.x, ha, a.y + n.y) };
+                    list.Add(new PlannedTerraform { Ring = ring, Kind = p.Shape, TargetHeight = (ha + hb) * 0.5f, Sloped = math.abs(ha - hb) > 0.01f, Permanent = true });
+                }
+                return list;
+            }
+            bool sloped = p.CornerHeights != null && p.CornerHeights.Length == p.Ring.Length;
+            var r = new float3[p.Ring.Length];
+            for (int i = 0; i < r.Length; i++) r[i] = new float3(p.Ring[i].x, sloped ? p.CornerHeights[i] : p.Height, p.Ring[i].y);
+            float avg = p.Height;
+            if (sloped) { avg = 0f; foreach (var h in p.CornerHeights) avg += h; avg /= p.CornerHeights.Length; }
+            list.Add(new PlannedTerraform { Ring = r, Kind = p.Shape, TargetHeight = avg, Sloped = sloped, Permanent = true });
             return list;
         }
 

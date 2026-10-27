@@ -137,6 +137,7 @@ namespace Placemaker.Core.Ai
                 }
                 foreach (var b in s.Buildings)
                     if (Poly.Contains(new[] { b.A, b.B, b.C, b.D }, p.Position)) { list.Add("inside an existing building or lot"); break; }
+                if (p.Elevation < 0.5f && UnderWater(s, all, p.Position, out float wd)) list.Add($"under water ({F(wd)} m deep after your ground shaping: move it onto dry ground)");
                 if (!IsFlat(p))
                     foreach (var o in all)
                     {
@@ -300,6 +301,39 @@ namespace Placemaker.Core.Ai
             sb.AppendLine(chosen.Count == 0 ? "- empty spots: none wider than 14 m"
                 : "- empty spots (nothing placed within the radius; fine if meant as a lawn, meadow or open square, else fill them): " + string.Join(", ", chosen.Select(c => { var l = s.Local(c.p); return $"({F(l.x)},{F(l.y)}) {F(c.clear)} m"; })));
             return sb.ToString();
+        }
+
+        /// <summary>The ground at p after every shaping piece, in order (soft, line and hard shapes alike).</summary>
+        public static float GroundAfter(AiSite s, IReadOnlyList<AiPiece> all, float2 p)
+        {
+            float g = s.Ground(p);
+            foreach (var o in all)
+            {
+                if (o.Kind != AiPieceKind.Ground || o.Ring == null) continue;
+                if (AiTerrain.IsField(o)) { g = AiTerrain.HeightAt(o, p, g); continue; }
+                if (!Poly.Contains(o.Ring, p)) continue;
+                AiTerrain.Core(o, p, out float t, out _);
+                g = o.Shape == TerraformKind.Raise ? math.max(g, t) : o.Shape == TerraformKind.Lower ? math.min(g, t) : t;
+            }
+            return g;
+        }
+
+        /// <summary>Is p under water once the shaping is built: below a pond's water in its basin, or below the open water in
+        /// ground lowered next to it (the lake flows in)?</summary>
+        public static bool UnderWater(AiSite s, IReadOnlyList<AiPiece> all, float2 p, out float depth)
+        {
+            depth = 0f;
+            var shaping = all.Where(o => o.Kind == AiPieceKind.Ground && o.Ring != null).ToList();
+            if (shaping.Count == 0) return false;
+            float g = GroundAfter(s, shaping, p);
+            foreach (var o in shaping)
+            {
+                bool inside = Poly.Contains(o.Ring, p) || (AiTerrain.IsField(o) && Poly.DistanceToBoundary(o.Ring, p) < o.Feather);
+                if (!inside) continue;
+                if (math.isfinite(o.WaterLevel) && g < o.WaterLevel - 0.05f) { depth = o.WaterLevel - g; return true; }
+                if (math.isfinite(s.WaterLevel) && g < s.WaterLevel - 0.05f && o.Ring.Any(q => s.ByWater(q) || s.Water(q) > 0.05f)) { depth = s.WaterLevel - g; return true; }
+            }
+            return false;
         }
 
         /// <summary>The shore in numbers: whether the ground was carved below the water (a bay), and how far each paint stops short of the water.</summary>
