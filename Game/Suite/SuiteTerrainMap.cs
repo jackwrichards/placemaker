@@ -37,6 +37,25 @@ namespace Placemaker.Game.Suite
             catch (Exception e) { err = e.GetType().Name + ": " + e.Message; }
             _suiteMsThisFrame += (float)sw.Elapsed.TotalMilliseconds;
             string rel = err == null ? "shots/" + file : "ERROR " + err;
+            // probe: [[x, z], ...] metres from the south-west corner of the outline's box (the AI builder's coordinates):
+            // the live ground and water surface there, one line each
+            if (step["probe"] is JArray probe && st.Ring != null && st.Ring.Length > 2)
+            {
+                var corner = Bounds(st.Ring, 0f).Item1;
+                var hd = _world.GetOrCreateSystemManaged<TerrainSystem>().GetHeightData(true);
+                var water = _world.GetOrCreateSystemManaged<WaterSystem>().GetSurfacesData(out var deps);
+                deps.Complete();
+                var outp = new JArray();
+                foreach (var q in probe.OfType<JArray>())
+                {
+                    var p = corner + new float2((float)q[0], (float)q[1]);
+                    var at = new float3(p.x, 0f, p.y);
+                    float ground = TerrainUtils.SampleHeight(ref hd, at), depth = WaterUtils.SampleDepth(ref water, at);
+                    outp.Add(new JObject { ["at"] = q, ["ground"] = Math.Round(ground, 2), ["water"] = depth > 0.01f ? Math.Round(ground + depth, 2) : (double?)null });
+                    Say($"terrain probe ({q[0]}, {q[1]}): ground {ground:F2} m" + (depth > 0.01f ? $", water surface {ground + depth:F2} m ({depth:F2} m deep)" : ", dry"));
+                }
+                rec["probe"] = outp;
+            }
             rec["shot"] = rel;
             rec["shotName"] = name;
             if (info != null) rec["terrain"] = info;

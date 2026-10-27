@@ -37,7 +37,7 @@
     "infoUngroup": { "keys": ["ungroup"] },
     "camera": { "keys": ["target", "view", "index", "yaw", "pitch", "distance", "fov", "at", "abs"] },
     "shot": { "keys": ["name"] },
-    "terrain": { "keys": ["name", "margin"] },
+    "terrain": { "keys": ["name", "margin", "probe"] },
     "wait": { "keys": ["seconds", "frames"] },
     "grow": { "keys": ["seconds", "fast"] },
     "undo": { "keys": ["via"], "enums": { "via": ["key", "panel"] } },
