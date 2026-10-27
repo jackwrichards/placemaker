@@ -219,10 +219,12 @@ namespace Placemaker.Core.Ai
                 bool Joined(float2 end) =>
                     s.Nets.Any(n => NetDistance(n, end) - n.Width * 0.5f < 3f) ||
                     all.Any(o => o.Kind == AiPieceKind.Surface && o.Ring != null && (Poly.Contains(o.Ring, end) || Poly.DistanceToBoundary(o.Ring, end) < 2f)) ||
-                    all.Any(o => o.Id != p.Id && o.Kind == AiPieceKind.Path && o.Points != null && Enumerable.Range(0, o.Points.Length - 1).Any(k => SegDist(end, o.Points[k], o.Points[k + 1]) < 2f));
+                    all.Any(o => o.Id != p.Id && o.Kind == AiPieceKind.Path && o.Category != AssetCategories.Fence && o.Points != null && Enumerable.Range(0, o.Points.Length - 1).Any(k => SegDist(end, o.Points[k], o.Points[k + 1]) < 2f));
                 var a = p.Points[0];
                 var z = p.Points[p.Points.Length - 1];
-                bool loop = math.distance(a, z) < 1f;
+                // a fence or hedge line may end anywhere (eval: Opus removed its garden's hedge lines over "dead ends" and rebuilt
+                // them from loose hedge blocks)
+                bool loop = math.distance(a, z) < 1f || p.Category == AssetCategories.Fence;
                 if (!loop && !Joined(a)) list.Add("its start joins nothing (no road, path or surface within 3 m): a dead end");
                 if (!loop && !Joined(z)) list.Add("its end joins nothing (no road, path or surface within 3 m): a dead end");
             }

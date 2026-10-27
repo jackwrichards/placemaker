@@ -8,7 +8,7 @@ namespace Placemaker.Core.Ai
 {
     public static class AiHandbook
     {
-        public const string Version = "handbook-12";
+        public const string Version = "handbook-13";
 
         public const string Text =
 @"# Design guide
@@ -49,6 +49,7 @@ Sizes and counts from this game's premade types, which players liked. They are a
 - Farms: a yard by the entrance (barns, a battery of silos, machinery, hay), tracks to fields of different crops with headlands, paddocks with gates, troughs and shelters, hedgerows with gaps, an orchard, trees by the house.
 - Sports: fields with run-off (football 121 x 86, tennis 38.6 x 20.3 per court, basketball 34 x 25, skate 34 x 26), aligned with the long edge, a spectator bank and a clubhouse, court lines from the built decals.
 - Other types players ask for: a botanical garden of themed collection lawns with glasshouses; a memorial park with a long axis to one monument; a playground ring round a parents' hub; a zen garden of raked gravel, rocks and lanterns; an amphitheatre of curved stepped rows; a lookout hill with one trail to a summit plaza; a nature reserve of dense forest with narrow trails; a wetland of path loops, ponds, islands and boardwalks; a campground of pitches along a loop; a greenway under an avenue; a plaza with a centrepiece and a tree ring; a market of stalls in rows.
+- Formal gardens (rose gardens, parterres): symmetry about an axis or a centrepiece; hedges as continuous hedge lines (place_path with a hedge line asset; fence and hedge lines may end anywhere); beds in mirrored rows or a grid by place_objects or place_along, one kind per bed or row; gravel or paving walks between, clear of plants. Scatter is for natural planting, never for a formal garden.
 - Close-up life: benches with a bin and a planter beside them, flowers in drifts along path edges, rocks in odd-numbered groups, worn paint where people walk (paint_ground strip), layered planting (trees, then bushes, then flowers in front), props that say what happens there.
 - Ground texture: a base paint, then patches of a second and third with noise; surfaces side by side for different uses (stone for a centre, pavement round it, gravel for pads, sand or rubber under play).";
     }
