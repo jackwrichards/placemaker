@@ -11,7 +11,7 @@
         { "do": "grow", "seconds": 60 },
         { "do": "lab", "op": "polishIdle", "seconds": 90 },
         { "do": "lab", "op": "outgrowAudit", "label": "off" },
-        { "do": "polish", "click": "polish-newHouses", "shot": "switch-on", "shotMode": "ui" },
+        { "do": "polish", "click": "polish-newHouses-true", "shot": "switch-on", "shotMode": "ui" },
         { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [0, 60], "zone": "NA Residential Low" },
         { "do": "grow", "seconds": 60 },
         { "do": "lab", "op": "polishIdle", "seconds": 120 },
