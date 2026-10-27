@@ -124,7 +124,9 @@ namespace Placemaker.Core.Ai
             }
             else if (p.Points != null)
             {
-                int outside = p.Points.Count(q => !Poly.Contains(s.Ring, q));
+                // an end may reach just past the outline to meet a road there (an entrance)
+                bool AtRoad(float2 q) => s.Nets.Any(n => NetDistance(n, q) - n.Width * 0.5f < 4f);
+                int outside = p.Points.Where((q, i) => !Poly.Contains(s.Ring, q) && !((i == 0 || i == p.Points.Length - 1) && AtRoad(q))).Count();
                 if (outside > 0) list.Add($"{outside} of its {p.Points.Length} points are outside the selection");
                 for (int k = 0; k + 1 < p.Points.Length; k++)
                     foreach (var b in s.Buildings)

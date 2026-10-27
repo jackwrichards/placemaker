@@ -148,7 +148,7 @@ namespace Placemaker.Core.Ai
                     float r = radius != null ? radius(p) : 1f;
                     bool plant = p.Role == ObjectRole.Tree || p.Role == ObjectRole.Bush;
                     var c = p.Role == ObjectRole.Tree ? new float3(0.10f, 0.45f, 0.12f) : p.Role == ObjectRole.Bush ? new float3(0.05f, 0.30f, 0.08f) : new float3(0.95f, 0.50f, 0.05f);
-                    Disc(p.Position, math.max(0.6f, plant ? r * 0.6f : r), c);
+                    Disc(p.Position, math.max(0.6f, r), c);   // plants: the crown at its full width
                     if (!plant) labels.Add((p.Position, p.Id));
                 }
             }

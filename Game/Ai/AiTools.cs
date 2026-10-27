@@ -46,11 +46,11 @@ namespace Placemaker.Game.Ai
 
         public static JArray Definitions() => s_defs ?? (s_defs = new JArray
         {
-            Fn("search_assets", "Find assets in the player's game (vanilla and mods) by words: name, kind, style. Returns id, name, category and real size (width x depth x height, metres). Use only ids it returns.",
+            Fn("search_assets", "Find assets in the player's game by words: every placeable object it has loaded, vanilla and mods (props, trees, plants, fountains, statues, decals...; no buildings). Words match the id (split at capitals), the name, the category and tags. Returns id, name, category and real size (width x depth x height, metres). Use only ids it returns.",
                 new JObject
                 {
                     ["query"] = Str("words, e.g. 'oak tree', 'modern bench', 'street lamp', 'fountain'"),
-                    ["category"] = new JObject { ["type"] = "string", ["description"] = "optional: tree, bush, hedge, flowerbed, planter, bench, lamp, bin, centerpiece, centerpiece.fountain, centerpiece.statue, playground, sports, kiosk, shelter, picnic, decoration, fence, bollard, rock, decal, stage, lookout" },
+                    ["category"] = new JObject { ["type"] = "string", ["description"] = "optional: tree, bush, hedge, flowerbed, planter, bench, lamp, bin, centerpiece, playground, sports, kiosk, shelter, picnic, decoration, fence, bollard, rock, decal, stage, lookout, or object (everything not sorted into these)" },
                     ["limit"] = new JObject { ["type"] = "integer", ["description"] = "how many (default 25, max 60)" },
                 }, "query"),
             Fn("place_objects", "Place objects (trees, bushes, benches, lamps, props). Each sits on the ground unless elevation is given. Answers with the ids and the problems each one caused.",
@@ -200,7 +200,7 @@ namespace Placemaker.Game.Ai
             foreach (var a in assets)
             {
                 if (!string.IsNullOrEmpty(category) && a.Category != category && !a.Category.StartsWith(category + ".")) continue;
-                string hay = (a.Id + " " + a.Name + " " + a.Category + " " + string.Join(" ", a.Tags)).ToLowerInvariant();
+                string hay = (a.Id + " " + System.Text.RegularExpressions.Regex.Replace(a.Id, "([a-z])([A-Z])", "$1 $2") + " " + a.Name + " " + a.Category + " " + string.Join(" ", a.Tags)).ToLowerInvariant();
                 int score = words.Count(w => hay.Contains(w)) * 10;
                 if (words.Length > 0 && score == 0 && string.IsNullOrEmpty(category)) continue;
                 if (a.Vanilla) score += 1;
@@ -210,7 +210,7 @@ namespace Placemaker.Game.Ai
             if (top.Count == 0) return new Result { Text = "no matches; try other words or a category" };
             var sb = new StringBuilder();
             sb.AppendLine($"{top.Count} of {scored.Count} matches (id | name | category | width x depth x height m; plants: how wide the crown grows):");
-            foreach (var (a, _) in top) sb.AppendLine($"{a.Id} | {a.Name} | {a.Category} | {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)}" + (a.Plant ? $" | crown about {F(a.Reach * 2f)} m across" : ""));
+            foreach (var (a, _) in top) sb.AppendLine($"{a.Id} | {a.Name} | {a.Category}{(a.Vanilla ? "" : " (mod)")} | {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)}" + (a.Plant ? $" | crown about {F(a.Reach * 2f)} m across" : ""));
             return new Result { Text = sb.ToString() };
         }
 

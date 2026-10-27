@@ -321,7 +321,7 @@ namespace Placemaker.Game.Ai
             catch (Exception e) { Mod.Log.Warn("Placemaker AI: summary failed: " + e.Message); }
         }
 
-        /// <summary>Main thread: every object asset the catalog has, with its real size.</summary>
+        /// <summary>Main thread: every object asset the game has loaded, with its real size (the catalogued ones with their category).</summary>
         private static List<AiAsset> AssetIndex()
         {
             var list = new List<AiAsset>();
@@ -349,6 +349,22 @@ namespace Placemaker.Game.Ai
                     }
                     list.Add(a);
                 }
+            }
+            // everything else the game has loaded (not sorted into a category by the mod): the whole library, mods included
+            if (cat is Placemaker.Game.Assets.AssetCatalogSystem sys)
+            {
+                foreach (var (name, min, max, tree, plant) in sys.AllPlaceableObjects())
+                {
+                    if (!seen.Add(name)) continue;
+                    var size = max - min;
+                    var mid = (max + min) * 0.5f;
+                    list.Add(new AiAsset
+                    {
+                        Id = name, Name = name, Category = tree ? AssetCategories.Tree : plant ? AssetCategories.Bush : "object",
+                        Size = size, Offset = new float2(mid.x, mid.z),
+                    });
+                }
+                foreach (var x in list) x.Vanilla = sys.IsVanillaName(x.Id);
             }
             return list;
         }

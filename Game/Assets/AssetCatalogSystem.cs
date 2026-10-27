@@ -397,6 +397,25 @@ namespace Placemaker.Game.Assets
             return Entity.Null;
         }
 
+        /// <summary>
+        /// (AI builder, docs/AI-BUILDER.md) Every placeable static object the game has loaded (vanilla, DLC, mods), catalogued
+        /// or not: props, trees, plants, decals, fountains... (no buildings, nets, areas, vehicles, placeholders), with its
+        /// bounds. Main thread.
+        /// </summary>
+        public List<(string name, float3 min, float3 max, bool tree, bool plant)> AllPlaceableObjects()
+        {
+            var list = new List<(string, float3, float3, bool, bool)>();
+            foreach (var kv in _allPrefabsByName)
+            {
+                var e = kv.Value;
+                if (!Usable(e) || !EntityManager.HasComponent<StaticObjectData>(e) || !EntityManager.HasComponent<ObjectGeometryData>(e)) continue;
+                if (EntityManager.HasComponent<BuildingData>(e) || EntityManager.HasComponent<PlaceholderObjectData>(e) || EntityManager.HasComponent<NetData>(e)) continue;
+                var b = EntityManager.GetComponentData<ObjectGeometryData>(e).m_Bounds;
+                list.Add((kv.Key, b.min, b.max, EntityManager.HasComponent<TreeData>(e), EntityManager.HasComponent<PlantData>(e)));
+            }
+            return list;
+        }
+
         /// <summary>Maximum edge length of a net prefab (0 = unknown). CS2 rejects longer edges.</summary>
         public float MaxEdgeLength(Entity prefab)
         {
