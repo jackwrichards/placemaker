@@ -241,11 +241,9 @@ export const AiChat = () => {
     const count = ai?.lines.length ?? 0;
     const items = useMemo(() => group(ai?.lines ?? []), [ai?.lines]);
     useEffect(() => {
-        try {
-            end.current?.scrollIntoView();
-        } catch {
-            /* older views */
-        }
+        // the conversation box itself to its end (scrollIntoView moved the panel instead, and left the AI's last words hidden)
+        const box = end.current?.parentElement;
+        if (box) box.scrollTop = box.scrollHeight;
     }, [count, ai?.busy]);
     if (!ai) return null;
     const send = () => {

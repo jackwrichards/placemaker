@@ -25,6 +25,7 @@ $c-ai-line: rgba(197, 139, 255, 0.4);
 }
 
 .headerTitle {
+    white-space: nowrap;
     margin-left: 6rem;
     font-size: $fs;
     font-weight: bold;
@@ -33,6 +34,7 @@ $c-ai-line: rgba(197, 139, 255, 0.4);
 
 .chip {
     flex-shrink: 0;
+    white-space: nowrap;
     padding: 2rem 7rem;
     border-radius: 9rem;
     background-color: $c-surface-strong;
@@ -422,6 +424,10 @@ $c-ai-line: rgba(197, 139, 255, 0.4);
 
 .composerBusy {
     opacity: 0.6;
+
+    .input {
+        background-color: transparent;
+    }
 }
 
 .input {

@@ -67,3 +67,21 @@ test("AI chat: welcome, work in progress, finished, mods lock, leave and start o
     await expect(page.getByTestId("ai-welcome")).toBeVisible();
     expect(errors).toEqual([]);
 });
+
+for (const lang of ["de-DE", "ru-RU", "fr-FR", "ja-JP"])
+    test(`AI chat in ${lang}: nothing cut or spilling (welcome, working, done)`, async ({ page }) => {
+        const errors = await open(page, { real: true, width: 1600, height: 1000, lang });
+        await page.goto(`/?lang=${lang}&aiStep=250`);
+        await expect(page.getByTestId("placemaker-panel")).toBeVisible();
+        await toAi(page);
+        await noTextOverflow(page, lang + " ai welcome");
+        await page.getByTestId("ai-example").first().click();
+        await page.getByTestId("ai-send").click();
+        await expect(page.getByTestId("ai-working")).toBeVisible();
+        await page.waitForTimeout(600);
+        await noTextOverflow(page, lang + " ai working");
+        await expect(page.getByTestId("ai-line-ai")).toBeVisible({ timeout: 10000 });
+        await noTextOverflow(page, lang + " ai done");
+        await panelShot(page, `ai-chat-${lang}`);
+        expect(errors).toEqual([]);
+    });
