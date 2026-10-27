@@ -42,7 +42,7 @@
         {
           "do": "aiAgent",
           "prompt": "A beach.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -95,7 +95,7 @@
         {
           "do": "aiAgent",
           "prompt": "A town square with a fountain.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -144,7 +144,7 @@
         {
           "do": "aiAgent",
           "prompt": "A small farmstead with a yard, fields and paddocks.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -200,7 +200,7 @@
         {
           "do": "aiAgent",
           "prompt": "A beach.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -253,7 +253,7 @@
         {
           "do": "aiAgent",
           "prompt": "A town square with a fountain.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -302,7 +302,7 @@
         {
           "do": "aiAgent",
           "prompt": "A small farmstead with a yard, fields and paddocks.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -358,7 +358,7 @@
         {
           "do": "aiAgent",
           "prompt": "A beach.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -411,7 +411,7 @@
         {
           "do": "aiAgent",
           "prompt": "A town square with a fountain.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -460,7 +460,7 @@
         {
           "do": "aiAgent",
           "prompt": "A small farmstead with a yard, fields and paddocks.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -516,7 +516,7 @@
         {
           "do": "aiAgent",
           "prompt": "A beach.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -569,7 +569,7 @@
         {
           "do": "aiAgent",
           "prompt": "A town square with a fountain.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -618,7 +618,7 @@
         {
           "do": "aiAgent",
           "prompt": "A small farmstead with a yard, fields and paddocks.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -674,7 +674,7 @@
         {
           "do": "aiAgent",
           "prompt": "A beach.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -727,7 +727,7 @@
         {
           "do": "aiAgent",
           "prompt": "A town square with a fountain.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -776,7 +776,7 @@
         {
           "do": "aiAgent",
           "prompt": "A small farmstead with a yard, fields and paddocks.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -832,7 +832,7 @@
         {
           "do": "aiAgent",
           "prompt": "A beach.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -885,7 +885,7 @@
         {
           "do": "aiAgent",
           "prompt": "A town square with a fountain.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"
@@ -934,7 +934,7 @@
         {
           "do": "aiAgent",
           "prompt": "A small farmstead with a yard, fields and paddocks.",
-          "timeout": 900
+          "timeout": 1800
         },
         {
           "do": "build"

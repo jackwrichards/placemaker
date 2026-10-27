@@ -203,6 +203,22 @@ namespace Placemaker.Game.Ai
             Fn("wish", "Note a tool or a piece of information you needed and did not have.", new JObject { ["text"] = Str("what was missing and what it would have let you do") }, "text"),
         });
 
+        /// <summary>A whole, correct call of a tool, for a model that keeps sending the same broken one (all arguments in one call).</summary>
+        public static string Example(string tool)
+        {
+            switch (tool)
+            {
+                case "place_surface": return "A whole call: {\"asset\": \"<id from search_assets>\", \"polygon\": [[10, 10], [40, 12], [38, 30], [12, 28]]}.";
+                case "shape_ground": return "A whole call: {\"circle\": [70, 55, 20], \"height\": <metres above sea level from the brief>, \"feather\": 8}.";
+                case "paint_ground": return "A whole call: {\"layer\": 2, \"ellipse\": [60, 40, 25, 15], \"feather\": 4, \"noise\": 2}.";
+                case "scatter_objects": return "A whole call: {\"assets\": [\"<id>\", \"<id>\"], \"count\": 30, \"spacing\": 4, \"circle\": [50, 50, 20]}.";
+                case "place_path": return "A whole call: {\"points\": [[0, 20], [30, 25], [60, 20]], \"smooth\": true}.";
+                case "place_along": return "A whole call: {\"assets\": [\"<id>\"], \"points\": [[0, 20], [60, 20]], \"spacing\": 8, \"offset\": 3}.";
+                case "place_objects": return "A whole call: {\"objects\": [{\"asset\": \"<id>\", \"x\": 20, \"z\": 30, \"yaw\": 90}]}.";
+                default: return "Put every argument the tool needs into the same call.";
+            }
+        }
+
         /// <summary>The short progress line shown while a tool runs (localisation key and its arguments).</summary>
         public static (string key, object[] args) Doing(string name, JObject args)
         {

@@ -343,7 +343,8 @@ namespace Placemaker.Game.Ai
 
         private static async Task Loop(string endpoint, string key, string model, CancellationToken cancel)
         {
-            int nudges = 0, keepGoing = 0;
+            int nudges = 0, keepGoing = 0, repeats = 0;
+            string lastSig = null;
             for (int turn = 0; turn < MaxTurns; turn++)
             {
                 cancel.ThrowIfCancellationRequested();
@@ -359,10 +360,19 @@ namespace Placemaker.Game.Ai
                     // little thinking per step: the loop itself is the thinking (the user: too slow)
                     ["reasoning"] = Reasoning(),
                 };
-                var r = await AiClient.Send(endpoint, key, body, cancel);
-                s_cost += r.Cost ?? 0;
-                s_tokens += r.PromptTokens + r.ReplyTokens;
-                Log(new JObject { ["turn"] = turn, ["ms"] = r.Ms, ["status"] = r.Status, ["promptTokens"] = r.PromptTokens, ["replyTokens"] = r.ReplyTokens, ["reasoningTokens"] = r.ReasoningTokens, ["cachedTokens"] = r.CachedTokens, ["cost"] = r.Cost, ["error"] = r.Error });
+                // a provider's passing error (eval: GPT-6 Luna and Qwen each lost a build to one "provider returned error")
+                // is tried again twice, after 3 s and 10 s, before the build fails
+                AiReply r = null;
+                for (int attempt = 0; ; attempt++)
+                {
+                    r = await AiClient.Send(endpoint, key, body, cancel);
+                    s_cost += r.Cost ?? 0;
+                    s_tokens += r.PromptTokens + r.ReplyTokens;
+                    Log(new JObject { ["turn"] = turn, ["ms"] = r.Ms, ["status"] = r.Status, ["promptTokens"] = r.PromptTokens, ["replyTokens"] = r.ReplyTokens, ["reasoningTokens"] = r.ReasoningTokens, ["cachedTokens"] = r.CachedTokens, ["cost"] = r.Cost, ["error"] = r.Error });
+                    if (r.Error == null || attempt >= 2 || cancel.IsCancellationRequested || r.Status == 401 || r.Status == 402) break;
+                    Log(new JObject { ["retry"] = attempt + 1 });
+                    await Task.Delay(attempt == 0 ? 3000 : 10000, cancel);
+                }
                 if (r.Error != null) { s_end = State.Failed; Say("error", r.Error); return; }
                 var msg = JObject.Parse(r.RawResponse)["choices"]?[0]?["message"] as JObject;
                 if (msg == null) { s_end = State.Failed; Say("error", "no message in the reply"); return; }
@@ -415,6 +425,11 @@ namespace Placemaker.Game.Ai
                     var doing = AiTools.Doing(name, args);
                     Step(doing.key, doing.args);
                     var res = AiTools.Run(name, args, s_site, s_assets, s_wishes);
+                    // the same call with the same answer again (eval: DeepSeek sent place_surface without an area 55 times):
+                    // the answer says so and shows a whole call
+                    string sig = name + args.ToString(Newtonsoft.Json.Formatting.None) + "|" + res.Text;
+                    if (sig != lastSig) { lastSig = sig; repeats = 0; }
+                    else res.Text += $"\nYou sent this exact call {++repeats + 1} times with the same answer: change it. {AiTools.Example(name)}";
                     if (res.Map) mapAfter = Map();
                     if (res.Pictures != null) pictures.AddRange(res.Pictures);
                     if (res.Finished) finished = true;
@@ -438,6 +453,9 @@ namespace Placemaker.Game.Ai
                 if (mapAfter == null && !finished && AiPlan.Current.Revision != revBefore) mapAfter = Map();
                 if (mapAfter != null) s_messages.Add(UserWithImage($"The map now (map-{s_maps}.png): what you placed is drawn on it, ids next to everything but plants.", mapAfter));
                 if (finished) { Phase("done"); s_end = State.Done; return; }
+                // eval: MiniMax built for all 90 steps and never wrote its note; eight steps before the end it is told
+                if (turn == MaxTurns - 8)
+                    s_messages.Add(new JObject { ["role"] = "user", ["content"] = "Eight steps are left. Complete what you are building, then call finish with your note." });
             }
             s_end = State.Waiting;
             SayKey("Placemaker.Ai.Line.MaxSteps", MaxTurns);
