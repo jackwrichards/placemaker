@@ -1,5 +1,5 @@
 {
-  "_about": "AI builder evaluation on Opus 5.5 with high thinking: five of the ai-eval requests, for comparison with Sonnet. Sets the model and thinking at the start and puts them back at the end.",
+  "_about": "AI builder evaluation on Opus 5.5 with medium thinking (high took 40 s a step and over 11 min for the park): five of the ai-eval requests, for comparison with Sonnet. Sets the model and thinking at the start and puts them back at the end.",
   "scenarios": [
     {
       "id": "ai-opus-park",
@@ -27,7 +27,7 @@
         {
           "do": "setting",
           "name": "AiThinking",
-          "value": 2
+          "value": 1
         },
         {
           "do": "area",
@@ -110,7 +110,7 @@
         {
           "do": "setting",
           "name": "AiThinking",
-          "value": 2
+          "value": 1
         },
         {
           "do": "area",
@@ -193,7 +193,7 @@
         {
           "do": "setting",
           "name": "AiThinking",
-          "value": 2
+          "value": 1
         },
         {
           "do": "area",
@@ -276,7 +276,7 @@
         {
           "do": "setting",
           "name": "AiThinking",
-          "value": 2
+          "value": 1
         },
         {
           "do": "area",
@@ -359,7 +359,7 @@
         {
           "do": "setting",
           "name": "AiThinking",
-          "value": 2
+          "value": 1
         },
         {
           "do": "area",

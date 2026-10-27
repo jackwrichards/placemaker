@@ -86,6 +86,7 @@ namespace Placemaker.Core.Ai
         {
             lock (_lock)
             {
+                _nextId = 1;   // a new session numbers from 1 again (short labels on the map)
                 if (_pieces.Count == 0) return;
                 _pieces.Clear();
                 _revision++;
