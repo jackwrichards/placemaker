@@ -99,6 +99,10 @@
           "shotMode": "render"
         },
         {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
           "do": "setting",
           "name": "AiBuilderOn",
           "value": false
