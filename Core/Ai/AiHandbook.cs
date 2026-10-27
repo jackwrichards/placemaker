@@ -6,7 +6,7 @@ namespace Placemaker.Core.Ai
 {
     public static class AiHandbook
     {
-        public const string Version = "handbook-3";
+        public const string Version = "handbook-4";
 
         public const string Text =
 @"# Design guide (what good builds in this game look like)
@@ -67,11 +67,17 @@ Numbers are starting points for a typical site; scale them with the site and the
 - Sports park: a tree belt, a promenade loop, the main field aligned with the long edge facing a spectator terrace and a clubhouse, courts grouped by kind, fields 6-18 m apart. Field sizes with run-off: football 121x86 (smaller 87x62, 67x51), tennis 38.6x20.3 per court, basketball 34x25, skate 34x26.
 - Plaza and market: paving with a centrepiece, a tree ring or bosquet, benches between trees along the edge, stalls back to back in a grid with cross aisles.
 - Beach: bands from the waterline (sand, promenade, dunes or lawn), lifeguard posts, umbrellas in rows (resort) or scattered (natural), boats in groups.
-- Parking: stalls 3.0 x 5.9 m along aisles 7 m wide, rows parallel to an edge, medians 2.5 m with a tree every 3 stalls, lamps every 30 m, levelled, no fences.
+- Parking (the premade car park, which players like; build it this way with the car park kit from the essentials):
+  1. Ground: level it (a 1-2 % fall is fine). The asphalt surface over the whole lot except a grass verge about 6 m wide along the outline (a grass surface or grass paint). Never dirt, sand or white concrete for the parking area.
+  2. Lanes: the car lane (invisible, 7 m) as a ring about 10 m inside the outline, joined to the street at one or two entrances (end the lane on the street), and straight aisles across the lot parallel to its long edge, 22 m apart (centre to centre), joined to the ring at both ends. Lanes belong under the asphalt.
+  3. Stalls: place_along each aisle with the stall decal, spacing 3, offset 6.5, side both, face away, scale 0.93: a row of stalls square to the aisle on each side. Leave out the stretch where a cross lane or the ring meets the aisle. Put a few EV stalls (with a charger behind each pair) and disabled stalls near the entrance. Also a row of stalls on the inner side of the ring.
+  4. Medians: between back-to-back rows (stall backs about 9.4 m from each aisle) a grass strip 3 m wide down the middle, with a tree every 9 m (every 3 stalls) and bushes between; a double lamp every 25-30 m in the medians.
+  5. Edge: the verge planted with a row of trees every 9-10 m and a hedge of bushes every 3 m along the outline.
+  A 140 x 110 m lot holds about 300 stalls this way; a smaller request (60 cars) is one or two aisles with the rest as planted verge.
 - Industrial yards: one frame square to the street, a fenced edge band, a gate with a barrier and booth, aisles 8 m, storage blocks that each hold one kind of thing in exact rows; dirt and gravel paint (never grass or white concrete everywhere); containers 2.44 x 6.04 m stacked 2.62 m per tier; wrecks nose to the road, stacked higher toward the back.
 
 ## What you cannot build yet
 Zoning and growable buildings, buildings and service buildings, pedestrian areas with access, animals. (You can build: footpaths and trails of any kind, roads, alleys and the invisible car lanes of parking lots joined to the city's roads, fences and hedges as lines, raised boardwalks and piers, ponds with real water, scaled and tilted props such as parking bay decals, terrain, ground paint and surfaces.)
-A parking lot is yours to design: drive lanes (an invisible car lane or an alley, joined to a street at the entrance) with stalls along them marked by parking decals (3.0 x 5.9 m each, square to the lane), trees in medians, lamps, a levelled and paved or painted ground. If the request needs one of these, build everything else well, say plainly in your note what you could not do, and note a wish.";
+If the request needs one of these, build everything else well, say plainly in your note what you could not do, and note a wish.";
     }
 }

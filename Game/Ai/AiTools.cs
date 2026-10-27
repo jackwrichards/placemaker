@@ -142,6 +142,7 @@ namespace Placemaker.Game.Ai
                     ["face"] = new JObject { ["type"] = "string", ["enum"] = new JArray("along", "toward", "away", "fixed"), ["description"] = "along the line (default), toward the line (on an outline: toward its inside), away from it, or fixed (use yaw)" },
                     ["yaw"] = Num("with face fixed: degrees; otherwise added to the facing"),
                     ["inset"] = Num("metres kept free at each end of an open line (default spacing / 2)"),
+                    ["scale"] = Num("optional: size factor for all of them, 1 = as made (parking stalls: 0.93)"),
                 }, "assets", "spacing"),
             Fn("scatter_objects", "Scatter many objects at once inside an area you give (a wood, a clump, a meadow of flowers, rocks): random positions at least 'spacing' apart, random yaw, the assets mixed evenly. With clumps > 0 they gather in patches (a noise field about 5 spacings across) with gaps between. Points that would sit outside the selection, on a road, path or building, or overlap something already placed are skipped. The answer lists every object placed (id, asset, x, z, yaw) and how many were skipped for what, so you can move or remove any of them.",
                 WithArea(new JObject
@@ -357,6 +358,24 @@ namespace Placemaker.Game.Ai
             if (roads.Count > 0) sb.AppendLine("road lines (place_path asset; the invisible car lanes are drive aisles you cannot see: paint or pave the ground under them and mark the stalls with parking decals): " + string.Join("; ", roads.Select(a => a.Size.x > 0f ? $"{a.Id} {F(a.Size.x)} m" : a.Id)));
             var fences = lines.Where(a => a.Category == AssetCategories.Fence && a.Vanilla).Take(8).ToList();
             if (fences.Count > 0) sb.AppendLine("fence lines (place_path asset): " + string.Join("; ", fences.Select(a => a.Id)));
+            // the premade car park's own kit (Core/Layers/Parking/ParkingAssets), the first of each that this game has
+            var ids = new HashSet<string>(assets.Select(a => a.Id), StringComparer.Ordinal);
+            string First(params string[] c) => c.FirstOrDefault(ids.Contains);
+            var kit = new List<string>();
+            void Kit(string what, string id) { if (id != null) kit.Add(what + " " + id); }
+            Kit("asphalt surface", First(Placemaker.Core.Layers.Parking.ParkingAssets.Asphalt, Placemaker.Core.Layers.Parking.ParkingAssets.AsphaltEai, Placemaker.Core.Layers.Parking.ParkingAssets.AsphaltVanilla));
+            Kit("grass surface", First(Placemaker.Core.Layers.Parking.ParkingAssets.Grass));
+            Kit("car lane", First("Invisible Road Path - 2xTwoway"));
+            Kit("narrow car lane", First("Invisible Car Path - 1xTwoway"));
+            Kit("stall", First(Placemaker.Core.Layers.Parking.ParkingAssets.Decal));
+            Kit("EV stall", First(Placemaker.Core.Layers.Parking.ParkingAssets.ElectricDecal));
+            Kit("disabled stall", First(Placemaker.Core.Layers.Parking.ParkingAssets.DisabledDecal));
+            Kit("charger", First(Placemaker.Core.Layers.Parking.ParkingAssets.Charger));
+            Kit("lamp", First(Placemaker.Core.Layers.Parking.ParkingAssets.LampDouble));
+            Kit("lamp at the edge", First(Placemaker.Core.Layers.Parking.ParkingAssets.LampSingle));
+            Kit("tree", First(Placemaker.Core.Layers.Parking.ParkingAssets.DefaultTree));
+            Kit("bushes", string.Join(", ", Placemaker.Core.Layers.Parking.ParkingAssets.DefaultBushes.Where(ids.Contains)));
+            if (kit.Count > 0) sb.AppendLine("car park kit (what the premade car park uses; see the design guide): " + string.Join("; ", kit));
             var surfaces = assets.Where(a => a.Category != null && a.Category.StartsWith("surface") && a.Pick >= 0).OrderBy(a => a.Pick).Take(16).ToList();
             if (surfaces.Count > 0) sb.AppendLine("surfaces (place_surface): " + string.Join("; ", surfaces.Select(a => $"{a.Id} ({a.Category.Replace("surface.", "")})")));
             return sb.ToString();
@@ -507,6 +526,7 @@ namespace Placemaker.Game.Ai
             string face = ((string)args["face"] ?? "along").ToLowerInvariant();
             float yawAdd = math.radians((float?)args["yaw"] ?? 0f);
             float inset = math.max(0f, (float?)args["inset"] ?? spacing * 0.5f);
+            float scale = math.clamp((float?)args["scale"] ?? 1f, 0.2f, 5f);
             var stations = AiShapes.Along(line, closed, spacing, inset);
             // the signed distances to the left of the direction: closed outlines take offset as outside (= right)
             var lefts = math.abs(offset) < 0.01f ? new[] { 0f } : closed ? new[] { -offset }
@@ -532,7 +552,7 @@ namespace Placemaker.Game.Ai
                     }
                     var id = ids[k++ % ids.Count];
                     var a = site.Assets[id];
-                    var piece = new AiPiece { Kind = AiPieceKind.Object, Asset = id, Category = a.Category, Role = RoleFor(a.Category), Position = pos, Yaw = yaw };
+                    var piece = new AiPiece { Kind = AiPieceKind.Object, Asset = id, Category = a.Category, Role = RoleFor(a.Category), Position = pos, Yaw = yaw, Scale = scale };
                     var pr = AiChecks.Problems(site, piece, existing.Concat(placed).ToList());
                     if (pr.Count > 0)
                     {
