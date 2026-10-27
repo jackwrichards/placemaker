@@ -60,6 +60,8 @@ namespace Placemaker.Core.Ai
         public Func<float2, float> Water = _ => 0f;
         /// <summary>The open water's surface (m above sea level), NaN without water.</summary>
         public float WaterLevel = float.NaN;
+        /// <summary>The map's sand paint layer (1-4), 0 = none.</summary>
+        public int SandLayer;
 
         /// <summary>A point past the selection that shore work may reach: within 40 m of the outline and on or within 15 m
         /// of water (sand into the water, the beach face, piers and jetties over it).</summary>
@@ -140,6 +142,7 @@ namespace Placemaker.Core.Ai
                 }
                 foreach (var b in s.Buildings)
                     if (Poly.Contains(new[] { b.A, b.B, b.C, b.D }, p.Position)) { list.Add("inside an existing building or lot"); break; }
+                if (!IsFlat(p)) { var taste = Taste(s, p, all); if (taste != null) list.Add(taste); }
                 if (p.Elevation < 0.5f && UnderWater(s, all, p.Position, out float wd)) list.Add($"under water ({F(wd)} m deep after your ground shaping: move it onto dry ground)");
                 if (!IsFlat(p))
                     foreach (var o in all)
@@ -361,6 +364,52 @@ namespace Placemaker.Core.Ai
             var top = small.GroupBy(o => o.Asset).OrderByDescending(g => g.Count()).FirstOrDefault();
             if (top != null && small.Count > 20 && top.Count() > small.Count * 0.4f) sb.AppendLine($"- {top.Key} is {F(100f * top.Count() / small.Count)} % of the small things: mix in other kinds");
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Placement taste (the user, 27 Oct: shrubs and a climbing frame on crop fields, umbrellas on the lawn, shrubs on the
+        /// beach): a thing where it does not belong, in words; null when it fits. Crop fields hold only crops and farm things;
+        /// beach things stand on sand; trees and bushes stay off the beach sand.
+        /// </summary>
+        public static string Taste(AiSite s, AiPiece p, IReadOnlyList<AiPiece> all)
+        {
+            string cat = p.Category ?? "";
+            bool farmThing = cat.StartsWith("farm", StringComparison.Ordinal) || cat == AssetCategories.GardenCrop || cat.StartsWith("animal", StringComparison.Ordinal) || cat == AssetCategories.Fence;
+            foreach (var o in all)
+            {
+                if (o.Kind != AiPieceKind.Surface || o.Ring == null || farmThing) continue;
+                string a = o.Asset ?? "";
+                bool field = a.IndexOf("Agricultur", StringComparison.OrdinalIgnoreCase) >= 0 || a.IndexOf("Crop", StringComparison.OrdinalIgnoreCase) >= 0 || a.IndexOf("Field", StringComparison.OrdinalIgnoreCase) >= 0;
+                if (field && Poly.Contains(o.Ring, p.Position)) return $"on crop field #{o.Id} (only crops, hay, troughs and farm machinery belong in a field: move it to the yard, a hedgerow or the field edge)";
+            }
+            bool onSand = OnSand(s, all, p.Position);
+            if (cat.StartsWith("beach.", StringComparison.Ordinal) && cat != AssetCategories.BeachHut && cat != AssetCategories.BeachShower && !onSand)
+                return "a beach thing off the sand (umbrellas, loungers, lifeguard towers, boats and volleyball stand on the beach sand)";
+            if ((p.Role == ObjectRole.Tree || p.Role == ObjectRole.Bush) && onSand && NearWater(s, p.Position, 40f))
+                return "a plant on the beach sand (keep the beach open: plant behind it, on the dunes or the lawn)";
+            return null;
+        }
+
+        private static bool OnSand(AiSite s, IReadOnlyList<AiPiece> all, float2 q)
+        {
+            foreach (var o in all)
+            {
+                if (o.Ring == null) continue;
+                if (o.Kind == AiPieceKind.Surface && ((o.Category ?? "") == AssetCategories.SurfaceSand || (o.Asset ?? "").IndexOf("Sand", StringComparison.OrdinalIgnoreCase) >= 0) && Poly.Contains(o.Ring, q)) return true;
+                if (o.Kind == AiPieceKind.Paint && s.SandLayer > 0 && o.Layer == s.SandLayer && o.Strength >= 0.5f && Poly.Contains(o.Ring, q)) return true;
+            }
+            return false;
+        }
+
+        private static bool NearWater(AiSite s, float2 q, float r)
+        {
+            if (s.Water(q) > 0.05f) return true;
+            for (int k = 0; k < 8; k++)
+            {
+                var d = new float2(math.cos(k * 0.785f), math.sin(k * 0.785f));
+                for (float t = 5f; t <= r; t += 5f) if (s.Water(q + d * t) > 0.05f) return true;
+            }
+            return false;
         }
 
         /// <summary>The ground at p after every shaping piece, in order (soft, line and hard shapes alike).</summary>

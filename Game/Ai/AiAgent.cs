@@ -218,7 +218,7 @@ namespace Placemaker.Game.Ai
                 {
                     s_brief = AiBuilder.Capture(world, tool, ring, text);
                     var (lo, _) = SiteBrief.Box(ring);
-                    s_site = new AiSite { Ring = ring, Origin = lo, Nets = s_brief.Nets, Buildings = s_brief.Buildings, Ground = GroundOf(s_brief.Ground), Water = WaterOf(s_brief.Ground), WaterLevel = LevelOf(s_brief.Ground) };
+                    s_site = new AiSite { Ring = ring, Origin = lo, Nets = s_brief.Nets, Buildings = s_brief.Buildings, Ground = GroundOf(s_brief.Ground), Water = WaterOf(s_brief.Ground), WaterLevel = LevelOf(s_brief.Ground), SandLayer = SandOf(s_brief) };
                     s_assets = AssetIndex();
                     foreach (var a in s_assets) if (!s_site.Assets.ContainsKey(a.Id)) s_site.Assets[a.Id] = a;
                     s_folder = Path.Combine(ModPaths.DataFolder, "ai", DateTime.Now.ToString("yyyyMMdd-HHmmss"));
@@ -468,6 +468,17 @@ namespace Placemaker.Game.Ai
             if (l.Count == 0) return float.NaN;
             l.Sort();
             return l[l.Count / 2];
+        }
+
+        /// <summary>The map's sand paint layer (its name says sand), 0 = none.</summary>
+        private static int SandOf(SiteBriefInput b)
+        {
+            for (int i = 1; i <= 4; i++)
+            {
+                string n = b.Paints != null && i < b.Paints.Length && !string.IsNullOrEmpty(b.Paints[i]) ? b.Paints[i] : SiteBrief.DefaultPaint(i);
+                if ((n ?? "").IndexOf("sand", StringComparison.OrdinalIgnoreCase) >= 0) return i;
+            }
+            return 0;
         }
 
         /// <summary>Nearest-cell water depth from the brief's grid (world xz); 0 outside it.</summary>
