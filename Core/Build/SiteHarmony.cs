@@ -134,6 +134,9 @@ namespace Placemaker.Core.Build
             "logisticsYard", "scrapyard", "junkPiles", "skipRow", "yardBreak",
             // Lot-graded like parking (bays on tier planes): parking grading is its own pass (s25 / s29).
             "restArea",
+            // The AI builder shapes every bit of its ground on purpose, piece by piece (Core/Layers/Ai/AiLayer.cs). Taking part,
+            // its 12 m lookout hill was flattened and its lake spilled onto the promenade (Opus park replay, 27 Oct).
+            "ai",
         };
 
         /// <summary>The decorative terrain layer: its change is masked out of corridors, surfaces and pads.</summary>
