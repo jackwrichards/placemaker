@@ -9,6 +9,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Colossal.Mathematics;
 using Game.Common;
 using Game.Prefabs;
@@ -331,6 +332,8 @@ namespace Placemaker.Game.Build
             }
             if (_tfPass >= TerraformMaxPasses)
             {
+                Mod.Log.Info("Placemaker terraform: where it is still off (20 m squares: centre, texels, mean change still wanted): "
+                    + string.Join("; ", _tfRaster.OffClusters(deltas, TerraformTolerance).Select(c => $"({c.at.x:F0}, {c.at.y:F0}) {c.count} {c.mean:+0.00;-0.00} m")));
                 FinishTerraformDirect(false, $"{stats.InsideOff}/{stats.Inside} cells still off after {_tfPass} passes");
                 return;
             }

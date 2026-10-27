@@ -254,7 +254,7 @@ namespace Placemaker.Game.Ai
                         },
                     },
                 };
-                Mod.Log.Info($"Placemaker AI: new session for {model} at {endpoint} (key from {keyFrom}, prompt {AiPrompts.AgentVersion}, {AiHandbook.Version}, thinking {Thinking()}), {s_assets.Count} assets, {s_brief.Nets.Count} nets -> {s_folder}");
+                Mod.Log.Info($"Placemaker AI: new session for {model} at {endpoint} (key from {keyFrom}, prompt {AiPrompts.AgentVersion}, {AiHandbook.Version}, thinking {Thinking()}), {s_assets.Count} assets, {s_brief.Nets.Count} nets, origin ({s_site.Origin.x:F1}, {s_site.Origin.y:F1}) -> {s_folder}");
             }
             var entrancesNow = tool.AiEntrances();
             Say("you", text);

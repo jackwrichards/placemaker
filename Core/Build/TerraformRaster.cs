@@ -253,6 +253,30 @@ namespace Placemaker.Core.Build
             return d;
         }
 
+        /// <summary>
+        /// Where the inside texels off by more than <paramref name="tolerance"/> are: grouped in <paramref name="bin"/> m squares,
+        /// the <paramref name="top"/> squares with the most, each with its centre, count and mean change still wanted (+ raise).
+        /// </summary>
+        public List<(float2 at, int count, float mean)> OffClusters(float[] deltas, float tolerance, float bin = 20f, int top = 6)
+        {
+            var bins = new Dictionary<long, (int n, float sum, float2 sumAt)>();
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                {
+                    int i = y * Width + x;
+                    if (Weight[i] < 1f || math.abs(deltas[i]) <= tolerance) continue;
+                    var c = Center(x, y);
+                    long k = ((long)(int)math.floor(c.x / bin) << 32) ^ (uint)(int)math.floor(c.y / bin);
+                    bins.TryGetValue(k, out var b);
+                    bins[k] = (b.n + 1, b.sum + deltas[i], b.sumAt + c);
+                }
+            var list = new List<(float2, int, float)>();
+            foreach (var b in bins.Values) list.Add((b.sumAt / b.n, b.n, b.sum / b.n));
+            list.Sort((a, b) => b.Item2.CompareTo(a.Item2));
+            if (list.Count > top) list.RemoveRange(top, list.Count - top);
+            return list;
+        }
+
         /// <summary>A square brush tile: texel window [X, X+Size) × [Y, Y+Size) of the raster.</summary>
         public struct Tile { public int X, Y, Size; }
 
