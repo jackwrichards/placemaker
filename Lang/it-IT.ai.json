@@ -32,5 +32,7 @@
   "Placemaker.Ai.Doing.Surface": "Posa una superficie",
   "Placemaker.Ai.Line.Shape": "Terreno modellato (gradino di {0} m)",
   "Placemaker.Ai.Line.Paint": "Suolo dipinto, {0} m²",
-  "Placemaker.Ai.Line.Surface": "Superficie, {0} m²"
+  "Placemaker.Ai.Line.Surface": "Superficie, {0} m²",
+  "Placemaker.Ai.Doing.Look": "Guarda {0} oggetti",
+  "Placemaker.Ai.Line.Looked": "Viste {0} immagini"
 }

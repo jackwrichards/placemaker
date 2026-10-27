@@ -19,6 +19,10 @@ namespace Placemaker.Core.Ai
         public string Category;
         /// <summary>The game's own menu group the asset is listed in (e.g. "PropsPark", "SignsAndPosters"), "" = none.</summary>
         public string Group = "";
+        /// <summary>The prefab's own icon url (coui:// or assetdb://), "" = none: one of the sources of its picture.</summary>
+        public string Icon = "";
+        /// <summary>Set by the game layer when the index is made: a picture can be shown (look_at_assets).</summary>
+        public bool HasPicture = true;
         public string[] Tags = Array.Empty<string>();
         /// <summary>Width (x), depth (z), height (y) in metres, from the object's bounds.</summary>
         public float3 Size;

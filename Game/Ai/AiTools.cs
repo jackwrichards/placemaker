@@ -23,6 +23,7 @@ namespace Placemaker.Game.Ai
             public object[] LineArgs = new object[0];
             public string Note;           // the AI's note to the player (finish)
             public bool Map;              // attach a fresh map after this round
+            public List<(string label, AiPictures.Picture pic)> Pictures;   // asset pictures to show after this round
             public bool Finished;
         }
 
@@ -55,6 +56,8 @@ namespace Placemaker.Game.Ai
                     ["limit"] = new JObject { ["type"] = "integer", ["description"] = "how many (default 25, max 60)" },
                 }, "query"),
             Fn("asset_groups", "What kinds of assets this game has: every category and every menu group of the game (vanilla and mods) with how many assets each holds. Browse it before searching, then search_assets with category or group.", new JObject()),
+            Fn("look_at_assets", "See what assets look like: a picture of each (up to 12 per call) is attached after this round, labelled with its id, size and how its front points. Use it to choose between candidates and to know which side is the front before you turn things. Assets without a picture are listed.",
+                new JObject { ["ids"] = new JObject { ["type"] = "array", ["description"] = "asset ids from search_assets", ["items"] = new JObject { ["type"] = "string" } } }, "ids"),
             Fn("place_objects", "Place objects (trees, bushes, benches, lamps, props). Each sits on the ground unless elevation is given. Answers with the ids and the problems each one caused.",
                 new JObject
                 {
@@ -131,6 +134,7 @@ namespace Placemaker.Game.Ai
             switch (name)
             {
                 case "search_assets": return ("Placemaker.Ai.Doing.Search", new object[] { (string)args["query"] ?? "" });
+                case "look_at_assets": return ("Placemaker.Ai.Doing.Look", new object[] { (args["ids"] as JArray)?.Count ?? 0 });
                 case "place_objects": return ("Placemaker.Ai.Doing.Place", new object[] { (args["objects"] as JArray)?.Count ?? 0 });
                 case "place_path": return ("Placemaker.Ai.Doing.Path", new object[0]);
                 case "shape_ground": return ("Placemaker.Ai.Doing.Shape", new object[0]);
@@ -169,6 +173,7 @@ namespace Placemaker.Game.Ai
                 switch (name)
                 {
                     case "search_assets": return Search(args, assets);
+                    case "look_at_assets": return Look(args, site);
                     case "asset_groups":
                     {
                         var sb = new StringBuilder();
@@ -230,6 +235,23 @@ namespace Placemaker.Game.Ai
             catch (Exception e) { return new Result { Text = "error: " + e.Message }; }
         }
 
+        private static Result Look(JObject args, AiSite site)
+        {
+            var ids = (args["ids"] as JArray)?.Select(t => (string)t).Where(t => !string.IsNullOrEmpty(t)).Distinct().Take(12).ToList() ?? new List<string>();
+            var pics = new List<(string, AiPictures.Picture)>();
+            var none = new List<string>();
+            foreach (var id in ids)
+            {
+                if (!site.Assets.TryGetValue(id, out var a)) { none.Add(id + " (unknown id)"); continue; }
+                var p = AiPictures.For(id, a.Icon);
+                if (p == null) { none.Add(id); continue; }
+                pics.Add(($"{id}: {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)} m, {a.Category}; picture from its front-left (its front is its local +z: the direction its yaw points)", p));
+            }
+            string text = pics.Count > 0 ? $"{pics.Count} picture(s) attached below" : "no pictures";
+            if (none.Count > 0) text += "; no picture for: " + string.Join(", ", none);
+            return new Result { Text = text, Pictures = pics, LineKey = "Placemaker.Ai.Line.Looked", LineArgs = new object[] { pics.Count } };
+        }
+
         private static Result Search(JObject args, List<AiAsset> assets)
         {
             string query = ((string)args["query"] ?? "").ToLowerInvariant();
@@ -252,7 +274,7 @@ namespace Placemaker.Game.Ai
             if (top.Count == 0) return new Result { Text = "no matches; try other words or a category" };
             var sb = new StringBuilder();
             sb.AppendLine($"{top.Count} of {scored.Count} matches (id | name | category | width x depth x height m; plants: how wide the crown grows):");
-            foreach (var (a, _) in top) sb.AppendLine($"{a.Id} | {a.Name} | {a.Category}{(a.Vanilla ? "" : " (mod)")} | {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)}" + (a.Plant ? $" | crown about {F(a.Reach * 2f)} m across" : ""));
+            foreach (var (a, _) in top) sb.AppendLine($"{a.Id} | {a.Name} | {a.Category}{(a.Vanilla ? "" : " (mod)")}{(a.HasPicture ? "" : " (no picture)")} | {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)}" + (a.Plant ? $" | crown about {F(a.Reach * 2f)} m across" : ""));
             return new Result { Text = sb.ToString() };
         }
 

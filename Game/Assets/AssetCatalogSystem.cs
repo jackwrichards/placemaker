@@ -404,7 +404,7 @@ namespace Placemaker.Game.Assets
         /// </summary>
         public sealed class PlaceableObject
         {
-            public string Name, DisplayName, Group;   // Group: the game's own menu group (UIObjectData) the asset is listed in, "" = none
+            public string Name, DisplayName, Group, Icon;   // Group: the game's own menu group (UIObjectData) the asset is listed in, "" = none; Icon: its UIObject icon url
             public float3 Min, Max;
             public bool Tree, Plant, StreetLight, Decal, Animated;
         }
@@ -424,11 +424,15 @@ namespace Placemaker.Game.Assets
                     var ge = EntityManager.GetComponentData<UIObjectData>(e).m_Group;
                     if (ge != Entity.Null && _prefabs.TryGetPrefab<PrefabBase>(ge, out var gp) && gp != null) group = gp.name;
                 }
-                string display = kv.Key;
-                if (_prefabs.TryGetPrefab<PrefabBase>(e, out var pb) && pb != null) display = DisplayName(pb);
+                string display = kv.Key, icon = "";
+                if (_prefabs.TryGetPrefab<PrefabBase>(e, out var pb) && pb != null)
+                {
+                    display = DisplayName(pb);
+                    if (pb.TryGet<UIObject>(out var ui) && ui != null) icon = ui.m_Icon ?? "";
+                }
                 list.Add(new PlaceableObject
                 {
-                    Name = kv.Key, DisplayName = display, Group = group, Min = g.m_Bounds.min, Max = g.m_Bounds.max,
+                    Name = kv.Key, DisplayName = display, Group = group, Icon = icon, Min = g.m_Bounds.min, Max = g.m_Bounds.max,
                     Tree = EntityManager.HasComponent<TreeData>(e), Plant = EntityManager.HasComponent<PlantData>(e),
                     StreetLight = EntityManager.HasComponent<StreetLightData>(e),
                     Decal = kv.Key.IndexOf("decal", StringComparison.OrdinalIgnoreCase) >= 0 || (g.m_Bounds.max.y - g.m_Bounds.min.y) < 0.05f,

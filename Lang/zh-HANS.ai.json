@@ -32,5 +32,7 @@
   "Placemaker.Ai.Doing.Surface": "正在铺设地面",
   "Placemaker.Ai.Line.Shape": "地形已塑造（边缘落差 {0} 米）",
   "Placemaker.Ai.Line.Paint": "地面已绘制，{0} 平方米",
-  "Placemaker.Ai.Line.Surface": "铺装，{0} 平方米"
+  "Placemaker.Ai.Line.Surface": "铺装，{0} 平方米",
+  "Placemaker.Ai.Doing.Look": "正在查看 {0} 个资源",
+  "Placemaker.Ai.Line.Looked": "查看了 {0} 张图片"
 }

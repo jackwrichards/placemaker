@@ -32,5 +32,7 @@
   "Placemaker.Ai.Doing.Surface": "표면 까는 중",
   "Placemaker.Ai.Line.Shape": "지형 다듬음 (가장자리 단차 {0} m)",
   "Placemaker.Ai.Line.Paint": "지면 칠함, {0} m²",
-  "Placemaker.Ai.Line.Surface": "표면, {0} m²"
+  "Placemaker.Ai.Line.Surface": "표면, {0} m²",
+  "Placemaker.Ai.Doing.Look": "에셋 {0}개 보는 중",
+  "Placemaker.Ai.Line.Looked": "이미지 {0}장 확인"
 }

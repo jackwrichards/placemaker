@@ -32,5 +32,7 @@
   "Placemaker.Ai.Doing.Surface": "Кладёт покрытие",
   "Placemaker.Ai.Line.Shape": "Рельеф изменён (перепад у края {0} м)",
   "Placemaker.Ai.Line.Paint": "Земля покрашена, {0} м²",
-  "Placemaker.Ai.Line.Surface": "Покрытие, {0} м²"
+  "Placemaker.Ai.Line.Surface": "Покрытие, {0} м²",
+  "Placemaker.Ai.Doing.Look": "Смотрит объекты: {0}",
+  "Placemaker.Ai.Line.Looked": "Просмотрено изображений: {0}"
 }

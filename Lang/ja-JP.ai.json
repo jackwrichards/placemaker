@@ -32,5 +32,7 @@
   "Placemaker.Ai.Doing.Surface": "舗装面を敷設中",
   "Placemaker.Ai.Line.Shape": "地形を整形（端の段差 {0} m）",
   "Placemaker.Ai.Line.Paint": "地面を塗装、{0} m²",
-  "Placemaker.Ai.Line.Surface": "舗装面、{0} m²"
+  "Placemaker.Ai.Line.Surface": "舗装面、{0} m²",
+  "Placemaker.Ai.Doing.Look": "{0}個のアセットを確認中",
+  "Placemaker.Ai.Line.Looked": "{0}枚の画像を確認"
 }

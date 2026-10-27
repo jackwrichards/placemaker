@@ -32,5 +32,7 @@
   "Placemaker.Ai.Doing.Surface": "Laying a surface",
   "Placemaker.Ai.Line.Shape": "Ground shaped (edge step {0} m)",
   "Placemaker.Ai.Line.Paint": "Ground painted, {0} m²",
-  "Placemaker.Ai.Line.Surface": "Surface, {0} m²"
+  "Placemaker.Ai.Line.Surface": "Surface, {0} m²",
+  "Placemaker.Ai.Doing.Look": "Looking at {0} assets",
+  "Placemaker.Ai.Line.Looked": "Looked at {0} pictures"
 }

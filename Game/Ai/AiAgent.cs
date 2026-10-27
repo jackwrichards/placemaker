@@ -173,8 +173,20 @@ namespace Placemaker.Game.Ai
                     why = "capturing the selection failed: " + e.Message;
                     return false;
                 }
-                s_messages = new JArray { new JObject { ["role"] = "system", ["content"] = AiPrompts.Agent + "\nThe player's game language is " + Locale() + ": write every message to the player in it." } };
-                Mod.Log.Info($"Placemaker AI: new session for {model} at {endpoint} (key from {keyFrom}, prompt {AiPrompts.AgentVersion}), {s_assets.Count} assets, {s_brief.Nets.Count} nets -> {s_folder}");
+                // the instructions and the design guide are the same every call: marked for the provider's prompt cache
+                s_messages = new JArray
+                {
+                    new JObject
+                    {
+                        ["role"] = "system",
+                        ["content"] = new JArray
+                        {
+                            new JObject { ["type"] = "text", ["text"] = AiPrompts.Agent + "\nThe player's game language is " + Locale() + ": write every message to the player in it." },
+                            new JObject { ["type"] = "text", ["text"] = AiHandbook.Text, ["cache_control"] = new JObject { ["type"] = "ephemeral" } },
+                        },
+                    },
+                };
+                Mod.Log.Info($"Placemaker AI: new session for {model} at {endpoint} (key from {keyFrom}, prompt {AiPrompts.AgentVersion}, {AiHandbook.Version}), {s_assets.Count} assets, {s_brief.Nets.Count} nets -> {s_folder}");
             }
             Say("you", text);
             s_state = State.Working;
@@ -191,7 +203,9 @@ namespace Placemaker.Game.Ai
                         var map = Map();
                         var brief = SiteBrief.Write(s_brief);
                         File.WriteAllText(Path.Combine(s_folder, "brief.txt"), brief);
-                        s_messages.Add(UserWithImage(brief, map));
+                        var firstMessage = UserWithImage(brief, map);
+                        firstMessage["content"][1]["cache_control"] = new JObject { ["type"] = "ephemeral" };   // the brief and its map: the same in every later call
+                        s_messages.Add(firstMessage);
                     }
                     else s_messages.Add(new JObject { ["role"] = "user", ["content"] = "The player says: " + text });
                     await Loop(endpoint, key, model, cancel);
@@ -256,6 +270,7 @@ namespace Placemaker.Game.Ai
 
                 bool finished = false;
                 byte[] mapAfter = null;
+                var pictures = new List<(string label, AiPictures.Picture pic)>();
                 int revBefore = AiPlan.Current.Revision;
                 foreach (var c in calls)
                 {
@@ -268,11 +283,23 @@ namespace Placemaker.Game.Ai
                     Step(doing.key, doing.args);
                     var res = AiTools.Run(name, args, s_site, s_assets, s_wishes);
                     if (res.Map) mapAfter = Map();
+                    if (res.Pictures != null) pictures.AddRange(res.Pictures);
                     if (res.Finished) finished = true;
                     if (res.LineKey != null) SayKey(res.LineKey, res.LineArgs);
                     if (!string.IsNullOrEmpty(res.Note)) Say("ai", res.Note);
                     s_messages.Add(new JObject { ["role"] = "tool", ["tool_call_id"] = (string)c["id"], ["content"] = res.Text });
                     Log(new JObject { ["tool"] = name, ["args"] = args, ["result"] = res.Text });
+                }
+                if (pictures.Count > 0)
+                {
+                    var content = new JArray { new JObject { ["type"] = "text", ["text"] = "The asset pictures you asked for:" } };
+                    foreach (var (label, pic) in pictures)
+                    {
+                        content.Add(new JObject { ["type"] = "text", ["text"] = label });
+                        content.Add(new JObject { ["type"] = "image_url", ["image_url"] = new JObject { ["url"] = "data:" + pic.Mime + ";base64," + Convert.ToBase64String(pic.Bytes) } });
+                    }
+                    s_messages.Add(new JObject { ["role"] = "user", ["content"] = content });
+                    Log(new JObject { ["pictures"] = new JArray(pictures.Select(p => p.label + " [" + p.pic.Source + ", " + p.pic.Bytes.Length + " bytes]")) });
                 }
                 if (mapAfter == null && !finished && AiPlan.Current.Revision != revBefore) mapAfter = Map();
                 if (mapAfter != null) s_messages.Add(UserWithImage($"The map now (map-{s_maps}.png): what you placed is drawn on it, ids next to everything but plants.", mapAfter));
@@ -321,7 +348,7 @@ namespace Placemaker.Game.Ai
             {
                 var s = new JObject
                 {
-                    ["model"] = model, ["prompt"] = AiPrompts.AgentVersion, ["state"] = s_end.ToString(), ["costUsd"] = Math.Round(s_cost, 4), ["tokens"] = s_tokens,
+                    ["model"] = model, ["prompt"] = AiPrompts.AgentVersion, ["handbook"] = AiHandbook.Version, ["state"] = s_end.ToString(), ["costUsd"] = Math.Round(s_cost, 4), ["tokens"] = s_tokens,
                     ["pieces"] = AiPlan.Current.Count, ["maps"] = s_maps, ["wishes"] = new JArray(Wishes), ["problems"] = new JArray(AiChecks.All(s_site, AiPlan.Current.Snapshot())),
                 };
                 File.WriteAllText(Path.Combine(s_folder, "summary.json"), s.ToString());
@@ -348,7 +375,7 @@ namespace Placemaker.Game.Ai
                 foreach (var it in items)
                 {
                     if (string.IsNullOrEmpty(it.Id) || !seen.Add(it.Id)) continue;
-                    var a = new AiAsset { Id = it.Id, Name = it.DisplayName ?? it.Id, Category = c, Tags = it.Tags ?? Array.Empty<string>() };
+                    var a = new AiAsset { Id = it.Id, Name = it.DisplayName ?? it.Id, Category = c, Tags = it.Tags ?? Array.Empty<string>(), Icon = it.Icon ?? "" };
                     if (it.Info.BoundsMax.x > it.Info.BoundsMin.x)
                     {
                         var size = it.Info.BoundsMax - it.Info.BoundsMin;
@@ -371,12 +398,23 @@ namespace Placemaker.Game.Ai
                     string category = o.Tree ? AssetCategories.Tree : o.Plant ? AssetCategories.Bush : o.StreetLight ? AssetCategories.Lamp : o.Decal ? AssetCategories.Decal : "object";
                     list.Add(new AiAsset
                     {
-                        Id = o.Name, Name = o.DisplayName, Category = category, Group = o.Group,
+                        Id = o.Name, Name = o.DisplayName, Category = category, Group = o.Group, Icon = o.Icon ?? "",
                         Tags = string.IsNullOrEmpty(o.Group) ? Array.Empty<string>() : new[] { System.Text.RegularExpressions.Regex.Replace(o.Group, "([a-z])([A-Z])", "$1 $2") },
                         Size = size, Offset = new float2(mid.x, mid.z),
                     });
                 }
                 foreach (var x in list) x.Vanilla = sys.IsVanillaName(x.Id);
+                var ail = new HashSet<string>(StringComparer.Ordinal);
+                try
+                {
+                    var dir = Path.Combine(global::Colossal.PSI.Environment.EnvPath.kUserDataPath, "ModsData", "AssetIconLibrary", ".Thumbnails");
+                    if (Directory.Exists(dir))
+                        foreach (var f in Directory.GetFiles(dir, "StaticObjectPrefab.*.png")) ail.Add(Path.GetFileNameWithoutExtension(f).Substring("StaticObjectPrefab.".Length));
+                }
+                catch (Exception) { }
+                foreach (var x in list)
+                    x.HasPicture = ail.Contains(x.Id) || (x.Icon ?? "").StartsWith("assetdb://", StringComparison.OrdinalIgnoreCase) || (x.Icon ?? "").StartsWith("coui://ail/", StringComparison.OrdinalIgnoreCase);
+                Mod.Log.Info($"Placemaker AI: {list.Count(x => x.HasPicture)} of {list.Count} assets have a picture ({ail.Count} Asset Icon Library files)");
             }
             return list;
         }
