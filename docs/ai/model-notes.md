@@ -57,3 +57,16 @@ counted as filled: fixed); trees over crop fields are not a reported problem.
 What moved the grades: a recipe pulled from the premade planner and its exact kit (car park D to B, industrial D to C+,
 junkyard C to B-). Still open: things on pads are scattered, not in rows; the shore types (premade and AI alike) do not
 carve the shore; the AI keeps its sand inside the selection, short of the water.
+
+## Shores (27 Oct): carving for our types and the AI
+
+Our types: `ShoreCarve.Bay` cuts a crescent bay below the water level (new control Bay: family beach 24 m, resort 16 m,
+wild dunes 32 m, promenade waterfront 18 m, harbour 20 m; pier park none) and the type plans against the curved waterline.
+In the game runner (lake to the north, the game run 40 s so the water flows in): family beach C+ to B-, wild dunes C to B
+(a real cove), resort B-, promenade waterfront B (a curved boardwalk), harbour B (a crescent quay and apron).
+Runs: before `show-2-builds-1027-085129-42ef`, after `show-3-builds-1027-085656-d3b3` (beach), `show-3-builds-1027-090127-98be` (waterfront).
+
+AI (Sonnet, handbook-6 shore recipe, the brief's water summary, shore work allowed past the selection by the water, the
+review's shore numbers): beach C to B- (a sloped beach face with sand running under the water, umbrellas, a jetty, a
+promenade), waterfront B- then C+ (boardwalk and T-piers the first time; a basin the second time that did not fill).
+Sonnet does not carve a bay by itself yet. Runs: `20261027-085835-ai-shore`, `20261027-090449-ai-shore`.
