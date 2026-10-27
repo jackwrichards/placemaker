@@ -2,6 +2,7 @@
 // (Core/Ai/AiPlan), turned into plan objects and paths here so the ghost preview, the site plan sketch, Review and Build
 // treat it like any other type. Shown in the Make row only while the AI builder option is on.
 
+using System.Collections.Generic;
 using System.Linq;
 using Placemaker.Core.Ai;
 using Placemaker.Core.Layers.Common;
@@ -32,6 +33,7 @@ namespace Placemaker.Core.Layers.Ai
         protected override void PlanCore(LayerContext ctx)
         {
             var pieces = AiPlan.Current.Snapshot();
+            var waterRings = new List<(PlannedTerraform t, float2[] ring)>();
             // the ground first, so everything else sits on the reshaped ground
             foreach (var p in pieces)
             {
@@ -43,8 +45,8 @@ namespace Placemaker.Core.Layers.Ai
                 {
                     Ring = ring, Kind = p.Shape, TargetHeight = sloped ? p.CornerHeights.Average() : p.Height, Sloped = sloped, Permanent = true,
                     WaterLevel = p.WaterLevel,
-                    WaterAnchor = math.isfinite(p.WaterLevel) ? new float3(Centroid(p.Ring).x, p.WaterLevel, Centroid(p.Ring).y) : default,
                 });
+                waterRings.Add((ctx.Plan.Terraform[ctx.Plan.Terraform.Count - 1], p.Ring));
             }
             var after = TerrainField.FromTerraform(ctx.Plan.Terraform, ctx.H);
             if (after != null)
@@ -52,6 +54,25 @@ namespace Placemaker.Core.Layers.Ai
                 float2 lo = new float2(float.MaxValue), hi = new float2(float.MinValue);
                 foreach (var t in ctx.Plan.Terraform) foreach (var q in t.Ring) { lo = math.min(lo, q.xz); hi = math.max(hi, q.xz); }
                 ctx.Ground.Override(lo, hi, after);
+                // water: anchored at the deepest point of its basin after all the shaping (an island raised in the middle of
+                // a pond must not carry the anchor: the build then finds no basin and adds no water)
+                foreach (var (t, ring) in waterRings)
+                {
+                    if (!math.isfinite(t.WaterLevel)) continue;
+                    float2 rlo = new float2(float.MaxValue), rhi = new float2(float.MinValue);
+                    foreach (var q in ring) { rlo = math.min(rlo, q); rhi = math.max(rhi, q); }
+                    float best = float.MaxValue; float2 at = Centroid(ring);
+                    float step = math.max(1f, math.cmax(rhi - rlo) / 24f);
+                    for (float x = rlo.x; x <= rhi.x; x += step)
+                        for (float z = rlo.y; z <= rhi.y; z += step)
+                        {
+                            var q = new float2(x, z);
+                            if (!Geometry.Poly.Contains(ring, q)) continue;
+                            float g = after(q);
+                            if (g < best) { best = g; at = q; }
+                        }
+                    t.WaterAnchor = new float3(at.x, t.WaterLevel, at.y);
+                }
             }
             foreach (var p in pieces)
             {

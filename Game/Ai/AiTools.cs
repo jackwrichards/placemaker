@@ -422,10 +422,17 @@ namespace Placemaker.Game.Ai
             }
             AiPlan.Current.Add(p);
             var at = site.Local(stepAt);
+            string water = "";
+            if (math.isfinite(p.WaterLevel))
+            {
+                float floor = p.Shape == TerraformKind.Raise ? math.max(p.Height, gmin) : p.Height;
+                water = floor < p.WaterLevel - 0.3f ? $"; water at {F(p.WaterLevel)} m over a floor at {F(floor)} m"
+                    : $"; WARNING: the floor ({F(floor)} m) is not below the water level ({F(p.WaterLevel)} m): no water will appear (lower the basin, and keep islands small so the deepest part stays open water)";
+            }
             string ground = gmin <= gmax ? $"ground before: {F(gmin)} to {F(gmax)} m" : "ground before: unknown";
             return new Result
             {
-                Text = $"ground #{p.Id} ({mode}{(corners != null ? ", sloped" : $" to {F(p.Height)} m")}): {ground}; largest step at its edge {F(maxStep)} m near ({F(at.x)},{F(at.y)}); {Problems(site, p)}",
+                Text = $"ground #{p.Id} ({mode}{(corners != null ? ", sloped" : $" to {F(p.Height)} m")}): {ground}; largest step at its edge {F(maxStep)} m near ({F(at.x)},{F(at.y)}){water}; {Problems(site, p)}",
                 LineKey = "Placemaker.Ai.Line.Shape", LineArgs = new object[] { (int)math.round(maxStep * 10f) / 10f },
             };
         }

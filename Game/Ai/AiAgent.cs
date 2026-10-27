@@ -243,6 +243,7 @@ namespace Placemaker.Game.Ai
 
         private static async Task Loop(string endpoint, string key, string model, CancellationToken cancel)
         {
+            int nudges = 0;
             for (int turn = 0; turn < MaxTurns; turn++)
             {
                 cancel.ThrowIfCancellationRequested();
@@ -273,7 +274,18 @@ namespace Placemaker.Game.Ai
                 // text beside tool calls is the AI thinking aloud: logged, not shown; the player reads its answers and its finish note
                 string said = AiClient.ContentText(msg["content"]);
                 if (!string.IsNullOrWhiteSpace(said) && (calls == null || calls.Count == 0)) Say("ai", said.Trim());
-                if (calls == null || calls.Count == 0) { s_end = State.Waiting; return; }
+                if (calls == null || calls.Count == 0)
+                {
+                    // an empty reply (it ran out of room thinking): nudge it on instead of stopping, twice at most
+                    if (string.IsNullOrWhiteSpace(said) && nudges++ < 2)
+                    {
+                        s_messages.Add(new JObject { ["role"] = "user", ["content"] = "Your last reply was empty. Continue building with the tools; keep each step short." });
+                        Log(new JObject { ["nudge"] = nudges });
+                        continue;
+                    }
+                    s_end = State.Waiting;
+                    return;
+                }
 
                 bool finished = false;
                 byte[] mapAfter = null;
