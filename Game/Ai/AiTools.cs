@@ -293,9 +293,7 @@ namespace Placemaker.Game.Ai
                         if (left.Count > 0 && !site.ProblemsShown)
                         {
                             site.ProblemsShown = true;
-                            return new Result { Text = $"Not yet: {left.Count} pieces still have problems. Fix each (move, reshape or remove it), then finish again:
-" + string.Join("
-", left), LineKey = "Placemaker.Ai.Line.CheckProblems", LineArgs = new object[] { left.Count } };
+                            return new Result { Text = $"Not yet: {left.Count} pieces still have problems. Fix each (move, reshape or remove it), then finish again:\n" + string.Join("\n", left), LineKey = "Placemaker.Ai.Line.CheckProblems", LineArgs = new object[] { left.Count } };
                         }
                         return new Result { Text = "handed to the player", Note = (string)args["note"] ?? "", Finished = true };
                     case "wish":
