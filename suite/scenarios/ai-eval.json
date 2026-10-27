@@ -1,0 +1,639 @@
+{
+  "_about": "AI builder evaluation set: ten everyday requests matching the premade types (park, plaza, botanical garden, playground, memorial, lookout hill, wetland, campground, sports park, farmstead), each on its own land, built. Compare with Show.ps1 builds of the premade types on the same land and rate each.",
+  "scenarios": [
+    {
+      "id": "ai-eval-park",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A neighbourhood park.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "ai-eval-plaza",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A paved town square with a fountain in the middle, trees around the edge and plenty of benches.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "ai-eval-botanical",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A botanical garden with themed flower beds and glasshouses.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "ai-eval-playground",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "An adventure playground for kids of all ages, with a place for parents to sit and watch.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "ai-eval-memorial",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A memorial park: a long formal axis from the entrance to one big monument.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "ai-eval-lookout",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          130
+        ],
+        "ground": "slope",
+        "grade": 5,
+        "toward": "north",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A lookout hill.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "ai-eval-wetland",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A wetland park with ponds, reeds, islands and boardwalks.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "ai-eval-campground",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A campground in the woods with tent pitches.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "ai-eval-sports",
+      "land": {
+        "shape": "rect",
+        "size": [
+          160,
+          130
+        ],
+        "ground": "slope",
+        "grade": 5,
+        "toward": "north",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A small sports park with a football pitch and two tennis courts.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    },
+    {
+      "id": "ai-eval-farm",
+      "land": {
+        "shape": "rect",
+        "size": [
+          140,
+          110
+        ],
+        "ground": "flat",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A small farmstead with a yard, fields and paddocks.",
+          "timeout": 900
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top-built",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": false
+        }
+      ]
+    }
+  ]
+}

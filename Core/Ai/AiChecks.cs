@@ -25,6 +25,9 @@ namespace Placemaker.Core.Ai
         public bool HasPicture = true;
         /// <summary>A line asset (a path, a fence net): placed with place_path, not place_objects.</summary>
         public bool Line;
+        /// <summary>Rank among the mod's own automatic choices for its category (0 = the default; -1 = not one of them):
+        /// what the premade types use, vanilla first. Search lists these first.</summary>
+        public int Pick = -1;
         public string[] Tags = Array.Empty<string>();
         /// <summary>Width (x), depth (z), height (y) in metres, from the object's bounds.</summary>
         public float3 Size;

@@ -200,6 +200,7 @@ namespace Placemaker.Game.Ai
                     if (fresh)
                     {
                         Step("Placemaker.Ai.Doing.Read");
+                        MarkPictures(s_assets);
                         var map = Map();
                         var brief = SiteBrief.Write(s_brief);
                         File.WriteAllText(Path.Combine(s_folder, "brief.txt"), brief);
@@ -262,10 +263,12 @@ namespace Placemaker.Game.Ai
                 var assistant = new JObject { ["role"] = "assistant", ["content"] = msg["content"] ?? "" };
                 var calls = msg["tool_calls"] as JArray;
                 if (calls != null && calls.Count > 0) assistant["tool_calls"] = calls;
+                calls = calls != null && calls.Count > 0 ? calls : null;
                 s_messages.Add(assistant);
                 Log(new JObject { ["assistant"] = assistant });
-                string said = (string)msg["content"];
-                if (!string.IsNullOrWhiteSpace(said)) Say("ai", said.Trim());
+                // text beside tool calls is the AI thinking aloud: logged, not shown; the player reads its answers and its finish note
+                string said = AiClient.ContentText(msg["content"]);
+                if (!string.IsNullOrWhiteSpace(said) && (calls == null || calls.Count == 0)) Say("ai", said.Trim());
                 if (calls == null || calls.Count == 0) { s_end = State.Waiting; return; }
 
                 bool finished = false;
@@ -317,6 +320,22 @@ namespace Placemaker.Game.Ai
             float tx = fx - i, tz = fz - j;
             return math.lerp(math.lerp(g.HeightAt(i, j), g.HeightAt(i + 1, j), tx), math.lerp(g.HeightAt(i, j + 1), g.HeightAt(i + 1, j + 1), tx), tz);
         };
+
+        /// <summary>Worker: which assets have a picture (an Asset Icon Library file, or an icon in their mod package).</summary>
+        private static void MarkPictures(List<AiAsset> list)
+        {
+            var ail = new HashSet<string>(StringComparer.Ordinal);
+            try
+            {
+                var dir = Path.Combine(global::Colossal.PSI.Environment.EnvPath.kUserDataPath, "ModsData", "AssetIconLibrary", ".Thumbnails");
+                if (Directory.Exists(dir))
+                    foreach (var f in Directory.EnumerateFiles(dir, "StaticObjectPrefab.*.png")) ail.Add(Path.GetFileNameWithoutExtension(f).Substring("StaticObjectPrefab.".Length));
+            }
+            catch (Exception) { }
+            foreach (var x in list)
+                x.HasPicture = ail.Contains(x.Id) || (x.Icon ?? "").StartsWith("assetdb://", StringComparison.OrdinalIgnoreCase) || (x.Icon ?? "").StartsWith("coui://ail/", StringComparison.OrdinalIgnoreCase);
+            Mod.Log.Info($"Placemaker AI: {list.Count(x => x.HasPicture)} of {list.Count} assets have a picture ({ail.Count} Asset Icon Library files)");
+        }
 
         private static string Locale()
         {
@@ -405,17 +424,15 @@ namespace Placemaker.Game.Ai
                     });
                 }
                 foreach (var x in list) x.Vanilla = sys.IsVanillaName(x.Id);
-                var ail = new HashSet<string>(StringComparer.Ordinal);
-                try
+                // the premade types' own choices per category (search lists them first)
+                var byId = list.GroupBy(x => x.Id).ToDictionary(g => g.Key, g => g.First());
+                foreach (var f in typeof(AssetCategories).GetFields(BindingFlags.Public | BindingFlags.Static))
                 {
-                    var dir = Path.Combine(global::Colossal.PSI.Environment.EnvPath.kUserDataPath, "ModsData", "AssetIconLibrary", ".Thumbnails");
-                    if (Directory.Exists(dir))
-                        foreach (var f in Directory.GetFiles(dir, "StaticObjectPrefab.*.png")) ail.Add(Path.GetFileNameWithoutExtension(f).Substring("StaticObjectPrefab.".Length));
+                    if (!f.IsLiteral || f.FieldType != typeof(string)) continue;
+                    var pool = sys.AutomaticPool((string)f.GetRawConstantValue());
+                    for (int i = 0; i < pool.Count; i++)
+                        if (byId.TryGetValue(pool[i], out var x) && (x.Pick < 0 || i < x.Pick)) x.Pick = i;
                 }
-                catch (Exception) { }
-                foreach (var x in list)
-                    x.HasPicture = ail.Contains(x.Id) || (x.Icon ?? "").StartsWith("assetdb://", StringComparison.OrdinalIgnoreCase) || (x.Icon ?? "").StartsWith("coui://ail/", StringComparison.OrdinalIgnoreCase);
-                Mod.Log.Info($"Placemaker AI: {list.Count(x => x.HasPicture)} of {list.Count} assets have a picture ({ail.Count} Asset Icon Library files)");
             }
             return list;
         }

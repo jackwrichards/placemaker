@@ -274,12 +274,13 @@ namespace Placemaker.Game.Ai
                 int score = words.Count(w => hay.Contains(w)) * 10;
                 if (words.Length > 0 && score == 0 && string.IsNullOrEmpty(category) && string.IsNullOrEmpty(group)) continue;
                 if (a.Vanilla) score += 1;
+                if (a.Pick >= 0) score += 5 - math.min(4, a.Pick / 3);   // the premade types' own choices first
                 scored.Add((a, score));
             }
             var top = scored.OrderByDescending(t => t.score).ThenBy(t => t.a.Id, StringComparer.Ordinal).Take(limit).ToList();
             if (top.Count == 0) return new Result { Text = "no matches; try other words or a category" };
             var sb = new StringBuilder();
-            sb.AppendLine($"{top.Count} of {scored.Count} matches (id | name | category | width x depth x height m; plants: how wide the crown grows):");
+            sb.AppendLine($"{top.Count} of {scored.Count} matches, the premade types' own choices first (id | name | category | width x depth x height m; plants: how wide the crown grows):");
             foreach (var (a, _) in top) sb.AppendLine($"{a.Id} | {a.Name} | {a.Category}{(a.Line ? " line" : "")}{(a.Vanilla ? "" : " (mod)")}{(a.HasPicture ? "" : " (no picture)")} | {F(a.Size.x)} x {F(a.Size.z)} x {F(a.Size.y)}" + (a.Plant ? $" | crown about {F(a.Reach * 2f)} m across" : ""));
             return new Result { Text = sb.ToString() };
         }
