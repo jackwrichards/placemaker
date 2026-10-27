@@ -104,3 +104,18 @@ anything leaves the chat. The overlap was the conversation box without scrolling
 and done). Close-ups (Sonnet, handbook-10): park C+/B- (playground, kiosk, lamps, flowerbeds, tree clumps), beach C-
 (umbrellas and loungers on the lawn behind the promenade, shrubs on the sand), farm C- (shrubs and a climbing frame on
 the crop fields). Open: placement taste (what belongs on sand, crop fields, lawns) is not checked yet.
+
+## agent-12: freedom, vision first, many rounds (27 Oct; runs `20261027-112447-ai12-sonnet`, `20261027-113105-ai12-opus`)
+
+The user: "slightly passing (C-) but not inspired at all ... is the prompt too strict?" Yes: 10,800 words with 40
+never/always/must rules, step-by-step recipes and three correction passes. agent-12 gives full artistic liberty, a
+vision tool first (name, story, signature moment, ideas, zones; a card in the chat), many building rounds and one
+second look; handbook-12 leads with what makes a place memorable, keeps the hard facts as the only rules and turns
+recipes into references; wobble for any polygon.
+
+| Model | Rounds | Cost | Result |
+|---|---|---|---|
+| Sonnet 5.5 medium | 4-8 | $0.12-0.18 | about C: real visions ("Lantern Green", "Driftwood Cove", "Linden Square") but it still builds them thinly; the junkyard dug a 490 m chasm ("height 6" for a 6 m mound: now refused) |
+| Opus 5.5 medium | 16-25 | $0.74-1.11 | about B+: Sundial Cove (a carved crescent bay, a T-pier like a sundial needle, umbrella rows, dune headlands, a gazebo, a beach car park, a playground) A-; Fountain Court (a stone plaza with a sculpted fountain, a ring of benches, a market row, a flower garden) B+; Duck Pond Farm (yard, barns, silos, striped fields with crops and machinery, paddocks, a pond knoll) B+; Linden Commons (loop, lawn, timber walk, playground, groves) B; Rust Hollow Salvage (sorted pads, a scrap mound, a container wall, floodlights, gravel tracks) B |
+
+Caching made Opus affordable: about $1 a build instead of $1-4. Opus is the model that uses the freedom.
