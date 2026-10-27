@@ -6,7 +6,7 @@ namespace Placemaker.Core.Ai
 {
     public static class AiHandbook
     {
-        public const string Version = "handbook-9";
+        public const string Version = "handbook-10";
 
         public const string Text =
 @"# Design guide (what good builds in this game look like)
@@ -97,6 +97,9 @@ From high up a layout reads; up close only the small things do. Every place gets
 - Planting: layered: trees, then bushes under and around them, then flowers and low plants at the front; clumps of the same kind, mixed kinds between clumps.
 - Life: what people leave and use: picnic tables with a bin, bicycle racks, notice boards, signs, small stalls, crates and barrels in work areas, boats and buoys at water, toys at a playground, tools and hay at a farm, cones and pallets on a site.
 - Places of work (yards, farms, lots): each pad full of its things in rows, with the small clutter between (pallets, barrels, crates, tyres, cones, bins, signs, lamps).
+- Ground texture in detail: paint in layers, never one flat colour: a base over the area, then patches of a second and third paint with noise 3-6 (dry grass in meadows, dirt under trees and at gates, sand by water and play areas), worn strips along paths and desire lines (paint_ground strip, width 1.5-3, strength 0.6, feather 1.5), darker lush grass in hollows and by water.
+- Surfaces in detail: side by side, each for one use: tiles or stone for a centre or a terrace, pavement around it, gravel for pads, sand or rubber under play equipment, concrete for yards; edge every paved area with a strip of planting or a low hedge.
+- Decals: only the base game's markings, court and field lines and parking stalls are built (the essentials list them): lines on courts and pitches, stalls in car parks, arrows and crossings where cars move; never pack decals.
 - Numbers: the premade types place 200-800 objects on a 1.5 ha site, most of them small; a finished build of yours is in that range and uses 20+ different assets. After the review comes a detail pass that lists the bare spots with coordinates: fill every one.
 
 ## What you cannot build yet

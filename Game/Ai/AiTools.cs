@@ -56,6 +56,8 @@ namespace Placemaker.Game.Ai
                 ["circle"] = new JObject(nums) { ["description"] = "[x, z, radius]" },
                 ["ellipse"] = new JObject(nums) { ["description"] = "[x, z, radius_x, radius_z, turn_degrees (optional, clockwise)]" },
                 ["wobble"] = Num("optional, with circle or ellipse: metres of smooth random variation of the edge (an organic pond, grove or meadow)"),
+                ["strip"] = new JObject(pts) { ["description"] = "a band along a line [[x, z], ...] (give strip_width): worn tracks, flower borders, verges, a gravel edge" },
+                ["strip_width"] = Num("with strip: its full width in metres"),
             };
             foreach (var kv in props) area[kv.Key] = kv.Value;
             return area;
@@ -70,12 +72,14 @@ namespace Placemaker.Game.Ai
             if (args["polygon"] is JArray poly && poly.Count >= 3) local = poly.Select(t => new float2((float)t[0], (float)t[1])).ToArray();
             else if (args["rect"] is JArray r && r.Count >= 4) local = AiShapes.Rect(new float2((float)r[0], (float)r[1]), new float2((float)r[2], (float)r[3]));
             if (local != null) { localCorners = local; return local.Select(site.World).ToArray(); }
+            if (args["strip"] is JArray st && st.Count >= 2)
+                return AiTerrain.LineRing(st.Select(t => site.World(new float2((float)t[0], (float)t[1]))).ToArray(), math.max(0.5f, (float?)args["strip_width"] ?? 3f));
             float wobble = math.max(0f, (float?)args["wobble"] ?? 0f);
             if (args["circle"] is JArray c && c.Count >= 3)
                 return AiShapes.Ellipse(site.World(new float2((float)c[0], (float)c[1])), (float)c[2], (float)c[2], 0f, wobble, Seed(c));
             if (args["ellipse"] is JArray e && e.Count >= 4)
                 return AiShapes.Ellipse(site.World(new float2((float)e[0], (float)e[1])), (float)e[2], (float)e[3], e.Count >= 5 ? (float)e[4] : 0f, wobble, Seed(e));
-            error = "give the area: polygon (at least 3 corners), rect, circle or ellipse";
+            error = "give the area: polygon (at least 3 corners), rect, circle, ellipse or strip";
             return null;
         }
 
@@ -392,6 +396,10 @@ namespace Placemaker.Game.Ai
             Kit("bushes", string.Join(", ", Placemaker.Core.Layers.Parking.ParkingAssets.DefaultBushes.Where(ids.Contains)));
             if (kit.Count > 0) sb.AppendLine("car park kit (what the premade car park uses; see the design guide): " + string.Join("; ", kit));
             var surfaces = assets.Where(a => a.Category != null && a.Category.StartsWith("surface") && a.Pick >= 0).OrderBy(a => a.Pick).Take(16).ToList();
+            // the decals that are built (markings, court and field lines, parking stalls): no pack decals
+            var decals = assets.Where(a => a.Category != null && a.Category.StartsWith("decal", StringComparison.Ordinal) && !NotBuilt(a)).OrderBy(a => a.Pick < 0 ? 99 : a.Pick).ThenBy(a => a.Id).Take(24).ToList();
+            var stalls = assets.Where(a => a.Category == AssetCategories.ParkingDecal).Take(6).ToList();
+            if (decals.Count + stalls.Count > 0) sb.AppendLine("decals that are built (place_objects or place_along; flat on the ground, rotate with yaw, scale to fit): " + string.Join("; ", decals.Concat(stalls).Select(a => $"{a.Id} ({a.Category}) {F(a.Size.x)}x{F(a.Size.z)}")));
             if (surfaces.Count > 0) sb.AppendLine("surfaces (place_surface): " + string.Join("; ", surfaces.Select(a => $"{a.Id} ({a.Category.Replace("surface.", "")})")));
             return sb.ToString();
         }
@@ -470,7 +478,7 @@ namespace Placemaker.Game.Ai
             ids = ids.Where(id => site.Assets.ContainsKey(id) && !NotBuilt(site.Assets[id])).ToList();
             if (ids.Count == 0) return new Result { Text = "no known asset ids" + (unknown.Count > 0 ? " (unknown: " + string.Join(", ", unknown) + ")" : "") };
             float2[] area;
-            if (args["polygon"] != null || args["rect"] != null || args["circle"] != null || args["ellipse"] != null)
+            if (args["polygon"] != null || args["rect"] != null || args["circle"] != null || args["ellipse"] != null || args["strip"] != null)
             {
                 area = Area(args, site, out _, out var err);
                 if (area == null) return new Result { Text = err };

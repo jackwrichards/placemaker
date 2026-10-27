@@ -46,6 +46,14 @@ namespace Placemaker.Game.Suite
             float timeout = (float?)step["timeout"] ?? 900f;
             if (!AiAgent.Send(prompt, out var why)) { rec["error"] = "aiAgent: not sent: " + why; yield break; }
             yield return Frames(2);
+            // "uiShotAfter": a picture of the screen with the panel while the AI works (the chat, its progress, its steps)
+            float mid = (float?)step["uiShotAfter"] ?? 0f;
+            if (mid > 0f)
+            {
+                float t0 = UnityEngine.Time.realtimeSinceStartup;
+                yield return Until(() => !AiAgent.Busy || UnityEngine.Time.realtimeSinceStartup - t0 >= mid, mid + 5f, "the AI to work a while");
+                if (AiAgent.Busy) yield return StepShot(st, new JObject { ["do"] = "shot", ["shotMode"] = "ui" }, rec, "chat-working");
+            }
             yield return Until(() => !AiAgent.Busy, timeout, "the AI to finish or answer");
             if (_timedOut) { AiAgent.Stop(); rec["error"] = "aiAgent: still working after " + timeout + " s (stopped)"; yield return Until(() => !AiAgent.Busy, 30f, "the AI to stop"); }
             yield return Frames(30);   // the last re-plan reaches the ghost
