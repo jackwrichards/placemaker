@@ -347,7 +347,7 @@ namespace Placemaker.Game.Build
             if (!done)
             {
                 _warnings.Add("Placemaker.Build.TerraformIncomplete");
-                Mod.Log.Warn($"Placemaker terraform incomplete ({why}).");
+                Mod.Log.Warn($"Placemaker terraform incomplete ({why}): worst {_tfFinal.InsideMaxAbs:F2} m at ({_tfFinal.WorstAt.x:F0}, {_tfFinal.WorstAt.y:F0}), live {_tfFinal.WorstLive:F2} m, wanted {_tfFinal.WorstWanted:F2} m, rms {_tfFinal.Rms:F2} m.");
             }
             else Mod.Log.Info($"Placemaker terraform reached its target in {_tfPass} pass(es), {(DateTime.UtcNow - _terraformStart).TotalSeconds:F1} s"
                 + $" (measured on the live terrain: {_tfFinal.InsideOff}/{_tfFinal.Inside} texels off, worst {_tfFinal.InsideMaxAbs:F2} m, rms {_tfFinal.Rms:F2} m).");

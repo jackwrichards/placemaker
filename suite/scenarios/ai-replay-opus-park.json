@@ -1,0 +1,87 @@
+{
+  "_about": "Replays the logged Opus complex park build (no model) on the same land: island, lake and hill terrain.",
+  "scenarios": [
+    {
+      "id": "ai-replay-opus-park",
+      "land": {
+        "shape": "rect",
+        "size": [
+          220,
+          170
+        ],
+        "ground": "hills",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AiBuilderOn",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "AiModel",
+          "value": "replay:C:/Users/jack/.placemaker/replay-opus-park.jsonl"
+        },
+        {
+          "do": "setting",
+          "name": "AiThinking",
+          "value": 1
+        },
+        {
+          "do": "setting",
+          "name": "DebugBuildChecks",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "ai"
+        },
+        {
+          "do": "aiAgent",
+          "prompt": "A big central park for a busy city. I want a lake you can walk all the way around with a little island and a bridge to it, a hill with a lookout over everything, a formal rose garden with hedges, a big open lawn for picnics and frisbee, a playground hidden in the trees, a cafe with outdoor seating by the water, a dog run, and quiet winding woodland paths. Lots of benches and lamps, flowers, and make it feel old and loved, not brand new.",
+          "timeout": 600
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 40
+        },
+        {
+          "do": "shot",
+          "name": "45-built",
+          "camera": {
+            "target": "build",
+            "view": "oblique"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "top",
+          "camera": {
+            "target": "build",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close",
+          "camera": {
+            "target": "build",
+            "view": "closeup"
+          },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

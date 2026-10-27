@@ -208,6 +208,8 @@ namespace Placemaker.Core.Build
             public float MaxAbs, Rms;
             /// <summary>(s29) Largest |desired − current| over the inside texels.</summary>
             public float InsideMaxAbs;
+            /// <summary>Where the worst inside texel is (world xz) and its live and wanted heights.</summary>
+            public float2 WorstAt; public float WorstLive, WorstWanted;
             /// <summary>
             /// Every texel within tolerance, or only a small fraction of the inside texels off AND none of them far off.
             /// (s29) Before, "2 % of the texels off" was done whatever they were off by: a lot graded over a 3 m deep bowl
@@ -243,7 +245,7 @@ namespace Placemaker.Core.Build
                     if (Weight[i] >= 1f)
                     {
                         stats.Inside++;
-                        stats.InsideMaxAbs = math.max(stats.InsideMaxAbs, math.abs(v));
+                        if (math.abs(v) > stats.InsideMaxAbs) { stats.InsideMaxAbs = math.abs(v); stats.WorstAt = Center(x, y); stats.WorstLive = g; stats.WorstWanted = g + v; }
                         if (math.abs(v) > tolerance) stats.InsideOff++;
                     }
                 }

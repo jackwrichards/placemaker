@@ -210,9 +210,9 @@ namespace Placemaker.Game.Ai
             if (shape?.Ring == null || shape.Ring.Length < 3) { why = "no area selected"; return false; }
             var settings = ToolRegistration.Settings;
             string key = AiBuilder.Key(settings, out var keyFrom);
-            if (string.IsNullOrEmpty(key)) { why = "no API key"; SayKey("Placemaker.Ai.Line.NoKey"); return false; }
             string endpoint = string.IsNullOrWhiteSpace(settings?.AiEndpoint) ? AiBuilder.DefaultEndpoint : settings.AiEndpoint.Trim();
             string model = string.IsNullOrWhiteSpace(settings?.AiModel) ? AiBuilder.DefaultModel : settings.AiModel.Trim();
+            if (string.IsNullOrEmpty(key) && !model.StartsWith("replay:", StringComparison.Ordinal)) { why = "no API key"; SayKey("Placemaker.Ai.Line.NoKey"); return false; }
 
             var ring = shape.Ring2D();
             bool fresh = s_messages == null || s_shapeKey != ShapeKey(ring);
@@ -341,10 +341,34 @@ namespace Placemaker.Game.Ai
             },
         };
 
+        /// <summary>
+        /// The model "replay:&lt;transcript.jsonl&gt;" plays a logged build's replies back, step by step, with no model and no
+        /// key: the same tool calls on the same land, to reproduce what a build did in the game (the game runner).
+        /// </summary>
+        private static Queue<JObject> Replay(string model)
+        {
+            if (model == null || !model.StartsWith("replay:", StringComparison.Ordinal)) return null;
+            var q = new Queue<JObject>();
+            foreach (var line in File.ReadAllLines(model.Substring(7).Trim()))
+            {
+                if (line.IndexOf("\"assistant\"", StringComparison.Ordinal) < 0) continue;
+                try { if (JObject.Parse(line)["assistant"] is JObject a) q.Enqueue(a); } catch (Exception) { }
+            }
+            Mod.Log.Info($"Placemaker AI: replaying {q.Count} replies from {model.Substring(7).Trim()}");
+            return q;
+        }
+
+        private static AiReply Replayed(Queue<JObject> replay)
+        {
+            var msg = replay.Count > 0 ? replay.Dequeue() : new JObject { ["role"] = "assistant", ["content"] = "" };
+            return new AiReply { Status = 200, Cost = 0, RawResponse = new JObject { ["choices"] = new JArray { new JObject { ["message"] = msg } } }.ToString() };
+        }
+
         private static async Task Loop(string endpoint, string key, string model, CancellationToken cancel)
         {
             int nudges = 0, keepGoing = 0, repeats = 0;
             string lastSig = null;
+            var replay = Replay(model);
             for (int turn = 0; turn < MaxTurns; turn++)
             {
                 cancel.ThrowIfCancellationRequested();
@@ -365,7 +389,7 @@ namespace Placemaker.Game.Ai
                 AiReply r = null;
                 for (int attempt = 0; ; attempt++)
                 {
-                    r = await AiClient.Send(endpoint, key, body, cancel);
+                    r = replay != null ? Replayed(replay) : await AiClient.Send(endpoint, key, body, cancel);
                     s_cost += r.Cost ?? 0;
                     s_tokens += r.PromptTokens + r.ReplyTokens;
                     Log(new JObject { ["turn"] = turn, ["ms"] = r.Ms, ["status"] = r.Status, ["promptTokens"] = r.PromptTokens, ["replyTokens"] = r.ReplyTokens, ["reasoningTokens"] = r.ReasoningTokens, ["cachedTokens"] = r.CachedTokens, ["cost"] = r.Cost, ["error"] = r.Error });
