@@ -65,7 +65,7 @@ namespace Placemaker.Game.Suite
             Say($"aiAgent: {view["status"]}, {view["pieces"]} pieces, {view["tokens"]} tokens, ${view["cost"]}, {maps.Length} maps");
         }
 
-        /// <summary>The AI's pictures into the run's shots (and the contact sheet), its text files next to the run.</summary>
+        /// <summary>The AI's pictures into the run's shots (and the contact sheet), its text files beside them.</summary>
         private void CopyAiFiles(ScenarioState st, JObject rec, string folder, string[] pictures, string[] texts)
         {
             if (string.IsNullOrEmpty(folder)) return;
@@ -83,7 +83,7 @@ namespace Placemaker.Game.Suite
                     _contact.Add(new ShotRow { Scenario = st.FileIndex, Id = st.S.Id, Step = st.StepIndex, Do = (string)rec["do"], Name = name, File = "shots/" + file, Mode = "ai map", Settled = true });
                 }
                 foreach (var f in texts)
-                    if (File.Exists(Path.Combine(folder, f))) File.Copy(Path.Combine(folder, f), Path.Combine(_out, $"{st.FileIndex + 1:D2}-{Safe(st.S.Id)}.{st.StepIndex:D2}-ai-{f}"), true);
+                    if (File.Exists(Path.Combine(folder, f))) File.Copy(Path.Combine(folder, f), Path.Combine(_shots, $"{st.FileIndex + 1:D2}-{Safe(st.S.Id)}.{st.StepIndex:D2}-ai-{f}"), true);   // next to the pictures: the queue brings shots/ back
             }
             catch (Exception e) { Say("ai: copying the files failed: " + e.Message); }
         }
