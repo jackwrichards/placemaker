@@ -322,6 +322,8 @@ namespace Placemaker.Game.Build
             }
 
             _tfFinal = stats;
+            if (DebugBuildChecks)
+                Mod.Log.Info($"Placemaker terraform pass {_tfPass}: {stats.InsideOff}/{stats.Inside} off, rms {stats.Rms:F2} m, worst {stats.InsideMaxAbs:F2} m at ({stats.WorstAt.x:F0}, {stats.WorstAt.y:F0}) live {stats.WorstLive:F2} wanted {stats.WorstWanted:F2}.");
             if (stats.Done(TerraformTolerance, TerraformOffFraction))
             {
                 FinishTerraformDirect(true, null);
