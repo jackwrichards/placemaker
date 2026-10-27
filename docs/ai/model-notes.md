@@ -41,3 +41,19 @@ aisles, rings around a fountain) and rect/circle/ellipse/wobble for every area i
 
 Still open: Sonnet stops after one review round; the plaza's emptiness was not seen by the review numbers (paving
 counted as filled: fixed); trees over crop fields are not a reported problem.
+
+## AI against the premade types (27 Oct, Sonnet 5.5 medium, one plain request each; tools/suite/ai-vs-types.js)
+
+| Type | Premade | AI round 1 | AI round 2 (recipe or kit added) |
+|---|---|---|---|
+| parking | A- | B (after the car park recipe) | |
+| park | B+ | C+ | |
+| beach (lake to the north in round 2) | C / C+ | C- | C (sand strip and path; the sand stops short of the water, no shaping) |
+| waterfront (lake in round 2) | D / C | C- | C+ (promenade on the shore, a jetty, a park behind with a round plaza) |
+| junkYard | B | C | B- (pads of wrecks, trash, skips and scrap, aisles, a fence; scattered rather than in rows) |
+| industrialWorks | B+ | D (one white slab) | C+ (four pads, crossed aisles, a fence; scattered, white pads, no landmark) |
+| scrapyard | B- | C+ | |
+
+What moved the grades: a recipe pulled from the premade planner and its exact kit (car park D to B, industrial D to C+,
+junkyard C to B-). Still open: things on pads are scattered, not in rows; the shore types (premade and AI alike) do not
+carve the shore; the AI keeps its sand inside the selection, short of the water.
