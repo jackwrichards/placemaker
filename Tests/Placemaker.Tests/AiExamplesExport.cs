@@ -36,7 +36,16 @@ namespace Placemaker.Tests
             ("campground", null, "good"),
             ("botanicalGarden", null, "liked"),
             ("sportsPark", null, "D overall; the layout rules are sound"),
-            ("parking", null, "D-: the layout rules are sound, the look was not"),
+            ("parking", null, "A-: the user likes it; the design guide has its recipe"),
+            // the other visible types of the Make row (Recipes/shelf): their kit and layout, ungraded
+            ("amphitheatre", null, ""), ("zenGarden", null, ""),
+            ("natureReserve", null, ""), ("greenwayPark", null, ""), ("hikingTrail", null, ""),
+            ("beach", null, ""), ("waterfront", null, ""),
+            ("stripMall", null, ""),
+            ("golf", null, ""), ("urbanRuins", null, ""),
+            ("animalPark", null, ""),
+            ("junkYard", null, ""), ("industrialWorks", null, ""), ("scrapyard", null, ""), ("containerYard", null, ""), ("carYard", null, ""),
+            ("constructionSite", null, ""), ("quarry", null, ""), ("logisticsYard", null, ""), ("abandonedLot", null, ""), ("landfill", null, ""),
         };
 
         private static string F(float v) => Math.Round(v, 0).ToString(CultureInfo.InvariantCulture);
@@ -64,7 +73,7 @@ namespace Placemaker.Tests
                 TestKit.Entered(recipe, ring, site);
                 var plan = Composer.Compose(recipe, new AreaShape { Ring = ring, Source = AreaSource.Drawn }, site, CancellationToken.None);
                 sb.AppendLine();
-                sb.AppendLine($"## {id}{(pid != null ? " (" + pid + ")" : "")}: graded {grade}");
+                sb.AppendLine($"## {id}{(pid != null ? " (" + pid + ")" : "")}{(grade.Length > 0 ? ": graded " + grade : "")}");
                 Describe(sb, plan, r2);
             }
             var root = Directory.GetCurrentDirectory();
@@ -132,6 +141,15 @@ namespace Placemaker.Tests
             var features = byKind.Where(g => g.Count() <= 6 && g.Key != "tree" && g.Key != "bush" && g.Key != "decal").Take(8)
                 .Select(g => $"{g.Key} at {string.Join(" ", g.Select(o => P(o.Position.xz)))}").ToList();
             if (features.Count > 0) sb.AppendLine("- Features: " + string.Join("; ", features) + ".");
+            // its kit: the exact asset ids it used (search_assets finds them by id; a modded one may be missing in this game)
+            var kit = objects.Where(o => !string.IsNullOrEmpty(o.Asset.Id)).GroupBy(o => !string.IsNullOrEmpty(o.Category) ? o.Category : o.Role.ToString().ToLowerInvariant())
+                .OrderByDescending(g => g.Count()).Take(12)
+                .Select(g => g.Key + ": " + string.Join(", ", g.GroupBy(o => o.Asset.Id).OrderByDescending(x => x.Count()).Take(4).Select(x => x.Key + " x" + x.Count()))).ToList();
+            var surf = surfaces.Where(x => !string.IsNullOrEmpty(x.Asset.Id)).Select(x => x.Asset.Id).Distinct().Take(4).ToList();
+            var lines = nets.Where(x => !string.IsNullOrEmpty(x.Asset.Id)).Select(x => x.Asset.Id).Distinct().Take(4).ToList();
+            if (surf.Count > 0) kit.Add("surfaces: " + string.Join(", ", surf));
+            if (lines.Count > 0) kit.Add("lines: " + string.Join(", ", lines));
+            if (kit.Count > 0) sb.AppendLine("- Kit: " + string.Join("; ", kit) + ".");
             var facts = plan.Layers.SelectMany(l => l.Facts).GroupBy(kv => kv.Key).Select(g => g.First()).Take(10).Select(kv => $"{kv.Key} {Math.Round(kv.Value, 1).ToString(CultureInfo.InvariantCulture)}").ToList();
             if (facts.Count > 0) sb.AppendLine("- Facts: " + string.Join(", ", facts) + ".");
         }

@@ -6,7 +6,7 @@ namespace Placemaker.Core.Ai
 {
     public static class AiHandbook
     {
-        public const string Version = "handbook-4";
+        public const string Version = "handbook-5";
 
         public const string Text =
 @"# Design guide (what good builds in this game look like)
@@ -74,7 +74,12 @@ Numbers are starting points for a typical site; scale them with the site and the
   4. Medians (they make it look like a real car park; never skip them): halfway between two aisles the stall backs leave a strip 3 m wide. Leave it out of the asphalt and lay a grass surface there (aisles at z 33 and 55: asphalt strips end at z 42.5 and start again at 45.5, the median rect from x 14 to 130, z 42.5 to 45.5), place_along its middle line a tree every 9 m with bushes between, and a double lamp every 25-30 m on the same line. The outer rows by the ring get the same strip behind their backs.
   5. Edge: the verge planted with a row of trees every 9-10 m and a hedge of bushes every 3 m along the outline.
   A 140 x 110 m lot holds about 300 stalls this way; a smaller request (60 cars) is one or two aisles with the rest as planted verge.
-- Industrial yards: one frame square to the street, a fenced edge band, a gate with a barrier and booth, aisles 8 m, storage blocks that each hold one kind of thing in exact rows; dirt and gravel paint (never grass or white concrete everywhere); containers 2.44 x 6.04 m stacked 2.62 m per tier; wrecks nose to the road, stacked higher toward the back.
+- Industrial yards (works, junkyard, scrapyard, container, logistics, car yard; the premade ones are graded B to B+): build them as the premade types do (their kits are in the rough examples).
+  1. Ground: dirt or gravel paint over the whole yard (paint_ground), never one white slab. Then pads side by side (surfaces never overlap): a grid of storage blocks 20-35 m across, each a concrete, asphalt or gravel pad holding one kind of thing in exact rows (skips, containers, wrecks, pallets, barrels, rubble or scrap heaps), with a 1-2 m edge of bare ground between pad and aisle.
+  2. Aisles: asphalt strips 8 m wide between the blocks in a grid, joined to the street through one gate (a car lane under the asphalt from the gate, a barrier and a booth there), an office cabin or two and parked vehicles by the gate.
+  3. Edge: a high industrial fence line around the whole outline with the gate gap, concrete barriers along the inside, a few trees and floodlights in the corners.
+  4. Features: one or two landmarks that say what it is (a silo or tank, a crane, a weighbridge, heaps of ore or trash, a crusher), and life between the blocks (barrels, pallets, skips, trucks). Fill every block; a yard reads empty below about 250 objects per hectare.
+  Containers are 2.44 x 6.04 m, stacked 2.62 m per tier; wrecks nose to the aisle, stacked higher toward the back.
 
 ## What you cannot build yet
 Zoning and growable buildings, buildings and service buildings, pedestrian areas with access, animals. (You can build: footpaths and trails of any kind, roads, alleys and the invisible car lanes of parking lots joined to the city's roads, fences and hedges as lines, raised boardwalks and piers, ponds with real water, scaled and tilted props such as parking bay decals, terrain, ground paint and surfaces.)
