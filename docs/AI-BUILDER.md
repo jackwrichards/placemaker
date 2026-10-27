@@ -140,7 +140,8 @@ by 0.4 m", "the path ends 1.2 m short of the road", "the tree is 2 m outside the
 | Tool | Returns |
 |---|---|
 | `assets.search(query, kind, size)` | matches from the whole library, mods included: id, name, tags, footprint, picture |
-| `assets.card(id)` | thumbnail, real footprint and height, what it is, whether it needs a road / is a building / a decal |
+| `assets.card(id)` | everything needed to place it exactly (below, "Knowing every asset exactly") |
+| `assets.look(id, views)` | real pictures of it from several sides, its axes drawn on |
 
 ### Place
 
@@ -178,6 +179,75 @@ the selection. The AI must run it and get it clean (or explain what it left) bef
 ### Finish
 
 `plan.done(note)` hands the preview to the player with the AI's short note.
+
+## Knowing every asset exactly
+
+The AI works only with the assets the player actually has (vanilla, DLC, every mod loaded), read from the game's
+prefabs at the time, never from a fixed list. For each it must know enough to put it in the right spot facing the
+right way:
+
+- **Real pictures:** the game's thumbnail, plus `assets.look`: the hidden camera on one copy placed off to the side,
+  from the front, the side, above and at 45°, with the **origin (zero point)** marked, the **front arrow** and the
+  **bounding box** drawn on. Cached per asset, so each is drawn once per game.
+- **The zero point and the box:** where the origin sits relative to the mesh (`ObjectGeometryData.m_Bounds`, min and
+  max from the origin, `RESEARCH-NOTES-ADDENDUM.md` #47), so "put the bench's back against the hedge" is arithmetic,
+  not guesswork.
+- **Which way is front:** the local axis the asset faces (and, for buildings, the side that must touch a road).
+- **How it sits:** on the ground, on water, on a wall, hanging (`PlacementFlags`); whether it follows the slope or
+  stays upright; whether it needs a road, a lot, a zone.
+- **What can change per copy:** position, rotation, height, colour (`CustomMeshColor`), the random seed (colour
+  variants, props), one stretch axis (`Stack`), tree age. **Not size**: there is no per-copy scale
+  (`docs/research/custom-assets-on-the-fly.md`).
+- **What comes with it:** sub-objects and props a building brings along, and its lot.
+- **Description:** name, the asset's own description and tags, the mod it comes from, and our own classification
+  (`AssetHeuristics`, `AssetCategories`).
+
+All of this is read on demand and cached; nothing is sent until the AI asks.
+
+## Building things out of assets
+
+With exact boxes and zero points, the AI can assemble new things from existing pieces: a house out of walls, roofs and
+fences, a stage out of crates and lights, a pier out of planks.
+
+| Tool | Does |
+|---|---|
+| `object.snap(id, to, how)` | put one object against another: face to face, on top (the box's height), centred, at an edge |
+| `object.measure(a, b)` | distance, gap or overlap between two objects' boxes |
+| `object.height(id, h)` | lift above the ground (stacking, roofs), where the game allows it |
+| `piece.make(name, ids)` | save a group of placed objects as a piece, with its own zero point |
+| `piece.place(name, x, z, rotation)` | place copies of a piece, rotated and moved as one |
+| `piece.list()` | the pieces made so far in this build |
+
+Open question: objects above the ground. Most objects are snapped to the terrain; mods like Anarchy keep them up. How
+far we can go (and whether it survives a save and load) is to be tried in the game before the AI relies on it.
+
+## Code: the AI writes its own generators
+
+Our own types are not hand-placed: they use rules, randomness and noise (scatters, spacing, curved paths, clumps,
+edges). The AI gets the same, two ways:
+
+1. **Our generators as tools:** `gen.scatter` with noise and minimum spacing (the parks' tree and bush clumps),
+   `gen.poisson` (even but natural spacing), `gen.noise(region, scale)` (a noise field to drive density, height or
+   colour), `gen.curve(points, smooth)` (smooth paths), `gen.offset(shape, distance)` (edges, rings), `gen.split(shape)`
+   (beds, plots, a grid or Voronoi cells), `gen.along(curve, spacing, jitter)`. Seeded, so the same call gives the same
+   result.
+2. **Small scripts:** `code.run(script)`: the AI writes a short program (JavaScript, run by an embedded interpreter in
+   a sandbox: no files, no network, a time and memory limit) that calls the same functions, loops and does its own
+   maths, and returns placements. Everything a script produces goes through the same placing tools and the same checks
+   as a single object: it is a faster way to place, not a way around the rules. Which interpreter (e.g. Jint, BSD
+   licence, pure .NET) and whether it loads inside the game: to try.
+
+Generators come first (phase two); scripts once the generators show what is missing.
+
+## Getting better: tools the AI asks for
+
+The tools are not fixed. They grow from what the AI needed and did not have:
+
+- **`feedback.wish(text)`:** the AI notes what tool or information it was missing ("I needed the height of the
+  roof's ridge", "a tool to mirror a piece"). Saved with the build's log.
+- **We use it ourselves:** in the game runner, Claude Code (an LLM too) runs the same loop with the same tools on the
+  standing prompts, notes where it struggled, and we add or change tools here. Then the in-game AI gets them.
+- **Each tool change is checked** against the standing prompts: same lands, same prompts, before and after.
 
 ## What it is taught (the big system prompt)
 
@@ -234,12 +304,30 @@ To check one by one when building:
 - **Bad results:** the checks catch the mechanical problems; taste is the prompt's and the examples' job, and the
   player always approves before anything is built.
 
-## Milestones
+## Phases
 
-1. **Proof of the call:** the setting and the key; the mod sends a site brief (text and one drawn map) of a selection
-   and logs the reply. Proves the network, the brief's format and the cost of one call.
-2. **Look and place:** the look, asset and place tools, ghosts only, the loop, `site.check`. A runner step with a
-   prompt. Build a small park by prompt.
-3. **Ground and roads:** the ground tools and `net.*`. Prompts that need a slope reshaped or a path network.
-4. **Build and undo:** approval through the existing pipeline; the panel; the translations.
-5. **Taste:** the example layouts, the teardown rules, the standing prompts; compare models.
+### Phase one: the loop begins
+
+The basics, end to end, however rough. Steps:
+
+1. **The call:** the experimental setting and the key; the mod sends a site brief (text and one drawn map) of a
+   selection and logs the reply, the tokens and the cost. Proves the network from inside the game and the brief's
+   format.
+2. **The loop:** the agent loop with tool calls (off the main thread, tools run between frames), a few tools
+   (`site.brief`, `site.map`, `assets.search`, `assets.card`, `object.place`, `object.remove`, `site.check`,
+   `plan.done`, `feedback.wish`), ghosts only, every step logged.
+3. **A runner step** `ai-build` with a prompt, so we can run it here and watch it, and Claude Code can try the same
+   tools and tell what is missing.
+4. **First result:** a small park by prompt, previewed in the game.
+
+### Phase two: building well
+
+- Ground tools, `net.*` (paths, roads, fences), the many-at-once tools, the generators.
+- `assets.look` (the hidden camera), snapping and pieces; objects above the ground once tried.
+- Approval through the existing build pipeline and undo; the panel; the translations.
+
+### Phase three: taste and reach
+
+- Scripts (`code.run`), the "real look" render.
+- The big system prompt grown from the teardown rules and example layouts; the standing prompts; compare models.
+- The tool wishes, read and turned into tools, round after round.
