@@ -97,6 +97,8 @@ namespace Placemaker.Game.Tool
             r[s.GetOptionWarningLocaleID(nameof(PlacemakerSettings.ResetDefaults))] = T("Placemaker.Settings.ResetDefaults.Warning", "Reset all Placemaker options and saved defaults?");
             foreach (PreviewDetail d in Enum.GetValues(typeof(PreviewDetail)))
                 r[s.GetEnumValueLocaleID(d)] = T("Placemaker.Settings.PreviewDetail." + d, d.ToString());
+            foreach (AiThinking k in Enum.GetValues(typeof(AiThinking)))
+                r[s.GetEnumValueLocaleID(k)] = T("Placemaker.Settings.AiThinking." + k, k.ToString());
             foreach (SketchStyle k in Enum.GetValues(typeof(SketchStyle)))
                 r[s.GetEnumValueLocaleID(k)] = T("Placemaker.Settings.SketchStyle." + k, k == SketchStyle.SitePlan ? "Site plan" : "Classic");
             r[s.GetBindingMapLocaleID()] = T("Placemaker.Name", "Placemaker");

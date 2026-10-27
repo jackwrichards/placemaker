@@ -60,8 +60,13 @@ namespace Placemaker.Game.Ai
         private static readonly List<string> s_wishes = new List<string>();
 
         public const int MaxTurns = 60;
-        /// <summary>How hard the model thinks before each step (OpenRouter reasoning effort: low, medium, high).</summary>
-        public const string Reasoning = "medium";   // low was fast (10-20 s) but rushed: 3-5 steps, thin builds (eval 2)
+        /// <summary>How hard the model thinks before each step (OpenRouter reasoning effort), from the option. Low was fast
+        /// (10-20 s a build) but rushed: 3-5 steps, thin builds (eval 2).</summary>
+        private static string Thinking()
+        {
+            var t = ToolRegistration.Settings?.AiThinking ?? AiThinking.Medium;
+            return t == AiThinking.Low ? "low" : t == AiThinking.High ? "high" : "medium";
+        }
 
         public static State Status => s_state;
         public static int Version => s_version;
@@ -184,11 +189,11 @@ namespace Placemaker.Game.Ai
                         ["content"] = new JArray
                         {
                             new JObject { ["type"] = "text", ["text"] = AiPrompts.Agent + "\nThe player's game language is " + Locale() + ": write every message to the player in it." },
-                            new JObject { ["type"] = "text", ["text"] = AiHandbook.Text, ["cache_control"] = new JObject { ["type"] = "ephemeral" } },
+                            new JObject { ["type"] = "text", ["text"] = AiHandbook.Text + "\n\n" + Examples(), ["cache_control"] = new JObject { ["type"] = "ephemeral" } },
                         },
                     },
                 };
-                Mod.Log.Info($"Placemaker AI: new session for {model} at {endpoint} (key from {keyFrom}, prompt {AiPrompts.AgentVersion}, {AiHandbook.Version}), {s_assets.Count} assets, {s_brief.Nets.Count} nets -> {s_folder}");
+                Mod.Log.Info($"Placemaker AI: new session for {model} at {endpoint} (key from {keyFrom}, prompt {AiPrompts.AgentVersion}, {AiHandbook.Version}, thinking {Thinking()}), {s_assets.Count} assets, {s_brief.Nets.Count} nets -> {s_folder}");
             }
             var entrancesNow = tool.AiEntrances();
             Say("you", text);
@@ -205,7 +210,7 @@ namespace Placemaker.Game.Ai
                         Step("Placemaker.Ai.Doing.Read");
                         MarkPictures(s_assets);
                         var map = Map();
-                        var brief = SiteBrief.Write(s_brief);
+                        var brief = SiteBrief.Write(s_brief) + "\n" + AiTools.Essentials(s_assets);
                         File.WriteAllText(Path.Combine(s_folder, "brief.txt"), brief);
                         var firstMessage = UserWithImage(brief, map);
                         firstMessage["content"][1]["cache_control"] = new JObject { ["type"] = "ephemeral" };   // the brief and its map: the same in every later call
@@ -261,7 +266,7 @@ namespace Placemaker.Game.Ai
                     ["tools"] = AiTools.Definitions(),
                     ["usage"] = new JObject { ["include"] = true },
                     // little thinking per step: the loop itself is the thinking (the user: too slow)
-                    ["reasoning"] = new JObject { ["effort"] = Reasoning },
+                    ["reasoning"] = new JObject { ["effort"] = Thinking() },
                 };
                 var r = await AiClient.Send(endpoint, key, body, cancel);
                 s_cost += r.Cost ?? 0;
@@ -358,6 +363,19 @@ namespace Placemaker.Game.Ai
             Mod.Log.Info($"Placemaker AI: {list.Count(x => x.HasPicture)} of {list.Count} assets have a picture ({ail.Count} Asset Icon Library files)");
         }
 
+        /// <summary>The rough examples (Recipes/ai/examples.md, made from the premade types by Tests AiExamplesExport).</summary>
+        private static string Examples()
+        {
+            try
+            {
+                var f = Path.Combine(ModPaths.ModFolder ?? "", "Recipes", "ai", "examples.md");
+                if (File.Exists(f)) return File.ReadAllText(f);
+                Mod.Log.Warn("Placemaker AI: no examples at " + f);
+            }
+            catch (Exception e) { Mod.Log.Warn("Placemaker AI: examples not read: " + e.Message); }
+            return "";
+        }
+
         private static string Locale()
         {
             try { return global::Game.SceneFlow.GameManager.instance?.localizationManager?.activeLocaleId ?? "en-US"; }
@@ -388,7 +406,7 @@ namespace Placemaker.Game.Ai
             {
                 var s = new JObject
                 {
-                    ["model"] = model, ["prompt"] = AiPrompts.AgentVersion, ["handbook"] = AiHandbook.Version, ["state"] = s_end.ToString(), ["costUsd"] = Math.Round(s_cost, 4), ["tokens"] = s_tokens,
+                    ["model"] = model, ["prompt"] = AiPrompts.AgentVersion, ["handbook"] = AiHandbook.Version, ["thinking"] = Thinking(), ["state"] = s_end.ToString(), ["costUsd"] = Math.Round(s_cost, 4), ["tokens"] = s_tokens,
                     ["pieces"] = AiPlan.Current.Count, ["maps"] = s_maps, ["wishes"] = new JArray(Wishes), ["problems"] = new JArray(AiChecks.All(s_site, AiPlan.Current.Snapshot())),
                 };
                 File.WriteAllText(Path.Combine(s_folder, "summary.json"), s.ToString());

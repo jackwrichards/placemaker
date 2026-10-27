@@ -20,6 +20,9 @@ namespace Placemaker.Game.Settings
     /// <summary>(sketch study) How the sketch draws the plan: as what gets built (site plan) or the older role diagram.</summary>
     public enum SketchStyle { SitePlan = 0, Classic = 1 }
 
+    /// <summary>AI builder: how hard the model thinks before each step (slower and dearer, usually better).</summary>
+    public enum AiThinking { Low = 0, Medium = 1, High = 2 }
+
     [FileLocation("ModsSettings/Placemaker/Placemaker")]
     [SettingsUIGroupOrder(GroupGeneral, GroupBrush, GroupBuild, GroupKeys, GroupAi, GroupMaintenance)]
     [SettingsUIShowGroupName(GroupGeneral, GroupBrush, GroupBuild, GroupKeys, GroupAi, GroupMaintenance)]
@@ -300,6 +303,10 @@ namespace Placemaker.Game.Settings
         [SettingsUITextInput]
         [SettingsUIHideByCondition(typeof(PlacemakerSettings), nameof(AiOff))]
         public string AiModel { get; set; }
+
+        [SettingsUISection(SectionMain, GroupAi)]
+        [SettingsUIHideByCondition(typeof(PlacemakerSettings), nameof(AiOff))]
+        public AiThinking AiThinking { get; set; }
 
         [SettingsUISection(SectionMain, GroupAi)]
         [SettingsUITextInput]
@@ -587,6 +594,7 @@ namespace Placemaker.Game.Settings
             AiKey = AiKey ?? "";   // kept by Reset defaults: the player pasted it
             AiModel = global::Placemaker.Game.Ai.AiBuilder.DefaultModel;
             AiEndpoint = global::Placemaker.Game.Ai.AiBuilder.DefaultEndpoint;
+            AiThinking = AiThinking.Medium;
             PanelCollapsed = false;
             AutoExcludeCollisions = true;
             IgnoreOwnCollisions = true;

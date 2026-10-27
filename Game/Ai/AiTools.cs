@@ -268,6 +268,40 @@ namespace Placemaker.Game.Ai
             return new Result { Text = text, Pictures = pics, LineKey = "Placemaker.Ai.Line.Looked", LineArgs = new object[] { pics.Count } };
         }
 
+        /// <summary>
+        /// The asset essentials: per category, the assets the premade types use (their automatic choices, vanilla first), with
+        /// size and crown, plus the road and path lines and the surfaces. Sent with the brief; the AI searches only beyond it.
+        /// </summary>
+        public static string Essentials(List<AiAsset> assets)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("## Asset essentials (a head start, not a limit)");
+            sb.AppendLine("The assets this game's own premade types use, by category, best first: id | size (width x depth x height m) | crown for plants. Use search_assets, asset_groups and look_at_assets for anything else, mods included; look at what you will repeat or feature.");
+            var cats = new[]
+            {
+                "tree", "bush", "hedge", "flowerbed", "planter", "bench", "lamp", "bin", "centerpiece", "centerpiece.fountain", "centerpiece.statue",
+                "playground", "sports", "sports.goal", "sports.basketball", "sports.tennis", "sports.fitness", "sports.skate", "picnic", "camping", "camping.pitch", "camping.fire",
+                "kiosk", "shelter", "restroom", "stage", "lookout", "seating.cafe", "decoration", "rock", "bollard", "fence", "garden.glasshouse", "garden.shed", "garden.crop",
+                "decal", "parking.decal", "water.jets", "cemetery.grave", "dog.agility", "lamp.flood",
+            };
+            foreach (var c in cats)
+            {
+                var top = assets.Where(a => a.Category == c && !a.Line && a.Pick >= 0).OrderBy(a => a.Pick).Take(c == "tree" ? 12 : 6).ToList();
+                if (top.Count == 0) continue;
+                sb.AppendLine($"{c}: " + string.Join("; ", top.Select(a => $"{a.Id} {F(a.Size.x)}x{F(a.Size.z)}x{F(a.Size.y)}" + (a.Plant ? $" crown {F(a.Reach * 2f)}" : ""))));
+            }
+            var lines = assets.Where(a => a.Line).OrderBy(a => a.Vanilla ? 0 : 1).ThenBy(a => a.Size.x).ToList();
+            var paths = lines.Where(a => a.Category == "path" && a.Vanilla).Take(12).ToList();
+            if (paths.Count > 0) sb.AppendLine("path lines (place_path asset): " + string.Join("; ", paths.Select(a => $"{a.Id} {F(a.Size.x)} m")));
+            var roads = lines.Where(a => a.Category == "road" && a.Vanilla && (a.Id.IndexOf("Invisible", StringComparison.OrdinalIgnoreCase) >= 0 || a.Id.IndexOf("Alley", StringComparison.OrdinalIgnoreCase) >= 0 || a.Size.x <= 16f)).Take(12).ToList();
+            if (roads.Count > 0) sb.AppendLine("road lines (place_path asset; invisible car lanes make parking aisles): " + string.Join("; ", roads.Select(a => $"{a.Id} {F(a.Size.x)} m")));
+            var fences = lines.Where(a => a.Category == AssetCategories.Fence && a.Vanilla).Take(8).ToList();
+            if (fences.Count > 0) sb.AppendLine("fence lines (place_path asset): " + string.Join("; ", fences.Select(a => a.Id)));
+            var surfaces = assets.Where(a => a.Category != null && a.Category.StartsWith("surface") && a.Pick >= 0).OrderBy(a => a.Pick).Take(16).ToList();
+            if (surfaces.Count > 0) sb.AppendLine("surfaces (place_surface): " + string.Join("; ", surfaces.Select(a => $"{a.Id} ({a.Category.Replace("surface.", "")})")));
+            return sb.ToString();
+        }
+
         private static Result Search(JObject args, List<AiAsset> assets)
         {
             string query = ((string)args["query"] ?? "").ToLowerInvariant();
