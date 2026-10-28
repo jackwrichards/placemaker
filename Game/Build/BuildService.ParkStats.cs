@@ -120,7 +120,7 @@ namespace Placemaker.Game.Build
                 if (_request.Ungrouped)
                 {
                     rec.ParkStats.Applied[ParkStatIds.Companion] = 0;   // wanted once grouped
-                    Mod.Log.Info($"Placemaker: group {_groupId} is built in pieces: no park building (no upkeep, no park stats) until it is grouped.");
+                    Mod.Log.Info($"Placemaker: group {_groupId} is built in pieces: no park building (no upkeep, no park stats); it is dissolved into plain pieces.");
                     return;
                 }
                 string name = ParkStatsEstimator.KeyOf(stats).Name;

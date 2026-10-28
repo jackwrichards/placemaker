@@ -96,7 +96,7 @@ test("Build & keep area: the area stays, back to Design with no type chosen", as
     expect(errors).toEqual([]);
 });
 
-test("Review's One group switch; Ungroup (asks first) and Group again in Manage", async ({ page }) => {
+test("Review's One group switch; Ungroup in Manage (asks first, for good)", async ({ page }) => {
     const errors = await open(page);
     await drawPolygon(page, FIELD);
     await page.getByTestId("primary").click();
@@ -118,17 +118,15 @@ test("Review's One group switch; Ungroup (asks first) and Group again in Manage"
     await expect(page.getByTestId("stage-area")).toBeVisible();
     await clickWorld(page, 650, 380);
     await expect(page.getByTestId("stage-manage")).toBeVisible();
-    // Ungroup asks first (its pieces are then picked one by one); Group again does not
+    // Ungroup asks first and says it cannot be undone; then the build is gone from Manage (dissolved into plain pieces)
+    const groups = await page.evaluate(() => (window as any).pm.backend.groups.length);
     await page.getByTestId("manage-ungroup").click();
     await expect(page.getByTestId("confirm-dialog")).toBeVisible();
-    await expect(page.getByTestId("confirm-dialog")).toContainText("bulldozer");
+    await expect(page.getByTestId("confirm-dialog")).toContainText("can't be undone");
     await panelShot(page, "panel-ungroup-confirm");
     await page.getByTestId("confirm-ok").click();
-    await expect(page.getByTestId("manage-ungroup")).toContainText("Group again");
-    expect(await page.evaluate(() => [...(window as any).pm.backend.ungrouped])).toHaveLength(1);
-    await page.getByTestId("manage-ungroup").click();
-    await expect(page.getByTestId("manage-ungroup")).toContainText("Ungroup");
-    expect(await page.evaluate(() => [...(window as any).pm.backend.ungrouped])).toHaveLength(0);
+    await expect(page.getByTestId("manage-ungroup")).toHaveCount(0);
+    expect(await page.evaluate(() => (window as any).pm.backend.groups.length)).toBe(groups - 1);
     expect(errors).toEqual([]);
 });
 

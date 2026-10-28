@@ -35,8 +35,8 @@ namespace Placemaker.Game.Groups
 
         /// <summary>
         /// One build's park building and lot attractiveness, in line with its receipt, the settings and its grouping: a build in
-        /// pieces (ungrouped) is no park, so no park building (no upkeep) and no attractiveness on its lot; grouped again, the
-        /// building comes back where it stood (the user, 26 Oct: a Placemaker park acts like one vanilla park).
+        /// pieces (ungrouped, until it is dissolved) is no park, so no park building (no upkeep) and no attractiveness on its lot
+        /// (the user, 26 Oct: a Placemaker park acts like one vanilla park).
         /// </summary>
         private void SyncParkStatsOf(int groupId, Entity recordEntity, ref ParkSyncCounts n)
         {

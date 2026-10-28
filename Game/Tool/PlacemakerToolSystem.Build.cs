@@ -347,8 +347,8 @@ namespace Placemaker.Game.Tool
         }
 
         /// <summary>
-        /// Review switch "One group" off: the next build is born ungrouped (separate pieces). Off by default; Edit restores
-        /// the edited build's own choice.
+        /// Review switch "One group" off: the next build is born ungrouped and dissolved right after it is built (separate
+        /// pieces, as if built by hand). Off by default.
         /// </summary>
         private bool _buildUngrouped;
         public bool BuildUngrouped => _buildUngrouped;
@@ -371,15 +371,15 @@ namespace Placemaker.Game.Tool
             Touch();
         }
 
-        /// <summary>Info panel / Manage: ungroup a finished build (its parts picked one by one), or group it again.</summary>
-        public void UngroupGroup(int groupId, bool ungroup)
+        /// <summary>Info panel / Manage: ungroup a finished build for good (it is dissolved into plain city pieces).</summary>
+        public void UngroupGroup(int groupId)
         {
             bool ok;
-            try { ok = Services.Groups?.SetUngrouped(groupId, ungroup) ?? false; }
+            try { ok = Services.Groups?.Ungroup(groupId) ?? false; }
             catch (Exception e) { Mod.Log.Warn("Placemaker: ungroup failed: " + e.Message); ok = false; }
             if (!ok) { Flash(new LocText("Placemaker.Problem.UngroupFailed")); return; }
             _membersGroup = -1;
-            Flash(new LocText(ungroup ? "Placemaker.Hint.Ungrouped" : "Placemaker.Hint.Grouped"));
+            Flash(new LocText("Placemaker.Hint.Ungrouped"));
             Touch();
         }
 

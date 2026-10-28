@@ -112,8 +112,6 @@ export class MockBackend {
     buildSeparate = false;
     /** Review's "Keep area" switch: Build keeps the area (C# PlacemakerToolSystem._keepArea). */
     keepArea = true;
-    /** Ungrouped builds (C# GroupFlags.Ungrouped). */
-    ungrouped = new Set<number>();
     money = 250000;
 
     // ── area ──
@@ -966,9 +964,6 @@ export class MockBackend {
                 this.edit({ key: "Placemaker.Undo.Crosswalk" }, () => (step.markers[i].kind = a[2] ? base + "+crosswalk" : base));
                 return;
             }
-            case "ungroupGroup":
-                if (a[1]) this.ungrouped.add(Number(a[0])); else this.ungrouped.delete(Number(a[0]));
-                break;
             case "setBuildUngrouped":
                 this.buildSeparate = !!a[0];
                 break;
@@ -1038,6 +1033,8 @@ export class MockBackend {
                 this.changed();
                 return;
             }
+            case "ungroupGroup":
+            // dissolved for good (C# GroupRegistrySystem.Dissolve): the pieces stay, the build is gone from Manage
             case "removeGroup":
                 this.groups = this.groups.filter((g) => g.id !== Number(a[0]));
                 if (this.managedId === Number(a[0])) {
@@ -1768,7 +1765,7 @@ export class MockBackend {
     managed(): ManagedGroup | null {
         const g = this.groups.find((x) => x.id === this.managedId);
         if (!g) return null;
-        return { id: g.id, recipeName: g.recipeName, customName: g.customName || undefined, stats: g.stats, upkeep: g.upkeep, canEdit: true, ungrouped: this.ungrouped.has(g.id) || undefined };
+        return { id: g.id, recipeName: g.recipeName, customName: g.customName || undefined, stats: g.stats, upkeep: g.upkeep, canEdit: true };
     }
 
     publishAll() {

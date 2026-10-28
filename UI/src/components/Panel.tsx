@@ -555,7 +555,7 @@ const Footer = ({
                             title={t("Placemaker.UI.Build.Group", "Group as one asset")}
                             description={t(
                                 "Placemaker.UI.Build.GroupTip",
-                                "On: it is built as one asset. Click it to select all of it; the bulldozer removes all of it. Off: built as separate pieces you click, change and bulldoze one at a time. Removing all of it then takes Remove in a piece's info panel. You can ungroup or group it again later from there."
+                                "On: it is built as one asset. Click it to select all of it; the bulldozer removes all of it. Off: built as separate pieces, as if you placed them yourself: you click, change and bulldoze them one at a time, and it can't be edited or removed as a whole."
                             )}
                         >
                             <div className={s.footOption} data-testid="build-group-wrap" data-on={state.grouping.separate ? "false" : "true"}>

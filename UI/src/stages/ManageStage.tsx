@@ -18,11 +18,11 @@ export function useGroupActions(id: number, displayName: string) {
     const ungroupDialog = ungrouping ? (
         <Confirm
             title={t("Placemaker.UI.Manage.UngroupTitle", "Ungroup {0}?", [displayName])}
-            message={t("Placemaker.UI.Manage.UngroupText", "Each piece can then be changed or bulldozed on its own. Group it again from a piece's info panel.")}
+            message={t("Placemaker.UI.Manage.UngroupText", "Its pieces become separate, as if you placed them yourself: you change and bulldoze them one at a time, and it has no upkeep of its own. This can't be undone.")}
             confirm={t("Placemaker.UI.Manage.UngroupConfirm", "Ungroup")}
             onConfirm={() => {
                 setUngrouping(false);
-                act.ungroupGroup(id, true);
+                act.ungroupGroup(id);
             }}
             onCancel={() => setUngrouping(false)}
         />
@@ -43,27 +43,16 @@ export function useGroupActions(id: number, displayName: string) {
     return { askRemove: () => setConfirming(true), askUngroup: () => setUngrouping(true), dialog };
 }
 
-/** Ungroup (asks first) or Group again, for the info panel and Manage. */
-export const UngroupButton = ({ id, ungrouped, askUngroup, testId }: { id: number; ungrouped: boolean; askUngroup: () => void; testId: string }) => {
+/** Ungroup (asks first: it cannot be undone), for Manage. */
+export const UngroupButton = ({ id, askUngroup, testId }: { id: number; askUngroup: () => void; testId: string }) => {
     const { t } = useT();
-    return ungrouped ? (
-        <Btn
-            variant="solid"
-            icon="layers"
-            iconSize={12}
-            label={t("Placemaker.UI.Manage.Regroup", "Group again")}
-            description={t("Placemaker.UI.Manage.RegroupTip", "One thing again: a click selects all of it and the bulldozer removes all of it.")}
-            disabled={id < 0}
-            onClick={() => act.ungroupGroup(id, false)}
-            testId={testId}
-        />
-    ) : (
+    return (
         <Btn
             variant="solid"
             icon="ungroup"
             iconSize={12}
             label={t("Placemaker.UI.Manage.Ungroup", "Ungroup")}
-            description={t("Placemaker.UI.Manage.UngroupTip", "Make its pieces separate, so you can click, change and bulldoze each one yourself.")}
+            description={t("Placemaker.UI.Manage.UngroupTip", "Make its pieces separate for good, as if you placed them yourself. This can't be undone.")}
             disabled={id < 0}
             onClick={askUngroup}
             testId={testId}
@@ -150,7 +139,7 @@ export const ManageStage = ({ group }: { group: ManagedGroup | null }) => {
                     testId="manage-edit"
                 />
                 <Btn variant="solid" icon="edit" iconSize={12} label={t("Placemaker.UI.Manage.Rename", "Rename")} onClick={() => setRenaming(true)} testId="manage-rename" />
-                <UngroupButton id={group.id} ungrouped={!!group.ungrouped} askUngroup={askUngroup} testId="manage-ungroup" />
+                <UngroupButton id={group.id} askUngroup={askUngroup} testId="manage-ungroup" />
                 <div className={s.flex} />
                 <Btn variant="danger" icon="trash" iconSize={12} label={t("Placemaker.UI.Manage.Remove", "Remove")} onClick={askRemove} testId="manage-remove" />
             </div>

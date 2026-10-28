@@ -32,7 +32,6 @@ namespace Placemaker.Game.Groups
         private bool _missingAssets;
         private bool _modified;
         private bool _removing;
-        private bool _ungrouped;
 
         protected override string group => nameof(PlacemakerGroupSection);
 
@@ -69,7 +68,6 @@ namespace Placemaker.Game.Groups
             _missingAssets = false;
             _modified = false;
             _removing = false;
-            _ungrouped = false;
         }
 
         [Preserve]
@@ -109,7 +107,6 @@ namespace Placemaker.Game.Groups
             var rec = _registry.GetRecord(_groupId);
             _modified = rec != null && (rec.Flags & Core.Build.GroupFlags.Modified) != 0;
             _removing = _registry.IsRemoving(_groupId);
-            _ungrouped = _registry.IsUngrouped(_groupId);
         }
 
         public override void OnWriteProperties(IJsonWriter writer)
@@ -142,8 +139,6 @@ namespace Placemaker.Game.Groups
             writer.Write(_modified);
             writer.PropertyName("removing");
             writer.Write(_removing);
-            writer.PropertyName("ungrouped");
-            writer.Write(_ungrouped);
         }
 
         [Preserve]

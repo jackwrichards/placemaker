@@ -163,7 +163,7 @@ namespace Placemaker.Game.Build
                             // parking pieces "shown again" but never drawn. The mask goes back exactly as OverrideSystem restores it.
                             EntityManager.RemoveComponent<global::Game.Common.Overridden>(e);
                             EntityManager.AddComponent<global::Game.Common.BatchesUpdated>(e);
-                            if (RestoreSearchMask(e, prefab)) unmasked++;
+                            if (RestoreSearchMask(World, e, prefab)) unmasked++;
                             restored++;
                         }
                         else Audit.Add("object", name, pos, AuditReason.Hidden);
@@ -185,14 +185,16 @@ namespace Placemaker.Game.Build
         /// <summary>
         /// (core) Puts an un-hidden object back into the static object search tree with the mask OverrideSystem gives a visible one
         /// (Game.Objects.OverrideSystem.GetBoundsMask: NotOverridden | the prefab's mesh layers). Without it the object stays culled.
+        /// Also used by Ungroup's dissolve (GroupRegistrySystem.Dissolve.cs).
         /// </summary>
-        private bool RestoreSearchMask(Entity e, Entity prefab)
+        internal static bool RestoreSearchMask(World world, Entity e, Entity prefab)
         {
+            var EntityManager = world.EntityManager;
             try
             {
                 if (!EntityManager.HasComponent<ObjectGeometryData>(prefab)) return false;
                 var layers = EntityManager.GetComponentData<ObjectGeometryData>(prefab).m_Layers;
-                var search = World.GetOrCreateSystemManaged<global::Game.Objects.SearchSystem>();
+                var search = world.GetOrCreateSystemManaged<global::Game.Objects.SearchSystem>();
                 var tree = search.GetStaticSearchTree(false, out var deps);
                 deps.Complete();
                 bool ok = false;
