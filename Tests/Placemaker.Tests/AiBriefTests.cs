@@ -115,5 +115,28 @@ namespace Placemaker.Tests
             Assert.True(math.abs(math.dot(math.normalize(end - before), dir)) < 0.27f);
             Assert.Equal(spur[0], outp[0]);
         }
+
+        [Fact]
+        public void IslandInALakeHasNoDentsAlongItsEdge()
+        {
+            // the Opus park (27 Oct): cells skipped along a wobbly edge kept the lake floor there: notches in the island
+            System.Func<float2, float> flat = _ => 499.2f;
+            var lake = new AiPiece { Id = 2, Kind = AiPieceKind.Ground, Ring = AiShapes.Ellipse(new float2(108, 95), 46, 27, -8, 4, 7), Height = 496f, Feather = 12f, Shape = TerraformKind.Level };
+            var island = new AiPiece { Id = 4, Kind = AiPieceKind.Ground, Ring = AiShapes.Ellipse(new float2(118, 104), 7, 7, 0, 2, 9), Height = 500f, Feather = 6f, Shape = TerraformKind.Level };
+            var all = new System.Collections.Generic.List<Placemaker.Core.PlannedTerraform>();
+            all.AddRange(AiTerrain.Cells(lake, flat, out _));
+            var shaped = Placemaker.Core.Layers.Common.TerrainField.FromTerraform(all, flat);
+            all.AddRange(AiTerrain.Cells(island, shaped, out _));
+            var raster = Placemaker.Core.Build.TerraformRaster.Build(all.Select(c => (c.Ring.Select(q => q.xz).ToArray(), c.TargetHeight, 0)).ToList(), 1.75f, 0f);
+            float worst = float.MaxValue;
+            // just inside the wobbly edge: the island's own height, never the lake floor
+            foreach (var v in island.Ring)
+            {
+                var q = math.lerp(v, new float2(118, 104), 0.12f);
+                if (raster.TrySample(q, _ => 496f, out float h)) worst = math.min(worst, h);
+            }
+            _out.WriteLine($"lowest just inside the island's edge: {worst:F2}");
+            Assert.True(worst > 499.5f);
+        }
     }
 }

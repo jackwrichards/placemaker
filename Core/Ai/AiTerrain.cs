@@ -84,6 +84,23 @@ namespace Placemaker.Core.Ai
             return hc + a * e.x + b * e.y;
         }
 
+        /// <summary>How far inside the core q lies (0 outside).</summary>
+        private static float Depth(AiPiece p, float2 q)
+        {
+            if (p.LinePoints != null)
+            {
+                float best = float.MaxValue;
+                for (int k = 0; k + 1 < p.LinePoints.Length; k++)
+                {
+                    var a = p.LinePoints[k]; var ab = p.LinePoints[k + 1] - a; float l2 = math.lengthsq(ab);
+                    float t = l2 < 1e-6f ? 0f : math.saturate(math.dot(q - a, ab) / l2);
+                    best = math.min(best, math.distance(q, a + ab * t));
+                }
+                return math.max(0f, p.LineWidth * 0.5f - best);
+            }
+            return Poly.Contains(p.Ring, q) ? Poly.DistanceToBoundary(p.Ring, q) : 0f;
+        }
+
         private static float2 Closest(float2[] ring, float2 q)
         {
             float best = float.MaxValue; float2 at = ring[0];
@@ -151,7 +168,10 @@ namespace Placemaker.Core.Ai
                 {
                     var c = new float2(x, y);
                     Core(p, c, out _, out float e);
-                    if (e <= 0f) continue;   // the core shapes cover it
+                    // the core shapes cover it, unless the cell's square reaches past the core's edge: skipped, that strip kept
+                    // the ground from before and left dents and cones along every wobbly edge (Opus park, 27 Oct: notches in
+                    // the island, cones round the lake, pits on the hill)
+                    if (e <= 0f && Depth(p, c) > cell * 0.75f) continue;
                     float g = ground(c);
                     float h = HeightAt(p, c, g);
                     if (math.abs(h - g) < MinChange) continue;
