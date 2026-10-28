@@ -397,7 +397,7 @@ export const act = {
     removeMarker: (path: string, index: number) => fire(Triggers.removeMarker, path, index),
     /** Crosswalk or not: index -1 = the entrances placed next, else that placed marker. */
     setMarkerCrosswalk: (path: string, index: number, on: boolean) => fire(Triggers.setMarkerCrosswalk, path, index, on),
-    ungroupGroup: (id: number, ungroup: boolean) => fire(Triggers.ungroupGroup, id, ungroup),
+    ungroupGroup: (id: number) => fire(Triggers.ungroupGroup, id),
     setBuildUngrouped: (on: boolean) => fire(Triggers.setBuildUngrouped, on),
     setKeepArea: (on: boolean) => fire(Triggers.setKeepArea, on),
     /** Leave marker placement: in marker mode the C# primary action is "placeMarkers" (Done), which toggles it off. */

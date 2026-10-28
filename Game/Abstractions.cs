@@ -92,10 +92,13 @@ namespace Placemaker.Game
         /// <summary>Remove the whole group safely (phase-correct cascade). Returns false if not found.</summary>
         bool RequestRemove(int groupId);
         void Rename(int groupId, string name);
-        /// <summary>Ungrouped: its parts are clicked and bulldozed one by one (GroupFlags.Ungrouped).</summary>
+        /// <summary>Ungrouped (GroupFlags.Ungrouped): being dissolved, or only its parking frame is left.</summary>
         bool IsUngrouped(int groupId);
-        /// <summary>Ungroup, or group again. Returns false if the group is not found or being removed.</summary>
-        bool SetUngrouped(int groupId, bool ungrouped);
+        /// <summary>
+        /// Ungroup: dissolve the build for good (cannot be undone). Its pieces become plain city pieces, as if built by hand;
+        /// the record, the owner lot and the companion buildings go. Returns false if the group is not found or being removed.
+        /// </summary>
+        bool Ungroup(int groupId);
     }
 
     // ───────────────────────── Assets ─────────────────────────

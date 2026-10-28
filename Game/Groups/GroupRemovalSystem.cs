@@ -2,6 +2,8 @@
 // Ordering comes from Core/Build/RemovalPlanner; the engine reasons are from ParkingLotTool's
 // measured crash notes (KruemelGames, GPL-3.0) and ParkManager's ParkBundleCleanup (tomkpunkt):
 //
+// Ungroup's dissolve runs here too (GroupRegistrySystem.RunDissolves).
+//
 // Phase: PreTool. Deleted marked here is seen by SubElementDeleteSystem (PostTool, cascades to
 // sub-objects/lanes of the edge), by Game.Net.ReferencesSystem (Modification2B, removes the edge
 // from its nodes' ConnectedEdge buffers) and by everything after it. Marking later than 2B leaves
@@ -51,12 +53,14 @@ namespace Placemaker.Game.Groups
                 All = new[] { ComponentType.ReadOnly<PlacemakerMember>() },
                 None = new[] { ComponentType.ReadOnly<Deleted>() },
             });
-            RequireForUpdate(_requestQuery);
         }
 
         [Preserve]
         protected override void OnUpdate()
         {
+            // Ungroup: builds dissolved into plain city pieces, in this phase for the same reasons (GroupRegistrySystem.Dissolve.cs)
+            if (_registry.HasPendingDissolves) _registry.RunDissolves();
+            if (_requestQuery.IsEmptyIgnoreFilter) return;
             using var requests = _requestQuery.ToEntityArray(Allocator.Temp);
             if (requests.Length == 0) return;
             // One group per frame keeps each pass ≤ 32 parts in total.

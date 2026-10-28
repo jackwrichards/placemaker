@@ -32,7 +32,6 @@ type Props = {
     missingAssets?: boolean;
     modified?: boolean;
     removing?: boolean;
-    ungrouped?: boolean;
 };
 
 const Inner = (p: Props) => {
@@ -77,18 +76,12 @@ const Inner = (p: Props) => {
                     <div className={s.noteText}>{t("Placemaker.UI.Info.Modified", "Changed with other tools since it was built. Editing rebuilds it from its design.")}</div>
                 </div>
             ) : null}
-            {p.ungrouped ? (
-                <div className={s.note} data-testid="info-ungrouped">
-                    <Icon name="info" size={14} color="#8fd1ff" />
-                    <div className={s.noteText}>{t("Placemaker.UI.Info.Ungrouped", "Ungrouped: you click and bulldoze its pieces one at a time. Remove takes all of it.")}</div>
-                </div>
-            ) : null}
             {busy ? <div className={s.facts}>{t("Placemaker.UI.Info.Removing", "Removing…")}</div> : null}
             {!renaming && !busy && asking ? (
                 <div className={s.ask} data-testid="info-confirm" data-asking={asking}>
                     <div className={s.askText}>
                         {asking === "ungroup"
-                            ? t("Placemaker.UI.Info.UngroupAsk", "Ungroup it? Its pieces are then clicked and bulldozed one at a time. Group again puts it back.")
+                            ? t("Placemaker.UI.Info.UngroupAsk", "Ungroup it for good? Its pieces become separate, as if you placed them yourself. This can't be undone.")
                             : t("Placemaker.UI.Info.RemoveAsk", "Remove all of it? Buildings that grew next to it stay.")}
                     </div>
                     <div className={s.actions}>
@@ -101,7 +94,7 @@ const Inner = (p: Props) => {
                                 const what = asking;
                                 setAsking(null);
                                 if (what === "remove") act.removeGroup(id);
-                                else act.ungroupGroup(id, true);
+                                else act.ungroupGroup(id);
                             }}
                             testId="info-confirm-ok"
                         />
@@ -112,11 +105,7 @@ const Inner = (p: Props) => {
             {!renaming && !busy && !asking ? (
                 <div className={s.actions}>
                     <Btn variant="solid" icon="edit" iconSize={14} label={t("Placemaker.UI.Manage.Rename", "Rename")} disabled={id < 0} onClick={() => setRenaming(true)} testId="info-rename" />
-                    {p.ungrouped ? (
-                        <Btn variant="solid" icon="layers" iconSize={14} label={t("Placemaker.UI.Manage.Regroup", "Group again")} description={t("Placemaker.UI.Manage.RegroupTip", "One thing again: a click selects all of it and the bulldozer removes all of it.")} disabled={id < 0} onClick={() => act.ungroupGroup(id, false)} testId="info-ungroup" />
-                    ) : (
-                        <Btn variant="solid" icon="ungroup" iconSize={14} label={t("Placemaker.UI.Manage.Ungroup", "Ungroup")} description={t("Placemaker.UI.Manage.UngroupTip", "Make its pieces separate, so you can click, change and bulldoze each one yourself.")} disabled={id < 0} onClick={() => setAsking("ungroup")} testId="info-ungroup" />
-                    )}
+                    <Btn variant="solid" icon="ungroup" iconSize={14} label={t("Placemaker.UI.Manage.Ungroup", "Ungroup")} description={t("Placemaker.UI.Manage.UngroupTip", "Make its pieces separate for good, as if you placed them yourself. This can't be undone.")} disabled={id < 0} onClick={() => setAsking("ungroup")} testId="info-ungroup" />
                     <div className={s.flex} />
                     <Btn variant="danger" icon="trash" iconSize={14} label={t("Placemaker.UI.Manage.Remove", "Remove")} disabled={id < 0} onClick={() => setAsking("remove")} testId="info-remove" />
                 </div>

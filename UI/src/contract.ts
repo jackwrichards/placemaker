@@ -122,7 +122,7 @@ export interface ToolState {
   editingGroup?: number;
   /** Anarchy mod detected → show its toggle. */
   anarchy?: { available: boolean; enabled: boolean };
-  /** The build becomes one group (not a loose road grid). separate = the Review switch "One group" is off: built ungrouped. */
+  /** The build becomes one group (not a loose road grid). separate = the Review switch "One group" is off: built in plain pieces (dissolved right after the build). */
   grouping?: { separate: boolean };
   /** The entrances placed next come with a crosswalk across the street (walking entrance kinds only). */
   entranceCrosswalk?: boolean;
@@ -699,8 +699,6 @@ export interface ManagedGroup {
   stats: Stat[];
   upkeep: number;
   canEdit: boolean;
-  /** Ungrouped: its parts are clicked and bulldozed one by one. */
-  ungrouped?: boolean;
 }
 
 export const Values = {
@@ -777,8 +775,8 @@ export const Triggers = {
   setMarkerKind: "setMarkerKind",           // (path: string, kind: string) — which marker type the next click places (entrance types etc.)
   removeMarker: "removeMarker",             // (path: string, index: number)
   setMarkerCrosswalk: "setMarkerCrosswalk", // (path: string, index: number, on: boolean) — index -1: the entrances placed next
-  ungroupGroup: "ungroupGroup",             // (groupId: number, ungroup: boolean) — false: group again
-  setBuildUngrouped: "setBuildUngrouped",   // (on: boolean) — the next build is born ungrouped (separate pieces)
+  ungroupGroup: "ungroupGroup",             // (groupId: number) — dissolves the build for good
+  setBuildUngrouped: "setBuildUngrouped",   // (on: boolean) — the next build is dissolved into plain pieces right after it is built
   setKeepArea: "setKeepArea",               // (on: boolean) — Build keeps the area (true) or closes Placemaker (false)
   setFeature: "setFeature",                 // (path: string, featureLayerId: string, enabled: boolean)
   setPreviewMode: "setPreviewMode",         // (mode: "sketch" | "ghost")

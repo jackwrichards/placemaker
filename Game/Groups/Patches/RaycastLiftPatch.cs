@@ -56,6 +56,8 @@ namespace Placemaker.Game.Groups.Patches
                 // Ungrouped: the part itself. The game hands over the top owner of what was hit: for most of our props and trees
                 // that is the build's bare carrier (their shared owner), for the ground between them the build's lot; picking or
                 // bulldozing either would take everything. The carrier gives way to the member that was hit, the lot to nothing.
+                // A zone block lot left by a dissolved build is invisible: a click on it is a click on nothing.
+                if (registry.IsLooseZoneBlockLot(part)) { __result = false; result = default; return; }
                 if (registry.TryUngroupedPick(part, result.m_Hit.m_HitEntity, out var pick))
                 {
                     if (pick == Entity.Null) { __result = false; result = default; }

@@ -1,5 +1,5 @@
 {
-  "_about": "Footpath entrances and crosswalks, and Ungroup (the user, 22 Oct: every pedestrian entrance made a crosswalk across the street; let the game join the path; a build should be ungroupable). Footpaths without a crosswalk stop at the kerb and the game joins them (lab streetJoins: 'kerb'); entrances placed with the Crosswalk switch split the street and get one ('split', crosswalk). Parks on a city block and on land drawn up to the street, a car park's footpath, a strip mall's footpath, a plaza and a hiking trail; then a park ungrouped and grouped again from its info panel, and one built with 'One group' off, each time clicking a tree with the game's own tool (lab pickPart). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/entrance-crosswalks.json -Build -Who <you>",
+  "_about": "Footpath entrances and crosswalks, and Ungroup (the user, 22 Oct: every pedestrian entrance made a crosswalk across the street; let the game join the path; a build should be ungroupable). Footpaths without a crosswalk stop at the kerb and the game joins them (lab streetJoins: 'kerb'); entrances placed with the Crosswalk switch split the street and get one ('split', crosswalk). Parks on a city block and on land drawn up to the street, a car park's footpath, a strip mall's footpath, a plaza and a hiking trail; then a park ungrouped from its info panel (dissolved for good), and one built with 'One group' off, each time clicking a tree with the game's own tool (lab pickPart). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/entrance-crosswalks.json -Build -Who <you>",
   "scenarios": [
     {
       "id": "xw-park-block",
@@ -352,23 +352,18 @@
           "label": "grouped"
         },
         {
-          "do": "infoUngroup",
-          "ungroup": true
+          "do": "lab",
+          "op": "ungroupAudit",
+          "label": "grouped"
+        },
+        {
+          "do": "infoUngroup"
         },
         {
           "do": "lab",
-          "op": "pickPart",
+          "op": "ungroupAudit",
           "label": "after Ungroup",
-          "bulldoze": true
-        },
-        {
-          "do": "infoUngroup",
-          "ungroup": false
-        },
-        {
-          "do": "lab",
-          "op": "pickPart",
-          "label": "after Group again"
+          "bulldoze": "tree"
         }
       ]
     },

@@ -90,9 +90,15 @@ UI ⇄ PlacemakerUISystem: 6 JSON values (state, catalog, design, summary, asset
   crosswalk. Only an entrance placed with the panel's Crosswalk switch (kind `pedestrian+crosswalk`, `MarkerVariants`)
   keeps its attach and splits the street, which draws the crosswalk. The build re-checks the clearance with the real path
   width (`BuildService.Emit`). Invisible paths keep their old join.
-- **Ungroup** (`GroupFlags.Ungrouped`): the record stays (after-load repairs, park stats, Remove, Edit); the raycast lift
-  and the bulldozer cascade are off for it and its owner lot is never hit, so parts are clicked and bulldozed one by one.
-  Review's "One group" switch builds a group already ungrouped; the info panel and Manage have Ungroup / Group again.
+- **Ungroup** (`GroupFlags.Ungrouped`, `Game/Groups/GroupRegistrySystem.Dissolve.cs`): dissolves the build for good, in
+  PreTool: the record, the owner lot, the park and parking companion buildings and the carrier go, the tags come off, and
+  the props and trees leave the carrier (no Updated, so the game's override check never runs and nothing is hidden). The
+  pieces are plain city pieces, as if built by hand. Zone block lots and a lake's water source stay, untagged (zoning is
+  the exception; the raycast lift never picks a loose zone block lot). A lot with stall markings keeps a parking frame
+  (`GroupFlags.Dissolved`): the carrier its parking lanes need, its markings and driving lanes, with a bare record that
+  keeps the carrier's SubNet right; not in Manage, no fee, no upkeep; the markings go with the last driving lane. It
+  cannot be undone. Review's "One group" switch off builds the group ungrouped: it is dissolved right after the build.
+  Saves with ungrouped builds from before dissolve them after the load.
 
 ## Visual check (mandatory for layout work)
 

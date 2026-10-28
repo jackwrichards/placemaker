@@ -195,12 +195,11 @@ namespace Placemaker.Game.Suite
             yield return OpenTool();
         }
 
-        /// <summary>Info panel: Ungroup (then OK) or Group again, the way a person does after clicking the build.</summary>
+        /// <summary>Info panel: Ungroup (then OK), the way a person does after clicking the build; it is dissolved for good.</summary>
         private IEnumerator StepInfoUngroup(ScenarioState st, JObject step, JObject rec)
         {
             if (!st.Built || st.Group == 0) { rec["error"] = "nothing built"; yield break; }
             int g = st.Group;
-            bool want = (bool?)step["ungroup"] ?? true;
             yield return CloseTool();
             var em = _world.EntityManager;
             var members = _lookup.MemberSet(g);
@@ -209,16 +208,12 @@ namespace Placemaker.Game.Suite
             var sel = _world.GetExistingSystemManaged<global::Game.UI.InGame.SelectedInfoUISystem>();
             try { sel?.SetSelection(owner); } catch (Exception e) { rec["selectError"] = e.Message; }
             yield return Frames(20);
-            bool Done() => (Services.Groups?.IsUngrouped(g) ?? false) == want;
-            if (want)
-            {
-                yield return UiAct(st, rec, "info Ungroup", "info-ungroup", null, null, null, null, mustChange: false, effectFrames: 4);
-                yield return UiAct(st, rec, "OK (ungroup)", "info-confirm-ok", "ungroupGroup", new object[] { (double)g, true }, Done, () => _tool.UngroupGroup(g, true), mustChange: false, effectFrames: 10);
-            }
-            else
-                yield return UiAct(st, rec, "info Group again", "info-ungroup", "ungroupGroup", new object[] { (double)g, false }, Done, () => _tool.UngroupGroup(g, false), mustChange: false, effectFrames: 10);
-            rec["ungrouped"] = Services.Groups?.IsUngrouped(g) ?? false;
-            if (!Done()) rec["error"] = want ? "the build is still grouped" : "the build is still ungrouped";
+            bool Done() => Services.Groups?.Get(g) == null || (Services.Groups?.IsUngrouped(g) ?? false);
+            yield return UiAct(st, rec, "info Ungroup", "info-ungroup", null, null, null, null, mustChange: false, effectFrames: 4);
+            yield return UiAct(st, rec, "OK (ungroup)", "info-confirm-ok", "ungroupGroup", new object[] { (double)g }, Done, () => _tool.UngroupGroup(g), mustChange: false, effectFrames: 10);
+            yield return Frames(10);
+            rec["dissolved"] = Services.Groups?.Get(g) == null;
+            if (!Done()) rec["error"] = "the build is still grouped";
             try { sel?.SetSelection(Entity.Null); } catch (Exception) { }
             yield return OpenTool();
         }

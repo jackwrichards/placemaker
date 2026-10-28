@@ -21,11 +21,17 @@ namespace Placemaker.Core.Build
         /// <summary>Group runs the parking economy (fee, upkeep, companion).</summary>
         ParkingEconomy = 8,
         /// <summary>
-        /// Ungrouped by the player: its pieces are clicked, changed and bulldozed one by one (no lift to the owner lot, no
-        /// cascade from a bulldozed part, the lot itself is never hit). The record stays for the after-load repairs, the park
-        /// stats and "Group again".
+        /// Ungrouped by the player (or built with "One group" off): the build is dissolved for good, its pieces become plain
+        /// city pieces (GroupRegistrySystem.Dissolve). Saves from before the dissolve (when Ungroup could be undone) carry it
+        /// on records that still stand: they are dissolved after the load.
         /// </summary>
         Ungrouped = 16,
+        /// <summary>
+        /// Dissolved, all but its parking frame: the bare carrier that the stall markings' parking lanes need to find their
+        /// driving lanes, with those markings and lanes. Not a build any more (not in Manage, no lot, no upkeep); the record
+        /// keeps the carrier's driving-lane list right across loads and goes with the last marking or driving lane.
+        /// </summary>
+        Dissolved = 32,
     }
 
     /// <summary>

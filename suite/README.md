@@ -317,7 +317,7 @@ after a failed `area`, `type`, `preview` or `build` the scenario's remaining ste
 | `delete` | – | select, Remove, OK; waits until the build is gone |
 | `bulldoze` | `target`: `owner` (the owner lot), `part` | the bulldozer's delete definition on that member (applied through the runner's fixture tool, not the bulldozer UI), then the group's own cascade |
 | `infoEdit` / `infoRemove` | – | the Placemaker tool closed, the build selected the vanilla way, its info panel's Edit / Remove |
-| `infoUngroup` | `ungroup` (true) | the same, its info panel's Ungroup and OK (or Group again with `ungroup: false`) |
+| `infoUngroup` | | the same, its info panel's Ungroup and OK: the build is dissolved for good |
 | `camera` | `target`, `view`, `index` (or `"all"`), `yaw`, `pitch`, `distance`, `fov`, `at`, `abs` | frames the camera (below); a target that does not exist is an error and no picture is taken |
 | `shot` | `name`, `shotMode`, `labels` (false: street names stay off) | a settled PNG of the current view |
 | `terrain` | `name` (`terrain`), `margin` (20 m) | not a camera picture: a map of the ground's height over the outline and the margin, from the game's height data (see `-Modes terrain` above); the step's record has the typical ground level and the lowest and highest ground |

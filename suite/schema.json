@@ -34,7 +34,7 @@
     "bulldoze": { "keys": ["target"], "enums": { "target": ["owner", "part"] } },
     "infoEdit": { "keys": [] },
     "infoRemove": { "keys": [] },
-    "infoUngroup": { "keys": ["ungroup"] },
+    "infoUngroup": { "keys": [] },
     "camera": { "keys": ["target", "view", "index", "yaw", "pitch", "distance", "fov", "at", "abs"] },
     "shot": { "keys": ["name"] },
     "terrain": { "keys": ["name", "margin"] },

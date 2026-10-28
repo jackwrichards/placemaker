@@ -37,8 +37,7 @@
           "label": "built"
         },
         {
-          "do": "infoUngroup",
-          "ungroup": true
+          "do": "infoUngroup"
         },
         {
           "do": "wait",
@@ -100,8 +99,7 @@
           "label": "built"
         },
         {
-          "do": "infoUngroup",
-          "ungroup": true
+          "do": "infoUngroup"
         },
         {
           "do": "wait",
@@ -169,8 +167,7 @@
           "label": "built"
         },
         {
-          "do": "infoUngroup",
-          "ungroup": true
+          "do": "infoUngroup"
         },
         {
           "do": "wait",
@@ -232,8 +229,7 @@
           "label": "built"
         },
         {
-          "do": "infoUngroup",
-          "ungroup": true
+          "do": "infoUngroup"
         },
         {
           "do": "wait",
@@ -301,8 +297,7 @@
           "label": "built"
         },
         {
-          "do": "infoUngroup",
-          "ungroup": true
+          "do": "infoUngroup"
         },
         {
           "do": "wait",
@@ -364,8 +359,7 @@
           "label": "built"
         },
         {
-          "do": "infoUngroup",
-          "ungroup": true
+          "do": "infoUngroup"
         },
         {
           "do": "wait",
@@ -427,8 +421,7 @@
           "label": "built"
         },
         {
-          "do": "infoUngroup",
-          "ungroup": true
+          "do": "infoUngroup"
         },
         {
           "do": "wait",
@@ -490,8 +483,7 @@
           "label": "built"
         },
         {
-          "do": "infoUngroup",
-          "ungroup": true
+          "do": "infoUngroup"
         },
         {
           "do": "wait",
@@ -553,8 +545,7 @@
           "label": "built"
         },
         {
-          "do": "infoUngroup",
-          "ungroup": true
+          "do": "infoUngroup"
         },
         {
           "do": "wait",
