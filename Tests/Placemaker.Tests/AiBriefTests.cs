@@ -98,5 +98,22 @@ namespace Placemaker.Tests
             Assert.Equal(99f, AiTerrain.HeightAt(ch, new float2(20, 2), 101f), 2);
             Assert.Equal(101f, AiTerrain.HeightAt(ch, new float2(20, 8), 101f), 2);
         }
+        [Fact]
+        public void PathMeetingAnotherAtAShallowAngleArrivesSquareOn()
+        {
+            // the Opus park (27 Oct): a path joining the lake loop at about 60 degrees drew a notch of paving
+            var loop = AiShapes.Smooth(new[] { new float2(106,95), new float2(110,120), new float2(128,137), new float2(160,140), new float2(190,132), new float2(208,112), new float2(211,86), new float2(202,62), new float2(182,48), new float2(150,45), new float2(124,53), new float2(107,72), new float2(106,95) }, 5f);
+            var spur = AiShapes.Smooth(new[] { new float2(46,136), new float2(62,150), new float2(88,156), new float2(110,150), new float2(128,137) }, 5f);
+            var others = new System.Collections.Generic.List<AiPiece> { new AiPiece { Id = 9, Kind = AiPieceKind.Path, Points = loop, NetRole = Placemaker.Core.NetRole.PathwayWide } };
+            var outp = Placemaker.Core.Layers.Ai.AiLayer.Approach(spur, others);
+            var end = outp[outp.Length - 1]; var before = outp[outp.Length - 2];
+            _out.WriteLine(string.Join(" ", outp.Skip(outp.Length - 4).Select(q => $"({q.x:F1},{q.y:F1})")));
+            // the end lies on the loop, and the last stretch meets it at 75 degrees or more
+            float bestD = float.MaxValue; float2 dir = default;
+            for (int k = 0; k + 1 < loop.Length; k++) { var a = loop[k]; var ab = loop[k + 1] - a; float tt = math.saturate(math.dot(end - a, ab) / math.lengthsq(ab)); float d = math.distance(a + ab * tt, end); if (d < bestD) { bestD = d; dir = math.normalize(ab); } }
+            Assert.True(bestD < 0.01f);
+            Assert.True(math.abs(math.dot(math.normalize(end - before), dir)) < 0.27f);
+            Assert.Equal(spur[0], outp[0]);
+        }
     }
 }

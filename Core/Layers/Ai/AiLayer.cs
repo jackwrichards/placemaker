@@ -67,7 +67,7 @@ namespace Placemaker.Core.Layers.Ai
         /// the other path, and the last stretch turns to meet it at a right angle. A slanting junction is drawn by the game as a
         /// long spike of paving (Opus park close-ups, 27 Oct), and an end a little off the other path was bent onto it with a kink.
         /// </summary>
-        private static float2[] Approach(float2[] pts, List<AiPiece> others)
+        public static float2[] Approach(float2[] pts, List<AiPiece> others)
         {
             if (others.Count == 0 || math.distance(pts[0], pts[pts.Length - 1]) < 1f) return pts;   // none, or a loop
             var list = pts.ToList();
@@ -97,11 +97,11 @@ namespace Placemaker.Core.Layers.Ai
                 var come = math.normalizesafe(end - from, -nrm);
                 list[last] = at;
                 if (atEnd) continue;   // it carries the other path on (end to end): no corner
-                if (math.abs(math.dot(come, dir)) < 0.5f) continue;   // already 60° or steeper
+                if (math.abs(math.dot(come, dir)) < 0.26f) continue;   // already 75° or steeper (at 60° the game still draws a notch)
                 // drop the points within the new approach, then come in along the normal
                 float reach = 6f;
-                while (list.Count > 2 && math.distance(list[list.Count - 2], at) < reach + 1f) list.RemoveAt(list.Count - 2);
-                if (math.distance(list[list.Count - 2], at) < reach * 1.5f) reach = math.distance(list[list.Count - 2], at) * 0.5f;
+                while (list.Count > 2 && math.distance(list[list.Count - 2], at) < reach * 1.8f) list.RemoveAt(list.Count - 2);
+                reach = math.min(reach, math.distance(list[list.Count - 2], at) * 0.55f);   // a short path keeps a shorter approach
                 if (reach >= 1.5f) list.Insert(list.Count - 1, at + nrm * reach);
             }
             list.Reverse();
