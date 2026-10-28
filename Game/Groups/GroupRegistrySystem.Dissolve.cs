@@ -40,6 +40,10 @@ namespace Placemaker.Game.Groups
         /// <summary>What is left of dissolved lots with stall markings (GroupFlags.Dissolved).</summary>
         private readonly HashSet<int> _frames = new HashSet<int>();
         private readonly Dictionary<int, int> _dissolveWaits = new Dictionary<int, int>();
+        /// <summary>Step 1 done (lot and companions deleted): the frame it ran, and what it deleted.</summary>
+        private readonly Dictionary<int, (int Frame, int Lots, int Companions)> _dissolveStep = new Dictionary<int, (int, int, int)>();
+        /// <summary>Frames between deleting the lot and releasing the pieces: the game's override pass over the lot runs in between.</summary>
+        private const int DissolveSettleFrames = 4;
         private EntityQuery _tempOriginals;
         private const int ToolReleaseFrames = 30;
 
@@ -93,7 +97,7 @@ namespace Placemaker.Game.Groups
                 if (!_records.TryGetValue(id, out var record) || !EntityManager.Exists(record) || EntityManager.HasComponent<PlacemakerRemoval>(record)
                     || _frames.Contains(id))
                 {
-                    _dissolvePending.Remove(id); _dissolveWaits.Remove(id);
+                    _dissolvePending.Remove(id); _dissolveWaits.Remove(id); _dissolveStep.Remove(id);
                     continue;
                 }
                 if (EntityManager.HasComponent<PlacemakerUnderConstruction>(record)) continue;   // after its build
@@ -106,7 +110,7 @@ namespace Placemaker.Game.Groups
                 {
                     Mod.Log.Error(e, $"Placemaker: dissolving group {id} failed; it stays as it was");
                 }
-                _dissolvePending.Remove(id); _dissolveWaits.Remove(id);
+                _dissolvePending.Remove(id); _dissolveWaits.Remove(id); _dissolveStep.Remove(id);
                 break;
             }
         }
@@ -131,7 +135,16 @@ namespace Placemaker.Game.Groups
             }
             if (g.Owner != Entity.Null && EntityManager.Exists(g.Owner) && !EntityManager.HasComponent<Deleted>(g.Owner) && !delete.Contains(g.Owner)) delete.Add(g.Owner);
             if (g.Companion != Entity.Null && EntityManager.Exists(g.Companion) && !EntityManager.HasComponent<Deleted>(g.Companion) && !delete.Contains(g.Companion)) delete.Add(g.Companion);
-            bool frame = bays > 0 && aisles > 0;
+
+            // Two steps. A deleted lot makes the game's OverrideSystem check every object over it (Areas.UpdateCollectSystem
+            // lot bounds): pieces that no longer share the carrier would hide each other where they overlap (a bench on a stall
+            // marking, crop rows). So the lot and the companions go first, while the pieces still share the carrier; the pieces
+            // are released a few frames later, without Updated, so nothing checks them again.
+            if (_dissolveStep.TryGetValue(id, out var step))
+            {
+                if (UnityEngine.Time.frameCount - step.Frame < DissolveSettleFrames) return false;
+                return Release(id, record, g, members, carrier, bays, aisles, step.Lots, step.Companions);
+            }
 
             // A tool's temporary copy of what goes (the bulldozer hovering the lot) would be left reading a dead entity: wait for
             // the tool to let go, then switch to the default tool once (as removal does).
@@ -160,7 +173,14 @@ namespace Placemaker.Game.Groups
                 if (EntityManager.HasComponent<PlacemakerMember>(e)) EntityManager.RemoveComponent<PlacemakerMember>(e);   // no cascade, no "bulldozed" notice
                 EntityManager.AddComponent<Deleted>(e);
             }
+            _dissolveStep[id] = (UnityEngine.Time.frameCount, lots, companions);
+            return false;
+        }
 
+        private bool Release(int id, Entity record, PlacemakerGroup g, List<Entity> members, Entity carrier, int bays, int aisles, int lots, int companions)
+        {
+            bool frame = bays > 0 && aisles > 0;
+            var delete = new List<Entity>();
             // the pieces: plain city pieces (the frame's markings and driving lanes keep their tags)
             var freed = new HashSet<Entity>();
             int pieces = 0, kept = 0, zoneLots = 0, water = 0, framed = 0;

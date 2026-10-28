@@ -8,6 +8,11 @@
 //   {"do":"lab","op":"ungroupAudit","label":"bulldoze one","bulldoze":"tree"|"prop"|"bay"}
 //       also clicks one piece of that kind with the game's own tool (the raycast lift) and bulldozes what the bulldozer
 //       takes for it: the piece alone, or more.
+//   {"do":"lab","op":"ungroupAudit","label":"after the load","reset":true}
+//       forgets the pieces of the first audit (a load gives every entity a new id) and takes them again.
+//   {"do":"lab","op":"oldUngrouped"}
+//       what builds before 27 Oct saved for an ungrouped build: the Ungrouped flag on a standing record (Ungroup could be
+//       undone then). Save and load after it: the load dissolves it.
 
 using System;
 using System.Collections;
@@ -29,12 +34,24 @@ namespace Placemaker.Game.Suite
         /// <summary>The pieces a scenario's build had at its first audit (by scenario id).</summary>
         private readonly Dictionary<string, List<Entity>> _auditPieces = new Dictionary<string, List<Entity>>(StringComparer.Ordinal);
 
+        private void LabOldUngrouped(ScenarioState st, JObject rec)
+        {
+            var em = _world.EntityManager;
+            if (!(Services.Groups is GroupRegistrySystem reg) || !reg.TryGetRecordEntity(st.Group, out var record)) { rec["error"] = "no build"; return; }
+            var g = em.GetComponentData<PlacemakerGroup>(record);
+            g.Flags |= (int)Core.Build.GroupFlags.Ungrouped;   // the record's flags only, as the old builds kept them; nothing is queued
+            em.SetComponentData(record, g);
+            rec["flags"] = ((Core.Build.GroupFlags)g.Flags).ToString();
+            Mod.Log.Info($"Placemaker lab: group {st.Group} flagged ungrouped the way builds before 27 Oct saved it ({rec["flags"]}); save and load to see it dissolved.");
+        }
+
         private IEnumerator LabUngroupAudit(ScenarioState st, JObject step, JObject rec)
         {
             var em = _world.EntityManager;
             string label = (string)step["label"] ?? "";
             int g = st.Group;
             string key = st.S?.Id ?? "";
+            if ((bool?)step["reset"] == true) _auditPieces.Remove(key);
             if (!_auditPieces.TryGetValue(key, out var pieces))
             {
                 pieces = _lookup.MemberSet(g).Where(m => em.Exists(m) && em.HasComponent<PlacemakerMember>(m)

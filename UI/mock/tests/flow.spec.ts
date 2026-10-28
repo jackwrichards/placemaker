@@ -125,7 +125,7 @@ test("Review's One group switch; Ungroup in Manage (asks first, for good)", asyn
     await expect(page.getByTestId("confirm-dialog")).toContainText("can't be undone");
     await panelShot(page, "panel-ungroup-confirm");
     await page.getByTestId("confirm-ok").click();
-    await expect(page.getByTestId("stage-manage")).toHaveCount(0);
+    await expect(page.getByTestId("manage-ungroup")).toHaveCount(0);
     expect(await page.evaluate(() => (window as any).pm.backend.groups.length)).toBe(groups - 1);
     expect(errors).toEqual([]);
 });
