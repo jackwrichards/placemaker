@@ -219,7 +219,11 @@ namespace Placemaker.Core.Layers.Ai
                         {
                             // raised and level (a boardwalk, a pier): fixed height, not following the ground
                             n.FollowTerrain = false;
-                            n.A.y = n.B.y = n.C.y = n.D.y = p.LineHeight;
+                            // an end on ground higher than the deck rises to it: the game dug the ground down to the deck
+                            // there (Opus park: a notch cut into the island where its bridge landed)
+                            float ya = i == 0 ? math.max(p.LineHeight, n.A.y) : p.LineHeight;
+                            float yd = i + 2 == pts.Length ? math.max(p.LineHeight, n.D.y) : p.LineHeight;
+                            n.A.y = ya; n.B.y = math.lerp(ya, yd, 1f / 3f); n.C.y = math.lerp(ya, yd, 2f / 3f); n.D.y = yd;
                         }
                     }
                 }
