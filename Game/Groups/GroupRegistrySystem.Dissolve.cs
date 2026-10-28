@@ -42,6 +42,8 @@ namespace Placemaker.Game.Groups
         private readonly Dictionary<int, int> _dissolveWaits = new Dictionary<int, int>();
         /// <summary>Step 1 done (lot and companions deleted): the frame it ran, and what it deleted.</summary>
         private readonly Dictionary<int, (int Frame, int Lots, int Companions)> _dissolveStep = new Dictionary<int, (int, int, int)>();
+        /// <summary>The build's objects that were visible before step 1 (the ones the game hides in its pass over the lot come back).</summary>
+        private readonly Dictionary<int, HashSet<Entity>> _dissolveVisible = new Dictionary<int, HashSet<Entity>>();
         /// <summary>Frames between deleting the lot and releasing the pieces: the game's override pass over the lot runs in between.</summary>
         private const int DissolveSettleFrames = 4;
         private EntityQuery _tempOriginals;
@@ -97,7 +99,7 @@ namespace Placemaker.Game.Groups
                 if (!_records.TryGetValue(id, out var record) || !EntityManager.Exists(record) || EntityManager.HasComponent<PlacemakerRemoval>(record)
                     || _frames.Contains(id))
                 {
-                    _dissolvePending.Remove(id); _dissolveWaits.Remove(id); _dissolveStep.Remove(id);
+                    _dissolvePending.Remove(id); _dissolveWaits.Remove(id); _dissolveStep.Remove(id); _dissolveVisible.Remove(id);
                     continue;
                 }
                 if (EntityManager.HasComponent<PlacemakerUnderConstruction>(record)) continue;   // after its build
@@ -110,7 +112,7 @@ namespace Placemaker.Game.Groups
                 {
                     Mod.Log.Error(e, $"Placemaker: dissolving group {id} failed; it stays as it was");
                 }
-                _dissolvePending.Remove(id); _dissolveWaits.Remove(id); _dissolveStep.Remove(id);
+                _dissolvePending.Remove(id); _dissolveWaits.Remove(id); _dissolveStep.Remove(id); _dissolveVisible.Remove(id);
                 break;
             }
         }
@@ -173,6 +175,10 @@ namespace Placemaker.Game.Groups
                 if (EntityManager.HasComponent<PlacemakerMember>(e)) EntityManager.RemoveComponent<PlacemakerMember>(e);   // no cascade, no "bulldozed" notice
                 EntityManager.AddComponent<Deleted>(e);
             }
+            var visible = new HashSet<Entity>();
+            foreach (var e in members)
+                if (!delete.Contains(e) && EntityManager.HasComponent<global::Game.Objects.Object>(e) && !EntityManager.HasComponent<Overridden>(e)) visible.Add(e);
+            _dissolveVisible[id] = visible;
             _dissolveStep[id] = (UnityEngine.Time.frameCount, lots, companions);
             return false;
         }
@@ -205,6 +211,7 @@ namespace Placemaker.Game.Groups
                 untag.Add(e);
             }
             foreach (var e in untag) EntityManager.RemoveComponent<PlacemakerMember>(e);
+            int shown = ShowAgain(id);
 
             if (carrier != Entity.Null)
             {
@@ -234,14 +241,14 @@ namespace Placemaker.Game.Groups
                 _frames.Add(id);
                 World.GetOrCreateSystemManaged<Economy.ParkingEconomySystem>().Detach(id);
                 Mod.Log.Info($"Placemaker dissolved group {id} ({recipe}): {lots} owner lot(s) and {companions} companion building(s) deleted, {pieces} piece(s) "
-                    + $"are plain city pieces now ({freed.Count} prop(s)/tree(s) off the carrier), {zoneLots} zone block lot(s) and {water} water source(s) stay; "
+                    + $"are plain city pieces now ({freed.Count} prop(s)/tree(s) off the carrier, {shown} the game hid over the lot shown again), {zoneLots} zone block lot(s) and {water} water source(s) stay; "
                     + $"its parking frame stays: the carrier with {bays} stall marking(s) and {aisles} driving lane(s) ({lanes} parking lane(s) back to the game's fee and comfort).");
             }
             else
             {
                 EntityManager.AddComponent<Deleted>(record);
                 Mod.Log.Info($"Placemaker dissolved group {id} ({recipe}): {lots} owner lot(s) and {companions} companion building(s) deleted, {pieces} piece(s) "
-                    + $"are plain city pieces now ({freed.Count} prop(s)/tree(s) off the carrier{(carrier != Entity.Null ? ", carrier deleted" : "")}), "
+                    + $"are plain city pieces now ({freed.Count} prop(s)/tree(s) off the carrier{(carrier != Entity.Null ? ", carrier deleted" : "")}, {shown} the game hid over the lot shown again), "
                     + $"{zoneLots} zone block lot(s) and {water} water source(s) stay; nothing else of Placemaker's is left.");
             }
             if (kept > 0) Mod.Log.Warn($"Placemaker: dissolving group {id} left {kept} other helper(s) untagged.");
@@ -249,6 +256,27 @@ namespace Placemaker.Game.Groups
             _dirty = true;
             Bump();
             return true;
+        }
+
+        /// <summary>
+        /// What the game's pass over the deleted lot hid that was visible before (pieces it hides by its own rules, which the build
+        /// showed: BuildService.Audit "survivors"): shown again the same way, without Updated.
+        /// </summary>
+        private int ShowAgain(int id)
+        {
+            if (!_dissolveVisible.TryGetValue(id, out var visible)) return 0;
+            _dissolveVisible.Remove(id);
+            int n = 0;
+            foreach (var e in visible)
+            {
+                if (!EntityManager.Exists(e) || EntityManager.HasComponent<Deleted>(e) || !EntityManager.HasComponent<Overridden>(e)) continue;
+                EntityManager.RemoveComponent<Overridden>(e);
+                EntityManager.AddComponent<BatchesUpdated>(e);
+                if (EntityManager.HasComponent<global::Game.Prefabs.PrefabRef>(e))
+                    Build.BuildService.RestoreSearchMask(World, e, EntityManager.GetComponentData<global::Game.Prefabs.PrefabRef>(e).m_Prefab);
+                n++;
+            }
+            return n;
         }
 
         private int ResetParkingLanes(int id, List<Entity> members)

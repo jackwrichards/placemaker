@@ -963,9 +963,6 @@ export class MockBackend {
                 this.edit({ key: "Placemaker.Undo.Crosswalk" }, () => (step.markers[i].kind = a[2] ? base + "+crosswalk" : base));
                 return;
             }
-            case "ungroupGroup":
-            // dissolved for good (C# GroupRegistrySystem.Dissolve): the pieces stay, the build is gone from Manage
-            case "removeGroup":
             case "setBuildUngrouped":
                 this.buildSeparate = !!a[0];
                 break;
@@ -1035,6 +1032,9 @@ export class MockBackend {
                 this.changed();
                 return;
             }
+            case "ungroupGroup":
+            // dissolved for good (C# GroupRegistrySystem.Dissolve): the pieces stay, the build is gone from Manage
+            case "removeGroup":
                 this.groups = this.groups.filter((g) => g.id !== Number(a[0]));
                 if (this.managedId === Number(a[0])) {
                     this.managedId = null;

@@ -120,7 +120,7 @@ namespace Placemaker.Game.Groups
         private void ClearCaches()
         {
             _records.Clear(); _decoded.Clear(); _members.Clear(); _missing.Clear(); _allIds.Clear(); _owners.Clear(); _duplicateWarned.Clear();
-            _dissolvePending.Clear(); _dissolveWaits.Clear(); _dissolveStep.Clear(); _frames.Clear();
+            _dissolvePending.Clear(); _dissolveWaits.Clear(); _dissolveStep.Clear(); _dissolveVisible.Clear(); _frames.Clear();
             _dirty = true;
             _missingCheckedCatalogVersion = -1;
             Bump();
