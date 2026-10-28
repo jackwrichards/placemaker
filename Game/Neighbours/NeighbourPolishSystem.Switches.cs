@@ -8,8 +8,9 @@
 // The master switch shows or hides Outgrow (the user, 25 Oct: "a hide and show switch ... and then reset all the buildings
 // to their default zone type"). Off: every outgrown building is put back as the game made it, a few a frame, but keeps its
 // flag and outgrow type; nothing is planned or written while it is off. On: every one of them is planned again, a patch of
-// town a frame. New buildings always get their zone type's outgrow type ("Off": none), also while it is off: the type is
-// the setting, the switch only shows it. (The "new buildings" switch is no longer the player's: always on.)
+// town a frame. "New buildings" (the city's, the user 27 Oct after players asked for "no outgrow until I paint it"): Zone
+// default gives each new building its zone type's outgrow type ("Off": none), also while Outgrow is off (the type is the
+// setting, the switch only shows it); Off gives none, until painted. A new city: Off; one saved before: Zone default.
 
 using Game.Common;
 using Unity.Collections;
@@ -145,7 +146,8 @@ namespace Placemaker.Game.Neighbours
                         foreach (var f in flags) if (f.Yes) { legacy = true; break; }
                     using (var all = _switches.ToComponentDataArray<PolishCitySwitches>(Allocator.Temp))
                     {
-                        PolishNew = true;   // (always: a zone set to Off gives its new buildings none)
+                        // "New buildings": the city's; a new city: Off (none until painted), an old one goes on with Zone default
+                        PolishNew = all.Length > 0 ? all[0].NewBuildings : legacy;
                         Paused = all.Length > 0 ? all[0].Paused : !legacy;
                         if (all.Length == 0) s_switchesDirty = true;   // (kept from now on: next time it reads them)
                         PolishLevelUps = all.Length > 0 && all[0].LevelUps;

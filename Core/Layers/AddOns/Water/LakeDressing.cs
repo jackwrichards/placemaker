@@ -105,6 +105,7 @@ namespace Placemaker.Core.Layers.AddOns.Water
                 Ring = Poly.To3D(water, ctx.H), Kind = TerraformKind.Lower, TargetHeight = level - o.Depth,
                 Permanent = true, WaterLevel = level, WaterAnchor = new float3(anchor.x, level, anchor.y),
             });
+            BasinBank.Add(ctx, water, level);   // on a slope: a bank, not a wall cut down to the water
             float islandTop = level + 0.8f;
             foreach (var isl in islands)
                 ctx.Plan.Terraform.Add(new PlannedTerraform { Ring = Poly.To3D(isl.Ring, ctx.H), Kind = TerraformKind.Raise, TargetHeight = islandTop, Permanent = true });
@@ -481,7 +482,7 @@ namespace Placemaker.Core.Layers.AddOns.Water
                 if (cost < bestCost) { bestCost = cost; bestLand = land; bestStart = start; bestQ = q; bestLinked = linked; }
             }
             if (bestCost == float.MaxValue) return false;
-            float landY = ctx.H(bestLand);
+            float landY = ctx.G(bestLand);   // on the bank round the basin, not the ground it replaced
             float spanB = math.distance(bestStart, bestLand);
             var deck = ShoreKit.Net(ctx, bestStart, bestLand, islandTop, landY, NetRole.Pathway, asset, false, Arch(spanB, islandTop, landY, level));
             deck.FollowTerrain = false;

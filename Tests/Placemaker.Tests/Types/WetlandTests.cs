@@ -71,6 +71,25 @@ namespace Placemaker.Tests.Types
         [Fact]
         public void SchemaIsDeepButTidy() => AssertSchemaShape(Id, "subtype", "nature");
 
+        [Theory]
+        [InlineData("wetland")]
+        [InlineData("zenGarden")]
+        public void PondsOnHillsStayOnLevelGround(string id)
+        {
+            // hills 6 m high every 80 m: a pond across a slope took the level of its lowest bank and dug its uphill side into
+            // a pit with a wall; its islands and crossings kept the hill (cones, walled ledges; game runner 27 Oct)
+            var site = TestKit.RoadAlongBottom(250);
+            site.HeightAt = p => 500f + 3f * math.sin(p.x / 80f * 6.283f) + 3f * math.cos(p.y / 70f * 6.283f);
+            string preset = id == "wetland" ? "birdReserve" : "stroll";
+            var plan = PlanPreset(id, preset, FiveHa, site);
+            float worst = 0f;
+            foreach (var t in plan.Terraform.Where(t => !float.IsNaN(t.WaterLevel)))
+                foreach (var q in Poly.Resample(Poly.To2D(t.Ring), 2f))
+                    worst = math.max(worst, site.HeightAt(q) - (t.WaterLevel + 0.3f));
+            _out.WriteLine($"{id}: ponds {(plan.Facts.TryGetValue("ponds", out var n) ? n : 0)}, the bank rises up to {worst:F1} m above the lowest");
+            Assert.True(worst <= 4f * WaterBodies.MaxRise + 0.4f, $"{id}: a pond's bank rises {worst:F1} m above its lowest point");
+        }
+
         [Fact]
         public void WaterIsShallowPermanentAndWarned()
         {

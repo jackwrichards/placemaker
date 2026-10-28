@@ -171,6 +171,160 @@ namespace Placemaker.Core.Layers.Common
             else { var d = to - n.D; n.D = to; n.C += d; }
         }
 
+        /// <summary>Two path arms meeting at less than this (degrees) are drawn by the game as a spike of paving.</summary>
+        public const float SquareAngle = 75f;
+        /// <summary>The longest square-on approach (m) a bent arm gets.</summary>
+        public const float SquareReach = 8f;
+
+        /// <summary>
+        /// Path junctions with an arm under <see cref="SquareAngle"/> to its neighbour: that arm (a side arm, never the path
+        /// running through the junction, never a deck or an end on a city net) bends in over its last metres so it arrives
+        /// square-on, to the middle of the free angle; the junction node itself stays exactly where it is. The game draws a
+        /// slanting junction as a long spike of paving (the AI builder's fix, AiLayer.Approach, for every type). Returns the
+        /// arms bent.
+        /// </summary>
+        public static int SquareAll(ComposedPlan plan)
+        {
+            if (plan?.Layers == null) return 0;
+            var nets = new List<PlannedNet>();
+            var objects = new List<float2>();
+            foreach (var l in plan.Layers)
+            {
+                if (l?.Nets != null) foreach (var n in l.Nets) if (IsPath(n)) nets.Add(n);
+                if (l?.Objects != null) foreach (var o in l.Objects) if (o != null && o.Role != ObjectRole.Decal) objects.Add(o.Position.xz);
+            }
+            return Square(nets, objects);
+        }
+
+        /// <summary>
+        /// <paramref name="objects"/>: what the layers placed (benches, beds, trees): a bend never brings a path closer to one
+        /// that stands within its clearance.
+        /// </summary>
+        public static int Square(List<PlannedNet> nets, List<float2> objects = null)
+        {
+            if (nets == null || nets.Count < 3) return 0;
+            var nodes = new Dictionary<long, List<(PlannedNet net, int end)>>();
+            foreach (var n in nets)
+            {
+                if (!IsPath(n)) continue;
+                for (int end = 0; end < 2; end++)
+                {
+                    long k = NodeKey(end == 0 ? n.A : n.D);
+                    if (!nodes.TryGetValue(k, out var list)) nodes[k] = list = new List<(PlannedNet, int)>();
+                    list.Add((n, end));
+                }
+            }
+            int bent = 0;
+            foreach (var arms in nodes.Values)
+            {
+                if (arms.Count < 3) continue;   // a dead end, or one path carrying another on: no corner
+                int m = arms.Count;
+                var ang = new float[m];
+                for (int i = 0; i < m; i++) { var d = Leaving(arms[i].net, arms[i].end); ang[i] = math.atan2(d.y, d.x); }
+                // the path running through: the pair of arms closest to straight (over 140°) never bends
+                var through = new bool[m];
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    int bi = -1, bj = -1; float best = math.radians(140f);
+                    for (int i = 0; i < m; i++)
+                        for (int j = i + 1; j < m; j++)
+                        {
+                            if (through[i] || through[j]) continue;
+                            float a = math.abs(Wrap(ang[i] - ang[j]));
+                            if (a > best) { best = a; bi = i; bj = j; }
+                        }
+                    if (bi < 0) break;
+                    through[bi] = through[bj] = true;
+                }
+                for (int i = 0; i < m; i++)
+                {
+                    var (net, end) = arms[i];
+                    if (through[i] || !net.FollowTerrain || (end == 0 ? net.StartAttach : net.EndAttach) >= 0) continue;
+                    // the neighbours either side of this arm
+                    float gapPrev = float.MaxValue, gapNext = float.MaxValue;
+                    for (int j = 0; j < m; j++)
+                    {
+                        if (j == i) continue;
+                        float d = Wrap(ang[i] - ang[j]);   // > 0: j lies clockwise (before) of i
+                        if (d > 0f) gapPrev = math.min(gapPrev, d); else gapNext = math.min(gapNext, -d);
+                    }
+                    if (gapPrev == float.MaxValue) gapPrev = math.PI * 2f - gapNext;
+                    if (gapNext == float.MaxValue) gapNext = math.PI * 2f - gapPrev;
+                    if (math.degrees(math.min(gapPrev, gapNext)) >= SquareAngle) continue;
+                    float free = gapPrev + gapNext;
+                    if (math.degrees(free) < 2f * SquareAngle) continue;   // no room to come in square-on
+                    float target = ang[i] - gapPrev + free * 0.5f;
+                    if (!Bend(net, end, new float2(math.cos(target), math.sin(target)), objects)) continue;
+                    ang[i] = target;
+                    bent++;
+                }
+            }
+            return bent;
+        }
+
+        /// <summary>Turns the net's end to leave its node along <paramref name="want"/> (its control point near that end moves). False when the net is too short or would fold.</summary>
+        private static bool Bend(PlannedNet n, int end, float2 want, List<float2> objects)
+        {
+            float len = (float)Pricing.CurveLength(n);
+            if (len < 8f) return false;
+            float reach = math.min(SquareReach, len * 0.45f);
+            var node = end == 0 ? n.A : n.D;
+            var far = end == 0 ? n.D : n.A;
+            // the far end must still lie ahead: a hairpin is worse than a spike
+            if (math.dot(want, math.normalizesafe(far.xz - node.xz)) < -0.2f) return false;
+            var p = node.xz + want * reach;
+            float3 oldB = n.B, oldC = n.C;
+            var before = Samples(n);
+            if (end == 0) n.B = new float3(p.x, n.B.y, p.y);
+            else n.C = new float3(p.x, n.C.y, p.y);
+            if (objects != null && objects.Count > 0)
+            {
+                // a bend never brings the path closer to a bench, a bed or a tree beside it
+                float clear = Composer.DefaultHalfWidth(n.Role) + 2.5f;
+                var after = Samples(n);
+                foreach (var o in objects)
+                {
+                    if (math.distancesq(o, node.xz) > (len + clear) * (len + clear)) continue;
+                    float now = Distance(after, o);
+                    if (now < clear && now < Distance(before, o) - 0.05f) { n.B = oldB; n.C = oldC; return false; }
+                }
+            }
+            return true;
+        }
+
+        private static float2[] Samples(PlannedNet n)
+        {
+            var pts = new float2[25];
+            for (int i = 0; i <= 24; i++) pts[i] = Composer.Bezier(n.A, n.B, n.C, n.D, i / 24f).xz;
+            return pts;
+        }
+
+        private static float Distance(float2[] line, float2 p)
+        {
+            float best = float.MaxValue;
+            for (int i = 1; i < line.Length; i++) best = math.min(best, ReservedSpace.DistSqToSegment(p, line[i - 1], line[i]));
+            return math.sqrt(best);
+        }
+
+        /// <summary>Direction an arm leaves its node (the first 3 m of the curve).</summary>
+        private static float2 Leaving(PlannedNet n, int end)
+        {
+            float len = math.max(0.01f, (float)Pricing.CurveLength(n));
+            float t = math.min(0.5f, 3f / len);
+            var node = end == 0 ? n.A.xz : n.D.xz;
+            var q = Composer.Bezier(n.A, n.B, n.C, n.D, end == 0 ? t : 1f - t).xz;
+            return math.normalizesafe(q - node, new float2(1f, 0f));
+        }
+
+        private static float Wrap(float a)
+        {
+            while (a > math.PI) a -= 2f * math.PI;
+            while (a < -math.PI) a += 2f * math.PI;
+            return a;
+        }
+
+        private static long NodeKey(float3 p) => ((long)(int)math.round(p.x * 100f) << 32) ^ (uint)(int)math.round(p.z * 100f);
+
         private static bool Same(float3 a, float3 b) => a.x == b.x && a.z == b.z;
 
         private static bool NearBox(PlannedNet n, float2 p, float r)

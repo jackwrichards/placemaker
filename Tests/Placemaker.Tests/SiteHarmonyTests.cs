@@ -129,6 +129,36 @@ namespace Placemaker.Tests
                 AssertHarmony(type + (terrain ? "+terrain" : ""), "rough", Compose(type, "rough", terrain));
         }
 
+        [Fact]
+        public void PathsBesideWaterStayAboveIt()
+        {
+            // a pond in a hollow of the park (water surface at -0.5 m): paths graded onto its rim lay at the water and flooded
+            var site = SiteOn("flat");
+            float2 c = new float2(75f, 55f);
+            Func<float2, float> g = p => -2f * math.exp(-math.lengthsq(p - c) / (2f * 22f * 22f));
+            site.HeightAt = g;
+            site.WaterDepthAt = p => math.max(0f, -0.5f - g(p));
+            var r = Editor.SingleLayerRecipe(GeneratorRegistry.Get("park"), 7);
+            var plan = Composer.Compose(r, new AreaShape { Ring = Site, Source = AreaSource.Drawn }, site, CancellationToken.None);
+            float worst = float.MaxValue; int near = 0;
+            foreach (var l in plan.Layers)
+                foreach (var n in l.Nets)
+                {
+                    if (!SiteHarmony.IsPathNet(n) || (n.Role != NetRole.Pathway && n.Role != NetRole.PathwayWide)) continue;
+                    for (int i = 0; i <= 16; i++)
+                    {
+                        var q = Composer.Bezier(n.A, n.B, n.C, n.D, i / 16f);
+                        float w = SiteHarmony.WaterNear(q.xz, 1f, null, site.WaterDepthAt, g);
+                        if (!math.isfinite(w)) continue;
+                        near++;
+                        worst = math.min(worst, q.y - w);
+                    }
+                }
+            _out.WriteLine($"{near} path points beside the water, lowest {worst:F2} m above it");
+            Assert.True(near > 0, "no path near the pond: the test proves nothing");
+            Assert.True(worst >= SiteHarmony.WaterClearance - 0.1f, $"a path lies {worst:F2} m above the water");
+        }
+
         /// <summary>The playtest, reproduced: without the pass the same park on rough ground has warped paths and tilted tables.</summary>
         [Fact]
         public void WithoutHarmony_TheOldArtefactsAreBack()

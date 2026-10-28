@@ -19,6 +19,21 @@ namespace Placemaker.Tests
 
 
         [Fact]
+        public void ABridgeEndOnHigherGroundRisesToIt()
+        {
+            // a footbridge from the bank (deck 0.8 m) to an island raised to 1.5 m: its island end stood 0.7 m under the
+            // ground and the game dug a notch there
+            System.Func<float2, float> ground = p => p.x > 28f ? 1.5f : (p.x < 2f ? 0.5f : -3f);
+            var deck = new Cubic(new float3(0, 0.8f, 0), new float3(10, 2.4f, 0), new float3(20, 2.4f, 0), new float3(30, 0.8f, 0));
+            var landed = CourseFitting.LandEnds(deck, ground);
+            Assert.Equal(0.8f, landed.A.y, 4);   // the bank end stays above its ground
+            Assert.Equal(1.5f, landed.D.y, 4);   // the island end on it
+            Assert.True(landed.Position(0.5f).y > deck.Position(0.5f).y);   // the arch keeps its shape, lifted a little
+            var level = CourseFitting.LandEnds(deck, _ => -3f);
+            Assert.Equal(deck.A, level.A); Assert.Equal(deck.D, level.D);   // over water: as planned
+        }
+
+        [Fact]
         public void BridgeKeepsPlannedDeckAndIsNeverPinnedToTheBed()
         {
             // Arched footbridge 50 m over a dry basin 4 m deep (water comes after the build).

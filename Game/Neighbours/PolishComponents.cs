@@ -227,9 +227,10 @@ namespace Placemaker.Game.Neighbours
     {
         // 3: the five switches. 0.3.0-0.3.2 wrote the five under version 2 (the number was not raised with the last two:
         // "Data size mismatch when deserializing PolishCitySwitches" on every load, a player, 26 Oct), so a 2 is read as
-        // five too; 0.2.0 wrote version 1 (two). (Only a test build of 22-23 Oct wrote a 2 with three.)
-        public const int CurrentVersion = 3;
-        /// <summary>"Outgrow new buildings": buildings that grow get their zone's look.</summary>
+        // five too; 0.2.0 wrote version 1 (two). (Only a test build of 22-23 Oct wrote a 2 with three.) 4: NewBuildings is the
+        // player's again ("New buildings: Zone default / Off"); before 4 it was always on whatever was written, so it reads as on.
+        public const int CurrentVersion = 4;
+        /// <summary>"New buildings": Zone default (on: buildings that grow get their zone's outgrow type) or Off (none until painted).</summary>
         public bool NewBuildings;
         /// <summary>The master switch is off: nothing new outgrows and nothing is planned; nothing is put back either.</summary>
         public bool Paused;
@@ -260,6 +261,7 @@ namespace Placemaker.Game.Neighbours
                 reader.Read(out GameChanges);
                 reader.Read(out GameRemovals);
             }
+            if (version < 4) NewBuildings = true;
         }
     }
 }

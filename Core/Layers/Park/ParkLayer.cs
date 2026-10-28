@@ -894,6 +894,7 @@ namespace Placemaker.Core.Layers.Park
                 Ring = Poly.To3D(lake, ctx.H), Kind = TerraformKind.Lower, TargetHeight = level - depth,
                 Permanent = true, WaterLevel = level, WaterAnchor = new float3(anchor.x, level, anchor.y),
             });
+            BasinBank.Add(ctx, lake, level);   // on a slope: a bank, not a wall cut down to the water
             ctx.Surface(lake, SurfaceRole.Water, new AssetRef("", Array.Empty<string>()));
             ctx.Issue(IssueSeverity.Warning, "Placemaker.Park.Issue.LakePermanent");
             ctx.Stat(Keys.StatLakeArea, Math.Round(Poly.Area(lake)), Keys.UnitM2);

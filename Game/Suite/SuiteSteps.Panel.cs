@@ -493,7 +493,13 @@ namespace Placemaker.Game.Suite
                 // Outgrow's switches are the city's own now (NeighbourPolishSystem.Switches), no longer settings
                 bool on = (bool?)step["value"] ?? true;
                 if (name == "PolishNewHouses") global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetNewBuildings(on);
-                else global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetRunning(on);
+                else
+                {
+                    // scenarios written while new buildings always took their zone's type (25-27 Oct) mean that with Outgrow on:
+                    // a new city's "New buildings" is Off now, so on also sets it to Zone default (a later PolishNewHouses wins)
+                    global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetRunning(on);
+                    if (on) global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetNewBuildings(true);
+                }
                 rec["effective"] = on;
                 rec["city"] = true;
                 yield return Frames(2);

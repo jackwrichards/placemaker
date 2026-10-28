@@ -1,0 +1,30 @@
+{
+  "_about": "Outgrow new buildings (the user, 27 Oct, after players asked for no outgrow until they paint): a row of the window's top card (New buildings: Zone default | No outgrow), kept with each city; a new city has No outgrow. Outgrow switched on in the window: a first street grows with none outgrown (audit 'off'); Zone default: a second street grows outgrown (audit 'on'); saved and loaded back, still Zone default (the window's last shot, the log's switches line); the window in German and Japanese. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-new-buildings.json -Who outgrow-new-buildings -Fresh",
+  "scenarios": [
+    {
+      "id": "outgrow-new-buildings",
+      "land": { "shape": "rect", "size": [360, 300], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "polish", "click": "panel-mode-outgrow", "shot": "new-city", "shotMode": "ui" },
+        { "do": "polish", "click": "polish-on-show" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [0, -60], "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 60 },
+        { "do": "lab", "op": "polishIdle", "seconds": 90 },
+        { "do": "lab", "op": "outgrowAudit", "label": "off" },
+        { "do": "polish", "click": "polish-newHouses-true", "shot": "switch-on", "shotMode": "ui" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [0, 60], "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 60 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowAudit", "label": "on" },
+        { "do": "lab", "op": "saveLoad" },
+        { "do": "lab", "op": "polishIdle", "seconds": 60 },
+        { "do": "polish", "click": "panel-mode-outgrow", "shot": "after-load", "shotMode": "ui" },
+        { "do": "locale", "locale": "de-DE" },
+        { "do": "shot", "name": "window-de", "shotMode": "ui" },
+        { "do": "locale", "locale": "ja-JP" },
+        { "do": "shot", "name": "window-ja", "shotMode": "ui" },
+        { "do": "locale", "locale": "en-US" }
+      ]
+    }
+  ]
+}

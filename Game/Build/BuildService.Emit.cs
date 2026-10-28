@@ -171,6 +171,9 @@ namespace Placemaker.Game.Build
                 // Bridges/piers/boardwalks keep their planned deck: short pieces, each node with its own
                 // elevation and forced elevated (CourseFitting.FitElevated explains why not one course).
                 bool elevated = !net.FollowTerrain;
+                // An end on ground higher than the deck rises to it (else the game digs a notch there); the paths that meet
+                // it are pinned to the same ground, so the junction stays one node.
+                if (elevated) course = CourseFitting.LandEnds(course, GroundHeight);
                 var pieces = elevated
                     ? CourseFitting.FitElevated(course, settings.MaxLength > 1f ? math.min(ElevatedPieceLength, settings.MaxLength) : ElevatedPieceLength)
                     : CourseFitting.Fit(course, GroundHeight, settings);
