@@ -30,6 +30,7 @@ namespace Placemaker.Game.Suite
                 case "street": yield return LabStreet(st, step, rec); yield break;
                 case "streetjoins": LabStreetJoins(st, step, rec); yield break;
                 case "pickpart": yield return LabPickPart(st, step, rec); yield break;
+                case "ungroupaudit": yield return LabUngroupAudit(st, step, rec); yield break;
                 case "toolstate":
                     rec["editingGroup"] = _tool.EditingGroup;
                     rec["stage"] = _tool.Stage.ToString();
