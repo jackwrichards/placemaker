@@ -47,6 +47,8 @@ namespace Placemaker.Core.Build
         public float MaxDecorInCorridor;
         /// <summary>Path edges still steeper than their limit (ground too steep for the earthwork cap).</summary>
         public int SteepEdges;
+        /// <summary>Path points raised to stay <see cref="SiteHarmony.WaterClearance"/> above the water beside them.</summary>
+        public int DryPathVertices;
         /// <summary>Decorative terrain removed from corridors/pads (share of its volume, 0..1).</summary>
         public float DecorMasked;
     }
@@ -420,6 +422,7 @@ namespace Placemaker.Core.Build
             if (graph.Pos.Count > 0)
             {
                 report.SteepEdges = Profile(graph);
+                report.DryPathVertices = KeepAboveWater(graph, plan, site);
                 profile = StampCorridors(c, paths, graph, T, protect, pathW);
                 // A surface the path runs into (a link strip, a plaza edge) is refitted with the level band as part of
                 // it, so it meets the path without a crease; the band itself is never changed.
@@ -485,7 +488,8 @@ namespace Placemaker.Core.Build
                 foreach (var l in plan.Layers) if (l != null) foreach (var i in l.Issues) if (i.Key == Layers.Common.TerrainShaper.PermanentKey) warned = true;
                 if (!warned && cells.Count > 0) hp.Issues.Add(new PlanIssue { Severity = IssueSeverity.Warning, Key = Layers.Common.TerrainShaper.PermanentKey });
             }
-            if (report.SteepEdges > 0) hp.Issues.Add(new PlanIssue { Severity = IssueSeverity.Info, Key = IssueSteepPath });
+            // a warning, not a note: a path too steep to grade breaks in the game (the user, 27 Oct)
+            if (report.SteepEdges > 0) hp.Issues.Add(new PlanIssue { Severity = IssueSeverity.Warning, Key = IssueSteepPath });
 
             Lap("emit");
             // ── 6. everything onto the final ground ──
@@ -501,6 +505,7 @@ namespace Placemaker.Core.Build
             hp.Facts["harmonyMaxCut"] = report.MaxCut;
             hp.Facts["harmonyMaxFill"] = report.MaxFill;
             hp.Facts["harmonySteepEdges"] = report.SteepEdges;
+            hp.Facts["harmonyDryPathPoints"] = report.DryPathVertices;
             hp.Facts["harmonyDecorInCorridor"] = report.MaxDecorInCorridor;
             hp.Facts["harmonyDecorMasked"] = report.DecorMasked;
             hp.HeightAfter = final;
@@ -1057,6 +1062,74 @@ namespace Placemaker.Core.Build
                 g.H0[v] = h; g.H[v] = h; g.Pinned[v] = pin;
             }
             return g;
+        }
+
+        /// <summary>A walking path stays at least this far above the water beside it (m): lower, it floods.</summary>
+        public const float WaterClearance = 0.3f;
+
+        /// <summary>
+        /// The water surface at or beside p (within <paramref name="reach"/>): a planned basin's level, or the open water already
+        /// there (ground + depth). NaN when there is none.
+        /// </summary>
+        public static float WaterNear(float2 p, float reach, List<(float2[] ring, float level)> basins, Func<float2, float> depthAt, Func<float2, float> ground)
+        {
+            float w = float.NaN;
+            if (basins != null)
+                foreach (var (ring, level) in basins)
+                    if (Poly.Contains(ring, p) || Poly.DistanceToBoundary(ring, p) <= reach) w = math.isfinite(w) ? math.max(w, level) : level;
+            if (depthAt != null && ground != null)
+                for (int a = -1; a < 8; a++)
+                {
+                    var q = a < 0 ? p : p + new float2(math.cos(a * math.PI / 4f), math.sin(a * math.PI / 4f)) * reach;
+                    float d = depthAt(q);
+                    if (!(d > 0.05f)) continue;
+                    float s = ground(q) + d;
+                    w = math.isfinite(w) ? math.max(w, s) : s;
+                }
+            return w;
+        }
+
+        /// <summary>
+        /// Walking paths beside water stay <see cref="WaterClearance"/> above it (the AI builder's check, for every type): a path
+        /// graded onto a basin's rim flooded, and the lamps beside it stood in the water. Raises the path's points (never a
+        /// deck end) and eases their neighbours up within the grade. Returns the points raised.
+        /// </summary>
+        private static int KeepAboveWater(Graph g, ComposedPlan plan, SiteContext site)
+        {
+            var basins = new List<(float2[] ring, float level)>();
+            foreach (var l in plan.Layers)
+                if (l != null)
+                    foreach (var t in l.Terraform)
+                        if (t?.Ring != null && t.Ring.Length >= 3 && math.isfinite(t.WaterLevel)) basins.Add((Poly.To2D(t.Ring), t.WaterLevel));
+            Func<float2, float> depth = site?.WaterDepthAt, ground = site?.HeightAt;
+            if (basins.Count == 0 && depth == null) return 0;
+            int n = g.Pos.Count, raised = 0;
+            var h = g.H.ToArray();
+            for (int v = 0; v < n; v++)
+            {
+                if (g.Pinned[v]) continue;
+                float w = WaterNear(g.Pos[v], 3f, basins, depth, ground);
+                // aimed a little higher: the corridor smoothing and the final resnap lose up to ~0.2 m
+                if (!math.isfinite(w) || h[v] >= w + WaterClearance + 0.2f) continue;
+                h[v] = w + WaterClearance + 0.2f;
+                g.Pinned[v] = true;
+                raised++;
+            }
+            if (raised == 0) return 0;
+            // the stretch either side comes up to meet it within its grade (raising only)
+            for (int pass = 0; pass < 80; pass++)
+            {
+                bool changed = false;
+                foreach (var e in g.Edges)
+                {
+                    float lim = e.grade * e.len;
+                    if (!g.Pinned[e.a] && h[e.a] < h[e.b] - lim - 1e-4f) { h[e.a] = h[e.b] - lim; changed = true; }
+                    if (!g.Pinned[e.b] && h[e.b] < h[e.a] - lim - 1e-4f) { h[e.b] = h[e.a] - lim; changed = true; }
+                }
+                if (!changed) break;
+            }
+            for (int v = 0; v < n; v++) g.H[v] = h[v];
+            return raised;
         }
 
         /// <summary>Smooth profile along the graph (like a vanilla net) within each edge's grade limit. Returns edges still too steep.</summary>

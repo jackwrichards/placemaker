@@ -145,6 +145,25 @@ namespace Placemaker.Core.Build
         /// course over a lake basin that has no water yet sinks to the bed between its raised ends. Each
         /// node carries its own elevation (planned y − ground), so short pieces follow the planned deck.
         /// </summary>
+        /// <summary>
+        /// A raised line's (bridge, pier, boardwalk) end on ground higher than its deck rises to the ground: the game digs
+        /// the ground down to a deck end below it (a notch in the island where a bridge lands; the AI builder's fix, for
+        /// every type). The lift fades out linearly towards the other end, so the deck keeps its arch.
+        /// </summary>
+        public static Cubic LandEnds(Cubic c, Func<float2, float> heightAt)
+        {
+            if (heightAt == null || !IsFinite(c)) return c;
+            float ga = heightAt(c.A.xz), gd = heightAt(c.D.xz);
+            float ra = math.isfinite(ga) ? math.max(0f, ga - c.A.y) : 0f;
+            float rd = math.isfinite(gd) ? math.max(0f, gd - c.D.y) : 0f;
+            if (ra <= 0f && rd <= 0f) return c;
+            c.A.y += ra;
+            c.B.y += math.lerp(ra, rd, 1f / 3f);
+            c.C.y += math.lerp(ra, rd, 2f / 3f);
+            c.D.y += rd;
+            return c;
+        }
+
         public static List<Cubic> FitElevated(Cubic curve, float maxPiece)
         {
             var result = new List<Cubic>();

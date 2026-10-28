@@ -185,7 +185,7 @@ namespace Placemaker.Core.Layers.Types.Wetland
             var order = new List<Pond>(water.Ponds);
             order.Sort((a, b) => b.Area.CompareTo(a.Area));
             var crossed = new List<float2>();
-            for (int i = 0, k = 0; k < wantedCrossings && i < order.Count + wantedCrossings; i++)
+            for (int i = 0, k = 0; order.Count > 0 && k < wantedCrossings && i < order.Count + wantedCrossings; i++)
             {
                 var pond = order[i % order.Count];
                 if (pond.Area < 120f) continue;

@@ -206,6 +206,9 @@ namespace Placemaker.Core
             // CS2 joins paths only at identical nodes: split a path where a spur (often a feature's
             // "path to it") ends on it (g5).
             Layers.Common.PathJoins.JoinAll(result);
+            // A path joining another at a slanting angle is drawn as a spike of paving: it arrives square-on instead.
+            int squared = Layers.Common.PathJoins.SquareAll(result);
+            if (squared > 0 && result.Layers.Count > 0 && result.Layers[0] != null) result.Layers[0].Facts["pathJunctionsSquared"] = squared;
             // Footpaths meet city streets at the kerb (the game joins them, no crosswalk), unless the entrance asks for a crosswalk.
             Layers.Common.StreetJoins.Apply(result, site);
             clock.Lap("path joins");

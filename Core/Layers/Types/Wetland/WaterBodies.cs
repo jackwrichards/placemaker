@@ -68,11 +68,19 @@ namespace Placemaker.Core.Layers.Types.Wetland
         /// <summary>Chains follow Axis (swales).</summary>
         public bool Linear;
         public float2 Axis;
+        /// <summary>
+        /// Most the ground under one pond may rise above its lowest point (m; 0 = the default <see cref="WaterBodies.MaxRise"/>).
+        /// The water level is set by the lowest bank, so a pond laid across a slope dug its uphill side into a pit with a wall,
+        /// and the islands and path crossings in it kept the hill's height (cones and walled ledges; wetland on hills, 27 Oct).
+        /// </summary>
+        public float MaxRise;
     }
 
     public sealed class WaterBodies
     {
         public readonly List<Pond> Ponds = new List<Pond>();
+        /// <summary>Default <see cref="GrowSpec.MaxRise"/>: a pond only grows on ground this level (m).</summary>
+        public const float MaxRise = 1.2f;
         /// <summary>Causeway strips and platforms kept dry inside the ponds (CCW rings).</summary>
         public readonly List<float2[]> Dry = new List<float2[]>();
 
@@ -259,10 +267,26 @@ namespace Placemaker.Core.Layers.Types.Wetland
             float perPond = spec.TargetArea / math.max(1, spec.Ponds);
             float j = math.clamp(spec.Jitter, 0.05f, 0.4f);
             int grown = 0;
+            float maxRise = spec.MaxRise > 0f ? spec.MaxRise : MaxRise, rise = maxRise;
+            float lo = float.MaxValue, hi = float.MinValue;   // the ground under the pond growing now
+
+            // the ground under a blob: its centre and its rim
+            void Ground(float2 c, float reach, out float min, out float max)
+            {
+                min = max = ctx.H(c);
+                for (int a = 0; a < 12; a++)
+                {
+                    float an = a * math.PI / 6f;
+                    float h = ctx.H(c + new float2(math.cos(an), math.sin(an)) * reach);
+                    min = math.min(min, h); max = math.max(max, h);
+                }
+            }
 
             bool Fits(float2 c, float r, int pond)
             {
                 float reach = r * (1f + j);
+                Ground(c, reach, out float gmin, out float gmax);
+                if (math.max(hi, gmax) - math.min(lo, gmin) > rise) return false;
                 if (region.BoundaryDistance(c, reach + spec.EdgeMargin + 0.01f) < reach + spec.EdgeMargin) return false;
                 if (occ.Corridors.Overlaps(c, reach, spec.PathMargin)) return false;
                 if (occ.Discs.Overlaps(c, reach, spec.PathMargin * 0.5f)) return false;
@@ -281,10 +305,15 @@ namespace Placemaker.Core.Layers.Types.Wetland
             {
                 ctx.Check();
                 int id = 1000 + k;
-                float r0 = math.max(spec.MinRadius, spec.BlobRadius * rng.NextFloat(0.8f, 1.2f));
+                lo = float.MaxValue; hi = float.MinValue;
+                float rStart = math.max(spec.MinRadius, spec.BlobRadius * rng.NextFloat(0.8f, 1.2f)), r0 = rStart;
                 float2 start = default; bool found = false;
-                for (int attempt = 0; attempt < 5 && !found; attempt++)
+                // level ground first; on hilly land ground twice as uneven (the banks soften it) before the pond is given up
+                for (int attempt = 0; attempt < 10 && !found; attempt++)
                 {
+                    if (attempt == 0) rise = maxRise;
+                    else if (attempt == 5) { rise = maxRise * 2f; r0 = rStart; }
+                    if (r0 < spec.MinRadius) continue;
                     var avoid = new List<float2>();
                     foreach (var b in blobs) avoid.Add(b.C);
                     float reach = r0 * (1f + j);
@@ -293,7 +322,23 @@ namespace Placemaker.Core.Layers.Types.Wetland
                         && Fits(c, r0, id))
                     { start = c; found = true; break; }
                     r0 *= 0.72f;
-                    if (r0 < spec.MinRadius) break;
+                }
+                // hilly land: the most level free spot (hilltops, valley floors), smallest pond first; last, ground four times as
+                // uneven (the basin bank grades its uphill side) rather than no pond at all (a stroll garden without its pond)
+                for (int tier = 0; tier < 2 && !found; tier++)
+                {
+                    rise = maxRise * (tier == 0 ? 2f : 4f);
+                    r0 = spec.MinRadius * 1.2f;
+                    float reach = r0 * (1f + j), step = math.max(3f, reach);
+                    float best = float.MaxValue;
+                    for (float y = region.Min.y + reach; y < region.Max.y - reach; y += step)
+                        for (float x = region.Min.x + reach; x < region.Max.x - reach; x += step)
+                        {
+                            var c = new float2(x, y);
+                            Ground(c, reach, out float gmin, out float gmax);
+                            if (gmax - gmin >= best || !Fits(c, r0, id)) continue;
+                            best = gmax - gmin; start = c; found = true;
+                        }
                 }
                 if (!found) continue;
 
@@ -303,6 +348,8 @@ namespace Placemaker.Core.Layers.Types.Wetland
                 var cur = start; float r = r0;
                 void AddBlob(float2 c, float rr)
                 {
+                    Ground(c, rr * (1f + j), out float gmin, out float gmax);
+                    lo = math.min(lo, gmin); hi = math.max(hi, gmax);
                     blobs.Add(new Blob { C = c, R = rr, Pond = id });
                     mine.Add(Poly.EnsureCcw(LeisureKit.Blob(c, rr, Hashing.Mix(seed, (uint)(blobs.Count * 31 + k)), 14, j)));
                     est += math.PI * rr * rr * (mine.Count == 1 ? 1f : 0.5f);
@@ -562,6 +609,7 @@ namespace Placemaker.Core.Layers.Types.Wetland
             foreach (var pond in Ponds)
             {
                 ctx.Check();
+                Common.Shore.BasinBank.Add(ctx, pond.Ring, pond.Level);   // on a slope: a bank, not a wall cut down to the water
                 var clip = new List<IReadOnlyList<float2>>();
                 foreach (var isl in pond.Islands) clip.Add(isl);
                 foreach (var d in Dry)
