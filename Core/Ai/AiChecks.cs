@@ -225,6 +225,25 @@ namespace Placemaker.Core.Ai
                 // a fence or hedge line may end anywhere (eval: Opus removed its garden's hedge lines over "dead ends" and rebuilt
                 // them from loose hedge blocks)
                 bool loop = math.distance(a, z) < 1f || p.Category == AssetCategories.Fence;
+                // a walking line that dips into the water (eval: Opus drew a lake loop on the basin's rim: the path flooded, the lamps
+                // beside it stood in the lake and the water spilled over at the cafe); raised lines (a pier, a bridge) are exempt
+                if (!math.isfinite(p.LineHeight) && p.Category != AssetCategories.Fence)
+                {
+                    float wet = 0f, deepest = float.MinValue; float2 at = default;
+                    for (int k = 0; k + 1 < p.Points.Length; k++)
+                    {
+                        float len = math.distance(p.Points[k], p.Points[k + 1]);
+                        int n = math.max(1, (int)math.ceil(len / 2f));
+                        for (int j = 0; j < n; j++)
+                        {
+                            var q = math.lerp(p.Points[k], p.Points[k + 1], (j + 0.5f) / n);
+                            if (!UnderWater(s, all, q, out float d, -0.3f)) continue;
+                            wet += len / n;
+                            if (d > deepest) { deepest = d; at = q; }
+                        }
+                    }
+                    if (wet > 0.5f) list.Add($"{F(wet)} m of it lies in or at the water (to {F(math.max(0f, deepest))} m deep, near ({F(at.x)},{F(at.y)})): walking paths need the bank at least 0.3 m above the water; move it inland or raise the ground under it");
+                }
                 if (!loop && !Joined(a)) list.Add("its start joins nothing (no road, path or surface within 3 m): a dead end");
                 if (!loop && !Joined(z)) list.Add("its end joins nothing (no road, path or surface within 3 m): a dead end");
             }
@@ -443,7 +462,7 @@ namespace Placemaker.Core.Ai
 
         /// <summary>Is p under water once the shaping is built: below a pond's water in its basin, or below the open water in
         /// ground lowered next to it (the lake flows in)?</summary>
-        public static bool UnderWater(AiSite s, IReadOnlyList<AiPiece> all, float2 p, out float depth)
+        public static bool UnderWater(AiSite s, IReadOnlyList<AiPiece> all, float2 p, out float depth, float margin = 0.05f)
         {
             depth = 0f;
             var shaping = all.Where(o => o.Kind == AiPieceKind.Ground && o.Ring != null).ToList();
@@ -453,8 +472,8 @@ namespace Placemaker.Core.Ai
             {
                 bool inside = Poly.Contains(o.Ring, p) || (AiTerrain.IsField(o) && Poly.DistanceToBoundary(o.Ring, p) < o.Feather);
                 if (!inside) continue;
-                if (math.isfinite(o.WaterLevel) && g < o.WaterLevel - 0.05f) { depth = o.WaterLevel - g; return true; }
-                if (math.isfinite(s.WaterLevel) && g < s.WaterLevel - 0.05f && o.Ring.Any(q => s.ByWater(q) || s.Water(q) > 0.05f)) { depth = s.WaterLevel - g; return true; }
+                if (math.isfinite(o.WaterLevel) && g < o.WaterLevel - margin) { depth = o.WaterLevel - g; return true; }
+                if (math.isfinite(s.WaterLevel) && g < s.WaterLevel - margin && o.Ring.Any(q => s.ByWater(q) || s.Water(q) > 0.05f)) { depth = s.WaterLevel - g; return true; }
             }
             return false;
         }

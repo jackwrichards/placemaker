@@ -59,6 +59,55 @@ namespace Placemaker.Core.Layers.Ai
             foreach (var n in ctx.Site.NearbyNets) if (n.ExternalId == id) { end = SiteBrief.Bez(n, t).xz; break; }
         }
 
+        private static bool IsWalk(AiPiece p) =>
+            p.Kind == AiPieceKind.Path && p.Points != null && p.Points.Length >= 2 && (p.NetRole == NetRole.Pathway || p.NetRole == NetRole.PathwayWide);
+
+        /// <summary>
+        /// A path end that meets another path (within 3 m) at a shallow angle arrives square-on instead: the end goes exactly onto
+        /// the other path, and the last stretch turns to meet it at a right angle. A slanting junction is drawn by the game as a
+        /// long spike of paving (Opus park close-ups, 27 Oct), and an end a little off the other path was bent onto it with a kink.
+        /// </summary>
+        private static float2[] Approach(float2[] pts, List<AiPiece> others)
+        {
+            if (others.Count == 0 || math.distance(pts[0], pts[pts.Length - 1]) < 1f) return pts;   // none, or a loop
+            var list = pts.ToList();
+            for (int side = 0; side < 2; side++)
+            {
+                if (side == 1) list.Reverse();
+                int last = list.Count - 1;
+                if (last < 1) continue;
+                var end = list[last];
+                float best = 3f; float2 at = default, dir = default; bool atEnd = false;
+                foreach (var o in others)
+                    for (int k = 0; k + 1 < o.Points.Length; k++)
+                    {
+                        float2 a = o.Points[k], b = o.Points[k + 1], ab = b - a;
+                        float len2 = math.lengthsq(ab);
+                        if (len2 < 1e-4f) continue;
+                        float t = math.saturate(math.dot(end - a, ab) / len2);
+                        var q = a + ab * t;
+                        float d = math.distance(q, end);
+                        if (d < best) { best = d; at = q; dir = math.normalize(ab); atEnd = (k == 0 && t * math.sqrt(len2) < 2f) || (k == o.Points.Length - 2 && (1f - t) * math.sqrt(len2) < 2f); }
+                    }
+                if (best >= 3f) continue;
+                var nrm = new float2(-dir.y, dir.x);
+                // the side the path comes from
+                var from = list[math.max(0, last - 1)];
+                if (math.dot(from - at, nrm) < 0f) nrm = -nrm;
+                var come = math.normalizesafe(end - from, -nrm);
+                list[last] = at;
+                if (atEnd) continue;   // it carries the other path on (end to end): no corner
+                if (math.abs(math.dot(come, dir)) < 0.5f) continue;   // already 60° or steeper
+                // drop the points within the new approach, then come in along the normal
+                float reach = 6f;
+                while (list.Count > 2 && math.distance(list[list.Count - 2], at) < reach + 1f) list.RemoveAt(list.Count - 2);
+                if (math.distance(list[list.Count - 2], at) < reach * 1.5f) reach = math.distance(list[list.Count - 2], at) * 0.5f;
+                if (reach >= 1.5f) list.Insert(list.Count - 1, at + nrm * reach);
+            }
+            list.Reverse();
+            return list.ToArray();
+        }
+
         private static float2 Centroid(float2[] ring)
         {
             float2 s = 0;
@@ -152,6 +201,7 @@ namespace Placemaker.Core.Layers.Ai
                 {
                     // a road-type line is joined to a city road its end lies on
                     var pts = (float2[])p.Points.Clone();
+                    if (IsWalk(p) && !math.isfinite(p.LineHeight)) pts = Approach(pts, pieces.Where(o => o.Id != p.Id && IsWalk(o)).ToList());
                     long startAttach = -1, endAttach = -1; float startT = 0f, endT = 0f;
                     if (p.NetRole == NetRole.DriveAisle)
                     {
