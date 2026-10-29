@@ -63,6 +63,10 @@ namespace Placemaker.Core.Layers.AddOns
         protected override void PlanCore(LayerContext ctx)
         {
             string theme = ctx.S("theme");
+            // (dynamic decals, 2026-10-29: "disable our other decal system") Every theme but the base game's markings needs
+            // decal packs, and pack decals are dropped from every plan (PackDecals): nothing is scattered for them any more.
+            // Grime is code-made now (Core/Decals/Dynamic). The code below stays for the markings theme.
+            if (theme != "markings") return;
             string category = CategoryFor(theme);
             var ids = ctx.L("assets");
             if (!AssetAvailability.Require(ctx.Plan, category, ids, Keys.Category(category))) return;

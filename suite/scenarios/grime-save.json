@@ -1,0 +1,36 @@
+{
+  "_about": "Dynamic decals (docs/DYNAMIC-DECALS.md), part 1 of 2 of the removal proof, plus close-ups: the community sports park built on a 220 x 200 site (it gets its car park), its code-made grime waited for, close looks at a goalmouth, the mud gate, the car park, a puddle, a leaf drift and a court corner, then the city saved. Part 2 (grime-load.json, Send-Suite -Fresh) loads it in a fresh game. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/grime-save.json -Who dyn-decals",
+  "scenarios": [
+    {
+      "id": "grime-save",
+      "site": "flat",
+      "pace": "settled",
+      "land": { "size": [220, 200], "gap": 10 },
+      "steps": [
+        { "do": "area", "tool": "land" },
+        { "do": "type", "layer": "sportsPark", "preset": "community" },
+        { "do": "entrances" },
+        { "do": "build" },
+        { "do": "lab", "op": "grime" },
+        { "do": "lab", "op": "dynFrames", "frames": 240, "label": "with grime" },
+        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "45", "shotMode": "render" },
+        { "do": "camera", "target": "build", "view": "low", "shot": "low", "shotMode": "render" },
+        { "do": "lab", "op": "grime", "focus": "bareEarth", "margin": 10 },
+        { "do": "camera", "target": "build", "view": "closeup", "distance": 30, "shot": "goalmouth", "shotMode": "render" },
+        { "do": "lab", "op": "grime", "focus": "mud", "margin": 6 },
+        { "do": "camera", "target": "build", "view": "closeup", "distance": 22, "shot": "gateway", "shotMode": "render" },
+        { "do": "lab", "op": "grime", "focus": "oilStain", "margin": 8 },
+        { "do": "camera", "target": "build", "view": "closeup", "distance": 30, "shot": "carpark", "shotMode": "render" },
+        { "do": "lab", "op": "grime", "focus": "puddle", "margin": 5 },
+        { "do": "camera", "target": "build", "view": "low", "distance": 20, "shot": "puddle-low", "shotMode": "render" },
+        { "do": "lab", "op": "grime", "focus": "leafDrift", "margin": 4 },
+        { "do": "camera", "target": "build", "view": "closeup", "distance": 18, "shot": "leaves", "shotMode": "render" },
+        { "do": "lab", "op": "grime", "focus": "cornerDebris", "margin": 4 },
+        { "do": "camera", "target": "build", "view": "closeup", "distance": 16, "shot": "court-corner", "shotMode": "render" },
+        { "do": "lab", "op": "grime", "on": false },
+        { "do": "lab", "op": "grime", "on": true },
+        { "do": "lab", "op": "saveCity", "name": "PlacemakerGrime" }
+      ]
+    }
+  ]
+}

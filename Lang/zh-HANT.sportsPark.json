@@ -27,6 +27,8 @@
   "Placemaker.Sports.fieldAxis.edge": "沿邊緣",
   "Placemaker.Sports.fieldAxis.northSouth": "南北向",
   "Placemaker.Sports.fieldAxis.eastWest": "東西向",
+  "Placemaker.Sports.grime": "磨損",
+  "Placemaker.Sports.grime.Tooltip": "公園看起來被使用的程度：球門區和中場被踩禿的草皮、球員離場處的泥濘、低窪處的水坑、被風吹到路緣和圍欄邊的落葉、停車場的油漬。由 Placemaker 繪製（無需貼花包）；移除公園時一併消失。0 則一塵不染。",
   "Placemaker.Sports.pitchCount": "數量",
   "Placemaker.Sports.pitchSize.Tooltip": "球場規格。自動會選擇能為其他設施留出空間的最大規格。",
   "Placemaker.Sports.pitchSize.auto": "自動",

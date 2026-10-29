@@ -407,6 +407,41 @@ namespace Placemaker.Game.Suite
             Mod.Log.Info($"Placemaker lab: dyn decals cleared ({n} destroyed with their materials, meshes and textures)");
         }
 
+        /// <summary>
+        /// The real dynamic decals (Game/Decals/DynamicDecalSystem): {"do":"lab","op":"grime"} waits until every group's grime is drawn
+        /// (up to "timeout" s, default 90) and records groups, tiles, GPU memory; "on": false hides and frees them all (true brings
+        /// them back from the records).
+        /// </summary>
+        private IEnumerator LabGrime(ScenarioState st, JObject step, JObject rec)
+        {
+            if (step["on"] != null) global::Placemaker.Game.Decals.DynamicDecalSystem.Enabled = (bool)step["on"];
+            var sys = global::Placemaker.Game.Decals.DynamicDecalSystem.Instance;
+            if (sys == null) { rec["error"] = "lab: no dynamic decal system"; yield break; }
+            if (step["focus"] != null)
+            {
+                // {"op":"grime","focus":"oilStain","index":0,"margin":6}: the next camera step with target "build" frames that stroke
+                string kind = (string)step["focus"];
+                if (!sys.TryFind(kind, (int?)step["index"] ?? 0, out var lo, out var hi)) { rec["error"] = "lab: no grime stroke of kind " + kind; yield break; }
+                float margin = (float?)step["margin"] ?? 5f;
+                var c = (lo + hi) * 0.5f;
+                var half = math.max((hi - lo) * 0.5f + margin, new float2(9f));
+                st.Ring = new[] { c - half, new float2(c.x + half.x, c.y - half.y), c + half, new float2(c.x - half.x, c.y + half.y) };
+                rec["focus"] = kind; rec["atAbs"] = new JArray(Math.Round(c.x, 1), Math.Round(c.y, 1));
+                Event("build");
+                yield break;
+            }
+            float timeout = (float?)step["timeout"] ?? 90f;
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            yield return Frames(70);   // the system scans the records at least once a second
+            yield return Until(() => sys.Pending == 0, timeout, "dynamic decals");
+            rec["waitedMs"] = Math.Round(clock.Elapsed.TotalMilliseconds);
+            rec["groups"] = sys.GroupCount; rec["tiles"] = sys.TileCount; rec["gpuKiB"] = sys.GpuBytes / 1024; rec["pending"] = sys.Pending;
+            int objs = Resources.FindObjectsOfTypeAll<GameObject>().Count(g => g.name.StartsWith(global::Placemaker.Game.Decals.DynamicDecalSystem.Prefix, StringComparison.Ordinal));
+            rec["gameObjects"] = objs;
+            Mod.Log.Info($"Placemaker lab: grime: {sys.GroupCount} groups, {sys.TileCount} tiles, {sys.GpuBytes / 1024} KiB, {objs} game objects, pending {sys.Pending}, waited {clock.Elapsed.TotalSeconds:F1} s");
+            Event("build");
+        }
+
         private void LabDynDecalCount(JObject rec)
         {
             var em = _world.EntityManager;

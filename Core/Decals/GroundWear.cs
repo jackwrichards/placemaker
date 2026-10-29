@@ -67,12 +67,21 @@ namespace Placemaker.Core.Decals
                 var g = new Group(w, site, host, region, s, Hashing.Mix(host.Seed == 0 ? 1u : host.Seed, 0x6A0Bu), report);
                 g.Clear();
                 if (s.LawnPainted && s.LawnTint) g.LawnTint();
-                if (s.Mulch) g.Mulch();
-                g.Verges(layers);
-                if (s.DesirePaths) g.Desire(layers);
-                g.Patches(layers);
-                g.Edges();
-                g.Extras(layers);
+                if (s.Weathering)
+                {
+                    // (dynamic decals) The step is weathered by code-made decals grown from causes (Dynamic/Weathering): the paint
+                    // keeps only the soft macro tone. Left out, as "organized dirt": a mulch disc per tree, bullseye patches per
+                    // bench and play item, verge bands the full length of every path, edge discs at a fixed step, goalmouth ovals.
+                }
+                else
+                {
+                    if (s.Mulch) g.Mulch();
+                    g.Verges(layers);
+                    if (s.DesirePaths) g.Desire(layers);
+                    g.Patches(layers);
+                    g.Edges();
+                    g.Extras(layers);
+                }
                 if (g.Count > 0)
                 {
                     bool warned = false;

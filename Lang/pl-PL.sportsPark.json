@@ -27,6 +27,8 @@
   "Placemaker.Sports.fieldAxis.edge": "Wzdłuż krawędzi",
   "Placemaker.Sports.fieldAxis.northSouth": "Północ–południe",
   "Placemaker.Sports.fieldAxis.eastWest": "Wschód–zachód",
+  "Placemaker.Sports.grime": "Zużycie",
+  "Placemaker.Sports.grime.Tooltip": "Jak bardzo park wygląda na używany: wydeptana trawa w polach bramkowych i na środku, błoto tam, gdzie gracze schodzą z boiska, kałuże w zagłębieniach, liście zwiane wiatrem pod krawężniki i ogrodzenia, olej na parkingu. Rysuje to Placemaker (bez paczek naklejek); znika po usunięciu parku. 0 – jak spod igły.",
   "Placemaker.Sports.pitchCount": "Ile",
   "Placemaker.Sports.pitchSize.Tooltip": "Format boiska. Autom. wybiera największe, które zostawia miejsce na resztę.",
   "Placemaker.Sports.pitchSize.auto": "Autom.",

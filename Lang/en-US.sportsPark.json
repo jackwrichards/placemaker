@@ -27,6 +27,8 @@
   "Placemaker.Sports.fieldAxis.edge": "Along the edge",
   "Placemaker.Sports.fieldAxis.northSouth": "North–south",
   "Placemaker.Sports.fieldAxis.eastWest": "East–west",
+  "Placemaker.Sports.grime": "Grime",
+  "Placemaker.Sports.grime.Tooltip": "How used the park looks: worn turf in the goalmouths and down the middle, mud where players come off the pitch, puddles in the low spots, leaves blown against kerbs and fences, oil in the car park. Drawn by Placemaker (no decal packs); it goes when the park is removed. 0 keeps it spotless.",
   "Placemaker.Sports.pitchCount": "How many",
   "Placemaker.Sports.pitchSize.Tooltip": "Pitch format. Auto picks the biggest that leaves room for everything else.",
   "Placemaker.Sports.pitchSize.auto": "Auto",

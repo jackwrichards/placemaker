@@ -672,6 +672,7 @@ namespace Placemaker.Game.Build
                 BuiltAtTicks = DateTime.UtcNow.Ticks,
             };
             _record = _registry.CreateRecord(rec, true);
+            WriteDecals();
 
             // Carrier for parking decals; s58: every build gets one, it is the shared owner of the build's overridable objects
             // (so the game's OverrideSystem never hides our own pieces against each other), stall markings or not.
@@ -694,6 +695,29 @@ namespace Placemaker.Game.Build
             var g = EntityManager.GetComponentData<PlacemakerGroup>(_record);
             g.Carrier = _carrier;
             EntityManager.SetComponentData(_record, g);
+        }
+
+        /// <summary>
+        /// (dynamic decals) The plan's grime strokes go onto the record as bytes; Game/Decals/DynamicDecalSystem draws them once the
+        /// record is finished (no longer under construction) and drops them with the record (undo, bulldoze, ungroup).
+        /// </summary>
+        private void WriteDecals()
+        {
+            if (_record == Entity.Null || _request?.Plan?.Layers == null) return;
+            var set = new Core.Decals.Dynamic.DecalSet();
+            foreach (var l in _request.Plan.Layers) if (l?.Decals != null) set.Strokes.AddRange(l.Decals);
+            if (set.Strokes.Count == 0) return;
+            // kinds the plan defined itself travel with it (a builder's own look); library kinds are named only
+            var lib = Core.Decals.Dynamic.DecalLibrary.Current;
+            foreach (var l in _request.Plan.Layers)
+                if (l?.DecalKinds != null)
+                    foreach (var k in l.DecalKinds)
+                        if (k != null && !lib.Has(k.Id) && !string.IsNullOrEmpty(k.Json) && !set.Kinds.Contains(k.Json)) set.Kinds.Add(k.Json);
+            var bytes = Core.Decals.Dynamic.DecalCodec.Encode(set);
+            var buffer = EntityManager.AddBuffer<PlacemakerDecalBlob>(_record);
+            buffer.ResizeUninitialized(bytes.Length);
+            for (int i = 0; i < bytes.Length; i++) buffer[i] = new PlacemakerDecalBlob { Value = bytes[i] };
+            Mod.Log.Info($"Placemaker dynamic decals: group {_groupId}: {set.Strokes.Count} strokes ({bytes.Length} bytes) on the record; weathering {_request.Plan.Weathering}");
         }
 
         private void ClearCarrierSubNets()

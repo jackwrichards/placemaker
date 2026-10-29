@@ -27,6 +27,8 @@
   "Placemaker.Sports.fieldAxis.edge": "변을 따라",
   "Placemaker.Sports.fieldAxis.northSouth": "남북",
   "Placemaker.Sports.fieldAxis.eastWest": "동서",
+  "Placemaker.Sports.grime": "사용감",
+  "Placemaker.Sports.grime.Tooltip": "공원이 얼마나 쓰인 것처럼 보이는지: 골문 앞과 중앙의 닳은 잔디, 선수들이 경기장을 나서는 곳의 진흙, 낮은 곳의 물웅덩이, 바람에 연석과 울타리로 밀려온 낙엽, 주차장의 기름 자국. Placemaker가 직접 그립니다(데칼 팩 불필요). 공원을 철거하면 함께 사라집니다. 0이면 새것처럼 깨끗합니다.",
   "Placemaker.Sports.pitchCount": "개수",
   "Placemaker.Sports.pitchSize.Tooltip": "경기장 규격입니다. 자동은 다른 것이 모두 들어갈 수 있는 가장 큰 규격을 고릅니다.",
   "Placemaker.Sports.pitchSize.auto": "자동",

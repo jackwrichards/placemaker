@@ -1,5 +1,10 @@
 # Terrain paint — materials, engine, toolkit, art guide (s33)
 
+> **2026-10-29 (dynamic decals):** types weathered by code-made decals (docs/DYNAMIC-DECALS.md; v1: the community sports
+> park) keep paint only as the soft macro layer (the lawn's lush/dry tone). Their organized paint wear is left out: mulch
+> discs per tree, bullseye patches per bench and play item, verge bands along every path, edge discs at a fixed step,
+> goalmouth ovals (`GroundWear.Apply`, `DressSettings.Weathering`).
+
 Source: CS2 **1.6.2f1**. Decompiled `Game.dll` (`TerrainMaterialSystem`, `TerrainRenderSettingsPrefab`, `EnvironmentPanelSystem`,
 `PrefabSystem.SaveTerrainRenderSettings`), the `PaintSplatmap` compute shader (DXBC from `resources.assets`, disassembled
 with `fxc /dumpbin`), the `DefaultTerrainRenderSettings` MonoBehaviour in `resources.assets`, and the terrain textures in

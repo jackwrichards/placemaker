@@ -123,6 +123,8 @@ namespace Placemaker.Core
         public List<Build.ZoneQuad> ZoneQuads = new List<Build.ZoneQuad>();
         /// <summary>(s22) Height change of the terraform as a heat map over the area (preview / legend). Set by Compose; null = none.</summary>
         public Build.TerrainHeat TerrainHeat;
+        /// <summary>(dynamic decals) What the weathering pass placed (log, tests). Not persisted.</summary>
+        public Decals.Dynamic.Weathering.Report Weathering;
         /// <summary>
         /// (s31) The outline each fill/split step planned in (its AreaShape), by plan. Not persisted. Build/SiteHarmony grades
         /// the land of the layers that take part (parks, leisure types) and leaves the rest alone.
@@ -228,6 +230,11 @@ namespace Placemaker.Core
             // (s15) Never build on existing buildings: drop / cut whatever would touch a building lot.
             Build.SiteSafety.Apply(result, area, site);
             clock.Lap("site safety");
+            // (dynamic decals) Grime grown from causes (play, feet, water, wind, wheels) on the graded ground: strokes the game draws.
+            try { result.Weathering = Decals.Dynamic.Weathering.Apply(result, area, site, dress); }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception) { result.Weathering = null; }
+            clock.Lap("weathering");
             // (core) Our roads zone only on the sides that hold the build's shops: the vanilla per-side "no zoning" flag elsewhere.
             try { Build.LaneSides.Apply(result, site); } catch (Exception) { /* never fail a plan over it */ }
             clock.Lap("lane sides");

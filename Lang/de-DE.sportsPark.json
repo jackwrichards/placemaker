@@ -27,6 +27,8 @@
   "Placemaker.Sports.fieldAxis.edge": "Entlang des Rands",
   "Placemaker.Sports.fieldAxis.northSouth": "Nord–Süd",
   "Placemaker.Sports.fieldAxis.eastWest": "Ost–West",
+  "Placemaker.Sports.grime": "Abnutzung",
+  "Placemaker.Sports.grime.Tooltip": "Wie benutzt der Park aussieht: abgetretener Rasen in den Torräumen und im Mittelfeld, Schlamm, wo die Spieler das Spielfeld verlassen, Pfützen in Senken, vom Wind an Bordsteine und Zäune gewehtes Laub, Öl auf dem Parkplatz. Von Placemaker gezeichnet (keine Decal-Pakete); verschwindet, wenn der Park entfernt wird. 0 hält ihn blitzsauber.",
   "Placemaker.Sports.pitchCount": "Anzahl",
   "Placemaker.Sports.pitchSize.Tooltip": "Spielfeldformat. Auto wählt das größte, das Platz für alles andere lässt.",
   "Placemaker.Sports.pitchSize.auto": "Auto",

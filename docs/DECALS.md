@@ -1,5 +1,10 @@
 # Decals — census, model and dressing rules (s21)
 
+> **2026-10-29: grime is code-made now (docs/DYNAMIC-DECALS.md).** Placemaker draws its own decals from recipes
+> (Core/Decals/Dynamic): never entities, never prefabs, no decal packs needed, nothing in a save but bytes on the group
+> record. The pack-decal dressing described below stays off for good; the Decals feature scatters only the base game's
+> markings. Functional base-game decals (court and pitch lines, parking stalls) are unchanged.
+
 > **2026-10-19: decals from decal packs are no longer placed (GitHub issue #2).** The see-through copies of pack
 > decals were runtime prefabs a save names; the packs arrive 30-75 s after startup and the copies were given up after 600
 > frames, so loaded cities showed the game's white missing-object boxes, and no copy can outlive the mod. The user:

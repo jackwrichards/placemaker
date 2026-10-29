@@ -106,6 +106,8 @@ namespace Placemaker.Core.Layers.Leisure
             c.Choice("hero", "auto", ControlTier.Essential, "layout", Heroes).Tip();
             c.Slider("spacing", 100, 60, 200, 10, "%", ControlTier.Essential, "layout").Tip();
             c.Choice("fieldAxis", "edge", ControlTier.More, "layout", "edge", "northSouth", "eastWest").Tip();
+            // (dynamic decals) How used the park looks: worn turf, mud, puddles, leaves, oil (code-made decals, Core/Decals/Dynamic).
+            c.Slider(Placemaker.Core.Decals.Dynamic.Weathering.GrimeId, 100, 0, 300, 10, "%", ControlTier.Essential, "layout").When("subtype=community").Tip();
 
             // Facility features: how many and how big (shown under each feature's toggle).
             c.Slider("pitchCount", 1, 1, 4, 1, "count", ControlTier.More, "facilities");

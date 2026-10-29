@@ -29,6 +29,8 @@ namespace Placemaker.Game.Build
             // SelectedInfoUISystem drives its sections there.
             updateSystem.UpdateAt<AssetCatalogSystem>(SystemUpdatePhase.UIUpdate);
             updateSystem.UpdateAt<PlacemakerGroupSection>(SystemUpdatePhase.UIUpdate);
+            // Dynamic decals: code-made grime drawn from the strokes on the group records (never entities; docs/DYNAMIC-DECALS.md).
+            updateSystem.UpdateAt<Placemaker.Game.Decals.DynamicDecalSystem>(SystemUpdatePhase.UIUpdate);
 
             // ── Build transaction ───────────────────────────────────────────────────────
             // ToolUpdate: tools run here and ToolOutputSystem reads the active tool's applyMode right

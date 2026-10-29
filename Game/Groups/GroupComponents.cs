@@ -110,6 +110,20 @@ namespace Placemaker.Game.Groups
         public void Deserialize<TReader>(TReader reader) where TReader : IReader => reader.Read(out Value);
     }
 
+    /// <summary>
+    /// (dynamic decals) The build's grime strokes, encoded by Core/Decals/Dynamic/DecalCodec (version first), on the group record.
+    /// Regenerated into code-made decals after a load (Game/Decals/DynamicDecalSystem); never an entity or a prefab. Without the
+    /// mod the game skips this component type like any other unknown one: the city simply loses the grime.
+    /// </summary>
+    [InternalBufferCapacity(0)]
+    public struct PlacemakerDecalBlob : IBufferElementData, ISerializable
+    {
+        public byte Value;
+
+        public void Serialize<TWriter>(TWriter writer) where TWriter : IWriter => writer.Write(Value);
+        public void Deserialize<TReader>(TReader reader) where TReader : IReader => reader.Read(out Value);
+    }
+
     /// <summary>Removal in progress (persisted so a save during removal resumes it after load).</summary>
     public struct PlacemakerRemoval : IComponentData, IQueryTypeParameter, ISerializable
     {

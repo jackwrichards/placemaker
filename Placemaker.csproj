@@ -65,6 +65,7 @@
     <None Include="Lang\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Lang" />
     <None Include="Recipes\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Recipes" />
     <None Include="Recipes\shelf\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Recipes\shelf" />
+    <None Include="Recipes\decals\*.json" CopyToOutputDirectory="PreserveNewest" LinkBase="Recipes\decals" />
     <None Include="Recipes\ai\*.md" CopyToOutputDirectory="PreserveNewest" LinkBase="Recipes\ai" />
     <None Include="LICENSE" CopyToOutputDirectory="PreserveNewest" Condition="Exists('LICENSE')" />
   </ItemGroup>

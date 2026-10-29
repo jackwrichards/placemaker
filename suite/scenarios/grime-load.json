@@ -1,0 +1,19 @@
+{
+  "_about": "Dynamic decals (docs/DYNAMIC-DECALS.md), part 2 of 2 of the removal proof: run with Send-Suite -Fresh after grime-save.json. Loads the city saved with a weathered community sports park in a game that has never drawn its grime: the strokes come back from the group record and are drawn again; the record counts obsolete (missing) prefabs and objects on a missing prefab (both must be 0: nothing in the save names a decal). The save is deleted at the end. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/grime-load.json -Fresh -Who dyn-decals",
+  "scenarios": [
+    {
+      "id": "grime-load",
+      "site": "flat",
+      "steps": [
+        { "do": "lab", "op": "loadCity", "name": "PlacemakerGrime", "delete": true },
+        { "do": "lab", "op": "grime" },
+        { "do": "lab", "op": "dynDecalCount" },
+        { "do": "lab", "op": "dynFrames", "frames": 240, "label": "loaded" },
+        { "do": "lab", "op": "grime", "focus": "bareEarth", "margin": 10 },
+        { "do": "camera", "target": "build", "view": "closeup", "distance": 30, "shot": "loaded-goalmouth", "shotMode": "render" },
+        { "do": "lab", "op": "grime", "focus": "oilStain", "margin": 8 },
+        { "do": "camera", "target": "build", "view": "closeup", "distance": 30, "shot": "loaded-carpark", "shotMode": "render" }
+      ]
+    }
+  ]
+}

@@ -27,6 +27,8 @@
   "Placemaker.Sports.fieldAxis.edge": "辺に沿う",
   "Placemaker.Sports.fieldAxis.northSouth": "南北",
   "Placemaker.Sports.fieldAxis.eastWest": "東西",
+  "Placemaker.Sports.grime": "汚れ",
+  "Placemaker.Sports.grime.Tooltip": "公園の使い込まれ具合：ゴール前と中央のすり減った芝、選手がピッチから出る場所のぬかるみ、低い所の水たまり、風で縁石やフェンスに吹き寄せられた落ち葉、駐車場の油染み。Placemaker が描画します（デカールパック不要）。公園を撤去すると消えます。0 で新品同様。",
   "Placemaker.Sports.pitchCount": "数",
   "Placemaker.Sports.pitchSize.Tooltip": "競技場の規格です。自動では他のすべてに余地を残せる一番大きいものを選びます。",
   "Placemaker.Sports.pitchSize.auto": "自動",

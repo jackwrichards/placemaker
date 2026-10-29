@@ -423,6 +423,16 @@ namespace Placemaker.Game.Suite
             while (Time.realtimeSinceStartup - _eventAt < floor && Time.realtimeSinceStartup - t0 < timeout) yield return null;
             settle["floorMs"] = Math.Round((Time.realtimeSinceStartup - t0) * 1000f);
 
+            // 1b. the build's code-made grime is generated on worker threads after the build: wait for it (its own, longer limit)
+            var grime = global::Placemaker.Game.Decals.DynamicDecalSystem.Instance;
+            if (grime != null && grime.Pending > 0)
+            {
+                float tg = Time.realtimeSinceStartup;
+                while (grime.Pending > 0 && Time.realtimeSinceStartup - tg < 90f) yield return null;
+                settle["grimeMs"] = Math.Round((Time.realtimeSinceStartup - tg) * 1000f);
+                if (grime.Pending > 0) settle["grimeNotDone"] = grime.Pending;
+            }
+
             // 2. engine signals quiet for >= 10 frames and >= 150 ms
             float t1 = Time.realtimeSinceStartup;
             var prev = ReadSignals();

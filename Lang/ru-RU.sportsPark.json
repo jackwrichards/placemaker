@@ -27,6 +27,8 @@
   "Placemaker.Sports.fieldAxis.edge": "Вдоль края",
   "Placemaker.Sports.fieldAxis.northSouth": "Север–юг",
   "Placemaker.Sports.fieldAxis.eastWest": "Восток–запад",
+  "Placemaker.Sports.grime": "Износ",
+  "Placemaker.Sports.grime.Tooltip": "Насколько обжитым выглядит парк: вытоптанный газон у ворот и в центре поля, грязь там, где игроки уходят с поля, лужи в низинах, листва, нанесённая ветром к бордюрам и заборам, масляные пятна на парковке. Рисуется Placemaker (без наборов декалей); исчезает при сносе парка. 0 — идеальная чистота.",
   "Placemaker.Sports.pitchCount": "Сколько",
   "Placemaker.Sports.pitchSize.Tooltip": "Формат поля. «Авто» выбирает самое большое, что оставляет место для всего остального.",
   "Placemaker.Sports.pitchSize.auto": "Авто",

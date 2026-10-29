@@ -42,6 +42,10 @@ namespace Placemaker.Core.Decals
         public bool ClearFirst;
         /// <summary>Outline of the fill step (open-ground scatter and shore sampling stay inside it). Null = the whole area.</summary>
         public Unity.Mathematics.float2[] Ring;
+        /// <summary>(dynamic decals) The step gets weathering (Core/Decals/Dynamic/Weathering): the organized paint wear is left out.</summary>
+        public bool Weathering;
+        /// <summary>(dynamic decals) The player's Grime amount, 0..3.</summary>
+        public float Grime = 1f;
         /// <summary>Set by the pass when the step's own plan was dressed (open-ground scatter runs once per step).</summary>
         internal bool MainTaken;
 
@@ -276,6 +280,8 @@ namespace Placemaker.Core.Decals
             s.Mulch = values == null || values.B(MulchId, true);
             s.LawnTint = values == null || values.B(LawnTintId, true);
             s.ClearFirst = values != null && values.B(ClearPaintId, false);
+            s.Weathering = Dynamic.Weathering.Wants(gen.Id, values);
+            s.Grime = Dynamic.Weathering.Amount(values);
             string lawn = Layers.Common.Lawn.DefaultFor(gen.Id, null);
             s.LawnPainted = lawn != null && (values?.S(LawnId, lawn) ?? lawn) == Layers.Common.Lawn.Painted;
             // The park's older "Grass surface" toggle off also leaves a bare lawn.

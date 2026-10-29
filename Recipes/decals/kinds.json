@@ -1,0 +1,302 @@
+{
+  "_about": "Placemaker's dynamic decal kinds (docs/DYNAMIC-DECALS.md). Each kind is a recipe of generator operations over named fields; strokes in a plan name a kind. Built-in fields: shape, edge, along, across, u, one. Colours are sRGB 0..255. A number may follow the stroke: {\"wet\": [dry, soaked]}, {\"age\": [fresh, old]}, {\"strength\": [weak, strong]}. Add a kind here (or carry one in a plan) to get a new look; no engine code.",
+  "version": 1,
+  "kinds": [
+    {
+      "id": "wornGrass",
+      "about": "Turf worn by feet: patchy dry grass, bare soil where it is worst, edges breaking into grains (goalmouths, the spine, in front of stands and benches).",
+      "texel": 0.09, "layers": "terrain", "order": 0, "lod": 45,
+      "edge": { "feather": 2.6, "warp": 2.8, "warpScale": 8, "round": 1, "taper": 3, "widthNoise": 0.35 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 6, "octaves": 5, "warp": 2.0, "warpScale": 10 },
+        { "op": "fbm", "out": "g", "scale": 0.45, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.7, "hi": 0.15 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.6, "out": "worn" },
+        { "op": "layer", "alpha": "worn", "alphaK": 1.0, "color": [146, 138, 82], "color2": [118, 108, 66], "tone": "n", "vary": 0.12, "varyScale": 0.8, "smooth": 0.16 },
+        { "op": "remap", "in": "worn", "out": "bare", "lo": 0.45, "hi": 0.9 },
+        { "op": "mul", "a": "bare", "b": "g01", "out": "bareG", "k": 1.8 },
+        { "op": "layer", "alpha": "bareG", "alphaK": 0.8, "color": [116, 96, 72], "color2": [94, 78, 60], "tone": "g", "vary": 0.1, "smooth": 0.2, "height": -0.3 }
+      ]
+    },
+    {
+      "id": "bareEarth",
+      "about": "Turf worn through to the soil: the goal crease, a warm-up corner. Damp in the hollows when it has rained.",
+      "texel": 0.06, "layers": "terrain", "order": 1, "lod": 45,
+      "edge": { "feather": 1.8, "warp": 1.6, "warpScale": 5, "round": 1 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 3.5, "octaves": 5, "warp": 1.2, "warpScale": 6 },
+        { "op": "fbm", "out": "g", "scale": 0.3, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.7, "hi": 0.3 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 4.5, "out": "soil" },
+        { "op": "layer", "alpha": "cover", "alphaK": 0.45, "color": [118, 112, 70], "color2": [100, 94, 62], "tone": "g", "smooth": 0.15 },
+        { "op": "layer", "alpha": "soil", "alphaK": 0.92, "color": [112, 92, 68], "color2": [84, 68, 52], "tone": "n", "vary": 0.14, "smooth": 0.22, "height": -0.4 },
+        { "op": "remap", "in": "n", "out": "damp", "lo": 0.15, "hi": 0.6, "k": { "wet": [0.0, 0.85] } },
+        { "op": "mul", "a": "damp", "b": "soil", "out": "dampS" },
+        { "op": "layer", "alpha": "dampS", "alphaK": 0.7, "color": [66, 52, 40], "smooth": 0.55, "height": -0.2 },
+        { "op": "scatter", "stamp": "print", "density": 0.6, "clusters": 2, "cluster": 0.5, "clusterRadius": [0.6, 1.8], "size": [0.27, 0.31], "aspect": [0.36, 0.4], "palette": [[78, 62, 46], [70, 56, 42]], "alpha": [0.25, 0.55], "height": 0.5, "smooth": 0.3 }
+      ]
+    },
+    {
+      "id": "desirePath",
+      "about": "A line trodden into the grass: a shortcut, the linesman's track. Narrow, tapered, broken.",
+      "texel": 0.06, "layers": "terrain", "order": 0, "lod": 40,
+      "edge": { "feather": 0.9, "warp": 0.6, "warpScale": 4, "round": 1, "taper": 5, "widthNoise": 0.45 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 4, "octaves": 4, "stretch": [3, 1] },
+        { "op": "fbm", "out": "g", "scale": 0.35, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.8, "hi": 0.2 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 3.5, "out": "worn" },
+        { "op": "layer", "alpha": "worn", "alphaK": 0.85, "color": [146, 138, 84], "color2": [124, 114, 72], "tone": "n", "smooth": 0.16 },
+        { "op": "remap", "in": "worn", "out": "bare", "lo": 0.7, "hi": 1.0 },
+        { "op": "layer", "alpha": "bare", "alphaK": 0.75, "color": [114, 96, 72], "color2": [98, 82, 62], "tone": "g", "smooth": 0.2, "height": -0.3 }
+      ]
+    },
+    {
+      "id": "mud",
+      "about": "Churned mud where people come off the grass: dark, glossy where wet, with prints.",
+      "texel": 0.04, "layers": "ground", "order": 2, "lod": 40,
+      "edge": { "feather": 1.4, "warp": 2.0, "warpScale": 2.6, "round": 0.6 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 5, "warp": 0.8, "warpScale": 3 },
+        { "op": "fbm", "out": "g", "scale": 0.18, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.55, "hi": 0.35 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 4.0, "out": "m" },
+        { "op": "remap", "in": "n", "out": "wet", "lo": 0.05, "hi": 0.55, "k": { "wet": [0.15, 1.0] } },
+        { "op": "layer", "alpha": "m", "alphaK": 0.9, "color": [92, 74, 56], "color2": [62, 50, 38], "tone": "n", "vary": 0.12, "smooth": 0.28, "smooth2": 0.72, "smoothBy": "wet", "height": -0.3 },
+        { "op": "remap", "in": "n", "out": "pool", "lo": { "wet": [0.9, 0.48] }, "hi": { "wet": [0.95, 0.56] } },
+        { "op": "mul", "a": "pool", "b": "shape", "out": "poolS" },
+        { "op": "layer", "alpha": "poolS", "alphaK": 0.85, "color": [48, 42, 36], "smooth": 0.94, "height": -0.1 },
+        { "op": "scatter", "stamp": "print", "density": 2.2, "clusters": 3, "cluster": 0.6, "clusterRadius": [0.5, 1.5], "size": [0.27, 0.31], "aspect": [0.36, 0.4], "palette": [[44, 34, 26], [52, 40, 30]], "alpha": [0.5, 0.9], "height": 0.6, "smooth": 0.45 }
+      ]
+    },
+    {
+      "id": "muddyPrints",
+      "about": "Prints and a smear of mud carried onto a path, fading with every step (a path stroke: they fade along it).",
+      "texel": 0.035, "layers": "ground", "order": 3, "lod": 30,
+      "edge": { "feather": 0.4, "warp": 0.3, "warpScale": 2, "round": 1, "taper": 2 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 4 },
+        { "op": "remap", "in": "u", "out": "fade", "lo": 0.85, "hi": 0.0 },
+        { "op": "remap", "in": "n", "out": "smear", "lo": -0.2, "hi": 0.6 },
+        { "op": "mul", "a": "smear", "b": "fade", "c": "shape", "out": "sm" },
+        { "op": "layer", "alpha": "sm", "alphaK": 0.35, "color": [96, 80, 62], "color2": [80, 66, 52], "tone": "n", "smooth": 0.25 },
+        { "op": "scatter", "stamp": "print", "density": 3.0, "cluster": 0.0, "size": [0.27, 0.31], "aspect": [0.36, 0.4], "ramp": [1.0, 0.0], "align": "along", "palette": [[62, 48, 36], [74, 58, 44], [54, 42, 32]], "alpha": [0.45, 0.85], "height": 0.4, "smooth": 0.3 }
+      ]
+    },
+    {
+      "id": "puddle",
+      "about": "Water in a real low point: dark, flat and glossy (it reflects the sky), a damp rim and a silt tidemark. Dry (wetness 0) it leaves only the tidemark and a pale silt film.",
+      "texel": 0.04, "layers": "roads", "order": 6, "lod": 50,
+      "edge": { "feather": 1.6, "warp": 0.9, "warpScale": 2.4, "round": 1 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.4, "octaves": 4 },
+        { "op": "remap", "in": "edge", "out": "depth", "lo": 0.0, "hi": 1.6 },
+        { "op": "mul", "a": "n", "b": 0.18, "out": "nn" },
+        { "op": "add", "a": "depth", "b": "nn", "out": "d" },
+        { "op": "remap", "in": "d", "out": "damp", "lo": { "wet": [0.95, 0.05] }, "hi": { "wet": [1.2, 0.4] } },
+        { "op": "layer", "alpha": "damp", "alphaK": { "wet": [0.0, 0.5] }, "color": [70, 66, 60], "smooth": 0.62 },
+        { "op": "band", "in": "d", "out": "tide", "at": { "wet": [0.38, 0.18] }, "width": 0.07, "k": { "wet": [0.55, 0.3] } },
+        { "op": "layer", "alpha": "tide", "color": [150, 140, 120], "color2": [128, 118, 100], "tone": "n", "smooth": 0.18 },
+        { "op": "remap", "in": "d", "out": "silt", "lo": 0.45, "hi": 0.9, "k": { "wet": [0.28, 0.0] } },
+        { "op": "layer", "alpha": "silt", "color": [138, 128, 110], "color2": [120, 112, 98], "tone": "n", "smooth": 0.2 },
+        { "op": "remap", "in": "d", "out": "water", "lo": { "wet": [2.0, 0.42] }, "hi": { "wet": [2.1, 0.5] } },
+        { "op": "layer", "alpha": "water", "alphaK": 0.9, "color": [44, 46, 46], "smooth": 0.97 }
+      ]
+    },
+    {
+      "id": "cracksTar",
+      "about": "Asphalt cracks that grow as random walks ending in T-junctions, some sealed with glossy tar bands, a faint grime halo.",
+      "texel": 0.025, "layers": "terrain", "order": 4, "lod": 22,
+      "edge": { "feather": 1.0, "warp": 1.5, "warpScale": 3, "round": 0.7 },
+      "ops": [
+        { "op": "cracks", "out": "c", "seeds": 0.05, "step": 0.35, "turn": 0.55, "branch": 0.5, "len": [2.5, 9], "width": [0.012, 0.03], "warp": 0.02 },
+        { "op": "fbm", "out": "n", "scale": 5, "octaves": 3 },
+        { "op": "remap", "in": "n", "out": "sealed", "lo": -0.05, "hi": 0.15 },
+        { "op": "remap", "in": "cHalo", "out": "sealBand", "lo": 0.6, "hi": 0.82 },
+        { "op": "mul", "a": "sealBand", "b": "sealed", "out": "seal" },
+        { "op": "mul", "a": "cHalo", "b": 0.22, "out": "halo" },
+        { "op": "layer", "alpha": "halo", "color": [58, 56, 54], "smooth": 0.2 },
+        { "op": "layer", "alpha": "seal", "alphaK": 0.92, "color": [20, 20, 21], "smooth": 0.58, "height": 0.25 },
+        { "op": "layer", "alpha": "c", "alphaK": 0.9, "color": [26, 24, 23], "smooth": 0.08, "height": -1.0, "ao": 0.5 }
+      ]
+    },
+    {
+      "id": "oilStain",
+      "about": "Oil under a parked engine: a diffuse dark stain with drops, a slight sheen.",
+      "texel": 0.025, "layers": "terrain", "order": 5, "lod": 22,
+      "edge": { "feather": 0.5, "warp": 0.35, "warpScale": 0.8, "round": 1 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 0.6, "octaves": 4 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.7, "hi": 0.2 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "st" },
+        { "op": "layer", "alpha": "st", "alphaK": 0.72, "color": [36, 35, 34], "color2": [50, 47, 44], "tone": "n", "smooth": 0.45 },
+        { "op": "scatter", "stamp": "blob", "density": 4, "clusters": 25, "cluster": 0.8, "clusterRadius": [0.15, 0.4], "size": [0.05, 0.28], "aspect": [0.7, 1.0], "palette": [[26, 25, 24], [34, 32, 31]], "alpha": [0.25, 0.65], "height": 0.05, "smooth": 0.62 }
+      ]
+    },
+    {
+      "id": "oilLine",
+      "about": "The dark line down the middle of a car-park lane: drips from every car that passed.",
+      "texel": 0.04, "layers": "terrain", "order": 4, "lod": 30,
+      "edge": { "feather": 0.35, "warp": 0.2, "warpScale": 2, "round": 1, "taper": 4, "widthNoise": 0.4 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.2, "octaves": 4, "stretch": [5, 0.6] },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.55 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "st" },
+        { "op": "layer", "alpha": "st", "alphaK": 0.42, "color": [40, 39, 38], "smooth": 0.4 },
+        { "op": "scatter", "stamp": "blob", "density": 3, "cluster": 0.3, "clusterRadius": [0.2, 0.6], "size": [0.04, 0.16], "aspect": [0.6, 1.0], "palette": [[28, 27, 26]], "alpha": [0.2, 0.5], "height": 0.03, "smooth": 0.6 }
+      ]
+    },
+    {
+      "id": "wheelPath",
+      "about": "Twin wheel tracks polished dark by tyres along a lane; streaky along the travel, never a clean band.",
+      "texel": 0.05, "layers": "terrain", "order": 3, "lod": 35,
+      "edge": { "feather": 0.6, "warp": 0.25, "warpScale": 3, "round": 1, "taper": 6, "widthNoise": 0.15 },
+      "ops": [
+        { "op": "band", "in": "across", "out": "l", "at": 0.9, "width": 0.8 },
+        { "op": "band", "in": "across", "out": "r", "at": -0.9, "width": 0.8 },
+        { "op": "max", "a": "l", "b": "r", "out": "tracks" },
+        { "op": "fbm", "out": "n", "scale": 1.0, "octaves": 4, "stretch": [9, 0.5] },
+        { "op": "remap", "in": "n", "out": "streak", "lo": -0.6, "hi": 0.5 },
+        { "op": "fbm", "out": "m", "scale": 9, "octaves": 2 },
+        { "op": "remap", "in": "m", "out": "macro", "lo": -0.6, "hi": 0.4 },
+        { "op": "mul", "a": "tracks", "b": "streak", "c": "macro", "out": "t1" },
+        { "op": "mul", "a": "t1", "b": "shape", "out": "t" },
+        { "op": "layer", "alpha": "t", "alphaK": 0.3, "color": [44, 43, 42], "smooth": 0.36 }
+      ]
+    },
+    {
+      "id": "kerbGrime",
+      "about": "Grit, dust and soot that settles against a kerb or an edge (a path stroke: it piles toward the side 'across > 0').",
+      "texel": 0.035, "layers": "terrain", "order": 3, "lod": 28,
+      "edge": { "feather": 0.35, "warp": 0.3, "warpScale": 2.5, "round": 1, "taper": 2.5, "widthNoise": 0.5 },
+      "ops": [
+        { "op": "remap", "in": "across", "out": "side", "lo": -0.45, "hi": 0.45 },
+        { "op": "fbm", "out": "n", "scale": 1.8, "octaves": 4, "stretch": [3, 1] },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.5 },
+        { "op": "mul", "a": "side", "b": "macro", "c": "shape", "out": "g" },
+        { "op": "fbm", "out": "f", "scale": 0.12, "octaves": 2 },
+        { "op": "remap", "in": "f", "out": "f01", "lo": -0.9, "hi": 0.9 },
+        { "op": "erode", "cover": "g", "grain": "f01", "sharp": 3, "out": "ge" },
+        { "op": "layer", "alpha": "ge", "alphaK": 0.55, "color": [84, 78, 68], "color2": [64, 60, 54], "tone": "n", "smooth": 0.18 },
+        { "op": "scatter", "stamp": "pebble", "density": 25, "cluster": 0.4, "clusterRadius": [0.2, 0.8], "side": 1, "size": [0.012, 0.035], "aspect": [0.6, 1.0], "palette": [[118, 112, 104], [90, 86, 80], [140, 132, 120]], "alpha": [0.5, 0.9], "height": 0.4, "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "leafDrift",
+      "about": "Leaves blown downwind and piled against a kerb, a fence or a stand (a path stroke along it: they pile toward the side 'across > 0').",
+      "texel": 0.03, "layers": "ground", "order": 5, "lod": 30,
+      "edge": { "feather": 0.5, "warp": 0.6, "warpScale": 1.8, "round": 1, "taper": 2.5, "widthNoise": 0.55 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.5, "octaves": 4 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.5 },
+        { "op": "remap", "in": "across", "out": "side", "lo": -0.8, "hi": 0.6 },
+        { "op": "mul", "a": "shape", "b": "macro", "c": "side", "out": "hum" },
+        { "op": "layer", "alpha": "hum", "alphaK": 0.32, "color": [80, 62, 44], "color2": [66, 54, 40], "tone": "n", "smooth": 0.2 },
+        { "op": "scatter", "stamp": "leaf", "density": 70, "clusters": 30, "cluster": 0.75, "clusterRadius": [0.25, 0.9], "side": 0.9, "noise": { "scale": 1.6, "lo": -0.35, "hi": 0.4 }, "size": [0.07, 0.14], "aspect": [0.42, 0.68], "palette": [[176, 98, 38], [128, 80, 42], [190, 150, 58], [86, 56, 34], [154, 66, 32], [124, 112, 54], [104, 72, 40]], "alpha": [0.8, 1.0], "height": 0.5, "smooth": 0.3, "max": 16000 },
+        { "op": "scatter", "stamp": "twig", "density": 1.5, "cluster": 0.5, "side": 0.6, "size": [0.12, 0.35], "aspect": [0.06, 0.1], "palette": [[70, 52, 36], [86, 66, 46]], "alpha": [0.6, 0.9], "height": 0.4 }
+      ]
+    },
+    {
+      "id": "leafLitter",
+      "about": "Thin leaf litter on grass downwind of a group of trees: sparse, clustered, never a disc under each tree.",
+      "texel": 0.045, "layers": "terrain", "order": 4, "lod": 26,
+      "edge": { "feather": 3.0, "warp": 3.0, "warpScale": 7, "round": 1 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 5, "octaves": 4 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.4, "hi": 0.6 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "hum" },
+        { "op": "layer", "alpha": "hum", "alphaK": 0.14, "color": [86, 74, 50], "smooth": 0.2 },
+        { "op": "scatter", "stamp": "leaf", "density": 9, "clusters": 6, "cluster": 0.7, "clusterRadius": [0.5, 2.2], "noise": { "scale": 4, "lo": -0.3, "hi": 0.5 }, "size": [0.07, 0.13], "aspect": [0.42, 0.68], "palette": [[170, 96, 40], [124, 82, 44], [184, 146, 60], [92, 62, 36], [146, 70, 34], [118, 108, 52]], "alpha": [0.75, 1.0], "height": 0.45, "smooth": 0.3, "max": 24000 }
+      ]
+    },
+    {
+      "id": "cornerDebris",
+      "about": "What a court corner collects: dust, grit, a few leaves and a scrap of litter, piled into the corner.",
+      "texel": 0.03, "layers": "terrain", "order": 5, "lod": 24,
+      "edge": { "feather": 1.0, "warp": 0.6, "warpScale": 1.5, "round": 0.6 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 0.9, "octaves": 4 },
+        { "op": "remap", "in": "u", "out": "toCorner", "lo": 0.15, "hi": 0.95 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.45, "hi": 0.45 },
+        { "op": "mul", "a": "shape", "b": "macro", "c": "toCorner", "out": "d" },
+        { "op": "layer", "alpha": "d", "alphaK": 0.45, "color": [150, 140, 124], "color2": [124, 116, 104], "tone": "n", "smooth": 0.18 },
+        { "op": "scatter", "stamp": "pebble", "density": 30, "cluster": 0.5, "clusterRadius": [0.2, 0.6], "ramp": [0.2, 1.0], "size": [0.01, 0.03], "aspect": [0.6, 1.0], "palette": [[120, 114, 104], [96, 92, 86]], "alpha": [0.5, 0.9], "height": 0.3 },
+        { "op": "scatter", "stamp": "leaf", "density": 18, "clusters": 20, "cluster": 0.7, "clusterRadius": [0.2, 0.6], "ramp": [0.1, 1.0], "size": [0.07, 0.13], "aspect": [0.42, 0.68], "palette": [[150, 90, 40], [112, 78, 44], [172, 138, 58], [86, 60, 36]], "alpha": [0.75, 1.0], "height": 0.4 },
+        { "op": "scatter", "stamp": "litter", "density": 0.25, "cluster": 0.0, "ramp": [0.3, 1.0], "size": [0.06, 0.14], "aspect": [0.5, 0.9], "palette": [[210, 206, 196], [180, 40, 36], [60, 90, 160]], "alpha": [0.7, 0.95], "height": 0.2 }
+      ]
+    },
+    {
+      "id": "dust",
+      "about": "Pale fine dust on paving and courts, thicker in its own patches.",
+      "texel": 0.06, "layers": "terrain", "order": 2, "lod": 35,
+      "edge": { "feather": 2.0, "warp": 1.8, "warpScale": 5, "round": 1, "taper": 3, "widthNoise": 0.4 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 3, "octaves": 5, "warp": 1.0, "warpScale": 5 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.4, "hi": 0.6 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "d" },
+        { "op": "layer", "alpha": "d", "alphaK": 0.32, "color": [156, 146, 128], "color2": [132, 124, 110], "tone": "n", "smooth": 0.15 }
+      ]
+    },
+    {
+      "id": "rustStain",
+      "about": "Rust washed off a steel post or mast onto the ground round its foot, streaking downhill.",
+      "texel": 0.02, "layers": "ground", "order": 5, "lod": 18,
+      "edge": { "feather": 0.4, "warp": 0.25, "warpScale": 0.6, "round": 1 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 0.35, "octaves": 4, "stretch": [1, 2] },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.5 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "r" },
+        { "op": "layer", "alpha": "r", "alphaK": 0.55, "color": [128, 70, 38], "color2": [96, 56, 34], "tone": "n", "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "stain",
+      "about": "Spills and grime under a bench or by a bin: dark blots, a chewing-gum spatter.",
+      "texel": 0.03, "layers": "ground", "order": 4, "lod": 20,
+      "edge": { "feather": 0.6, "warp": 0.4, "warpScale": 1.2, "round": 1 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 0.8, "octaves": 4 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.3, "hi": 0.6 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "st" },
+        { "op": "layer", "alpha": "st", "alphaK": 0.3, "color": [70, 64, 56], "smooth": 0.3 },
+        { "op": "scatter", "stamp": "blob", "density": 6, "cluster": 0.4, "size": [0.015, 0.04], "aspect": [0.8, 1.0], "palette": [[150, 146, 138], [60, 58, 56]], "alpha": [0.5, 0.85], "height": 0.1 }
+      ]
+    },
+    {
+      "id": "gravelSpill",
+      "about": "Sand and gravel spilled over an edge where two materials meet (a path end, a lot entrance).",
+      "texel": 0.03, "layers": "ground", "order": 3, "lod": 24,
+      "edge": { "feather": 0.8, "warp": 0.8, "warpScale": 2, "round": 1 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.2, "octaves": 4 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.5 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "s" },
+        { "op": "layer", "alpha": "s", "alphaK": 0.4, "color": [156, 142, 118], "color2": [132, 120, 100], "tone": "n", "smooth": 0.15 },
+        { "op": "scatter", "stamp": "pebble", "density": 60, "cluster": 0.5, "clusterRadius": [0.2, 0.7], "size": [0.012, 0.04], "aspect": [0.6, 1.0], "palette": [[140, 132, 118], [112, 106, 96], [168, 158, 140]], "alpha": [0.6, 0.95], "height": 0.4 }
+      ]
+    },
+    {
+      "id": "asphaltTone",
+      "about": "The uneven tone of a whole car park: patches a shade lighter or darker, worn paler where nobody parks.",
+      "texel": 0.2, "layers": "terrain", "order": 1, "lod": 60,
+      "edge": { "feather": 2.0, "warp": 1.0, "warpScale": 6, "round": 1 },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 14, "octaves": 4, "warp": 4, "warpScale": 16 },
+        { "op": "remap", "in": "n", "out": "light", "lo": 0.1, "hi": 0.6 },
+        { "op": "remap", "in": "n", "out": "dark", "lo": -0.15, "hi": -0.65 },
+        { "op": "mul", "a": "light", "b": "shape", "out": "l" },
+        { "op": "mul", "a": "dark", "b": "shape", "out": "d" },
+        { "op": "layer", "alpha": "l", "alphaK": 0.16, "color": [150, 148, 144], "smooth": 0.2 },
+        { "op": "layer", "alpha": "d", "alphaK": 0.18, "color": [48, 47, 46], "smooth": 0.3 }
+      ]
+    }
+  ]
+}

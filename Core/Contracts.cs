@@ -964,6 +964,10 @@ namespace Placemaker.Core
         /// <summary>(gamebuild round 4) Terrain texture painting, applied right after terraform.</summary>
         public List<PlannedPaint> Paint = new List<PlannedPaint>();
         public List<PlannedZoning> Zoning = new List<PlannedZoning>();
+        /// <summary>(dynamic decals) Grime strokes the game draws from recipes (Core/Decals/Dynamic, docs/DYNAMIC-DECALS.md): never entities, saved on the group record.</summary>
+        public List<Decals.Dynamic.DecalStroke> Decals = new List<Decals.Dynamic.DecalStroke>();
+        /// <summary>(dynamic decals) Kinds this plan defines itself (a builder's own look, DecalLibrary.ParseKind): saved with the strokes.</summary>
+        public List<Decals.Dynamic.DecalKind> DecalKinds = new List<Decals.Dynamic.DecalKind>();
         public List<PlanStat> Stats = new List<PlanStat>();
         public List<PlanIssue> Issues = new List<PlanIssue>();
         /// <summary>Generator-specific facts the game layer needs (e.g. parking capacity for the economy companion).</summary>

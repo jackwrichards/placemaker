@@ -27,6 +27,8 @@
   "Placemaker.Sports.fieldAxis.edge": "Le long du bord",
   "Placemaker.Sports.fieldAxis.northSouth": "Nord–sud",
   "Placemaker.Sports.fieldAxis.eastWest": "Est–ouest",
+  "Placemaker.Sports.grime": "Usure",
+  "Placemaker.Sports.grime.Tooltip": "L'air usé du parc : gazon pelé devant les buts et au milieu, boue là où les joueurs quittent le terrain, flaques dans les creux, feuilles poussées par le vent contre les bordures et les clôtures, huile sur le parking. Dessiné par Placemaker (sans packs de décalques) ; disparaît avec le parc. 0 le laisse impeccable.",
   "Placemaker.Sports.pitchCount": "Nombre",
   "Placemaker.Sports.pitchSize.Tooltip": "Format du terrain. Auto choisit le plus grand qui laisse de la place pour tout le reste.",
   "Placemaker.Sports.pitchSize.auto": "Auto",

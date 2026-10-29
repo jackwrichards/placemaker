@@ -27,6 +27,8 @@
   "Placemaker.Sports.fieldAxis.edge": "Junto à borda",
   "Placemaker.Sports.fieldAxis.northSouth": "Norte–sul",
   "Placemaker.Sports.fieldAxis.eastWest": "Leste–oeste",
+  "Placemaker.Sports.grime": "Desgaste",
+  "Placemaker.Sports.grime.Tooltip": "O quanto o parque parece usado: grama gasta nas áreas e no meio de campo, lama onde os jogadores saem do campo, poças nos pontos baixos, folhas levadas pelo vento contra meios-fios e cercas, óleo no estacionamento. Desenhado pelo Placemaker (sem pacotes de decalques); some quando o parque é removido. 0 deixa tudo impecável.",
   "Placemaker.Sports.pitchCount": "Quantos",
   "Placemaker.Sports.pitchSize.Tooltip": "Formato do campo. Auto escolhe o maior que deixa espaço para todo o resto.",
   "Placemaker.Sports.pitchSize.auto": "Auto",
