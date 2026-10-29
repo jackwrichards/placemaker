@@ -37,6 +37,7 @@ namespace Placemaker.Game.Suite
                 case "dyndecalclear": LabDynDecalClear(rec); yield break;
                 case "dyndecalcount": LabDynDecalCount(rec); yield break;
                 case "grime": yield return LabGrime(st, step, rec); yield break;
+                case "library": yield return LabLibrary(st, step, rec); yield break;
                 case "streetjoins": LabStreetJoins(st, step, rec); yield break;
                 case "pickpart": yield return LabPickPart(st, step, rec); yield break;
                 case "ungroupaudit": yield return LabUngroupAudit(st, step, rec); yield break;

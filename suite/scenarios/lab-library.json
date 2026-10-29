@@ -1,0 +1,37 @@
+{
+  "_about": "The shared decal library in the game (docs/DYNAMIC-DECALS.md, 'The shared library'): every kind's variants laid on open flat ground (Game/Decals/SharedDecals.cs; lab op 'library'), the whole field from above, close looks at a few kinds under game light, frame times with all of them drawn, memory and the disk cache in the log. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-library.json -Who decals-v2",
+  "scenarios": [
+    {
+      "id": "lab-library",
+      "site": "flat",
+      "pace": "settled",
+      "land": { "size": [120, 120], "gap": 10 },
+      "steps": [
+        { "do": "camera", "target": "block", "view": "oblique" },
+        { "do": "lab", "op": "dynFrames", "frames": 240, "label": "before the library" },
+        { "do": "lab", "op": "library", "kinds": "all", "variants": 8, "cell": 8, "cols": 12, "at": [-44, 44] },
+        { "do": "lab", "op": "dynFrames", "frames": 240, "label": "with the whole library (all variants)" },
+        { "do": "camera", "target": "build", "view": "top", "shot": "field-top", "shotMode": "render" },
+        { "do": "lab", "op": "library", "focus": "leafMixed", "margin": 1 },
+        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "leaves-mixed-45", "shotMode": "render" },
+        { "do": "lab", "op": "library", "focus": "leafOak", "margin": 1 },
+        { "do": "camera", "target": "build", "view": "top", "shot": "leaves-oak-top", "shotMode": "render" },
+        { "do": "lab", "op": "library", "focus": "barePatch", "margin": 1 },
+        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "bare-45", "shotMode": "render" },
+        { "do": "lab", "op": "library", "focus": "puddlePiece", "margin": 1 },
+        { "do": "camera", "target": "build", "view": "oblique", "pitch": 35, "shot": "puddles-35", "shotMode": "render" },
+        { "do": "lab", "op": "library", "focus": "crackAsphalt", "margin": 1 },
+        { "do": "camera", "target": "build", "view": "top", "shot": "cracks-top", "shotMode": "render" },
+        { "do": "lab", "op": "library", "focus": "footprintsMud", "margin": 1 },
+        { "do": "camera", "target": "build", "view": "top", "shot": "prints-top", "shotMode": "render" },
+        { "do": "lab", "op": "library", "focus": "rocks", "margin": 1 },
+        { "do": "camera", "target": "build", "view": "oblique", "pitch": 40, "shot": "rocks-40", "shotMode": "render" },
+        { "do": "lab", "op": "library", "focus": "lawnTone", "margin": 1 },
+        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "lawn-tone-45", "shotMode": "render" },
+        { "do": "lab", "op": "library", "clear": true },
+        { "do": "lab", "op": "library", "kinds": "all", "variants": 8, "cell": 8, "cols": 12, "at": [-44, 44] },
+        { "do": "lab", "op": "dynFrames", "frames": 120, "label": "laid again (variants already made)" }
+      ]
+    }
+  ]
+}

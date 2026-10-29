@@ -139,11 +139,12 @@ namespace Placemaker.Game.Decals
 
         internal static void LoadLibrary()
         {
-            string path = ModPaths.ModFolder != null ? Path.Combine(ModPaths.ModFolder, "Recipes", DecalLibrary.FolderName, DecalLibrary.FileName) : null;
+            string path = ModPaths.ModFolder != null ? Path.Combine(ModPaths.ModFolder, "Recipes", DecalLibrary.FolderName) : null;
             try
             {
-                if (path == null || !File.Exists(path)) { Mod.Log.Warn("Placemaker dynamic decals: no decal library at " + path + "; grime is not drawn."); return; }
-                var lib = DecalLibrary.Parse(File.ReadAllText(path));
+                if (path == null || !File.Exists(Path.Combine(path, DecalLibrary.FileName))) { Mod.Log.Warn("Placemaker dynamic decals: no decal library at " + path + "; grime is not drawn."); return; }
+                // the stroke kinds (kinds.json) and the shared library's families (library/*.json)
+                var lib = DecalLibrary.LoadFolder(path);
                 DecalLibrary.Current = lib;
                 Mod.Log.Info($"Placemaker dynamic decals: {lib.Count} kinds in the library ({path}).");
                 foreach (var w in lib.Warnings) Mod.Log.Warn("Placemaker dynamic decals: " + w);
@@ -155,6 +156,7 @@ namespace Placemaker.Game.Decals
         protected override void OnDestroy()
         {
             ClearAll("system destroyed");
+            SharedDecals.ClearAll();
             if (ReferenceEquals(Instance, this)) Instance = null;
             base.OnDestroy();
         }
@@ -163,6 +165,7 @@ namespace Placemaker.Game.Decals
         {
             base.OnGamePreload(purpose, mode);
             ClearAll("another city loads");
+            SharedDecals.ClearAll();
         }
 
         [Preserve]
@@ -180,6 +183,7 @@ namespace Placemaker.Game.Decals
                 }
                 Upload();
                 Cull();
+                SharedDecals.Tick(_terrain, _tools?.activeInfoview != null);
             }
             catch (Exception e)
             {
