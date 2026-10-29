@@ -802,6 +802,12 @@ namespace Placemaker.Core.Layers.Plaza
             else PlazaDressing.SpecimenCentre(k.Ctx, k.Occ, k.C, r0 - 0.6f, k.Pave, 0x5BE0u);
             k.SeatRing(k.C, r0 + 2.4f, 8, true);
             k.LampRing(k.C, r0 + 4.6f, 8);
+            // Flower pots on the rosette's rim, between the main rays.
+            for (int i = 0; i < 8; i++)
+            {
+                float a = k.Phase + i * math.PI / 4f + math.PI / 8f;
+                k.Pot(k.C + new float2(math.cos(a), math.sin(a)) * (rose - 1f));
+            }
             // Chestnuts in the corners: three in pits round a bench.
             foreach (var (su, sv) in new[] { (-1f, -1f), (1f, -1f), (1f, 1f), (-1f, 1f) })
             {

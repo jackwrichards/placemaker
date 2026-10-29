@@ -256,12 +256,11 @@ namespace Placemaker.Core.Layers.Plaza
 
         /// <summary>Area (m²) the shape-rule repairs of <see cref="GameRings"/> took off the pieces (for the plan facts).</summary>
         public float RepairLoss { get; private set; }
-        public static Action<string> DebugLoss;
 
         /// <summary>
-        /// (2026-10-28) The ring as the game keeps it unchanged: valid as it is, or repaired by the build's own rule
-        /// (AreaRings.PrepareSurface) and clipped back inside the ring wherever a repair grew it, until every piece is
-        /// valid. Pieces that cannot be made valid are left out (the area stays unclaimed for later elements and the field).
+        /// (2026-10-28) The ring as the game keeps it unchanged: valid as it is, else opened (needle tips and necks under the
+        /// game's 0.375 m taken off) or repaired by the build's own rule (AreaRings), never beyond the ring; what a repair
+        /// cut off is laid again as its own clean pieces. A ring nothing can fix goes on as it is (the build repairs it).
         /// </summary>
         private List<float2[]> GameRings(float2[] ring)
         {
@@ -270,7 +269,6 @@ namespace Placemaker.Core.Layers.Plaza
             float after = 0f;
             foreach (var r in res) after += Poly.Area(r);
             RepairLoss += math.max(0f, before - after);
-            if (DebugLoss != null && before - after > 1f) DebugLoss($"n={ring.Length} before={before:0.0} after={after:0.0} pieces={res.Count} valid0={Build.AreaRings.IsValid(ring, Build.AreaRings.SurfaceMinNodeDistance + Build.AreaRings.Margin)} first={Build.AreaRings.FirstViolation(ring, Build.AreaRings.SurfaceMinNodeDistance + Build.AreaRings.Margin)} ring={string.Join(" ", System.Linq.Enumerable.Select(ring, p => $"({p.x:0.##},{p.y:0.##})"))}");
             return res;
         }
 

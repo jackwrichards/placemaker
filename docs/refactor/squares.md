@@ -162,3 +162,33 @@ the amphitheatre; festival and funfair need assets nobody has; food trucks staye
 - Amphitheatre classic (AFTER) fills the block well, but the stage sits low on one side with an empty lawn corner; amphitheatre default not re-shot.
 - Fairground default/christmas still sparse on a block; foodTrucks hidden rather than fixed.
 - Branch not merged.
+
+## Designed plazas (2026-10-28, branch claude/plazas-design)
+
+The user: "very intricate designed plazas ... nice styling of the surfaces ... sleek, modern ... or more vintage, like
+terraced gardens or fenced gardens with concrete in between or fenced gardens with designs in between. Think of Union
+Square." The classic plaza composes round the entrances (6 to 8 anywhere on a block, so its walks cut the square at odd
+angles) and built big, mostly empty slabs. New: `Core/Layers/Plaza/PlazaDesigns.cs`, a "Design" control (`design`,
+identity section, 12 languages) and six presets that lay a real square's plan on the square's own axes, in the largest
+rectangle that fits round the focal point (`BestBox`; the arm of an L or a triangle's corners become a railed or hedged
+lawn with trees, or a bosque: `FillLeftover`). Every entrance reaches the plan through a perimeter walk.
+
+| Preset | What it is |
+|---|---|
+| grand (Grand square) | Union Square: promenade under two rows of trees, eight railed lawns with trees and shrub borders between a spine, a cross walk and four diagonals, a round centre (statue, or a flag in flowerbeds), a paved forecourt with stone steps and flags, benches along every walk. |
+| rooms (Garden rooms) | Parterre: a grid of hedged rooms (lawn quarters round a planted centre with topiary, or a paved flower court round a tree), a stone kerb round each room, medallions where walks cross, dark runners in the walks, the focal piece in the middle room. |
+| railed (Railed gardens) | Fenced gardens with concrete in between: 2 x 2 or 3 x 3 cut-corner lawns behind low railings, trees round their insides and a ring of flowerbeds, broad pale walks crossed by dark bands running across the whole square, a circus or a paved middle garden. |
+| terraces (Terraced garden) | Three levels rising to a belvedere (sloped terraform quads: exact planes), each step a planted bank with a hedge on top and stone stairs on the axes, flower borders at the foot, four lawns on top. |
+| modern (Modern plaza) | Pale large slabs with dark bands every 7.5 m, linear planters (lawn, lime trees, low hedges, benches both sides), a grid bosque of trees in pits, a centre pad with jets (a dark stone mirror without fountains). |
+| piazza (Piazza, reworked) | Old town: setts round a central fountain (planted without one), a rosette of pale sectors, rings and rays of dark stone, chestnuts in the corners, cafe terraces along the long sides, pots and lamps round the rosette. |
+
+Shelf (`Recipes/shelf/plazas.json`): the six shown; civic, fountain, cafe, sunkenCourt and green hidden (slabs next to
+these). Paving kit (`PavingKit.cs`, shared with market square, fairground, transit plaza): every piece is now a ring the
+game keeps as it is (opening of needle tips and necks under 0.375 m, AreaRings repair never beyond the piece, what a
+repair cuts off laid again): before, the build removed nodes itself and left long wedges of bare ground or paving over
+lawns (game runs `show-6-builds-1028-231119-b4fd`, `show-6-builds-1028-232121-dfbe`). A few small corners per square are
+still left to the build's repair (`PlazaDesignTests`).
+
+Game runs: `show-6-builds-1028-233308-2519` (block), `show-6-builds-1028-233309-0a0e` (L, 200 x 180). Weak: the clean
+game has no fountains or statues (planted centres, flags, a dark pad instead of jets); the Sandstone palette of the
+terraces is beige sand in vanilla surfaces; the L arm's lawn is a plain tree lattice; terraces judged on flat land only.
