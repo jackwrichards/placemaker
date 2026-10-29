@@ -402,6 +402,10 @@ namespace Placemaker.Core.Decals.Dynamic
                     float wander = op.Wander.Eval(s), sig = wander * 1.6f / math.sqrt(n);
                     for (int i = 1; i <= n; i++) off[i] = off[i - 1] + Gauss() * sig;
                     for (int i = 0; i <= n; i++) off[i] -= off[n] * i / n;
+                    // smooth the walk into gentle bends (a crack wanders, it doesn't zigzag), then a fine jitter back on
+                    for (int pass = 0; pass < 3; pass++)
+                        for (int i = 1; i < n; i++) off[i] = (off[i - 1] + off[i] * 2f + off[i + 1]) * 0.25f;
+                    for (int i = 1; i < n; i++) off[i] += Gauss() * step * 0.08f;
                     var nrm = new float2(-cAxis.y, cAxis.x);
                     float wEnd = math.lerp(op.CrackWidth.x, op.CrackWidth.y, 0.6f);
                     float2 prev = ca;

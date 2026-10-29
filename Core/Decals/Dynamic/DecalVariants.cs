@@ -91,7 +91,7 @@ namespace Placemaker.Core.Decals.Dynamic
     public static class DecalVariants
     {
         /// <summary>Bump when the generator or baking changes pixels: disk caches key on it.</summary>
-        public const int GeneratorVersion = 2;
+        public const int GeneratorVersion = 3;
 
         public static string Id(string kind, int index) => kind + "#" + index;
 
