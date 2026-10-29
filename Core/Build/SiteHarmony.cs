@@ -149,6 +149,16 @@ namespace Placemaker.Core.Build
         /// their profiles, lots in tiers) — the whole group is locked, not just the ids listed above, so a new commercial type
         /// can never be smoothed by this pass (s32's high street / retail park / mall park / mall district were).
         /// </summary>
+        /// <summary>
+        /// (2026-10-29) A plan fact by which one build of a taking-part type says its ground is its own design: a designed
+        /// plaza on levels (PlazaDesigns.Levels: walls, stairs and banks on exact planes) would be smoothed into slopes.
+        /// </summary>
+        public const string OwnGroundFact = "ownGround";
+
+        /// <summary>Whether this layer's plan takes part (its type does, and it has not designed its own ground).</summary>
+        public static bool Participates(Placemaker.Core.AreaPlan layer) =>
+            layer != null && Participates(layer.GeneratorId) && !layer.Facts.ContainsKey(OwnGroundFact);
+
         public static bool Participates(string generatorId) =>
             !string.IsNullOrEmpty(generatorId) && !OwnGround.Contains(generatorId) && GeneratorGroups.Of(GeneratorRegistry.Get(generatorId)) != "commercial"
             // the Zoning tool levels its own lots (LotLevel): its ground is the design
@@ -236,7 +246,7 @@ namespace Placemaker.Core.Build
             for (int li = 0; li < plan.Layers.Count; li++)
             {
                 var l = plan.Layers[li];
-                c.Part[li] = l != null && Participates(l.GeneratorId);
+                c.Part[li] = l != null && Participates(l);
                 if (!c.Part[li] || l == null || !plan.FillRings.TryGetValue(l, out var ring) || ring == null || ring.Length < 3) continue;
                 c.Rings.Add(Poly.EnsureCcw((float2[])ring.Clone()));
                 any = true;

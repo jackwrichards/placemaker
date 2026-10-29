@@ -83,5 +83,15 @@
   "Placemaker.Plaza.Preset.rooms": "Ogrodowe pokoje",
   "Placemaker.Plaza.Preset.railed": "Ogrody ogrodzone",
   "Placemaker.Plaza.Preset.terraces": "Ogród tarasowy",
-  "Placemaker.Plaza.Preset.modern": "Nowoczesny plac"
+  "Placemaker.Plaza.Preset.modern": "Nowoczesny plac",
+  "Placemaker.Plaza.design.sunkenPlaza": "Obniżony plac",
+  "Placemaker.Plaza.Preset.sunkenPlaza": "Obniżony plac",
+  "Placemaker.Plaza.design.waterSteps": "Wodne schody",
+  "Placemaker.Plaza.Preset.waterSteps": "Wodne schody",
+  "Placemaker.Plaza.design.marketHall": "Hala targowa",
+  "Placemaker.Plaza.Preset.marketHall": "Hala targowa",
+  "Placemaker.Plaza.design.dining": "Taras restauracyjny",
+  "Placemaker.Plaza.Preset.dining": "Taras restauracyjny",
+  "Placemaker.Plaza.design.grandSteps": "Wielkie schody",
+  "Placemaker.Plaza.Preset.grandSteps": "Wielkie schody"
 }

@@ -192,3 +192,38 @@ still left to the build's repair (`PlazaDesignTests`).
 Game runs: `show-6-builds-1028-233308-2519` (block), `show-6-builds-1028-233309-0a0e` (L, 200 x 180). Weak: the clean
 game has no fountains or statues (planted centres, flags, a dark pad instead of jets); the Sandstone palette of the
 terraces is beige sand in vanilla surfaces; the L arm's lawn is a plain tree lattice; terraces judged on flat land only.
+
+## Designed plazas, round 2 (2026-10-29, branch claude/plazas-design-2)
+
+The user: "polish weak plazas, they are mostly B+ now ... I need more types also, play more with vanilla assets, large
+overhangs, umbrellas, play a LOT more with terrain height". New kit (`PlazaDesigns.Kit.cs`): `Levels`, the square's
+ground as raised or sunk rectangles on its own axes over a base plane fitted to the ground (level on flat land, the
+slope's plane on a hillside), emitted as sloped terraform patches cut on every bank line (13-80 patches per square), banks
+at 45 % (steeper than 50 % over one heightmap texel renders as a sheet). The plan sets the fact `ownGround`, so the site
+harmony pass leaves the walls, stairs and banks alone (`SiteHarmony.Participates(AreaPlan)`). Every level change has an
+EU_Wall plinth at its foot and a hedge, railing or parapet on top; stairs (`Kit.Flight`) are a paved flight with a sunk
+wall along every tread as a stone lip (a painted nosing on a slope does not show in the game), cheek walls, lamps, pots.
+Props: tables under Parasol01-03, modular pergola canopies two bays deep, gazebos, food stalls and kiosks, tall flags,
+raised beds, box planters, and a fountain without fountain assets: an octagonal drum of walls with WallFountain01-03.
+
+| Preset | What it is |
+|---|---|
+| sunkenPlaza (Sunken plaza) | Rockefeller Center: a court sunk 2.7 m, seating steps with rows of benches down its long sides, a wide stair from the channel gardens (beds with fountain pools between, lime trees, lawns either side), a wall of fountains under a tall flag at the far end, flags round the railed rim, tables under parasols on the floor. |
+| marketHall (Market hall) | A 0.9 m stone plinth with stairs on every side, halls of open pergola bays two deep with tables under them, food stalls along the aisles, a pavilion at the crossing, flags on the corners. |
+| dining (Dining terrace) | A 1.8 m railed terrace (two facing terraces on a big square) with rows of tables under parasols and a deep pergola canopy at the back, a grand stair and two side stairs down to a cafe grove round a fountain. |
+| grandSteps (Grand stairs) | Spanish Steps: three 1.5 m flights narrowing as they climb, landings with pots and flowers, terraced planted banks either side, a fountain and cafes in the piazza below, a belvedere on top (pavilion, tall flag on the axis, cafes, a grove). Faces up the slope on a hillside. |
+| waterSteps (Water steps) | **Hidden**: four 0.9 m levels with a channel of pools and wall fountains on every step, lawns with trees, a pergola overlook. The clean game has no water surface: the pools read as grey slabs. |
+
+Changed: terraces (Levels, 1.8 m steps, walls and hedges, stone stairs on the axes, a pavilion belvedere, grey stone instead
+of beige "sand"); modern (a sunken water court with a fountain wall instead of the grey pad, one tree row at 9 m instead of a
+double 7 m lattice, two pergola canopies with tables, a loose grove with raised beds to the edge, tall flags); piazza
+(a fountain drum, pergola loggias with two rows of tables under parasols along the long sides, a raised sagrato with a wide
+flight at one end, kiosks); grand (greenmarket stalls and cafes in the forecourt, a fountain drum); rooms (arbors over the
+middle walks, high hedges round the focal room, setts instead of beige); railed (fountain drum, kiosks on the circus); the
+L's leftover (a garden with cross walks and a pavilion, or a cafe grove round a fountain court, instead of a tree lattice).
+Cafes are capped on big sites (a 220 x 200 square was a sea of umbrellas).
+
+Game runs: `show-11-builds-1029-004639-d824` (block), `show-11-builds-1029-004639-0a0c` (220 x 200), `show-4-builds-1029-004640-72e5`
+(L), `show-8-builds-1029-002516-373b` (5 % slope). Weak: water (no vanilla water surface; real water sources untried);
+the pergola bays' look varies by number (07 has lattice walls, Open07 none); the dining grove on a big site is still a
+big field of trees; banks read as banks from the 45 degree camera, crisp only close up.

@@ -83,5 +83,15 @@
   "Placemaker.Plaza.Preset.rooms": "Gartenräume",
   "Placemaker.Plaza.Preset.railed": "Umzäunte Gärten",
   "Placemaker.Plaza.Preset.terraces": "Terrassengarten",
-  "Placemaker.Plaza.Preset.modern": "Moderner Platz"
+  "Placemaker.Plaza.Preset.modern": "Moderner Platz",
+  "Placemaker.Plaza.design.sunkenPlaza": "Abgesenkter Platz",
+  "Placemaker.Plaza.Preset.sunkenPlaza": "Abgesenkter Platz",
+  "Placemaker.Plaza.design.waterSteps": "Wassertreppen",
+  "Placemaker.Plaza.Preset.waterSteps": "Wassertreppen",
+  "Placemaker.Plaza.design.marketHall": "Markthalle",
+  "Placemaker.Plaza.Preset.marketHall": "Markthalle",
+  "Placemaker.Plaza.design.dining": "Speiseterrasse",
+  "Placemaker.Plaza.Preset.dining": "Speiseterrasse",
+  "Placemaker.Plaza.design.grandSteps": "Große Treppe",
+  "Placemaker.Plaza.Preset.grandSteps": "Große Treppe"
 }

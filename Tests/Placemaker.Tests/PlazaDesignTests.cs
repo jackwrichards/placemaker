@@ -22,7 +22,7 @@ namespace Placemaker.Tests
         private readonly ITestOutputHelper _out;
         public PlazaDesignTests(ITestOutputHelper o) { _out = o; }
 
-        public static readonly string[] Designs = { "grand", "rooms", "railed", "terraces", "modern", "piazza" };
+        public static readonly string[] Designs = { "grand", "rooms", "railed", "terraces", "modern", "piazza", "sunkenPlaza", "waterSteps", "marketHall", "dining", "grandSteps" };
 
         private static ComposedPlan Compose(float3[] ring, string preset)
         {
@@ -96,6 +96,56 @@ namespace Placemaker.Tests
             // A few small corners (a tree pit beside a slanted walk) are still left to the build's own repair.
             Assert.True(bad.Count <= math.max(2, layer.Surfaces.Count / 30), $"{design}/{site}: {bad.Count} of {layer.Surfaces.Count} rings would be repaired by the build");
         }
+
+        public static IEnumerable<object[]> HeightCases()
+        {
+            foreach (var d in new[] { "terraces", "modern", "sunkenPlaza", "waterSteps", "marketHall", "dining", "grandSteps" })
+                foreach (var site in new[] { "block", "big" })
+                    yield return new object[] { d, site };
+        }
+
+        /// <summary>
+        /// (2026-10-29) Every level change of the designed squares is a planar bank no steeper than 45 % (steeper than 50 %
+        /// over one heightmap texel renders as a sheet), reached by stone stairs and lined with walls.
+        /// </summary>
+        [Theory]
+        [MemberData(nameof(HeightCases))]
+        public void EveryLevelChangeIsAWalledBankWithStairs(string design, string site)
+        {
+            var layer = Compose(Site(site), design).Layers.First(l => l.GeneratorId == "plaza");
+            Assert.NotEmpty(layer.Terraform);
+            float steepest = 0f;
+            foreach (var t in layer.Terraform)
+            {
+                Assert.True(t.Sloped && t.Permanent);
+                // The patch's plane through its first three corners (every patch is planar: a quad run or a triangle).
+                var a = t.Ring[0]; var b = t.Ring[1]; var c = t.Ring[2];
+                var n = math.cross(b - a, c - a);
+                if (math.abs(n.y) < 1e-4f) continue;
+                float grade = math.length(new float2(n.x, n.z)) / math.abs(n.y);
+                steepest = math.max(steepest, grade);
+            }
+            _out.WriteLine($"{design}/{site}: {layer.Terraform.Count} patches, steepest {steepest:0.00}, rise {Fact(layer, "designRise")}, drop {Fact(layer, "designDrop")}, flights {Fact(layer, "designFlights")}, walls {Fact(layer, "designWalls")}, cafes {Fact(layer, "designCafes")}, canopies {Fact(layer, "designCanopies")}, fountains {Fact(layer, "designWallFountains")}");
+            Assert.True(steepest <= 0.46f, $"{design}/{site}: a bank of {steepest:0.00}");
+            Assert.True(Fact(layer, "designRise") + Fact(layer, "designDrop") >= 0.85f, design + ": no level change");
+            // (The modern plaza's sunken pool is water, not a floor: no stairs into it.)
+            if (design != "modern") Assert.True(Fact(layer, "designFlights") >= 1, design + ": no stairs");
+            Assert.True(Fact(layer, "designWalls") >= 8, design + ": no walls");
+        }
+
+        [Fact]
+        public void WithoutInstalledFountainsTheDesignsBuildFountainsOfWallFountains()
+        {
+            using (AssetAvailability.Scope(new Dictionary<string, int> { { AssetCategories.Centerpiece, 0 }, { AssetCategories.CenterpieceFountain, 0 }, { AssetCategories.CenterpieceStatue, 0 } }))
+                foreach (var d in new[] { "grand", "railed", "piazza", "dining", "grandSteps", "modern", "waterSteps", "sunkenPlaza" })
+                {
+                    var layer = Compose(Block(130f, 120f), d).Layers.First(l => l.GeneratorId == "plaza");
+                    Assert.DoesNotContain(layer.Objects, o => o.Role == ObjectRole.Centerpiece);
+                    Assert.True(Fact(layer, "designWallFountains") >= 4, d + ": " + Fact(layer, "designWallFountains") + " wall fountains");
+                }
+        }
+
+        private static float Fact(AreaPlan p, string key) => p.Facts.TryGetValue(key, out var v) ? Convert.ToSingle(v) : 0f;
 
         [Fact]
         public void TerracesRiseInPlanesNotCells()

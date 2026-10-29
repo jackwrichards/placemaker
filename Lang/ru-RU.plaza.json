@@ -83,5 +83,15 @@
   "Placemaker.Plaza.Preset.rooms": "Садовые комнаты",
   "Placemaker.Plaza.Preset.railed": "Сады за оградой",
   "Placemaker.Plaza.Preset.terraces": "Сад с террасами",
-  "Placemaker.Plaza.Preset.modern": "Современная площадь"
+  "Placemaker.Plaza.Preset.modern": "Современная площадь",
+  "Placemaker.Plaza.design.sunkenPlaza": "Заглублённая площадь",
+  "Placemaker.Plaza.Preset.sunkenPlaza": "Заглублённая площадь",
+  "Placemaker.Plaza.design.waterSteps": "Водные ступени",
+  "Placemaker.Plaza.Preset.waterSteps": "Водные ступени",
+  "Placemaker.Plaza.design.marketHall": "Крытый рынок",
+  "Placemaker.Plaza.Preset.marketHall": "Крытый рынок",
+  "Placemaker.Plaza.design.dining": "Обеденная терраса",
+  "Placemaker.Plaza.Preset.dining": "Обеденная терраса",
+  "Placemaker.Plaza.design.grandSteps": "Парадная лестница",
+  "Placemaker.Plaza.Preset.grandSteps": "Парадная лестница"
 }

@@ -83,5 +83,15 @@
   "Placemaker.Plaza.Preset.rooms": "Garden rooms",
   "Placemaker.Plaza.Preset.railed": "Railed gardens",
   "Placemaker.Plaza.Preset.terraces": "Terraced garden",
-  "Placemaker.Plaza.Preset.modern": "Modern plaza"
+  "Placemaker.Plaza.Preset.modern": "Modern plaza",
+  "Placemaker.Plaza.design.sunkenPlaza": "Sunken plaza",
+  "Placemaker.Plaza.Preset.sunkenPlaza": "Sunken plaza",
+  "Placemaker.Plaza.design.waterSteps": "Water steps",
+  "Placemaker.Plaza.Preset.waterSteps": "Water steps",
+  "Placemaker.Plaza.design.marketHall": "Market hall",
+  "Placemaker.Plaza.Preset.marketHall": "Market hall",
+  "Placemaker.Plaza.design.dining": "Dining terrace",
+  "Placemaker.Plaza.Preset.dining": "Dining terrace",
+  "Placemaker.Plaza.design.grandSteps": "Grand stairs",
+  "Placemaker.Plaza.Preset.grandSteps": "Grand stairs"
 }

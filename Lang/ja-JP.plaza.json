@@ -83,5 +83,15 @@
   "Placemaker.Plaza.Preset.rooms": "ガーデンルーム",
   "Placemaker.Plaza.Preset.railed": "柵の庭園",
   "Placemaker.Plaza.Preset.terraces": "段々の庭園",
-  "Placemaker.Plaza.Preset.modern": "モダン広場"
+  "Placemaker.Plaza.Preset.modern": "モダン広場",
+  "Placemaker.Plaza.design.sunkenPlaza": "沈床広場",
+  "Placemaker.Plaza.Preset.sunkenPlaza": "沈床広場",
+  "Placemaker.Plaza.design.waterSteps": "水の階段",
+  "Placemaker.Plaza.Preset.waterSteps": "水の階段",
+  "Placemaker.Plaza.design.marketHall": "マーケットホール",
+  "Placemaker.Plaza.Preset.marketHall": "マーケットホール",
+  "Placemaker.Plaza.design.dining": "ダイニングテラス",
+  "Placemaker.Plaza.Preset.dining": "ダイニングテラス",
+  "Placemaker.Plaza.design.grandSteps": "大階段",
+  "Placemaker.Plaza.Preset.grandSteps": "大階段"
 }

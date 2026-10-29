@@ -83,5 +83,15 @@
   "Placemaker.Plaza.Preset.rooms": "花園房間",
   "Placemaker.Plaza.Preset.railed": "圍籬花園",
   "Placemaker.Plaza.Preset.terraces": "階台花園",
-  "Placemaker.Plaza.Preset.modern": "現代廣場"
+  "Placemaker.Plaza.Preset.modern": "現代廣場",
+  "Placemaker.Plaza.design.sunkenPlaza": "下沉廣場",
+  "Placemaker.Plaza.Preset.sunkenPlaza": "下沉廣場",
+  "Placemaker.Plaza.design.waterSteps": "水階梯",
+  "Placemaker.Plaza.Preset.waterSteps": "水階梯",
+  "Placemaker.Plaza.design.marketHall": "市場大廳",
+  "Placemaker.Plaza.Preset.marketHall": "市場大廳",
+  "Placemaker.Plaza.design.dining": "餐飲露台",
+  "Placemaker.Plaza.Preset.dining": "餐飲露台",
+  "Placemaker.Plaza.design.grandSteps": "大台階",
+  "Placemaker.Plaza.Preset.grandSteps": "大台階"
 }

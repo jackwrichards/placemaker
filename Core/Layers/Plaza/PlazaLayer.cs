@@ -243,10 +243,17 @@ namespace Placemaker.Core.Layers.Plaza
                 ("cafe", 4.0), ("bollards", true), ("lighting", "feature"), ("treeLayout", "none"), ("planters", 10.0), ("beds", 0.0));
             // 2026-10-28: designed squares (PlazaDesigns): each lays a real square's plan on the square's own axes.
             Preset("grand", ("palette", GroundPalettes.Classic), (PlazaDesigns.Control, "grand"), ("centerKind", "statue"), ("furniture", 0.0), ("lighting", "feature"));
-            Preset("rooms", ("palette", GroundPalettes.Garden), (PlazaDesigns.Control, "rooms"), ("centerKind", "fountain"), ("furniture", 0.0));
+            Preset("rooms", ("palette", GroundPalettes.Cobble), (PlazaDesigns.Control, "rooms"), ("centerKind", "fountain"), ("furniture", 0.0));
             Preset("railed", ("palette", GroundPalettes.Classic), (PlazaDesigns.Control, "railed"), ("centerKind", "fountain"), ("furniture", 0.0), ("lighting", "feature"));
-            Preset("terraces", ("palette", GroundPalettes.Sandstone), (PlazaDesigns.Control, "terraces"), ("centerKind", "fountain"), ("furniture", 0.0),
-                ("levelCount", 3.0), ("levelHeight", 1.5));
+            // 2026-10-29: grey stone (the sandstone palette is beige sand in the vanilla surfaces), steps of 1.8 m.
+            Preset("terraces", ("palette", GroundPalettes.Classic), (PlazaDesigns.Control, "terraces"), ("centerKind", "fountain"), ("furniture", 0.0),
+                ("levelCount", 3.0), ("levelHeight", 1.8));
+            // 2026-10-29: designed squares on their own ground (PlazaDesigns.Squares).
+            Preset("sunkenPlaza", ("palette", GroundPalettes.Classic), (PlazaDesigns.Control, "sunkenPlaza"), ("centerKind", "fountain"), ("furniture", 0.0), ("lighting", "feature"));
+            Preset("waterSteps", ("palette", GroundPalettes.Modern), (PlazaDesigns.Control, "waterSteps"), ("centerKind", "fountain"), ("furniture", 0.0));
+            Preset("marketHall", ("palette", GroundPalettes.Cobble), (PlazaDesigns.Control, "marketHall"), ("centerKind", "fountain"), ("furniture", 0.0), ("lighting", "feature"));
+            Preset("dining", ("palette", GroundPalettes.Modern), (PlazaDesigns.Control, "dining"), ("centerKind", "fountain"), ("furniture", 0.0));
+            Preset("grandSteps", ("palette", GroundPalettes.Classic), (PlazaDesigns.Control, "grandSteps"), ("centerKind", "fountain"), ("furniture", 0.0), ("lighting", "feature"));
             Preset("modern", ("palette", GroundPalettes.Modern), (PlazaDesigns.Control, "modern"), ("centerKind", "statue"), ("furniture", 0.0), ("lighting", "standard"));
             Preset("green", ("palette", GroundPalettes.Garden), ("centerMode", "single"), ("centerSize", 4.0), ("centerKind", "statue"), ("furniture", 0.0), ("lawns", 40.0),
                 ("beds", 0.0), ("treeLayout", "edge"), ("border", "grass"), ("pattern", "none"));
@@ -263,7 +270,7 @@ namespace Placemaker.Core.Layers.Plaza
             PresetFeatures("market", "kiosk", "-fountain");
             PresetFeatures("cafe", "kiosk");
             PresetFeatures("piazza", "kiosk", "-fountain");
-            foreach (var id in new[] { "grand", "rooms", "railed", "terraces", "modern" }) PresetFeatures(id, "-fountain");
+            foreach (var id in new[] { "grand", "rooms", "railed", "terraces", "modern", "sunkenPlaza", "waterSteps", "marketHall", "dining", "grandSteps" }) PresetFeatures(id, "-fountain");
         }
 
         public override List<EdgeMarker> SuggestMarkers(AreaInput input)
