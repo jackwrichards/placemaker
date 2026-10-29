@@ -136,6 +136,9 @@ namespace Placemaker.Core.Layers.Commercial
                     LotFirst(ctx, mall, runs);
                     ctx.Check();
                     mall.PlantStreetPlots(ctx.B("streetShops"));
+                    // (2026-10-28) Street plots that stay (a small strip mall's shops on the street) become their real cells, as in
+                    // the street compositions below: unsnapped, the game zoned none of them ("cannot zone (land blocked)").
+                    mall.SnapStreetPlotsToCells();
                     FillRest(ctx, mall);
                     FinishDesign(ctx, mall);
                     FinishFront(ctx, mall);

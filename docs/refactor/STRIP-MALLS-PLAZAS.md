@@ -66,6 +66,21 @@ Three photos came with it:
 - `show-4-builds-1028-222709-b7d5` (sm-narrow): two-cell inline plots tried and taken back (as many plots grew, the classic lost
   its L).
 
+### Every size and shape (the user, same day: "test really small, tiny strip malls too. They should at least do ... a 2x2 zoning
+... weird shapes too ... U-shaped ... massive")
+
+- **Small sites** (`StripMallTiny.cs`): below the lot-first layout's size the shops stand on the street: one 2 x 2 plot from
+  16 x 16 m, a small lot beside the row from about 48 x 36 m (one aisle, entered from the same street). The type's minimum
+  is one plot (256 m², was 1600 m²). The street plots are snapped to the street's cells (they zoned nothing before), and a
+  kerb strip is never laid on a planned plot (`ZoneGuard.KerbStrips`: at a corner the side street's strip blocked the plot).
+- **Long thin sites** are fronted on their long street (a short end as the front stood the rows across the site).
+- **Huge sites** plan faster (scans scaled to the site, one layout tried past 8 ha, one double-row depth): 500 x 400 m from
+  17.7 s to 7.7 s offline, 36-55 s in the game (the limit is 60 s).
+- Offline probe: `StripMallSplitTests.ProbeSizes` (`PM_PROBE_OUT`): 24 x 20 to 600 x 90, U, triangle, trapezoid, blob, L.
+- Game runs: `show-4-builds-1028-231847-bec3` (sm-small3: 24 x 20, 40 x 30, 64 x 48, 500 x 400: 1, 1, 1 and 55 shops grown),
+  `show-12-builds-1028-225040-e5da` (U and triangle: 7-8 and 2-3 shops, all on the build's lanes).
+- Big box hidden again: one plot that cannot zone on the U and the 500 x 400 m site (and on the L, as before this work).
+
 ## Not done yet
 
 - Few shops grow per row on a city block (3-5 buildings in 40 s): the rows still read thin against the lot.

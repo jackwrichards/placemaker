@@ -245,6 +245,18 @@ namespace Placemaker.Core.Build
             try { plan.KerbBlockers.AddRange(KerbStrips(plan, site)); } catch (Exception) { /* never fail a plan over it */ }
         }
 
+        /// <summary>Any corner or the middle of <paramref name="strip"/> inside one of the plots' quads.</summary>
+        private static bool OnAPlot(float2[] strip, List<float2[]> quads)
+        {
+            var mid = (strip[0] + strip[1] + strip[2] + strip[3]) * 0.25f;
+            foreach (var q in quads)
+            {
+                if (Poly.Contains(q, mid)) return true;
+                foreach (var p in strip) if (Poly.Contains(q, p)) return true;
+            }
+            return false;
+        }
+
         /// <summary>Width (m) of a kerb strip, and how far inside the footprint every corner must lie.</summary>
         public const float KerbWidth = 2f, KerbInset = 0.5f;
 
@@ -308,7 +320,10 @@ namespace Placemaker.Core.Build
                         var a = edge - d * o + r * (Cell * 0.5f - 0.25f);
                         var b = edge - d * o - r * (Cell * 0.5f - 0.25f);
                         var strip = new[] { a, b, b - d * KerbWidth, a - d * KerbWidth };
-                        if (Inside(strip)) { band[x] = o; break; }
+                        // (2026-10-28) never on a plot planned on another street's cells: at a corner the side street's strip blocked the
+                        // plot's own cells under it (a small strip mall's 24 x 20 m corner plot: "cannot zone (land blocked)")
+                        if (Inside(strip) && !OnAPlot(strip, quads)) { band[x] = o; break; }
+                        if (Inside(strip)) break;
                     }
                 }
                 // Runs of neighbouring columns with the same band: one strip each.

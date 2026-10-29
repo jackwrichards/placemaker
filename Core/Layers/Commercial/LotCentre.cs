@@ -135,7 +135,7 @@ namespace Placemaker.Core.Layers.Commercial
             for (int k = 0; k < frames.Count; k++) { ctx.Check(); if (CompactIn(ctx, mall, frames[k], o, true, out float e)) order.Add((e, k)); }
             order.Sort((x, y) => y.est.CompareTo(x.est));
             var chosen = new HashSet<int>();
-            for (int i = 0; i < order.Count && i < 2; i++) chosen.Add(order[i].k);
+            for (int i = 0; i < order.Count && i < (mall.Region.Area > 80000f ? 1 : 2); i++) chosen.Add(order[i].k);
             for (int k = 0; k < frames.Count; k++)
             {
                 ctx.Check();
@@ -196,7 +196,9 @@ namespace Placemaker.Core.Layers.Commercial
                     float tg = math.dot(g.At - r.A, r.In);
                     if (tg <= tMax - back && tg >= tMin + front) lines.Add((tg, g.At));
                 }
-                for (float tl = tMax - back; tl >= tMin + front; tl -= 3f) lines.Add((tl, new float2(float.NaN)));
+                // (2026-10-28) scans scaled to the site: every 3 m and 2 m on a city block, coarser on a huge one (500 x 400 m spent 10 s here)
+                float lineStep = math.max(3f, (tMax - tMin) / 30f), sStep = math.max(2f, (sMax - sMin) / 90f);
+                for (float tl = tMax - back; tl >= tMin + front; tl -= lineStep) lines.Add((tl, new float2(float.NaN)));
                 // Every line that holds a row, scored: shop ground and lot in balance, less the land left over behind the row (a
                 // round site's rim holds a short row; deeper in, its chord is long); the best few are composed.
                 // (scanned once per frame and plot depth: the frames' ranking and the real pass share it)
@@ -209,7 +211,7 @@ namespace Placemaker.Core.Layers.Commercial
                 {
                     // The longest stretch along this line where the lane, its plots and a strip of lot in front are all inside.
                     float a = float.NaN, b = float.NaN, ca = float.NaN;
-                    for (float s = sMin; s <= sMax + 2f; s += 2f)
+                    for (float s = sMin; s <= sMax + sStep; s += sStep)
                     {
                         bool ok = s <= sMax && mall.Region.Contains(r.At(s, tl - h - 6f)) && mall.Region.Contains(r.At(s, tl)) && mall.Region.Contains(r.At(s, tl + back))
                             // and clear of the first zone rows of a city street behind or beside the plots (the street's own zone block
@@ -218,7 +220,7 @@ namespace Placemaker.Core.Layers.Commercial
                         if (ok) { if (float.IsNaN(ca)) ca = s; }
                         else if (!float.IsNaN(ca))
                         {
-                            if (float.IsNaN(a) || s - ca > b - a) { a = ca; b = s - 2f; }
+                            if (float.IsNaN(a) || s - ca > b - a) { a = ca; b = s - sStep; }
                             ca = float.NaN;
                         }
                     }
@@ -273,8 +275,10 @@ namespace Placemaker.Core.Layers.Commercial
                 var planMark = PlanMark.Of(ctx.Plan); var mallMark = mall.Mark();
                 // (the best six, then the plain row behind the best lines: the layout every site that holds a row can take)
                 var order = new List<int>();
-                for (int i = 0; i < opts.Count && order.Count < 6; i++) order.Add(i);
-                for (int i = 6, plainRows = 0; i < opts.Count && plainRows < 3; i++)
+                // (2026-10-28) A huge site plans each layout for seconds (500 x 400 m: past the game's 60 s limit with six): fewer there.
+                int tryN = mall.Region.Area > 80000f ? 1 : 6;
+                for (int i = 0; i < opts.Count && order.Count < tryN; i++) order.Add(i);
+                for (int i = tryN, plainRows = 0; i < opts.Count && plainRows < (tryN < 6 ? 1 : 3); i++)
                     if (opts[i].v.K == 0 && opts[i].v.SideCells == 0) { order.Add(i); plainRows++; }
                 float bestReal = 0f; int bestI = -1;
                 foreach (int i in order)
@@ -372,6 +376,8 @@ namespace Placemaker.Core.Layers.Commercial
             for (int sc = math.min(cells, 4); sc >= 3; sc--) sides.Add(sc);
             var mids = new List<int>();
             for (int mc = math.min(cells, 3); mc >= 2; mc--) mids.Add(mc);
+            // (2026-10-28) a huge site: one double-row depth (each estimate there costs a lot: 500 x 400 m spent most of its time here)
+            if (mall.Region.Area > 80000f && mids.Count > 1) mids.RemoveAt(1);
             foreach (int sc in sides)
             {
               foreach (var (la, lb) in sc > 0 ? new[] { (true, true), (true, false), (false, true) } : new[] { (false, false) })
