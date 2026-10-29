@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "花園磚",
   "Placemaker.Plaza.paveStyle.modern": "現代石板",
   "Placemaker.Plaza.paveStyle.cobble": "老城鵝卵石",
-  "Placemaker.Plaza.Issue.NoLawn": "軸線之間沒有空間放草坪；請把廣場加大或降低草坪比例。"
+  "Placemaker.Plaza.Issue.NoLawn": "軸線之間沒有空間放草坪；請把廣場加大或降低草坪比例。",
+  "Placemaker.Plaza.design": "設計",
+  "Placemaker.Plaza.design.Tooltip": "廣場的佈局方案。經典從入口生長；其他是沿廣場自身軸線設計的廣場，邊緣有一條連接所有入口的步道。",
+  "Placemaker.Plaza.design.classic": "經典",
+  "Placemaker.Plaza.design.grand": "大廣場",
+  "Placemaker.Plaza.design.rooms": "花園房間",
+  "Placemaker.Plaza.design.railed": "圍籬花園",
+  "Placemaker.Plaza.design.terraces": "階台",
+  "Placemaker.Plaza.design.modern": "現代",
+  "Placemaker.Plaza.design.piazza": "義式廣場",
+  "Placemaker.Plaza.Preset.grand": "大廣場",
+  "Placemaker.Plaza.Preset.rooms": "花園房間",
+  "Placemaker.Plaza.Preset.railed": "圍籬花園",
+  "Placemaker.Plaza.Preset.terraces": "階台花園",
+  "Placemaker.Plaza.Preset.modern": "現代廣場"
 }

@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "Ladrillo de jardín",
   "Placemaker.Plaza.paveStyle.modern": "Losas modernas",
   "Placemaker.Plaza.paveStyle.cobble": "Empedrado antiguo",
-  "Placemaker.Plaza.Issue.NoLawn": "No hay sitio para césped entre los ejes; haz la plaza más grande o reduce la proporción de césped."
+  "Placemaker.Plaza.Issue.NoLawn": "No hay sitio para césped entre los ejes; haz la plaza más grande o reduce la proporción de césped.",
+  "Placemaker.Plaza.design": "Diseño",
+  "Placemaker.Plaza.design.Tooltip": "El plano con el que se traza la plaza. Clásico crece desde las entradas; los demás son plazas diseñadas sobre los ejes de la propia plaza, con un paseo por el borde que une todas las entradas.",
+  "Placemaker.Plaza.design.classic": "Clásico",
+  "Placemaker.Plaza.design.grand": "Gran plaza",
+  "Placemaker.Plaza.design.rooms": "Salas de jardín",
+  "Placemaker.Plaza.design.railed": "Jardines con verja",
+  "Placemaker.Plaza.design.terraces": "Terrazas",
+  "Placemaker.Plaza.design.modern": "Moderno",
+  "Placemaker.Plaza.design.piazza": "Piazza",
+  "Placemaker.Plaza.Preset.grand": "Gran plaza",
+  "Placemaker.Plaza.Preset.rooms": "Salas de jardín",
+  "Placemaker.Plaza.Preset.railed": "Jardines con verja",
+  "Placemaker.Plaza.Preset.terraces": "Jardín en terrazas",
+  "Placemaker.Plaza.Preset.modern": "Plaza moderna"
 }

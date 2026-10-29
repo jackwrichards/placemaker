@@ -141,7 +141,9 @@ namespace Placemaker.Tests
             Assert.True(Hidden("plaza", "squares", "market"));
             Assert.True(Hidden("amphitheatre", "events", "cinema"));
             Assert.True(Hidden("fairground", "events", "funfair"));
-            Assert.False(Hidden("plaza", "squares", "fountain"));
+            // (2026-10-28) The designed plazas replace the classic compositions (PlazaDesignTests).
+            Assert.True(Hidden("plaza", "squares", "fountain"));
+            foreach (var d in PlazaDesignTests.Designs) Assert.False(Hidden("plaza", "squares", d), d);
             Assert.True(Hidden("marketSquare", "squares", "weekly"));
             Assert.False(Hidden("marketSquare", "squares", "bigMarket"));
             Assert.True(shelf.IsTypeShelved("fairground", "events"));

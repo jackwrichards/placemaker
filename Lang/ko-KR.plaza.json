@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "정원 벽돌",
   "Placemaker.Plaza.paveStyle.modern": "모던 판석",
   "Placemaker.Plaza.paveStyle.cobble": "구시가 자갈",
-  "Placemaker.Plaza.Issue.NoLawn": "축 사이에 잔디밭을 놓을 공간이 없습니다. 광장을 넓히거나 잔디 비율을 낮추세요."
+  "Placemaker.Plaza.Issue.NoLawn": "축 사이에 잔디밭을 놓을 공간이 없습니다. 광장을 넓히거나 잔디 비율을 낮추세요.",
+  "Placemaker.Plaza.design": "디자인",
+  "Placemaker.Plaza.design.Tooltip": "광장을 배치하는 설계입니다. 클래식은 입구에서부터 자라고, 나머지는 광장 자체의 축에 맞춰 설계된 광장으로, 가장자리를 도는 보도가 모든 입구를 잇습니다.",
+  "Placemaker.Plaza.design.classic": "클래식",
+  "Placemaker.Plaza.design.grand": "대광장",
+  "Placemaker.Plaza.design.rooms": "정원 방",
+  "Placemaker.Plaza.design.railed": "울타리 정원",
+  "Placemaker.Plaza.design.terraces": "테라스",
+  "Placemaker.Plaza.design.modern": "모던",
+  "Placemaker.Plaza.design.piazza": "피아자",
+  "Placemaker.Plaza.Preset.grand": "대광장",
+  "Placemaker.Plaza.Preset.rooms": "정원 방",
+  "Placemaker.Plaza.Preset.railed": "울타리 정원",
+  "Placemaker.Plaza.Preset.terraces": "계단식 정원",
+  "Placemaker.Plaza.Preset.modern": "모던 광장"
 }
