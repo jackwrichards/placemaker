@@ -689,6 +689,26 @@ namespace Placemaker.Core.Layers.Plaza
                 foreach (float sd in new[] { -1f, 1f })
                     foreach (var p in LeisureKit.Along(k.W(-cl - 8f, sd * (vc + 3f)), k.W(-end, sd * (vc + 3f)), 4.5f)) k.BoxPlanterRow(p, p + k.A * 0.1f, 1f);
             }
+            // Beyond the canopies to the edge: a loose grove (trees in pits on a 10 m grid), raised beds with benches between.
+            for (float v = vc + 12f; v <= ib - 4f; v += 10f)
+            {
+                strata++;
+                foreach (float s in new[] { -1f, 1f })
+                {
+                    int t = 0;
+                    for (float u = -end + 3f; u <= end - 3f + 0.01f; u += 10f, t++)
+                    {
+                        var p = k.W(u + (((int)(v / 10f)) & 1) * 5f, s * v);
+                        if (!k.Region.ContainsDisc(p, fw + 3f)) continue;
+                        if ((t & 1) == 0) k.Tree(p, true, PlazaArt.PlaneTrees);
+                        else
+                        {
+                            k.RaisedBeds(p - k.A * 3f, p + k.A * 3f);
+                            k.Seat(p - k.S * (s * 2f), -k.S * s, PlazaArt.ModernBenches);
+                        }
+                    }
+                }
+            }
             k.Ctx.Plan.Facts["modernStrata"] = strata;
             ModernCentre(k, ia, vp, pw, gap, end);
         }
@@ -1004,14 +1024,32 @@ namespace Placemaker.Core.Layers.Plaza
                     {
                         // 2026-10-29 (the user: "the leftover arm is a plain lawn with a grid of trees"): a cafe grove,
                         // trees on a looser grid with small tables between them, a kiosk where it is deepest.
-                        if (ins >= 7f) Stall(deep, math.normalizesafe(C - deep), true);
-                        TreesIn(piece, 9f, 2.5f, true);
+                        // A paved court round a fountain where the piece is deepest, cafe tables under parasols round it.
+                        float keepR = 0f;
+                        if (ins >= 12f)
+                        {
+                            Lay(PFeature + 3, PavingShapes.Polygon(deep, 9f, 32, Phase), P.Focal);
+                            Lay(PKerb, PavingShapes.Annulus(deep, 9f, 0.8f, 32), P.Band);
+                            keepR = Centre(deep, 6f, "fountain");
+                            SeatRing(deep, keepR + 1f, 6, true);
+                            for (int q = 0; q < 6; q++)
+                            {
+                                float an = Phase + q * math.PI / 3f + 0.5f;
+                                CafeSet(deep + new float2(math.cos(an), math.sin(an)) * (keepR + 5.5f), an, true);
+                            }
+                            keepR += 9f;
+                        }
+                        else if (ins >= 7f) Stall(deep, math.normalizesafe(C - deep), true);
                         var lrMin = lr.Min; var lrMax = lr.Max;
-                        for (float x = lrMin.x + 4.5f; x < lrMax.x; x += 9f)
-                            for (float y = lrMin.y + 4.5f; y < lrMax.y; y += 9f)
+                        int gi = 0;
+                        for (float x = lrMin.x + 6f; x < lrMax.x; x += 12f)
+                            for (float y = lrMin.y + 6f; y < lrMax.y; y += 12f, gi++)
                             {
                                 var p = new float2(x, y);
-                                if (lr.ContainsDisc(p, 3f)) CafeSet(p, Phase + 0.4f, false, true);
+                                if (!lr.ContainsDisc(p, 3f) || math.distance(p, deep) < keepR) continue;
+                                Tree(p, true, PlazaArt.PlaneTrees);
+                                var q2 = p + new float2(6f, 6f);
+                                if ((gi & 1) == 0 && lr.ContainsDisc(q2, 3f) && math.distance(q2, deep) >= keepR) CafeSet(q2, Phase + 0.4f, false, true);
                             }
                         made++;
                         continue;
@@ -1045,7 +1083,7 @@ namespace Placemaker.Core.Layers.Plaza
                             var toC = math.normalizesafe(C - ld);
                             Lay(PWalk - 1, PavingShapes.Band(ld + toC * 5f, ld + toC * (lins + 4f), 3f), P.Path);
                             Occ.TakeCorridor(ld + toC * 5f, ld + toC * (lins + 4f), 2f, 2);
-                            Gazebo(ld, math.atan2(toC.x, toC.y));
+                            Gazebo(ld, math.atan2(toC.x, toC.y), 0, true);
                             for (int f = 0; f < 6; f++)
                             {
                                 float an = Phase + f * math.PI / 3f + 0.5f;
@@ -1053,7 +1091,29 @@ namespace Placemaker.Core.Layers.Plaza
                             }
                             SeatRing(ld, 6.6f, 4, true);
                         }
-                        TreesIn(lawn, 11f, 3f, false);
+                        // Cross walks through the pavilion, trees round the garden's edge (not a lattice), beds along the walks.
+                        if (lins >= 8f)
+                            foreach (var ax in new[] { A, S })
+                            {
+                                var band = PavingShapes.Band(ld - ax * 200f, ld + ax * 200f, 2.6f);
+                                foreach (var part in Poly.Intersection(band, lawn))
+                                    if (part?.Outer != null && part.Area > 6f) Lay(PGreen - 2, Poly.EnsureCcw(part.Outer), P.Path);
+                                for (float t = 9f; t < 60f; t += 3.2f)
+                                    foreach (float sg in new[] { -1f, 1f })
+                                    {
+                                        var fp = ld + ax * (sg * t) + new float2(-ax.y, ax.x) * 2.4f;
+                                        if (llr != null && llr.ContainsDisc(fp, 2f)) Flowerbed(fp, Phase);
+                                    }
+                                Occ.TakeCorridor(ld - ax * (lins + 6f), ld + ax * (lins + 6f), 1.6f, 2);
+                            }
+                        var edge = llr != null ? llr.InsetRing(4f) : null;
+                        var er = edge != null ? LayerRegion.From(edge) : null;
+                        if (er != null)
+                        {
+                            int nt = math.max(3, (int)math.round(er.Perimeter / 10f));
+                            for (int t = 0; t < nt; t++) Tree(er.PointAt(er.Perimeter * (t + 0.5f) / nt, out _, out _, out _), false, PlazaArt.GardenTrees);
+                        }
+                        if (lins < 8f) TreesIn(lawn, 12f, 3f, false);
                         // Benches outside on the long edges.
                         for (int e = 0; e < lawn.Length; e++)
                         {

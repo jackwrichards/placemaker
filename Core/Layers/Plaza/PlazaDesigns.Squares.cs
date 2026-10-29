@@ -125,8 +125,8 @@ namespace Placemaker.Core.Layers.Plaza
             if (ia < 26f || ib < 17f) { Piazza(k); return; }
             const float D = 2.7f;
             float bs = D / 0.34f, bst = BankFor(D), be = BankFor(D);
-            float cv = math.clamp(ib * 0.66f, bs + 6f, 32f);
-            float cu = math.clamp(ia * 0.52f, 14f, 34f);
+            float cv = math.clamp(ib * 0.62f, bs + 6f, 44f);
+            float cu = math.clamp(ia * 0.5f, 14f, 46f);
             float uB = ia - 1.5f, uA = uB - 2f * cu;
             if (uA + ia < 14f) { uA = -ia + 14f; cu = (uB - uA) * 0.5f; }
             var lv = new Levels(k, ia, ib);
@@ -167,7 +167,8 @@ namespace Placemaker.Core.Layers.Plaza
                 for (float d = 1.1f; d < bs - 0.3f; d += 1.1f)
                 {
                     float v = sd * (cv - d);
-                    k.Lay(PFeature - 1, PavingShapes.Band(k.W(fu0 + 0.5f, v), k.W(fu1 - 0.5f, v), 0.25f), k.P.Band);
+                    k.Lay(PFeature - 1, PavingShapes.Band(k.W(fu0 + 0.5f, v), k.W(fu1 - 0.5f, v), 0.46f), k.P.Band);
+                    k.Wall(k.W(fu0 + 0.5f, v), k.W(fu1 - 0.5f, v), 1, null, WallH - 0.22f, false);
                 }
                 foreach (float d in new[] { 1.9f, 4.1f, 6.3f })
                 {
@@ -228,13 +229,13 @@ namespace Placemaker.Core.Layers.Plaza
             // Either side of the channel: lawns under a loose grid of trees, benches along the walks looking at the beds.
             foreach (float sd in new[] { -1f, 1f })
             {
-                float l0 = wb * 0.5f + 8f, l1 = ib - 1.5f;
+                float l0 = wb * 0.5f + 8f, l1 = math.min(ib - 1.5f, wb * 0.5f + 34f);
                 if (l1 - l0 < 6f || c1 - c0 < 10f) continue;
                 var lawn = k.Box(c0 + 1f, c1 - 1f, sd > 0 ? l0 : -l1, sd > 0 ? l1 : -l0);
                 k.Lay(PGreen, lawn.Ring, k.Grass, SurfaceRole.Grass, AssetCategories.SurfaceGrass);
                 k.ShrubBorder(lawn.Ring, 1.2f, 4.5f);
-                for (float u = c0 + 5f; u < c1 - 3f; u += 10f)
-                    for (float v = l0 + 4f; v < l1 - 2f; v += 9f) k.Tree(k.W(u + ((int)(v / 9f) & 1) * 5f, sd * v), false, PlazaArt.GardenTrees);
+                for (float u = c0 + 5f; u < c1 - 3f; u += 13f)
+                    for (float v = l0 + 4f; v < l1 - 2f; v += 11f) k.Tree(k.W(u + ((int)(v / 11f) & 1) * 6.5f, sd * v), false, PlazaArt.GardenTrees);
             }
             // Either side of the court: a row of trees and benches looking at it.
             if (ib - cv > 7f)
@@ -300,7 +301,7 @@ namespace Placemaker.Core.Layers.Plaza
             for (int i = 0; i <= n; i++)
             {
                 float p0 = i == 0 ? -ia + lb * 0.35f : U[i] + b + 0.3f;
-                float p1 = i < n ? U[i + 1] - 1.6f : U[n] + b + math.min(lt * 0.45f, 9f);
+                float p1 = i < n ? U[i + 1] - 1.6f : U[n] + b + math.clamp(lt * 0.4f, 6f, 16f);
                 if (p1 - p0 < 2.5f) continue;
                 var pool = k.Box(p0, p1, -wc * 0.5f + 0.4f, wc * 0.5f - 0.4f);
                 k.Lay(PFeature - 1, pool.Ring, k.P.Inlay);
@@ -309,10 +310,10 @@ namespace Placemaker.Core.Layers.Plaza
                 if (i == n) k.FountainWall(k.W(p1 - 0.6f, -wc * 0.5f + 1.2f), k.W(p1 - 0.6f, wc * 0.5f - 1.2f));
             }
             // Terraces either side of the water: lawns with a row of trees and benches looking at the cascade.
-            for (int i = 1; i < n; i++)
+            for (int i = 1; i <= n; i++)
             {
                 float e = i * b;
-                float f0 = U[i] + b + 0.5f, f1 = U[i + 1] - 0.5f;
+                float f0 = U[i] + b + 0.5f, f1 = i < n ? U[i + 1] - 0.5f : ia - n * b - 8.5f;
                 foreach (float s in new[] { -1f, 1f })
                 {
                     float vIn = sv + sw * 0.5f + 1.2f, vOut = ib - e - 1.4f;
@@ -347,7 +348,7 @@ namespace Placemaker.Core.Layers.Plaza
                 float b0 = -ia + 1f, b1 = U[1] - 2f;
                 foreach (float s in new[] { -1f, 1f })
                 {
-                    float v0 = wc * 0.5f + 2.5f, v1 = ib - 2f;
+                    float v0 = wc * 0.5f + 2.5f, v1 = math.min(ib - 2f, wc * 0.5f + 24f);
                     if (v1 - v0 > 5f) k.CafeGrid(b0 + 1f, b1, s > 0 ? v0 : -v1, s > 0 ? v1 : -v0, 5.2f, true);
                 }
                 foreach (var p in LeisureKit.Along(k.W(b0 + 0.6f, -wc * 0.5f + 1.5f), k.W(b0 + 0.6f, wc * 0.5f - 1.5f), 3.2f)) k.Seat(p, k.A);
@@ -479,20 +480,56 @@ namespace Placemaker.Core.Layers.Plaza
             if (ia < 22f || ib < 18f) { Piazza(k); return; }
             const float h = 1.8f;
             float b = BankFor(h);
-            float vt = -ib + 2f * ib * 0.42f;
+            float vt = math.max(-ib + 2f * ib * 0.42f, ib - 30f);
+            // A big square gets a second terrace facing the first across the grove (2026-10-29, game runner: on a 220 x 200
+            // site one terrace left a forest of 150 trees below it).
+            bool two = vt + ib > 70f;
             var lv = new Levels(k, ia, ib);
             lv.Add(-ia, ia, vt, ib, h, b);
+            if (two) lv.Add(-ia, ia, -ib, -vt, h, b);
             lv.Emit();
-            float g = math.min(7f, ia * 0.12f), su = ia * 0.62f;
+            float g = math.min(7f, ia * 0.12f);
+            DiningTerrace(k, ia, ib, vt, b, g);
+            if (two) { k.Flip(); DiningTerrace(k, ia, ib, vt, b, g); k.Flip(); }
+            k.Ctx.Plan.Facts["diningTerraces"] = two ? 2 : 1;
+
+            // The lower square: a cafe grove (tables under a grid of trees) round a fountain, planters along the wall.
+            float l0 = two ? -vt + 1.5f : -ib + 1f, l1 = vt - 1.5f;
+            var cc = k.W(0f, (l0 + l1) * 0.5f);
+            float room = math.min((l1 - l0) * 0.5f - 1f, 9f);
+            float keep = k.Centre(cc, room, "fountain");
+            k.SeatRing(cc, keep + 1.2f, 8, true);
+            k.Lay(PFeature + 2, PavingShapes.Polygon(cc, keep + 4f, 32, k.Phase), k.P.Focal);
+            k.Lay(PKerb, PavingShapes.Annulus(cc, keep + 4f, 0.9f), k.P.Band);
+            const float pitch = 12f;
+            int trees = 0;
+            for (float u = -ia + 4f; u <= ia - 4f + 0.01f; u += pitch)
+                for (float v = l0 + 3f; v <= l1 - 2f + 0.01f; v += pitch)
+                {
+                    var p = k.W(u, v);
+                    if (math.distance(p, cc) < keep + 6f || math.abs(u) < g + 1f) continue;
+                    if (k.Tree(p, true, PlazaArt.PlaneTrees)) trees++;
+                    if (((int)math.round(u / pitch) + (int)math.round(v / pitch) & 1) == 0) k.CafeSet(p + k.A * (pitch * 0.5f) + k.S * (pitch * 0.5f), k.Phase + 0.3f, false, true);
+                }
+            k.Ctx.Plan.Facts["groveTrees"] = trees;
+            k.Core = keep;
+        }
+
+        /// <summary>One raised dining terrace along the +S side of the frame (Dining flips the frame for the second).</summary>
+        private static void DiningTerrace(Kit k, float ia, float ib, float vt, float b, float g)
+        {
+            float su = ia * 0.62f;
             var gaps = new List<Gap> { new Gap(2, 0f, g), new Gap(2, -su, 2.8f), new Gap(2, su, 2.8f) };
             Edges(k, -ia, ia, vt, ib, B4(b), false, Head.Rail, gaps, default, 2);
             k.Flight(k.W(0f, vt - 0.3f), k.W(0f, vt + b + 0.3f), g * 2f - 0.6f);
             foreach (float s in new[] { -1f, 1f }) k.Flight(k.W(s * su, vt - 0.3f), k.W(s * su, vt + b + 0.3f), 5f);
-            // Flowers on the bank either side of the stairs.
+            // Flowers on the bank either side of the stairs, planters along the foot of the wall.
             foreach (float s in new[] { -1f, 1f })
+            {
                 foreach (var p in LeisureKit.Along(k.W(s * (g + 2f), vt + b * 0.5f), k.W(s * (ia - b - 1f), vt + b * 0.5f), 3.2f))
                     if (math.abs(math.abs(math.dot(p - k.C, k.A)) - su) > 4.5f) k.Flowerbed(p, k.Phase);
-
+                k.BoxPlanterRow(k.W(s * (g + 2f), vt - 1.4f), k.W(s * (ia - 2f), vt - 1.4f), 4.5f);
+            }
             // The terrace: rows of tables under big parasols, a deep pergola canopy along the back with tables under it.
             float t0 = vt + b, t1 = ib - b;
             k.Lay(PField - 2, k.Box(-ia + b, ia - b, t0, t1).Ring, k.P.Focal);
@@ -509,27 +546,6 @@ namespace Placemaker.Core.Layers.Plaza
             }
             k.CafeGrid(-ia + b + 1.5f, ia - b - 1.5f, t0 + 1.8f, canopyV, 6.2f, true);
             foreach (float s in new[] { -1f, 1f }) k.Light(k.W(s * (g + 1.2f), t0 + 1f));
-
-            // The lower square: a cafe grove (tables under a grid of trees) round a fountain, planters along the wall.
-            float l0 = -ib + 1f, l1 = vt - 1.5f;
-            var cc = k.W(0f, (l0 + l1) * 0.5f);
-            float room = math.min((l1 - l0) * 0.5f - 1f, 9f);
-            float keep = k.Centre(cc, room, "fountain");
-            k.SeatRing(cc, keep + 1.2f, 8, true);
-            const float pitch = 12f;
-            int trees = 0;
-            for (float u = -ia + 4f; u <= ia - 4f + 0.01f; u += pitch)
-                for (float v = l0 + 3f; v <= l1 - 2f + 0.01f; v += pitch)
-                {
-                    var p = k.W(u, v);
-                    if (math.distance(p, cc) < keep + 4f || math.abs(u) < g + 1f) continue;
-                    if (k.Tree(p, true, PlazaArt.PlaneTrees)) trees++;
-                    if (((int)math.round(u / pitch) + (int)math.round(v / pitch) & 1) == 0) k.CafeSet(p + k.A * (pitch * 0.5f) + k.S * (pitch * 0.5f), k.Phase + 0.3f, false, true);
-                }
-            k.Ctx.Plan.Facts["groveTrees"] = trees;
-            foreach (float s in new[] { -1f, 1f })
-                k.BoxPlanterRow(k.W(s * (g + 2f), vt - 1.4f), k.W(s * (ia - 2f), vt - 1.4f), 4.5f);
-            k.Core = keep;
         }
 
         // ───────────── grand stairs (the Spanish Steps) ─────────────
@@ -590,10 +606,14 @@ namespace Placemaker.Core.Layers.Plaza
                 {
                     foreach (float tr in new[] { 4f, 11f })
                         foreach (var p in LeisureKit.Along(k.W(t0 + 6f, s * (tv - tr)), k.W(t1 - 3f, s * (tv - tr)), 7.5f)) k.Tree(p, true, PlazaArt.PlaneTrees);
-                    if (tv - 14f > sw0 + 6f) k.CafeGrid(t0 + 6f, t1 - 10f, s > 0 ? sw0 + 4f : -(tv - 15f), s > 0 ? tv - 15f : -(sw0 + 4f), 5.4f, true);
+                    if (tv - 14f > sw0 + 6f) k.CafeGrid(t0 + 6f, math.min(t1 - 10f, t0 + 23f), s > 0 ? sw0 + 4f : -(tv - 15f), s > 0 ? tv - 15f : -(sw0 + 4f), 5.4f, true);
                     foreach (var p in LeisureKit.Along(k.W(t0 + 2.9f, s * (sw0 * 0.66f + 3f)), k.W(t0 + 2.9f, s * (tv - 1f)), 3.2f)) k.Seat(p, -k.A);
                     k.Light(k.W(t0 + 1f, s * (sw0 * 0.66f + 1.5f)));
                 }
+                // Behind the cafes: a bosque of plane trees in pits (the Pincio's groves), the axis to the pavilion left open.
+                for (float u = t0 + 31f; u < t1 - 12f; u += 9f)
+                    for (float v = -tv + 6f; v <= tv - 6f; v += 9f)
+                        if (math.abs(v) > 6f) k.Tree(k.W(u, v), true, PlazaArt.PlaneTrees);
                 k.Lay(PField - 2, k.Box(t0, t1, -tv, tv).Ring, k.P.Path);
             }
             // The piazza at the foot: a fountain on the axis, cafe tables under parasols along its sides, benches facing the steps.
@@ -607,7 +627,7 @@ namespace Placemaker.Core.Layers.Plaza
                 k.SeatRing(fc, keep + 1.6f, 8, true);
                 foreach (float s in new[] { -1f, 1f })
                 {
-                    float v0 = math.max(sw0 + 2.5f, keep + 5f), v1 = ib - 1.5f;
+                    float v0 = math.max(sw0 + 2.5f, keep + 5f), v1 = math.min(ib - 1.5f, v0 + 17f);
                     if (v1 - v0 > 5f) k.CafeGrid(p0 + 1f, p1 - 2f, s > 0 ? v0 : -v1, s > 0 ? v1 : -v0, 5.2f, true);
                     k.Light(k.W(p1 - 0.8f, s * (sw0 + 1f)));
                 }

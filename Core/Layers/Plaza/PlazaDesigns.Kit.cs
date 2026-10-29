@@ -240,7 +240,7 @@ namespace Placemaker.Core.Layers.Plaza
             // ── walls, railings, stairs ──
 
             /// <summary>Wall pieces end to end from a to b (5, 3, 1 and 0.5 m pieces), <paramref name="courses"/> high (0.9 m each).</summary>
-            public void Wall(float2 a, float2 b, int courses = 1, string id = null, float sink = 0f)
+            public void Wall(float2 a, float2 b, int courses = 1, string id = null, float sink = 0f, bool take = true)
             {
                 float len = math.distance(a, b);
                 if (len < 0.4f) return;
@@ -266,7 +266,7 @@ namespace Placemaker.Core.Layers.Plaza
                     WallCount++;
                     t += pc.l;
                 }
-                Occ.TakeCorridor(a, b, 0.35f, 2);
+                if (take) Occ.TakeCorridor(a, b, 0.35f, 2);
             }
 
             /// <summary>A wall from a to b with openings (centre along the line, half width) left out.</summary>
@@ -318,9 +318,15 @@ namespace Placemaker.Core.Layers.Plaza
                 var n = new float2(-d.y, d.x);
                 var st = stone.Id != null ? stone : P.Path;
                 Lay(PFeature - 3, PavingShapes.Band(foot - d * 0.6f, head + d * 0.6f, width), st);
-                float tread = math.clamp(len / math.max(1f, math.round(len / 0.55f)), 0.45f, 0.7f);
+                float tread = math.clamp(len / math.max(1f, math.round(len / 0.9f)), 0.8f, 1.1f);
                 for (float t = tread * 0.5f; t < len; t += tread)
-                    Lay(PFeature - 4, PavingShapes.Band(foot + d * t - n * (width * 0.5f - 0.15f), foot + d * t + n * (width * 0.5f - 0.15f), 0.34f), P.Inlay);
+                {
+                    var l0 = foot + d * t - n * (width * 0.5f - 0.15f); var l1 = foot + d * t + n * (width * 0.5f - 0.15f);
+                    Lay(PFeature - 4, PavingShapes.Band(l0, l1, 0.46f), P.Inlay);
+                    // (Game runner: a painted nosing on a slope does not read.) A stone lip: a wall laid along the tread's
+                    // level line, sunk until 0.18 m shows, so every step is a real edge.
+                    Wall(l0, l1, 1, null, WallH - 0.18f, false);
+                }
                 if (cheeks)
                     foreach (float s in new[] { -1f, 1f })
                     {
@@ -401,9 +407,10 @@ namespace Placemaker.Core.Layers.Plaza
                 return strip;
             }
 
-            public bool Gazebo(float2 p, float yaw, uint salt = 0)
+            public bool Gazebo(float2 p, float yaw, uint salt = 0, bool force = false)
             {
                 uint v = V(0x6A2Eu + salt);
+                if (force) { Ctx.Object(p, yaw, ObjectRole.Furniture, AssetMix.Pick(Gazebos, v), v, -1, AssetCategories.Shelter); Occ.Take(p, 3.8f, 0); return true; }
                 return LeisureKit.Put(Ctx, Occ, p, yaw, ObjectRole.Furniture, AssetMix.Pick(Gazebos, v), AssetCategories.Shelter, 3.8f, v, 0.5f, 0.2f, 0);
             }
 
