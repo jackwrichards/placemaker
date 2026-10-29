@@ -1,40 +1,41 @@
 {
   "_about": "Shared decal library, family 'prints': footprints, paw prints, tyre tracks and skid marks. Trails and tracks run along +x.",
   "family": "prints",
+  "saturations": [1, 0.8],
   "kinds": [
     {
-      "id": "footprintsMud", "name": "Muddy footprints",
+      "id": "footprintsMud", "name": "Muddy footprints", "tier": "macro",
       "about": "A trail of shoe and boot prints in mud, walking along +x, strongest at the start and fading out (lay it from a muddy gate onto a path).",
-      "texel": 0.016, "layers": "ground", "order": 5, "lod": 22, "maxTexels": 512,
-      "edge": { "feather": 0.25, "warp": 0.2, "warpScale": 1.2, "round": 0.5 },
-      "variants": { "count": 6, "size": [5.0, 8.0], "width": [0.7, 1.0], "strength": [0.75, 1.0], "wet": [0, 0.8] },
+      "texel": 0.022, "layers": "ground", "order": 5, "lod": 22, "maxTexels": 512, "opacity": 0.896,
+      "edge": { "feather": 0.35, "warp": 0.28, "warpScale": 1.68, "round": 0.5 },
+      "variants": { "count": 6, "size": [7, 11.2], "width": [0.98, 1.4], "strength": [0.75, 1], "wet": [0, 0.8] },
       "ops": [
-        { "op": "scatter", "stamp": ["print", "boot"], "trail": 0.72, "gait": 0.1, "angle": 0, "angleJitter": 9, "ramp": [1.0, 0.1], "size": [0.27, 0.31], "aspect": [0.36, 0.4], "palette": [[92, 74, 54], [80, 64, 48], [104, 84, 60]], "alpha": [0.6, 0.95], "value": 0.08, "height": 0.6, "smooth": 0.35 }
+        { "op": "scatter", "stamp": ["print", "boot"], "trail": 1.008, "gait": 0.14, "angle": 0, "angleJitter": 9, "ramp": [1, 0.1], "size": [0.378, 0.434], "aspect": [0.36, 0.4], "palette": [[92, 74, 54], [80, 64, 48], [104, 84, 60]], "alpha": [0.6, 0.95], "value": 0.08, "height": 0.6, "smooth": 0.35 }
       ]
     },
     {
-      "id": "pawPrints", "name": "Paw prints",
+      "id": "pawPrints", "name": "Paw prints", "tier": "detail",
       "about": "A dog's track in mud or dust, wandering along +x.",
-      "texel": 0.012, "layers": "ground", "order": 5, "lod": 18, "maxTexels": 512,
-      "edge": { "feather": 0.25, "warp": 0.3, "warpScale": 1.0, "round": 0.5 },
-      "variants": { "count": 4, "size": [4.0, 6.0], "width": [0.4, 0.7], "strength": [0.7, 1.0] },
+      "texel": 0.017, "layers": "ground", "order": 5, "lod": 18, "maxTexels": 512, "opacity": 0.896,
+      "edge": { "feather": 0.35, "warp": 0.42, "warpScale": 1.4, "round": 0.5 },
+      "variants": { "count": 4, "size": [5.6, 8.4], "width": [0.56, 0.98], "strength": [0.7, 1] },
       "ops": [
-        { "op": "scatter", "stamp": "paw", "trail": 0.3, "gait": 0.06, "angle": 0, "angleJitter": 14, "ramp": [1.0, 0.25], "size": [0.09, 0.12], "aspect": [0.8, 0.9], "palette": [[96, 78, 58], [84, 68, 50]], "alpha": [0.6, 0.95], "height": 0.5, "smooth": 0.3 }
+        { "op": "scatter", "stamp": "paw", "trail": 0.42, "gait": 0.084, "angle": 0, "angleJitter": 14, "ramp": [1, 0.25], "size": [0.126, 0.168], "aspect": [0.8, 0.9], "palette": [[96, 78, 58], [84, 68, 50]], "alpha": [0.6, 0.95], "height": 0.5, "smooth": 0.3 }
       ]
     },
     {
-      "id": "tyreTrack", "name": "Tyre track",
+      "id": "tyreTrack", "name": "Tyre track", "tier": "macro",
       "about": "One muddy tyre track with its tread pattern, repeating along +x: where a mower, a van or a bike crossed grass and came onto paving.",
-      "texel": 0.012, "layers": "ground", "order": 4, "lod": 26, "maxTexels": 512, "opacity": 0.75,
-      "edge": { "feather": 0.04, "warp": 0.03, "warpScale": 1.0, "round": 1, "widthNoise": 0.1 },
-      "variants": { "count": 6, "size": [3.5, 5.5], "width": [0.22, 0.34], "tile": "x", "strength": [0.6, 1.0] },
+      "texel": 0.017, "layers": "ground", "order": 4, "lod": 26, "maxTexels": 512, "opacity": 0.672,
+      "edge": { "feather": 0.056, "warp": 0.042, "warpScale": 1.4, "round": 1, "widthNoise": 0.1 },
+      "variants": { "count": 6, "size": [4.9, 7.7], "width": [0.308, 0.476], "tile": "x", "strength": [0.6, 1] },
       "ops": [
         { "op": "abs", "in": "across", "out": "ax" },
         { "op": "mul", "a": "ax", "b": 1.4, "out": "slant" },
         { "op": "add", "a": "along", "b": "slant", "out": "chev" },
-        { "op": "wave", "in": "chev", "out": "bars", "period": 0.09, "sharp": 2, "warp": 0.015, "warpScale": 0.4 },
+        { "op": "wave", "in": "chev", "out": "bars", "period": 0.126, "sharp": 2, "warp": 0.021, "warpScale": 0.56 },
         { "op": "remap", "in": "radial", "out": "mid", "lo": 0.95, "hi": 0.6 },
-        { "op": "fbm", "out": "n", "scale": 0.8, "octaves": 3 },
+        { "op": "fbm", "out": "n", "scale": 1.12, "octaves": 3 },
         { "op": "remap", "in": "n", "out": "broken", "lo": -0.6, "hi": 0.1 },
         { "op": "mul", "a": "shape", "b": "broken", "out": "cov" },
         { "op": "layer", "alpha": "cov", "alphaK": 0.45, "color": [92, 76, 58], "smooth": 0.25 },
@@ -43,15 +44,15 @@
       ]
     },
     {
-      "id": "skidMark", "name": "Rubber marks",
+      "id": "skidMark", "name": "Rubber marks", "tier": "macro",
       "about": "Black rubber streaks on asphalt or concrete where tyres braked or turned hard, repeating along +x.",
-      "texel": 0.016, "layers": "ground", "order": 3, "lod": 30, "maxTexels": 512,
-      "edge": { "feather": 0.06, "warp": 0.05, "warpScale": 2.0, "round": 1, "widthNoise": 0.3 },
-      "variants": { "count": 4, "size": [5.0, 7.0], "width": [0.16, 0.26], "tile": "x", "strength": [0.5, 0.9] },
+      "texel": 0.022, "layers": "ground", "order": 3, "lod": 30, "maxTexels": 512, "opacity": 0.896,
+      "edge": { "feather": 0.084, "warp": 0.07, "warpScale": 2.8, "round": 1, "widthNoise": 0.3 },
+      "variants": { "count": 4, "size": [7, 9.8], "width": [0.224, 0.364], "tile": "x", "strength": [0.5, 0.9] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 3, "stretch": [6, 1] },
+        { "op": "fbm", "out": "n", "scale": 2.24, "octaves": 3, "stretch": [6, 1] },
         { "op": "remap", "in": "n", "out": "streak", "lo": -0.7, "hi": 0.3 },
-        { "op": "fbm", "out": "g", "scale": 0.05, "octaves": 2, "stretch": [8, 1] },
+        { "op": "fbm", "out": "g", "scale": 0.07, "octaves": 2, "stretch": [8, 1] },
         { "op": "remap", "in": "g", "out": "grain", "lo": -0.6, "hi": 0.6 },
         { "op": "mul", "a": "shape", "b": "streak", "c": "grain", "out": "rub" },
         { "op": "layer", "alpha": "rub", "alphaK": 0.8, "color": [26, 26, 28], "smooth": 0.45 }

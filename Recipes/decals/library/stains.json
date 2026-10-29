@@ -1,41 +1,42 @@
 {
   "_about": "Shared decal library, family 'stains': oil, rust, drips and spills left by things standing or leaking.",
   "family": "stains",
+  "saturations": [1, 0.8],
   "kinds": [
     {
-      "id": "oilSpot", "name": "Oil stain",
+      "id": "oilSpot", "name": "Oil stain", "tier": "macro",
       "about": "An oil stain under a parked car: a dark, slightly glossy core soaking out into a soft brown halo, with older rings.",
-      "texel": 0.025, "layers": "ground", "order": 4, "lod": 35, "maxTexels": 256,
-      "edge": { "feather": 0.6, "warp": 0.45, "warpScale": 1.0, "round": 1 },
-      "variants": { "count": 8, "size": [1.4, 3.6], "aspect": [0.5, 1.0], "strength": [0.6, 1.0], "age": [0.0, 1.0], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "texel": 0.038, "layers": "ground", "order": 4, "lod": 35, "maxTexels": 256, "opacity": 0.896,
+      "edge": { "feather": 0.9, "warp": 0.675, "warpScale": 1.5, "round": 1 },
+      "variants": { "count": 8, "size": [2.1, 5.4], "aspect": [0.5, 1], "strength": [0.6, 1], "age": [0, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 0.5, "octaves": 4, "warp": 0.2, "warpScale": 0.6 },
+        { "op": "fbm", "out": "n", "scale": 0.75, "octaves": 4, "warp": 0.3, "warpScale": 0.9 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.4 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "halo" },
         { "op": "layer", "alpha": "halo", "alphaK": { "age": [0.35, 0.2] }, "color": [60, 54, 46], "smooth": 0.3 },
-        { "op": "remap", "in": "edge", "out": "core", "lo": 0.15, "hi": 0.6 },
+        { "op": "remap", "in": "edge", "out": "core", "lo": 0.225, "hi": 0.9 },
         { "op": "mul", "a": "core", "b": "macro", "out": "cr" },
         { "op": "layer", "alpha": "cr", "alphaK": { "age": [0.75, 0.4] }, "color": [24, 22, 22], "smooth": { "age": [0.7, 0.35] } }
       ]
     },
     {
-      "id": "oilDrips", "name": "Oil drips",
+      "id": "oilDrips", "name": "Oil drips", "tier": "detail",
       "about": "A scatter of small oil drops and smears: the end of a parking bay, under a bench where bikes stand.",
-      "texel": 0.016, "layers": "ground", "order": 4, "lod": 25, "maxTexels": 256,
-      "edge": { "feather": 0.4, "warp": 0.3, "warpScale": 1.0, "round": 1 },
-      "variants": { "count": 6, "size": [2.0, 4.0], "aspect": [0.4, 1.0], "strength": [0.6, 1.0] },
+      "texel": 0.024, "layers": "ground", "order": 4, "lod": 25, "maxTexels": 256, "opacity": 0.896,
+      "edge": { "feather": 0.6, "warp": 0.45, "warpScale": 1.5, "round": 1 },
+      "variants": { "count": 6, "size": [3, 6], "aspect": [0.4, 1], "strength": [0.6, 1] },
       "ops": [
-        { "op": "scatter", "stamp": "blob", "density": 25, "clusters": 40, "cluster": 0.8, "clusterRadius": [0.15, 0.5], "size": [0.02, 0.09], "aspect": [0.6, 1.0], "palette": [[30, 28, 26], [44, 40, 36], [56, 50, 44]], "alpha": [0.5, 0.9], "height": 0.0, "smooth": 0.6 }
+        { "op": "scatter", "stamp": "blob", "density": 11.111, "clusters": 17.778, "cluster": 0.8, "clusterRadius": [0.225, 0.75], "size": [0.03, 0.135], "aspect": [0.6, 1], "palette": [[30, 28, 26], [44, 40, 36], [56, 50, 44]], "alpha": [0.5, 0.9], "height": 0, "smooth": 0.6 }
       ]
     },
     {
-      "id": "rustBleed", "name": "Rust stain",
+      "id": "rustBleed", "name": "Rust stain", "tier": "detail",
       "about": "Orange-brown rust bleeding into concrete or paving round the foot of a post, a bin or a fence foot.",
-      "texel": 0.016, "layers": "ground", "order": 4, "lod": 22, "maxTexels": 256,
-      "edge": { "feather": 0.35, "warp": 0.3, "warpScale": 0.6, "round": 1 },
-      "variants": { "count": 6, "size": [0.8, 2.0], "aspect": [0.6, 1.0], "strength": [0.6, 1.0] },
+      "texel": 0.024, "layers": "ground", "order": 4, "lod": 22, "maxTexels": 256, "opacity": 0.896,
+      "edge": { "feather": 0.525, "warp": 0.45, "warpScale": 0.9, "round": 1 },
+      "variants": { "count": 6, "size": [1.2, 3], "aspect": [0.6, 1], "strength": [0.6, 1] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 0.25, "octaves": 4, "warp": 0.15, "warpScale": 0.4 },
+        { "op": "fbm", "out": "n", "scale": 0.375, "octaves": 4, "warp": 0.225, "warpScale": 0.6 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.5 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "r" },
         { "op": "layer", "alpha": "r", "alphaK": 0.75, "color": [146, 86, 44], "color2": [108, 64, 36], "tone": "n", "vary": 0.12, "varyScale": 0.1, "smooth": 0.2 },
@@ -44,20 +45,20 @@
       ]
     },
     {
-      "id": "drinkSpill", "name": "Spilled drink",
+      "id": "drinkSpill", "name": "Spilled drink", "tier": "detail",
       "about": "A dried sticky spill on paving, darker where it pooled, with a splash of drops (by stalls, bins and benches).",
-      "texel": 0.016, "layers": "ground", "order": 4, "lod": 22, "maxTexels": 256,
-      "edge": { "feather": 0.25, "warp": 0.35, "warpScale": 0.5, "round": 1 },
-      "variants": { "count": 4, "size": [0.5, 1.4], "aspect": [0.5, 1.0], "strength": [0.5, 0.9] },
+      "texel": 0.024, "layers": "ground", "order": 4, "lod": 22, "maxTexels": 256, "opacity": 0.896,
+      "edge": { "feather": 0.375, "warp": 0.525, "warpScale": 0.75, "round": 1 },
+      "variants": { "count": 4, "size": [0.75, 2.1], "aspect": [0.5, 1], "strength": [0.5, 0.9] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 0.3, "octaves": 3 },
+        { "op": "fbm", "out": "n", "scale": 0.45, "octaves": 3 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.4, "hi": 0.3 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "s" },
         { "op": "layer", "alpha": "s", "alphaK": 0.35, "color": [96, 76, 52], "smooth": 0.45 },
-        { "op": "band", "in": "edge", "out": "rim", "at": 0.03, "width": 0.04 },
+        { "op": "band", "in": "edge", "out": "rim", "at": 0.045, "width": 0.06 },
         { "op": "mul", "a": "rim", "b": "macro", "out": "rm" },
         { "op": "layer", "alpha": "rm", "alphaK": 0.35, "color": [70, 54, 38], "smooth": 0.4 },
-        { "op": "scatter", "stamp": "blob", "density": 30, "clusters": 30, "cluster": 0.2, "clusterRadius": [0.2, 0.4], "edgeBias": 0.3, "size": [0.01, 0.03], "palette": [[90, 72, 50]], "alpha": [0.3, 0.6], "smooth": 0.45 }
+        { "op": "scatter", "stamp": "blob", "density": 13.333, "clusters": 13.333, "cluster": 0.2, "clusterRadius": [0.3, 0.6], "edgeBias": 0.45, "size": [0.015, 0.045], "palette": [[90, 72, 50]], "alpha": [0.3, 0.6], "smooth": 0.45 }
       ]
     }
   ]

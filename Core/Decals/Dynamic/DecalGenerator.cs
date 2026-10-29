@@ -294,7 +294,15 @@ namespace Placemaker.Core.Decals.Dynamic
                     float a = own[i] ? math.saturate(A[i] * strength) : 0f;
                     if (a > 0.004f) img.Covered++;
                     if (a > 0.5f) img.Strong++;
-                    img.Albedo[q] = Byte(R[i]); img.Albedo[q + 1] = Byte(G[i]); img.Albedo[q + 2] = Byte(B[i]); img.Albedo[q + 3] = Byte(a);
+                    float r0 = R[i], g0 = G[i], b0 = B[i];
+                    float satK = (float.IsNaN(k.Saturation) ? 1f : k.Saturation) * s.Saturation;
+                    if (satK < 0.999f)
+                    {
+                        // toned down towards its own grey (luma), so colours sit quietly on any ground
+                        float lum = r0 * 0.299f + g0 * 0.587f + b0 * 0.114f;
+                        r0 = math.lerp(lum, r0, satK); g0 = math.lerp(lum, g0, satK); b0 = math.lerp(lum, b0, satK);
+                    }
+                    img.Albedo[q] = Byte(r0); img.Albedo[q + 1] = Byte(g0); img.Albedo[q + 2] = Byte(b0); img.Albedo[q + 3] = Byte(a);
                     float hl = Hh[y * W + math.max(0, x - 1)], hr = Hh[y * W + math.min(W - 1, x + 1)];
                     float hd = Hh[math.max(0, y - 1) * W + x], hu = Hh[math.min(H - 1, y + 1) * W + x];
                     var n = math.normalize(new float3(-(hr - hl) * k.Bump / (2f * tx), -(hu - hd) * k.Bump / (2f * tz), 1f));

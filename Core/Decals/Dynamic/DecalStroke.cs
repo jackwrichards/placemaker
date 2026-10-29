@@ -64,6 +64,8 @@ namespace Placemaker.Core.Decals.Dynamic
 
         /// <summary>Overall opacity 0..1 (the kind's own alpha × this).</summary>
         public float Strength = 1f;
+        /// <summary>Colour saturation of this stroke (the shared library's variants come at full colour and a step toned down; not saved: strokes keep 1).</summary>
+        public float Saturation = 1f;
         /// <summary>0 dry .. 1 soaked (a puddle with water, or only its dry tidemark).</summary>
         public float Wetness;
         /// <summary>0 fresh .. 1 old (faded, broken up).</summary>

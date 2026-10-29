@@ -1,33 +1,34 @@
 {
   "_about": "Shared decal library, family 'cracks': chain pieces (tile 'chain': the main crack enters and leaves at the middle of the short sides, so any two pieces join end to end along a road or a path) and crack patches.",
   "family": "cracks",
+  "saturations": [1, 0.8],
   "kinds": [
     {
-      "id": "crackAsphalt", "name": "Asphalt crack (chain)",
+      "id": "crackAsphalt", "name": "Asphalt crack (chain)", "tier": "macro",
       "about": "One long wandering crack with short branches that end in T-junctions and a faint grime halo. Pieces join end to end.",
-      "texel": 0.024, "layers": "ground", "order": 4, "lod": 25, "maxTexels": 512, "opacity": 0.85,
-      "edge": { "feather": 0.5, "warp": 0.0, "warpScale": 2.0, "round": 1 },
-      "variants": { "count": 8, "size": [9.0, 12.0], "width": [2.4, 3.6], "tile": "chain", "strength": [0.8, 1.0] },
+      "texel": 0.031, "layers": "ground", "order": 4, "lod": 25, "maxTexels": 512, "opacity": 0.762,
+      "edge": { "feather": 0.65, "warp": 0, "warpScale": 2.6, "round": 1 },
+      "variants": { "count": 12, "size": [11.7, 15.6], "width": [3.12, 4.68], "tile": "chain", "strength": [0.8, 1] },
       "ops": [
-        { "op": "cracks", "out": "c", "chain": true, "wander": 0.9, "seeds": 0.04, "step": 0.3, "turn": 0.75, "branch": 0.5, "len": [0.8, 3.5], "width": [0.02, 0.055], "warp": 0.015 },
-        { "op": "fbm", "out": "dust", "scale": 1.2, "octaves": 3 },
+        { "op": "cracks", "out": "c", "chain": true, "wander": 1.17, "seeds": 0.024, "step": 0.39, "turn": 0.75, "branch": 0.5, "len": [1.04, 4.55], "width": [0.026, 0.072], "warp": 0.02 },
+        { "op": "fbm", "out": "dust", "scale": 1.56, "octaves": 3 },
         { "op": "remap", "in": "dust", "out": "open", "lo": -0.9, "hi": 0.1 },
         { "op": "mul", "a": "c", "b": "open", "out": "cOpen" },
         { "op": "mul", "a": "cHalo", "b": 0.18, "out": "halo" },
         { "op": "layer", "alpha": "halo", "color": [54, 52, 50], "smooth": 0.2 },
-        { "op": "layer", "alpha": "cOpen", "alphaK": 0.92, "color": [24, 23, 22], "smooth": 0.08, "height": -1.0, "ao": 0.5 }
+        { "op": "layer", "alpha": "cOpen", "alphaK": 0.92, "color": [24, 23, 22], "smooth": 0.08, "height": -1, "ao": 0.5 }
       ]
     },
     {
-      "id": "crackSealed", "name": "Sealed crack (chain)",
+      "id": "crackSealed", "name": "Sealed crack (chain)", "tier": "macro",
       "about": "A crack filled with a glossy black tar band, wider than the crack, slightly raised. Pieces join end to end.",
-      "texel": 0.024, "layers": "ground", "order": 4, "lod": 28, "maxTexels": 512, "opacity": 0.85,
-      "edge": { "feather": 0.5, "warp": 0.0, "warpScale": 2.0, "round": 1 },
-      "variants": { "count": 6, "size": [9.0, 12.0], "width": [2.4, 3.6], "tile": "chain", "strength": [0.85, 1.0] },
+      "texel": 0.031, "layers": "ground", "order": 4, "lod": 28, "maxTexels": 512, "opacity": 0.762,
+      "edge": { "feather": 0.65, "warp": 0, "warpScale": 2.6, "round": 1 },
+      "variants": { "count": 8, "size": [11.7, 15.6], "width": [3.12, 4.68], "tile": "chain", "strength": [0.85, 1] },
       "ops": [
-        { "op": "cracks", "out": "c", "chain": true, "wander": 0.7, "seeds": 0.0, "step": 0.3, "turn": 0.4, "branch": 0.15, "len": [0.6, 1.6], "width": [0.08, 0.13], "warp": 0.02 },
+        { "op": "cracks", "out": "c", "chain": true, "wander": 0.91, "seeds": 0, "step": 0.39, "turn": 0.4, "branch": 0.15, "len": [0.78, 2.08], "width": [0.104, 0.169], "warp": 0.026 },
         { "op": "remap", "in": "cHalo", "out": "band", "lo": 0.55, "hi": 0.75 },
-        { "op": "fbm", "out": "n", "scale": 0.4, "octaves": 2 },
+        { "op": "fbm", "out": "n", "scale": 0.52, "octaves": 2 },
         { "op": "remap", "in": "n", "out": "smear", "lo": -0.4, "hi": 0.5 },
         { "op": "mul", "a": "band", "b": "smear", "out": "tarSmear", "k": 0.6 },
         { "op": "max", "a": "c", "b": "tarSmear", "out": "tar" },
@@ -35,45 +36,45 @@
       ]
     },
     {
-      "id": "crackConcrete", "name": "Concrete crack (chain)",
+      "id": "crackConcrete", "name": "Concrete crack (chain)", "tier": "macro",
       "about": "A finer, straighter crack for concrete and paving slabs, with a few hairline splits. Pieces join end to end.",
-      "texel": 0.022, "layers": "ground", "order": 4, "lod": 22, "maxTexels": 512, "opacity": 0.85,
-      "edge": { "feather": 0.4, "warp": 0.0, "warpScale": 2.0, "round": 1 },
-      "variants": { "count": 6, "size": [9.0, 12.0], "width": [2.4, 3.6], "tile": "chain", "strength": [0.75, 1.0] },
+      "texel": 0.029, "layers": "ground", "order": 4, "lod": 22, "maxTexels": 512, "opacity": 0.762,
+      "edge": { "feather": 0.52, "warp": 0, "warpScale": 2.6, "round": 1 },
+      "variants": { "count": 8, "size": [11.7, 15.6], "width": [3.12, 4.68], "tile": "chain", "strength": [0.75, 1] },
       "ops": [
-        { "op": "cracks", "out": "c", "chain": true, "wander": 0.4, "seeds": 0.03, "step": 0.25, "turn": 0.25, "branch": 0.3, "len": [0.4, 1.4], "width": [0.012, 0.03], "warp": 0.008 },
+        { "op": "cracks", "out": "c", "chain": true, "wander": 0.52, "seeds": 0.018, "step": 0.325, "turn": 0.25, "branch": 0.3, "len": [0.52, 1.82], "width": [0.016, 0.039], "warp": 0.01 },
         { "op": "mul", "a": "cHalo", "b": 0.15, "out": "halo" },
         { "op": "layer", "alpha": "halo", "color": [96, 92, 86], "smooth": 0.2 },
-        { "op": "layer", "alpha": "c", "alphaK": 0.85, "color": [52, 50, 48], "smooth": 0.1, "height": -1.0, "ao": 0.6 }
+        { "op": "layer", "alpha": "c", "alphaK": 0.85, "color": [52, 50, 48], "smooth": 0.1, "height": -1, "ao": 0.6 }
       ]
     },
     {
-      "id": "crackWeb", "name": "Alligator cracking",
+      "id": "crackWeb", "name": "Alligator cracking", "tier": "macro",
       "about": "A patch of asphalt broken into small plates by cracks (where heavy wheels turn or water sits), dark in the joints.",
-      "texel": 0.022, "layers": "ground", "order": 4, "lod": 26, "maxTexels": 384, "opacity": 0.8,
-      "edge": { "feather": 0.8, "warp": 0.9, "warpScale": 1.8, "round": 1 },
-      "variants": { "count": 6, "size": [3.5, 7.5], "aspect": [0.5, 1.0], "strength": [0.75, 1.0], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "texel": 0.029, "layers": "ground", "order": 4, "lod": 26, "maxTexels": 384, "opacity": 0.717,
+      "edge": { "feather": 1.04, "warp": 1.17, "warpScale": 2.34, "round": 1 },
+      "variants": { "count": 8, "size": [4.55, 9.75], "aspect": [0.5, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
       "ops": [
-        { "op": "worley", "out": "w", "scale": 0.4, "mode": "edge", "warp": 0.04, "warpScale": 0.3 },
+        { "op": "worley", "out": "w", "scale": 0.52, "mode": "edge", "warp": 0.052, "warpScale": 0.39 },
         { "op": "remap", "in": "w", "out": "joint", "lo": 0.03, "hi": 0.008 },
-        { "op": "fbm", "out": "n", "scale": 1.0, "octaves": 3 },
+        { "op": "fbm", "out": "n", "scale": 1.3, "octaves": 3 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.3 },
         { "op": "mul", "a": "joint", "b": "shape", "c": "macro", "out": "cr" },
         { "op": "mul", "a": "shape", "b": "macro", "out": "dirt", "k": 0.18 },
         { "op": "layer", "alpha": "dirt", "color": [50, 48, 46], "smooth": 0.2 },
-        { "op": "layer", "alpha": "cr", "alphaK": 0.9, "color": [26, 25, 24], "smooth": 0.1, "height": -1.0, "ao": 0.6 }
+        { "op": "layer", "alpha": "cr", "alphaK": 0.9, "color": [26, 25, 24], "smooth": 0.1, "height": -1, "ao": 0.6 }
       ]
     },
     {
-      "id": "potholePatch", "name": "Patch repair",
+      "id": "potholePatch", "name": "Patch repair", "tier": "macro",
       "about": "A cut-out asphalt repair: a slightly darker rectangle with sealed edges, newer than the road round it.",
-      "texel": 0.03, "layers": "ground", "order": 3, "lod": 35, "maxTexels": 256, "opacity": 0.55,
-      "edge": { "feather": 0.12, "warp": 0.12, "warpScale": 0.8, "round": 0.15 },
-      "variants": { "count": 6, "size": [2.0, 6.0], "aspect": [0.4, 1.0], "strength": [0.7, 1.0] },
+      "texel": 0.039, "layers": "ground", "order": 3, "lod": 35, "maxTexels": 256, "opacity": 0.493,
+      "edge": { "feather": 0.156, "warp": 0.156, "warpScale": 1.04, "round": 0.15 },
+      "variants": { "count": 6, "size": [2.6, 7.8], "aspect": [0.4, 1], "strength": [0.7, 1] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 0.8, "octaves": 3 },
+        { "op": "fbm", "out": "n", "scale": 1.04, "octaves": 3 },
         { "op": "layer", "alpha": "shape", "alphaK": 0.55, "color": [52, 52, 54], "color2": [62, 62, 64], "tone": "n", "vary": 0.06, "varyScale": 0.1, "smooth": 0.3 },
-        { "op": "band", "in": "edge", "out": "sealB", "at": 0.04, "width": 0.07 },
+        { "op": "band", "in": "edge", "out": "sealB", "at": 0.052, "width": 0.091 },
         { "op": "remap", "in": "n", "out": "sealN", "lo": -0.7, "hi": 0.2 },
         { "op": "mul", "a": "sealB", "b": "sealN", "out": "seal" },
         { "op": "layer", "alpha": "seal", "alphaK": 0.75, "color": [26, 26, 27], "smooth": 0.6, "height": 0.4 }

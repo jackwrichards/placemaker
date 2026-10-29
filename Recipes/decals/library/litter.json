@@ -1,62 +1,63 @@
 {
   "_about": "Shared decal library, family 'litter': what people drop (butts, scraps, caps, gum) and bird droppings.",
   "family": "litter",
+  "saturations": [1, 0.8],
   "kinds": [
     {
-      "id": "litterSprinkle", "name": "Litter (carpet)",
+      "id": "litterSprinkle", "name": "Litter (carpet)", "tier": "macro",
       "about": "A thin, even sprinkle of butts, scraps and caps that repeats in every direction: lay it over a whole busy area so litter is consistent, never one lonely patch.",
-      "texel": 0.014, "layers": "ground", "order": 6, "lod": 30, "maxTexels": 512, "opacity": 0.9,
-      "edge": { "feather": 0.5, "warp": 0.0, "warpScale": 4, "round": 0 },
-      "variants": { "count": 4, "size": [5.3, 5.4], "aspect": [1.0, 1.0], "tile": "xy", "strength": [0.8, 1.0] },
+      "texel": 0.02, "layers": "ground", "order": 6, "lod": 30, "maxTexels": 512, "opacity": 0.806,
+      "edge": { "feather": 0.7, "warp": 0, "warpScale": 5.6, "round": 0 },
+      "variants": { "count": 4, "size": [7.42, 7.56], "aspect": [1, 1], "tile": "xy", "strength": [0.8, 1] },
       "ops": [
-        { "op": "scatter", "stamp": "butt", "density": 1.6, "clusters": 6, "cluster": 0.4, "clusterRadius": [0.4, 1.2], "size": [0.045, 0.06], "aspect": [0.22, 0.26], "palette": [[230, 226, 214], [214, 208, 196]], "alpha": [1.0, 1.0], "height": 0.5, "smooth": 0.2 },
-        { "op": "scatter", "stamp": "paper", "density": 0.25, "clusters": 6, "cluster": 0.2, "clusterRadius": [0.4, 1.2], "size": [0.08, 0.16], "aspect": [0.6, 1.0], "palette": [[234, 232, 226], [220, 214, 196], [196, 206, 216], [226, 196, 150]], "alpha": [0.95, 1.0], "height": 0.6, "smooth": 0.25 },
-        { "op": "scatter", "stamp": "cap", "density": 0.2, "clusters": 6, "cluster": 0.2, "clusterRadius": [0.4, 1.2], "size": [0.04, 0.05], "aspect": [1.0, 1.0], "palette": [[186, 40, 36], [200, 190, 180], [40, 90, 160]], "alpha": [1.0, 1.0], "height": 0.6, "smooth": 0.6 },
-        { "op": "scatter", "stamp": "blob", "density": 1.2, "clusters": 6, "cluster": 0.3, "clusterRadius": [0.4, 1.2], "size": [0.02, 0.045], "aspect": [0.8, 1.0], "palette": [[70, 68, 66], [90, 88, 86]], "alpha": [0.7, 0.9], "height": 0.1, "smooth": 0.3 }
+        { "op": "scatter", "stamp": "butt", "density": 0.816, "clusters": 3.061, "cluster": 0.15, "clusterRadius": [0.56, 1.68], "size": [0.063, 0.084], "aspect": [0.22, 0.26], "palette": [[230, 226, 214], [214, 208, 196]], "alpha": [1, 1], "height": 0.5, "smooth": 0.2 },
+        { "op": "scatter", "stamp": "paper", "density": 0.128, "clusters": 3.061, "cluster": 0.15, "clusterRadius": [0.56, 1.68], "size": [0.112, 0.224], "aspect": [0.6, 1], "palette": [[234, 232, 226], [220, 214, 196], [196, 206, 216], [226, 196, 150]], "alpha": [0.95, 1], "height": 0.6, "smooth": 0.25 },
+        { "op": "scatter", "stamp": "cap", "density": 0.102, "clusters": 3.061, "cluster": 0.15, "clusterRadius": [0.56, 1.68], "size": [0.056, 0.07], "aspect": [1, 1], "palette": [[186, 40, 36], [200, 190, 180], [40, 90, 160]], "alpha": [1, 1], "height": 0.6, "smooth": 0.6 },
+        { "op": "scatter", "stamp": "blob", "density": 0.612, "clusters": 3.061, "cluster": 0.15, "clusterRadius": [0.56, 1.68], "size": [0.028, 0.063], "aspect": [0.8, 1], "palette": [[70, 68, 66], [90, 88, 86]], "alpha": [0.7, 0.9], "height": 0.1, "smooth": 0.3 }
       ]
     },
     {
-      "id": "litterMix", "name": "Mixed litter",
+      "id": "litterMix", "name": "Mixed litter", "tier": "detail",
       "about": "A little of everything people drop by a bench or a bin: paper scraps, butts, caps, a wrapper.",
-      "texel": 0.012, "layers": "ground", "order": 6, "lod": 22, "maxTexels": 384,
-      "edge": { "feather": 0.5, "warp": 0.5, "warpScale": 1.2, "round": 1 },
-      "variants": { "count": 6, "size": [3.0, 6.0], "aspect": [0.6, 1.0], "strength": [0.9, 1.0], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "texel": 0.017, "layers": "ground", "order": 6, "lod": 22, "maxTexels": 384, "opacity": 0.896,
+      "edge": { "feather": 0.7, "warp": 0.7, "warpScale": 1.68, "round": 1 },
+      "variants": { "count": 6, "size": [4.2, 8.4], "aspect": [0.6, 1], "strength": [0.9, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
       "ops": [
-        { "op": "scatter", "stamp": "butt", "density": 5, "clusters": 30, "cluster": 0.5, "clusterRadius": [0.2, 0.6], "size": [0.045, 0.06], "aspect": [0.22, 0.26], "palette": [[230, 226, 214], [214, 208, 196]], "alpha": [1.0, 1.0], "height": 0.5, "smooth": 0.2 },
-        { "op": "scatter", "stamp": "paper", "density": 1.2, "clusters": 20, "cluster": 0.3, "clusterRadius": [0.2, 0.6], "size": [0.08, 0.16], "aspect": [0.6, 1.0], "palette": [[234, 232, 226], [220, 214, 196], [196, 206, 216], [226, 196, 150]], "alpha": [0.95, 1.0], "height": 0.6, "smooth": 0.25 },
-        { "op": "scatter", "stamp": "cap", "density": 0.8, "clusters": 20, "cluster": 0.3, "clusterRadius": [0.2, 0.6], "size": [0.04, 0.05], "aspect": [1.0, 1.0], "palette": [[186, 40, 36], [200, 190, 180], [40, 90, 160], [60, 120, 60]], "alpha": [1.0, 1.0], "height": 0.6, "smooth": 0.6 },
-        { "op": "scatter", "stamp": "litter", "density": 0.5, "clusters": 20, "cluster": 0.3, "clusterRadius": [0.2, 0.6], "size": [0.1, 0.18], "aspect": [0.35, 0.6], "palette": [[200, 60, 50], [230, 190, 60], [70, 110, 190], [220, 220, 220]], "alpha": [1.0, 1.0], "height": 0.4, "smooth": 0.55 }
+        { "op": "scatter", "stamp": "butt", "density": 2.551, "clusters": 15.306, "cluster": 0.5, "clusterRadius": [0.28, 0.84], "size": [0.063, 0.084], "aspect": [0.22, 0.26], "palette": [[230, 226, 214], [214, 208, 196]], "alpha": [1, 1], "height": 0.5, "smooth": 0.2 },
+        { "op": "scatter", "stamp": "paper", "density": 0.612, "clusters": 10.204, "cluster": 0.3, "clusterRadius": [0.28, 0.84], "size": [0.112, 0.224], "aspect": [0.6, 1], "palette": [[234, 232, 226], [220, 214, 196], [196, 206, 216], [226, 196, 150]], "alpha": [0.95, 1], "height": 0.6, "smooth": 0.25 },
+        { "op": "scatter", "stamp": "cap", "density": 0.408, "clusters": 10.204, "cluster": 0.3, "clusterRadius": [0.28, 0.84], "size": [0.056, 0.07], "aspect": [1, 1], "palette": [[186, 40, 36], [200, 190, 180], [40, 90, 160], [60, 120, 60]], "alpha": [1, 1], "height": 0.6, "smooth": 0.6 },
+        { "op": "scatter", "stamp": "litter", "density": 0.255, "clusters": 10.204, "cluster": 0.3, "clusterRadius": [0.28, 0.84], "size": [0.14, 0.252], "aspect": [0.35, 0.6], "palette": [[200, 60, 50], [230, 190, 60], [70, 110, 190], [220, 220, 220]], "alpha": [1, 1], "height": 0.4, "smooth": 0.55 }
       ]
     },
     {
-      "id": "cigaretteButts", "name": "Cigarette butts",
+      "id": "cigaretteButts", "name": "Cigarette butts", "tier": "detail",
       "about": "Butts trodden into the ground where people stand and wait: a smoking corner, a bus stop, a stand.",
-      "texel": 0.01, "layers": "ground", "order": 6, "lod": 20, "maxTexels": 256,
-      "edge": { "feather": 0.4, "warp": 0.4, "warpScale": 1.0, "round": 1 },
-      "variants": { "count": 4, "size": [2.0, 4.0], "aspect": [0.6, 1.0], "strength": [0.9, 1.0] },
+      "texel": 0.014, "layers": "ground", "order": 6, "lod": 20, "maxTexels": 256, "opacity": 0.896,
+      "edge": { "feather": 0.56, "warp": 0.56, "warpScale": 1.4, "round": 1 },
+      "variants": { "count": 4, "size": [2.8, 5.6], "aspect": [0.6, 1], "strength": [0.9, 1] },
       "ops": [
-        { "op": "scatter", "stamp": "blob", "density": 30, "clusters": 30, "cluster": 0.7, "clusterRadius": [0.2, 0.5], "size": [0.008, 0.016], "aspect": [0.7, 1.0], "palette": [[90, 86, 80], [70, 68, 64]], "alpha": [0.4, 0.8], "height": 0.1, "smooth": 0.2 },
-        { "op": "scatter", "stamp": "butt", "density": 9, "clusters": 30, "cluster": 0.7, "clusterRadius": [0.2, 0.5], "size": [0.04, 0.055], "aspect": [0.22, 0.27], "palette": [[230, 226, 214], [214, 208, 196], [196, 188, 172]], "alpha": [0.95, 1.0], "height": 0.5, "smooth": 0.2 }
+        { "op": "scatter", "stamp": "blob", "density": 15.306, "clusters": 15.306, "cluster": 0.7, "clusterRadius": [0.28, 0.7], "size": [0.011, 0.022], "aspect": [0.7, 1], "palette": [[90, 86, 80], [70, 68, 64]], "alpha": [0.4, 0.8], "height": 0.1, "smooth": 0.2 },
+        { "op": "scatter", "stamp": "butt", "density": 4.592, "clusters": 15.306, "cluster": 0.7, "clusterRadius": [0.28, 0.7], "size": [0.056, 0.077], "aspect": [0.22, 0.27], "palette": [[230, 226, 214], [214, 208, 196], [196, 188, 172]], "alpha": [0.95, 1], "height": 0.5, "smooth": 0.2 }
       ]
     },
     {
-      "id": "chewingGum", "name": "Chewing gum spots",
+      "id": "chewingGum", "name": "Chewing gum spots", "tier": "detail",
       "about": "Flattened gum on paving, grey-black dots, most of them old (outside shops, at crossings and stops).",
-      "texel": 0.012, "layers": "ground", "order": 3, "lod": 20, "maxTexels": 384,
-      "edge": { "feather": 0.6, "warp": 0.6, "warpScale": 1.4, "round": 1 },
-      "variants": { "count": 4, "size": [3.0, 6.0], "aspect": [0.6, 1.0], "strength": [0.8, 1.0] },
+      "texel": 0.017, "layers": "ground", "order": 3, "lod": 20, "maxTexels": 384, "opacity": 0.896,
+      "edge": { "feather": 0.84, "warp": 0.84, "warpScale": 1.96, "round": 1 },
+      "variants": { "count": 4, "size": [4.2, 8.4], "aspect": [0.6, 1], "strength": [0.8, 1] },
       "ops": [
-        { "op": "scatter", "stamp": "blob", "density": 14, "clusters": 15, "cluster": 0.3, "clusterRadius": [0.3, 0.8], "size": [0.02, 0.045], "aspect": [0.8, 1.0], "palette": [[70, 68, 66], [90, 88, 86], [56, 54, 54], [110, 108, 104]], "alpha": [0.75, 0.95], "height": 0.1, "smooth": 0.3 }
+        { "op": "scatter", "stamp": "blob", "density": 7.143, "clusters": 7.653, "cluster": 0.3, "clusterRadius": [0.42, 1.12], "size": [0.028, 0.063], "aspect": [0.8, 1], "palette": [[70, 68, 66], [90, 88, 86], [56, 54, 54], [110, 108, 104]], "alpha": [0.75, 0.95], "height": 0.1, "smooth": 0.3 }
       ]
     },
     {
-      "id": "birdDroppings", "name": "Bird droppings",
+      "id": "birdDroppings", "name": "Bird droppings", "tier": "detail",
       "about": "White splashes under perches: lamp posts, wires, the branches of big trees, fence rails.",
-      "texel": 0.012, "layers": "ground", "order": 6, "lod": 20, "maxTexels": 256,
-      "edge": { "feather": 0.6, "warp": 0.5, "warpScale": 1.2, "round": 1 },
-      "variants": { "count": 4, "size": [1.6, 3.0], "aspect": [0.6, 1.0], "strength": [0.85, 1.0] },
+      "texel": 0.017, "layers": "ground", "order": 6, "lod": 20, "maxTexels": 256, "opacity": 0.896,
+      "edge": { "feather": 0.84, "warp": 0.7, "warpScale": 1.68, "round": 1 },
+      "variants": { "count": 4, "size": [2.24, 4.2], "aspect": [0.6, 1], "strength": [0.85, 1] },
       "ops": [
-        { "op": "scatter", "stamp": "splat", "density": 10, "clusters": 40, "cluster": 0.8, "clusterRadius": [0.15, 0.4], "size": [0.04, 0.09], "aspect": [0.8, 1.0], "palette": [[236, 234, 226], [220, 218, 208], [200, 196, 186]], "alpha": [0.85, 1.0], "height": 0.2, "smooth": 0.45 }
+        { "op": "scatter", "stamp": "splat", "density": 5.102, "clusters": 20.408, "cluster": 0.8, "clusterRadius": [0.21, 0.56], "size": [0.056, 0.126], "aspect": [0.8, 1], "palette": [[236, 234, 226], [220, 218, 208], [200, 196, 186]], "alpha": [0.85, 1], "height": 0.2, "smooth": 0.45 }
       ]
     }
   ]

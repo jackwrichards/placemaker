@@ -122,6 +122,9 @@ namespace Placemaker.Core.Decals.Dynamic
         public string Family = "";
         /// <summary>A short plain name for people ("Oak leaves").</summary>
         public string Name = "";
+        /// <summary>"macro" (reads from the player's view, 30-100 m up: the kinds builders should reach for first) or "detail"
+        /// (small things that only show up close: use sparingly, as texture inside macro looks).</summary>
+        public string Tier = "macro";
         /// <summary>How many variants the shared library makes and how they differ (DecalVariants).</summary>
         public VariantSpec Variants = new VariantSpec();
         public float Texel = 0.08f;
@@ -132,6 +135,8 @@ namespace Placemaker.Core.Decals.Dynamic
         /// <summary>Relief in metres for height 1 (normal map strength).</summary>
         public float Bump = 0.012f;
         public float Opacity = 1f;
+        /// <summary>Colour saturation of the result (1 = as the recipe says, 0 = grey); a family file may set a default.</summary>
+        public float Saturation = 1f;
         /// <summary>Most texels a side of one tile (keeps a tile at or under 512 x 512).</summary>
         public int MaxTexels = 512;
         public readonly List<DecalOp> Ops = new List<DecalOp>();
@@ -173,11 +178,17 @@ namespace Placemaker.Core.Decals.Dynamic
             if (!JsonValue.TryParse(json ?? "", out var root, out var err)) { lib.Warnings.Add("decal library: " + err); return lib; }
             var list = root.IsArray ? root : root["kinds"];
             string family = root.IsObject ? root["family"].AsString("") : "";
+            float saturation = root.IsObject ? (float)root["saturation"].AsNumber(1) : 1f;
+            // a family's colour levels for its variants ("saturations": [1, 0.8]): kinds without their own take them
+            var levels = new List<float>();
+            if (root.IsObject) foreach (var x in root["saturations"].Items) levels.Add(math.clamp((float)x.AsNumber(1), 0f, 1f));
             foreach (var k in list.Items)
             {
                 var kind = ParseKind(k, lib.Warnings);
                 if (kind == null) continue;
                 if (kind.Family.Length == 0) kind.Family = family;
+                if (float.IsNaN(kind.Saturation)) kind.Saturation = saturation;
+                if (kind.Variants.Saturations.Length == 0 && levels.Count > 0) kind.Variants.Saturations = levels.ToArray();
                 if (lib._kinds.ContainsKey(kind.Id)) lib.Warnings.Add("decal library: duplicate kind " + kind.Id);
                 lib._kinds[kind.Id] = kind;
             }
@@ -232,7 +243,7 @@ namespace Placemaker.Core.Decals.Dynamic
         public static DecalKind ParseKind(JsonValue v, List<string> warnings)
         {
             if (v == null || !v.IsObject) return null;
-            var k = new DecalKind { Id = v["id"].AsString(""), About = v["about"].AsString(""), Family = v["family"].AsString(""), Name = v["name"].AsString("") };
+            var k = new DecalKind { Id = v["id"].AsString(""), About = v["about"].AsString(""), Family = v["family"].AsString(""), Name = v["name"].AsString(""), Tier = v["tier"].AsString("macro") };
             if (k.Id.Length == 0) { warnings?.Add("decal kind without an id"); return null; }
             try
             {
@@ -243,6 +254,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 k.Lod = (float)v["lod"].AsNumber(40);
                 k.Bump = (float)v["bump"].AsNumber(0.012);
                 k.Opacity = (float)v["opacity"].AsNumber(1);
+                { float sat = (float)v["saturation"].AsNumber(double.NaN); k.Saturation = float.IsNaN(sat) ? float.NaN : math.clamp(sat, 0f, 1f); }   // NaN: the family default (Parse), else 1
                 k.MaxTexels = math.clamp((int)v["maxTexels"].AsNumber(512), 64, 1024) / 4 * 4;
                 k.Variants = VariantSpec.Parse(v["variants"]);
                 var e = v["edge"];

@@ -1,182 +1,183 @@
 {
-  "_about": "Shared decal library, family 'leaves' (docs/DYNAMIC-DECALS.md, 'The shared library'). Seen from far away: patches are big (5-10 m), leaves a little larger than life, the whole thing see-through enough that the ground shows. Patches cycle through fade types (soft, along their length, from one side, a hollow middle, islands, a long wide fade); the 'Carpet' kinds are sheets that repeat both ways, to smother a whole area.",
+  "_about": "Shared decal library, family 'leaves' (docs/DYNAMIC-DECALS.md, 'The shared library'). Seen from far away: patches are big (8-15 m), leaves a little larger than life, the whole thing see-through enough that the ground shows. Patches cycle through fade types (soft, along their length, from one side, a hollow middle, islands, a long wide fade); the 'Carpet' kinds are sheets that repeat both ways, to smother a whole area.",
   "family": "leaves",
+  "saturations": [1, 0.8],
   "kinds": [
     {
-      "id": "leafBirch", "name": "Birch leaves",
+      "id": "leafBirch", "name": "Birch leaves", "tier": "macro",
       "about": "Small yellow birch leaves sprinkled over a big area, thicker in drifts. Mostly see-through.",
-      "texel": 0.02, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.8,
-      "edge": { "feather": 1.1, "warp": 0.8, "warpScale": 2.6, "round": 0.85 },
-      "variants": { "count": 8, "size": [5.5, 8.5], "aspect": [0.55, 1.0], "strength": [0.75, 1.0], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "texel": 0.038, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.717,
+      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
+      "variants": { "count": 12, "size": [8.25, 12.75], "aspect": [0.55, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
       "ops": [
-        { "op": "scatter", "stamp": "birch", "density": 80, "clusters": 25, "cluster": 0.35, "clusterRadius": [0.8, 2.4], "noise": { "scale": 2.2, "lo": -1.0, "hi": 0.25 }, "size": [0.08, 0.12], "aspect": [0.7, 0.85], "palette": [[222, 186, 60], [204, 170, 52], [232, 204, 90], [178, 146, 50], [196, 150, 46]], "alpha": [0.7, 1.0], "value": 0.1, "height": 0.4, "smooth": 0.35, "max": 40000 }
+        { "op": "scatter", "stamp": "birch", "density": 35.556, "clusters": 11.111, "cluster": 0.35, "clusterRadius": [1.2, 3.6], "noise": { "scale": 3.3, "lo": -1, "hi": 0.25 }, "size": [0.12, 0.18], "aspect": [0.7, 0.85], "palette": [[222, 186, 60], [204, 170, 52], [232, 204, 90], [178, 146, 50], [196, 150, 46]], "alpha": [0.7, 1], "value": 0.1, "height": 0.4, "smooth": 0.35, "max": 40000 }
       ]
     },
     {
-      "id": "leafBirchCarpet", "name": "Birch leaves (carpet)",
+      "id": "leafBirchCarpet", "name": "Birch leaves (carpet)", "tier": "macro",
       "about": "Birch leaves that repeat in every direction: lay it under a whole stand of birches so the ground is smothered, not spotted.",
-      "texel": 0.022, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.75,
-      "edge": { "feather": 0.5, "warp": 0.0, "warpScale": 4, "round": 0 },
-      "variants": { "count": 4, "size": [8.0, 8.4], "aspect": [1.0, 1.0], "tile": "xy", "strength": [0.7, 1.0] },
+      "texel": 0.041, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.672,
+      "edge": { "feather": 0.75, "warp": 0, "warpScale": 6, "round": 0 },
+      "variants": { "count": 6, "size": [12, 12.6], "aspect": [1, 1], "tile": "xy", "strength": [0.7, 1] },
       "ops": [
-        { "op": "scatter", "stamp": "birch", "density": 45, "clusters": 8, "cluster": 0.35, "clusterRadius": [1.0, 2.6], "noise": { "scale": 2.5, "lo": -0.9, "hi": 0.4 }, "size": [0.08, 0.12], "aspect": [0.7, 0.85], "palette": [[222, 186, 60], [204, 170, 52], [232, 204, 90], [178, 146, 50], [196, 150, 46]], "alpha": [0.7, 1.0], "value": 0.1, "height": 0.4, "smooth": 0.35, "max": 40000 }
+        { "op": "scatter", "stamp": "birch", "density": 20, "clusters": 3.556, "cluster": 0.15, "clusterRadius": [1.5, 3.9], "noise": { "scale": 6, "lo": -0.9, "hi": 0.4 }, "size": [0.12, 0.18], "aspect": [0.7, 0.85], "palette": [[222, 186, 60], [204, 170, 52], [232, 204, 90], [178, 146, 50], [196, 150, 46]], "alpha": [0.7, 1], "value": 0.1, "height": 0.4, "smooth": 0.35, "max": 40000 }
       ]
     },
     {
-      "id": "leafOak", "name": "Oak leaves",
+      "id": "leafOak", "name": "Oak leaves", "tier": "macro",
       "about": "Fallen oak leaves, ochre to brown, in loose drifts with a faint film of old leaves under the thick parts.",
-      "texel": 0.022, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.85,
-      "edge": { "feather": 1.1, "warp": 0.8, "warpScale": 2.6, "round": 0.85 },
-      "variants": { "count": 6, "size": [5.5, 9.0], "aspect": [0.55, 1.0], "strength": [0.75, 1.0], "age": [0.2, 0.8], "fades": ["soft", "linear", "islands", "ring", "wide", "side"] },
+      "texel": 0.041, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.762,
+      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
+      "variants": { "count": 10, "size": [8.25, 13.5], "aspect": [0.55, 1], "strength": [0.75, 1], "age": [0.2, 0.8], "fades": ["soft", "linear", "islands", "ring", "wide", "side"] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 2.5, "octaves": 4, "warp": 1.0, "warpScale": 2.5 },
+        { "op": "fbm", "out": "n", "scale": 3.75, "octaves": 4, "warp": 1.5, "warpScale": 3.75 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.35, "hi": 0.45 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "film" },
         { "op": "layer", "alpha": "film", "alphaK": { "age": [0.05, 0.14] }, "color": [78, 62, 40], "color2": [62, 52, 36], "tone": "n", "smooth": 0.2 },
-        { "op": "scatter", "stamp": "oak", "density": 22, "clusters": 20, "cluster": 0.4, "clusterRadius": [0.8, 2.4], "noise": { "scale": 2.2, "lo": -1.0, "hi": 0.25 }, "size": [0.16, 0.24], "aspect": [0.55, 0.68], "palette": [[164, 112, 46], [140, 92, 40], [118, 80, 40], [182, 136, 62], [102, 72, 40], [150, 120, 58]], "alpha": [0.75, 1.0], "value": 0.14, "height": 0.55, "smooth": 0.32, "max": 40000 }
+        { "op": "scatter", "stamp": "oak", "density": 9.778, "clusters": 8.889, "cluster": 0.4, "clusterRadius": [1.2, 3.6], "noise": { "scale": 3.3, "lo": -1, "hi": 0.25 }, "size": [0.24, 0.36], "aspect": [0.55, 0.68], "palette": [[164, 112, 46], [140, 92, 40], [118, 80, 40], [182, 136, 62], [102, 72, 40], [150, 120, 58]], "alpha": [0.75, 1], "value": 0.14, "height": 0.55, "smooth": 0.32, "max": 40000 }
       ]
     },
     {
-      "id": "leafOakCarpet", "name": "Oak leaves (carpet)",
+      "id": "leafOakCarpet", "name": "Oak leaves (carpet)", "tier": "macro",
       "about": "Oak leaves that repeat in every direction, for the ground under a whole group of oaks.",
-      "texel": 0.024, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.8,
-      "edge": { "feather": 0.5, "warp": 0.0, "warpScale": 4, "round": 0 },
-      "variants": { "count": 4, "size": [9.0, 9.2], "aspect": [1.0, 1.0], "tile": "xy", "strength": [0.7, 1.0] },
+      "texel": 0.045, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.717,
+      "edge": { "feather": 0.75, "warp": 0, "warpScale": 6, "round": 0 },
+      "variants": { "count": 6, "size": [13.5, 13.8], "aspect": [1, 1], "tile": "xy", "strength": [0.7, 1] },
       "ops": [
-        { "op": "scatter", "stamp": "oak", "density": 18, "clusters": 8, "cluster": 0.4, "clusterRadius": [1.0, 2.6], "noise": { "scale": 2.6, "lo": -0.9, "hi": 0.35 }, "size": [0.16, 0.24], "aspect": [0.55, 0.68], "palette": [[164, 112, 46], [140, 92, 40], [118, 80, 40], [182, 136, 62], [102, 72, 40], [150, 120, 58]], "alpha": [0.75, 1.0], "value": 0.14, "height": 0.55, "smooth": 0.32, "max": 40000 }
+        { "op": "scatter", "stamp": "oak", "density": 8, "clusters": 3.556, "cluster": 0.15, "clusterRadius": [1.5, 3.9], "noise": { "scale": 6.24, "lo": -0.9, "hi": 0.35 }, "size": [0.24, 0.36], "aspect": [0.55, 0.68], "palette": [[164, 112, 46], [140, 92, 40], [118, 80, 40], [182, 136, 62], [102, 72, 40], [150, 120, 58]], "alpha": [0.75, 1], "value": 0.14, "height": 0.55, "smooth": 0.32, "max": 40000 }
       ]
     },
     {
-      "id": "leafMaple", "name": "Maple leaves",
+      "id": "leafMaple", "name": "Maple leaves", "tier": "macro",
       "about": "Maple leaves in reds, oranges and yellows, scattered thinly over a big area (heaps are the 'Leaf heap' kind).",
-      "texel": 0.022, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.85,
-      "edge": { "feather": 1.1, "warp": 0.8, "warpScale": 2.6, "round": 0.85 },
-      "variants": { "count": 6, "size": [5.5, 9.0], "aspect": [0.55, 1.0], "strength": [0.75, 1.0], "fades": ["islands", "soft", "wide", "linear", "ring", "side"] },
+      "texel": 0.041, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.762,
+      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
+      "variants": { "count": 8, "size": [8.25, 13.5], "aspect": [0.55, 1], "strength": [0.75, 1], "fades": ["islands", "soft", "wide", "linear", "ring", "side"] },
       "ops": [
-        { "op": "scatter", "stamp": "maple", "density": 12, "clusters": 15, "cluster": 0.3, "clusterRadius": [0.8, 2.4], "noise": { "scale": 2.4, "lo": -1.0, "hi": 0.25 }, "size": [0.18, 0.28], "aspect": [0.92, 1.05], "palette": [[188, 64, 30], [206, 106, 34], [220, 156, 44], [160, 44, 30], [196, 130, 40], [140, 70, 34]], "alpha": [0.75, 1.0], "value": 0.12, "height": 0.5, "smooth": 0.34, "max": 40000 }
+        { "op": "scatter", "stamp": "maple", "density": 5.333, "clusters": 6.667, "cluster": 0.3, "clusterRadius": [1.2, 3.6], "noise": { "scale": 3.6, "lo": -1, "hi": 0.25 }, "size": [0.27, 0.42], "aspect": [0.92, 1.05], "palette": [[188, 64, 30], [206, 106, 34], [220, 156, 44], [160, 44, 30], [196, 130, 40], [140, 70, 34]], "alpha": [0.75, 1], "value": 0.12, "height": 0.5, "smooth": 0.34, "max": 40000 }
       ]
     },
     {
-      "id": "leafMixed", "name": "Mixed autumn leaves",
+      "id": "leafMixed", "name": "Mixed autumn leaves", "tier": "macro",
       "about": "Oak, maple and birch leaves together, the most natural mix under a group of different trees.",
-      "texel": 0.022, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.85,
-      "edge": { "feather": 1.1, "warp": 0.8, "warpScale": 2.6, "round": 0.85 },
-      "variants": { "count": 8, "size": [5.5, 9.0], "aspect": [0.55, 1.0], "strength": [0.75, 1.0], "age": [0.2, 0.8], "fades": ["soft", "islands", "linear", "wide", "ring", "side"] },
+      "texel": 0.041, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.762,
+      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
+      "variants": { "count": 12, "size": [8.25, 13.5], "aspect": [0.55, 1], "strength": [0.75, 1], "age": [0.2, 0.8], "fades": ["soft", "islands", "linear", "wide", "ring", "side"] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 2.6, "octaves": 4, "warp": 1.0, "warpScale": 2.5 },
+        { "op": "fbm", "out": "n", "scale": 3.9, "octaves": 4, "warp": 1.5, "warpScale": 3.75 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.3, "hi": 0.5 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "film" },
         { "op": "layer", "alpha": "film", "alphaK": { "age": [0.04, 0.12] }, "color": [80, 64, 42], "smooth": 0.2 },
-        { "op": "scatter", "stamp": ["oak", "maple", "birch", "leaf"], "density": 24, "clusters": 20, "cluster": 0.4, "clusterRadius": [0.8, 2.4], "noise": { "scale": 2.2, "lo": -1.0, "hi": 0.25 }, "size": [0.1, 0.26], "aspect": [0.55, 0.95], "palette": [[176, 98, 40], [206, 150, 50], [150, 100, 44], [188, 70, 32], [124, 84, 42], [214, 182, 64], [104, 74, 40]], "alpha": [0.75, 1.0], "value": 0.12, "height": 0.5, "smooth": 0.32, "max": 40000 }
+        { "op": "scatter", "stamp": ["oak", "maple", "birch", "leaf"], "density": 10.667, "clusters": 8.889, "cluster": 0.4, "clusterRadius": [1.2, 3.6], "noise": { "scale": 3.3, "lo": -1, "hi": 0.25 }, "size": [0.15, 0.39], "aspect": [0.55, 0.95], "palette": [[176, 98, 40], [206, 150, 50], [150, 100, 44], [188, 70, 32], [124, 84, 42], [214, 182, 64], [104, 74, 40]], "alpha": [0.75, 1], "value": 0.12, "height": 0.5, "smooth": 0.32, "max": 40000 }
       ]
     },
     {
-      "id": "leafMixedCarpet", "name": "Mixed leaves (carpet)",
+      "id": "leafMixedCarpet", "name": "Mixed leaves (carpet)", "tier": "macro",
       "about": "Mixed autumn leaves that repeat in every direction: the ground of a whole wooded corner or avenue.",
-      "texel": 0.024, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.8,
-      "edge": { "feather": 0.5, "warp": 0.0, "warpScale": 4, "round": 0 },
-      "variants": { "count": 4, "size": [9.0, 9.2], "aspect": [1.0, 1.0], "tile": "xy", "strength": [0.7, 1.0] },
+      "texel": 0.045, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.717,
+      "edge": { "feather": 0.75, "warp": 0, "warpScale": 6, "round": 0 },
+      "variants": { "count": 6, "size": [13.5, 13.8], "aspect": [1, 1], "tile": "xy", "strength": [0.7, 1] },
       "ops": [
-        { "op": "scatter", "stamp": ["oak", "maple", "birch", "leaf"], "density": 20, "clusters": 8, "cluster": 0.4, "clusterRadius": [1.0, 2.6], "noise": { "scale": 2.6, "lo": -0.9, "hi": 0.35 }, "size": [0.1, 0.26], "aspect": [0.55, 0.95], "palette": [[176, 98, 40], [206, 150, 50], [150, 100, 44], [188, 70, 32], [124, 84, 42], [214, 182, 64], [104, 74, 40]], "alpha": [0.75, 1.0], "value": 0.12, "height": 0.5, "smooth": 0.32, "max": 40000 }
+        { "op": "scatter", "stamp": ["oak", "maple", "birch", "leaf"], "density": 8.889, "clusters": 3.556, "cluster": 0.15, "clusterRadius": [1.5, 3.9], "noise": { "scale": 6.24, "lo": -0.9, "hi": 0.35 }, "size": [0.15, 0.39], "aspect": [0.55, 0.95], "palette": [[176, 98, 40], [206, 150, 50], [150, 100, 44], [188, 70, 32], [124, 84, 42], [214, 182, 64], [104, 74, 40]], "alpha": [0.75, 1], "value": 0.12, "height": 0.5, "smooth": 0.32, "max": 40000 }
       ]
     },
     {
-      "id": "leafPlane", "name": "Plane leaves",
+      "id": "leafPlane", "name": "Plane leaves", "tier": "macro",
       "about": "Big tan plane-tree leaves lying flat and overlapping (city streets, avenues).",
-      "texel": 0.024, "layers": "ground", "order": 5, "lod": 42, "maxTexels": 512, "opacity": 0.85,
-      "edge": { "feather": 1.1, "warp": 0.8, "warpScale": 2.6, "round": 0.85 },
-      "variants": { "count": 6, "size": [6.0, 9.5], "aspect": [0.55, 1.0], "strength": [0.75, 1.0], "fades": ["linear", "soft", "islands", "side", "wide", "ring"] },
+      "texel": 0.045, "layers": "ground", "order": 5, "lod": 42, "maxTexels": 512, "opacity": 0.762,
+      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
+      "variants": { "count": 8, "size": [9, 14.25], "aspect": [0.55, 1], "strength": [0.75, 1], "fades": ["linear", "soft", "islands", "side", "wide", "ring"] },
       "ops": [
-        { "op": "scatter", "stamp": "maple", "density": 9, "clusters": 15, "cluster": 0.45, "clusterRadius": [0.8, 2.4], "noise": { "scale": 2.4, "lo": -1.0, "hi": 0.25 }, "size": [0.28, 0.4], "aspect": [0.95, 1.1], "palette": [[176, 140, 84], [150, 116, 70], [190, 156, 92], [128, 98, 60], [160, 132, 70]], "alpha": [0.8, 1.0], "value": 0.12, "height": 0.7, "smooth": 0.3, "max": 30000 }
+        { "op": "scatter", "stamp": "maple", "density": 4, "clusters": 6.667, "cluster": 0.45, "clusterRadius": [1.2, 3.6], "noise": { "scale": 3.6, "lo": -1, "hi": 0.25 }, "size": [0.42, 0.6], "aspect": [0.95, 1.1], "palette": [[176, 140, 84], [150, 116, 70], [190, 156, 92], [128, 98, 60], [160, 132, 70]], "alpha": [0.8, 1], "value": 0.12, "height": 0.7, "smooth": 0.3, "max": 30000 }
       ]
     },
     {
-      "id": "leafDry", "name": "Dry curled leaves",
+      "id": "leafDry", "name": "Dry curled leaves", "tier": "macro",
       "about": "Old, dry leaves curled into narrow shapes, tan and light brown, blown into loose drifts (late autumn, under hedges).",
-      "texel": 0.02, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.85,
-      "edge": { "feather": 1.1, "warp": 0.8, "warpScale": 2.6, "round": 0.85 },
-      "variants": { "count": 6, "size": [5.0, 8.5], "aspect": [0.55, 1.0], "strength": [0.75, 1.0], "fades": ["side", "soft", "islands", "linear", "wide", "ring"] },
+      "texel": 0.038, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.762,
+      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
+      "variants": { "count": 8, "size": [7.5, 12.75], "aspect": [0.55, 1], "strength": [0.75, 1], "fades": ["side", "soft", "islands", "linear", "wide", "ring"] },
       "ops": [
-        { "op": "scatter", "stamp": ["leaf", "oak"], "density": 26, "clusters": 20, "cluster": 0.45, "clusterRadius": [0.6, 2.0], "noise": { "scale": 2.0, "lo": -1.0, "hi": 0.25 }, "size": [0.1, 0.2], "aspect": [0.3, 0.45], "palette": [[176, 140, 96], [150, 116, 78], [196, 162, 112], [128, 96, 64], [164, 128, 84]], "alpha": [0.8, 1.0], "value": 0.12, "height": 0.9, "smooth": 0.22, "max": 40000 }
+        { "op": "scatter", "stamp": ["leaf", "oak"], "density": 11.556, "clusters": 8.889, "cluster": 0.45, "clusterRadius": [0.9, 3], "noise": { "scale": 3, "lo": -1, "hi": 0.25 }, "size": [0.15, 0.3], "aspect": [0.3, 0.45], "palette": [[176, 140, 96], [150, 116, 78], [196, 162, 112], [128, 96, 64], [164, 128, 84]], "alpha": [0.8, 1], "value": 0.12, "height": 0.9, "smooth": 0.22, "max": 40000 }
       ]
     },
     {
-      "id": "leafWet", "name": "Wet matted leaves",
+      "id": "leafWet", "name": "Wet matted leaves", "tier": "macro",
       "about": "Leaves after rain, dark and stuck flat to paving and paths, glossy, with a faint damp shadow.",
-      "texel": 0.022, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.8,
-      "edge": { "feather": 1.1, "warp": 0.8, "warpScale": 2.6, "round": 0.85 },
-      "variants": { "count": 6, "size": [5.0, 8.5], "aspect": [0.55, 1.0], "strength": [0.75, 1.0], "fades": ["soft", "linear", "islands", "wide", "side", "ring"] },
+      "texel": 0.041, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.717,
+      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
+      "variants": { "count": 8, "size": [7.5, 12.75], "aspect": [0.55, 1], "strength": [0.75, 1], "fades": ["soft", "linear", "islands", "wide", "side", "ring"] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 2.0, "octaves": 4, "warp": 0.8, "warpScale": 2.5 },
+        { "op": "fbm", "out": "n", "scale": 3, "octaves": 4, "warp": 1.2, "warpScale": 3.75 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.25, "hi": 0.45 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "damp" },
         { "op": "layer", "alpha": "damp", "alphaK": 0.14, "color": [40, 38, 34], "smooth": 0.6 },
-        { "op": "scatter", "stamp": ["maple", "oak", "leaf"], "density": 20, "clusters": 20, "cluster": 0.45, "clusterRadius": [0.6, 2.0], "noise": { "scale": 2.0, "lo": -1.0, "hi": 0.25 }, "size": [0.14, 0.24], "aspect": [0.55, 1.0], "palette": [[120, 62, 30], [100, 70, 36], [138, 96, 40], [86, 54, 30], [150, 76, 32]], "alpha": [0.85, 1.0], "value": 0.12, "height": 0.08, "smooth": 0.72, "max": 40000 }
+        { "op": "scatter", "stamp": ["maple", "oak", "leaf"], "density": 8.889, "clusters": 8.889, "cluster": 0.45, "clusterRadius": [0.9, 3], "noise": { "scale": 3, "lo": -1, "hi": 0.25 }, "size": [0.21, 0.36], "aspect": [0.55, 1], "palette": [[120, 62, 30], [100, 70, 36], [138, 96, 40], [86, 54, 30], [150, 76, 32]], "alpha": [0.85, 1], "value": 0.12, "height": 0.08, "smooth": 0.72, "max": 40000 }
       ]
     },
     {
-      "id": "leafPile", "name": "Leaf heap",
+      "id": "leafPile", "name": "Leaf heap", "tier": "macro",
       "about": "Leaves blown into a heap against a corner or a kerb. Every variation differs: tight or spread, thick at one end, along one side, broken up, with small or big leaves.",
-      "texel": 0.02, "layers": "ground", "order": 6, "lod": 40, "maxTexels": 512, "opacity": 0.9,
-      "edge": { "feather": 1.1, "warp": 0.8, "warpScale": 2.6, "round": 0.85 },
-      "variants": { "count": 8, "size": [3.0, 8.5], "aspect": [0.35, 1.0], "strength": [0.75, 1.0], "age": [0.0, 1.0], "fades": ["soft", "linear", "side", "islands", "wide", "ring", "linear", "soft"] },
+      "texel": 0.038, "layers": "ground", "order": 6, "lod": 40, "maxTexels": 512, "opacity": 0.806,
+      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
+      "variants": { "count": 12, "size": [4.5, 12.75], "aspect": [0.35, 1], "strength": [0.75, 1], "age": [0, 1], "fades": ["soft", "linear", "side", "islands", "wide", "ring", "linear", "soft"] },
       "ops": [
-        { "op": "remap", "in": "shape", "out": "core", "lo": 0.3, "hi": 1.0 },
+        { "op": "remap", "in": "shape", "out": "core", "lo": 0.3, "hi": 1 },
         { "op": "layer", "alpha": "core", "alphaK": 0.35, "color": [96, 66, 38], "smooth": 0.25, "height": 0.6 },
-        { "op": "scatter", "stamp": ["oak", "maple", "leaf", "birch"], "density": { "age": [60, 120] }, "clusters": 15, "cluster": 0.4, "clusterRadius": [0.5, 1.6], "size": [0.08, 0.24], "aspect": [0.5, 1.0], "palette": [[176, 98, 40], [206, 150, 50], [150, 100, 44], [188, 70, 32], [124, 84, 42], [214, 182, 64], [104, 74, 40], [134, 60, 30]], "alpha": [0.85, 1.0], "value": 0.14, "height": 0.9, "smooth": 0.3, "max": 40000 },
-        { "op": "scatter", "stamp": ["oak", "maple"], "density": 6, "clusters": 15, "cluster": 0.3, "clusterRadius": [0.5, 1.6], "edgeBias": 1.5, "size": [0.2, 0.3], "aspect": [0.6, 1.0], "palette": [[188, 110, 44], [150, 96, 44], [200, 160, 60]], "alpha": [0.85, 1.0], "value": 0.12, "height": 0.9, "smooth": 0.3 }
+        { "op": "scatter", "stamp": ["oak", "maple", "leaf", "birch"], "density": { "age": [26.667, 53.333] }, "clusters": 6.667, "cluster": 0.4, "clusterRadius": [0.75, 2.4], "size": [0.12, 0.36], "aspect": [0.5, 1], "palette": [[176, 98, 40], [206, 150, 50], [150, 100, 44], [188, 70, 32], [124, 84, 42], [214, 182, 64], [104, 74, 40], [134, 60, 30]], "alpha": [0.85, 1], "value": 0.14, "height": 0.9, "smooth": 0.3, "max": 40000 },
+        { "op": "scatter", "stamp": ["oak", "maple"], "density": 2.667, "clusters": 6.667, "cluster": 0.3, "clusterRadius": [0.75, 2.4], "edgeBias": 2.25, "size": [0.3, 0.45], "aspect": [0.6, 1], "palette": [[188, 110, 44], [150, 96, 44], [200, 160, 60]], "alpha": [0.85, 1], "value": 0.12, "height": 0.9, "smooth": 0.3 }
       ]
     },
     {
-      "id": "pineNeedles", "name": "Pine needles",
+      "id": "pineNeedles", "name": "Pine needles", "tier": "detail",
       "about": "Fallen pine needles in a warm rust colour, drawn bigger than life so they read from a distance, over a thin bed of old needles.",
-      "texel": 0.014, "layers": "ground", "order": 5, "lod": 32, "maxTexels": 512, "opacity": 0.85,
-      "edge": { "feather": 1.1, "warp": 0.8, "warpScale": 2.6, "round": 0.85 },
-      "variants": { "count": 6, "size": [3.5, 5.8], "aspect": [0.55, 1.0], "strength": [0.75, 1.0], "fades": ["soft", "islands", "ring", "linear", "wide", "side"] },
+      "texel": 0.021, "layers": "ground", "order": 5, "lod": 32, "maxTexels": 512, "opacity": 0.762,
+      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
+      "variants": { "count": 6, "size": [5.25, 8.7], "aspect": [0.55, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "ring", "linear", "wide", "side"] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 4 },
+        { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 4 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.4 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "bed" },
         { "op": "layer", "alpha": "bed", "alphaK": 0.3, "color": [150, 98, 58], "smooth": 0.2 },
-        { "op": "scatter", "stamp": "twig", "density": 110, "clusters": 20, "cluster": 0.4, "clusterRadius": [0.5, 1.5], "noise": { "scale": 1.6, "lo": -1.0, "hi": 0.25 }, "size": [0.14, 0.22], "aspect": [0.18, 0.22], "palette": [[164, 96, 50], [140, 82, 44], [186, 116, 62], [120, 76, 44]], "alpha": [0.85, 1.0], "value": 0.12, "height": 0.4, "smooth": 0.3, "max": 40000 }
+        { "op": "scatter", "stamp": "twig", "density": 48.889, "clusters": 8.889, "cluster": 0.4, "clusterRadius": [0.75, 2.25], "noise": { "scale": 2.4, "lo": -1, "hi": 0.25 }, "size": [0.21, 0.33], "aspect": [0.18, 0.22], "palette": [[164, 96, 50], [140, 82, 44], [186, 116, 62], [120, 76, 44]], "alpha": [0.85, 1], "value": 0.12, "height": 0.4, "smooth": 0.3, "max": 40000 }
       ]
     },
     {
-      "id": "pineNeedlesCarpet", "name": "Pine needles (carpet)",
+      "id": "pineNeedlesCarpet", "name": "Pine needles (carpet)", "tier": "macro",
       "about": "Pine needles that repeat in every direction, for the whole floor under a group of pines.",
-      "texel": 0.014, "layers": "ground", "order": 5, "lod": 32, "maxTexels": 512, "opacity": 0.8,
-      "edge": { "feather": 0.5, "warp": 0.0, "warpScale": 4, "round": 0 },
-      "variants": { "count": 4, "size": [5.2, 5.3], "aspect": [1.0, 1.0], "tile": "xy", "strength": [0.7, 1.0] },
+      "texel": 0.026, "layers": "ground", "order": 5, "lod": 32, "maxTexels": 512, "opacity": 0.717,
+      "edge": { "feather": 0.75, "warp": 0, "warpScale": 6, "round": 0 },
+      "variants": { "count": 6, "size": [7.8, 7.95], "aspect": [1, 1], "tile": "xy", "strength": [0.7, 1] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 4 },
+        { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 4 },
         { "op": "remap", "in": "n", "out": "bed", "lo": -0.5, "hi": 0.4 },
         { "op": "layer", "alpha": "bed", "alphaK": 0.26, "color": [150, 98, 58], "smooth": 0.2 },
-        { "op": "scatter", "stamp": "twig", "density": 100, "clusters": 8, "cluster": 0.3, "clusterRadius": [0.6, 1.6], "noise": { "scale": 1.6, "lo": -0.9, "hi": 0.3 }, "size": [0.14, 0.22], "aspect": [0.18, 0.22], "palette": [[164, 96, 50], [140, 82, 44], [186, 116, 62], [120, 76, 44]], "alpha": [0.85, 1.0], "value": 0.12, "height": 0.4, "smooth": 0.3, "max": 40000 }
+        { "op": "scatter", "stamp": "twig", "density": 44.444, "clusters": 3.556, "cluster": 0.15, "clusterRadius": [0.9, 2.4], "noise": { "scale": 3.84, "lo": -0.9, "hi": 0.3 }, "size": [0.21, 0.33], "aspect": [0.18, 0.22], "palette": [[164, 96, 50], [140, 82, 44], [186, 116, 62], [120, 76, 44]], "alpha": [0.85, 1], "value": 0.12, "height": 0.4, "smooth": 0.3, "max": 40000 }
       ]
     },
     {
-      "id": "blossomPetals", "name": "Blossom petals",
+      "id": "blossomPetals", "name": "Blossom petals", "tier": "macro",
       "about": "Spring blossom: pink and white petals, drawn big, in drifts under cherry and apple trees.",
-      "texel": 0.018, "layers": "ground", "order": 5, "lod": 36, "maxTexels": 512, "opacity": 0.85,
-      "edge": { "feather": 1.1, "warp": 0.8, "warpScale": 2.6, "round": 0.85 },
-      "variants": { "count": 6, "size": [5.0, 7.8], "aspect": [0.55, 1.0], "strength": [0.75, 1.0], "fades": ["ring", "soft", "islands", "linear", "wide", "side"] },
+      "texel": 0.034, "layers": "ground", "order": 5, "lod": 36, "maxTexels": 512, "opacity": 0.762,
+      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
+      "variants": { "count": 8, "size": [7.5, 11.7], "aspect": [0.55, 1], "strength": [0.75, 1], "fades": ["ring", "soft", "islands", "linear", "wide", "side"] },
       "ops": [
-        { "op": "scatter", "stamp": "petal", "density": 40, "clusters": 20, "cluster": 0.4, "clusterRadius": [0.6, 2.0], "noise": { "scale": 2.0, "lo": -1.0, "hi": 0.25 }, "size": [0.06, 0.09], "aspect": [0.6, 0.8], "palette": [[244, 206, 214], [236, 180, 196], [250, 236, 236], [226, 160, 182]], "alpha": [0.8, 1.0], "value": 0.06, "height": 0.2, "smooth": 0.4, "max": 40000 }
+        { "op": "scatter", "stamp": "petal", "density": 17.778, "clusters": 8.889, "cluster": 0.4, "clusterRadius": [0.9, 3], "noise": { "scale": 3, "lo": -1, "hi": 0.25 }, "size": [0.09, 0.135], "aspect": [0.6, 0.8], "palette": [[244, 206, 214], [236, 180, 196], [250, 236, 236], [226, 160, 182]], "alpha": [0.8, 1], "value": 0.06, "height": 0.2, "smooth": 0.4, "max": 40000 }
       ]
     },
     {
-      "id": "leafDriftStrip", "name": "Leaf drift (strip)",
+      "id": "leafDriftStrip", "name": "Leaf drift (strip)", "tier": "macro",
       "about": "Leaves piled against one edge: lay pieces end to end along a kerb, a fence or a path edge (the heavy side is +z). Its width wanders; some stretches are thin, some thick.",
-      "texel": 0.02, "layers": "ground", "order": 6, "lod": 38, "maxTexels": 512, "opacity": 0.85,
-      "edge": { "feather": 0.6, "warp": 0.6, "warpScale": 2.0, "round": 1, "widthNoise": 0.6 },
-      "variants": { "count": 6, "size": [7.0, 7.6], "width": [1.2, 2.4], "tile": "x", "strength": [0.75, 1.0] },
+      "texel": 0.038, "layers": "ground", "order": 6, "lod": 38, "maxTexels": 512, "opacity": 0.762,
+      "edge": { "feather": 0.9, "warp": 0.9, "warpScale": 3, "round": 1, "widthNoise": 0.6 },
+      "variants": { "count": 8, "size": [10.5, 11.4], "width": [1.8, 3.6], "tile": "x", "strength": [0.75, 1] },
       "ops": [
-        { "op": "remap", "in": "across", "out": "side", "lo": -0.8, "hi": 0.8 },
-        { "op": "fbm", "out": "n", "scale": 2.0, "octaves": 3, "stretch": [2.5, 1] },
+        { "op": "remap", "in": "across", "out": "side", "lo": -1.2, "hi": 1.2 },
+        { "op": "fbm", "out": "n", "scale": 3, "octaves": 3, "stretch": [2.5, 1] },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.4 },
         { "op": "mul", "a": "side", "b": "macro", "c": "shape", "out": "film" },
         { "op": "layer", "alpha": "film", "alphaK": 0.16, "color": [92, 70, 44], "smooth": 0.22 },
-        { "op": "scatter", "stamp": ["oak", "maple", "leaf", "birch"], "density": 70, "clusters": 25, "cluster": 0.55, "clusterRadius": [0.4, 1.4], "side": 0.8, "noise": { "scale": 1.8, "lo": -0.7, "hi": 0.3 }, "size": [0.1, 0.24], "aspect": [0.5, 1.0], "palette": [[176, 98, 40], [206, 150, 50], [150, 100, 44], [188, 70, 32], [124, 84, 42], [214, 182, 64], [104, 74, 40]], "alpha": [0.8, 1.0], "value": 0.12, "height": 0.7, "smooth": 0.3, "max": 40000 }
+        { "op": "scatter", "stamp": ["oak", "maple", "leaf", "birch"], "density": 31.111, "clusters": 11.111, "cluster": 0.55, "clusterRadius": [0.6, 2.1], "side": 0.8, "noise": { "scale": 2.7, "lo": -0.7, "hi": 0.3 }, "size": [0.15, 0.36], "aspect": [0.5, 1], "palette": [[176, 98, 40], [206, 150, 50], [150, 100, 44], [188, 70, 32], [124, 84, 42], [214, 182, 64], [104, 74, 40]], "alpha": [0.8, 1], "value": 0.12, "height": 0.7, "smooth": 0.3, "max": 40000 }
       ]
     }
   ]

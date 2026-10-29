@@ -123,14 +123,16 @@ namespace Placemaker.Core.Decals.Dynamic
             float e = math.lerp(rect, ell, K.Round);
             if (Fade == VariantFade.Soft) return e;
             float full = math.max(0.3f, K.Feather) * 1.25f;
+            // a ragged, wandering fade line: never a straight cut across the patch
+            float wob = full * 0.9f * DecalNoise.Fbm(wp.x / math.max(0.5f, h.x * 0.35f), wp.y / math.max(0.5f, h.y * 0.35f), 3, _seed + 57u);
             switch (Fade)
             {
-                case VariantFade.Linear: return math.min(e, full * (h.x - lq.x) / (2f * h.x));
-                case VariantFade.Side: return math.min(e, full * (h.y - lq.y) / (2f * h.y));
+                case VariantFade.Linear: return math.min(e, full * (h.x - lq.x) / (2f * h.x) + wob);
+                case VariantFade.Side: return math.min(e, full * (h.y - lq.y) / (2f * h.y) + wob);
                 case VariantFade.Ring:
                 {
                     float r = math.length(lq / h);
-                    return math.min(e, full * (1f - math.abs(r - 0.62f) * 2.4f));
+                    return math.min(e, full * (1f - math.abs(r - 0.62f) * 2.4f) + wob * 0.6f);
                 }
                 case VariantFade.Islands:
                 {

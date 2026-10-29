@@ -41,6 +41,9 @@ namespace Placemaker.Core.Decals.Dynamic
         public VariantTiling Tile;
         /// <summary>The fades the variants cycle through ("fades": ["soft", "linear", …]); empty = soft.</summary>
         public VariantFade[] Fades = Array.Empty<VariantFade>();
+        /// <summary>The colour levels the variants cycle through ("saturations": [1, 0.8]): full colour and a step toned down,
+        /// so a builder picks the variant that suits the place; empty = full colour.</summary>
+        public float[] Saturations = Array.Empty<float>();
         /// <summary>Share of the length cross-faded to make a repeating strip or sheet seamless.</summary>
         public float Overlap = 0.25f;
 
@@ -68,6 +71,9 @@ namespace Placemaker.Core.Decals.Dynamic
                     default: fades.Add(VariantFade.Soft); break;
                 }
             s.Fades = fades.ToArray();
+            var sats = new System.Collections.Generic.List<float>();
+            foreach (var x in v["saturations"].Items) sats.Add(math.clamp((float)x.AsNumber(1), 0f, 1f));
+            s.Saturations = sats.ToArray();
             switch (v["tile"].AsString("none").ToLowerInvariant())
             {
                 case "x": case "strip": s.Tile = VariantTiling.X; break;
@@ -94,6 +100,7 @@ namespace Placemaker.Core.Decals.Dynamic
         public float Strength, Wetness, Age;
         public VariantTiling Tile;
         public VariantFade Fade;
+        public float Saturation;
 
         public string Id => DecalVariants.Id(Kind, Index);
     }
@@ -111,7 +118,7 @@ namespace Placemaker.Core.Decals.Dynamic
     public static class DecalVariants
     {
         /// <summary>Bump when the generator or baking changes pixels: disk caches key on it.</summary>
-        public const int GeneratorVersion = 3;
+        public const int GeneratorVersion = 5;
 
         public static string Id(string kind, int index) => kind + "#" + index;
 
@@ -155,6 +162,8 @@ namespace Placemaker.Core.Decals.Dynamic
                 Strength = Spread(sp.Strength, index, n, 0.11f), Wetness = Spread(sp.Wet, index, n, 0.53f), Age = Spread(sp.Age, index, n, 0.71f),
                 Tile = sp.Tile,
                 Fade = sp.Fades.Length > 0 ? sp.Fades[index % sp.Fades.Length] : VariantFade.Soft,
+                // colour levels alternate with the index, so every size and fade comes at each level
+                Saturation = sp.Saturations.Length > 0 ? sp.Saturations[index % sp.Saturations.Length] : 1f,
             };
         }
 
@@ -171,7 +180,7 @@ namespace Placemaker.Core.Decals.Dynamic
         public static BakedVariant Bake(DecalKind k, int index)
         {
             var v = Get(k, index);
-            var s = new DecalStroke { Kind = k.Id, Seed = v.Seed, Strength = v.Strength, Wetness = v.Wetness, Age = v.Age };
+            var s = new DecalStroke { Kind = k.Id, Seed = v.Seed, Strength = v.Strength, Wetness = v.Wetness, Age = v.Age, Saturation = v.Saturation };
             float texel = k.Texel;
             float pad = k.Warp * 1.3f + 0.3f;
             float maxSide = math.min(DecalTiler.MaxTileMetres, k.MaxTexels * texel);

@@ -26,6 +26,43 @@ These come straight from the user's review of the library. They beat any default
    new stain adds or changes a kind in `Recipes/decals/library/<family>.json` (data only), the user approves it in the
    browser, and every type can then use it. No type generates its own textures.
 
+Round 2 notes (same day): **nothing robotic, anywhere.** Organic, overlapping, high transparency, and larger again
+(every family scaled 1.5×: leaf patches 8-15 m, bare ground up to 20 m). Colour comes in **two levels**: every family
+has `"saturations": [1, 0.8]`, so its variants alternate between full colour (the user liked round 2's colour) and a
+step toned down. Builders pick the level that suits the place (quiet, formal sites: the toned variants; autumn
+woodland: full colour). Transparency is set per kind; the user's word: "maybe a little too transparent, maybe not, it
+depends how they're used", so how strongly a brush lays them (instance opacity, overlap) is where it is tuned.
+
+Round 3 notes: **cater to what the game shows best.** Parks are seen from hundreds of feet up in the editor and about
+100 feet up in play. Decals are mainly there to add texture to the whole when you blur your eye, through a macro
+lens, though each must still be an A+ up close. So:
+
+- Every kind has a `tier`. **macro** kinds read from the player's view (leaf masses and carpets, bare and dry ground,
+  ground mottle, rock outcrops, stones, worn paths, puddles, mud, cracks, edge strips, tone): reach for these first.
+  **detail** kinds (gravel spill, gum, butts, droppings, spills, drips, paw prints, mixed litter, sticks, molehills,
+  rust, pine-needle patches, clippings) only show up close: use them sparingly, as texture inside macro looks.
+- Resolution follows the view: at 30-100 m a screen pixel covers several cm, so macro kinds use 3-7 cm texels. That
+  makes many more variants fit the budget: 484 variants of 65 kinds in 131 MiB, 8-16 variants for the common macro
+  kinds, so a park almost never shows the same one twice (with random rotation, scale and opacity on top).
+
+## Placing them: never robotic
+
+How instances go down matters as much as how they look. A brush (phase 2) must:
+
+- **Overlap.** Patches overlap each other and their neighbours' kinds (leaves over bare ground over tone); the edges
+  blend because every kind fades out over metres. Never butt patches edge to edge, never leave a gap of the same width.
+- **Never a grid, never even spacing.** Positions come from the cause (wind shadow, foot traffic, low ground) plus a
+  cluster process: clumps of clumps, thinning with distance from the cause. No two neighbours the same variant; random
+  rotation (any angle for patches, along the line ±10° for strips); scale 0.7-1.4; opacity 0.6-1.0.
+- **Follow the ground's shapes.** Leaves pile against kerbs and fences downwind, wear follows the walking line and
+  widens where people bunch, puddles sit in the real hollows. A detail with no reason to be where it is reads as fake.
+- **Mix kinds where causes mix.** Under a mixed group of trees: mixed leaves, woodland floor and a little bare ground,
+  overlapping, not three tidy separate patches.
+- **Carpets for "everywhere", patches for "here".** A carpet covers a whole area at low opacity; patches on top make it
+  uneven. A carpet alone looks like wallpaper; patches alone look like blotches.
+- **Judge from the player's distance.** If the placement reads as a pattern from 100 m up, it is wrong, however good
+  each patch is up close.
+
 ## Choosing what a type gets
 
 Work from causes, then from seams, then from tone:
@@ -97,4 +134,5 @@ fence lines, the ground under canopies, bench feet and posts, kerbs. Every seam 
 
 | Type | Date | What it uses | Notes |
 |---|---|---|---|
-| (library round 2) | 2026-10-29 | 62 kinds, 352 variants, 124 MiB | bigger, see-through, fade types, carpets; awaiting the user's marks |
+| (library round 2) | 2026-10-29 | 62 kinds, 352 variants, 124 MiB | bigger, see-through, fade types, carpets |
+| (library round 3) | 2026-10-29 | 65 kinds, 484 variants, 131 MiB | 1.5x larger, two colour levels, macro/detail tiers, rock outcrops, worn paths, ground mottle |
