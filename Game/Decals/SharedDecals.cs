@@ -334,7 +334,7 @@ namespace Placemaker.Game.Decals
             inst.Block.SetVector("_BaseColor", new Vector4(1f, 1f, 1f, inst.Opacity));
             mr.SetPropertyBlock(inst.Block);
             inst.Go = go; inst.Renderer = mr;
-            inst.Cull = math.clamp(v.K.Lod * math.max(size.x, size.y), 250f, 1400f);
+            inst.Cull = math.clamp(v.K.Lod * math.max(size.x, size.y), 600f, 2000f);   // parks are looked at from far away
         }
 
         private static Mesh BoxMesh(float2 size)

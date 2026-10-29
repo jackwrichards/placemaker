@@ -148,7 +148,7 @@ namespace Placemaker.Tests
                 var v = JsonValue.Obj()
                     .Set("id", bv.V.Id).Set("index", i).Set("image", file)
                     .Set("size", Arr(bv.V.Size.x, bv.V.Size.y)).Set("span", Arr(bv.Span.x, bv.Span.y))
-                    .Set("strength", R(bv.V.Strength)).Set("wet", R(bv.V.Wetness)).Set("age", R(bv.V.Age))
+                    .Set("fade", bv.V.Fade.ToString().ToLowerInvariant()).Set("strength", R(bv.V.Strength)).Set("wet", R(bv.V.Wetness)).Set("age", R(bv.V.Age))
                     .Set("px", Arr(bv.Img.W, bv.Img.H)).Set("gpuBytes", bv.GpuBytes)
                     .Set("coverage", R(bv.Img.Covered / (double)(bv.Img.W * bv.Img.H))).Set("ms", Math.Round(bv.Img.Ms));
                 lock (results) results[bv.V.Id] = v;

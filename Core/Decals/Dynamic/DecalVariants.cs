@@ -25,6 +25,11 @@ namespace Placemaker.Core.Decals.Dynamic
 {
     public enum VariantTiling : byte { None = 0, X = 1, XY = 2, Chain = 3 }
 
+    /// <summary>How a patch fades out (its coverage, so scatters thin out and layers fade alike): soft all round, along its
+    /// length (thick at −x), from one side (thick at −z), a hollow middle (round a trunk), broken into islands, or a long
+    /// wide fade.</summary>
+    public enum VariantFade : byte { Soft = 0, Linear = 1, Side = 2, Ring = 3, Islands = 4, Wide = 5 }
+
     public sealed class VariantSpec
     {
         public int Count = 6;
@@ -34,6 +39,8 @@ namespace Placemaker.Core.Decals.Dynamic
         public float2 Width = new float2(float.NaN, float.NaN);
         public float2 Strength = new float2(1f, 1f), Wet = new float2(0f, 0f), Age = new float2(0.5f, 0.5f);
         public VariantTiling Tile;
+        /// <summary>The fades the variants cycle through ("fades": ["soft", "linear", …]); empty = soft.</summary>
+        public VariantFade[] Fades = Array.Empty<VariantFade>();
         /// <summary>Share of the length cross-faded to make a repeating strip or sheet seamless.</summary>
         public float Overlap = 0.25f;
 
@@ -49,6 +56,18 @@ namespace Placemaker.Core.Decals.Dynamic
             s.Wet = R(v["wet"], s.Wet);
             s.Age = R(v["age"], s.Age);
             s.Overlap = math.clamp((float)v["overlap"].AsNumber(0.25), 0.05f, 0.5f);
+            var fades = new System.Collections.Generic.List<VariantFade>();
+            foreach (var f in v["fades"].Items)
+                switch (f.AsString("").ToLowerInvariant())
+                {
+                    case "linear": fades.Add(VariantFade.Linear); break;
+                    case "side": fades.Add(VariantFade.Side); break;
+                    case "ring": fades.Add(VariantFade.Ring); break;
+                    case "islands": fades.Add(VariantFade.Islands); break;
+                    case "wide": fades.Add(VariantFade.Wide); break;
+                    default: fades.Add(VariantFade.Soft); break;
+                }
+            s.Fades = fades.ToArray();
             switch (v["tile"].AsString("none").ToLowerInvariant())
             {
                 case "x": case "strip": s.Tile = VariantTiling.X; break;
@@ -74,6 +93,7 @@ namespace Placemaker.Core.Decals.Dynamic
         public float2 Size;
         public float Strength, Wetness, Age;
         public VariantTiling Tile;
+        public VariantFade Fade;
 
         public string Id => DecalVariants.Id(Kind, Index);
     }
@@ -134,6 +154,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 Size = new float2(len, math.max(0.05f, wid)),
                 Strength = Spread(sp.Strength, index, n, 0.11f), Wetness = Spread(sp.Wet, index, n, 0.53f), Age = Spread(sp.Age, index, n, 0.71f),
                 Tile = sp.Tile,
+                Fade = sp.Fades.Length > 0 ? sp.Fades[index % sp.Fades.Length] : VariantFade.Soft,
             };
         }
 
@@ -162,7 +183,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     size = math.max(size, new float2(0.1f));
                     s.Shape = StrokeShape.Box; s.Center = float2.zero; s.Yaw = 0f; s.Size = size;
                     v.Size = size;
-                    var f = new StrokeFrame(s, k);
+                    var f = new StrokeFrame(s, k) { Fade = v.Fade };
                     var span = size + 2f * pad;
                     var t = new DecalTile { Center = float2.zero, Yaw = 0f, Size = span, W = Round4(span.x / texel, 8, k.MaxTexels), H = Round4(span.y / texel, 8, k.MaxTexels) };
                     return new BakedVariant { V = v, Img = DecalGenerator.Generate(f, t), Span = span };

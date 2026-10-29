@@ -5,9 +5,9 @@
     {
       "id": "barePatch", "name": "Bare patch",
       "about": "Grass worn through to soil: a warped, eroded outline that breaks into tufts, dry grass round it, darker soil where it is worst. Every variation differs in tone and shape.",
-      "texel": 0.04, "layers": "terrain", "order": 1, "lod": 45, "maxTexels": 384,
+      "texel": 0.05, "layers": "terrain", "order": 1, "lod": 45, "maxTexels": 384, "opacity": 0.5,
       "edge": { "feather": 0.8, "warp": 1, "warpScale": 2.6, "round": 1 },
-      "variants": { "count": 8, "size": [3.0, 9.0], "aspect": [0.5, 1.0], "strength": [0.75, 1.0], "age": [0.0, 1.0], "wet": [0.0, 0.6] },
+      "variants": { "count": 8, "size": [6.0, 14.0], "aspect": [0.5, 1.0], "strength": [0.75, 1.0], "age": [0.0, 1.0], "wet": [0.0, 0.6], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 2.6, "octaves": 5, "warp": 1.4, "warpScale": 3 },
         { "op": "fbm", "out": "g", "scale": 0.14, "octaves": 3 },
@@ -29,9 +29,9 @@
     {
       "id": "dryGrass", "name": "Dry grass",
       "about": "Grass gone straw-yellow in a dry spell or over a buried stone: soft, blotchy, no hard edge.",
-      "texel": 0.06, "layers": "terrain", "order": 0, "lod": 50, "maxTexels": 256,
+      "texel": 0.06, "layers": "terrain", "order": 0, "lod": 50, "maxTexels": 256, "opacity": 0.45,
       "edge": { "feather": 1.2, "warp": 1.2, "warpScale": 3, "round": 1 },
-      "variants": { "count": 6, "size": [4.0, 12.0], "aspect": [0.5, 1.0], "strength": [0.5, 0.9] },
+      "variants": { "count": 6, "size": [7.0, 14.0], "aspect": [0.5, 1.0], "strength": [0.5, 0.9], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 3, "octaves": 5, "warp": 1.6, "warpScale": 4 },
         { "op": "fbm", "out": "g", "scale": 0.3, "octaves": 3 },
@@ -45,9 +45,9 @@
     {
       "id": "cloverPatch", "name": "Clover and weeds",
       "about": "Darker, richer green where clover and weeds take over the lawn: mottled, with tiny white flower dots in some.",
-      "texel": 0.03, "layers": "terrain", "order": 0, "lod": 35, "maxTexels": 256,
+      "texel": 0.035, "layers": "terrain", "order": 0, "lod": 35, "maxTexels": 256, "opacity": 0.6,
       "edge": { "feather": 0.6, "warp": 0.8, "warpScale": 2, "round": 1 },
-      "variants": { "count": 6, "size": [2.0, 6.0], "aspect": [0.5, 1.0], "strength": [0.6, 1.0], "age": [0.0, 1.0] },
+      "variants": { "count": 6, "size": [4.0, 8.0], "aspect": [0.5, 1.0], "strength": [0.6, 1.0], "age": [0.0, 1.0], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
       "ops": [
         { "op": "worley", "out": "w", "scale": 0.25, "mode": "f1" },
         { "op": "remap", "in": "w", "out": "leaf", "lo": 0.16, "hi": 0.05 },
@@ -63,9 +63,9 @@
     {
       "id": "mudPatch", "name": "Mud",
       "about": "Churned mud: dark, uneven, glossy where wet, with puddled hollows and trodden prints. At gates, by benches, under swings.",
-      "texel": 0.035, "layers": "ground", "order": 2, "lod": 40, "maxTexels": 384,
-      "edge": { "feather": 0.6, "warp": 0.8, "warpScale": 2, "round": 0.7 },
-      "variants": { "count": 8, "size": [2.0, 7.0], "aspect": [0.5, 1.0], "strength": [0.8, 1.0], "wet": [0.1, 1.0] },
+      "texel": 0.04, "layers": "ground", "order": 2, "lod": 40, "maxTexels": 384, "opacity": 0.7,
+      "edge": { "feather": 0.6, "warp": 0.8, "warpScale": 2, "round": 1 },
+      "variants": { "count": 8, "size": [4.0, 11.0], "aspect": [0.5, 1.0], "strength": [0.8, 1.0], "wet": [0.1, 1.0], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 1.8, "octaves": 5, "warp": 0.8, "warpScale": 2.4 },
         { "op": "fbm", "out": "g", "scale": 0.12, "octaves": 3 },
@@ -84,9 +84,9 @@
     {
       "id": "mossPatch", "name": "Moss",
       "about": "Moss on shady paving, steps and the north side of things: velvety green filling the joints first.",
-      "texel": 0.02, "layers": "ground", "order": 2, "lod": 30, "maxTexels": 256,
+      "texel": 0.025, "layers": "ground", "order": 2, "lod": 30, "maxTexels": 256, "opacity": 0.65,
       "edge": { "feather": 0.5, "warp": 0.6, "warpScale": 1.4, "round": 1 },
-      "variants": { "count": 6, "size": [1.4, 4.0], "aspect": [0.5, 1.0], "strength": [0.6, 1.0] },
+      "variants": { "count": 6, "size": [3.0, 6.0], "aspect": [0.5, 1.0], "strength": [0.6, 1.0], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 0.9, "octaves": 4, "warp": 0.5, "warpScale": 1.2 },
         { "op": "fbm", "out": "g", "scale": 0.08, "octaves": 3 },
@@ -100,9 +100,9 @@
     {
       "id": "sandSpill", "name": "Sand spill",
       "about": "Sand carried out of a sandpit, a beach or a volleyball court: pale, thin at the edge, with footprints.",
-      "texel": 0.03, "layers": "ground", "order": 2, "lod": 35, "maxTexels": 256,
-      "edge": { "feather": 0.5, "warp": 0.6, "warpScale": 1.6, "round": 0.8 },
-      "variants": { "count": 6, "size": [2.0, 5.0], "aspect": [0.5, 1.0], "strength": [0.7, 1.0] },
+      "texel": 0.03, "layers": "ground", "order": 2, "lod": 35, "maxTexels": 256, "opacity": 0.6,
+      "edge": { "feather": 0.5, "warp": 0.6, "warpScale": 1.6, "round": 1 },
+      "variants": { "count": 6, "size": [3.5, 7.0], "aspect": [0.5, 1.0], "strength": [0.7, 1.0], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 4, "warp": 0.6, "warpScale": 2 },
         { "op": "fbm", "out": "g", "scale": 0.06, "octaves": 2 },
@@ -119,9 +119,9 @@
       "about": "A few small heaps of fresh dark soil pushed up through the lawn.",
       "texel": 0.025, "layers": "terrain", "order": 3, "lod": 30, "maxTexels": 256,
       "edge": { "feather": 0.5, "warp": 0.4, "warpScale": 1.2, "round": 1 },
-      "variants": { "count": 4, "size": [2.0, 4.0], "aspect": [0.6, 1.0], "strength": [0.9, 1.0] },
+      "variants": { "count": 4, "size": [4.0, 7.0], "aspect": [0.6, 1.0], "strength": [0.9, 1.0] },
       "ops": [
-        { "op": "scatter", "stamp": "blob", "density": 0.5, "clusters": 10, "cluster": 0.5, "clusterRadius": [0.6, 1.4], "size": [0.3, 0.5], "aspect": [0.8, 1.0], "palette": [[92, 74, 56], [80, 64, 48]], "alpha": [0.95, 1.0], "height": 1.0, "smooth": 0.2 },
+        { "op": "scatter", "stamp": "blob", "density": 0.35, "clusters": 10, "cluster": 0.5, "clusterRadius": [0.6, 1.4], "size": [0.45, 0.7], "aspect": [0.8, 1.0], "palette": [[92, 74, 56], [80, 64, 48]], "alpha": [0.95, 1.0], "height": 1.0, "smooth": 0.2 },
         { "op": "scatter", "stamp": "pebble", "density": 8, "clusters": 10, "cluster": 0.9, "clusterRadius": [0.15, 0.3], "size": [0.02, 0.05], "palette": [[110, 90, 68], [72, 58, 44]], "alpha": [0.8, 1.0], "height": 0.8, "smooth": 0.2 }
       ]
     }

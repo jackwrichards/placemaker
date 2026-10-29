@@ -21,6 +21,10 @@ namespace Placemaker.Core.Decals.Dynamic
 
         public float Length => _len;
 
+        /// <summary>The shared library's fade for a box (VariantFade); applied to the edge distance, so coverage, scatter
+        /// density and erosion all follow it.</summary>
+        public VariantFade Fade { get; set; }
+
         /// <summary>Chain cracks (the shared library's crack pieces): the main crack runs from ChainA to ChainB.</summary>
         public bool HasChain { get; private set; }
         public float2 ChainA { get; private set; }
@@ -116,7 +120,25 @@ namespace Placemaker.Core.Decals.Dynamic
             float ell = (1f - math.length(lq / h)) * math.min(h.x, h.y);
             u = math.saturate(along / math.max(0.1f, S.Size.x) + 0.5f);
             arc = 0f;
-            return math.lerp(rect, ell, K.Round);
+            float e = math.lerp(rect, ell, K.Round);
+            if (Fade == VariantFade.Soft) return e;
+            float full = math.max(0.3f, K.Feather) * 1.25f;
+            switch (Fade)
+            {
+                case VariantFade.Linear: return math.min(e, full * (h.x - lq.x) / (2f * h.x));
+                case VariantFade.Side: return math.min(e, full * (h.y - lq.y) / (2f * h.y));
+                case VariantFade.Ring:
+                {
+                    float r = math.length(lq / h);
+                    return math.min(e, full * (1f - math.abs(r - 0.62f) * 2.4f));
+                }
+                case VariantFade.Islands:
+                {
+                    float sc = 1f / math.max(0.5f, math.min(h.x, h.y) * 0.55f);
+                    return e + full * (1.4f * DecalNoise.Fbm(wp.x * sc, wp.y * sc, 3, _seed + 41u) - 0.35f);
+                }
+                default: return math.min(e * 0.35f, e);   // wide: the whole patch is one long fade
+            }
         }
 
         private float EvalPath(float2 wp, float2 q, out float along, out float across, out float u, out float arc)

@@ -7,7 +7,7 @@
       "about": "An oil stain under a parked car: a dark, slightly glossy core soaking out into a soft brown halo, with older rings.",
       "texel": 0.025, "layers": "ground", "order": 4, "lod": 35, "maxTexels": 256,
       "edge": { "feather": 0.6, "warp": 0.45, "warpScale": 1.0, "round": 1 },
-      "variants": { "count": 8, "size": [0.8, 2.6], "aspect": [0.5, 1.0], "strength": [0.6, 1.0], "age": [0.0, 1.0] },
+      "variants": { "count": 8, "size": [1.4, 3.6], "aspect": [0.5, 1.0], "strength": [0.6, 1.0], "age": [0.0, 1.0], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 0.5, "octaves": 4, "warp": 0.2, "warpScale": 0.6 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.4 },
@@ -23,7 +23,7 @@
       "about": "A scatter of small oil drops and smears: the end of a parking bay, under a bench where bikes stand.",
       "texel": 0.016, "layers": "ground", "order": 4, "lod": 25, "maxTexels": 256,
       "edge": { "feather": 0.4, "warp": 0.3, "warpScale": 1.0, "round": 1 },
-      "variants": { "count": 6, "size": [1.0, 2.6], "aspect": [0.4, 1.0], "strength": [0.6, 1.0] },
+      "variants": { "count": 6, "size": [2.0, 4.0], "aspect": [0.4, 1.0], "strength": [0.6, 1.0] },
       "ops": [
         { "op": "scatter", "stamp": "blob", "density": 25, "clusters": 40, "cluster": 0.8, "clusterRadius": [0.15, 0.5], "size": [0.02, 0.09], "aspect": [0.6, 1.0], "palette": [[30, 28, 26], [44, 40, 36], [56, 50, 44]], "alpha": [0.5, 0.9], "height": 0.0, "smooth": 0.6 }
       ]
@@ -33,7 +33,7 @@
       "about": "Orange-brown rust bleeding into concrete or paving round the foot of a post, a bin or a fence foot.",
       "texel": 0.016, "layers": "ground", "order": 4, "lod": 22, "maxTexels": 256,
       "edge": { "feather": 0.35, "warp": 0.3, "warpScale": 0.6, "round": 1 },
-      "variants": { "count": 6, "size": [0.5, 1.4], "aspect": [0.6, 1.0], "strength": [0.6, 1.0] },
+      "variants": { "count": 6, "size": [0.8, 2.0], "aspect": [0.6, 1.0], "strength": [0.6, 1.0] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 0.25, "octaves": 4, "warp": 0.15, "warpScale": 0.4 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.5 },
