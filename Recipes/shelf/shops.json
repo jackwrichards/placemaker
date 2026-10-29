@@ -27,7 +27,8 @@
     "stripMall": [
       "neighbourhood",
       "rearAlley",
-      "parkRow"
+      "parkRow",
+      "bigBox"
     ],
     "retailPark": [
       "trade"

@@ -24,9 +24,9 @@ namespace Placemaker.Core.Layers.Commercial
 
         /// <summary>(shops) A second strip on the back street when the first leaves half the block (a lot, a lane and two cells of shops: ~45 m).</summary>
         protected override float ComposeMoreBelow => 0.6f;
-        /// <summary>(shops4) A lot one aisle deep, the lane and two-cell plots (about 48 m) by three plots: smaller says "too small"; an area
-        /// big enough but too narrow behind every entrance says so itself (LotCentre, NoRoom).</summary>
-        public override float MinArea => 1600f;
+        /// <summary>(2026-10-28) One 2 x 2 plot (StripMallTiny.cs): smaller says "too small". Below the lot-first layout's size the shops
+        /// stand on the street (and a small lot beside them once there is room).</summary>
+        public override float MinArea => TinyMin;
         protected override float MoreReach => 44f;
         /// <summary>(shops2) Plan fact set when the whole site was laid out as rows of stores round lots (<see cref="Rows"/>): the number of store rows.</summary>
         public const string RowsFact = "stripRows";
@@ -80,11 +80,16 @@ namespace Placemaker.Core.Layers.Commercial
             mall.BackOfHouse = true;
             // a planted edge round the lot for the street front's hedge and sign (MallFront.StreetFront)
             mall.LotSetback = ctx.B("hedges") ? 2.5f : 0f;
-            return LotCentre(ctx, mall, runs, new LotLayout
+            if (LotCentre(ctx, mall, runs, new LotLayout
             {
                 MaxPiece = big ? 6 : 3, AnchorWeight = big ? 1.25f : 1.8f, Square = sq == "none" || string.IsNullOrEmpty(sq) ? null : sq,
                 Shape = style == "corner" ? "L" : null,
-            });
+            })) return true;
+            // (2026-10-28) Too small or too shallow for the lot first: the shops on the street, a small lot beside them (StripMallTiny.cs).
+            if (ctx.Plan.Issues.Exists(i => i.Key == TooSteepKey)) return false;
+            if (!Tiny(ctx, mall, runs)) return false;
+            ctx.Plan.Issues.RemoveAll(i => i.Key == NoRoomKey);
+            return true;
         }
 
         /// <summary>(2026-10-28) The street front of the user's photo: a low hedge along the sidewalk, open at the drives; a pylon sign by the entrance.</summary>

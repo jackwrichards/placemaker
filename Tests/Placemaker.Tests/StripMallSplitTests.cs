@@ -84,6 +84,48 @@ namespace Placemaker.Tests
             return (shops / siteA, asphalt / siteA);
         }
 
+        /// <summary>Every size and shape (the user, 2026-10-28: "test really small, tiny strip malls too ... weird shapes ... U-shaped ...
+        /// massive"): numbers and a picture per site, with the city streets' zone grids as in the game.</summary>
+        [Fact]
+        public void ProbeSizes()
+        {
+            string dir = Environment.GetEnvironmentVariable("PM_PROBE_OUT");
+            if (string.IsNullOrEmpty(dir)) return;
+            Directory.CreateDirectory(dir);
+            float3[] Pts(params float[] xz) { var r = new float3[xz.Length / 2]; for (int i = 0; i < r.Length; i++) r[i] = new float3(xz[2 * i], 0, xz[2 * i + 1]); return r; }
+            var sites = new (string name, float3[] ring)[]
+            {
+                ("r24x20", TestKit.Rect(24, 20)), ("r32x24", TestKit.Rect(32, 24)), ("r40x30", TestKit.Rect(40, 30)), ("r48x36", TestKit.Rect(48, 36)),
+                ("r64x48", TestKit.Rect(64, 48)), ("r90x60", TestKit.Rect(90, 60)), ("r150x140", TestKit.Rect(150, 140)),
+                ("u200", Pts(0, 0, 200, 0, 200, 160, 130, 160, 130, 80, 70, 80, 70, 160, 0, 160)),
+                ("tri", Pts(0, 0, 180, 0, 90, 150)), ("trap", Pts(0, 0, 220, 0, 170, 120, 40, 120)),
+                ("circle", TestKit.Blob(80, 24, 7)), ("L200", TestKit.LShape(200)),
+                ("r500x400", TestKit.Rect(500, 400)), ("r600x90", TestKit.Rect(600, 90)),
+            };
+            var sb = new StringBuilder();
+            foreach (var preset in (Environment.GetEnvironmentVariable("PM_PROBE_PRESETS") ?? "classic").Split(','))
+                foreach (var (name, ring) in sites)
+                {
+                    var site = ZoningCutoutTests.Streets(ring);
+                    foreach (var g in ZoneLots.SiteGrids(site, null)) { var c = g; c.Predicted = false; c.Existing = false; site.ZoneGrids.Add(c); }
+                    var r = Editor.SingleLayerRecipe(GeneratorRegistry.Get("stripMall"), 5);
+                    Editor.ApplyPreset(r, RecipePaths.Root, preset);
+                    ShopTestEntrances.Place(r, ring, site, footpath: false);
+                    var sw = System.Diagnostics.Stopwatch.StartNew();
+                    var plan = Composer.Compose(r, new AreaShape { Ring = ring, Source = AreaSource.Drawn }, site, CancellationToken.None);
+                    var host = plan.Layers.First(l => l.GeneratorId == "stripMall");
+                    var (shops, asphalt) = Shares(plan, ring);
+                    var cut = Cutouts.Of(plan);
+                    float cells = cut.Sum(c => Poly.Area(c)) / 64f;
+                    double stalls = host.Facts.TryGetValue("capacity", out var cap) ? cap : 0;
+                    sb.AppendLine($"{preset}/{name} ({Poly.Area(Poly.To2D(ring)):0} m2): shops {100 * shops:F0}% ({cut.Count} plots, ~{cells:0} cells) asphalt {100 * asphalt:F0}% stalls {stalls} {sw.ElapsedMilliseconds} ms | "
+                        + string.Join(" ", plan.AllIssues().Where(i => i.Severity >= IssueSeverity.Info).Select(i => i.Key.Replace("Placemaker.", "") + (i.At.HasValue ? "@" + i.At.Value.x.ToString("0") + "," + i.At.Value.z.ToString("0") : ""))) + " | "
+                        + string.Join(" ", host.Facts.Where(kv => kv.Key.EndsWith("Row") || kv.Key == "stripRows" || kv.Key == "doubleRows" || kv.Key == "pylon" || kv.Key == "compactDepth").Select(kv => kv.Key + "=" + kv.Value)));
+                    File.WriteAllText(Path.Combine(dir, $"{preset}-{name}.svg"), Svg(ring, plan, cut));
+                }
+            File.WriteAllText(Path.Combine(dir, "sizes.txt"), sb.ToString());
+        }
+
         [Fact]
         public void ProbeGrid()
         {

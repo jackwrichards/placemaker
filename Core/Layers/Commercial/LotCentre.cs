@@ -101,11 +101,21 @@ namespace Placemaker.Core.Layers.Commercial
             var edges = new List<int>();
             for (int i = 0; i < ring.Length; i++) edges.Add(i);
             edges.Sort((x, y) => math.distance(ring[(y + 1) % ring.Length], ring[y]).CompareTo(math.distance(ring[(x + 1) % ring.Length], ring[x])));
+            float longest = edges.Count > 0 ? math.distance(ring[edges[0]], ring[(edges[0] + 1) % ring.Length]) : 0f;
             for (int k = 0; k < edges.Count && list.Count < 6; k++)
             {
                 int i = edges[k];
                 var p = ring[i]; var q = ring[(i + 1) % ring.Length];
                 if (math.distance(p, q) < 20f) break;
+                // (2026-10-28) A strip mall fronts its long street: a long thin site's short end as the front (no car entrance on it) stood
+                // the rows across the site and put the back row's end plot in a city street's zone block (600 x 90 m: "CutoutNotZonable")
+                if (math.distance(p, q) < 0.5f * longest)
+                {
+                    var n = mall.Region.InwardNormal(i);
+                    var f = new StreetShops.Run { A = math.lerp(p, q, 0.5f), In = n, Dir = new float2(n.y, -n.x), From = -50f, To = 50f };
+                    Extent(mall, f, out float e0, out float e1, out float d0, out float d1);
+                    if (d1 - d0 > 2f * (e1 - e0)) continue;
+                }
                 Add(math.lerp(p, q, 0.5f), mall.Region.InwardNormal(i));
             }
             return list;
@@ -376,7 +386,7 @@ namespace Placemaker.Core.Layers.Commercial
                 {
                     float island = 2f * (zo + mc * Mall.Cell) + 2f * h;
                     int kMax = math.clamp((int)math.floor((front - lotMin) / (lotMin + island)), 0, 8);
-                    if (o.Shape == "L") kMax = 0;
+                    if (o.Shape == "L" && mall.Region.Area < 60000f) kMax = 0;   // (a clean L; double rows in its lot only on a big site: 500 x 400 m was 64 % asphalt)
                     for (int k = mc == mids[0] ? 0 : 1; k <= kMax; k++)
                     {
                         var v = v0; v.K = k; v.MidCells = mc;
