@@ -146,8 +146,86 @@ Logs (`Placemaker.log`): "Placemaker dynamic decals: group N: S strokes … on t
   scatters nothing but the base game's markings, and older saves' see-through copies are still cleaned up
   (`OldDecalCleanupSystem`).
 
+## The shared library (v2)
+
+v1 generated textures per build (about 30 MB of GPU memory and 10-12 s of worker time per park). v2 makes every look
+**once**, in a handful of seeded variants, and every build shares them: a build subscribes to an entry by id and places
+instances of it (moved, turned, scaled, faded). The stroke path above (kinds.json, Weathering) still works and is what
+the community sports park uses today; phase 2 moves it onto the library and brushes.
+
+| Where | What |
+|---|---|
+| `Recipes/decals/library/<family>.json` | The families: leaves, debris, ground, water, cracks, strips, prints, stains, litter, tone. One file each; `"family"` at the top. |
+| `Core/Decals/Dynamic/DecalVariants.cs` | A kind's `variants` spec, the variant of an index (seed = hash of kind id and index), baking (stamp, strip, sheet, chain), the disk cache key, GPU bytes |
+| `Game/Decals/SharedDecals.cs` | The game side: one texture set and one DefaultDecal material per variant for the whole city; an instance is a box renderer with a property block (its box size and opacity) |
+| `Game/Suite/SuiteLab.Library.cs` | Lab op `library`: lays kinds on a test field (`suite/scenarios/lab-library.json`) |
+| `Tests/Placemaker.Tests/DecalLibraryTests.cs` | Determinism, seams, chains, the budget; `PM_BAKE_LIBRARY=1` renders the browser pictures |
+
+### A kind's variants
+
+```json
+"variants": { "count": 8, "size": [2.4, 5.0], "aspect": [0.6, 1.0], "strength": [0.85, 1.0], "wet": [0, 1], "age": [0.2, 0.8], "tile": "none" }
+```
+
+Sizes, strengths, wetness and age are spread over the variants in different orders, so no two variants are the same
+mix. `tile` says how a variant is used:
+
+- `none`: a patch with a soft edge (leaves, stones, bare patches, puddle pieces, oil).
+- `x`: a strip that repeats seamlessly along x, the heavy side at +z (kerb grime, path edge wear, under a fence, tyre
+  tracks, leaf drifts). Noise fields are cross-faded over `overlap` of the length; stamps are wrapped, so leaves stay
+  crisp across the join.
+- `xy`: a sheet that repeats both ways (lawn tone, asphalt tone, mowing stripes).
+- `chain`: pieces whose main crack enters and leaves at the middle of the short sides (`"chain": true` on the `cracks`
+  op, a Brownian bridge between the ends), so any two pieces join end to end along a road.
+
+A variant's id is `kind#index` ("leafOak#3"). The same library gives the same pixels on every machine.
+
+### More generator tools (v2)
+
+- ops `wave` (stripes along any field: tread bars, mowing stripes), `abs`, `pow`, `mix`, `invert`; worley `"mode": "id"`
+  (a value per cell: patchwork); the built-in field `radial` (0 in the middle, 1 at the edge).
+- `scatter`: `"stamp": [..]` mixes shapes; `"angle"` + `"angleJitter"` aim every stamp; `"trail": 0.72, "gait": 0.1`
+  walks prints along x, left and right; 13 new stamps: `oak`, `maple` (also plane), `birch`, `petal`, `rock` (angular,
+  with its contact shadow), `chip` (bark), `butt`, `paper`, `cap`, `splat`, `paw`, `boot`, plus the old ones.
+- `texel` may go down to 8 mm (leaves use 14 mm, so their shapes read up close).
+
+### Memory and the disk cache
+
+- All 320 variants of the 54 kinds at once: 84 MiB of GPU memory (three BC3 maps with mips each). The budget is 200 MiB
+  (`DecalLibraryTests.BudgetBytes`, `SharedDecals.BudgetBytes`); the game frees variants nobody uses when over it.
+- A build costs only its instances (a GameObject, a MeshRenderer and a property block each); the textures are shared.
+- `ModsData/Placemaker/decal-cache/<kind>-<index>-<recipe hash>.bc3`: a pure cache, made on first use and read on the
+  next load (no generation). Changing a recipe changes its hash, so a stale file is never read; deleting the folder only
+  costs the time to remake them. It is in ModsData like the build audits, outside the save and outside the mod folder.
+
+### Removal stays clean
+
+Unchanged from v1: instances and variants are GameObjects, textures and materials with `HideAndDontSave`, never
+entities, never a `PrefabRef`. Builds will store the instances they place as data on their group record (phase 2), and
+they are placed again after a load.
+
+### Brushes (phase 2; the interface)
+
+Builders and recipes will not place single instances; they call brushes that compose library pieces on the spot:
+
+```csharp
+// Core: a brush turns a shape and a cause into instances (library id, position, yaw, scale, opacity), deterministic
+// from the build's seed; the plan stores the brush calls (a few bytes each), the game replays them after a load.
+interface IDecalBrush { void Paint(BrushContext ctx, List<DecalInstance> into); }
+Brushes.CracksAlong(polyline, "crackAsphalt", spacingJitter)      // chain pieces end to end, turned to follow the line
+Brushes.EdgeStrip(boundary, "pathEdgeWear", side)                  // strip repeats along a seam, cut at corners
+Brushes.Scatter(area, "leafMixed", density, cause: wind)           // patches by a cause field, cluster process
+Brushes.Fill(hollow, "puddlePiece")                                // overlapping pieces fill a basin's outline
+Brushes.Under(canopy, "leafOak"), Brushes.At(gate, "mudPatch")     // stamps at the plan's own features
+Brushes.Tone(area, "lawnTone")                                     // a sheet laid over the whole area, faint
+```
+
+Boundary passes (every seam the plan knows), the tone layer over whole lawns and paving, and the sports park's styles
+come with them.
+
 ## Testing
 
+- `dotnet test Tests/Placemaker.Tests --filter DecalLibraryTests`: the shared library (families read, variants deterministic, strips and sheets without a seam, chains join, the budget). `PM_BAKE_LIBRARY=1` (and `PM_BAKE_ONLY=leafOak,cracks`) renders every variant on grass, asphalt, paving and dirt to `.forensics/decals/library/` with `manifest.json`: the browser page (https://claude.ai/artifact/BTMZX1HfRAhjkRHdCBzJCN) shows those, with the user's marks, notes and suggested settings in its store.
 - `dotnet test Tests/Placemaker.Tests --filter DynamicDecalsTests`: the library reads, every kind generates, the same
   stroke gives the same pixels, paths join across tiles, the codec round-trips and refuses garbage, BC3 stays close, the
   community park's weathering grows from causes within budget (block, big site, slope), the Grime amount works.
