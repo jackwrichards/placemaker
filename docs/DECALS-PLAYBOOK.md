@@ -1,138 +1,237 @@
-# Decals playbook
+# Ground playbook: terrain paint, surfaces and decals
 
-How to give a Placemaker type (a park, a nature type, a plaza, a car park) its ground detail with the shared decal
-library. Written as we go: the sports park is the first type done this way; every later type follows this page and
-adds what it learns. How the system works is in `docs/DYNAMIC-DECALS.md`; this page is how to use it well.
+For the agent who makes a Placemaker type's ground look real: the sports park first, then every park, nature type,
+plaza, car park and so on. It tells you how to plan the ground as one picture, which layer does what, how to grow the
+decal library yourself, how to judge your work with the user, and what is still to build. Read it all once before you
+touch anything; keep your own runbook as you go (section 9).
 
-## The user's rules (2026-10-29, after round 1)
+How the systems work inside: `docs/DYNAMIC-DECALS.md` (decals), `docs/TERRAIN-PAINT.md` (paint), `Core/Layers/Common/Lawn.cs`
+(lawn: painted terrain or grass surface). This page is how to use them well.
 
-These come straight from the user's review of the library. They beat any default below.
+## 1. What the user wants (their words, 2026-10-29)
 
-1. **Large.** The game is played from far away; the player looks at a whole park at once. A patch is 5-15 m, not 2 m.
-   Pieces (leaves, petals, stones, sticks) are drawn a little bigger than life so they read from that distance. Anything
-   you can only see with the camera on the ground (acorns, tiny twigs) does not belong.
-2. **See-through, with faded edges.** Large but subtle: every kind has an `opacity` well under 1 (bare ground 0.5,
-   puddles 0.75 with a pale sheen, never a dark blob), and edges that fade over metres. A hard outline or a solid blob
-   is a defect (round 1's puddle looked like an oil stain; the dry leaves like a stain).
-3. **No blotches.** If a type uses a detail, it uses it properly: smother the area (the `…Carpet` kinds repeat both ways
-   and cover a whole lawn or grove), or vary it (patches cycle through fade types and sizes). One lonely patch of birch
-   leaves, four stones, one cluster of cigarette butts all read as mistakes.
-4. **Consistent across the whole site.** Small details only work when they are everywhere they belong: a litter
-   sprinkle over every busy area, not one patch of butts by one bench. That means many instances; the shared library
-   makes them cheap (one texture set per variant for the whole city).
-5. **Higher-level looks over tiny parts.** "Woodland floor" (sticks, bark, leaves, seeds, humus) instead of separate
-   twigs and acorns; "stones" lathered over rough ground instead of a few rocks.
-6. **New looks are made by editing the library, never on the fly.** A type that wants more litter, other leaves or a
-   new stain adds or changes a kind in `Recipes/decals/library/<family>.json` (data only), the user approves it in the
-   browser, and every type can then use it. No type generates its own textures.
+- **"An artistic vision from top to bottom."** Terrain paint, surfaces and decals are planned together, in one go, as
+  one picture. Not three passes by three habits.
+- **Large.** Parks are seen from hundreds of feet up in the editor and about 100 feet up in play. A patch is 8-20 m.
+  Pieces (leaves, stones) are drawn a little bigger than life so they read from there.
+- **See-through, faded edges, organic, overlapping.** "Large but transparent, faded edges." Never a hard outline, never
+  a solid blob, never anything robotic: no grids, no even spacing, no one-patch-per-object.
+- **Smother or vary; never a blotch.** "If we're going to do any amount of birch leaves, it should be smothered in birch
+  leaves." One lonely patch of leaves, four stones, one cluster of cigarette butts all read as mistakes. Small details
+  must be consistent across the whole site, which means many instances.
+- **Cater to what the game shows best.** Decals mostly add texture "when you're blurring your eye and looking at the
+  thing as a whole", through a macro lens; each must still be an A+ up close. Pick big, readable things (leaf masses,
+  bare ground, rock outcrops, worn paths, puddles, cracks) over tiny ones (pebbles, gum).
+- **The library is examples, not a limit.** "Everything that's already there is basically just examples, but feel free
+  to use it. Adding more basically takes no extra space to this mod." Make what your type needs (section 5).
+- **Colour:** round 2's saturation was liked; every kind comes in full colour and one step toned down. Pick per site.
+- **Grades so far:** library round 1 B-; the user's notes for each round are kept in sections 6 and 10.
 
-Round 2 notes (same day): **nothing robotic, anywhere.** Organic, overlapping, high transparency, and larger again
-(every family scaled 1.5×: leaf patches 8-15 m, bare ground up to 20 m). Colour comes in **two levels**: every family
-has `"saturations": [1, 0.8]`, so its variants alternate between full colour (the user liked round 2's colour) and a
-step toned down. Builders pick the level that suits the place (quiet, formal sites: the toned variants; autumn
-woodland: full colour). Transparency is set per kind; the user's word: "maybe a little too transparent, maybe not, it
-depends how they're used", so how strongly a brush lays them (instance opacity, overlap) is where it is tuned.
+![Bad: v1 grime on the sports park: flat round blobs, same speckle everywhere](images/decals/bad-v1-sportspark-blobs.jpg)
+![Bad: v1 puddle with a hard pale outline, two black "prints"](images/decals/bad-v1-puddle-prints.jpg)
+![Bad: a big lawn with nothing on it](images/decals/bad-v1-untouched-lawn.jpg)
 
-Round 3 notes: **cater to what the game shows best.** Parks are seen from hundreds of feet up in the editor and about
-100 feet up in play. Decals are mainly there to add texture to the whole when you blur your eye, through a macro
-lens, though each must still be an A+ up close. So:
+## 2. The three ground layers and when to use which
 
-- Every kind has a `tier`. **macro** kinds read from the player's view (leaf masses and carpets, bare and dry ground,
-  ground mottle, rock outcrops, stones, worn paths, puddles, mud, cracks, edge strips, tone): reach for these first.
-  **detail** kinds (gravel spill, gum, butts, droppings, spills, drips, paw prints, mixed litter, sticks, molehills,
-  rust, pine-needle patches, clippings) only show up close: use them sparingly, as texture inside macro looks.
-- Resolution follows the view: at 30-100 m a screen pixel covers several cm, so macro kinds use 3-7 cm texels. That
-  makes many more variants fit the budget: 484 variants of 65 kinds in 131 MiB, 8-16 variants for the common macro
-  kinds, so a park almost never shows the same one twice (with random rotation, scale and opacity on top).
+| Layer | What it is | Use it for | Never for |
+|---|---|---|---|
+| **Terrain paint** | 4 vanilla materials (dry grass, forest floor, dirt, sand) painted into the city's splatmap, 3.5 m texels, soft (`Core/Paint`, `PaintKit`) | The soft base: lawn tone (moist/dry), transitions where the build meets the land, ground under trees, broad worn areas, beaches, infields | Anything under ~7 m, any edge, anything on paving or asphalt (paint only shows on bare terrain) |
+| **Surfaces** (area prefabs) | A tiled material that hides the terrain inside a polygon (`ctx.Surface`, `SurfaceRole`) | Real hard or special materials only: courts, pitches with marked turf, paving, plazas, car parks, play surfaces | Whole-ground lawns. A grass surface is one uniform tile: no wear, no tone, no paint shows through it. **This is why the sports park looks plastic** |
+| **Decals** (shared library) | Code-made textures drawn by the game's decal shader on top of everything (ground, surfaces, paths) | Everything with an edge or a shape: wear, seams, leaves, cracks, puddles, stones, litter, tone sheets over paving | Big uniform colour changes that paint can do for free |
 
-## Placing them: never robotic
+**Order of thinking, top to bottom:**
 
-How instances go down matters as much as how they look. A brush (phase 2) must:
+1. **Ground choice.** Bare terrain + paint wherever the ground is "just grass" (the park around the sports parts, the
+   verges, the edges). Surfaces only where a real material is (the courts, the pitch, the paths, the car park). Every
+   lawn type has the choice `dressLawn` = Painted terrain / Grass surface (`Lawn.cs`); sports park, formal gardens,
+   cemeteries and similar default to Grass surface today. The user's direction for the sports park: painted terrain for
+   the park part, surfaces only for the sports parts. Changing a type's default is a design change: make it, see it in
+   the game, tell the user.
+2. **Paint the base.** Moisture and dryness over the whole lawn, forest floor under groups of trees, dirt where feet
+   wear the ground broadly, dry grass halos, a soft transition at the build's outline (`GroundWear`, the Ground paint
+   section). Paint is permanent (stays when a build is removed) and saved with the city.
+3. **Surfaces for the hard parts.** Keep them crisp; the decals will soften their edges.
+4. **Decals for the life.** Tone sheets over every lawn and paved area (faint), then causes (trees, feet, play, water,
+   wheels, age), then seams, then signature flaws (section 4).
 
-- **Overlap.** Patches overlap each other and their neighbours' kinds (leaves over bare ground over tone); the edges
-  blend because every kind fades out over metres. Never butt patches edge to edge, never leave a gap of the same width.
-- **Never a grid, never even spacing.** Positions come from the cause (wind shadow, foot traffic, low ground) plus a
-  cluster process: clumps of clumps, thinning with distance from the cause. No two neighbours the same variant; random
-  rotation (any angle for patches, along the line ±10° for strips); scale 0.7-1.4; opacity 0.6-1.0.
-- **Follow the ground's shapes.** Leaves pile against kerbs and fences downwind, wear follows the walking line and
-  widens where people bunch, puddles sit in the real hollows. A detail with no reason to be where it is reads as fake.
-- **Mix kinds where causes mix.** Under a mixed group of trees: mixed leaves, woodland floor and a little bare ground,
-  overlapping, not three tidy separate patches.
-- **Carpets for "everywhere", patches for "here".** A carpet covers a whole area at low opacity; patches on top make it
-  uneven. A carpet alone looks like wallpaper; patches alone look like blotches.
-- **Judge from the player's distance.** If the placement reads as a pattern from 100 m up, it is wrong, however good
-  each patch is up close.
+**How the layers meet at a boundary.** A surface edge is a hard line: put a strip decal along it (`pathEdgeWear` on the
+grass side of a path, `seamGrime` along a court edge, `kerbGrimeStrip` against a kerb). Paint can't reach under the
+surface, so paint the grass side up to the edge and let the decal cross the line by a metre either way. Decals lie on
+terrain and surfaces alike (layer `terrain`) and on paths and roads (layer `roads`; kinds with `"layers": "ground"` do
+both), so one decal can bridge the seam. Paint dirt under a `barePatch` decal and the two read as one ground.
 
-## Choosing what a type gets
+## 3. What is ready and what is not (be clear about this)
 
-Work from causes, then from seams, then from tone:
+**Ready to use:**
+
+- **The shared library**: 65 kinds, 484 variants in 10 families (`Recipes/decals/library/*.json`), 131 MiB of GPU memory
+  for all of them at once (budget 200 MiB). Patches, strips that repeat along their length, sheets that repeat both ways
+  ("carpets"), chainable crack pieces; six fade types; two colour levels; macro/detail tiers.
+- **The generator** (`Core/Decals/Dynamic`): data-only recipes, deterministic, worker threads, BC3. Section 5.
+- **The game side for library instances** (`Game/Decals/SharedDecals.cs`): `SharedDecals.Place(id, owner, centre, yaw,
+  scale, opacity)` draws an instance (one texture set per variant for the whole city, made on workers, disk cache in
+  `ModsData/Placemaker/decal-cache/`, freed over budget, culled from 600 m, hidden in infoviews); `Clear(owner)`.
+  Proven in the game with the lab: 388 instances, frame time 6.56 → 6.58 ms.
+- **Terrain paint** (`Core/Paint`, `PaintKit`, `GroundWear`) and **surfaces**: mature, used by every type.
+- **v1 strokes** (`kinds.json`, `Weathering.cs`, `DynamicDecalSystem`): per-build textures from causes; only the
+  community sports park uses them (`Weathering.Wants`), with the **Grime** slider (0-300 %, 12 languages). This is the
+  old way (about 30 MB and 10 s per park); replace it, don't extend it.
+- **The browser and the offline baker** (sections 5, 8), the lab scenario `suite/scenarios/lab-library.json`.
+
+**Not built yet (the first agent builds these, for everyone):**
+
+1. **Plan → record → game for library instances.** A plan can add v1 strokes (`ctx.Plan.Decals`) but not library
+   instances. Needed: a `DecalInstance` (variant id, x, z, yaw, scale, opacity) or, better, the brush calls themselves,
+   in the plan; written on the group record (extend `PlacemakerDecalBlob` with a new codec version, keep v1 readable);
+   `DynamicDecalSystem` places them with `SharedDecals.Place(…, owner: group id)` when a record appears or loads, and
+   `SharedDecals.Clear(group id)` when it goes (undo, bulldoze, Edit, ungroup). Keep it deterministic from the build seed.
+2. **Brushes** (Core, pure, tested): one call that places many instances organically. Interface sketch in
+   `docs/DYNAMIC-DECALS.md` ("Brushes"): `CracksAlong(line)`, `EdgeStrip(boundary, side)`, `Scatter(area, cause)`,
+   `Fill(hollow)`, `Under(canopy)`, `At(gate)`, `Tone(area)`. Section 7 has the placement rules they must follow.
+3. **Boundary passes**: find every seam the plan knows (surface edges, path edges, fences, canopies, object feet) and
+   run the strip brushes along them.
+4. **Port Weathering's causes** (play, feet, water, wind, wheels, objects) from v1 strokes to brushes; then switch the
+   community sports park over and drop its per-build textures. Every sports-park style gets it (today only `community`).
+5. **Player controls**: the Grime slider exists for one style; anything new the player reads goes into 12 languages
+   (`node tools/lang/check.js`, AGENTS.md).
+
+Build these once, generally, with tests; every later type reuses them.
+
+## 4. The method for a type
+
+1. **Read the type** in the game first (`tools/suite/Show.ps1 -Type <type> -Style all`): what is grass, what is hard,
+   where people go, where trees stand, where water sits, what the edges are.
+2. **Choose the ground** (section 2, step 1) and the paint base.
+3. **List the causes** and what each lays down:
 
 | Cause | Ask | Library kinds |
 |---|---|---|
-| Trees | Which species, how many, where does the wind blow? | `leaf…` patches downwind, `…Carpet` under groups, `woodlandFloor`, `pineNeedles`, `blossomPetals` |
-| Feet | Where do people walk, wait, cut corners? | `barePatch`, `pathEdgeWear`, `footprintsMud`, `litterSprinkle`, `chewingGum` (paving) |
-| Play | Goals, courts, swings, stands? | `barePatch` (goalmouths), `mudPatch`, `sandSpill` (courts), `grassClippings` |
-| Water | Low points, paths, car parks? | `puddlePiece` (overlap pieces), `dampPatch`, `dryTidemark` |
-| Wheels | Car parks, service tracks, mower routes? | `tyreTrack`, `skidMark`, `oilSpot`, `oilDrips`, `wheelRut` |
-| Age | Asphalt and concrete, kerbs, fences? | `crack…` chains, `crackWeb`, `potholePatch`, `kerbGrimeStrip`, `fenceLine`, `seamGrime`, `rustBleed`, `mossPatch` |
-| Everything | Every open lawn and every paved area | `lawnTone`, `mowingStripes`, `asphaltSheet`, `pavingTone`, `dirtTone` (faint, whole-area) |
+| Trees | Which species, how many, which way does the wind blow? | `leaf…` patches downwind, `…Carpet` under groups, `woodlandFloor`, `pineNeedlesCarpet`, `blossomPetals` |
+| Feet | Where do people walk, wait, cut corners, bunch up? | `wornPath`, `barePatch`, `pathEdgeWear`, `litterSprinkle` |
+| Play | Goals, courts, swings, stands, dugouts? | `barePatch` (goalmouths), `mudPatch`, `sandSpill` (courts), `grassClippings` (detail) |
+| Water | Low points, paths, car parks, after rain? | `puddlePiece` (overlap pieces), `dampPatch`, `dryTidemark` |
+| Wheels | Car parks, service tracks, mower routes? | `tyreTrack`, `skidMark`, `oilSpot`, `wheelRut` |
+| Age | Asphalt, concrete, kerbs, fences, steel? | `crackAsphalt`/`crackConcrete`/`crackSealed` chains, `crackWeb`, `potholePatch`, `kerbGrimeStrip`, `fenceLine`, `seamGrime`, `mossPatch` |
+| Wildness | Rough corners, slopes, the edge of the land | `rockOutcrop`, `stonesCarpet`, `groundMottle`, `dryGrass` |
+| Everything | Every open lawn and paved area | `lawnTone`, `mowingStripes`, `groundMottle`, `asphaltSheet`, `pavingTone`, `dirtTone` |
 
-Seams are the best place for detail: paving meeting grass, court meeting lawn, car park meeting verge, path edges,
-fence lines, the ground under canopies, bench feet and posts, kerbs. Every seam the plan knows gets a strip
-(`pathEdgeWear`, `kerbGrimeStrip`, `fenceLine`, `seamGrime`, `leafDriftStrip`) laid end to end along it.
+4. **Seams**: every boundary gets a strip (section 2, "How the layers meet").
+5. **Signature flaws**: each site exaggerates one or two things a visitor would remember: the bald goalmouth, the big
+   puddle in the low corner, the leaf-choked corner, the shortcut to the bus stop. 1-4 strong spots per site.
+6. **Density and strength targets:**
+   - tone sheets over **every** open lawn and paved area, faint (5-12 % change): no swath untouched;
+   - cause-driven kinds cover what their cause reaches: carpets where the cause is everywhere (a grove), patches on top
+     where it is local (one tree, one gate);
+   - small things thin but even over their whole area, never one cluster;
+   - from the player's view the site reads as lived-in but calm; up close every patch holds up.
+7. **Colour level**: formal or quiet sites use the toned-down variants (odd indices); autumn woodland and wild corners
+   the full-colour ones (even indices). Mix within one site only with a reason.
 
-## Density and strength targets
+## 5. Growing the library (you are expected to)
 
-- Tone sheets cover **every** open lawn and paved area, faint (5-12 % change). No swath is untouched.
-- Cause-driven kinds (leaves, wear, water) cover what their cause reaches, with carpets where the cause is everywhere
-  (a grove) and patches where it is local (one tree, one gate).
-- Strong spots (a bald goalmouth, the big puddle, a leaf-choked corner): 1-4 per site. Everything else is see-through.
-- Small things (litter, gum, droppings) are thin but even over their whole area, never one cluster.
+Everything in the library is an example. Add kinds, add variants, change recipes: data only, near zero cost.
 
-## Adding or changing a kind
+- **Cost**: nothing in the mod package (recipes are a few hundred bytes of JSON); the textures are made on the player's
+  machine on first use, cached on disk, and only the variants a city uses go on the GPU. All 484 variants together are
+  131 MiB; the budget is 200 MiB city-wide and unused variants are freed. Prefer larger texels for macro kinds (3-7 cm:
+  that's what the player sees from 30-100 m) and you can afford 8-16 variants per kind.
+- **Where**: `Recipes/decals/library/<family>.json`. Add a family file if nothing fits. Each kind: `id`, `name`, `tier`
+  (`macro` | `detail`), `about`, `texel`, `layers`, `order`, `lod`, `maxTexels`, `opacity`, `edge`, `variants`, `ops`.
+  `variants`: `count`, `size`, `aspect` or `width`, `strength`/`wet`/`age` ranges, `tile` (`none` | `x` | `xy` |
+  `chain`), `fades` (`soft`, `linear`, `side`, `ring`, `islands`, `wide`), `saturations` (the family gives `[1, 0.8]`).
+  Ops and stamps: `docs/DYNAMIC-DECALS.md` (noise, warp, cells, waves, erosion, cracks with T-junctions and chains,
+  cluster scatter, trails, 20 stamp shapes, colour layers with wetness, height and gloss).
+- **A whole new look** usually needs only recipes; a new stamp shape or op is a small change in `DecalGenerator.cs`
+  (add a test; bump `DecalVariants.GeneratorVersion` when existing pixels change, so disk caches refresh).
+- **Rules for a good kind**: large and see-through (`opacity` 0.5-0.9; water and tone lower), soft fading edges, varied
+  variants (fades, sizes, colour levels), a `…Carpet` sheet if the look should cover areas, colours near the game's own
+  (`docs/TERRAIN-PAINT.md` §3 has the terrain's measured colours).
+- **See it**: `PM_BAKE_LIBRARY=1 PM_BAKE_ONLY=<kind or family> dotnet test Tests/Placemaker.Tests --filter DecalLibraryTests`
+  writes `.forensics/decals/library/img/<kind>-<n>.png` (each variant on grass, asphalt, paving and dirt, lit like the
+  game) and `manifest.json`. Look at every variant yourself; contact sheets with ffmpeg help (`vstack`).
+- **Test it**: `dotnet test Tests/Placemaker.Tests --filter "DecalLibraryTests|DynamicDecalsTests"`: families read,
+  variants deterministic, strips and sheets repeat without a seam, chains join, the whole library fits the budget.
+- **Show it**: republish the browser (section 8) and ask the user.
+- **Check it in the game**: `suite/scenarios/lab-library.json` lays every kind on a field (lab op `library`, `"kinds"`
+  takes ids or family names, `"focus"` frames one); the type's own build with `Show.ps1` once brushes exist.
 
-1. Edit `Recipes/decals/library/<family>.json`. Each kind has `name`, `about`, `texel`, `layers`, `order`, `lod`,
-   `opacity`, `edge`, `variants` (`count`, `size`, `aspect` or `width`, `strength`/`wet`/`age`, `tile`, `fades`) and `ops`
-   (the generator recipe; ops and stamps are listed in `docs/DYNAMIC-DECALS.md`).
-2. Keep it large and see-through (rules 1-2). Patches: `"fades": ["soft", "islands", "linear", "wide", "side", "ring"]`
-   so the variants differ in how they fade. Areas: add a `…Carpet` kind with `"tile": "xy"`.
-3. Render it offline: `PM_BAKE_LIBRARY=1 PM_BAKE_ONLY=<kind or family> dotnet test Tests/Placemaker.Tests --filter
-   DecalLibraryTests` → `.forensics/decals/library/img/<kind>-<n>.png` (each variant on grass, asphalt, paving, dirt).
-   Look at every variant yourself.
-4. Run the tests (`--filter DecalLibraryTests`): the whole library must stay under the 200 MiB budget, strips and sheets
-   must repeat without a seam, chains must join.
-5. Republish the browser (below) and ask the user.
+![Good: round 3, large, see-through, varied](images/decals/good-round3.jpg)
+![Good: macro kinds that read from above (rock outcrop, ground mottle)](images/decals/good-macro-rocks-mottle.jpg)
+![Bad: round 1, blobs in the middle of their boxes, puddle like oil](images/decals/bad-round1-blobs.jpg)
 
-## Judging in the game
+## 6. The library's history (what the user said, what changed)
 
-- `powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-library.json -Build -Who <you>` lays every kind
-  on a test field (lab op `library`; `"focus": "<kind>"` frames one for a close picture) and logs instances, GPU memory
-  and frame times. Round 1: 388 instances of 320 variants, 84 MiB, frame time 6.56 → 6.58 ms (no measurable cost).
-- Then the type itself with `tools/suite/Show.ps1` (plan, built, terrain pictures). Look from the player's distance
-  (45°, whole park in view) first, close-ups second.
-- The offline renders and the game agree closely; the game adds sky reflection on glossy kinds and the real light.
+| Round | User's verdict | What changed |
+|---|---|---|
+| v1 (strokes, per park) | C-: blobs, same speckle, hard puddle ring, worm prints, untouched lawns | replaced by the shared library |
+| 1 (54 kinds) | B-: leaves are A, everything else "larger, more transparent, more variation"; puddle = oil stain; dry leaves = a stain; pine needles a blob; acorns pointless; tyre tracks = railway | 2× sizes, `opacity`, fade types, carpets, woodland floor, chevron tyre tread |
+| 2 (62 kinds) | "even larger, saturation toned down, organic, overlapping, high transparency, never robotic" | 1.5× sizes, two colour levels, ragged fades |
+| 3 (65 kinds, 484 variants) | "cater to what the game shows best" (seen from 100+ ft); many variations so a park never repeats | macro/detail tiers, view-distance texels, 8-16 variants, rock outcrop, worn path, ground mottle |
 
-## The approval loop with the user
+![Round 1 in the game (leaves, bare patches) for scale](images/decals/ingame-round1-leaves.jpg)
 
-- The browser: https://claude.ai/artifact/BTMZX1HfRAhjkRHdCBzJCN. Every variant on four grounds, settings in plain
-  words, Good/Bad and a note per variant, Keep/Drop and a note per kind, and suggested settings. Answers are in its
-  store: read them with the artifact data tool (collections `marks`, `kinds`, `suggestions`).
-- To republish: bake, convert the pictures to JPEG (`ffmpeg -q:v 4`), copy `manifest.json`, publish the page with the
-  changed pictures (keep the same URL; at most 255 files per publish).
-- The user also reviews in plain words in chat. Act on the sentiment, not only the letter: "the puddle looks like oil"
-  means water must be see-through everywhere, not only in that kind.
+## 7. Placing: never robotic
 
-## Removal rules (never break these)
+Brushes (and anything that places instances) must:
 
-- Decals are GameObjects with `HideAndDontSave`: never entities, never a `PrefabRef`, never a prefab.
-- A save holds only Placemaker's own record data (strokes, later brush calls). Without the mod the game drops it.
-- The disk cache (`ModsData/Placemaker/decal-cache/`) is a pure cache: deleting it costs only regeneration time.
-- Terrain paint stays the base layer (vanilla data, kept after removal); decals go on top.
-- No pack decals, ever.
+- **Overlap.** Patches overlap each other and other kinds (leaves over bare ground over tone); edges blend because
+  every kind fades over metres. Never butt patches edge to edge or leave even gaps.
+- **No grids, no even spacing.** Positions from the cause (wind shadow, foot traffic, low ground) plus a cluster
+  process: clumps of clumps, thinning away from the cause. Neighbours never the same variant; any rotation for
+  patches, ±10° along the line for strips; scale 0.7-1.4; opacity 0.6-1.0.
+- **Follow the ground's shapes.** Leaves pile against kerbs and fences downwind, wear follows the walking line and
+  widens where people bunch, puddles sit in the real hollows (the built heightmap), cracks follow the road.
+- **Mix where causes mix.** Under a mixed group of trees: mixed leaves, woodland floor and a little bare ground,
+  overlapping; not three tidy patches.
+- **Carpets for "everywhere", patches for "here".** A carpet alone looks like wallpaper; patches alone like blotches.
+- **Strips end to end along seams**, cut at corners; crack chains end to end along a road (their main crack enters
+  and leaves at the middle of each short side).
+- **Judge from the player's distance.** If it reads as a pattern from 100 m up, it is wrong.
 
-## Log of types done
+## 8. The loop with the user
 
-| Type | Date | What it uses | Notes |
-|---|---|---|---|
-| (library round 2) | 2026-10-29 | 62 kinds, 352 variants, 124 MiB | bigger, see-through, fade types, carpets |
-| (library round 3) | 2026-10-29 | 65 kinds, 484 variants, 131 MiB | 1.5x larger, two colour levels, macro/detail tiers, rock outcrops, worn paths, ground mottle |
+1. **Your own eyes first.** Offline renders for kinds, the game runner for builds. Never tell the user anything you
+   have not seen.
+2. **The game runner** (AGENTS.md, `suite/README.md`): `tools/suite/Show.ps1` and `Send-Suite.ps1` always as a
+   **background** command with `-Who <your task>`, never `-AllMods`, never `-Direct`. The user's own game blocks the
+   queue ("waiting: the user's own game is open"): that can take an hour, it's fine, do other work. A new worktree needs
+   the shared UI deps linked (`cmd /c mklink /J <wt>\UI\node_modules C:\Users\jack\cs2-area-tool\UI\node_modules`) or
+   the build fails ("UI dependencies missing"). Look from 45° with the whole site in view first, close-ups second.
+3. **The browser**: https://claude.ai/artifact/BTMZX1HfRAhjkRHdCBzJCN shows every variant on four grounds, settings in
+   plain words, Good/Bad + note per variant, Keep/Drop + note per kind, suggested settings. Its store (read it with
+   the artifact data tool): collections `marks` (doc id `kind-index`), `kinds` (doc id = kind), `suggestions`.
+   Republish: bake, convert pictures to JPEG (`ffmpeg -q:v 4`), copy `manifest.json` next to the page, publish the
+   page with the changed pictures at the same URL (at most 255 files per publish: split the list). The page itself
+   lives in the lead session's scratchpad; ask for it, or read it back with the Artifact tool.
+4. **The user also reviews in plain words**, often by voice, often mid-task. Act on the sentiment, not only the letter:
+   "the puddle looks like oil" means water must be see-through everywhere. Write their words into your runbook.
+5. **Report**: what you saw in the game, with pictures (SendUserFile), and what is not installed ("fixed on branch X and
+   seen in the game runner; not in your game yet"). You never install; the lead does.
+
+## 9. Your runbook (keep one per type)
+
+Each type gets `docs/runbooks/<type>.md`, built as you work so the next agent starts where you stopped. Copy
+`docs/runbooks/TEMPLATE.md`. Keep it short and true: the ground plan, the causes and kinds you used, the numbers
+(density, opacity, counts), what the user said and graded, the runs that prove it, what failed and why, what's left.
+When you learn something that holds for every type, put it here in the playbook too.
+
+## 10. Never break these (removal and safety)
+
+- Decals are GameObjects with `HideAndDontSave`: never entities, never a `PrefabRef`, never a prefab, never a pack decal.
+- A save holds only Placemaker's own record data (strokes, later instances or brush calls). Without the mod the game
+  skips that component and drops the record: nothing is left behind.
+- The disk cache is a pure cache: deleting `ModsData/Placemaker/decal-cache/` costs only regeneration time.
+- Terrain paint is vanilla city data: it stays when a build is removed (say so in the review, as today).
+- Memory: game boots failed earlier from out-of-memory caused by leaked `.unity\relay\relay_win.exe` processes. If a
+  boot fails with "Out of memory" in Player.log, check commit memory (`Get-CimInstance Win32_OperatingSystem`,
+  FreeVirtualMemory) and report it rather than retrying.
+- Known bug in the sports park (not decals, but in the same pictures): tennis and volleyball nets are not turned 90°
+  (they run along the court instead of across it) and some props stand backwards: `Core/Layers/AddOns/Fields/SportsProps.cs`
+  and the court code, every court type.
+
+## 11. Log of types done
+
+| Type | Date | Agent's runbook | Grade | Notes |
+|---|---|---|---|---|
+| Library rounds 1-3 | 2026-10-29 | (this page, section 6) | B- after round 1 | 65 kinds, 484 variants, 131 MiB |
+| Sports park | next | `docs/runbooks/sportsPark.md` | | first type on the shared library; builds the pieces in section 3 |
