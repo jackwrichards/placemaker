@@ -37,11 +37,12 @@ using Unity.Mathematics;
 
 namespace Placemaker.Core.Layers.Plaza
 {
-    internal static class PlazaDesigns
+    internal static partial class PlazaDesigns
     {
         public const string Control = "design";
         public const string Classic = "classic";
-        public static readonly string[] Ids = { Classic, "grand", "rooms", "railed", "terraces", "modern", "piazza" };
+        public static readonly string[] Ids = { Classic, "grand", "rooms", "railed", "terraces", "modern", "piazza",
+            "sunkenPlaza", "waterSteps", "marketHall", "dining", "grandSteps" };
 
         public static bool Handles(string id) => !string.IsNullOrEmpty(id) && id != Classic && Array.IndexOf(Ids, id) > 0;
 
@@ -66,6 +67,11 @@ namespace Placemaker.Core.Layers.Plaza
                 case "railed": Railed(k); break;
                 case "terraces": Terraces(k); break;
                 case "modern": Modern(k); break;
+                case "sunkenPlaza": SunkenPlaza(k); break;
+                case "waterSteps": WaterSteps(k); break;
+                case "marketHall": MarketHall(k); break;
+                case "dining": Dining(k); break;
+                case "grandSteps": GrandSteps(k); break;
                 default: Piazza(k); break;
             }
             ctx.Check();
@@ -79,6 +85,11 @@ namespace Placemaker.Core.Layers.Plaza
             ctx.Plan.Facts["designBenches"] = k.BenchCount;
             ctx.Plan.Facts["designHedges"] = k.HedgeCount;
             ctx.Plan.Facts["designFences"] = k.FenceCount;
+            ctx.Plan.Facts["designWalls"] = k.WallCount;
+            ctx.Plan.Facts["designFlights"] = k.FlightCount;
+            ctx.Plan.Facts["designCafes"] = k.CafeCount;
+            ctx.Plan.Facts["designCanopies"] = k.CanopyCount;
+            ctx.Plan.Facts["designWallFountains"] = k.FountainCount;
             return new Result { Centre = k.C, CoreRadius = k.Core };
         }
 
@@ -115,9 +126,15 @@ namespace Placemaker.Core.Layers.Plaza
             else
                 for (int i = -2; i <= 2; i++)
                     k.Flag(k.W(fu, i * math.min(5f, ib * 0.18f)));
+            // 2026-10-29: the greenmarket (Union Square's farmers' market): stalls along both long sides facing in,
+            // cafe tables under parasols between them and the statue or flags.
             foreach (float sv in new[] { -1f, 1f })
-                for (float u = f0 + 2.5f; u <= f1 - 6f; u += 4f)
-                    k.Pot(k.W(u, sv * (ib - 2f)));
+            {
+                int st = 0;
+                for (float u = f0 + 3f; u <= f1 - 5f; u += 6.2f, st++)
+                    if (!k.Stall(k.W(u, sv * (ib - 3.2f)), -k.S * sv, (st % 4) == 3)) k.Pot(k.W(u, sv * (ib - 2f)));
+                if (f1 - f0 > 12f) k.CafeGrid(f0 + 3f, f1 - 4f, sv > 0 ? ib * 0.3f : -ib + 7.5f, sv > 0 ? ib - 7.5f : -ib * 0.3f, 5.4f, true);
+            }
             k.Seat(k.W(f1 - 6.2f, -ib * 0.45f), -k.A);
             k.Seat(k.W(f1 - 6.2f, ib * 0.45f), -k.A);
 
@@ -154,16 +171,8 @@ namespace Placemaker.Core.Layers.Plaza
             k.Core = rc + 1.2f;
             if (k.FountainChild) k.CentreClear(cL, rc);
             else if (k.CentreAvailable) k.CentrePiece(cL, rc - 2f, "statue");
-            else
-            {
-                k.Flag(cL);
-                for (int i = 0; i < 6; i++)
-                {
-                    float an = i * math.PI / 3f + 0.3f;
-                    k.Flowerbed(cL + new float2(math.cos(an), math.sin(an)) * 2.6f, an);
-                }
-            }
-            k.SeatRing(cL, rc - 1.6f, 8, true);
+            else k.FountainDrum(cL, math.clamp(rc * 0.42f, 2.6f, 4.2f), false);
+            k.SeatRing(cL, rc - 1.2f, 8, true);
             k.LampRing(cL, rc + 0.6f, 4);
         }
 
@@ -194,7 +203,7 @@ namespace Placemaker.Core.Layers.Plaza
                     bool centre = (nu % 2 == 1 && nv % 2 == 1) ? i == ci && j == cj : false;
                     k.Lay(PKerb, PavingShapes.Frame(room.Ring, 0.6f), k.P.Band);
                     // Hedges just inside the kerb, open in the middle of every side.
-                    k.HedgeBox(room, 1.1f, 3.4f);
+                    k.HedgeBox(room, 1.1f, 3.4f, centre);
                     var inner = new OrientedRect { Center = room.Center, Axis = room.Axis, HalfLength = room.HalfLength - 1.8f, HalfWidth = room.HalfWidth - 1.8f };
                     if (centre) FocalRoom(k, inner);
                     else if (((i + j) & 1) == 0) LawnRoom(k, inner);
@@ -221,6 +230,24 @@ namespace Placemaker.Core.Layers.Plaza
             {
                 float v = -ib + (j + 1) * (sv + w) - w * 0.5f;
                 k.Lay(PPattern, PavingShapes.Band(k.W(-ia, v), k.W(ia, v), 0.5f), k.P.Inlay);
+            }
+            // 2026-10-29: arbors (modular pergola bays) over the two walks either side of the middle row, open where walks cross.
+            if (nv >= 3)
+            {
+                int mid = nv / 2;
+                var crossU = new List<float>();
+                for (int i = 0; i < nu - 1; i++) crossU.Add(-ia + (i + 1) * (su + w) - w * 0.5f);
+                foreach (int j in new[] { mid - 1, mid })
+                {
+                    float v = -ib + (j + 1) * (sv + w) - w * 0.5f;
+                    float s0 = -ia + 0.5f;
+                    foreach (float cu in crossU)
+                    {
+                        if (cu - w * 0.5f - 0.6f - s0 > 3f) k.Canopy(k.W(s0, v - 1.5f), k.W(cu - w * 0.5f - 0.6f, v - 1.5f), 1, "PergolaModular01");
+                        s0 = cu + w * 0.5f + 0.6f;
+                    }
+                    if (ia - 0.5f - s0 > 3f) k.Canopy(k.W(s0, v - 1.5f), k.W(ia - 0.5f, v - 1.5f), 1, "PergolaModular01");
+                }
             }
             if (nu % 2 == 0 || nv % 2 == 0) k.Core = 0f;
         }
@@ -295,7 +322,7 @@ namespace Placemaker.Core.Layers.Plaza
             k.Core = rad + 0.9f;
             if (k.FountainChild) k.CentreClear(r.Center, rad);
             else if (k.CentreAvailable) k.CentrePiece(r.Center, rad - 1f, "fountain");
-            else PlazaDressing.SpecimenCentre(k.Ctx, k.Occ, r.Center, rad - 0.2f, k.Pave, 0x5BE0u);
+            else k.FountainDrum(r.Center, math.clamp(rad * 0.45f, 2.6f, 4f), false);
             foreach (var (su, sv) in new[] { (-1f, -1f), (1f, -1f), (1f, 1f), (-1f, 1f) })
                 k.Flowerbed(r.Local(su * (r.HalfLength - 1.6f), sv * (r.HalfWidth - 1.6f)), 0f);
         }
@@ -406,7 +433,7 @@ namespace Placemaker.Core.Layers.Plaza
                 k.Core = rc * 0.55f + 1f;
                 if (k.FountainChild) k.CentreClear(k.C, rc * 0.55f);
                 else if (k.CentreAvailable) k.CentrePiece(k.C, rc * 0.4f, "fountain");
-                else PlazaDressing.SpecimenCentre(k.Ctx, k.Occ, k.C, rc * 0.55f - 0.6f, k.Pave, 0x5BE0u);
+                else k.FountainDrum(k.C, math.clamp(rc * 0.55f * 0.45f, 2.6f, 4f), false);
                 foreach (var (cu, cv) in new[] { (-1f, -1f), (1f, -1f), (1f, 1f), (-1f, 1f) })
                 {
                     var bc = court.Local(cu * (court.HalfLength - 4.2f), cv * (court.HalfWidth - 4.2f));
@@ -425,8 +452,16 @@ namespace Placemaker.Core.Layers.Plaza
                 k.Core = rc + 1.2f;
                 if (k.FountainChild) k.CentreClear(k.C, rc);
                 else if (k.CentreAvailable) k.CentrePiece(k.C, rc - 2f, "fountain");
-                else PlazaDressing.SpecimenCentre(k.Ctx, k.Occ, k.C, rc - 2.2f, k.Pave, 0x5BE0u);
+                else k.FountainDrum(k.C, math.clamp(rc * 0.4f, 2.6f, 4.2f), false);
+                k.SeatRing(k.C, math.max(rc - 1.6f, 7f), 8, true);
                 k.LampRing(k.C, rc + 0.6f, 8);
+                // Kiosks on the circus's diagonals, between the walks.
+                for (int q = 0; q < 4; q++)
+                {
+                    float an = k.Phase + math.PI * 0.25f + q * math.PI * 0.5f;
+                    var kp = k.C + new float2(math.cos(an), math.sin(an)) * (rc + 4.5f);
+                    k.Stall(kp, math.normalizesafe(k.C - kp), true);
+                }
             }
         }
 
@@ -447,103 +482,52 @@ namespace Placemaker.Core.Layers.Plaza
             float fw = k.Fw;
             float prom = 5f;
             k.Leftover(fw + prom + 1f, "hedge");
+            k.WallId = "EU_Wall03";
             k.Lay(PFrame, PavingShapes.Frame(k.Region.Ring, fw), k.P.Band);
             k.Lay(PPromenade, PavingShapes.Frame(k.Region.Ring, fw + prom), k.P.Path);
             k.RingTrees(fw + 1.5f, 9f, true, 0, true);
             float ia = k.HA - fw - prom - 0.5f, ib = k.HB - fw - prom - 0.5f;
-            float h = math.clamp(k.Ctx.F("levelHeight"), 0.8f, 2f);
-            const float slope = 0.3f;
-            float bank = math.max(3.5f, h / slope);
+            // 2026-10-29: crisp steps (the user: "the levels read as gentle slopes"): 1.8 m a step on a 45 % bank, a
+            // stone wall along every foot, a hedge along every top, stone stairs with cheek walls on the axes.
+            float h = math.clamp(k.Ctx.F("levelHeight"), 0.9f, 2.4f);
+            float bank = BankFor(h);
             int levels = math.clamp(k.Ctx.I("levelCount"), 2, 3);
-            // Floors: the outer one (the walk at street level) and each terrace; the top keeps at least 12 m.
             float m = math.min(ia, ib);
             float floor = (m - 12f - (levels - 1) * bank) / (levels - 1);
             while (levels > 2 && floor < 7f) { levels--; floor = (m - 12f - (levels - 1) * bank) / (levels - 1); }
             if (floor < 5f) { k.Ctx.Issue(IssueSeverity.Info, "Placemaker.Plaza.Issue.TooSmallForLevels"); Rooms(k); return; }
             floor = math.min(floor, 14f);
             k.Ctx.Plan.Facts["terraceLevels"] = levels;
-            // Insets of each bank's foot (outer edge) and head (inner edge), from the box edge.
             var foot = new float[levels]; var head = new float[levels];
             float d = 0f;
             for (int l = 1; l < levels; l++) { d += floor; foot[l] = d; d += bank; head[l] = d; }
             OrientedRect At(float inset) => new OrientedRect { Center = k.C, Axis = k.A, HalfLength = ia - inset, HalfWidth = ib - inset };
-            // Ground: the first floor stays as it is; each terrace is a flat plateau h above the one below, the banks
-            // sloped quads between them (PlannedTerraform.Sloped: exact planes, no steps from coarse cells).
-            float g0 = 0f;
-            var outer = At(0f).Ring;
-            foreach (var q in outer) g0 += k.Ctx.H(q);
-            g0 /= outer.Length;
-            float Level(int l) => g0 + l * h;
-            for (int l = 1; l < levels; l++)
-            {
-                var o = At(foot[l]).Ring; var i = At(head[l]).Ring;
-                for (int e = 0; e < 4; e++)
-                {
-                    int f = (e + 1) % 4;
-                    k.Quad(new[] { new float3(o[e].x, Level(l - 1), o[e].y), new float3(o[f].x, Level(l - 1), o[f].y), new float3(i[f].x, Level(l), i[f].y), new float3(i[e].x, Level(l), i[e].y) }, true);
-                }
-                float next = l + 1 < levels ? foot[l + 1] : -1f;
-                if (next > 0f)
-                {
-                    var n = At(next).Ring;
-                    for (int e = 0; e < 4; e++)
-                    {
-                        int f = (e + 1) % 4;
-                        k.Quad(new[] { new float3(i[e].x, Level(l), i[e].y), new float3(i[f].x, Level(l), i[f].y), new float3(n[f].x, Level(l), n[f].y), new float3(n[e].x, Level(l), n[e].y) }, true);
-                    }
-                }
-                else k.Quad(Lift(i, Level(l)), true);
-            }
-            k.Ctx.Issue(IssueSeverity.Warning, TerrainShaper.PermanentKey);
-            // The ground the objects stand on.
-            var box = At(0f);
-            k.Ctx.Ground.Override(k.Region.Min, k.Region.Max, p =>
-            {
-                var l = p - k.C;
-                float u = math.abs(math.dot(l, k.A)), v = math.abs(math.dot(l, k.S));
-                float inset = math.min(ia - u, ib - v);
-                if (inset < 0f) return float.NaN;
-                float hgt = g0;
-                for (int lv = 1; lv < levels; lv++)
-                {
-                    if (inset >= head[lv]) hgt = Level(lv);
-                    else if (inset > foot[lv]) { hgt = math.lerp(Level(lv - 1), Level(lv), (inset - foot[lv]) / bank); break; }
-                    else break;
-                }
-                return hgt;
-            });
+            var lv = new Levels(k, ia, ib);
+            for (int l = 1; l < levels; l++) lv.Add(-ia + foot[l], ia - foot[l], -ib + foot[l], ib - foot[l], h, bank);
+            lv.Emit();
 
-            // Banks: planted slopes, a low hedge on the top edge, flowers on the slope, stairs on the axes.
-            float stair = 4.2f;
+            // Banks: planted, a wall at the foot, a hedge on top, stairs in the middle of every side.
+            const float stair = 4.6f;
             for (int l = 1; l < levels; l++)
             {
-                var o = At(foot[l]); var i = At(head[l]);
-                var oring = o.Ring; var iring = i.Ring;
+                float u0 = -ia + foot[l], u1 = ia - foot[l], v0 = -ib + foot[l], v1 = ib - foot[l];
+                var gaps = new List<Gap> { new Gap(0, 0f, stair * 0.5f), new Gap(1, 0f, stair * 0.5f), new Gap(2, 0f, stair * 0.5f), new Gap(3, 0f, stair * 0.5f) };
+                Edges(k, u0, u1, v0, v1, B4(bank), false, Head.Hedge, gaps);
+                k.Flight(k.W(u0 - 0.3f, 0f), k.W(u0 + bank + 0.3f, 0f), stair);
+                k.Flight(k.W(u1 + 0.3f, 0f), k.W(u1 - bank - 0.3f, 0f), stair);
+                k.Flight(k.W(0f, v0 - 0.3f), k.W(0f, v0 + bank + 0.3f), stair);
+                k.Flight(k.W(0f, v1 + 0.3f), k.W(0f, v1 - bank - 0.3f), stair);
+                // Flowers and clipped shrubs on the slope either side of the stairs.
+                var oring = At(foot[l]).Ring; var iring = At(head[l]).Ring;
                 for (int e = 0; e < 4; e++)
                 {
                     int f = (e + 1) % 4;
-                    k.Lay(PGreen, new[] { oring[e], oring[f], iring[f], iring[e] }, k.Grass, SurfaceRole.Grass, AssetCategories.SurfaceGrass);
-                    var mo = (oring[e] + oring[f]) * 0.5f; var mi = (iring[e] + iring[f]) * 0.5f;
-                    var along = math.normalizesafe(oring[f] - oring[e]);
-                    // Stairs: a paved flight in the middle of the side, steps in dark stone.
-                    k.Lay(PFeature, PavingShapes.Band(mo - (mi - mo) * 0.1f, mi + (mi - mo) * 0.1f, stair), k.P.Path);
-                    var upDir = math.normalizesafe(mi - mo);
-                    for (float t = 0.6f; t < bank; t += 0.9f)
-                        k.Lay(PFeature - 1, PavingShapes.Band(mo + upDir * t - along * stair * 0.5f, mo + upDir * t + along * stair * 0.5f, 0.3f), k.P.Band);
-                    // Hedge on the top edge, open at the stairs.
-                    var hi0 = iring[e] + upDir * 0.6f; var hi1 = iring[f] + upDir * 0.6f;
-                    float side = math.distance(hi0, hi1);
-                    var hd = (hi1 - hi0) / math.max(1e-3f, side);
-                    float mid = side * 0.5f;
-                    k.Hedge(hi0 + hd * 1.5f, hi0 + hd * (mid - stair * 0.5f - 0.6f));
-                    k.Hedge(hi0 + hd * (mid + stair * 0.5f + 0.6f), hi1 - hd * 1.5f);
-                    // Flowers on the slope either side of the stairs.
-                    var slopeMid = math.lerp(oring[e], iring[e], 0.5f);
-                    var slopeEnd = math.lerp(oring[f], iring[f], 0.5f);
+                    var slopeMid = math.lerp(oring[e], iring[e], 0.55f);
+                    var slopeEnd = math.lerp(oring[f], iring[f], 0.55f);
                     float sl = math.distance(slopeMid, slopeEnd);
                     var sd = (slopeEnd - slopeMid) / math.max(1e-3f, sl);
                     int fi = 0;
-                    for (float s = 3f; s < sl - 3f; s += 3.4f, fi++)
+                    for (float s = 3f; s < sl - 3f; s += 3.2f, fi++)
                         if (math.abs(s - sl * 0.5f) > stair * 0.5f + 1.6f)
                         {
                             if ((fi % 3) == 2) k.Topiary(slopeMid + sd * s);
@@ -551,7 +535,7 @@ namespace Placemaker.Core.Layers.Plaza
                         }
                 }
             }
-            // Floors: stone; benches on each terrace looking down over the one below, beds and pots along its edge.
+            // Floors: benches on each terrace looking down over the one below, lime trees along its inner edge.
             for (int l = 1; l < levels; l++)
             {
                 var i = At(head[l]);
@@ -579,11 +563,9 @@ namespace Placemaker.Core.Layers.Plaza
                         }
                 }
             }
-            // The belvedere on top: a paved rondel with the focal piece, pergolas in its corners.
-            // At the foot of the first bank: a flower border, open at the stairs, with benches looking up at it.
+            // At the foot of the first bank: a flower border in front of the wall, open at the stairs, benches looking up at it.
             {
-                var o = At(foot[1]);
-                var ring = o.Ring;
+                var ring = At(foot[1]).Ring;
                 for (int e = 0; e < 4; e++)
                 {
                     var a = ring[e]; var b = ring[(e + 1) % 4];
@@ -591,23 +573,23 @@ namespace Placemaker.Core.Layers.Plaza
                     var dd = (b - a) / len;
                     var outward = new float2(dd.y, -dd.x);
                     float mid = len * 0.5f;
-                    foreach (var (s0, s1) in new[] { (2f, mid - stair * 0.5f - 0.5f), (mid + stair * 0.5f + 0.5f, len - 2f) })
+                    foreach (var (s0, s1) in new[] { (2f, mid - stair * 0.5f - 0.8f), (mid + stair * 0.5f + 0.8f, len - 2f) })
                     {
                         if (s1 - s0 < 4f) continue;
-                        var p0 = a + dd * s0 + outward * 1.4f; var p1 = a + dd * s1 + outward * 1.4f;
-                        k.Lay(PFeature, PavingShapes.Band(p0, p1, 2.6f), k.Grass, SurfaceRole.Grass, AssetCategories.SurfaceGrass);
+                        var p0 = a + dd * s0 + outward * 1.7f; var p1 = a + dd * s1 + outward * 1.7f;
+                        k.Lay(PFeature, PavingShapes.Band(p0, p1, 2.4f), k.Grass, SurfaceRole.Grass, AssetCategories.SurfaceGrass);
                         foreach (var p in LeisureKit.Along(p0, p1, 2.8f)) k.Flowerbed(p, math.atan2(dd.x, dd.y));
-                        k.Occ.TakeCorridor(p0, p1, 1.4f, 3);
-                        foreach (var p in LeisureKit.Along(p0, p1, 9f)) k.Seat(p + outward * 3.1f, -outward);
+                        k.Occ.TakeCorridor(p0, p1, 1.3f, 3);
+                        foreach (var p in LeisureKit.Along(p0, p1, 9f)) k.Seat(p + outward * 3.2f, -outward);
                     }
                 }
             }
+            // The belvedere on top: a paved rondel round a pavilion (or the focal piece), lawns between the stair axes.
             var top = At(head[levels - 1]);
             float rad = math.min(math.min(top.HalfLength, top.HalfWidth) - 2f, 10f);
             k.Lay(PFeature, PavingShapes.Polygon(k.C, rad, 32, k.Phase), k.P.Focal);
             k.Lay(PKerb, PavingShapes.Annulus(k.C, rad, 1f), k.P.Band);
             k.Core = rad + 1f;
-            // Four lawns on the top terrace between the stair axes, cut round the rondel, a tree in each outer corner.
             if (top.HalfLength - 2f > stair * 0.5f + 6f && top.HalfWidth - 2f > stair * 0.5f + 6f)
                 foreach (var (su, sv) in new[] { (-1f, -1f), (1f, -1f), (1f, 1f), (-1f, 1f) })
                 {
@@ -621,7 +603,7 @@ namespace Placemaker.Core.Layers.Plaza
                 }
             if (k.FountainChild) k.CentreClear(k.C, rad);
             else if (k.CentreAvailable) k.CentrePiece(k.C, rad * 0.5f, "fountain");
-            else PlazaDressing.SpecimenCentre(k.Ctx, k.Occ, k.C, math.min(rad * 0.55f, 7f), k.Pave, 0x5BE0u);
+            else if (!k.Gazebo(k.C, k.Phase)) k.FountainDrum(k.C, math.min(rad * 0.4f, 4f), false);
             if (PlazaArt.Available(k.Ctx, "shelterAsset", AssetCategories.Shelter))
                 foreach (var (su, sv) in new[] { (-1f, -1f), (1f, -1f), (1f, 1f), (-1f, 1f) })
                 {
@@ -629,7 +611,7 @@ namespace Placemaker.Core.Layers.Plaza
                     if (k.Region.ContainsDisc(p, 3f) && math.distance(p, k.C) > rad + 3f)
                         LeisureKit.Put(k.Ctx, k.Occ, p, LeisureKit.Yaw(p, k.C), ObjectRole.Furniture, PlazaArt.Or(k.Ctx, "shelterAsset", PlazaArt.Pergolas, k.V(0x5A00u)), AssetCategories.Shelter, 2.4f, k.V(0x5A10u), 0.5f, 0.2f, 0);
                 }
-            k.SeatRing(k.C, math.max(rad - 1.4f, 4f), 6, false);
+            k.SeatRing(k.C, math.max(rad - 1.4f, 5.5f), 6, false);
         }
 
         private static float3[] Lift(float2[] ring, float h)
@@ -645,6 +627,7 @@ namespace Placemaker.Core.Layers.Plaza
         {
             float fw = k.Fw;
             k.Leftover(fw + 3f, "bosque");
+            k.WallId = "EU_Wall05";
             k.Lay(PFrame, PavingShapes.Frame(k.Region.Ring, fw), k.P.Band);
             float ia = k.HA - fw - 3f, ib = k.HB - fw - 3f;
             if (ia < 16f || ib < 14f) { Piazza(k); return; }
@@ -656,90 +639,104 @@ namespace Placemaker.Core.Layers.Plaza
                     bands.Add(LayerRegion.Rect(k.W(s * u, 0f), k.S, reach, 0.3f));
             k.Lay(PPattern, bands, k.P.Inlay);
 
-            // Linear planters either side of an open central promenade, then strata outward: a double row of trees
-            // in pits (a bosque), another planter, ... to the edge. Planters break where the cross walks run.
+            // 2026-10-29 (the user: "its tree grids are too dense", "a plain grey pad"): linear planters either side of
+            // an open promenade, one row of trees in pits beyond them with cafe tables between, a long pergola canopy
+            // on one side, a sunken water court with a fountain wall in the middle, tall flags at the promenade's ends.
             float vp = math.clamp(ib * 0.3f, 8f, 15f);
-            float pw = 2.6f, gap = 10f;
+            const float pw = 2.6f, gap = 10f;
             float end = ia * 0.9f;
-            int stratum = 0;
-            for (float v = vp; v <= ib - 2f; stratum++)
+            foreach (float s in new[] { -1f, 1f })
             {
-                bool planter = (stratum & 1) == 0;
-                if (planter)
+                Planter(k, -end, -gap * 0.5f, s * vp, pw);
+                Planter(k, gap * 0.5f, end, s * vp, pw);
+            }
+            float vr = vp + pw * 0.5f + 6f;
+            int strata = 1;
+            if (vr <= ib - 3f)
+            {
+                strata++;
+                foreach (float s in new[] { -1f, 1f })
                 {
-                    // Inner planters break at the middle; outer ones in thirds (the cross walks either side of the pad).
-                    if (stratum > 2) break;   // planter, bosque, planter: then the open edge walk
-                    var cuts = new[] { -end, -gap * 0.5f, gap * 0.5f, end };
-                    foreach (float s in new[] { -1f, 1f })
-                        for (int c = 0; c + 1 < cuts.Length; c += 2) Planter(k, cuts[c], cuts[c + 1], s * v, pw);
-                    v += pw * 0.5f + 5.5f;
-                }
-                else
-                {
-                    // Two rows of trees on a 7 m lattice, benches under the first looking at the planter.
-                    for (int row = 0; row < 2 && v <= ib - 2f; row++, v += 7f)
-                        foreach (float s in new[] { -1f, 1f })
-                            for (float u = -end + 1f; u <= end - 1f + 0.01f; u += 7f)
-                            {
-                                var p = k.W(u, s * v);
-                                // The middle third stays open: a cross court either side of the centre pad.
-                                if (!k.Region.ContainsDisc(p, fw + 2.5f) || math.abs(u) < end / 3f) continue;
-                                if (k.Tree(p, true, PlazaArt.PlaneTrees) && row == 0 && ((int)math.round((u + end) / 7f) & 1) == 0)
-                                    k.Seat(p - k.S * (s * 2.6f), -k.S * s, PlazaArt.ModernBenches);
-                            }
-                    v += pw * 0.5f - 1.5f;
+                    int t = 0;
+                    for (float u = -end + 2f; u <= end - 2f + 0.01f; u += 9f, t++)
+                    {
+                        var p = k.W(u, s * vr);
+                        if (!k.Region.ContainsDisc(p, fw + 2.5f) || math.abs(u) < gap * 0.5f + 2f) continue;
+                        k.Tree(p, true, PlazaArt.PlaneTrees);
+                        if ((t & 1) == 0) k.CafeSet(p + k.A * 4.5f, k.Phase + 0.4f, false, true);
+                        else k.Seat(p - k.S * (s * 2.4f), -k.S * s, PlazaArt.ModernBenches);
+                    }
                 }
             }
-            k.Ctx.Plan.Facts["modernStrata"] = stratum;
+            // The canopy: two bays deep along the +S side beyond the trees, benches under it looking at the square.
+            float vc = vr + 4.5f;
+            if (vc + 6.5f <= ib)
+            {
+                strata++;
+                float cl = math.min(end * 0.62f, 36f);
+                var a = k.W(cl, vc + 6f); var b = k.W(-cl, vc + 6f);
+                foreach (var p in LeisureKit.Along(k.W(-cl + 1.5f, vc + 1.6f), k.W(cl - 1.5f, vc + 1.6f), 3f)) k.Seat(p, -k.S, PlazaArt.ModernBenches);
+                foreach (var p in LeisureKit.Along(k.W(-cl + 3f, vc + 4.4f), k.W(cl - 3f, vc + 4.4f), 6f)) k.CafeSet(p, k.Phase, false, true);
+                var strip = k.Canopy(a, b, 2, "PergolaModular04", true);
+                LeisureKit.TakeRect(k.Occ, strip);
+                k.Lay(PFeature + 2, strip.Ring, k.P.Focal);
+                // The -S side: the same canopy, cafe tables under it and in front of it, planters along the edge.
+                foreach (var p in LeisureKit.Along(k.W(-cl + 1.5f, -(vc + 1.6f)), k.W(cl - 1.5f, -(vc + 1.6f)), 3f)) k.Seat(p, k.S, PlazaArt.ModernBenches);
+                foreach (var p in LeisureKit.Along(k.W(-cl + 3f, -(vc + 4.4f)), k.W(cl - 3f, -(vc + 4.4f)), 6f)) k.CafeSet(p, k.Phase, false, true);
+                var s2 = k.Canopy(k.W(-cl, -(vc + 6f)), k.W(cl, -(vc + 6f)), 2, "PergolaModular04", true);
+                LeisureKit.TakeRect(k.Occ, s2);
+                k.Lay(PFeature + 2, s2.Ring, k.P.Focal);
+                foreach (float sd in new[] { -1f, 1f })
+                    foreach (var p in LeisureKit.Along(k.W(-cl - 8f, sd * (vc + 3f)), k.W(-end, sd * (vc + 3f)), 4.5f)) k.BoxPlanterRow(p, p + k.A * 0.1f, 1f);
+            }
+            k.Ctx.Plan.Facts["modernStrata"] = strata;
             ModernCentre(k, ia, vp, pw, gap, end);
         }
 
-        /// <summary>A linear planter on u0..u1 at v: lawn strip in a dark kerb, trees every 9 m, low hedges between, benches along both sides.</summary>
+        /// <summary>A linear planter on u0..u1 at v: lawn strip in a dark kerb, trees every 12 m, low hedges between, benches along both sides.</summary>
         private static void Planter(Kit k, float a0, float a1, float v, float pw)
         {
+            var a = k.W(a0, v); var b = k.W(a1, v);
+            var strip = new OrientedRect { Center = (a + b) * 0.5f, Axis = k.A, HalfLength = (a1 - a0) * 0.5f, HalfWidth = pw * 0.5f };
+            if (!k.Fits(strip, 1f)) return;
+            k.Lay(PFeature, strip.Ring, k.Grass, SurfaceRole.Grass, AssetCategories.SurfaceGrass);
+            k.Lay(PKerb, PavingShapes.Frame(new OrientedRect { Center = strip.Center, Axis = k.A, HalfLength = strip.HalfLength + 0.6f, HalfWidth = strip.HalfWidth + 0.6f }.Ring, 0.6f), k.P.Band);
+            var trees = LeisureKit.Along(a, b, 12f);
+            for (int t = 0; t < trees.Count; t++)
             {
+                k.Tree(trees[t], false, PlazaArt.LimeTrees);
+                var next = t + 1 < trees.Count ? trees[t + 1] : b - k.A * 0.5f;
+                var from = trees[t] + k.A * 1.4f; var to = next - k.A * 1.4f;
+                if (math.dot(to - from, k.A) > 2f) k.Hedge(from, to);
+                if (t == 0 && math.dot(trees[0] - a, k.A) > 3f) k.Hedge(a + k.A * 0.6f, trees[0] - k.A * 1.4f);
+            }
+            foreach (float side in new[] { -1f, 1f })
+            {
+                var off = k.S * (side * (pw * 0.5f + 1.6f));
+                foreach (var p in LeisureKit.Along(a, b, 4.5f))
                 {
-                    var a = k.W(a0, v); var b = k.W(a1, v);
-                    var strip = new OrientedRect { Center = (a + b) * 0.5f, Axis = k.A, HalfLength = (a1 - a0) * 0.5f, HalfWidth = pw * 0.5f };
-                    if (!k.Fits(strip, 1f)) return;
-                    k.Lay(PFeature, strip.Ring, k.Grass, SurfaceRole.Grass, AssetCategories.SurfaceGrass);
-                    k.Lay(PKerb, PavingShapes.Frame(new OrientedRect { Center = strip.Center, Axis = k.A, HalfLength = strip.HalfLength + 0.6f, HalfWidth = strip.HalfWidth + 0.6f }.Ring, 0.6f), k.P.Band);
-                    // Trees every 9 m along the planter, a low hedge between them.
-                    var trees = LeisureKit.Along(a, b, 9f);
-                    for (int t = 0; t < trees.Count; t++)
-                    {
-                        k.Tree(trees[t], false, PlazaArt.LimeTrees);
-                        var next = t + 1 < trees.Count ? trees[t + 1] : b - k.A * 0.5f;
-                        var from = trees[t] + k.A * 1.4f; var to = next - k.A * 1.4f;
-                        if (math.dot(to - from, k.A) > 2f) k.Hedge(from, to);
-                        if (t == 0 && math.dot(trees[0] - a, k.A) > 3f) k.Hedge(a + k.A * 0.6f, trees[0] - k.A * 1.4f);
-                    }
-                    // Benches on both sides with their backs to the planter.
-                    foreach (float side in new[] { -1f, 1f })
-                    {
-                        var off = k.S * (side * (pw * 0.5f + 1.6f));
-                        foreach (var p in LeisureKit.Along(a, b, 4.5f))
-                        {
-                            bool atTree = false;
-                            foreach (var t in trees) if (math.distancesq(t, p) < 4f) { atTree = true; break; }
-                            if (!atTree) k.Seat(p + off, k.S * side, PlazaArt.ModernBenches);
-                        }
-                    }
-                    k.Light(a - k.A * 1.4f);
-                    k.Light(b + k.A * 1.4f);
+                    bool atTree = false;
+                    foreach (var t in trees) if (math.distancesq(t, p) < 4f) { atTree = true; break; }
+                    if (!atTree) k.Seat(p + off, k.S * side, PlazaArt.ModernBenches);
                 }
             }
+            k.Light(a - k.A * 1.4f);
+            k.Light(b + k.A * 1.4f);
         }
 
         private static void ModernCentre(Kit k, float ia, float vp, float pw, float gap, float end)
         {
-            // The centre pad: water jets in a dark stone pad (a dark mirror when no fountains are installed).
-            float pu = math.min(gap * 0.5f + 7f, ia * 0.35f), pv = math.max(4f, vp - pw * 0.5f - 4f);
-            var pad = k.Box(-pu, pu, -pv, pv);
-            k.Lay(PKerb, PavingShapes.Frame(pad.Ring, 0.8f), k.P.Band);
-            var mirror = k.Box(-pu + 2f, pu - 2f, -pv + 2f, pv - 2f);
+            // A sunken water court 0.9 m deep: a stone bank and a wall round a dark mirror, a fountain wall down its
+            // middle (jets when the player has them), benches on the rim looking in.
+            float pu = math.min(gap * 0.5f + 7f, ia * 0.35f), pv = math.max(4.5f, vp - pw * 0.5f - 3.5f);
+            float b = BankFor(WallH);
+            var lv = new Levels(k, k.EA - 1f, k.EB - 1f);
+            lv.Add(-pu, pu, -pv, pv, -WallH, b);
+            lv.Emit();
+            Edges(k, -pu, pu, -pv, pv, B4(b), true, Head.None, null, k.P.Band);
+            var mirror = k.Box(-pu + b, pu - b, -pv + b, pv - b);
             k.Lay(PFeature, mirror.Ring, k.P.Inlay);
-            k.Lay(PFeature + 1, pad.Ring, k.P.Focal);
+            k.Lay(PKerb, PavingShapes.Frame(k.Box(-pu - 0.8f, pu + 0.8f, -pv - 0.8f, pv + 0.8f).Ring, 0.8f), k.P.Band);
             k.Core = math.min(pu, pv);
             if (k.FountainChild) k.CentreClear(k.C, math.min(pu, pv));
             else if (k.JetsAvailable)
@@ -747,15 +744,18 @@ namespace Placemaker.Core.Layers.Plaza
                 for (float u = -pu + 4f; u <= pu - 4f + 0.01f; u += 4f)
                     foreach (float v in new[] { -pv * 0.4f, pv * 0.4f })
                         k.Ctx.Object(k.W(u, v), 0f, ObjectRole.Centerpiece, PlazaArt.SmallFountain, k.V(0x5E10u), -1, AssetCategories.CenterpieceFountain);
-                k.Occ.TakeCorridor(k.W(-pu, 0f), k.W(pu, 0f), pv, 0);
             }
-            else k.Occ.TakeCorridor(k.W(-pu, 0f), k.W(pu, 0f), pv, 0);
+            else if (pu - b > 4f) k.FountainWall(k.W(-pu + b + 2f, 0f), k.W(pu - b - 2f, 0f));
+            LeisureKit.TakeRect(k.Occ, k.Box(-pu, pu, -pv, pv), 0);
             foreach (float s in new[] { -1f, 1f })
-                foreach (float t in new[] { -1f, 1f })
-                    k.Light(k.W(s * (pu + 1.2f), t * (pv + 1.2f)));
-            // Sculpture at both ends of the promenade, when one is installed.
+            {
+                foreach (var p in LeisureKit.Along(k.W(-pu + 1.5f, s * (pv + 2.2f)), k.W(pu - 1.5f, s * (pv + 2.2f)), 3.6f)) k.Seat(p, -k.S * s, PlazaArt.ModernBenches);
+                foreach (float t in new[] { -1f, 1f }) k.Light(k.W(s * (pu + 1.6f), t * (pv + 1.6f)));
+                // Tall flags in pairs at both ends of the promenade.
+                foreach (float t in new[] { -1f, 1f }) k.BigFlag(k.W(s * (end - 1f), t * 3f), true);
+            }
             if (k.CentreAvailable)
-                foreach (float s in new[] { -1f, 1f }) k.CentrePiece(k.W(s * (end - 4f), 0f), 3f, "statue");
+                foreach (float s in new[] { -1f, 1f }) k.CentrePiece(k.W(s * (end - 6f), 0f), 3f, "statue");
         }
 
         // ───────────── piazza ─────────────
@@ -797,9 +797,33 @@ namespace Placemaker.Core.Layers.Plaza
             }
             k.Lay(PPattern + 1, rays, k.P.Inlay);
             k.Core = r0 + 1.2f;
-            if (k.FountainChild) k.CentreClear(k.C, r0);
-            else if (k.CentreAvailable) k.CentrePiece(k.C, r0 - 1.5f, "fountain");
-            else PlazaDressing.SpecimenCentre(k.Ctx, k.Occ, k.C, r0 - 0.6f, k.Pave, 0x5BE0u);
+            // 2026-10-29 (the user: "piazza: sparse"): a fountain in the middle (a drum of wall fountains when none is
+            // installed), cafe terraces under parasols in front of a pergola loggia along both long sides, a raised
+            // church forecourt (sagrato) at one end with a wide flight of steps, kiosks in the far corners.
+            float ea = k.EA - 1f, eb = k.EB - 1f;
+            bool alongA = k.HA >= k.HB;
+            float sag0 = float.MaxValue;
+            if (alongA && ea - rose > 30f && eb > 16f)
+            {
+                float sd = math.min(15f, ea * 0.24f), b = BankFor(WallH);
+                float u1 = ea, u0 = ea - sd, v1 = eb - 2f;
+                var lv = new Levels(k, ea, eb);
+                lv.Add(u0, u1, -v1, v1, WallH, B4(b));
+                lv.Emit();
+                float w = v1 * 0.55f;
+                k.WallId = "EU_Wall03";
+                Edges(k, u0, u1, -v1, v1, B4(b), false, Head.Rail, new List<Gap> { new Gap(0, 0f, w) }, k.P.Band);
+                k.Flight(k.W(u0 - 0.3f, 0f), k.W(u0 + b + 0.3f, 0f), w * 2f - 0.6f, true, true, k.P.Accent);
+                k.Lay(PFeature + 3, k.Box(u0 + b, u1 - b, -v1 + b, v1 - b).Ring, k.P.Focal);
+                foreach (var p in LeisureKit.Along(k.W(u1 - b - 3.8f, -v1 + b + 4f), k.W(u1 - b - 3.8f, v1 - b - 4f), 8f)) k.Tree(p, true, PlazaArt.ChestnutTrees);
+                k.CafeGrid(u0 + b + 1.6f, u1 - b - 6.4f, -v1 + b + 1.6f, v1 - b - 1.6f, 5.2f, true);
+                foreach (float s in new[] { -1f, 1f }) k.BigFlag(k.W(u1 - b - 1f, s * (v1 - b - 1f)), true);
+                sag0 = u0 - 1f;
+                k.Ctx.Plan.Facts["sagrato"] = 1;
+            }
+            if (k.FountainChild && k.CentreAvailable) k.CentreClear(k.C, r0);
+            else if (k.CentreAvailable) k.Centre(k.C, r0 - 0.5f, "fountain");
+            else k.FountainDrum(k.C, math.clamp(r0 * 0.48f, 2.6f, 5.2f), false);
             k.SeatRing(k.C, r0 + 2.4f, 8, true);
             k.LampRing(k.C, r0 + 4.6f, 8);
             // Flower pots on the rosette's rim, between the main rays.
@@ -811,8 +835,11 @@ namespace Placemaker.Core.Layers.Plaza
             // Chestnuts in the corners: three in pits round a bench.
             foreach (var (su, sv) in new[] { (-1f, -1f), (1f, -1f), (1f, 1f), (-1f, 1f) })
             {
-                var c = k.W(su * k.HA * 0.68f, sv * k.HB * 0.68f);
-                if (!k.Region.ContainsDisc(c, fw + 6f) || math.distance(c, k.C) < r0 + 9f) continue;
+                // (2026-10-29: from the box's real edge, EA/EB; HA/HB include the frame margin.)
+                float cu = math.max(k.EA - 11f, k.EA * 0.6f), cv = math.max(k.EB - 11f, k.EB * 0.6f);
+                var c = k.W(su * cu, sv * cv);
+                if (!k.Region.ContainsDisc(c, fw + 5f) || math.distance(c, k.C) < r0 + 9f) continue;
+                if (alongA && su > 0f && cu > sag0 - 5f) continue;
                 for (int t = 0; t < 3; t++)
                 {
                     float a = t * 2.094f + math.atan2(sv, su);
@@ -820,48 +847,53 @@ namespace Placemaker.Core.Layers.Plaza
                 }
                 k.Seat(c, math.normalizesafe(k.C - c));
             }
-            CafeRows(k);
+            CafeRows(k, ea, eb, alongA ? math.min(ea, sag0) : ea);
+            foreach (float s in new[] { -1f, 1f })
+            {
+                var p = alongA ? k.W(-ea + 4f, s * (eb - 5f)) : k.W(s * (ea - 5f), -eb + 4f);
+                k.Stall(p, math.normalizesafe(k.C - p), true);
+            }
             PlazaDressing.EdgePlanters(k.Ctx, k.Occ, k.Region, k.Gates);
         }
 
         /// <summary>
-        /// Cafe terraces in a row along the square's two long sides (the "cafe" count spread over both), each between two
-        /// pots, facing the square; what does not fit in the rows goes where the generic terraces find room.
+        /// Cafe terraces along the square's two long sides: a pergola loggia one bay deep against the edge, two rows of
+        /// tables under big parasols in front of it, pots at the row ends. <paramref name="stop"/> ends the rows (a forecourt).
         /// </summary>
-        private static void CafeRows(Kit k)
+        private static void CafeRows(Kit k, float ea, float eb, float stop)
         {
-            int n = k.Ctx.I("cafe");
-            if (n <= 0 || !PlazaArt.Available(k.Ctx, "cafeAsset", AssetCategories.CafeSeating, AssetCategories.Picnic)) return;
-            bool chosen = !string.IsNullOrEmpty(k.Ctx.S("cafeAsset"));
+            if (k.Ctx.I("cafe") <= 0) return;
             bool alongA = k.HA >= k.HB;
             var dir = alongA ? k.A : k.S;
             var nrm = alongA ? k.S : k.A;
-            float half = alongA ? k.HA : k.HB, across = alongA ? k.HB : k.HA;
-            int perSide = (n + 1) / 2, placed = 0;
+            float half = alongA ? ea : eb, across = alongA ? eb : ea;
+            float t0 = -half * 0.72f, t1 = math.min(half * 0.72f, stop - 3f);
+            if (t1 - t0 < 12f) return;
+            int placed = 0;
             foreach (float s in new[] { -1f, 1f })
             {
-                int here = s < 0 ? perSide : n - perSide;
-                if (here <= 0) continue;
-                float span = half * 1.2f, pitch = span / here;
-                for (int i = 0; i < here; i++)
+                // The loggia: its line just inside the edge, the bays reaching in towards the square.
+                var la = k.C + dir * t0 + nrm * (s * (across - 0.4f));
+                var lb = k.C + dir * t1 + nrm * (s * (across - 0.4f));
+                // The bays reach to the left of la to lb: turn the line so that is towards the square.
+                var dl = lb - la;
+                if (math.dot(new float2(-dl.y, dl.x), k.C - la) < 0f) { var tmp = la; la = lb; lb = tmp; }
+                foreach (var p in LeisureKit.Along(la - nrm * (s * 1.5f), lb - nrm * (s * 1.5f), 4f)) k.CafeSet(p, math.atan2(dir.x, dir.y), false, true);
+                var strip = k.Canopy(la, lb, 1, "PergolaModular05", true);
+                LeisureKit.TakeRect(k.Occ, strip);
+                foreach (float row in new[] { 5.6f, 11f })
                 {
-                    float t = -span * 0.5f + pitch * (i + 0.5f);
-                    uint v = k.V(0xCA00u);
-                    var asset = PlazaArt.Or(k.Ctx, "cafeAsset", PlazaArt.Patios, v);
-                    float r = AssetMix.FootprintRadius(k.Ctx.Site, asset, chosen ? 2.5f : 4.6f);
-                    var p = k.C + dir * t + nrm * (s * (across - k.Fw - r - 1.5f));
-                    if (k.NearGate(p, r + 3f)) p += dir * (r + 4f);
-                    if (!LeisureKit.Put(k.Ctx, k.Occ, p, math.atan2(dir.x, dir.y), ObjectRole.Furniture, asset, AssetCategories.CafeSeating, r, v, 0.5f, 0.2f, 0)) continue;
-                    foreach (int e in new[] { -1, 1 }) k.Pot(p + dir * (e * (r + 0.9f)));
-                    placed++;
+                    float off = across - 0.4f - 3f - row + 2.4f;
+                    var a = k.C + dir * (t0 + 2f) + nrm * (s * off); var b = k.C + dir * (t1 - 2f) + nrm * (s * off);
+                    foreach (var p in LeisureKit.Along(a, b, 5.2f)) if (k.CafeSet(p, math.atan2(dir.x, dir.y) + row * 0.1f)) placed++;
                 }
+                foreach (float e in new[] { -1f, 1f }) k.Pot(k.C + dir * (e > 0 ? t1 - 0.6f : t0 + 0.6f) + nrm * (s * (across - 6f)));
             }
             k.Ctx.Plan.Facts["cafeRows"] = placed;
         }
-
         // ───────────── kit ─────────────
 
-        private sealed class Kit
+        private sealed partial class Kit
         {
             public readonly LayerContext Ctx;
             public readonly Occupancy Occ;
@@ -869,11 +901,15 @@ namespace Placemaker.Core.Layers.Plaza
             public readonly List<Gate> Gates;
             public readonly PavingPalette P;
             public readonly PavingPlan Pave;
-            public readonly float2 A, S;
+            public float2 A, S;
             public readonly float2 C;
             /// <summary>Half sizes of the box (on A and S) round C the composition is laid in.</summary>
             public readonly float HA, HB;
-            public readonly float Fw, Phase;
+            /// <summary>Half sizes of the box to its real edge on the outline (HA/HB reach the frame margin past it).</summary>
+            public float EA => HA - Fw - 4f;
+            public float EB => HB - Fw - 4f;
+            public readonly float Fw;
+            public float Phase;
             public readonly bool FountainChild, CentreAvailable, JetsAvailable;
             public readonly AssetRef Bench, Lamp, Grass, HedgeAsset, FenceAsset;
             public readonly string[] Trees;
@@ -962,11 +998,21 @@ namespace Placemaker.Core.Layers.Plaza
                 {
                     var lr = LayerRegion.From(piece);
                     if (lr == null) continue;
-                    lr.DeepestPoint(out float ins, null, 16);
+                    var deep = lr.DeepestPoint(out float ins, null, 16);
                     if (ins < 5f) continue;
                     if (manner == "bosque")
                     {
-                        TreesIn(piece, 7f, 2.5f, true);
+                        // 2026-10-29 (the user: "the leftover arm is a plain lawn with a grid of trees"): a cafe grove,
+                        // trees on a looser grid with small tables between them, a kiosk where it is deepest.
+                        if (ins >= 7f) Stall(deep, math.normalizesafe(C - deep), true);
+                        TreesIn(piece, 9f, 2.5f, true);
+                        var lrMin = lr.Min; var lrMax = lr.Max;
+                        for (float x = lrMin.x + 4.5f; x < lrMax.x; x += 9f)
+                            for (float y = lrMin.y + 4.5f; y < lrMax.y; y += 9f)
+                            {
+                                var p = new float2(x, y);
+                                if (lr.ContainsDisc(p, 3f)) CafeSet(p, Phase + 0.4f, false, true);
+                            }
                         made++;
                         continue;
                     }
@@ -987,7 +1033,27 @@ namespace Placemaker.Core.Layers.Plaza
                         }
                         else FenceRing(lawn, 0.4f);
                         ShrubBorder(lawn, 1.3f, 4f);
-                        TreesIn(lawn, 10f, 3f, false);
+                        // A pavilion in the garden's deepest point on a paved round, a walk from it towards the square,
+                        // flowerbeds round it; trees round the edge and in the rest.
+                        var llr = LayerRegion.From(lawn);
+                        float lins = 0f;
+                        var ld = llr != null ? llr.DeepestPoint(out lins, null, 16) : deep;
+                        if (lins >= 8f)
+                        {
+                            Lay(PFeature + 3, PavingShapes.Polygon(ld, 5.6f, 24, Phase), P.Focal);
+                            Lay(PKerb, PavingShapes.Annulus(ld, 5.6f, 0.7f, 24), P.Band);
+                            var toC = math.normalizesafe(C - ld);
+                            Lay(PWalk - 1, PavingShapes.Band(ld + toC * 5f, ld + toC * (lins + 4f), 3f), P.Path);
+                            Occ.TakeCorridor(ld + toC * 5f, ld + toC * (lins + 4f), 2f, 2);
+                            Gazebo(ld, math.atan2(toC.x, toC.y));
+                            for (int f = 0; f < 6; f++)
+                            {
+                                float an = Phase + f * math.PI / 3f + 0.5f;
+                                Flowerbed(ld + new float2(math.cos(an), math.sin(an)) * 7.6f, an);
+                            }
+                            SeatRing(ld, 6.6f, 4, true);
+                        }
+                        TreesIn(lawn, 11f, 3f, false);
                         // Benches outside on the long edges.
                         for (int e = 0; e < lawn.Length; e++)
                         {
@@ -1212,7 +1278,7 @@ namespace Placemaker.Core.Layers.Plaza
             }
 
             /// <summary>Hedges just inside a room's edge, open in the middle of every side.</summary>
-            public void HedgeBox(OrientedRect room, float inset, float opening)
+            public void HedgeBox(OrientedRect room, float inset, float opening, bool high = false)
             {
                 var r = new OrientedRect { Center = room.Center, Axis = room.Axis, HalfLength = room.HalfLength - inset, HalfWidth = room.HalfWidth - inset }.Ring;
                 for (int e = 0; e < 4; e++)
@@ -1221,8 +1287,8 @@ namespace Placemaker.Core.Layers.Plaza
                     float len = math.distance(a, b);
                     var d = (b - a) / len;
                     float h = len * 0.5f - opening * 0.5f;
-                    Hedge(a + d * 0.3f, a + d * h);
-                    Hedge(b - d * h, b - d * 0.3f);
+                    if (high) { HighHedge(a + d * 0.3f, a + d * h); HighHedge(b - d * h, b - d * 0.3f); }
+                    else { Hedge(a + d * 0.3f, a + d * h); Hedge(b - d * h, b - d * 0.3f); }
                 }
             }
 

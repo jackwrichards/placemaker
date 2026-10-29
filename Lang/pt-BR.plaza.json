@@ -83,5 +83,15 @@
   "Placemaker.Plaza.Preset.rooms": "Salas de jardim",
   "Placemaker.Plaza.Preset.railed": "Jardins gradeados",
   "Placemaker.Plaza.Preset.terraces": "Jardim em terraços",
-  "Placemaker.Plaza.Preset.modern": "Praça moderna"
+  "Placemaker.Plaza.Preset.modern": "Praça moderna",
+  "Placemaker.Plaza.design.sunkenPlaza": "Praça rebaixada",
+  "Placemaker.Plaza.Preset.sunkenPlaza": "Praça rebaixada",
+  "Placemaker.Plaza.design.waterSteps": "Escadaria d'água",
+  "Placemaker.Plaza.Preset.waterSteps": "Escadaria d'água",
+  "Placemaker.Plaza.design.marketHall": "Mercado coberto",
+  "Placemaker.Plaza.Preset.marketHall": "Mercado coberto",
+  "Placemaker.Plaza.design.dining": "Terraço gastronômico",
+  "Placemaker.Plaza.Preset.dining": "Terraço gastronômico",
+  "Placemaker.Plaza.design.grandSteps": "Grande escadaria",
+  "Placemaker.Plaza.Preset.grandSteps": "Grande escadaria"
 }

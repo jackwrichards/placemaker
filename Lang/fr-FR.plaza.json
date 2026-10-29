@@ -83,5 +83,15 @@
   "Placemaker.Plaza.Preset.rooms": "Chambres de verdure",
   "Placemaker.Plaza.Preset.railed": "Jardins à grilles",
   "Placemaker.Plaza.Preset.terraces": "Jardin en terrasses",
-  "Placemaker.Plaza.Preset.modern": "Place moderne"
+  "Placemaker.Plaza.Preset.modern": "Place moderne",
+  "Placemaker.Plaza.design.sunkenPlaza": "Place en contrebas",
+  "Placemaker.Plaza.Preset.sunkenPlaza": "Place en contrebas",
+  "Placemaker.Plaza.design.waterSteps": "Escaliers d'eau",
+  "Placemaker.Plaza.Preset.waterSteps": "Escaliers d'eau",
+  "Placemaker.Plaza.design.marketHall": "Halle du marché",
+  "Placemaker.Plaza.Preset.marketHall": "Halle du marché",
+  "Placemaker.Plaza.design.dining": "Terrasse gourmande",
+  "Placemaker.Plaza.Preset.dining": "Terrasse gourmande",
+  "Placemaker.Plaza.design.grandSteps": "Grand escalier",
+  "Placemaker.Plaza.Preset.grandSteps": "Grand escalier"
 }

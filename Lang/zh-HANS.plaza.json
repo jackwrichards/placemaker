@@ -83,5 +83,15 @@
   "Placemaker.Plaza.Preset.rooms": "花园房间",
   "Placemaker.Plaza.Preset.railed": "围栏花园",
   "Placemaker.Plaza.Preset.terraces": "台地花园",
-  "Placemaker.Plaza.Preset.modern": "现代广场"
+  "Placemaker.Plaza.Preset.modern": "现代广场",
+  "Placemaker.Plaza.design.sunkenPlaza": "下沉广场",
+  "Placemaker.Plaza.Preset.sunkenPlaza": "下沉广场",
+  "Placemaker.Plaza.design.waterSteps": "水阶梯",
+  "Placemaker.Plaza.Preset.waterSteps": "水阶梯",
+  "Placemaker.Plaza.design.marketHall": "市场大厅",
+  "Placemaker.Plaza.Preset.marketHall": "市场大厅",
+  "Placemaker.Plaza.design.dining": "餐饮露台",
+  "Placemaker.Plaza.Preset.dining": "餐饮露台",
+  "Placemaker.Plaza.design.grandSteps": "大台阶",
+  "Placemaker.Plaza.Preset.grandSteps": "大台阶"
 }

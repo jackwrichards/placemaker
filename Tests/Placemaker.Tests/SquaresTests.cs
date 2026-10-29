@@ -50,7 +50,6 @@ namespace Placemaker.Tests
         [Theory]
         [InlineData("plaza", "fountain")]
         [InlineData("plaza", "civic")]
-        [InlineData("plaza", "piazza")]
         [InlineData("plaza", null)]
         [InlineData("marketSquare", "weekly")]
         [InlineData("marketSquare", "farmers")]

@@ -83,5 +83,15 @@
   "Placemaker.Plaza.Preset.rooms": "정원 방",
   "Placemaker.Plaza.Preset.railed": "울타리 정원",
   "Placemaker.Plaza.Preset.terraces": "계단식 정원",
-  "Placemaker.Plaza.Preset.modern": "모던 광장"
+  "Placemaker.Plaza.Preset.modern": "모던 광장",
+  "Placemaker.Plaza.design.sunkenPlaza": "선큰 광장",
+  "Placemaker.Plaza.Preset.sunkenPlaza": "선큰 광장",
+  "Placemaker.Plaza.design.waterSteps": "물의 계단",
+  "Placemaker.Plaza.Preset.waterSteps": "물의 계단",
+  "Placemaker.Plaza.design.marketHall": "마켓 홀",
+  "Placemaker.Plaza.Preset.marketHall": "마켓 홀",
+  "Placemaker.Plaza.design.dining": "다이닝 테라스",
+  "Placemaker.Plaza.Preset.dining": "다이닝 테라스",
+  "Placemaker.Plaza.design.grandSteps": "대계단",
+  "Placemaker.Plaza.Preset.grandSteps": "대계단"
 }
