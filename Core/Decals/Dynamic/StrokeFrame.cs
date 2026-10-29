@@ -21,6 +21,39 @@ namespace Placemaker.Core.Decals.Dynamic
 
         public float Length => _len;
 
+        /// <summary>Chain cracks (the shared library's crack pieces): the main crack runs from ChainA to ChainB.</summary>
+        public bool HasChain { get; private set; }
+        public float2 ChainA { get; private set; }
+        public float2 ChainB { get; private set; }
+
+        public void SetChain(float2 a, float2 b) { ChainA = a; ChainB = b; HasChain = true; }
+
+        /// <summary>Repeating strips and sheets (the shared library): stamps are wrapped into one period starting at
+        /// <see cref="PeriodOrigin"/> (0 on an axis = no repeat), so a stamp cut by one end comes back in at the other.</summary>
+        public float2 PeriodOrigin { get; private set; }
+        public float2 Period { get; private set; }
+        public bool HasPeriod => Period.x > 0f || Period.y > 0f;
+
+        public void SetPeriod(float2 origin, float2 period) { PeriodOrigin = origin; Period = period; }
+
+        public float2 Wrap(float2 p)
+        {
+            if (Period.x > 0f) p.x = PeriodOrigin.x + (p.x - PeriodOrigin.x) - math.floor((p.x - PeriodOrigin.x) / Period.x) * Period.x;
+            if (Period.y > 0f) p.y = PeriodOrigin.y + (p.y - PeriodOrigin.y) - math.floor((p.y - PeriodOrigin.y) / Period.y) * Period.y;
+            return p;
+        }
+
+        /// <summary>0 at the footprint's middle, 1 at its edge (box: ellipse over the half size; path: across over half the width).</summary>
+        public float Radial(float along, float across)
+        {
+            switch (S.Shape)
+            {
+                case StrokeShape.Box: return math.length(new float2(along, across) / math.max(new float2(0.05f), S.Size * 0.5f));
+                case StrokeShape.Path: return math.abs(across) / math.max(0.05f, MaxWidth() * 0.5f);
+                default: return math.length(new float2(along, across)) / math.max(0.5f, math.sqrt(math.max(1f, Geometry.Poly.Area(_p))) * 0.5f);
+            }
+        }
+
         /// <summary>Per-stroke work shared by its tiles (crack networks, stamp lists), built once under the lock.</summary>
         internal readonly System.Collections.Generic.Dictionary<DecalOp, object> Cache = new System.Collections.Generic.Dictionary<DecalOp, object>();
         internal readonly object Lock = new object();

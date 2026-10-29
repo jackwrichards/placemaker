@@ -58,9 +58,14 @@ namespace Placemaker.Core.Decals.Dynamic
     public enum DecalOpKind
     {
         Fbm, Worley, Remap, Band, Mul, Add, Sub, Max, Min, Erode, Cracks, Scatter, Layer,
+        Wave, Abs, Pow, Mix, Invert,
     }
 
-    public enum StampKind { Leaf, Pebble, Print, Blob, Twig, Tread, Litter }
+    public enum StampKind
+    {
+        Leaf, Pebble, Print, Blob, Twig, Tread, Litter,
+        Oak, Maple, Birch, Rock, Chip, Butt, Paper, Cap, Splat, Paw, Boot, Petal,
+    }
 
     public sealed class DecalOp
     {
@@ -70,7 +75,7 @@ namespace Placemaker.Core.Decals.Dynamic
         public DecalParam Scale, Lo, Hi, K, Width, Warp, WarpScale, Sharp, Gain;
         public int Octaves = 4;
         public uint Salt;
-        public bool Ridged, Edge;
+        public bool Ridged, Edge, CellId;
         public float2 Stretch = new float2(1f, 1f);
         public float Jitter = 0.9f;
 
@@ -82,25 +87,43 @@ namespace Placemaker.Core.Decals.Dynamic
         // Cracks
         public DecalParam Seeds, Step, Turn, Branch;
         public float2 Len = new float2(4f, 14f), CrackWidth = new float2(0.015f, 0.05f);
+        /// <summary>Chain cracks: one main crack pinned to the middle of the box's two ends (x = ±half, z = 0), so pieces
+        /// laid end to end make one long crack; <see cref="Wander"/> is how far it strays (m).</summary>
+        public bool Chain;
+        public DecalParam Wander;
 
         // Scatter
         public StampKind Stamp;
+        /// <summary>Several stamp shapes mixed (each stamp picks one); empty = <see cref="Stamp"/> only.</summary>
+        public StampKind[] Stamps = Array.Empty<StampKind>();
+        /// <summary>A fixed direction for every stamp (degrees from +x, NaN = random) and its spread (degrees).</summary>
+        public float Angle = float.NaN, AngleJitter = 15f;
         public DecalParam Density, Clusters, ClusterShare;
         public float2 ClusterRadius = new float2(0.6f, 2.5f), Size = new float2(0.06f, 0.13f), Aspect = new float2(0.45f, 0.7f), StampAlpha = new float2(0.75f, 1f);
         public float2 Ramp = new float2(1f, 1f);
         public float NoiseScale, NoiseLo = -1f, NoiseHi = 1f, Side, EdgeBias, ValueVary = 0.12f, StampHeight = 0.4f, StampSmooth = 0.3f;
         public bool AlongPath;
+        /// <summary>A walking trail instead of a scatter: one stamp every <see cref="Trail"/> metres along the box's x (or the
+        /// path), alternating left and right by <see cref="Gait"/>, facing the way of travel (footprints, paw prints).</summary>
+        public float Trail, Gait = 0.1f;
         public int MaxStamps = 6000;
         public float3[] Palette = Array.Empty<float3>();
     }
 
     public sealed class DecalKind
     {
-        public const int BuiltinShape = 0, BuiltinEdge = 1, BuiltinAlong = 2, BuiltinAcross = 3, BuiltinU = 4, BuiltinOne = 5, BuiltinCount = 6;
-        public static readonly string[] Builtins = { "shape", "edge", "along", "across", "u", "one" };
+        public const int BuiltinShape = 0, BuiltinEdge = 1, BuiltinAlong = 2, BuiltinAcross = 3, BuiltinU = 4, BuiltinOne = 5, BuiltinRadial = 6, BuiltinCount = 7;
+        /// <summary>radial: 0 at the box's centre, 1 at its edge (paths: 0 on the line, 1 at its edge).</summary>
+        public static readonly string[] Builtins = { "shape", "edge", "along", "across", "u", "one", "radial" };
 
         public string Id = "";
         public string About = "";
+        /// <summary>The library family it belongs to (leaves, ground, water, cracks, litter, prints, strips, tone …), for browsing.</summary>
+        public string Family = "";
+        /// <summary>A short plain name for people ("Oak leaves").</summary>
+        public string Name = "";
+        /// <summary>How many variants the shared library makes and how they differ (DecalVariants).</summary>
+        public VariantSpec Variants = new VariantSpec();
         public float Texel = 0.08f;
         public byte Layers = DecalLayerBits.Terrain;
         public int Order;
@@ -149,14 +172,54 @@ namespace Placemaker.Core.Decals.Dynamic
             var lib = new DecalLibrary();
             if (!JsonValue.TryParse(json ?? "", out var root, out var err)) { lib.Warnings.Add("decal library: " + err); return lib; }
             var list = root.IsArray ? root : root["kinds"];
+            string family = root.IsObject ? root["family"].AsString("") : "";
             foreach (var k in list.Items)
             {
                 var kind = ParseKind(k, lib.Warnings);
                 if (kind == null) continue;
+                if (kind.Family.Length == 0) kind.Family = family;
                 if (lib._kinds.ContainsKey(kind.Id)) lib.Warnings.Add("decal library: duplicate kind " + kind.Id);
                 lib._kinds[kind.Id] = kind;
             }
             return lib;
+        }
+
+        /// <summary>Sub-folder of Recipes/decals with the shared library's families (one file each: leaves.json, ground.json …).</summary>
+        public const string LibraryFolder = "library";
+
+        /// <summary>The whole library from Recipes/decals: kinds.json (the stroke kinds) and every library/*.json family, in
+        /// name order. Missing files are skipped; read errors become warnings.</summary>
+        public static DecalLibrary LoadFolder(string decalsDir)
+        {
+            var lib = new DecalLibrary();
+            var files = new List<string>();
+            string main = System.IO.Path.Combine(decalsDir, FileName);
+            if (System.IO.File.Exists(main)) files.Add(main);
+            string sub = System.IO.Path.Combine(decalsDir, LibraryFolder);
+            if (System.IO.Directory.Exists(sub))
+            {
+                var more = System.IO.Directory.GetFiles(sub, "*.json");
+                Array.Sort(more, StringComparer.OrdinalIgnoreCase);
+                files.AddRange(more);
+            }
+            foreach (var f in files)
+            {
+                try { lib.Merge(Parse(System.IO.File.ReadAllText(f)), System.IO.Path.GetFileName(f)); }
+                catch (Exception e) { lib.Warnings.Add(System.IO.Path.GetFileName(f) + ": " + e.Message); }
+            }
+            return lib;
+        }
+
+        /// <summary>Adds every kind of another library file (later files win; a duplicate id is a warning).</summary>
+        public void Merge(DecalLibrary other, string from)
+        {
+            if (other == null) return;
+            foreach (var w in other.Warnings) Warnings.Add(from + ": " + w);
+            foreach (var k in other.Kinds)
+            {
+                if (_kinds.ContainsKey(k.Id)) Warnings.Add(from + ": kind " + k.Id + " replaces an earlier one");
+                _kinds[k.Id] = k;
+            }
         }
 
         /// <summary>One kind from its JSON text (a plan's own kind); null and a warning when it does not read.</summary>
@@ -169,18 +232,19 @@ namespace Placemaker.Core.Decals.Dynamic
         public static DecalKind ParseKind(JsonValue v, List<string> warnings)
         {
             if (v == null || !v.IsObject) return null;
-            var k = new DecalKind { Id = v["id"].AsString(""), About = v["about"].AsString("") };
+            var k = new DecalKind { Id = v["id"].AsString(""), About = v["about"].AsString(""), Family = v["family"].AsString(""), Name = v["name"].AsString("") };
             if (k.Id.Length == 0) { warnings?.Add("decal kind without an id"); return null; }
             try
             {
                 k.Json = v.ToString();
-                k.Texel = math.clamp((float)v["texel"].AsNumber(0.08), 0.02f, 0.5f);
+                k.Texel = math.clamp((float)v["texel"].AsNumber(0.08), 0.008f, 0.5f);
                 k.Layers = DecalLayerBits.Parse(v["layers"].AsString(""), DecalLayerBits.Terrain);
                 k.Order = (int)v["order"].AsNumber(0);
                 k.Lod = (float)v["lod"].AsNumber(40);
                 k.Bump = (float)v["bump"].AsNumber(0.012);
                 k.Opacity = (float)v["opacity"].AsNumber(1);
                 k.MaxTexels = math.clamp((int)v["maxTexels"].AsNumber(512), 64, 1024) / 4 * 4;
+                k.Variants = VariantSpec.Parse(v["variants"]);
                 var e = v["edge"];
                 if (e.IsObject)
                 {
@@ -223,7 +287,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     break;
                 case "worley": case "cells":
                     op.Kind = DecalOpKind.Worley;
-                    op.Scale = P(o["scale"], 1); op.Edge = o["mode"].AsString("f1") == "edge"; op.Jitter = (float)o["jitter"].AsNumber(0.9);
+                    op.Scale = P(o["scale"], 1); op.Edge = o["mode"].AsString("f1") == "edge"; op.CellId = o["mode"].AsString("f1") == "id"; op.Jitter = (float)o["jitter"].AsNumber(0.9);
                     op.Warp = P(o["warp"], 0); op.WarpScale = P(o["warpScale"], 4);
                     break;
                 case "remap": case "curve":
@@ -249,10 +313,37 @@ namespace Placemaker.Core.Decals.Dynamic
                     op.Seeds = P(o["seeds"], 0.03f); op.Step = P(o["step"], 0.5f); op.Turn = P(o["turn"], 0.45f); op.Branch = P(o["branch"], 0.35f);
                     op.Len = V2(o["len"], new float2(3f, 12f)); op.CrackWidth = V2(o["width"], new float2(0.015f, 0.05f));
                     op.Warp = P(o["warp"], 0.15f);
+                    op.Chain = o["chain"].AsBool(false); op.Wander = P(o["wander"], 0.5f);
+                    break;
+                case "wave":
+                    // 0..1 stripes: 0.5 + 0.5 cos(2π (in / period + phase)), sharpened by "sharp" (1 = soft sine)
+                    op.Kind = DecalOpKind.Wave;
+                    op.A = In(k, o["in"]); op.Scale = P(o["period"], 1); op.Lo = P(o["phase"], 0); op.Sharp = P(o["sharp"], 1); op.K = P(o["k"], 1);
+                    op.Warp = P(o["warp"], 0); op.WarpScale = P(o["warpScale"], 3);
+                    break;
+                case "abs": case "invert":
+                    op.Kind = name == "abs" ? DecalOpKind.Abs : DecalOpKind.Invert;
+                    op.A = In(k, o["in"]); op.K = P(o["k"], 1);
+                    break;
+                case "pow": case "gamma":
+                    op.Kind = DecalOpKind.Pow;
+                    op.A = In(k, o["in"]); op.Lo = P(o["power"], 2); op.K = P(o["k"], 1);
+                    break;
+                case "mix": case "lerp":
+                    op.Kind = DecalOpKind.Mix;
+                    op.A = In(k, o["a"]); op.B = In(k, o["b"]); op.C = In(k, o["t"]); op.K = P(o["k"], 1);
                     break;
                 case "scatter":
                     op.Kind = DecalOpKind.Scatter;
-                    op.Stamp = ParseStamp(o["stamp"].AsString("leaf"));
+                    if (o["stamp"].IsArray)
+                    {
+                        var st = new List<StampKind>();
+                        foreach (var x in o["stamp"].Items) st.Add(ParseStamp(x.AsString("leaf")));
+                        op.Stamps = st.ToArray();
+                        op.Stamp = st.Count > 0 ? st[0] : StampKind.Leaf;
+                    }
+                    else op.Stamp = ParseStamp(o["stamp"].AsString("leaf"));
+                    if (o.Has("angle")) { op.Angle = (float)o["angle"].AsNumber(0); op.AngleJitter = (float)o["angleJitter"].AsNumber(15); }
                     op.Density = P(o["density"], 2); op.Clusters = P(o["clusters"], 0.3f); op.ClusterShare = P(o["cluster"], 0.7f);
                     op.ClusterRadius = V2(o["clusterRadius"], op.ClusterRadius); op.Size = V2(o["size"], op.Size); op.Aspect = V2(o["aspect"], op.Aspect);
                     op.StampAlpha = V2(o["alpha"], op.StampAlpha); op.Ramp = V2(o["ramp"], op.Ramp);
@@ -261,6 +352,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     op.Side = (float)o["side"].AsNumber(0); op.EdgeBias = (float)o["edgeBias"].AsNumber(0);
                     op.ValueVary = (float)o["value"].AsNumber(0.12); op.StampHeight = (float)o["height"].AsNumber(0.4); op.StampSmooth = (float)o["smooth"].AsNumber(0.3);
                     op.AlongPath = o["align"].AsString("random") == "along";
+                    op.Trail = (float)o["trail"].AsNumber(0); op.Gait = (float)o["gait"].AsNumber(0.1);
                     op.MaxStamps = math.clamp((int)o["max"].AsNumber(6000), 1, 40000);
                     op.Palette = Palette(o["palette"]);
                     if (op.Palette.Length == 0) op.Palette = new[] { new float3(0.45f, 0.36f, 0.26f) };
@@ -295,6 +387,18 @@ namespace Placemaker.Core.Decals.Dynamic
                 case "twig": return StampKind.Twig;
                 case "tread": return StampKind.Tread;
                 case "litter": return StampKind.Litter;
+                case "oak": return StampKind.Oak;
+                case "maple": case "plane": return StampKind.Maple;
+                case "birch": return StampKind.Birch;
+                case "rock": case "stone": return StampKind.Rock;
+                case "chip": case "bark": return StampKind.Chip;
+                case "butt": case "cigarette": return StampKind.Butt;
+                case "paper": case "wrapper": return StampKind.Paper;
+                case "cap": case "bottlecap": return StampKind.Cap;
+                case "splat": case "dropping": return StampKind.Splat;
+                case "paw": return StampKind.Paw;
+                case "boot": return StampKind.Boot;
+                case "petal": return StampKind.Petal;
                 default: return StampKind.Leaf;
             }
         }

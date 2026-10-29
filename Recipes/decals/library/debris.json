@@ -1,0 +1,77 @@
+{
+  "_about": "Shared decal library, family 'debris': things lying on the ground (twigs, stones, mulch, clippings).",
+  "family": "debris",
+  "kinds": [
+    {
+      "id": "twigs", "name": "Twigs and sticks",
+      "about": "Fallen twigs and a few thin sticks under trees, with bits of bark and old leaf crumbs.",
+      "texel": 0.014, "layers": "ground", "order": 5, "lod": 26, "maxTexels": 384,
+      "edge": { "feather": 0.6, "warp": 0.5, "warpScale": 1.5, "round": 1 },
+      "variants": { "count": 6, "size": [2.0, 3.8], "aspect": [0.6, 1.0], "strength": [0.85, 1.0] },
+      "ops": [
+        { "op": "scatter", "stamp": "blob", "density": 25, "clusters": 30, "cluster": 0.5, "clusterRadius": [0.3, 0.9], "size": [0.015, 0.03], "aspect": [0.6, 1.0], "palette": [[92, 72, 50], [78, 62, 44]], "alpha": [0.5, 0.9], "height": 0.2, "smooth": 0.2 },
+        { "op": "scatter", "stamp": "twig", "density": 7, "clusters": 25, "cluster": 0.5, "clusterRadius": [0.4, 1.2], "noise": { "scale": 1.5, "lo": -0.6, "hi": 0.3 }, "size": [0.12, 0.45], "aspect": [0.035, 0.06], "palette": [[96, 74, 52], [80, 62, 44], [118, 94, 66], [70, 56, 42]], "alpha": [0.9, 1.0], "value": 0.12, "height": 0.9, "smooth": 0.18 }
+      ]
+    },
+    {
+      "id": "pebbles", "name": "Loose gravel",
+      "about": "Loose gravel kicked off a path: small rounded pebbles in greys and buffs, thick in places, a few strays.",
+      "texel": 0.012, "layers": "ground", "order": 4, "lod": 24, "maxTexels": 384,
+      "edge": { "feather": 0.6, "warp": 0.6, "warpScale": 1.4, "round": 1 },
+      "variants": { "count": 6, "size": [1.6, 3.6], "aspect": [0.5, 1.0], "strength": [0.85, 1.0] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.0, "octaves": 3 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.4, "hi": 0.4 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "dust" },
+        { "op": "layer", "alpha": "dust", "alphaK": 0.18, "color": [150, 142, 128], "smooth": 0.15 },
+        { "op": "scatter", "stamp": "pebble", "density": 160, "clusters": 25, "cluster": 0.6, "clusterRadius": [0.3, 1.0], "noise": { "scale": 0.9, "lo": -0.5, "hi": 0.3 }, "size": [0.018, 0.045], "aspect": [0.65, 0.95], "palette": [[176, 170, 160], [150, 144, 136], [190, 176, 150], [128, 124, 118], [164, 150, 128]], "alpha": [0.9, 1.0], "value": 0.14, "height": 0.9, "smooth": 0.25, "max": 40000 }
+      ]
+    },
+    {
+      "id": "rocks", "name": "Stones",
+      "about": "A few angular stones, fist to brick sized, with their contact shadow: at path ends, under fences, in rough grass.",
+      "texel": 0.014, "layers": "ground", "order": 5, "lod": 30, "maxTexels": 384,
+      "edge": { "feather": 0.5, "warp": 0.5, "warpScale": 1.5, "round": 1 },
+      "variants": { "count": 6, "size": [1.4, 3.2], "aspect": [0.5, 1.0], "strength": [0.9, 1.0] },
+      "ops": [
+        { "op": "scatter", "stamp": "pebble", "density": 30, "clusters": 25, "cluster": 0.6, "clusterRadius": [0.2, 0.7], "size": [0.02, 0.04], "aspect": [0.7, 0.95], "palette": [[150, 146, 140], [130, 126, 120]], "alpha": [0.8, 1.0], "height": 0.8, "smooth": 0.2 },
+        { "op": "scatter", "stamp": "rock", "density": 3.5, "clusters": 25, "cluster": 0.6, "clusterRadius": [0.2, 0.8], "size": [0.1, 0.3], "aspect": [0.7, 1.0], "palette": [[150, 146, 138], [128, 122, 114], [168, 160, 146], [112, 108, 104], [140, 128, 112]], "alpha": [1.0, 1.0], "value": 0.1, "height": 1.0, "smooth": 0.18 }
+      ]
+    },
+    {
+      "id": "barkMulch", "name": "Bark mulch",
+      "about": "Bark chips spilled from a planting bed or play area: splinters in warm browns over a dark crumb.",
+      "texel": 0.012, "layers": "ground", "order": 4, "lod": 24, "maxTexels": 384,
+      "edge": { "feather": 0.6, "warp": 0.6, "warpScale": 1.4, "round": 1 },
+      "variants": { "count": 6, "size": [1.6, 3.6], "aspect": [0.5, 1.0], "strength": [0.85, 1.0] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 0.8, "octaves": 3 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.3 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "crumb" },
+        { "op": "layer", "alpha": "crumb", "alphaK": 0.4, "color": [70, 52, 38], "smooth": 0.15 },
+        { "op": "scatter", "stamp": "chip", "density": 110, "clusters": 25, "cluster": 0.6, "clusterRadius": [0.3, 1.0], "noise": { "scale": 0.8, "lo": -0.5, "hi": 0.3 }, "size": [0.035, 0.08], "aspect": [0.3, 0.55], "palette": [[132, 92, 60], [112, 78, 52], [150, 108, 70], [96, 68, 46], [164, 124, 84]], "alpha": [0.9, 1.0], "value": 0.12, "height": 0.7, "smooth": 0.2, "max": 40000 }
+      ]
+    },
+    {
+      "id": "grassClippings", "name": "Grass clippings",
+      "about": "Cut grass left after mowing: fine yellow-green and straw bits in drifts, thickest where the mower turned.",
+      "texel": 0.012, "layers": "ground", "order": 4, "lod": 24, "maxTexels": 384,
+      "edge": { "feather": 0.8, "warp": 0.8, "warpScale": 1.6, "round": 1 },
+      "variants": { "count": 6, "size": [2.0, 4.2], "aspect": [0.4, 0.8], "strength": [0.75, 1.0], "age": [0.1, 0.9] },
+      "ops": [
+        { "op": "scatter", "stamp": "twig", "density": 300, "clusters": 30, "cluster": 0.6, "clusterRadius": [0.4, 1.2], "noise": { "scale": 1.0, "lo": -0.5, "hi": 0.3 }, "size": [0.025, 0.05], "aspect": [0.08, 0.14], "palette": [[150, 160, 70], [176, 170, 90], [130, 146, 60], [196, 184, 120]], "alpha": [0.8, 1.0], "value": 0.12, "height": 0.3, "smooth": 0.25, "max": 40000 }
+      ]
+    },
+    {
+      "id": "conkers", "name": "Conkers and acorns",
+      "about": "Seeds under chestnut and oak trees: glossy brown conkers, acorns and their cups.",
+      "texel": 0.012, "layers": "ground", "order": 5, "lod": 22, "maxTexels": 256,
+      "edge": { "feather": 0.6, "warp": 0.5, "warpScale": 1.4, "round": 1 },
+      "variants": { "count": 4, "size": [1.4, 2.6], "aspect": [0.6, 1.0], "strength": [0.9, 1.0] },
+      "ops": [
+        { "op": "scatter", "stamp": "pebble", "density": 9, "clusters": 25, "cluster": 0.6, "clusterRadius": [0.2, 0.7], "size": [0.025, 0.035], "aspect": [0.85, 1.0], "palette": [[110, 58, 30], [130, 72, 36], [96, 52, 30]], "alpha": [1.0, 1.0], "value": 0.1, "height": 1.0, "smooth": 0.7 },
+        { "op": "scatter", "stamp": "pebble", "density": 12, "clusters": 25, "cluster": 0.6, "clusterRadius": [0.2, 0.7], "size": [0.016, 0.022], "aspect": [0.6, 0.75], "palette": [[146, 112, 62], [124, 96, 54]], "alpha": [1.0, 1.0], "value": 0.1, "height": 0.8, "smooth": 0.35 }
+      ]
+    }
+  ]
+}

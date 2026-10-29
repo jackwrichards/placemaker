@@ -106,6 +106,23 @@ namespace Placemaker.Core.Decals.Dynamic
             return norm > 0f ? sum / norm : 0f;
         }
 
+        /// <summary>A random value 0..1 per Worley cell (the cell of the nearest jittered point): paving patchwork, mottling.</summary>
+        public static float CellValue(float x, float y, uint seed, float jitter = 0.9f)
+        {
+            int ix = (int)math.floor(x), iy = (int)math.floor(y);
+            float f1 = 9f; uint best = 0;
+            for (int j = -1; j <= 1; j++)
+                for (int i = -1; i <= 1; i++)
+                {
+                    uint h = Hash(ix + i, iy + j, seed);
+                    float px = ix + i + 0.5f + (Unit(h) - 0.5f) * jitter;
+                    float py = iy + j + 0.5f + (Unit(Hash(h, 0x51u)) - 0.5f) * jitter;
+                    float d = (px - x) * (px - x) + (py - y) * (py - y);
+                    if (d < f1) { f1 = d; best = h; }
+                }
+            return Unit(Hash(best, 0xC311u));
+        }
+
         /// <summary>Worley cells: F1 and F2 distances (cell units) to the nearest jittered points.</summary>
         public static float2 Worley(float x, float y, uint seed, float jitter = 0.9f)
         {
