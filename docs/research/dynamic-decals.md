@@ -211,3 +211,78 @@ shows, so a dirt decal on painted dirt reads as one ground.
   not know `colossal_DecalLayerMask`).
 - The spike's textures prove the engine, not the art (the path's twin ruts read "organized"); the art research feeds the
   generators.
+
+## Saves and mod removal (decompiled 1.6.2f1; the save/removal research, 2026-10-29)
+
+- **Why runtime prefabs leave boxes.** `PrefabSystem.Serialize` names every referenced prefab by type + name. On load an
+  unknown name stays as an obsolete prefab entity (`ResolvePrefabsSystem`, negative index, `PrefabData` disabled) and
+  `InitializeObsoleteSystem` gives any object/net/area prefab without meshes the missing mesh (objects: `m_MissingObjectMesh`,
+  stretched to the saved bounds by `BatchDataSystem`; nets: `m_MissingNetSection`; surfaces: `m_MissingRenderedArea`).
+  No object prefab kind escapes it (decal-only, marker, mesh-less all get the box). Obsolete IDs are written back on every
+  save, so the placeholders stay until the objects are deleted. Only a non-object `PrefabBase` (Traffic's `FakePrefab`)
+  draws nothing.
+- **A mod's own components are skipped cleanly.** `ComponentSerializer` writes each type's assembly-qualified name, and
+  each type's data per archetype as a sized block. An unknown type logs one warning ("Not serializable type") and the
+  `ObsoleteComponentSerializer` skips the block; an entity made only of mod components loads empty and is dropped at the
+  next save. Same for `IDefaultSerializable` systems (never plain `ISerializable` on a system: it logs an error on every
+  start). Traffic and Anarchy rely on this.
+- **What a save contains.** `SerializerSystem.CreateQuery`: any of `LoadedIndex`, `PrefabRef`, a list of simulation
+  components or any mod `ISerializable`/`IEmptySerializable`; none of `NetCompositionData`, `EffectInstance`, `LivePath`,
+  `Temp`, `Deleted` (and not `Disabled`). GameObjects and renderers are never saved. All saves (autosave, editor map save)
+  run `SaveGameSystem` → the Serialize phase in one synchronous call; a `PreSerialize` system could strip and restore
+  entities there, but route 1 does not need it.
+- **What today's Placemaker leaves behind when removed** (from the code, not yet seen in a mod-less game):
+
+| Leftover | Without the mod |
+|---|---|
+| Group/member components | skipped, dropped at the next save: clean |
+| Owner lot and zone block (runtime `LotPrefab`) | obsolete lot, grey in lot overlays, zone cells under builds stay blocked: minor |
+| Surface clones (`SurfaceCloneSystem`, parking aprons) | drawn with the missing-area material: likely bad |
+| Park companions (runtime Tiny Park clone) | a white box at each park build's road front: bad |
+| Vehicle props ("Placemaker Vehicle ...") | vehicle-sized white boxes in car-yard and industrial builds: bad |
+| See-through decal copies (builds up to 0.1.1) | white boxes (issue #2), old saves only |
+| Terrain paint, terraforming, vanilla nets/objects/surfaces | ordinary game data: clean |
+
+  Also to check: `Game.Tools.Hidden` is not saved, and `ParkCompanionSystem` adds it only when it creates a companion, so
+  the Tiny Park companion may show after a reload even with the mod present.
+
+## Art direction for the generators (the art research, 2026-10-29; summarised)
+
+Why today's dressing (`GroundWear`) reads as "organized dirt": every host gets its own centred, round patch (every tree
+a mulch disc, every bench a bullseye of dirt, dry grass and green), bands run the full length of every path and outline,
+edge discs repeat at a fixed step, one noise scale and one softness everywhere, and 3.5 m paint texels can't make an edge.
+Real grime is caused by things that cut across the design, and is heavy-tailed (a few hot spots carry most of the wear;
+most ground is nearly clean).
+
+1. **Cause fields per site** (0.25-0.5 m grid, Core): foot traffic (walkers from entrances to benches, shops, play items;
+   trails reinforce themselves), wheel paths (wheel trajectories of cars entering, turning, parking; occupancy-weighted
+   stalls), water (flow accumulation and basins on the built heightmap, with 2-3 cm micro-unevenness on paving), wind (one
+   prevailing direction per city; traps in the lee of walls, kerbs, corners), shade (sun and crowns), sources (trees by
+   species, unpaved edges, bins, stalls). Effect = product of causes × domain-warped multi-octave noise → contrast curve →
+   hot spots.
+2. **Two operators that kill the airbrushed look**: domain warping (organic lobes instead of circles and bands) and
+   height-blend edge erosion (alpha = saturate((coverage − (1 − grain height)) × sharpness): edges break into speckles that
+   fill cavities first). Plus variation inside every decal (alpha 60-100 %, value ±15 %).
+3. **Scatter with cluster processes, not Poisson-disk** (clusters of clusters, density decaying from its cause, anisotropic
+   things aligned to their field; 6-12 variants per kind, never the same one within 10 m).
+4. **Three delivery modes**: stamps (oil, gravel, leaf piles, litter, rust), curve strips (kerb grime, wheel paths, lane
+   oil lines, tracks, cracks, drifts) and field-baked unique sheets (aisle tone, worn grass, desire paths, repair patchwork).
+   Cracks grow as random walks that end in T-junctions (not Voronoi honeycomb); puddles are contours of the real basins
+   (damp rim, dark water with a flat normal and high smoothness, a silt tidemark; a dry-weather variant is tidemark only);
+   coverage-preserving alpha mips so thin things survive at distance.
+5. **Layer order**: macro tone (paint, baked sheets) → structure (joints, cracks, patches) → traffic → stains from
+   objects → deposits (dust, gravel, leaves, litter) → water (puddles drown what is under them). Later layers read earlier
+   fields (people walk round puddles, leaves are kicked off paths, moss avoids traffic).
+6. **Budgets** (lived-in): about 60 % of a site clean, 30 % faint (5-12 % value change), under 10 % strong, 1-4 hot spots.
+   Knobs: Age, Care, Use, Weather, Season (Clean/Lived-in/Gritty become presets). Each site exaggerates one or two
+   "signature flaws" (the big puddle in the low corner, the shortcut to the bus stop, the leaf-choked corner).
+7. **First ten effects** for a city-builder view: parking wheel paths + lane oil + stall oil; puddles from real basins;
+   kerb-line deposits; leaf drifts; emergent desire paths and fragmented worn grass; cracks with tar seals and patches;
+   macro tone patchwork on big paved areas; spill at material edges (gravel, mud fans with fading prints); sports and play
+   wear from the play pattern (goalmouths, base paths, swing trenches) plus mowing stripes; object stains (rust streaks,
+   drip lines, planter rings, dumpster grease).
+
+Sources worth reading: Quilez on domain warping; Heitz & Neyret histogram-preserving blending (tile-free sheets);
+van Muijden, Horizon Zero Dawn GPU placement (GDC 2017); Widmark, Terrain in Battlefield 3 (GDC 2012, spline decals);
+Lagarde's wet-surface articles; Helbing et al. 1997 (trail formation); Castaño on alpha mipmaps; the FHWA pavement
+distress manual (crack types and where they occur).
