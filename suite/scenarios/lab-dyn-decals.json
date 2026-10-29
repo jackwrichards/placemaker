@@ -1,0 +1,61 @@
+{
+  "_about": "Lab (research, docs/research/dynamic-decals.md): decals generated in code and drawn with the game's DefaultDecal material on plain Unity renderers, never game entities. Grass, road and (second scenario) a plaza's paving; frame times before and after; the city saved with them (part 2, lab-dyn-decals-load.json, loads it in a fresh game where they were never made). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-dyn-decals.json -Build -Who decal-engine",
+  "scenarios": [
+    {
+      "id": "dyn-decals",
+      "site": "flat",
+      "steps": [
+        { "do": "lab", "op": "dynDecalInfo" },
+        { "do": "lab", "op": "dynFrames", "frames": 240, "label": "before" },
+        { "do": "lab", "op": "dynDecal", "kind": "calib", "at": [-45, 40], "size": [4, 4], "res": 128 },
+        { "do": "shot", "name": "calib-top", "camera": { "target": "build", "view": "top", "distance": 14 }, "shotMode": "render" },
+        { "do": "lab", "op": "dynDecal", "kind": "dirt", "at": [-30, 5], "size": [9, 7], "res": 512, "seed": 1 },
+        { "do": "shot", "name": "dirt-close", "camera": { "target": "build", "view": "closeup", "distance": 16 }, "shotMode": "render" },
+        { "do": "lab", "op": "dynDecal", "kind": "leaves", "at": [-8, 12], "size": [6, 6], "res": 512, "seed": 2 },
+        { "do": "shot", "name": "leaves-close", "camera": { "target": "build", "view": "closeup", "distance": 10 }, "shotMode": "render" },
+        { "do": "lab", "op": "dynDecal", "kind": "puddle", "at": [18, 14], "size": [5, 4], "res": 256, "seed": 3 },
+        { "do": "shot", "name": "puddle-grass-close", "camera": { "target": "build", "view": "closeup", "distance": 10 }, "shotMode": "render" },
+        { "do": "lab", "op": "dynDecal", "kind": "dirt", "at": [40, 30], "size": [6, 6], "res": 256, "seed": 5, "route": "projector" },
+        { "do": "shot", "name": "projector-close", "camera": { "target": "build", "view": "closeup", "distance": 14 }, "shotMode": "render" },
+        { "do": "lab", "op": "dynPath", "points": [[-60, -40], [-30, -60], [5, -10], [45, -35]], "width": 2.6, "segment": 8, "res": [256, 96], "seed": 4 },
+        { "do": "shot", "name": "path-45", "camera": { "target": "build", "view": "oblique" }, "shotMode": "render" },
+        { "do": "shot", "name": "path-close", "camera": { "target": "point", "at": [-12, -34], "view": "closeup", "distance": 18 }, "shotMode": "render" },
+        { "do": "lab", "op": "dynDecal", "kind": "cracks", "anchor": "south", "at": [-20, -1.5], "size": [6, 5], "res": 512, "seed": 6, "layers": "roads" },
+        { "do": "shot", "name": "cracks-road-close", "camera": { "target": "build", "view": "closeup", "distance": 12 }, "shotMode": "render" },
+        { "do": "lab", "op": "dynDecal", "kind": "puddle", "anchor": "south", "at": [0, 2], "size": [4, 3], "res": 256, "seed": 7, "layers": "roads" },
+        { "do": "shot", "name": "puddle-road-close", "camera": { "target": "build", "view": "closeup", "distance": 10 }, "shotMode": "render" },
+        { "do": "lab", "op": "dynDecal", "kind": "cracks", "anchor": "south", "at": [15, 4.5], "size": [5, 3], "res": 256, "seed": 8, "layers": "roads" },
+        { "do": "lab", "op": "dynDecal", "kind": "leaves", "anchor": "south", "at": [30, 4], "size": [5, 3], "res": 256, "seed": 9, "layers": "roads" },
+        { "do": "shot", "name": "sidewalk-close", "camera": { "target": "point", "at": [22, -66], "view": "closeup", "distance": 14 }, "shotMode": "render" },
+        { "do": "lab", "op": "dynFrames", "frames": 240, "label": "after" },
+        { "do": "lab", "op": "dynFrameAll" },
+        { "do": "shot", "name": "all-45", "camera": { "target": "build", "view": "oblique" }, "shotMode": "render" },
+        { "do": "shot", "name": "all-low", "camera": { "target": "build", "view": "low" }, "shotMode": "render" },
+        { "do": "lab", "op": "dynDecalCount" },
+        { "do": "lab", "op": "saveCity", "name": "PlacemakerDynDecals" },
+        { "do": "lab", "op": "dynDecalClear" },
+        { "do": "lab", "op": "dynDecalCount" },
+        { "do": "shot", "name": "cleared-45", "camera": { "target": "build", "view": "oblique" }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "dyn-decals-plaza",
+      "site": "flat",
+      "steps": [
+        { "do": "area", "tool": "bucket" },
+        { "do": "type", "layer": "plaza", "preset": "" },
+        { "do": "entrances" },
+        { "do": "build" },
+        { "do": "shot", "name": "plaza-before", "camera": { "target": "build", "view": "oblique" }, "shotMode": "render" },
+        { "do": "lab", "op": "dynDecal", "kind": "dirt", "at": [-18, -10], "size": [8, 6], "res": 512, "seed": 11 },
+        { "do": "lab", "op": "dynDecal", "kind": "cracks", "at": [12, -14], "size": [7, 6], "res": 512, "seed": 12 },
+        { "do": "lab", "op": "dynDecal", "kind": "leaves", "at": [0, 10], "size": [7, 7], "res": 512, "seed": 13 },
+        { "do": "lab", "op": "dynDecal", "kind": "puddle", "at": [20, 12], "size": [5, 4], "res": 256, "seed": 14 },
+        { "do": "lab", "op": "dynFrameAll" },
+        { "do": "shot", "name": "plaza-45", "camera": { "target": "build", "view": "oblique" }, "shotMode": "render" },
+        { "do": "shot", "name": "plaza-close", "camera": { "target": "point", "at": [0, -2], "view": "closeup", "distance": 34 }, "shotMode": "render" },
+        { "do": "lab", "op": "dynDecalClear" }
+      ]
+    }
+  ]
+}
