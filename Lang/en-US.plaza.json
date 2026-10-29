@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "Garden brick",
   "Placemaker.Plaza.paveStyle.modern": "Modern slabs",
   "Placemaker.Plaza.paveStyle.cobble": "Old-town cobbles",
-  "Placemaker.Plaza.Issue.NoLawn": "No room for lawns between the axes; make the square bigger or lower the lawn share."
+  "Placemaker.Plaza.Issue.NoLawn": "No room for lawns between the axes; make the square bigger or lower the lawn share.",
+  "Placemaker.Plaza.design": "Design",
+  "Placemaker.Plaza.design.Tooltip": "The plan the square is laid out to. Classic grows from the entrances; the others are designed squares laid on the square's own axes, with a walk round the edge that joins every entrance.",
+  "Placemaker.Plaza.design.classic": "Classic",
+  "Placemaker.Plaza.design.grand": "Grand square",
+  "Placemaker.Plaza.design.rooms": "Garden rooms",
+  "Placemaker.Plaza.design.railed": "Railed gardens",
+  "Placemaker.Plaza.design.terraces": "Terraces",
+  "Placemaker.Plaza.design.modern": "Modern",
+  "Placemaker.Plaza.design.piazza": "Piazza",
+  "Placemaker.Plaza.Preset.grand": "Grand square",
+  "Placemaker.Plaza.Preset.rooms": "Garden rooms",
+  "Placemaker.Plaza.Preset.railed": "Railed gardens",
+  "Placemaker.Plaza.Preset.terraces": "Terraced garden",
+  "Placemaker.Plaza.Preset.modern": "Modern plaza"
 }

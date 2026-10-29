@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "Садовый кирпич",
   "Placemaker.Plaza.paveStyle.modern": "Современные плиты",
   "Placemaker.Plaza.paveStyle.cobble": "Старая брусчатка",
-  "Placemaker.Plaza.Issue.NoLawn": "Между осями нет места для газонов; увеличьте площадь или уменьшите долю газона."
+  "Placemaker.Plaza.Issue.NoLawn": "Между осями нет места для газонов; увеличьте площадь или уменьшите долю газона.",
+  "Placemaker.Plaza.design": "Планировка",
+  "Placemaker.Plaza.design.Tooltip": "План, по которому разбита площадь. Классическая растёт от входов; остальные — спроектированные площади на собственных осях площади, с дорожкой по краю, соединяющей все входы.",
+  "Placemaker.Plaza.design.classic": "Классика",
+  "Placemaker.Plaza.design.grand": "Большая площадь",
+  "Placemaker.Plaza.design.rooms": "Садовые комнаты",
+  "Placemaker.Plaza.design.railed": "Сады за оградой",
+  "Placemaker.Plaza.design.terraces": "Террасы",
+  "Placemaker.Plaza.design.modern": "Модерн",
+  "Placemaker.Plaza.design.piazza": "Пьяцца",
+  "Placemaker.Plaza.Preset.grand": "Большая площадь",
+  "Placemaker.Plaza.Preset.rooms": "Садовые комнаты",
+  "Placemaker.Plaza.Preset.railed": "Сады за оградой",
+  "Placemaker.Plaza.Preset.terraces": "Сад с террасами",
+  "Placemaker.Plaza.Preset.modern": "Современная площадь"
 }

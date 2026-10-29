@@ -1,5 +1,5 @@
 {
-  "_about": "Make-row category 'Plazas' (Core/Tool/Shelf.cs; one file per category). New 2026-10-28 (the user: \"plazas is going to be its whole new category, because we're going to really outdo ourselves with that\"; photos of a lifestyle centre's promenade and a dining plaza by a department store). The squares group (plaza, market square) and the shopping types built round a square or a pedestrian street (mall park, outdoor mall, high street, shopping plaza) are shown here; hide, never delete. See docs/refactor/STRIP-MALLS-PLAZAS.md.",
+  "_about": "Make-row category 'Plazas' (Core/Tool/Shelf.cs; one file per category). New 2026-10-28 (the user: \"plazas is going to be its whole new category, because we're going to really outdo ourselves with that\"; photos of a lifestyle centre's promenade and a dining plaza by a department store). The squares group (plaza, market square) and the shopping types built round a square or a pedestrian street (mall park, outdoor mall, high street, shopping plaza) are shown here; hide, never delete. See docs/refactor/STRIP-MALLS-PLAZAS.md. Designed plazas (2026-10-28, the user: \"very intricate designed plazas ... think of Union Square\"): the plaza shows six designed squares (grand square, garden rooms, railed gardens, terraced garden, modern plaza, old-town piazza; Core/Layers/Plaza/PlazaDesigns.cs); the classic compositions round the entrances (civic, fountain, cafe, sunken court, green) are hidden: big, mostly empty slabs next to them (docs/refactor/squares.md, 'Designed plazas').",
   "id": "plazas",
   "name": "Plazas",
   "order": 5,
@@ -41,7 +41,11 @@
       "splitLevel",
       "cascade",
       "podium",
-      "piazza"
+      "civic",
+      "fountain",
+      "cafe",
+      "sunkenCourt",
+      "green"
     ]
   }
 }

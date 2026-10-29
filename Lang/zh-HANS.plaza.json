@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "花园砖",
   "Placemaker.Plaza.paveStyle.modern": "现代石板",
   "Placemaker.Plaza.paveStyle.cobble": "老城鹅卵石",
-  "Placemaker.Plaza.Issue.NoLawn": "轴线之间没有放草坪的空间；请扩大广场或降低草坪比例。"
+  "Placemaker.Plaza.Issue.NoLawn": "轴线之间没有放草坪的空间；请扩大广场或降低草坪比例。",
+  "Placemaker.Plaza.design": "设计",
+  "Placemaker.Plaza.design.Tooltip": "广场的布局方案。经典从入口生长；其他是沿广场自身轴线设计的广场，边缘有一条连接所有入口的步道。",
+  "Placemaker.Plaza.design.classic": "经典",
+  "Placemaker.Plaza.design.grand": "大广场",
+  "Placemaker.Plaza.design.rooms": "花园房间",
+  "Placemaker.Plaza.design.railed": "围栏花园",
+  "Placemaker.Plaza.design.terraces": "台地",
+  "Placemaker.Plaza.design.modern": "现代",
+  "Placemaker.Plaza.design.piazza": "意式广场",
+  "Placemaker.Plaza.Preset.grand": "大广场",
+  "Placemaker.Plaza.Preset.rooms": "花园房间",
+  "Placemaker.Plaza.Preset.railed": "围栏花园",
+  "Placemaker.Plaza.Preset.terraces": "台地花园",
+  "Placemaker.Plaza.Preset.modern": "现代广场"
 }

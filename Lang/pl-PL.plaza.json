@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "Ogrodowa cegła",
   "Placemaker.Plaza.paveStyle.modern": "Nowoczesne płyty",
   "Placemaker.Plaza.paveStyle.cobble": "Bruk starego miasta",
-  "Placemaker.Plaza.Issue.NoLawn": "Brak miejsca na trawniki między osiami; powiększ plac lub zmniejsz udział trawników."
+  "Placemaker.Plaza.Issue.NoLawn": "Brak miejsca na trawniki między osiami; powiększ plac lub zmniejsz udział trawników.",
+  "Placemaker.Plaza.design": "Projekt",
+  "Placemaker.Plaza.design.Tooltip": "Plan, według którego wytyczony jest plac. Klasyczny rośnie od wejść; pozostałe to zaprojektowane place na własnych osiach placu, z alejką wzdłuż krawędzi łączącą wszystkie wejścia.",
+  "Placemaker.Plaza.design.classic": "Klasyczny",
+  "Placemaker.Plaza.design.grand": "Wielki plac",
+  "Placemaker.Plaza.design.rooms": "Ogrodowe pokoje",
+  "Placemaker.Plaza.design.railed": "Ogrody ogrodzone",
+  "Placemaker.Plaza.design.terraces": "Tarasy",
+  "Placemaker.Plaza.design.modern": "Nowoczesny",
+  "Placemaker.Plaza.design.piazza": "Piazza",
+  "Placemaker.Plaza.Preset.grand": "Wielki plac",
+  "Placemaker.Plaza.Preset.rooms": "Ogrodowe pokoje",
+  "Placemaker.Plaza.Preset.railed": "Ogrody ogrodzone",
+  "Placemaker.Plaza.Preset.terraces": "Ogród tarasowy",
+  "Placemaker.Plaza.Preset.modern": "Nowoczesny plac"
 }

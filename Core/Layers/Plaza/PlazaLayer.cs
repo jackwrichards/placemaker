@@ -161,6 +161,9 @@ namespace Placemaker.Core.Layers.Plaza
             c.Chance("fence", 0.35f);   // ParkManager PlazaVariantRoller.FenceChance
 
             // Depth (round 4): levels, amphitheatre, green, water, shade, activity, identity. See PlazaDressing.
+            // 2026-10-28: the designed squares (PlazaDesigns); "classic" = the composition round the entrances below.
+            c.Choice(PlazaDesigns.Control, PlazaDesigns.Classic, ControlTier.More, "identity", PlazaDesigns.Ids).Tip();
+            c.Fixed(PlazaDesigns.Control);
             c.Choice("centerKind", "any", ControlTier.More, "identity", "any", "fountain", "statue").Tip();
             c.Choice("pattern", "border", ControlTier.More, "identity", "none", "grid", "border", "scatter").Tip();
             c.Choice("lighting", "standard", ControlTier.More, "identity", "standard", "feature").Tip();
@@ -235,8 +238,16 @@ namespace Placemaker.Core.Layers.Plaza
                 ("levelHeight", 1.5), ("levelPlanters", true), ("lighting", "feature"), ("bollards", true), ("pattern", "grid"), ("beds", 0.0), ("treeLayout", "edge"));
             Preset("sunkenCourt", ("palette", GroundPalettes.Modern), ("centerMode", "single"), ("centerSize", 3.0), ("centerKind", "fountain"), ("furniture", 0.0), ("levels", "sunkenCourt"),
                 ("levelHeight", 2.0), ("levelPlanters", true), ("cafe", 3.0), ("shade", 0.0), ("treeLayout", "grid"), ("pattern", "none"), ("beds", 0.0));
-            Preset("piazza", ("palette", GroundPalettes.Sandstone), ("centerMode", "single"), ("centerSize", 6.0), ("centerKind", "fountain"), ("furniture", 0.0),
-                ("pattern", "grid"), ("cafe", 4.0), ("bollards", true), ("lighting", "feature"), ("treeLayout", "none"), ("planters", 0.0), ("beds", 0.0));
+            // 2026-10-28: the old piazza (gridded sandstone, kiosks) is now the designed old-town piazza (PlazaDesigns).
+            Preset("piazza", ("palette", GroundPalettes.Cobble), (PlazaDesigns.Control, "piazza"), ("centerKind", "fountain"), ("furniture", 0.0),
+                ("cafe", 4.0), ("bollards", true), ("lighting", "feature"), ("treeLayout", "none"), ("planters", 10.0), ("beds", 0.0));
+            // 2026-10-28: designed squares (PlazaDesigns): each lays a real square's plan on the square's own axes.
+            Preset("grand", ("palette", GroundPalettes.Classic), (PlazaDesigns.Control, "grand"), ("centerKind", "statue"), ("furniture", 0.0), ("lighting", "feature"));
+            Preset("rooms", ("palette", GroundPalettes.Garden), (PlazaDesigns.Control, "rooms"), ("centerKind", "fountain"), ("furniture", 0.0));
+            Preset("railed", ("palette", GroundPalettes.Classic), (PlazaDesigns.Control, "railed"), ("centerKind", "fountain"), ("furniture", 0.0), ("lighting", "feature"));
+            Preset("terraces", ("palette", GroundPalettes.Sandstone), (PlazaDesigns.Control, "terraces"), ("centerKind", "fountain"), ("furniture", 0.0),
+                ("levelCount", 3.0), ("levelHeight", 1.5));
+            Preset("modern", ("palette", GroundPalettes.Modern), (PlazaDesigns.Control, "modern"), ("centerKind", "statue"), ("furniture", 0.0), ("lighting", "standard"));
             Preset("green", ("palette", GroundPalettes.Garden), ("centerMode", "single"), ("centerSize", 4.0), ("centerKind", "statue"), ("furniture", 0.0), ("lawns", 40.0),
                 ("beds", 0.0), ("treeLayout", "edge"), ("border", "grass"), ("pattern", "none"));
 
@@ -251,7 +262,8 @@ namespace Placemaker.Core.Layers.Plaza
             PresetFeatures("amphitheatre", "-fountain");
             PresetFeatures("market", "kiosk", "-fountain");
             PresetFeatures("cafe", "kiosk");
-            PresetFeatures("piazza", "kiosk");
+            PresetFeatures("piazza", "kiosk", "-fountain");
+            foreach (var id in new[] { "grand", "rooms", "railed", "terraces", "modern" }) PresetFeatures(id, "-fountain");
         }
 
         public override List<EdgeMarker> SuggestMarkers(AreaInput input)
@@ -320,6 +332,12 @@ namespace Placemaker.Core.Layers.Plaza
             if (PlazaTiers.IsCompact(tier))
             {
                 PlanCompact(ctx, occ, region, gates, gatePoints, palette, pave, axis, tier, fountainChild);
+                return;
+            }
+
+            if (PlazaDesigns.Handles(ctx.S(PlazaDesigns.Control)))
+            {
+                PlanDesign(ctx, occ, region, gates, gatePoints, palette, pave, axis, fountainChild);
                 return;
             }
 
@@ -511,6 +529,48 @@ namespace Placemaker.Core.Layers.Plaza
 
             ctx.Stat(Keys.StatArea, Math.Round(region.Area), Keys.UnitM2);
             ctx.Stat(Keys.StatFountains, fountainChild ? 0 : CountRole(ctx.Plan, ObjectRole.Centerpiece), Keys.UnitCount);
+            ctx.Stat(Keys.StatBenches, CountRole(ctx.Plan, ObjectRole.Bench), Keys.UnitCount);
+            ctx.Stat(Keys.StatLamps, CountRole(ctx.Plan, ObjectRole.Lamp), Keys.UnitCount);
+            ctx.Stat(Keys.StatTrees, CountRole(ctx.Plan, ObjectRole.Tree), Keys.UnitCount);
+            ctx.Plan.Facts["accessPoints"] = gates.Count;
+        }
+
+        /// <summary>
+        /// (2026-10-28) A designed square (PlazaDesigns): amenities first, then the design lays its own paving, planting,
+        /// seating and lighting; cafe terraces and pergolas the player asked for go where they fit.
+        /// </summary>
+        private void PlanDesign(LayerContext ctx, Occupancy occ, LayerRegion region, List<Gate> gates, List<float2> gatePoints, PavingPalette palette,
+            PavingPlan pave, float2 axis, bool fountainChild)
+        {
+            PlaceAmenities(ctx, occ, region, gatePoints);
+            ctx.Check();
+            var r = PlazaDesigns.Plan(ctx, occ, region, gates, palette, pave, axis, fountainChild, ctx.S(PlazaDesigns.Control));
+            PlazaDressing.Shade(ctx, occ);
+            if (ctx.S(PlazaDesigns.Control) != "piazza") PlazaDressing.Cafe(ctx, occ);
+            ctx.Check();
+
+            if (ctx.B("paving")) pave.Emit(ctx, region.Ring, SurfaceRole.Plaza, palette.Field, AssetCategories.SurfacePaving);
+            else if (pave.Count > 0) pave.Emit(ctx, region.Ring, SurfaceRole.Plaza, palette.Field, AssetCategories.SurfacePaving, false);
+            ctx.Plan.Facts["pavingRepairLoss"] = (float)Math.Round(pave.RepairLoss, 1);
+            foreach (var g in gates)
+            {
+                var inward = region.InwardNormal(g.Segment);
+                ctx.Object(g.Position, math.atan2(inward.x, inward.y), ObjectRole.AccessPoint, new AssetRef("", "Pedestrian Access Location"), 0);
+            }
+            if (ctx.B("fence"))
+            {
+                var fence = AssetMix.One(ctx.S("fenceAsset"));
+                foreach (var run in Fences.Runs(region, gates, 3f))
+                    ctx.StraightNet(run.c0, run.c1, NetRole.Fence, fence);
+            }
+
+            ctx.AddRegion(region.Ring, "paved", RegionTags.Paved);
+            if (r.CoreRadius >= 4f) ctx.AddRegion(LayerRegion.Circle(r.Centre, r.CoreRadius, 24), "core", RegionTags.Core, RegionTags.Paved);
+            var strips = region.BoundaryStrips(4f, math.clamp((int)math.round(region.Perimeter / 200f), 2, 6));
+            for (int i = 0; i < strips.Count; i++) ctx.AddRegion(strips[i], "edge:" + i, RegionTags.Edge, RegionTags.Paved);
+
+            ctx.Stat(Keys.StatArea, Math.Round(region.Area), Keys.UnitM2);
+            ctx.Stat(Keys.StatFountains, CountRole(ctx.Plan, ObjectRole.Centerpiece), Keys.UnitCount);
             ctx.Stat(Keys.StatBenches, CountRole(ctx.Plan, ObjectRole.Bench), Keys.UnitCount);
             ctx.Stat(Keys.StatLamps, CountRole(ctx.Plan, ObjectRole.Lamp), Keys.UnitCount);
             ctx.Stat(Keys.StatTrees, CountRole(ctx.Plan, ObjectRole.Tree), Keys.UnitCount);

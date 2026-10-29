@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "Tijolo de jardim",
   "Placemaker.Plaza.paveStyle.modern": "Placas modernas",
   "Placemaker.Plaza.paveStyle.cobble": "Pedras antigas",
-  "Placemaker.Plaza.Issue.NoLawn": "Não há espaço para gramados entre os eixos; aumente a praça ou diminua a parcela de gramado."
+  "Placemaker.Plaza.Issue.NoLawn": "Não há espaço para gramados entre os eixos; aumente a praça ou diminua a parcela de gramado.",
+  "Placemaker.Plaza.design": "Desenho",
+  "Placemaker.Plaza.design.Tooltip": "A planta com que a praça é traçada. Clássico cresce a partir das entradas; os outros são praças desenhadas nos próprios eixos da praça, com um passeio na borda que liga todas as entradas.",
+  "Placemaker.Plaza.design.classic": "Clássico",
+  "Placemaker.Plaza.design.grand": "Grande praça",
+  "Placemaker.Plaza.design.rooms": "Salas de jardim",
+  "Placemaker.Plaza.design.railed": "Jardins gradeados",
+  "Placemaker.Plaza.design.terraces": "Terraços",
+  "Placemaker.Plaza.design.modern": "Moderno",
+  "Placemaker.Plaza.design.piazza": "Piazza",
+  "Placemaker.Plaza.Preset.grand": "Grande praça",
+  "Placemaker.Plaza.Preset.rooms": "Salas de jardim",
+  "Placemaker.Plaza.Preset.railed": "Jardins gradeados",
+  "Placemaker.Plaza.Preset.terraces": "Jardim em terraços",
+  "Placemaker.Plaza.Preset.modern": "Praça moderna"
 }

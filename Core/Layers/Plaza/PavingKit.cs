@@ -240,13 +240,140 @@ namespace Placemaker.Core.Layers.Plaza
                     foreach (var acc in SurfaceAcceptance.MakeAcceptable2D(ring))
                     {
                         if (acc == null || acc.Length < 3) continue;
-                        var piece = acc;
-                        if (Poly.Area(piece) < minArea * 0.6f || Poly.MeanWidth(piece) < minWidth * 0.6f) continue;
-                        if (ctx.Surface(piece, role, asset, category)) { n++; laid?.Add(piece); }
+                        // (2026-10-28) The build removes every node the game's shape rules refuse (AreaRings); a removed
+                        // node of a big piece is a long wedge of bare ground, or (a reflex node) a wedge over the
+                        // neighbour. Repair here, never beyond the piece, and claim only what is really laid.
+                        foreach (var piece in GameRings(acc))
+                        {
+                            if (Poly.Area(piece) < minArea * 0.6f || Poly.MeanWidth(piece) < minWidth * 0.6f) continue;
+                            if (ctx.Surface(piece, role, asset, category)) { n++; laid?.Add(piece); }
+                        }
                     }
                 }
             }
             return n;
+        }
+
+        /// <summary>Area (m²) the shape-rule repairs of <see cref="GameRings"/> took off the pieces (for the plan facts).</summary>
+        public float RepairLoss { get; private set; }
+
+        /// <summary>
+        /// (2026-10-28) The ring as the game keeps it unchanged: valid as it is, else opened (needle tips and necks under the
+        /// game's 0.375 m taken off) or repaired by the build's own rule (AreaRings), never beyond the ring; what a repair
+        /// cut off is laid again as its own clean pieces. A ring nothing can fix goes on as it is (the build repairs it).
+        /// </summary>
+        private List<float2[]> GameRings(float2[] ring)
+        {
+            float before = Poly.Area(ring);
+            var res = GameRings(ring, 0);
+            float after = 0f;
+            foreach (var r in res) after += Poly.Area(r);
+            RepairLoss += math.max(0f, before - after);
+            return res;
+        }
+
+        /// <summary>The ring shrunk by <paramref name="e"/> and grown back (miter joins), clipped to the ring: simple hole-free pieces.</summary>
+        private static List<float2[]> Opening(float2[] ring, float e)
+        {
+            var res = new List<float2[]>();
+            try
+            {
+                foreach (var inner in Poly.Offset(ring, e, OffsetJoin.Miter))
+                    foreach (var grown in Poly.Offset(inner, -e, OffsetJoin.Miter))
+                        foreach (var back in Poly.Boolean(new[] { grown }, new[] { new Region(Poly.EnsureCcw((float2[])ring.Clone())) }, BoolOp.Intersection))
+                        {
+                            if (back?.Outer == null || back.Area < 0.5f) continue;
+                            if (back.HasHoles) res.AddRange(Poly.CutHoles(back));
+                            else res.Add(Poly.EnsureCcw(back.Outer));
+                        }
+            }
+            catch (Exception) { res.Clear(); }
+            return res;
+        }
+
+        /// <summary>A valid version of <paramref name="piece"/> (nodes removed) that stays inside <paramref name="limit"/>, or null.</summary>
+        private static float2[] Fix(float2[] piece, float2[] limit, float d)
+        {
+            float dd = d + Build.AreaRings.Margin;
+            for (int attempt = 0; attempt < 2 && piece != null; attempt++)
+            {
+                if (!Build.AreaRings.IsValid(piece, dd)) piece = Build.AreaRings.MakeValid(piece, d);
+                if (piece == null || !Build.AreaRings.IsValid(piece, dd)) return null;
+                List<Region> extra;
+                try { extra = Poly.Boolean(new[] { (IReadOnlyList<float2>)piece }, new[] { (IReadOnlyList<float2>)limit }, BoolOp.Difference); }
+                catch (Exception) { return null; }
+                float grown = 0f;
+                foreach (var e in extra) grown += e.Area;
+                if (grown < 0.05f) return piece;
+                // A removed reflex node grew it over the neighbour: clip back and try once more.
+                List<Region> back;
+                try { back = Poly.Boolean(new[] { (IReadOnlyList<float2>)piece }, new[] { (IReadOnlyList<float2>)limit }, BoolOp.Intersection); }
+                catch (Exception) { return null; }
+                Region best = null;
+                foreach (var b in back) if (b?.Outer != null && !b.HasHoles && (best == null || b.Area > best.Area)) best = b;
+                piece = best != null ? Poly.EnsureCcw(best.Outer) : null;
+            }
+            return null;
+        }
+
+        private static List<float2[]> GameRings(float2[] ring, int depth)
+        {
+            var res = new List<float2[]>();
+            float d = Build.AreaRings.SurfaceMinNodeDistance;
+            if (Build.AreaRings.IsValid(ring, d + Build.AreaRings.Margin)) { res.Add(ring); return res; }
+            // First an opening (shrink, then grow back by the same amount, clipped to the ring): it takes off the needle
+            // tips where a walk meets a rondel at a slant and the necks narrower than the game allows, nothing else.
+            foreach (float e in new[] { 0.25f, 0.45f })
+            {
+                var opened = Opening(ring, e);
+                if (opened.Count == 0) continue;
+                var fixedPieces = new List<float2[]>();
+                foreach (var o in opened)
+                {
+                    if (Poly.Area(o) < MinPiece * 0.5f) continue;
+                    var f = Fix(o, ring, d);
+                    if (f == null) { fixedPieces = null; break; }
+                    fixedPieces.Add(f);
+                }
+                if (fixedPieces != null && fixedPieces.Count > 0) { res = fixedPieces; break; }
+            }
+            if (res.Count == 0)
+            {
+                var tries = Build.AreaRings.PrepareSurface(ring, d);
+                var v = Build.AreaRings.MakeValid(ring, d);
+                if (tries.Count == 0 && v != null) tries.Add(v);
+                foreach (var t in tries)
+                {
+                    var f = Fix(t, ring, d);
+                    if (f != null) res.Add(f);
+                }
+            }
+            // Nothing valid came of it: hand the ring on as it is (the build repairs it, as before).
+            if (res.Count == 0) { res.Add(ring); return res; }
+            // What the repairs cut off (the wedge behind a removed node) is laid again as its own pieces.
+            if (depth < 2 && res.Count > 0)
+            {
+                List<Region> rest;
+                try
+                {
+                    var clips = new List<IReadOnlyList<float2>>();
+                    foreach (var r in res) clips.Add(r);
+                    rest = Poly.Boolean(new[] { (IReadOnlyList<float2>)ring }, clips, BoolOp.Difference);
+                }
+                catch (Exception) { rest = new List<Region>(); }
+                foreach (var part in rest)
+                {
+                    if (part?.Outer == null || part.Area < MinPiece || Poly.MeanWidth(part.Outer) < MinPieceWidth) continue;
+                    var rings = part.HasHoles ? Poly.CutHoles(part) : new List<float2[]> { part.Outer };
+                    foreach (var pr in rings)
+                    {
+                        if (pr == null || pr.Length < 3) continue;
+                        foreach (var g in GameRings(Poly.EnsureCcw(pr), depth + 1))
+                            if (Build.AreaRings.IsValid(g, d + Build.AreaRings.Margin)) res.Add(g);   // a rest piece only when it is clean
+                    }
+                }
+            }
+            return res;
         }
 
         /// <summary>
@@ -280,6 +407,25 @@ namespace Placemaker.Core.Layers.Plaza
                     try { split = Poly.Split(p, line); }
                     catch (Exception) { split = null; }
                     if (split == null || split.Count == 0) next.Add(p); else next.AddRange(split);
+                }
+                pieces = next;
+            }
+            // (2026-10-28) A hole the row cuts missed (or a split that failed): cut it across, through its own centre, before
+            // falling back to keyhole seams — a keyhole's zero-width bridge breaks the game's shape rules (AreaRings: edges
+            // closer than 0.375 m), and the build's repair then takes a wedge out of the paving.
+            for (int pass = 0; pass < 2; pass++)
+            {
+                var dir = pass == 0 ? side : axis;
+                var next = new List<Region>();
+                foreach (var p in pieces)
+                {
+                    if (!p.HasHoles) { next.Add(p); continue; }
+                    var c = Poly.Centroid(p.Holes[0]);
+                    var line = new[] { c - dir * reach, c + dir * reach };
+                    List<Region> split;
+                    try { split = Poly.Split(p, line); }
+                    catch (Exception) { split = null; }
+                    if (split == null || split.Count < 2) next.Add(p); else next.AddRange(split);
                 }
                 pieces = next;
             }

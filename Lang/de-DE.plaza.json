@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "Gartenziegel",
   "Placemaker.Plaza.paveStyle.modern": "Moderne Platten",
   "Placemaker.Plaza.paveStyle.cobble": "Altstadtpflaster",
-  "Placemaker.Plaza.Issue.NoLawn": "Kein Platz für Rasen zwischen den Achsen; den Platz vergrößern oder den Rasenanteil senken."
+  "Placemaker.Plaza.Issue.NoLawn": "Kein Platz für Rasen zwischen den Achsen; den Platz vergrößern oder den Rasenanteil senken.",
+  "Placemaker.Plaza.design": "Gestaltung",
+  "Placemaker.Plaza.design.Tooltip": "Der Plan, nach dem der Platz angelegt wird. Klassisch wächst von den Eingängen aus; die anderen sind gestaltete Plätze auf den eigenen Achsen des Platzes, mit einem Weg am Rand, der alle Eingänge verbindet.",
+  "Placemaker.Plaza.design.classic": "Klassisch",
+  "Placemaker.Plaza.design.grand": "Großer Platz",
+  "Placemaker.Plaza.design.rooms": "Gartenräume",
+  "Placemaker.Plaza.design.railed": "Umzäunte Gärten",
+  "Placemaker.Plaza.design.terraces": "Terrassen",
+  "Placemaker.Plaza.design.modern": "Modern",
+  "Placemaker.Plaza.design.piazza": "Piazza",
+  "Placemaker.Plaza.Preset.grand": "Großer Platz",
+  "Placemaker.Plaza.Preset.rooms": "Gartenräume",
+  "Placemaker.Plaza.Preset.railed": "Umzäunte Gärten",
+  "Placemaker.Plaza.Preset.terraces": "Terrassengarten",
+  "Placemaker.Plaza.Preset.modern": "Moderner Platz"
 }

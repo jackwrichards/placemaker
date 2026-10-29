@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "Mattoni da giardino",
   "Placemaker.Plaza.paveStyle.modern": "Lastre moderne",
   "Placemaker.Plaza.paveStyle.cobble": "Ciottoli antichi",
-  "Placemaker.Plaza.Issue.NoLawn": "Non c'è spazio per i prati tra gli assi; ingrandisci la piazza o riduci la quota di prato."
+  "Placemaker.Plaza.Issue.NoLawn": "Non c'è spazio per i prati tra gli assi; ingrandisci la piazza o riduci la quota di prato.",
+  "Placemaker.Plaza.design": "Disegno",
+  "Placemaker.Plaza.design.Tooltip": "La pianta con cui è tracciata la piazza. Classica cresce dagli ingressi; le altre sono piazze disegnate sugli assi della piazza stessa, con un viale lungo il bordo che collega tutti gli ingressi.",
+  "Placemaker.Plaza.design.classic": "Classica",
+  "Placemaker.Plaza.design.grand": "Grande piazza",
+  "Placemaker.Plaza.design.rooms": "Stanze verdi",
+  "Placemaker.Plaza.design.railed": "Giardini recintati",
+  "Placemaker.Plaza.design.terraces": "Terrazze",
+  "Placemaker.Plaza.design.modern": "Moderna",
+  "Placemaker.Plaza.design.piazza": "Piazza italiana",
+  "Placemaker.Plaza.Preset.grand": "Grande piazza",
+  "Placemaker.Plaza.Preset.rooms": "Stanze verdi",
+  "Placemaker.Plaza.Preset.railed": "Giardini recintati",
+  "Placemaker.Plaza.Preset.terraces": "Giardino a terrazze",
+  "Placemaker.Plaza.Preset.modern": "Piazza moderna"
 }

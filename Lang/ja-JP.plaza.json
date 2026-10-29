@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "庭園のレンガ",
   "Placemaker.Plaza.paveStyle.modern": "モダンな板石",
   "Placemaker.Plaza.paveStyle.cobble": "旧市街の石畳",
-  "Placemaker.Plaza.Issue.NoLawn": "軸線の間に芝生を置く余地がありません。広場を大きくするか、芝生の割合を下げてください。"
+  "Placemaker.Plaza.Issue.NoLawn": "軸線の間に芝生を置く余地がありません。広場を大きくするか、芝生の割合を下げてください。",
+  "Placemaker.Plaza.design": "デザイン",
+  "Placemaker.Plaza.design.Tooltip": "広場を配置する設計です。クラシックは入口から広がり、ほかは広場自身の軸に沿って設計された広場で、縁を回る歩道がすべての入口をつなぎます。",
+  "Placemaker.Plaza.design.classic": "クラシック",
+  "Placemaker.Plaza.design.grand": "大広場",
+  "Placemaker.Plaza.design.rooms": "ガーデンルーム",
+  "Placemaker.Plaza.design.railed": "柵の庭園",
+  "Placemaker.Plaza.design.terraces": "テラス",
+  "Placemaker.Plaza.design.modern": "モダン",
+  "Placemaker.Plaza.design.piazza": "ピアッツァ",
+  "Placemaker.Plaza.Preset.grand": "大広場",
+  "Placemaker.Plaza.Preset.rooms": "ガーデンルーム",
+  "Placemaker.Plaza.Preset.railed": "柵の庭園",
+  "Placemaker.Plaza.Preset.terraces": "段々の庭園",
+  "Placemaker.Plaza.Preset.modern": "モダン広場"
 }

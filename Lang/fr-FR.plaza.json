@@ -69,5 +69,19 @@
   "Placemaker.Plaza.paveStyle.garden": "Brique de jardin",
   "Placemaker.Plaza.paveStyle.modern": "Dalles modernes",
   "Placemaker.Plaza.paveStyle.cobble": "Pavés de vieille ville",
-  "Placemaker.Plaza.Issue.NoLawn": "Pas de place pour des pelouses entre les axes ; agrandissez la place ou baissez la part de pelouse."
+  "Placemaker.Plaza.Issue.NoLawn": "Pas de place pour des pelouses entre les axes ; agrandissez la place ou baissez la part de pelouse.",
+  "Placemaker.Plaza.design": "Tracé",
+  "Placemaker.Plaza.design.Tooltip": "Le plan selon lequel la place est tracée. Classique part des entrées ; les autres sont des places dessinées sur les axes propres de la place, avec une allée en bordure qui relie toutes les entrées.",
+  "Placemaker.Plaza.design.classic": "Classique",
+  "Placemaker.Plaza.design.grand": "Grande place",
+  "Placemaker.Plaza.design.rooms": "Chambres de verdure",
+  "Placemaker.Plaza.design.railed": "Jardins à grilles",
+  "Placemaker.Plaza.design.terraces": "Terrasses",
+  "Placemaker.Plaza.design.modern": "Moderne",
+  "Placemaker.Plaza.design.piazza": "Piazza",
+  "Placemaker.Plaza.Preset.grand": "Grande place",
+  "Placemaker.Plaza.Preset.rooms": "Chambres de verdure",
+  "Placemaker.Plaza.Preset.railed": "Jardins à grilles",
+  "Placemaker.Plaza.Preset.terraces": "Jardin en terrasses",
+  "Placemaker.Plaza.Preset.modern": "Place moderne"
 }
