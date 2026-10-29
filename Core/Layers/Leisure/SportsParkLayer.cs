@@ -88,7 +88,7 @@ namespace Placemaker.Core.Layers.Leisure
             return list;
         }
 
-        public static readonly string[] Subtypes = { "community", "stadium", "tennisClub", "campus", "neighbourhood" };
+        public static readonly string[] Subtypes = { "community", "stadium", "tennisClub", "campus", "neighbourhood", "arena", "centreCourt", "hillside", "cageCourts", "athletics" };
         public static readonly string[] Heroes = { "auto", "pitch", "runningTrack", "baseballDiamond", "cricketGround", "tennisCourts", "none" };
 
         private static string[] WithAuto(FieldFormat[] f)
@@ -174,10 +174,29 @@ namespace Placemaker.Core.Layers.Leisure
                 ("tennisCourtsSize", "one"), ("tableTennisCount", 2.0), ("volleyballCount", 1.0), ("promenade", "loop"), ("treeBelt", "single"),
                 ("treeDensity", 45.0), ("berms", false), ("parking", "off"), ("spacing", 85.0), ("changingHut", true), ("terrace", false));
             PresetFeatures("neighbourhood", "-pitch", "tableTennis", "volleyball", "skateBowl", "fitness");
+
+            // 2026-10-29: designed sports grounds on their own ground (SportsDesigns).
+            Preset("arena", ("subtype", "arena"), ("hero", "pitch"), ("pitchSize", "auto"), ("parking", "off"), ("treeBelt", "single"), ("berms", false));
+            PresetFeatures("arena", "-tennisCourts", "-basketballCourt", "-playground", "-decals");
+            Preset("centreCourt", ("subtype", "centreCourt"), ("hero", "tennisCourts"), ("parking", "off"), ("tennisSurface", "grass"), ("berms", false));
+            PresetFeatures("centreCourt", "-pitch", "-basketballCourt", "-playground", "-decals");
+            Preset("hillside", ("subtype", "hillside"), ("hero", "pitch"), ("parking", "off"), ("berms", false));
+            PresetFeatures("hillside", "skateBowl", "-playground", "-decals");
+            Preset("cageCourts", ("subtype", "cageCourts"), ("hero", "none"), ("parking", "off"), ("berms", false), ("pitchSize", "five"));
+            PresetFeatures("cageCourts", "-tennisCourts", "-playground");
+            Preset("athletics", ("subtype", "athletics"), ("hero", "runningTrack"), ("parking", "off"), ("berms", false));
+            PresetFeatures("athletics", "runningTrack", "-pitch", "-tennisCourts", "-basketballCourt", "-playground", "-decals");
         }
 
         protected override void PlanCore(LayerContext ctx)
         {
+            // 2026-10-29: a designed sports ground (stadium bowl, centre court, terraces, cages, athletics) when the site takes it.
+            string subtype = ctx.S("subtype");
+            if (SportsDesigns.Handles(subtype) && SportsDesigns.Plan(ctx, Gates(ctx), subtype, Placemaker.Core.Layers.Plaza.PlazaDressing.SquareAxis(ctx.LayerRegion)))
+            {
+                CommonStats(ctx);
+                return;
+            }
             new SportsParkComposer(ctx, Gates(ctx)).Run();
             CommonStats(ctx);
         }

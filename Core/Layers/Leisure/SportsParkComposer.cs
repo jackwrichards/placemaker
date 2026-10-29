@@ -128,6 +128,7 @@ namespace Placemaker.Core.Layers.Leisure
             foreach (var m in missing) NoRoom(m);
             PlaceKids();
             ctx.Check();
+            LevelTerrace();
 
             Paths();
             if (_lot != null) TransportKit.ClearPlantsFromPaths(ctx.Plan, _lot, _occ);
@@ -638,6 +639,10 @@ namespace Placemaker.Core.Layers.Leisure
             // Depths grow with the site (a 1 ha park gets a slim terrace, a 6 ha park a generous one).
             float k = math.clamp(_span / 170f, 0.6f, 1.4f) * slim;
             _tDepth = (terrace ? math.max(S(16f, 9f) * k, 6f) : 5f);
+            // (2026-10-29) Deep enough for the game's small stand behind the touchline walk when the site allows it.
+            if (terrace && slim >= 1f) _tDepth = math.max(_tDepth, 2f * _hw + 1.2f + SportsProps.Small02.Depth + 1.2f);
+            // (2026-10-29) A stadium's terrace takes a covered grandstand on a big site.
+            if (terrace && ctx.S("subtype") == "stadium") _tDepth *= 1.45f;
             _cDepth = club ? math.max(S(14f, 9f) * k, 7f) : 0f;
             float depth = _tDepth + _cDepth, length;
             if (_hero != null)
@@ -1077,6 +1082,29 @@ namespace Placemaker.Core.Layers.Leisure
             return false;
         }
 
+        // ───────────────────────── terrace ground ─────────────────────────
+
+        private FieldGround _terraceGround;
+
+        /// <summary>
+        /// (2026-10-29) The spectator terrace is one level platform (its stands, kiosk and clubhouse stand level on rough
+        /// ground: before, its benches stood on 12-13 % slopes of the smoothed paving), blended back to the ground at its edge.
+        /// </summary>
+        private void LevelTerrace()
+        {
+            if (_terrace == null) return;
+            var r = _terrace.Rect;
+            float apron = math.clamp(math.min(r.HalfLength, r.HalfWidth) * 0.2f, 1.5f, 3.5f);
+            var pad = new OrientedRect { Center = r.Center, Axis = r.Axis, HalfLength = math.max(1f, r.HalfLength - apron), HalfWidth = math.max(1f, r.HalfWidth - apron) };
+            var g = FieldGround.Level(_ctx, pad, r, true);
+            if (!g.Levelled) return;
+            _terraceGround = g;
+            var ring = r.Ring;
+            _ctx.Ground.Override(math.min(math.min(ring[0], ring[1]), math.min(ring[2], ring[3])), math.max(math.max(ring[0], ring[1]), math.max(ring[2], ring[3])),
+                g.HeightAfter, p => math.abs(math.dot(p - r.Center, r.Axis)) <= r.HalfLength && math.abs(math.dot(p - r.Center, r.Side)) <= r.HalfWidth);
+            _ctx.Plan.Facts["terraceLevelled"] = 1;
+        }
+
         // ───────────────────────── dressing ─────────────────────────
 
         private void Dress()
@@ -1094,6 +1122,19 @@ namespace Placemaker.Core.Layers.Leisure
                 float front = hub ? r.HalfWidth * 2f : _tDepth;
                 var pave = new OrientedRect { Center = r.Center - back * (r.HalfWidth - front * 0.5f), Axis = along, HalfLength = r.HalfLength, HalfWidth = front * 0.5f };
                 ctx.Surface(pave.Ring, SurfaceRole.Paving, AssetMix.One(""), AssetCategories.SurfacePaving);
+                // (2026-10-29) Grandstands on the terrace facing the field: the game's own stands, as deep as the front strip
+                // behind the touchline walk allows (covered grandstands on a stadium's big terrace); benches only on a hub.
+                int placedStands = 0;
+                if (!hub && _hero != null && string.IsNullOrEmpty(ctx.S("benchAsset")))
+                {
+                    float walk = 2f * _hw + 1.2f;
+                    var frontC = r.Center - back * (r.HalfWidth - walk);
+                    float depth = front - walk - 0.4f;
+                    var toField = r.Center - back * (r.HalfWidth + 10f);
+                    placedStands = SportsProps.StandRow(ctx, _occ, frontC - along * (r.HalfLength - 1f), frontC + along * (r.HalfLength - 1f), toField, depth,
+                        ctx.S("subtype") == "stadium", Hashing.Mix(seed, 0x57A5u));
+                    ctx.Plan.Facts["terraceStands"] = placedStands;
+                }
                 // Clubhouse (changing pavilion) in the middle of the back strip, kiosk beside it.
                 // The spine arrives at the middle of the back edge: pavilion on one side, kiosk on the other.
                 float flank = math.min(r.HalfLength * 0.4f, S(11f, 6.5f));
@@ -1121,15 +1162,17 @@ namespace Placemaker.Core.Layers.Leisure
                     var p = club + along * (2f * flank);
                     if (k != null) LeisureKit.Put(ctx, _occ, p, LeisureKit.Yaw(p, p - back), ObjectRole.Furniture, AssetMix.One(""), k, 1.5f, Hashing.Mix(seed, 0x105Au), 0.3f, 0.3f);
                 }
-                // Spectator benches in a row on the terrace, facing the field (hub: facing the square's middle).
-                int benches = math.clamp((int)(r.HalfLength * 2f / S(6f, 3.5f)), 2, 16);
-                float bv = hub ? -r.HalfWidth * 0.55f : -(r.HalfWidth - front) - front * 0.25f;
-                for (int i = 0; i < benches; i++)
+                if (placedStands == 0)
                 {
-                    float t = (i / (float)math.max(1, benches - 1) - 0.5f) * (r.HalfLength * 1.7f);
-                    var p = r.Center + along * t + back * bv;
-                    var face = hub ? p + back : p - back;
-                    LeisureKit.Put(ctx, _occ, p, LeisureKit.Yaw(p, face), ObjectRole.Bench, _bench, null, 0.9f, Hashing.Mix(seed, 0xBE5u + (uint)i), 0.2f, 0.2f);
+                    int benches = math.clamp((int)(r.HalfLength * 2f / S(6f, 3.5f)), 2, 16);
+                    float bv = hub ? -r.HalfWidth * 0.55f : -(r.HalfWidth - front) - front * 0.25f;
+                    for (int i = 0; i < benches; i++)
+                    {
+                        float t = (i / (float)math.max(1, benches - 1) - 0.5f) * (r.HalfLength * 1.7f);
+                        var p = r.Center + along * t + back * bv;
+                        var face = hub ? p + back : p - back;
+                        LeisureKit.Put(ctx, _occ, p, LeisureKit.Yaw(p, face), ObjectRole.Bench, _bench, null, 0.9f, Hashing.Mix(seed, 0xBE5u + (uint)i), 0.2f, 0.2f);
+                    }
                 }
                 // Shade trees along the terrace's back edge, framing the clubhouse.
                 int shade = math.clamp((int)(r.HalfLength * 2f / S(12f, 7f)), 2, 10);
@@ -1395,6 +1438,8 @@ namespace Placemaker.Core.Layers.Leisure
                 string court = ctx.S("tennisSurface");
                 if (it.Layer == "tennisCourts" && !string.IsNullOrEmpty(court) && court != "hard")
                     ctx.AddRegion(it.Rect.Ring, place + ":" + k++, place, SportsParkLayer.SizedTag, FieldAddOn.SurfaceTagPrefix + court);
+                else if (it == _hero && _terrace != null && _hub == null && ctx.Plan.Facts.TryGetValue("terraceStands", out var ts) && ts > 0)
+                    ctx.AddRegion(it.Rect.Ring, place + ":" + k++, place, SportsParkLayer.SizedTag, FieldAddOn.HostStandsTag);
                 else ctx.AddRegion(it.Rect.Ring, place + ":" + k++, place, SportsParkLayer.SizedTag);
             }
             }

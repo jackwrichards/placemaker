@@ -121,16 +121,18 @@ namespace Placemaker.Core.Layers.AddOns.Fields
             // Stands along the home straight, floodlights round the oval, optional perimeter fence.
             float room = place.HalfWidth - ro;
             string stands = ctx.S("stands");
-            if (stands != "none" && room > 4f)
+            if (j.HostStands) { }
+            else if (stands != "none" && room > 4f)
             {
-                float v = ro + math.min(4.2f, room - 2.1f);
-                FieldKit.Stands(j, f.P(-h * 0.85f, side * v), f.P(h * 0.85f, side * v), f.O, 8.5f);
-                if (stands == "both") FieldKit.Stands(j, f.P(-h * 0.6f, -side * v), f.P(h * 0.6f, -side * v), f.O, 8.5f);
+                // (2026-10-29) The game's stands, front row 1.5 m off the outer lane, as deep as the place allows.
+                float v = ro + 1.5f;
+                FieldKit.StandRow(j, f.P(-h * 0.95f, side * v), f.P(h * 0.95f, side * v), f.O, room - 1.8f);
+                if (stands == "both") FieldKit.StandRow(j, f.P(-h * 0.7f, -side * v), f.P(h * 0.7f, -side * v), f.O, room - 1.8f);
             }
             else if (room > 2.5f)
                 FieldKit.Benches(j, new[] { f.P(-h * 0.4f, side * (ro + 1.6f)), f.P(0f, side * (ro + 1.6f)), f.P(h * 0.4f, side * (ro + 1.6f)) }, f.O);
             string lights = ctx.S("floodlights");
-            if (lights != "none" && room > 1.5f)
+            if (lights != "none" && room > 1.5f && !j.HostLights)
             {
                 float lv = ro + math.min(1.4f, room - 0.9f);
                 var pts = new List<float2> { f.P(-h, -lv), f.P(h, -lv), f.P(h, lv), f.P(-h, lv) };

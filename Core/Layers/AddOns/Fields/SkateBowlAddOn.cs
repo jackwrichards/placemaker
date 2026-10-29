@@ -131,7 +131,7 @@ namespace Placemaker.Core.Layers.AddOns.Fields
                 FieldKit.Benches(j, new[] { f.P(-hl * 0.45f, side * (hw - 0.9f)), f.P(hl * 0.45f, side * (hw - 0.9f)) }, f.P(0f, 0f));
             LeisureKit.Put(ctx, j.Occ, f.P(0f, side * (hw - 0.7f)), f.Yaw, ObjectRole.Bin, new AssetRef(""), null, 0.4f, j.V(0xB1Bu));
             if (ctx.B("floodlights"))
-                FieldKit.Floodlights(j, new[] { f.P(-hl + 0.6f, -hw + 0.6f), f.P(hl - 0.6f, -hw + 0.6f), f.P(hl - 0.6f, hw - 0.6f), f.P(-hl + 0.6f, hw - 0.6f) }, f.O);
+                FieldKit.Floodlights(j, new[] { f.P(-hl + 0.6f, -hw + 0.6f), f.P(hl - 0.6f, -hw + 0.6f), f.P(hl - 0.6f, hw - 0.6f), f.P(-hl + 0.6f, hw - 0.6f) }, f.O, false);
             if (ctx.B("fence"))
                 RectFence(ctx, new OrientedRect { Center = place.Center, Axis = place.Axis, HalfLength = place.HalfLength - 0.4f, HalfWidth = place.HalfWidth - 0.4f },
                     j.Toward, 2.5f, AssetMix.One(ctx.S("fenceAsset")));

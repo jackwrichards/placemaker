@@ -40,21 +40,22 @@ namespace Placemaker.Core.Layers.Plaza
         private static readonly string[] HighHedges = { "HedgePieceHigh01", "HedgePieceHigh02" };
         private static readonly string[] BoxPlanters = { "GreenBushCity01", "FlowerBushCity01", "GreenBushCity02", "FlowerBushCity02" };
         private static readonly string[] RaisedBedIds = { "GardenBed02WideHigh", "GardenBed03WideHigh", "GardenBed01WideHigh" };
-        private const float WallH = 0.9f;
+        internal const float WallH = 0.9f;
         /// <summary>Steepest bank (m/m): just under the slope that renders as a sheet over one heightmap texel.</summary>
-        private const float BankGrade = 0.45f;
+        internal const float BankGrade = 0.45f;
 
-        private static float BankFor(float h) => math.max(2f, math.abs(h) / BankGrade);
+        internal static float BankFor(float h) => math.max(2f, math.abs(h) / BankGrade);
 
         /// <summary>The square's designed ground (see the file header).</summary>
-        private sealed class Levels
+        internal sealed class Levels
         {
-            private struct Plat { public float U0, U1, V0, V1, Dh; public float4 B; }
+            // Abs: a level floor at height T (sports grounds, 2026-10-29), its banks blending from the ground under it.
+            private struct Plat { public float U0, U1, V0, V1, Dh, T; public float4 B; public bool Abs; }
             private readonly Kit _k;
             private readonly List<Plat> _p = new List<Plat>();
             public readonly float IA, IB;
-            public readonly float G0;
-            public readonly float2 Grad;
+            public float G0 { get; private set; }
+            public float2 Grad { get; private set; }
 
             public Levels(Kit k, float ia, float ib)
             {
@@ -83,13 +84,64 @@ namespace Placemaker.Core.Layers.Plaza
 
             public void Add(float u0, float u1, float v0, float v1, float dh, float bank) => Add(u0, u1, v0, v1, dh, new float4(bank));
 
+            /// <summary>
+            /// (2026-10-29) A level floor at the absolute <paramref name="height"/> (a pitch, a court, a terrace of a sports
+            /// ground on a slope), its banks inside it blending from whatever ground lies under it. Later floors win.
+            /// </summary>
+            public void AddFloor(float u0, float u1, float v0, float v1, float height, float4 bank)
+            {
+                if (u1 - u0 < 1f || v1 - v0 < 1f || !math.isfinite(height)) return;
+                _p.Add(new Plat { U0 = u0, U1 = u1, V0 = v0, V1 = v1, T = height, Abs = true, B = math.max(bank, 0f) });
+            }
+
+            /// <summary>The bank a floor at <paramref name="height"/> over (u0..u1, v0..v1) needs to stay at or under 45 % against the ground beneath it.</summary>
+            public float FloorBank(float u0, float u1, float v0, float v1, float height, float grade = BankGrade)
+            {
+                float worst = 0f;
+                for (int i = 0; i <= 8; i++)
+                {
+                    float t = i / 8f;
+                    foreach (var (u, v) in new[] { (math.lerp(u0, u1, t), v0), (math.lerp(u0, u1, t), v1), (u0, math.lerp(v0, v1, t)), (u1, math.lerp(v0, v1, t)) })
+                        worst = math.max(worst, math.abs(H(u, v) - height));
+                }
+                return worst < 0.05f ? 0f : math.max(2f, worst / grade);
+            }
+
+            /// <summary>Lowest and highest designed ground along the boundary of a box (local).</summary>
+            public float2 RimRange(float u0, float u1, float v0, float v1)
+            {
+                float lo = float.MaxValue, hi = float.MinValue;
+                for (int i = 0; i <= 12; i++)
+                {
+                    float t = i / 12f;
+                    foreach (var (u, v) in new[] { (math.lerp(u0, u1, t), v0), (math.lerp(u0, u1, t), v1), (u0, math.lerp(v0, v1, t)), (u1, math.lerp(v0, v1, t)) })
+                    {
+                        float h = H(u, v);
+                        lo = math.min(lo, h); hi = math.max(hi, h);
+                    }
+                }
+                return new float2(lo, hi);
+            }
+
+            /// <summary>(2026-10-29) A level base at <paramref name="g0"/> (sports grounds play on level floors, never on the slope's plane).</summary>
+            public void LevelBase(float g0) { G0 = g0; Grad = float2.zero; }
+
+            /// <summary>(2026-10-29) Width of the band along the box's edge where the design blends back to the ground as it is (0 = none).</summary>
+            public float Skirt;
+            /// <summary>(2026-10-29) Non-planar quads as four triangles round their centre (sports grounds) instead of two.</summary>
+            public bool FineCorners;
+
             public int Count => _p.Count;
             public float Base(float u, float v) => G0 + Grad.x * u + Grad.y * v;
 
             /// <summary>Designed height above (below) the base plane.</summary>
-            public float Rel(float u, float v)
+            public float Rel(float u, float v) => H(u, v) - Base(u, v);
+
+            private static float Side(float d, float b) => b <= 0.01f ? 1f : math.saturate(d / b);
+
+            public float H(float u, float v)
             {
-                float s = 0f;
+                float h = Base(u, v);
                 foreach (var q in _p)
                 {
                     if (u < q.U0 || u > q.U1 || v < q.V0 || v > q.V1) continue;
@@ -98,14 +150,22 @@ namespace Placemaker.Core.Layers.Plaza
                     r = math.min(r, Side(q.U1 - u, q.B.y));
                     r = math.min(r, Side(v - q.V0, q.B.z));
                     r = math.min(r, Side(q.V1 - v, q.B.w));
-                    s += q.Dh * r;
+                    h = q.Abs ? math.lerp(h, q.T, r) : h + q.Dh * r;
                 }
-                return s;
+                if (Skirt > 0.01f)
+                {
+                    // (2026-10-29) The design meets the ground as it is at the box's edge (a sports ground on hills: the base
+                    // plane is only the hill's mean, its edge would stand off the ground in a curtain).
+                    float d = math.min(IA - math.abs(u), IB - math.abs(v));
+                    if (d < Skirt)
+                    {
+                        // Only the base plane's residual is taken out: the design's own banks keep their grade.
+                        float t = 1f - math.saturate(d / Skirt);
+                        h -= t * (Base(u, v) - _k.Ctx.H(_k.W(u, v)));
+                    }
+                }
+                return h;
             }
-
-            private static float Side(float d, float b) => b <= 0.01f ? 1f : math.saturate(d / b);
-
-            public float H(float u, float v) => Base(u, v) + Rel(u, v);
             public float At(float2 p) { var l = _k.Local(p); return H(l.x, l.y); }
             public bool Inside(float2 p) { var l = _k.Local(p); return math.abs(l.x) <= IA + 0.01f && math.abs(l.y) <= IB + 0.01f; }
 
@@ -145,7 +205,15 @@ namespace Placemaker.Core.Layers.Plaza
                         float e13 = math.abs(H(u0 + (u1 - u0) / 3f, v0 + (v1 - v0) / 3f) - (h00 + h10 + h01) / 3f)
                                   + math.abs(H(u0 + (u1 - u0) * 2f / 3f, v0 + (v1 - v0) * 2f / 3f) - (h10 + h11 + h01) / 3f);
                         var a = new float2(u0, v0); var b = new float2(u1, v0); var c = new float2(u1, v1); var d = new float2(u0, v1);
-                        if (e02 <= e13) { patches += Tri(a, b, c, ref maxUp, ref maxDown); patches += Tri(a, c, d, ref maxUp, ref maxDown); }
+                        if (FineCorners)
+                        {
+                            // (2026-10-29) Four triangles round the true centre: exact on a mitre whichever way its fold runs, and never
+                            // the steep plane two crossing banks make when one triangle spans both.
+                            var m = (a + c) * 0.5f;
+                            patches += Tri(a, b, m, ref maxUp, ref maxDown); patches += Tri(b, c, m, ref maxUp, ref maxDown);
+                            patches += Tri(c, d, m, ref maxUp, ref maxDown); patches += Tri(d, a, m, ref maxUp, ref maxDown);
+                        }
+                        else if (e02 <= e13) { patches += Tri(a, b, c, ref maxUp, ref maxDown); patches += Tri(a, c, d, ref maxUp, ref maxDown); }
                         else { patches += Tri(a, b, d, ref maxUp, ref maxDown); patches += Tri(b, c, d, ref maxUp, ref maxDown); }
                     }
                     if (runStart >= 0) patches += Patch(us[runStart], us[us.Count - 1], v0, v1, ref maxUp, ref maxDown);
@@ -175,9 +243,15 @@ namespace Placemaker.Core.Layers.Plaza
                     foreach (var x in new[] { lo, lo + b0, hi - b1, hi })
                         if (x > -ext && x < ext) l.Add(x);
                 }
+                if (Skirt > 0.01f)
+                    for (float x = 0f; x <= Skirt + 0.01f; x += math.max(2f, Skirt / 3f)) { l.Add(-ext + x); l.Add(ext - x); }
+                // (2026-10-29) Sports grounds: a cut every 8 m as well, so the skirt follows a hill and no patch spans a whole site.
+                if (FineCorners)
+                    for (float x = -ext + 8f; x < ext - 4f; x += 8f) l.Add(x);
                 l.Sort();
                 var r = new List<float>();
-                foreach (var x in l) if (r.Count == 0 || x - r[r.Count - 1] > 0.05f) r.Add(x);
+                float merge = FineCorners ? 0.4f : 0.05f;
+                foreach (var x in l) if (x >= -ext - 0.01f && x <= ext + 0.01f && (r.Count == 0 || x - r[r.Count - 1] > merge)) r.Add(x);
                 return r;
             }
 
@@ -219,7 +293,7 @@ namespace Placemaker.Core.Layers.Plaza
             }
         }
 
-        private sealed partial class Kit
+        internal sealed partial class Kit
         {
             public string WallId = "EU_Wall01", RailId = "EU_Railing01";
             public int WallCount, FlightCount, CafeCount, CanopyCount, FountainCount;
@@ -229,6 +303,9 @@ namespace Placemaker.Core.Layers.Plaza
 
             /// <summary>Turns the frame half round (A and S negated): a design that rises along +A then climbs the slope.</summary>
             public void Flip() { A = -A; S = -S; Phase += math.PI; }
+
+            /// <summary>(2026-10-29) Turns the frame a quarter (A becomes S): the box's half sizes swap with it.</summary>
+            public void TurnQuarter() { var a = A; A = S; S = -a; var h = HA; HA = HB; HB = h; Phase = math.atan2(A.y, A.x); }
 
             /// <summary>On a slope, points +A uphill (for designs that rise along A).</summary>
             public void FaceUphill()

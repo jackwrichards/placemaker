@@ -104,20 +104,20 @@ namespace Placemaker.Core.Layers.AddOns.Fields
             }
             float side = j.Side;
             float room = place.HalfWidth - b;
-            if (ctx.B("stands") && room > 3.2f)
+            if (ctx.B("stands") && room > 3.2f && !j.HostStands)
             {
-                float v = side * (b + math.min(2.6f, room - 1.9f));
-                FieldKit.Stands(j, f.P(-a * 0.55f, v), f.P(a * 0.55f, v), f.O, 7.5f, 1.5f);
+                float v = side * (b + math.min(1.4f, room - 1.2f));
+                FieldKit.StandRow(j, f.P(-a * 0.75f, v), f.P(a * 0.75f, v), f.O, room - 1.6f);
             }
             if (ctx.B("benches") && room > 2.4f)
             {
                 float v = -side * (b + math.min(1.8f, room - 1.5f));
                 FieldKit.Benches(j, new[] { f.P(-3.5f, v), f.P(3.5f, v) }, f.O);
             }
-            if (ctx.B("floodlights"))
+            if (ctx.B("floodlights") && !j.HostLights)
             {
                 float lv = b + math.min(1.3f, room - 0.7f), lu = a * 0.5f;
-                FieldKit.Floodlights(j, new[] { f.P(-lu, -lv), f.P(lu, -lv), f.P(lu, lv), f.P(-lu, lv) }, f.O);
+                FieldKit.Floodlights(j, new[] { f.P(-lu, -lv), f.P(lu, -lv), f.P(lu, lv), f.P(-lu, lv) }, f.O, false);
             }
             if (ctx.B("fence"))
                 RectFence(ctx, new OrientedRect { Center = place.Center, Axis = place.Axis, HalfLength = place.HalfLength - 0.4f, HalfWidth = place.HalfWidth - 0.4f },

@@ -110,6 +110,15 @@ namespace Placemaker.Core.Layers.AddOns.Fields
         /// </summary>
         public const string HostSizedTag = "hostSized";
 
+        /// <summary>
+        /// (2026-10-29) Region tag a host adds to a place whose spectators it seats itself (a stadium bowl, a terrace of
+        /// grandstands, an amphitheatre): the field leaves out its own stands and floodlights.
+        /// </summary>
+        public const string HostStandsTag = "hostStands";
+
+        /// <summary>(2026-10-29) Region tag of a place the host lights itself (masts round a stadium bowl): no floodlights of the field's own.</summary>
+        public const string HostLightsTag = "hostLights";
+
         /// <summary>(rf-sports) Region tag prefix a host adds to choose the court surface ("courtSurface:clay"); the field's own choice otherwise.</summary>
         public const string SurfaceTagPrefix = "courtSurface:";
 
@@ -187,6 +196,8 @@ namespace Placemaker.Core.Layers.AddOns.Fields
 
         private bool Hosted(AreaInput input) => input.RegionTags != null && Array.IndexOf(input.RegionTags, Amenities.Place(Id)) >= 0;
         private bool HostSized(AreaInput input) => Hosted(input) && Array.IndexOf(input.RegionTags, HostSizedTag) >= 0;
+        private bool HostStands(AreaInput input) => Hosted(input) && Array.IndexOf(input.RegionTags, HostStandsTag) >= 0;
+        private bool HostLights(AreaInput input) => Hosted(input) && Array.IndexOf(input.RegionTags, HostLightsTag) >= 0;
 
         /// <summary>
         /// Where people arrive from, for a field in a host's place: the nearest walk of the whole recipe. The place's own
@@ -282,6 +293,8 @@ namespace Placemaker.Core.Layers.AddOns.Fields
                 Ctx = ctx, Occ = occ, Site = site, Place = place, Toward = toward, Format = f.Id, Seed = Hashing.Mix(ctx.Seed, Seeds.Hash(Id)),
                 Ground = FieldGround.Level(ctx, pad, outer, ctx.B("level")),
                 HostSized = sized,
+                HostStands = HostStands(ctx.Input),
+                HostLights = HostLights(ctx.Input),
             };
             Lay(job);
             ctx.Check();

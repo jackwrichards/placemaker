@@ -120,6 +120,9 @@ namespace Placemaker.Core.Layers.Common
 
         public void Take(float2 p, float r, int kind) => Discs.Add(p, r, kind);
         public void TakeCorridor(float2 a, float2 b, float hw, int kind) => Corridors.Add(a, b, hw, kind);
+
+        /// <summary>(2026-10-29) Takes a polygon (a grandstand's footprint, a field's place): things may stand right beside it.</summary>
+        public void TakePolygon(float2[] ring) { if (ring != null && ring.Length >= 3) _polygons.Add(Poly.EnsureCcw(ring)); }
     }
 
     /// <summary>Finds good spots for compact features (fountain, playground, picnic group…).</summary>

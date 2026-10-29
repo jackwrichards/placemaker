@@ -155,3 +155,71 @@ by anarchy on every sports park are gone; the pit guard no longer fills in skate
   branch of several fixes (painted lines instead of the game's court decals, weathered asphalt instead of
   Pavement Surface 01); that branch was not run (`-AllMods`).
 - Not installed in the user's game: the branch is `rf-sports`, for the integrator to merge.
+
+## Sports parks, round 2: designed grounds (2026-10-29, branch claude/sports-parks-explode)
+
+The user: "we just make amazingly detailed plazas by looking into how ground work works and looking into more assets
+in the game ... let's now channel this effort into making sports parks just as amazing ... explode the box". Same
+recipe as the designed plazas: the plaza levels kit for the ground, the game's own props, judged in the game runner.
+
+**The game's own sports props (they were all there).** The clean game ships real grandstands, dugouts, scoreboards,
+full-size goals and 22 m light masts, catalogued as "decoration", so no automatic pool ever dealt them: every "stand"
+was a garden bench and every "floodlight" a 3 m park lamp. Now named explicitly (`Core/Layers/AddOns/Fields/SportsProps.cs`):
+`SportParkStandSmall01-03` (19-21 m long, 8-14 m deep), `SportParkStandLarge01-04` (22 or 41 m, 24 m deep, 11-16 m high,
+covered), corner pieces, `LightpoleIndustrial03/04` (22 m masts for fields), `LightpoleCommercial03/04` (11 m for
+courts), `SportParkBench02` (covered dugout), `SportParkFootballGoal01/02`, `SportParkAmericanFootballGoal01`,
+`SportParkScoreboard01`, `SportParkFlag01` (corner flags), training cones, hurdles, poles and dummies. A stand looks along
+its −Z (game runner: turned along +Z they faced away from the track). Stand rows are laid end to end, long pieces first,
+centred, each piece's footprint taken as a polygon (as a corridor the next piece of the row was always refused).
+
+**Shared fixes (every field, every type that builds one):**
+- Pitch markings: `FootballFieldDecal01` is HALF a regulation pitch (68 m across, 52.5 m from halfway to the goal line).
+  Stamped once in the middle and turned a quarter, every pitch since rf-sports had its penalty box on a touchline. Now two
+  halves on a full-size pitch only (the lines do not scale; smaller pitches stay unlined in the clean game).
+- Goals: the game's full-size goal on 11/9-a-side pitches, the small one on small pitches, H-posts for gridiron and rugby
+  (the automatic goal pool dealt 2 m mini goals and ice hockey goals onto full pitches); corner flags; a scoreboard.
+- Dugouts instead of four garden benches; stands with their front row 1.5 m off the touchline as deep as the place
+  allows (a row of sports benches when no stand fits); real masts; a show court in a host's stands has no cage.
+- Hosts can seat and light a field themselves: place tags `hostStands`, `hostLights` (FieldAddOn).
+- Sports park (classic composer): the spectator terrace is one levelled platform (FieldGround) with the game's
+  grandstands on it facing the hero field (covered grandstands on a big stadium site), deep enough for a small stand.
+
+**SiteHarmony on rough ground (the failing `CoreTypes_OnRoughGround_PlayNice(sportsPark)`).** The spectator benches stood
+in a row on the long paved terrace. A paved surface over 45 m long or 2000 m² is smoothed by the harmony pass (bumps out,
+the hill kept), never planar-fitted, and benches on it are not levelled as free furniture: on the test's rough ground two
+of them stood at 12-13.5 % (limit 12 %, one allowed per 20). A spectator terrace is level in the real world: it now is
+(see above), and the test passes without any change to it. The four other failing cases (`AllTypes_OnBumpyHill_With
+TerrainFeature_PlayNice` for carYard, junkYard, industrialWorks, containerYard) fail on master too (master export run,
+2026-10-29), not touched.
+
+**Ground kit, generalised (`PlazaDesigns.Kit.cs`, `Levels`, shared, plazas unchanged):** `AddFloor` (a level floor at an
+absolute height, its banks blending from whatever ground is under it: sports floors are level on a slope too),
+`FloorBank`/`RimRange`, `LevelBase`, `Skirt` (along the box's edge the base plane's residual is taken out, so a design on
+hills meets the ground as it is), `FineCorners` (non-planar quads as four triangles round their true centre, and a cut
+every 8 m: two crossing banks in one triangle came out at 56-80 %). `Kit.TurnQuarter` (the design's long axis on the box's
+long side). `Occupancy.TakePolygon`.
+
+**Five new styles (designed sports grounds, `Core/Layers/Leisure/SportsDesigns.cs`, subtype = style id):**
+
+| Preset | What it is |
+|---|---|
+| arena (Stadium bowl) | A pitch sunk 1.8 m (2.6 m on a big site) into a bowl: grandstands on all four sides (covered 41 m grandstands on a big site; small stands on a block), 22 m light masts in the four corners, stone stairs from the bowl up to concourses of food stalls, kiosks and vending machines, tall flags, scoreboards on the end banks, walled banks with a plinth and a railing. On a slope the bowl is dug into the hillside. |
+| centreCourt (Centre court) | A tennis show court at the bottom of an amphitheatre: 4-8 rows of seating steps on all four sides (a stone lip on every tread, benches on every other), stairs down, a railed promenade with tall flags and masts, practice courts on clay in chain-link cages, a pergola members' terrace with tables, on a big site a grass hill with trees and benches. |
+| hillside (Terraced ground) | Two to three level terraces 2.4 m apart (the ground's own rise on a slope, up the slope): a pitch, a block of tennis courts, basketball cages and a skate bowl each on its own terrace, walled banks with three stone stairs each, seating steps on the bank above the pitch, a walk along every bank top, a pergola cafe on the top terrace. |
+| cageCourts (Cage courts) | A grid of chain-link cages on dark asphalt (five-a-side pitches and basketball courts), 11 m masts on the shared cage corners, small stands in the wide alley, a raised level viewing deck with a stone plinth, a railing, a wide stair, cafe tables under parasols and food carts, vending machines along the grid. |
+| athletics (Athletics park) | A running track (400 m on a big site, compact on a block) on a level floor, a grandstand along the home straight (covered on a big site), small stands opposite, light masts round the oval, a boulevard of flags between lime trees to two "Olympic flame" fountain drums, a warm-up lawn of hurdles and a sand pit with training dummies. |
+
+A site too small or too narrow for a design falls back to the classic sports park (the stadium bowl on the 77 m arm of the test L; in the game runner's L it builds a five-a-side bowl). The leftover of an L becomes the plaza kit's railed gardens. Every design sets `ownGround` (the
+harmony pass leaves its banks alone). Tests: `SportsDesignTests` (every design designed on block / big / L / slope / hills,
+fields laid by the add-ons, plan time; every bank under the sheet grade at the heightmap's 1.75 m; every level change has
+stairs; the bowl has grandstands and four masts).
+
+Game runs (clean profile): first look `show-10-builds-1029-085523-03cc` (new styles, block + 220 x 200),
+`show-10-builds-1029-090236-87c5` (new styles, L + 5 % slope), `show-10-builds-1029-090630-0d51` (classic styles,
+block + 220 x 200), final `show-40-builds-1029-091028-dfbc` (40 of 40 built) (every shown style on block, 220 x 200, L, 5 % slope).
+
+Weak points: pitches smaller than full size have no lines in the clean game (no decal that size); the classic styles
+(community, tennis club, neighbourhood) are better dressed but keep their composition (a park with fields in it); the
+stadium bowl falls back to the classic park on a very narrow L arm; on rough hills (±3 m every 30 m) the terraced
+ground's outer banks reach 65 % in one spot (test case `hillside/hills` fails); the corner stand pieces are not used
+(their footprint was not verified); not installed in the user's game.

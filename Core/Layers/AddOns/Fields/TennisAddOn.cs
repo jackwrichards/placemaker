@@ -108,9 +108,10 @@ namespace Placemaker.Core.Layers.AddOns.Fields
                         LeisureKit.Put(ctx, j.Occ, f.P(1.6f, vc - b - 1.1f), f.Yaw - math.PI * 0.5f, ObjectRole.Furniture, AssetMix.One("", "TennisUmpireChair01"), netCat, 0.5f, j.V(0x7E40u + (uint)i), 0.1f, 0.1f);
                 }
             }
-            if (ctx.B("fence"))
+            // (2026-10-29) A show court in its stands (a host seats it) has no cage.
+            if (ctx.B("fence") && !j.HostStands)
                 RectFence(ctx, block, j.Toward, 1.5f, AssetMix.One(ctx.S("fenceAsset"), "FenceIndustrialHigh01", "FenceIndustrialHigh02"));   // (rf-sports) a chain-link cage, not a garden picket
-            if (ctx.B("floodlights"))
+            if (ctx.B("floodlights") && !j.HostLights)
             {
                 // Poles inside the fence behind each baseline, one per court end, shining down the court.
                 var pts = new List<float2>();
@@ -119,7 +120,7 @@ namespace Placemaker.Core.Layers.AddOns.Fields
                     float vc = (i - (n - 1) * 0.5f) * pitch + b * 0.6f;
                     pts.Add(f.P(-hl + 0.7f, vc)); pts.Add(f.P(hl - 0.7f, vc));
                 }
-                FieldKit.Floodlights(j, pts, f.O);
+                FieldKit.Floodlights(j, pts, f.O, false);
             }
             ctx.Stat("Placemaker.Stat.Courts", n, Keys.UnitCount);
             ctx.Plan.Facts["courts"] = n;

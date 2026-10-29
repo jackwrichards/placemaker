@@ -264,6 +264,10 @@ namespace Placemaker.Core.Layers.AddOns.Fields
         public int Equipment, Lights, Stands, Benches;
         /// <summary>The host sized the place (FieldAddOn.HostSizedTag): the format is the place's, not the player's own setting.</summary>
         public bool HostSized;
+        /// <summary>(2026-10-29) The host seats the spectators and lights the field itself (FieldAddOn.HostStandsTag).</summary>
+        public bool HostStands;
+        /// <summary>(2026-10-29) The host lights the field (FieldAddOn.HostLightsTag).</summary>
+        public bool HostLights;
 
         public uint V(uint salt) => Hashing.Mix(Seed, salt);
         /// <summary>+1/−1: the long side of the place facing where people arrive from.</summary>
@@ -278,13 +282,26 @@ namespace Placemaker.Core.Layers.AddOns.Fields
         /// <summary>Category chain helper: the first installed category (or the first when the player chose an asset).</summary>
         public static string Cat(LayerContext ctx, string chosen, params string[] chain) => LeisureKit.Category(ctx, chosen, chain);
 
-        /// <summary>Floodlight masts at the given points, aimed at <paramref name="aim"/>.</summary>
-        public static int Floodlights(FieldJob j, IEnumerable<float2> points, float2 aim)
+        /// <summary>
+        /// Floodlight masts at the given points, aimed at <paramref name="aim"/>. (2026-10-29) Without a floodlight pack the
+        /// game's own masts (SportsProps: 22 m for fields, 11 m for courts) instead of 3 m park lamps.
+        /// </summary>
+        public static int Floodlights(FieldJob j, IEnumerable<float2> points, float2 aim, bool big = true)
         {
             var ctx = j.Ctx;
-            string cat = Cat(ctx, ctx.S("lightAsset"), AssetCategories.FloodLight, AssetCategories.Lamp);
+            string chosen = ctx.S("lightAsset");
+            bool pack = !string.IsNullOrEmpty(chosen) || AssetAvailability.Has(AssetCategories.FloodLight);
+            if (!pack)
+            {
+                int m = 0, k = 0;
+                foreach (var p in points)
+                    if (SportsProps.Mast(ctx, j.Occ, p, aim, big, j.V(0x1170u + (uint)k++))) m++;
+                j.Lights += m;
+                return m;
+            }
+            string cat = Cat(ctx, chosen, AssetCategories.FloodLight, AssetCategories.Lamp);
             if (cat == null) return 0;
-            var asset = AssetMix.One(ctx.S("lightAsset"));
+            var asset = AssetMix.One(chosen);
             int n = 0, i = 0;
             foreach (var p in points)
             {
@@ -292,6 +309,21 @@ namespace Placemaker.Core.Layers.AddOns.Fields
                         j.V(0x1170u + (uint)i++), 0.3f, 0.1f)) n++;
             }
             j.Lights += n;
+            return n;
+        }
+
+        /// <summary>
+        /// (2026-10-29) Spectator stands along the front line a → b, looking at <paramref name="face"/>, at most
+        /// <paramref name="depth"/> deep: the game's own grandstands (SportsProps), a row of sports benches when none fits.
+        /// The player's own stand or bench asset keeps the old row of single pieces.
+        /// </summary>
+        public static int StandRow(FieldJob j, float2 a, float2 b, float2 face, float depth)
+        {
+            var ctx = j.Ctx;
+            if (!string.IsNullOrEmpty(ctx.S("standAsset")) || AssetAvailability.Has(AssetCategories.SportsStand))
+                return Stands(j, a, b, face, 8.5f);
+            int n = SportsProps.StandRow(ctx, j.Occ, a, b, face, depth, false, j.V(0x57A0u + (uint)j.Stands));
+            j.Stands += n;
             return n;
         }
 

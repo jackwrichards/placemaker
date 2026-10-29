@@ -53,7 +53,7 @@ namespace Placemaker.Core.Layers.Plaza
         }
 
         // Paving priorities (lower claims first).
-        private const int PPit = 0, PFeature = 10, PKerb = 12, PGreen = 20, PFrame = 25, PWalk = 30, PPromenade = 60, PPattern = 70, PField = 90;
+        internal const int PPit = 0, PFeature = 10, PKerb = 12, PGreen = 20, PFrame = 25, PWalk = 30, PPromenade = 60, PPattern = 70, PField = 90;
 
         public static Result Plan(LayerContext ctx, Occupancy occ, LayerRegion region, List<Gate> gates, PavingPalette palette, PavingPlan pave,
             float2 axis, bool fountainChild, string design)
@@ -913,7 +913,7 @@ namespace Placemaker.Core.Layers.Plaza
         }
         // ───────────── kit ─────────────
 
-        private sealed partial class Kit
+        internal sealed partial class Kit
         {
             public readonly LayerContext Ctx;
             public readonly Occupancy Occ;
@@ -924,7 +924,7 @@ namespace Placemaker.Core.Layers.Plaza
             public float2 A, S;
             public readonly float2 C;
             /// <summary>Half sizes of the box (on A and S) round C the composition is laid in.</summary>
-            public readonly float HA, HB;
+            public float HA, HB;
             /// <summary>Half sizes of the box to its real edge on the outline (HA/HB reach the frame margin past it).</summary>
             public float EA => HA - Fw - 4f;
             public float EB => HB - Fw - 4f;
@@ -967,7 +967,7 @@ namespace Placemaker.Core.Layers.Plaza
             /// grown from the frame's middle, the focal point and a grid of candidates; the middle wins ties (a
             /// rectangle keeps its symmetric box). Returns its centre and half sizes (margin included).
             /// </summary>
-            private static void BestBox(LayerRegion region, float2 a, float2 s, float margin, out float2 centre, out float ha, out float hb)
+            internal static void BestBox(LayerRegion region, float2 a, float2 s, float margin, out float2 centre, out float ha, out float hb)
             {
                 var focal = LeisureKit.FocalPoint(region, out _);
                 PlazaDressing.Extents(region, focal, a, out float minA, out float maxA, out float minB, out float maxB);
