@@ -1,0 +1,51 @@
+{
+  "_about": "Lab (research, docs/research/dynamic-decals.md), part 2 of 2: run with Send-Suite -Fresh after lab-dyn-decals.json. Loads the city saved with code-made decals on it in a game that has never made them (what a player meets after removing the mod: nothing in the save names them). Records lab decals alive, prefabs named like ours, obsolete prefabs and objects on a missing prefab, and takes the same view; the save is deleted at the end. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-dyn-decals-load.json -Fresh -Who decal-engine",
+  "scenarios": [
+    {
+      "id": "dyn-decals-load",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "lab",
+          "op": "loadCity",
+          "name": "PlacemakerDynDecals",
+          "delete": true
+        },
+        {
+          "do": "lab",
+          "op": "dynDecalCount"
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "loaded"
+        },
+        {
+          "do": "camera",
+          "target": "point",
+          "at": [
+            -636.4,
+            -466.3
+          ],
+          "abs": true,
+          "view": "oblique",
+          "distance": 226,
+          "shot": "loaded-45"
+        },
+        {
+          "do": "camera",
+          "target": "point",
+          "at": [
+            -637,
+            -464
+          ],
+          "abs": true,
+          "view": "closeup",
+          "distance": 18,
+          "shot": "loaded-path-spot"
+        }
+      ]
+    }
+  ]
+}

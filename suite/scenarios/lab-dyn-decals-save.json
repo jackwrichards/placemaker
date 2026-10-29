@@ -1,0 +1,109 @@
+{
+ "_about": "Lab (research, docs/research/dynamic-decals.md), part 1 of 2 of the removal proof: code-made decals on the block, then the city saved. Part 2 (lab-dyn-decals-load.json, Send-Suite -Fresh) loads it in a game that never made them. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-dyn-decals-save.json -Build -Who decal-engine",
+ "scenarios": [
+  {
+   "id": "dyn-decals-save",
+   "site": "flat",
+   "steps": [
+    {
+     "do": "lab",
+     "op": "dynDecal",
+     "kind": "dirt",
+     "at": [
+      -30,
+      5
+     ],
+     "size": [
+      9,
+      7
+     ],
+     "res": 512,
+     "seed": 1
+    },
+    {
+     "do": "lab",
+     "op": "dynDecal",
+     "kind": "leaves",
+     "at": [
+      -8,
+      12
+     ],
+     "size": [
+      6,
+      6
+     ],
+     "res": 512,
+     "seed": 2
+    },
+    {
+     "do": "lab",
+     "op": "dynPath",
+     "points": [
+      [
+       -60,
+       -40
+      ],
+      [
+       -30,
+       -60
+      ],
+      [
+       5,
+       -10
+      ],
+      [
+       45,
+       -35
+      ]
+     ],
+     "width": 2.6,
+     "segment": 8,
+     "res": [
+      256,
+      96
+     ],
+     "seed": 4
+    },
+    {
+     "do": "lab",
+     "op": "dynDecal",
+     "kind": "cracks",
+     "anchor": "south",
+     "at": [
+      -20,
+      -1.5
+     ],
+     "size": [
+      6,
+      5
+     ],
+     "res": 512,
+     "seed": 6,
+     "layers": "roads"
+    },
+    {
+     "do": "lab",
+     "op": "dynFrameAll"
+    },
+    {
+     "do": "shot",
+     "name": "saved-45",
+     "camera": {
+      "target": "build",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "lab",
+     "op": "dynDecalCount"
+    },
+    {
+     "do": "lab",
+     "op": "saveCity",
+     "name": "PlacemakerDynDecals"
+    }
+   ]
+  }
+ ]
+}

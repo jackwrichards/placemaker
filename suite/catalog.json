@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+4e1c5f1f",
+  "assembly": "0.3.6+b380186d",
   "categories": [
     {
       "id": "zoning",
@@ -48,12 +48,25 @@
     },
     {
       "id": "shops",
-      "name": "Shops & squares",
-      "order": 5,
+      "name": "Shops",
+      "order": 4,
       "groups": [
         "commercial",
-        "squares",
         "events"
+      ]
+    },
+    {
+      "id": "plazas",
+      "name": "Plazas",
+      "order": 5,
+      "groups": [
+        "squares"
+      ],
+      "types": [
+        "mallPark",
+        "outdoorMall",
+        "highStreet",
+        "shoppingPlaza"
       ]
     },
     {
@@ -13514,7 +13527,6 @@
         }
       ],
       "shelvedStyles": [
-        "corner",
         "rearAlley",
         "neighbourhood",
         "bigBox",
@@ -14382,7 +14394,7 @@
     {
       "layer": "shoppingPlaza",
       "group": "commercial",
-      "category": "shops",
+      "category": "plazas",
       "presets": [
         "plaza",
         "market",
@@ -15405,7 +15417,7 @@
     {
       "layer": "outdoorMall",
       "group": "commercial",
-      "category": "shops",
+      "category": "plazas",
       "presets": [
         "promenade",
         "grand",
@@ -15758,12 +15770,13 @@
     {
       "layer": "mallPark",
       "group": "commercial",
-      "category": "shops",
+      "category": "plazas",
       "presets": [
         "commons",
         "garden",
         "family",
-        "promenade"
+        "promenade",
+        "diningPlaza"
       ],
       "options": [
         {
@@ -15775,7 +15788,8 @@
             "natural",
             "modern",
             "pocket",
-            "garden"
+            "garden",
+            "plaza"
           ],
           "default": "urban"
         },
@@ -15968,7 +15982,6 @@
           "default": 2.5
         }
       ],
-      "shelved": true,
       "shelvedStyles": [
         "promenade"
       ]
@@ -15976,7 +15989,7 @@
     {
       "layer": "plaza",
       "group": "squares",
-      "category": "shops",
+      "category": "plazas",
       "presets": [
         "civic",
         "fountain",
@@ -15991,6 +16004,16 @@
         "podium",
         "sunkenCourt",
         "piazza",
+        "grand",
+        "rooms",
+        "railed",
+        "terraces",
+        "sunkenPlaza",
+        "waterSteps",
+        "marketHall",
+        "dining",
+        "grandSteps",
+        "modern",
         "green"
       ],
       "options": [
@@ -16196,6 +16219,25 @@
           "id": "fenceAsset",
           "kind": "Asset",
           "default": ""
+        },
+        {
+          "id": "design",
+          "kind": "Choice",
+          "options": [
+            "classic",
+            "grand",
+            "rooms",
+            "railed",
+            "terraces",
+            "modern",
+            "piazza",
+            "sunkenPlaza",
+            "waterSteps",
+            "marketHall",
+            "dining",
+            "grandSteps"
+          ],
+          "default": "classic"
         },
         {
           "id": "centerKind",
@@ -16643,23 +16685,27 @@
           "default": false
         }
       ],
-      "shelved": true,
       "shelvedStyles": [
+        "civic",
+        "fountain",
         "market",
         "garden",
         "sunken",
         "amphitheatre",
         "terraced",
+        "cafe",
         "splitLevel",
         "cascade",
         "podium",
-        "piazza"
+        "sunkenCourt",
+        "waterSteps",
+        "green"
       ]
     },
     {
       "layer": "highStreet",
       "group": "commercial",
-      "category": "shops",
+      "category": "plazas",
       "presets": [
         "market",
         "farmers",
@@ -17210,7 +17256,6 @@
           "default": 2.5
         }
       ],
-      "shelved": true,
       "shelvedStyles": [
         "pedestrian",
         "mixedUse",
@@ -18440,7 +18485,12 @@
         "stadium",
         "tennisClub",
         "campus",
-        "neighbourhood"
+        "neighbourhood",
+        "arena",
+        "centreCourt",
+        "hillside",
+        "cageCourts",
+        "athletics"
       ],
       "options": [
         {
@@ -18451,7 +18501,12 @@
             "stadium",
             "tennisClub",
             "campus",
-            "neighbourhood"
+            "neighbourhood",
+            "arena",
+            "centreCourt",
+            "hillside",
+            "cageCourts",
+            "athletics"
           ],
           "default": "community"
         },
@@ -19712,7 +19767,7 @@
     {
       "layer": "marketSquare",
       "group": "squares",
-      "category": "shops",
+      "category": "plazas",
       "presets": [
         "weekly",
         "bigMarket",
@@ -19965,7 +20020,6 @@
           "default": false
         }
       ],
-      "shelved": true,
       "shelvedStyles": [
         "weekly",
         "farmers"
