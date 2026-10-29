@@ -32,6 +32,7 @@ namespace Placemaker.Game.Suite
                 case "dyndecal": yield return LabDynDecal(st, step, rec); yield break;
                 case "dynpath": yield return LabDynPath(st, step, rec); yield break;
                 case "dynframes": yield return LabDynFrames(step, rec); yield break;
+                case "dynstress": yield return LabDynStress(st, step, rec); yield break;
                 case "dynframeall": LabDynFrameAll(st, rec); yield break;
                 case "dyndecalclear": LabDynDecalClear(rec); yield break;
                 case "dyndecalcount": LabDynDecalCount(rec); yield break;

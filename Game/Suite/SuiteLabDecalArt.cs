@@ -196,8 +196,8 @@ namespace Placemaker.Game.Suite
             float s = Fbm(p * 0.45f + warp * 0.8f, 4, seed + 1) * 0.7f + 0.55f - r * r * 1.35f;
             float water = math.smoothstep(0.06f, 0.10f, s);
             float wet = math.smoothstep(-0.16f, 0.06f, s);
-            float a = math.max(water * 0.88f, wet * 0.6f);
-            var rgb = math.lerp(Srgb(58, 55, 51), Srgb(24, 26, 28), water);
+            float a = math.max(water * 0.8f, wet * 0.55f);
+            var rgb = math.lerp(Srgb(62, 58, 54), Srgb(44, 46, 48), water);
             float smooth = math.lerp(0.55f, 0.97f, water);
             float hgt = (1f - water) * Fbm(p * 6f, 2, seed + 2) * 0.3f;
             return new Texel { Rgb = rgb, A = a, Height = hgt, Smooth = smooth, Ao = 1f };
@@ -207,7 +207,7 @@ namespace Placemaker.Game.Suite
         {
             if (cv == null) return default;
             cv.Nearest(wp, out float d, out float s, s0 - 12f, s1 + 12f);
-            if (s < s0 || s >= s1) return default;   // this texel belongs to the neighbouring box
+            if (s < s0 - 0.05f || s >= s1 + 0.05f) return default;   // the neighbouring box's texels (5 cm overlap: no bilinear seam at the cut)
             // ends of the path fade out
             float endFade = math.smoothstep(0f, 3f, s) * math.smoothstep(0f, 3f, cv.Length - s);
             float half = width * 0.5f * (1f + 0.18f * noise.snoise(new float2(s * 0.12f, seed)));

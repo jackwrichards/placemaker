@@ -24,6 +24,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace Placemaker.Game.Suite
@@ -160,7 +161,7 @@ namespace Placemaker.Game.Suite
             var size = step["size"] is JArray sz && sz.Count >= 2 ? new float2((float)sz[0], (float)sz[1]) : new float2(6f, 6f);
             int resX, resY;
             if (step["res"] is JArray ra && ra.Count >= 2) { resX = (int)ra[0]; resY = (int)ra[1]; }
-            else { int r = (int?)step["res"] ?? 512; float asp = size.y / size.x; resX = r; resY = math.max(16, (int)math.round(r * asp)); }
+            else { int r = (int?)step["res"] ?? 512; float asp = size.y / size.x; resX = r; resY = math.max(16, (int)math.round(r * asp / 4f) * 4); }   // block compression needs multiples of 4
             float yawDeg = (float?)step["yaw"] ?? 0f, height = (float?)step["height"] ?? 3f;
             int seed = (int?)step["seed"] ?? 1;
             var at = DynAt(st, step);
@@ -239,7 +240,7 @@ namespace Placemaker.Game.Suite
                 var nrm = Tex(maps.Normal, maps.W, maps.H, true, kind + " normal", compress);
                 var msk = Tex(maps.Mask, maps.W, maps.H, true, kind + " mask", compress);
                 d.Tex = new[] { alb, nrm, msk };
-                d.Bytes = d.Tex.Sum(t => UnityEngine.Profiling.Profiler.GetRuntimeMemorySizeLong(t));
+                d.Bytes = d.Tex.Sum(t => (long)(t.width * t.height * (GraphicsFormatUtility.IsCompressedFormat(t.graphicsFormat) ? 1 : 4) * 4 / 3));   // with mips; DXT5/BC3 = 1 byte a texel
                 int layers = Layers((string)step["layers"]);
                 var m = new Material(template) { name = DynDecalPrefix + " " + kind, hideFlags = HideFlags.HideAndDontSave };
                 Set(m, "_BaseColorMap", alb); Set(m, "_NormalMap", nrm); Set(m, "_MaskMap", msk);
@@ -342,6 +343,40 @@ namespace Placemaker.Game.Suite
             m.RecalculateTangents();
             m.RecalculateBounds();
             return m;
+        }
+
+        /// <summary>Many decals sharing one generated texture set and one material: what N extra renderers cost a frame.</summary>
+        private IEnumerator LabDynStress(ScenarioState st, JObject step, JObject rec)
+        {
+            var template = DynTemplate(rec);
+            if (template == null) yield break;
+            string kind = ((string)step["kind"] ?? "leaves").ToLowerInvariant();
+            int count = (int?)step["count"] ?? 400, res = (int?)step["res"] ?? 256;
+            var size = step["size"] is JArray sz && sz.Count >= 2 ? new float2((float)sz[0], (float)sz[1]) : new float2(4f, 4f);
+            var area = step["box"] is JArray ar && ar.Count >= 2 ? new float2((float)ar[0], (float)ar[1]) : new float2(120f, 110f);
+            var task = Task.Run(() => LabDecalArt.Make(kind, res, res, size, (int?)step["seed"] ?? 21, float2.zero, 0f));
+            yield return Until(() => task.IsCompleted, 60f, "stress textures");
+            if (!task.IsCompleted || task.IsFaulted) { rec["error"] = "lab: stress textures failed"; yield break; }
+            var first = new JObject();
+            var d0 = Spawn(st, step, first, task.Result, st.S.Block.Center, size, 0f, (float?)step["height"] ?? 3f, kind + " stress", template, frameIt: false);
+            if (d0 == null) { rec["error"] = first["error"]; yield break; }
+            var rnd = new Unity.Mathematics.Random(77);
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            for (int i = 1; i < count; i++)
+            {
+                var at = st.S.Block.Center + (rnd.NextFloat2() - 0.5f) * area;
+                var go = new GameObject(DynDecalPrefix + " stress") { hideFlags = HideFlags.HideAndDontSave };
+                UnityEngine.Object.DontDestroyOnLoad(go);
+                go.transform.SetPositionAndRotation(new Vector3(at.x, _fixture.H(at.x, at.y), at.y), Quaternion.Euler(0f, rnd.NextFloat(360f), 0f));
+                go.AddComponent<MeshFilter>().sharedMesh = d0.Mesh;
+                var mr = go.AddComponent<MeshRenderer>();
+                mr.sharedMaterial = d0.Mat;
+                mr.shadowCastingMode = ShadowCastingMode.Off; mr.receiveShadows = false;
+                mr.lightProbeUsage = LightProbeUsage.Off; mr.reflectionProbeUsage = ReflectionProbeUsage.Off;
+                _dynDecals.Add(new DynDecal { Go = go });
+            }
+            rec["count"] = count; rec["spawnMs"] = Math.Round(clock.Elapsed.TotalMilliseconds, 1);
+            Mod.Log.Info($"Placemaker lab: dyn stress {count} {kind} decals sharing one material, spawned in {clock.Elapsed.TotalMilliseconds:F0} ms");
         }
 
         private IEnumerator LabDynFrames(JObject step, JObject rec)
