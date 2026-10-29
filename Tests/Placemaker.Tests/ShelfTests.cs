@@ -26,7 +26,7 @@ namespace Placemaker.Tests
             var shelf = Shipped();
             Assert.Empty(shelf.Warnings);
             var shown = shelf.Categories.Where(c => !c.Hidden).Select(c => c.Id).ToArray();
-            Assert.Equal(new[] { "zoning", "roads", "parking", "parks", "beach", "shops", "nature", "farms", "sports", "industry" }, shown);
+            Assert.Equal(new[] { "zoning", "roads", "parking", "parks", "beach", "shops", "plazas", "nature", "farms", "sports", "industry", "ai" }, shown);
             Assert.False(shelf.Category("industry").Hidden);   // Industrial (2026-10-19): its own category again
             Assert.True(shelf.Category("transport").Hidden);
             foreach (var g in GeneratorRegistry.All)
@@ -39,7 +39,8 @@ namespace Placemaker.Tests
             Assert.Equal("beach", shelf.CategoryOf("beach", "water"));
             Assert.Equal("beach", shelf.CategoryOf("waterfront", "water"));
             Assert.Equal("parks", shelf.CategoryOf("zenGarden", "gardens"));
-            Assert.Equal("shops", shelf.CategoryOf("plaza", "squares"));
+            Assert.Equal("plazas", shelf.CategoryOf("plaza", "squares"));
+            Assert.Equal("plazas", shelf.CategoryOf("mallPark", "commercial"));
             Assert.Equal("shops", shelf.CategoryOf("fairground", "events"));
             Assert.False(shelf.IsTypeShelved("quarry", "industrial"));
             Assert.Equal("industry", shelf.CategoryOf("containerYard", "industrial"));

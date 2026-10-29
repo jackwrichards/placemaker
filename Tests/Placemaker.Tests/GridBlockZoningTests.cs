@@ -158,7 +158,7 @@ namespace Placemaker.Tests
         {
             var plan = Compose("stripMall", preset, ring, out _);
             var host = plan.Layers.First(l => l.GeneratorId == "stripMall");
-            Assert.Equal(1.0, host.Facts["stripRows"]);
+            Assert.True(host.Facts["stripRows"] >= 1.0);   // (2026-10-28) the back row, and an L's or a U's side rows
             var lanes = host.Nets.Where(n => n.Role == NetRole.Alley && math.distance(n.A.xz, n.D.xz) > 30f).ToList();
             Assert.NotEmpty(lanes);
             foreach (var n in lanes)

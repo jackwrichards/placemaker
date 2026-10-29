@@ -31,6 +31,9 @@ namespace Placemaker.Core.Layers.Commercial
             public float AnchorWeight = 1.8f;
             /// <summary>A square in the middle of the back row, shops either side of it facing the same lane: "plaza", "park", "garden", or null.</summary>
             public string Square;
+            /// <summary>"L": only layouts with one side row (the corner strip mall: the shops along the back and down one side, the lot open
+            /// to the other street); null: any.</summary>
+            public string Shape;
         }
 
         public const string LotFact = "lotCentre";
@@ -246,8 +249,10 @@ namespace Placemaker.Core.Layers.Commercial
                 foreach (var g in mall.Gates) if (g.Cars && !ShopEntrances.IsAlley(g.Kind)) plain++;
                 for (int li = 0; li < tried.Count; li++)
                     foreach (var v in Variants(ctx, mall, r, o, tried[li].tl, tried[li].a, tried[li].b, cells, h, sMin, sMax, tMin))
-                        opts.Add((Even(v.Shops, v.Lot) - v.Waste - OffLot * (plain - v.Landed), li, v));
+                        opts.Add((Even(v.Shops, v.Lot) - v.Waste - BehindWeight * v.Behind - OffLot * (plain - v.Landed) + (v.L && OpenSideOnStreet(mall, r, v, tried[li].tl) ? 0.08f * Even(v.Shops, v.Lot) : 0f), li, v));
                 if (opts.Count == 0) continue;
+                // (the corner strip mall) the L where one fits
+                if (o.Shape == "L" && opts.Exists(op => op.v.L)) opts.RemoveAll(op => !op.v.L);
                 // A double row out in the lot loses a quarter to a half of its plots in the game (bare patches between the shops);
                 // inside the U it zones every one: where a U fits, no double row outside one (game run send-split-1018-114959).
                 if (opts.Exists(op => op.v.SideCells > 0)) opts.RemoveAll(op => op.v.SideCells == 0 && op.v.K > 0);
@@ -289,6 +294,26 @@ namespace Placemaker.Core.Layers.Commercial
         /// </summary>
         private const float OffLot = 4000f;
 
+        /// <summary>
+        /// What a square metre left behind the back row (or beside a leg) costs a layout: that ground is planted, never shops or parking.
+        /// Without it the row stood in the middle of a city block with a band of trees behind it (game run show-8-builds-1028-205715).
+        /// </summary>
+        private const float BehindWeight = 0.6f;
+
+        /// <summary>The L's open side (no leg) faces a city street: the lot opens to both streets of the corner, the shops are seen from both.</summary>
+        private static bool OpenSideOnStreet(Mall mall, StreetShops.Run r, Variant v, float tl)
+        {
+            Extent(mall, r, out float s0, out float s1, out float t0, out float t1);
+            float s = v.LegA ? s1 : s0, t = 0.5f * (t0 + tl);
+            var p = r.At(s, t);
+            foreach (var road in StreetFrontage.Roads(mall.Ctx.Input))
+            {
+                if (math.abs(math.dot(math.normalizesafe(road.B - road.A), r.In)) < 0.8f) continue;
+                if (math.sqrt(SegmentIndex.DistSq(p, road.A, road.B)) < road.HalfWidth + 12f) return true;
+            }
+            return false;
+        }
+
         /// <summary>Shops and parking in balance: the ground both take, the larger counted only as far as the smaller (m²).</summary>
         private static float Even(float shops, float lot) => shops + lot - math.abs(shops - lot);
 
@@ -308,8 +333,14 @@ namespace Placemaker.Core.Layers.Commercial
         private struct Variant
         {
             public int K, MidCells, SideCells;
+            /// <summary>(with <see cref="SideCells"/> &gt; 0) which legs the lane turns down: both (the U) or one (the L, its other end
+            /// stopping at the back row's end, the lot running out to the open side).</summary>
+            public bool LegA, LegB;
             public float A2, B2, Ty;
             public float Shops, Lot, Waste;
+            /// <summary>Ground left behind the back row and beside the legs (m²): planted leftovers, never shops or parking.</summary>
+            public float Behind;
+            public bool L => SideCells > 0 && LegA != LegB;
             public int Landed;
         }
 
@@ -333,21 +364,26 @@ namespace Placemaker.Core.Layers.Commercial
             for (int mc = math.min(cells, 3); mc >= 2; mc--) mids.Add(mc);
             foreach (int sc in sides)
             {
-                var v0 = new Variant { SideCells = sc };
+              foreach (var (la, lb) in sc > 0 ? new[] { (true, true), (true, false), (false, true) } : new[] { (false, false) })
+              {
+                if (o.Shape == "L" && sc > 0 && la == lb) continue;
+                var v0 = new Variant { SideCells = sc, LegA = la, LegB = lb };
                 if (sc > 0)
                 {
-                    if (!ULegs(mall, r, tl, a, b, sc, h, tMin, out v0.A2, out v0.B2, out v0.Ty)) continue;
+                    if (!ULegs(mall, r, tl, a, b, sc, h, tMin, la, lb, out v0.A2, out v0.B2, out v0.Ty)) continue;
                 }
                 foreach (int mc in mids)
                 {
                     float island = 2f * (zo + mc * Mall.Cell) + 2f * h;
                     int kMax = math.clamp((int)math.floor((front - lotMin) / (lotMin + island)), 0, 8);
+                    if (o.Shape == "L") kMax = 0;
                     for (int k = mc == mids[0] ? 0 : 1; k <= kMax; k++)
                     {
                         var v = v0; v.K = k; v.MidCells = mc;
                         if (Estimate(ctx, mall, r, o, tl, a, b, cells, h, sMin, sMax, tMin, ref v)) list.Add(v);
                     }
                 }
+              }
             }
             return list;
         }
@@ -356,28 +392,35 @@ namespace Placemaker.Core.Layers.Commercial
         /// The U's legs for side rows <paramref name="sideCells"/> deep: each as far out as its row stays inside the site and clear of the
         /// side street's first zone rows. False when no court of lot fits between them, or an entrance beside a side row would be cut off.
         /// </summary>
-        private static bool ULegs(Mall mall, StreetShops.Run r, float tl, float a, float b, int sideCells, float h, float tMin, out float a2, out float b2, out float ty)
+        private static bool ULegs(Mall mall, StreetShops.Run r, float tl, float a, float b, int sideCells, float h, float tMin, bool legA, bool legB, out float a2, out float b2, out float ty)
         {
             float side = Mall.ZoneOffset(h) + sideCells * Mall.Cell + 1f;   // a side row's depth from its lane's centre line to its back
             float ty0 = tMin + Mall.LotDepth(1) + 4f + h;                       // the legs' front ends: one band of lot across the whole front
             ty = ty0; a2 = float.NaN; b2 = float.NaN;
             if (tl - ty0 < 3f * Mall.Cell + 2f * h + 4f) return false;
+            // (the L) one leg only where it carries a real row: a stub of a leg by a long lot is one plot the front street's zone block
+            // takes (360 x 110 m: "CutoutNotZonable" at the leg's front end)
+            if (legA != legB && tl - ty0 < 5f * Mall.Cell + 2f * h) return false;
             bool SideFits(float sLane, float dir)
             {
                 for (float tt = ty0; tt <= tl; tt += 2f)
                 {
                     var p = r.At(sLane - dir * side, tt);
-                    if (!mall.Region.Contains(p) || mall.KerbMargin(p, r.In) > 0f) return false;
+                    if (!mall.Region.Contains(p) || mall.KerbMargin(p, r.In) > 0f || mall.KerbMargin(p, r.Dir) > 0f) return false;
                 }
                 return true;
             }
-            for (float shift = 0f; shift <= 30f; shift += 2f) if (SideFits(a + side + shift, +1f)) { a2 = a + side + shift; break; }
-            for (float shift = 0f; shift <= 30f; shift += 2f) if (SideFits(b - side - shift, -1f)) { b2 = b - side - shift; break; }
+            // (a side without a leg: the back row's lane just ends there, the lot runs on to that side of the site)
+            if (!legA) a2 = a; else for (float shift = 0f; shift <= 30f; shift += 2f) if (SideFits(a + side + shift, +1f)) { a2 = a + side + shift; break; }
+            if (!legB) b2 = b; else for (float shift = 0f; shift <= 30f; shift += 2f) if (SideFits(b - side - shift, -1f)) { b2 = b - side - shift; break; }
             if (float.IsNaN(a2) || float.IsNaN(b2) || b2 - a2 - 2f * h < CourtMin) return false;
+            // (the L) the back row is the main row: a leg longer than it means the frame stands the wrong way round (on 360 x 110 m a
+            // 285 m leg off a short back row, whose last plot by the main street never zoned)
+            if (legA != legB && b2 - a2 < 0.8f * (tl - ty0)) return false;
             foreach (var g in mall.Gates)
             {
                 float gs = math.dot(g.At - r.A, r.Dir), gt = math.dot(g.At - r.A, r.In);
-                if (gt > ty0 - h - 2f && (gs < a2 - h || gs > b2 + h)) return false;
+                if (gt > ty0 - h - 2f && ((legA && gs < a2 - h) || (legB && gs > b2 + h))) return false;
             }
             return true;
         }
@@ -414,10 +457,17 @@ namespace Placemaker.Core.Layers.Commercial
             float s0 = u ? v.A2 : a, s1 = u ? v.B2 : b;
             // (the ground is not reshaped: a lane steeper than a road should be is not laid, ComposeRows)
             if (Steep(ctx, r.At(s0, tl), r.At(s1, tl))) return false;
-            if (u && (Steep(ctx, r.At(v.A2, v.Ty), r.At(v.A2, tl)) || Steep(ctx, r.At(v.B2, v.Ty), r.At(v.B2, tl)))) return false;
+            if (u && ((v.LegA && Steep(ctx, r.At(v.A2, v.Ty), r.At(v.A2, tl))) || (v.LegB && Steep(ctx, r.At(v.B2, v.Ty), r.At(v.B2, tl))))) return false;
+            // the lot's reach between the legs: to a leg's lane, or on to the site's side where there is none
+            float ca = u && v.LegA ? v.A2 + h : sMin - 5f, cb = u && v.LegB ? v.B2 - h : sMax + 5f;
             float shops = (s1 - s0 - 2f * h - 1f) * d;
             if (o.Square != null && s1 - s0 >= 6f * Mall.Cell + 40f) shops -= math.clamp(0.3f * (s1 - s0), 32f, 64f) * d;
-            if (u) shops += 2f * (tl - v.Ty - h - 0.5f) * ds;
+            if (u) shops += ((v.LegA ? 1f : 0f) + (v.LegB ? 1f : 0f)) * (tl - v.Ty - h - 0.5f) * ds;
+            // what is left behind the back row (and beside the legs) is neither shops nor parking
+            float behind = Slice(mall, r, sMin - 5f, sMax + 5f, tl + zo + d + 2f, tl + 400f);
+            if (u && v.LegA) behind += Slice(mall, r, sMin - 5f, v.A2 - zo - ds - 2f, v.Ty, tl + zo + d + 2f);
+            if (u && v.LegB) behind += Slice(mall, r, v.B2 + zo + ds + 2f, sMax + 5f, v.Ty, tl + zo + d + 2f);
+            v.Behind = behind;
             float lot = 0f, waste = 0f, t = tMin;
             void Piece(float sa, float sb, float t0, float t1)
             {
@@ -430,18 +480,19 @@ namespace Placemaker.Core.Layers.Commercial
             {
                 float hi = t + bands[j];
                 if (!u) Piece(sMin - 5f, sMax + 5f, t, hi);
-                else if (j > 0) Piece(v.A2 + h, v.B2 - h, t, hi);
+                else if (j > 0) Piece(ca, cb, t, hi);
                 else
                 {
                     // the first band of the U: one lot, its rows across the court (as deep as the whole band) and the wings beside it
-                    Piece(v.A2 + h, v.B2 - h, t, hi);
-                    Piece(sMin - 5f, v.A2 + h, t, v.Ty - h);
-                    Piece(v.B2 - h, sMax + 5f, t, v.Ty - h);
+                    Piece(ca, cb, t, hi);
+                    if (v.LegA) Piece(sMin - 5f, ca, t, v.Ty - h);
+                    if (v.LegB) Piece(cb, sMax + 5f, t, v.Ty - h);
                 }
                 if (j == v.K) break;
                 float y1 = hi + h, y2 = y1 + span;
                 if (!LoopSpan(mall, r, y1, y2, h, zo, di, sMin, sMax, 2f, out float ia, out float ib)) return false;
-                if (u) { ia = math.max(ia, v.A2 + 2f * h + 8f); ib = math.min(ib, v.B2 - 2f * h - 8f); }
+                if (u && v.LegA) ia = math.max(ia, v.A2 + 2f * h + 8f);
+                if (u && v.LegB) ib = math.min(ib, v.B2 - 2f * h - 8f);
                 if (ib - ia < 6f * Mall.Cell + 2f * h) return false;
                 if (Steep(ctx, r.At(ia, y1), r.At(ib, y1)) || Steep(ctx, r.At(ia, y2), r.At(ib, y2)) || Steep(ctx, r.At(ia, y1), r.At(ia, y2))) return false;
                 // (a double row out in the lot zones about three quarters of its cells in the game, one inside the U all of them: game
@@ -452,11 +503,23 @@ namespace Placemaker.Core.Layers.Commercial
             // The car entrances that come in through the front lot (the others drive to a lane: no ramp from a street above or below
             // the ground, the ground is not reshaped).
             float frontHi = tMin + bands[0] - 0.3f;
-            if (u) frontHi = math.min(frontHi, v.Ty - h - 0.3f);
+            float legHi = u ? math.min(frontHi, v.Ty - h - 0.3f) : frontHi;
             int landed = 0;
-            foreach (var g in mall.Gates) if (g.Cars && !ShopEntrances.IsAlley(g.Kind) && math.dot(g.At - r.A, r.In) < frontHi - 4f) landed++;
+            foreach (var g in mall.Gates)
+                if (g.Cars && !ShopEntrances.IsAlley(g.Kind) && math.dot(g.At - r.A, r.In) < (BesideLeg(v, r, g.At, h) ? legHi : frontHi) - 4f) landed++;
             v.Shops = shops; v.Lot = lot; v.Waste = waste; v.Landed = landed;
             return true;
+        }
+
+        /// <summary>
+        /// Outline point <paramref name="p"/> lies beside a leg of the U or the L (outside it): the lot there ends at the leg's front end.
+        /// On the L's open side the lot runs up to the back row, so an entrance on that side street drives straight into it.
+        /// </summary>
+        private static bool BesideLeg(Variant v, StreetShops.Run r, float2 p, float h)
+        {
+            if (v.SideCells <= 0) return false;
+            float s = math.dot(p - r.A, r.Dir);
+            return (v.LegA && s < v.A2 + h) || (v.LegB && s > v.B2 - h);
         }
 
         /// <summary>
@@ -525,10 +588,19 @@ namespace Placemaker.Core.Layers.Commercial
             float a2 = u ? v.A2 : a, b2 = u ? v.B2 : b, ty = v.Ty;
             // The ground is not reshaped, so the lanes lie on it as it is: none steeper than a road should be (across the slope instead).
             if (Steep(ctx, r.At(a2, tl), r.At(b2, tl))) return Fail(20);
-            if (u && (Steep(ctx, r.At(a2, ty), r.At(a2, tl)) || Steep(ctx, r.At(b2, ty), r.At(b2, tl)))) return Fail(22);
-            var lane = u
-                ? mall.Connect(Mall.End.Free(r.At(a2, ty)), new[] { r.At(a2, tl), r.At(b2, tl) }, Mall.End.Free(r.At(b2, ty)), NetRole.Alley, asset, h)
-                : mall.Connect(Mall.End.Free(r.At(a, tl)), null, Mall.End.Free(r.At(b, tl)), NetRole.Alley, asset, h);
+            if (u && ((v.LegA && Steep(ctx, r.At(a2, ty), r.At(a2, tl))) || (v.LegB && Steep(ctx, r.At(b2, ty), r.At(b2, tl))))) return Fail(22);
+            bool legA = u && v.LegA, legB = u && v.LegB;
+            // the lot's reach between the legs: to a leg's lane, or on to the site's side where there is none (the L)
+            float ca = legA ? a2 + h + 0.3f : sMin - 5f, cb = legB ? b2 - h - 0.3f : sMax + 5f;
+            Mall.Lane lane;
+            if (u)
+            {
+                var mids = new List<float2>();
+                if (legA) mids.Add(r.At(a2, tl));
+                if (legB) mids.Add(r.At(b2, tl));
+                lane = mall.Connect(Mall.End.Free(legA ? r.At(a2, ty) : r.At(a2, tl)), mids.ToArray(), Mall.End.Free(legB ? r.At(b2, ty) : r.At(b2, tl)), NetRole.Alley, asset, h);
+            }
+            else lane = mall.Connect(Mall.End.Free(r.At(a, tl)), null, Mall.End.Free(r.At(b, tl)), NetRole.Alley, asset, h);
             if (lane == null) return Fail(1);
             bool Across(int i) => math.abs(math.dot(math.normalizesafe(lane.Points[i + 1] - lane.Points[i]), r.Dir)) > 0.7f;
             // The U's side rows, outside its legs.
@@ -569,7 +641,8 @@ namespace Placemaker.Core.Layers.Commercial
                 bandTop += island;
                 if (!LoopSpan(mall, r, y1, y2, h, zo, di, sMin, sMax, 1f, out float ia, out float ib)) return Fail(10);
                 // inside the U: a planted strip between the ring's ends and the legs
-                if (u) { ia = math.max(ia, a2 + 2f * h + 8f); ib = math.min(ib, b2 - 2f * h - 8f); }
+                if (legA) ia = math.max(ia, a2 + 2f * h + 8f);
+                if (legB) ib = math.min(ib, b2 - 2f * h - 8f);
                 if (ib - ia < 6f * Mall.Cell + 2f * h) return Fail(11);
                 if (Steep(ctx, r.At(ia, y1), r.At(ib, y1)) || Steep(ctx, r.At(ia, y2), r.At(ib, y2)) || Steep(ctx, r.At(ia, y1), r.At(ia, y2))) return Fail(21);
                 var loop = mall.Loop(r.At(ia, y1), new[] { r.At(ib, y1), r.At(ib, y2), r.At(ia, y2) }, NetRole.Alley, asset, h);
@@ -599,7 +672,7 @@ namespace Placemaker.Core.Layers.Commercial
                 {
                     float2[] piece = null;
                     if (!u) piece = Mall.Rect(r, sMin - 5f, sMax + 5f, lo, hi);
-                    else if (j > 0) piece = Mall.Rect(r, a2 + h + 0.3f, b2 - h - 0.3f, lo, hi);
+                    else if (j > 0) piece = Mall.Rect(r, ca, cb, lo, hi);
                     else
                     {
                         // the U's first band: across the whole front, and the court between the legs up to the first row
@@ -607,7 +680,7 @@ namespace Placemaker.Core.Layers.Commercial
                         if (hi - (ty - h) < 3f) piece = fr;
                         else
                         {
-                            var court = Mall.Rect(r, a2 + h + 0.3f, b2 - h - 0.3f, ty - h - 1f, hi);
+                            var court = Mall.Rect(r, ca, cb, ty - h - 1f, hi);
                             var union = Poly.Boolean(new[] { (IReadOnlyList<float2>)fr }, new[] { (IReadOnlyList<float2>)court }, BoolOp.Union);
                             if (union.Count == 1 && union[0].Holes.Count == 0) piece = Poly.EnsureCcw(union[0].Outer);
                         }
@@ -618,11 +691,12 @@ namespace Placemaker.Core.Layers.Commercial
                 if (lot == null) return Fail(3);
                 var e = new List<(float2 at, string kind)>();
                 if (j < k) Stubs(e, loops[j].ia, loops[j].ib, hi);
-                else if (u) Stubs(e, a2 + h + 0.3f, b2 - h - 0.3f, hi);   // the court's back corners and along the back
+                else if (u) Stubs(e, legA ? a2 + h + 0.3f : a2, legB ? b2 - h - 0.3f : b2, hi);   // the court's back corners and along the back
                 else Stubs(e, a, b, hi);
                 if (j > 0) Stubs(e, loops[j - 1].ia, loops[j - 1].ib, lo);
                 // the U's legs end in the front band (straight down from them into its aisles)
-                if (u && j == 0) { e.Add((r.At(a2, ty - h - 0.3f), "alley")); e.Add((r.At(b2, ty - h - 0.3f), "alley")); }
+                if (legA && j == 0) e.Add((r.At(a2, ty - h - 0.3f), "alley"));
+                if (legB && j == 0) e.Add((r.At(b2, ty - h - 0.3f), "alley"));
                 bands.Add((lot, e));
             }
 
@@ -631,10 +705,11 @@ namespace Placemaker.Core.Layers.Commercial
             var rest = new List<ShopEntrances.Gate>();
             bool cars = false;
             float frontHi = k == 0 ? tl - h - 0.3f : loops[0].y1 - h - 0.3f;
-            if (u) frontHi = math.min(frontHi, ty - h - 0.3f);
+            float legHi = u ? math.min(frontHi, ty - h - 0.3f) : frontHi;
             foreach (var g in mall.Gates)
             {
-                if ((g.Cars || g.Kind == ShopEntrances.Footpath) && Poly.DistanceToBoundary(bands[0].ring, g.At) < 1.5f && math.dot(g.At - r.A, r.In) < frontHi - 4f)
+                if ((g.Cars || g.Kind == ShopEntrances.Footpath) && Poly.DistanceToBoundary(bands[0].ring, g.At) < 1.5f
+                    && math.dot(g.At - r.A, r.In) < (BesideLeg(v, r, g.At, h) ? legHi : frontHi) - 4f)
                 { bands[0].entries.Add((g.At, g.Kind)); g.Landed = "lot"; if (g.Cars) cars = true; }
                 else rest.Add(g);
             }
@@ -699,7 +774,7 @@ namespace Placemaker.Core.Layers.Commercial
             ctx.Plan.Facts[StripMallLayer.RowsFact] = rows;
             ctx.Plan.Facts["doubleRows"] = k;
             if (k > 0) ctx.Plan.Facts["midCells"] = ic;
-            if (u) { ctx.Plan.Facts["uRow"] = 1; ctx.Plan.Facts["sideCells"] = v.SideCells; }
+            if (u) { ctx.Plan.Facts[v.L ? "lRow" : "uRow"] = 1; ctx.Plan.Facts["sideCells"] = v.SideCells; ctx.Plan.Facts["legRow"] = math.round(tl - ty); }
             ctx.Plan.Facts["compactDepth"] = math.round(tl - tMin);
             return true;
         }
@@ -830,7 +905,7 @@ namespace Placemaker.Core.Layers.Commercial
                     if (best != null) break;   // the lot's own drive round it, rows along the frame first; the others only when that fails
                     var bag = new SettingsBag();
                     foreach (var kv in parking.Values) bag.Values[kv.Key] = kv.Value;
-                    bag.Values["setback"] = 0.5;
+                    bag.Values["setback"] = mall.LotSetback > 0f ? (double)mall.LotSetback : 0.5;   // (strip malls) a planted edge for the street front
                     bag.Values["rowAngleMode"] = "fixed";
                     bag.Values["rowAngle"] = (double)(ang + rot);
                     bag.Values["perimeterRoad"] = ring;

@@ -70,12 +70,25 @@ namespace Placemaker.Core.Layers.Commercial
         protected override bool ComposeFromEntrances(LayerContext ctx, Mall mall, List<StreetShops.Run> runs)
         {
             string style = ctx.S("style");
-            if (style != "classic") return false;
+            if (style != "classic" && style != "corner") return false;
             // (shops4) The lot first, the shops behind it (LotCentre.cs); the ring centre (StripMallCentre.cs) is no longer used.
+            // (corner, 2026-10-28) The corner strip mall is the same lot with the shops in an L: along the back and down one side, the
+            // lot open to the other street (the user's photo of a corner strip mall; the old L lane round a corner lot built a park).
             bool big = ctx.Raw("plotDepth") >= 44f;
             string sq = ctx.S("square");
-            return LotCentre(ctx, mall, runs, new LotLayout { MaxPiece = big ? 6 : 3, AnchorWeight = big ? 1.25f : 1.8f, Square = sq == "none" || string.IsNullOrEmpty(sq) ? null : sq });
+            // the land behind and beside the rows is the shops' back side (MallFront.cs), not a park
+            mall.BackOfHouse = true;
+            // a planted edge round the lot for the street front's hedge and sign (MallFront.StreetFront)
+            mall.LotSetback = ctx.B("hedges") ? 2.5f : 0f;
+            return LotCentre(ctx, mall, runs, new LotLayout
+            {
+                MaxPiece = big ? 6 : 3, AnchorWeight = big ? 1.25f : 1.8f, Square = sq == "none" || string.IsNullOrEmpty(sq) ? null : sq,
+                Shape = style == "corner" ? "L" : null,
+            });
         }
+
+        /// <summary>(2026-10-28) The street front of the user's photo: a low hedge along the sidewalk, open at the drives; a pylon sign by the entrance.</summary>
+        protected override void FinishFront(LayerContext ctx, Mall mall) => mall.StreetFront(ctx.B("hedges"), true, 0xF00u);
 
         protected override void Compose(LayerContext ctx, Mall mall, List<StreetShops.Run> runs)
         {

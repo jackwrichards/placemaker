@@ -806,6 +806,7 @@ namespace Placemaker.Core.Layers.Commercial
         /// <summary>A planted buffer: lawn and a loose line of trees, no paths (strips beside lanes and rows).</summary>
         public void Buffer(float2[] ring, uint salt)
         {
+            if (BackOfHouse) { BackYard(ring, salt); return; }
             var region = LayerRegion.From(ring);
             if (region == null) return;
             Lawn(ring);

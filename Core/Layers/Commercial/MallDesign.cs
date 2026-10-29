@@ -803,7 +803,7 @@ namespace Placemaker.Core.Layers.Commercial
         /// </summary>
         public int ServiceYards()
         {
-            if (!X.Designed || Shops.Count == 0) return 0;
+            if ((!X.Designed && !BackOfHouse) || Shops.Count == 0) return 0;
             var reserved = Reserved();
             int n = 0, k = 0;
             foreach (var s in Shops)

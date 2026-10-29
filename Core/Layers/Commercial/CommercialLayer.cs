@@ -138,6 +138,7 @@ namespace Placemaker.Core.Layers.Commercial
                     mall.PlantStreetPlots(ctx.B("streetShops"));
                     FillRest(ctx, mall);
                     FinishDesign(ctx, mall);
+                    FinishFront(ctx, mall);
                     mall.Finish(ZoneKinds.PrefabId(ctx.S("zoneKind")));
                     CommonStats(ctx);
                     return;
@@ -208,6 +209,9 @@ namespace Placemaker.Core.Layers.Commercial
             mall.Finish(ZoneKinds.PrefabId(ctx.S("zoneKind")));
             CommonStats(ctx);
         }
+
+        /// <summary>(strip malls, 2026-10-28) The type's own last touches on an entrance composition (the strip mall's street front).</summary>
+        protected virtual void FinishFront(LayerContext ctx, Mall mall) { }
 
         /// <summary>(rf-shops3) The type's entrance composition (UsesEntrances): true when it laid out the site; false falls back to Compose.</summary>
         protected virtual bool ComposeFromEntrances(LayerContext ctx, Mall mall, List<StreetShops.Run> runs) => false;

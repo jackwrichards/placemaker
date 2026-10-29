@@ -21,7 +21,8 @@ namespace Placemaker.Core.Layers.Commercial
         public override float MinArea => 6000f;
         protected override float GradeTolerance => 0.04f;
 
-        public static readonly string[] ParkStyles = { "urban", "formal", "natural", "modern", "pocket", "garden" };
+        /// <summary>The middle's styles: a park (Park planner styles), or "plaza": a paved dining plaza (Plaza planner, café square).</summary>
+        public static readonly string[] ParkStyles = { "urban", "formal", "natural", "modern", "pocket", "garden", "plaza" };
 
         protected override void DefineControls(ControlSet c)
         {
@@ -49,6 +50,10 @@ namespace Placemaker.Core.Layers.Commercial
             Preset("family", ("parkStyle", "natural"), ("loop", "lane"), ("playground", true), ("fountain", false), ("outerZone", ZoneKinds.CommercialLow), ("outerDepth", 16.0),
                 ("loopRoad", "parking"), ("water", "pond"), ("foodTrucks", 3.0));
             Preset("promenade", ("parkStyle", "modern"), ("loop", "pedestrian"), ("plotDepth", 24.0), ("outerDepth", 32.0));
+            // (Plazas, 2026-10-28; the user's photos of a lifestyle centre: a paved dining plaza by the shops, parasols over the tables)
+            // A car-free ring of shops round a paved plaza with café tables, parasols, kiosks and a fountain; parking round the outside.
+            Preset("diningPlaza", ("parkStyle", "plaza"), ("loop", "pedestrian"), ("plotDepth", 24.0), ("playground", false), ("fountain", true),
+                ("zoneKind", ZoneKinds.CommercialLow), ("foodTrucks", 0.0), ("water", "none"));
         }
 
         protected override void Compose(LayerContext ctx, Mall mall, List<StreetShops.Run> runs)
@@ -154,6 +159,24 @@ namespace Placemaker.Core.Layers.Commercial
             ctx.Check();
             // The park carves the places of its features as it would under the composer (a clearing for the playground
             // beside a walk, a paved plaza on its axis) and they are planned into them.
+            if (ctx.S("parkStyle") == "plaza")
+            {
+                // The dining plaza: the café square paved edge to edge (no lawn, no shop cutouts of its own), many more tables, the
+                // centre a fountain (a planted rondel in a game without one), trees round the edge; its walks meet the ring at every door.
+                parked = mall.FillOpen(park, "plaza", "cafe", doors, null, 0x7A6u, b =>
+                {
+                    b.Values["cafe"] = 8.0;
+                    b.Values["shade"] = 3.0;
+                    b.Values["games"] = false;
+                    b.Values["treeLayout"] = "edge";
+                    b.Values["centerMode"] = ctx.B("fountain") ? "single" : "none";
+                    b.Values["centerSize"] = 6.0;
+                    b.Values["streetShops"] = false;
+                }, false);
+                if (!parked) mall.Green(park, 0x7A7u);
+                else ctx.Plan.Facts["diningPlaza"] = 1;
+                return;
+            }
             var places = new List<PlannedRegion>();
             var children = ctx.B("playground") ? new[] { "playground" } : new string[0];
             var targets = ctx.B("fountain") ? new[] { Placemaker.Core.Layers.Park.ParkLayer.PlazaPlace } : new string[0];

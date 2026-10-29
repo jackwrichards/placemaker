@@ -145,7 +145,9 @@ namespace Placemaker.Tests
             Assert.True(Hidden("marketSquare", "squares", "weekly"));
             Assert.False(Hidden("marketSquare", "squares", "bigMarket"));
             Assert.True(shelf.IsTypeShelved("fairground", "events"));
-            Assert.True(shelf.IsTypeShelved("plaza", "squares"));
+            // (2026-10-28) Plazas is its own category again, the plaza type shown in it
+            Assert.False(shelf.IsTypeShelved("plaza", "squares"));
+            Assert.Equal("plazas", shelf.CategoryOf("plaza", "squares"));
             Assert.False(Hidden("amphitheatre", "events", "classic"));
             Assert.False(shelf.IsTypeShelved("amphitheatre", "events"));
             Assert.Equal("parks", shelf.CategoryOf("amphitheatre", "events"));
