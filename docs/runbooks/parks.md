@@ -161,3 +161,19 @@ now prints MiB per family).
   whose spot moved because the places took lawns; the places do not terraform with the Terrain feature on.
 - The last commits after `show-23-builds-1030-012225-3eac` (memorial groves before its places, creamier meadow flowers,
   the leaner decal family) passed the tests but were not seen in the game.
+
+## Round 2 (2026-10-30, the lead: "make the moods read from 45°")
+
+- Readability: copses are dark spires (spruce and pine with a few broadleaves) against pale meadows; hollows are ringed by
+  columnar poplars; knoll crowns are bigger massed boulders (crown 1.4-1.9 × , the rest 0.6-1.35 ×); the places' paint is
+  stronger (meadow dry 1.0, hollow lush 1.0, knoll dirt core 0.9, gully floor dirt 1.0, copse floor 0.65).
+- The park's features (picnic, restrooms …) keep off the places' lawns (no green region for a lawn that became a place).
+- Community garden folded in: the park's "Community garden" option (on in the country park) turns one lawn room into
+  allotments: double rows of 4.2 × 7 m plots (crop surfaces on painted worked soil), raised beds in half of them, a shed at
+  some, water tanks and a greenhouse on the middle walk, raised beds at the head (`ParkMoods.Allotments`). The type stays
+  hidden: the park does it better (a corner of a park, not a farm).
+- SiteHarmonyTests, park on a bumpy hill with the Terrain feature (0.84 m step): the places shifted the picnic group onto a
+  spot where its pads met the hill's decor badly. With the Terrain feature on, its landform is the park's character and the
+  places step aside (only the allotments, which shape nothing, stay when asked). The test passes.
+- Seen in `show-23-builds-1030-021248-0d30` (every shown style, 23 of 23 built): memorial groves are back before its places,
+  meadow flowers are cream and white (no orange), the leaner family draws as before.
