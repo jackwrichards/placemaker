@@ -91,7 +91,20 @@ Budget: 260 instances a hectare, at most 7000; a huge yard is thinned evenly and
 |---|---|
 | `show-42-builds-1029-232950-eebd` | BEFORE: every style of the category on 220 x 200, 45 and close |
 | `send-ground-industrial-all-1030-000349` | round 1 of the marks: present (10 groups, 8312 instances) but too faint to see; the car yards full of boxes |
+| `send-ground-industrial-some-1030-004831` | the car prop fix: the salvage yard full of cars, stacked and on their roofs |
+| `send-ground-industrial-all-1030-011341` | round 3, every survivor on 220 x 200: 45, mid and close looks by kind (rust still too orange, dust white on asphalt: fixed in round 4) |
+| `send-ground-industrial-all-150x140-slope-1030-015012` | round 4, every survivor on 150 x 140 on a 5 % slope: 10 of 10 built |
+| `send-ground-industrial-1030-013345` | frame time, car yard crusher 220 x 200 (816 instances): 8.24 ms with the marks, 8.35 ms switched off (no cost) |
+
+## Numbers
+
+- Instances: 470-760 per organic car yard, about 1100-1200 per block yard on 220 x 200 (budget 260/ha); 45 x 40 m: 71; 600 x 560 m: 4300-6900 thinned.
+- Planning: 6-100 ms for the marks (a 600 x 560 m terminal 600 ms).
+- Library family: 10 kinds, 46 variants, 8.0 MiB on the GPU (trimmed from 14.0 at the lead's request).
 
 ## Left to do
 
-- (filled at the end)
+- Not shown to the user yet.
+- Container yard slabs are still bright white concrete from 45 degrees (the vanilla surface); the slab tone helps a little.
+- The hidden logistics yard, scrapyard and quarry get the marks too but were not reworked: they stay hidden.
+- Tiny rust stains on hard ground may still read as paint close up; judge with the user.
