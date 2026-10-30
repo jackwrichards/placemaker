@@ -125,6 +125,12 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
 
 ## 6. The look: rules the user taught (every type)
 
+- **Never draw a path with decals** (the user, 2026-10-30: "desire paths look way too strong ... like rectangles placed on
+  top of curved areas; just don't do that ever"). No dirt strip over the game's paths, no trodden shortcuts, animal
+  trails, tent tracks or rings as strips across the grass. Paths and roads keep their surface and carry wear on it,
+  more than before: hairline and cross cracks, damp smudges, grit, a puddle now and then, leaves under the trees
+  (`Brushes.PathWear`, used by the shared scene and nature).
+
 - **Macro soft patches are the riskiest decals**: from the player's height they read as smudges. Faint (≤ 0.35), few;
   the paint does the big variation. Spend the count on crisp, small, speckled pieces that read as detail.
 - **Leaves read as leaves**: single stamps big enough to see from 30-100 m, scattered, no film; colour from the trees'

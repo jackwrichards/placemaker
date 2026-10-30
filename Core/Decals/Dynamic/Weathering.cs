@@ -235,6 +235,19 @@ namespace Placemaker.Core.Decals.Dynamic
             /// <summary>Coverage and opacity of the causes follow the player's Grime amount; the tone does not.</summary>
             private float A => math.min(2.2f, _amount);
             /// <summary>The season's version of a leaf kind when the library has it.</summary>
+            private PointGrid _leafGrid;
+            private string LeafOnPath(float2 p)
+            {
+                if (_leafGrid == null) { _leafGrid = new PointGrid(16f); for (int i = 0; i < Trees.Count; i++) _leafGrid.Add(Trees[i].P, i); }
+                foreach (int i in _leafGrid.Near(p, 1))
+                {
+                    var t = Trees[i];
+                    if (t.Leaves == null || math.distancesq(t.P, p) > t.Crown * t.Crown * 1.6f) continue;
+                    return Leaf(t.Leaves);
+                }
+                return null;
+            }
+
             private string Leaf(string kind) => kind != null && _b.Lib.Has(kind + Season) ? kind + Season : kind;
             private float2 Op(float lo, float hi) => new float2(math.saturate(lo * math.min(1.4f, 0.55f + 0.45f * _amount)), math.saturate(hi * math.min(1.3f, 0.6f + 0.4f * _amount)));
 
@@ -637,6 +650,9 @@ namespace Placemaker.Core.Decals.Dynamic
 
             private void Seams()
             {
+                // the paths themselves: cracks, smudges, grit, puddles, leaves under the trees (never a strip redrawing them)
+                foreach (var l in Paths)
+                    if (!l.Drive) Brushes.PathWear(_b, l.P, l.Half, 1f, LeafOnPath, "seam:pathWear");
                 // path edges: worn grass on the grass side (pathEdgeWear lies on terrain only: it never paints the path)
                 foreach (var l in Paths)
                     for (int side = -1; side <= 1; side += 2)
@@ -838,15 +854,6 @@ namespace Placemaker.Core.Decals.Dynamic
                 Func<float2, float> spine = p => { float u = math.abs(math.dot(p - centre, axis)) / half, v = math.abs(math.dot(p - centre, side)) / 10f; return math.saturate((1f - u * u) * (1f - v * 0.7f)); };
                 Brushes.Scatter(_b, BrushArea.Of(corridor), "dryGrass", 0.8f * A, new ScatterOptions { Weight = spine, Opacity = Op(0.22f, 0.4f), Clump = 6f, Spread = 0.4f, Loners = 0.1f, Scale = new float2(0.8f, 1.2f), Level = ColourLevel.Quiet, Cause = "play:spine" });
                 Brushes.Scatter(_b, BrushArea.Of(corridor), "barePatch", 0.1f * A, new ScatterOptions { Weight = p => spine(p) * spine(p), Opacity = Op(0.2f, 0.38f), Clump = 3f, Spread = 0.35f, Loners = 0f, Scale = new float2(0.6f, 0.9f), Cause = "play:spine" });
-                // the linesmen: each runs one half, on opposite touchlines, just outside the line
-                for (int e = 0; e < 2; e++)
-                {
-                    float sd = e == 0 ? 1f : -1f;
-                    var from = centre + side * sd * (halfW + 1.4f) + axis * sd * 2f;
-                    var to = centre + side * sd * (halfW + 1.4f) + axis * sd * (half - 12f);
-                    if (!Inside(to) || !Inside(from)) continue;
-                    Brushes.EdgeStrip(_b, new[] { from, math.lerp(from, to, 0.5f) + side * Range(-0.5f, 0.5f, 70, e), to }, "wornPath", new StripOptions { Gaps = 0.35f, Run = new float2(10f, 25f), Opacity = Op(0.45f, 0.8f), Width = new float2(0.6f, 0.8f), Cause = "play:linesman" });
-                }
             }
 
             // ───────────── feet: gates, prints, shortcuts, benches ─────────────
@@ -908,7 +915,7 @@ namespace Placemaker.Core.Decals.Dynamic
                         cands.Add((a, b, off * L));
                     }
                 cands.Sort((x, y) => y.score.CompareTo(x.score));
-                int take = flaws.Contains("shortcut") ? 2 : 1;
+                int take = 0;   // (2026-10-30) no trodden shortcut strips across the grass (the user: they read as rectangles)
                 for (int i = 0; i < cands.Count && i < take; i++)
                 {
                     var (a, b, _) = cands[i];

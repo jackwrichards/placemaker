@@ -553,6 +553,67 @@ namespace Placemaker.Core.Decals.Dynamic
         }
 
         /// <summary>
+        /// The wear on a path or road itself: hairline cracks along it, a few cross cracks, damp smudges, grit, a puddle now
+        /// and then, and leaves where a tree stands over it (<paramref name="leafAt"/>: the leaf kind at a point, or null).
+        /// Never a strip that redraws the path (the user, 2026-10-30: dirt trails laid over curved paths read as rectangles;
+        /// paths carry cracks, smudges, puddles, dirt and leaves, more than before). <paramref name="amount"/> 1 = a park path.
+        /// </summary>
+        public static int PathWear(BrushContext ctx, IReadOnlyList<float2> line, float half, float amount, Func<float2, string> leafAt = null, string cause = "path")
+        {
+            if (line == null || line.Count < 2 || half <= 0.2f || amount <= 0f) return 0;
+            // the path's own surface as a ribbon (the brushes sample inside it)
+            var left = new List<float2>(); var right = new List<float2>();
+            for (int i = 0; i < line.Count; i++)
+            {
+                var d = math.normalizesafe(line[math.min(line.Count - 1, i + 1)] - line[math.max(0, i - 1)], new float2(1f, 0f));
+                var n = new float2(-d.y, d.x) * (half * 0.92f);
+                left.Add(line[i] + n); right.Add(line[i] - n);
+            }
+            right.Reverse(); left.AddRange(right);
+            var area = BrushArea.Of(left.ToArray());
+            float a = math.saturate(amount) + math.max(0f, amount - 1f) * 0.5f;
+            int n0 = ctx.Out.Count;
+            var rng = ctx.Rng("pathWear");
+            // hairline cracks along the walk, broken often; a few across it
+            CracksAlong(ctx, line, half > 2.5f ? "crackAsphalt" : "crackConcrete", new StripOptions { Gaps = 0.65f, Run = new float2(4f, 12f), Opacity = new float2(0.55f, 0.85f), Width = new float2(0.7f, 1f), Cause = cause + ":crack" });
+            Scatter(ctx, area, "crackWeb", 0.025f * a, new ScatterOptions { Opacity = new float2(0.5f, 0.85f), Clump = 1.5f, Loners = 0.7f, Scale = new float2(0.5f, 0.9f), Cause = cause + ":crack" });
+            // damp smudges and grit, in a few clusters, never an even film
+            Scatter(ctx, area, "dampPatch", 0.05f * a, new ScatterOptions { Opacity = new float2(0.35f, 0.65f), Clump = 2.5f, Loners = 0.35f, Scale = new float2(0.4f, 0.8f), Level = ColourLevel.Quiet, Cause = cause + ":smudge" });
+            Scatter(ctx, area, "pebbles", 0.04f * a, new ScatterOptions { Opacity = new float2(0.45f, 0.8f), Clump = 3f, Loners = 0.4f, Scale = new float2(0.5f, 0.9f), Level = ColourLevel.Quiet, Cause = cause + ":grit" });
+            // a puddle every 50-90 m or so, where a walk dips or water stands
+            float len = 0f; for (int i = 1; i < line.Count; i++) len += math.distance(line[i - 1], line[i]);
+            int puddles = (int)math.round(len / 70f * a * (0.6f + rng.F() * 0.8f));
+            for (int k = 0; k < puddles; k++)
+            {
+                float at = rng.F() * len, run = 0f;
+                for (int i = 1; i < line.Count; i++)
+                {
+                    float s = math.distance(line[i - 1], line[i]);
+                    if (run + s >= at)
+                    {
+                        var p = math.lerp(line[i - 1], line[i], (at - run) / math.max(0.01f, s));
+                        var dir = math.normalizesafe(line[i] - line[i - 1]);
+                        At(ctx, p + new float2(-dir.y, dir.x) * (rng.F() - 0.5f) * half, dir, "puddlePiece", math.min(half * 1.6f, 3.2f), new float2(0.6f, 0.9f), 1, ColourLevel.Any, cause + ":puddle");
+                        break;
+                    }
+                    run += s;
+                }
+            }
+            // leaves on the walk under the trees beside it
+            if (leafAt != null)
+            {
+                var kinds = new Dictionary<string, int>(StringComparer.Ordinal);
+                for (int i = 0; i < line.Count; i++) { var k = leafAt(line[i]); if (k != null) kinds[k] = 1; }
+                foreach (var k in kinds.Keys)
+                {
+                    string kind = k;
+                    Scatter(ctx, area, kind, 0.08f * a, new ScatterOptions { Weight = p => leafAt(p) == kind ? 1f : 0f, Opacity = new float2(0.5f, 0.85f), Clump = 2f, Loners = 0.5f, Scale = new float2(0.5f, 0.9f), Level = ColourLevel.Quiet, Cause = cause + ":leaves" });
+                }
+            }
+            return ctx.Out.Count - n0;
+        }
+
+        /// <summary>
         /// A hot spot at a feature: one main piece of about <paramref name="size"/> metres along <paramref name="dir"/>, then
         /// 2-4 satellites thrown further along dir and to the sides, smaller and fainter (never a lone disc).
         /// </summary>

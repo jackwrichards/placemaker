@@ -90,6 +90,17 @@ namespace Placemaker.Core.Decals.Dynamic
             private uint H(int a, int b = 0) => Hashing.Mix(_seed, a, b);
             private float U(int a, int b = 0) => Hashing.Unit(H(a, b));
             private float A => math.min(2.2f, _amount);
+            private string LeafOnPath(float2 p)
+            {
+                foreach (int i in _treeGrid.Near(p, 1))
+                {
+                    var t = _trees[i];
+                    if (t.Leaves == null || t.Dead || math.distancesq(t.P, p) > t.Crown * t.Crown * 1.6f) continue;
+                    return Leaf(t.Leaves);
+                }
+                return null;
+            }
+
             private string Leaf(string kind) => kind != null && _b.Lib.Has(kind + Weathering.Season) ? kind + Weathering.Season : kind;
             private float2 Op(float lo, float hi) => new float2(math.saturate(lo * math.min(1.4f, 0.55f + 0.45f * _amount)), math.saturate(hi * math.min(1.3f, 0.6f + 0.4f * _amount)));
 
@@ -429,7 +440,6 @@ namespace Placemaker.Core.Decals.Dynamic
                             else if (seg.Count > 1) pts.AddRange(seg.GetRange(1, seg.Count - 1));
                         }
                         if (pts.Count < 4) continue;
-                        Brushes.EdgeStrip(_b, Smooth(pts, 2), "animalTrail", new StripOptions { Gaps = 0.35f, Run = new float2(5f, 16f), Opacity = Op(0.28f, 0.5f), Width = new float2(0.6f, 0.85f), CornerDeg = 60f, Cause = "ground:terracette" });
                         any = true;
                     }
                     if (any) bands++;
@@ -899,22 +909,10 @@ namespace Placemaker.Core.Decals.Dynamic
 
             private void Feet()
             {
-                // the trail itself: packed earth and grit over the game's paved path, laid along whole chains of pieces so it never
-                // fades out at a joint (the greenway's spine stays a made path: it is a cycle route). Never thinned: half a dirt
-                // trail is a broken look, not a lighter one.
-                if (_type != "greenwayPark")
-                {
-                    var dirt = _b.Lib.Get("trailDirt");
-                    float w = dirt == null ? 3.3f : DecalVariants.FootprintOf(dirt, 0).y;
-                    float keep = _b.Density; _b.Density = 1f;
-                    foreach (var (chain, half) in Chains())
-                    {
-                        if (half >= 3.2f) continue;   // wide walks too (a campsite's drive-in track is dirt); never a road-sized net
-                        float sz = (half * 2f + 0.5f) / math.max(1f, w);
-                        Brushes.EdgeStrip(_b, chain, "trailDirt", new StripOptions { Gaps = 0f, Run = new float2(400f, 900f), Opacity = Op(0.85f, 0.95f), Width = new float2(sz, sz * 1.05f), CornerDeg = 80f, Cause = "feet:trail" });
-                    }
-                    _b.Density = keep;
-                }
+                // the path itself keeps its surface and carries wear: cracks, smudges, grit, puddles, leaves under the trees
+                // (the user, 2026-10-30: a dirt strip laid over the curved path read as rectangles; never redraw the path)
+                foreach (var (chain, half) in Chains())
+                    Brushes.PathWear(_b, chain, half, 1.2f, LeafOnPath, "feet:path");
                 foreach (var l in _paths)
                 {
                     if (l.Deck) continue;
@@ -1080,8 +1078,6 @@ namespace Placemaker.Core.Decals.Dynamic
                         pts.Add(p);
                     }
                     if (pts.Count < 6) continue;
-                    foreach (var piece in OffPaths(Smooth(pts, 1), 0.8f))
-                        Brushes.EdgeStrip(_b, piece, "animalTrail", new StripOptions { Gaps = 0.3f, Run = new float2(12f, 40f), Opacity = Op(0.45f, 0.75f), CornerDeg = 70f, Cause = "feet:animal" });
                     if (targets.Count > 0)
                         Brushes.At(_b, pts[pts.Count - 1], heading, "pawPrints", 3f, Op(0.5f, 0.8f), 1, ColourLevel.Any, "feet:prints");
                 }
@@ -1097,10 +1093,6 @@ namespace Placemaker.Core.Decals.Dynamic
                     var fwd = new float2(math.sin(yaw), math.cos(yaw));
                     // the tent's floor flattened the grass; the door side trodden more
                     Brushes.At(_b, p + fwd * 1.2f, fwd, "trampledGrass", 6.5f, Op(0.45f, 0.75f), 1, ColourLevel.Any, "camp:pitch");
-                    // a line trodden from the tent to the nearest path
-                    var near = NearestOnPath(p, 30f, out bool found);
-                    if (found && math.distance(near, p) > 4f)
-                        Brushes.EdgeStrip(_b, new[] { p + fwd * 1.8f, math.lerp(p, near, 0.55f) + new float2(-fwd.y, fwd.x) * 0.8f, near }, "wornPath", new StripOptions { Gaps = 0f, Opacity = Op(0.4f, 0.65f), Width = new float2(0.55f, 0.7f), CornerDeg = 80f, Cause = "camp:track" });
                 }
                 for (int i = 0; i < _fires.Count && !_b.Full; i++)
                 {
