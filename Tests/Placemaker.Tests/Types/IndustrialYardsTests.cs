@@ -245,7 +245,7 @@ namespace Placemaker.Tests.Types
             Assert.Empty(shelf.Warnings);
             Assert.False(shelf.Category("industry").Hidden);
             Assert.Equal("Industrial", shelf.Category("industry").Name);
-            foreach (var t in Types.Concat(new[] { "scrapyard", "logisticsYard", "landfill", "quarry", "constructionSite", "abandonedLot" }))
+            foreach (var t in Types.Concat(new[] { "scrapyard", "logisticsYard", "landfill", "quarry" }))
             {
                 Assert.Equal("industry", shelf.CategoryOf(t, "industrial"));
                 // the makeover (2026-10-29, fewer and better): the logistics yard and the old scrapyard are hidden

@@ -102,5 +102,11 @@
   "Placemaker.Stat.RubblePiles": "Escombros",
   "Placemaker.Stat.JunkItems": "Trastos",
   "Placemaker.Stat.Foundations": "Cimientos",
-  "Placemaker.Stat.Shelters": "Cobertizos"
+  "Placemaker.Stat.Shelters": "Cobertizos",
+  "Placemaker.Abandoned.subtype.brokenCarPark": "Aparcamiento viejo",
+  "Placemaker.Abandoned.subtype.burntOut": "Solar quemado",
+  "Placemaker.Abandoned.subtype.emptyLot": "Solar vacío",
+  "Placemaker.Abandoned.Preset.brokenCarPark": "Aparcamiento viejo",
+  "Placemaker.Abandoned.Preset.burntOut": "Solar quemado",
+  "Placemaker.Abandoned.Preset.emptyLot": "Solar vacío"
 }

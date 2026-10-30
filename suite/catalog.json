@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+f7a7dccf-dirty",
+  "assembly": "0.3.6+c1f9b324",
   "categories": [
     {
       "id": "zoning",
@@ -111,6 +111,19 @@
       "hidden": true,
       "types": [
         "polishGardens"
+      ]
+    },
+    {
+      "id": "rundown",
+      "name": "Rundown",
+      "order": 10,
+      "groups": [
+        "rundown"
+      ],
+      "types": [
+        "abandonedLot",
+        "constructionSite",
+        "urbanRuins"
       ]
     },
     {
@@ -22437,7 +22450,7 @@
     {
       "layer": "constructionSite",
       "group": "industrial",
-      "category": "industry",
+      "category": "rundown",
       "presets": [
         "foundation",
         "roadworks",
@@ -22592,7 +22605,7 @@
             "gravel",
             "none"
           ],
-          "default": "dirt"
+          "default": "none"
         },
         {
           "id": "mudPaint",
@@ -22606,7 +22619,7 @@
           "max": 4.0,
           "step": 1.0,
           "unit": "count",
-          "default": 1.0
+          "default": 3.0
         },
         {
           "id": "mudDecals",
@@ -22695,6 +22708,11 @@
           "kind": "Toggle",
           "default": false
         }
+      ],
+      "shelvedStyles": [
+        "roadworks",
+        "compound",
+        "earthworks"
       ]
     },
     {
@@ -25692,8 +25710,7 @@
         }
       ],
       "shelvedStyles": [
-        "viewpointMound",
-        "kiteHill"
+        "viewpointMound"
       ]
     },
     {
@@ -26963,8 +26980,6 @@
         }
       ],
       "shelvedStyles": [
-        "ridgeHike",
-        "canyonTrail",
         "summitClimb",
         "lakeshoreLoop"
       ]
@@ -27256,13 +27271,16 @@
     {
       "layer": "abandonedLot",
       "group": "industrial",
-      "category": "industry",
+      "category": "rundown",
       "presets": [
         "overgrown",
         "rubbleField",
         "demolished",
         "squatterCamp",
-        "fencedWasteland"
+        "fencedWasteland",
+        "brokenCarPark",
+        "burntOut",
+        "emptyLot"
       ],
       "options": [
         {
@@ -27273,9 +27291,12 @@
             "rubbleField",
             "demolished",
             "squatterCamp",
-            "fencedWasteland"
+            "fencedWasteland",
+            "brokenCarPark",
+            "burntOut",
+            "emptyLot"
           ],
-          "default": "overgrown"
+          "default": "rubbleField"
         },
         {
           "id": "overgrowth",
@@ -27343,7 +27364,7 @@
           "max": 4.0,
           "step": 1.0,
           "unit": "count",
-          "default": 1.0
+          "default": 3.0
         },
         {
           "id": "desirePaths",
@@ -27533,18 +27554,23 @@
           "kind": "Toggle",
           "default": false
         }
+      ],
+      "shelvedStyles": [
+        "overgrown",
+        "emptyLot"
       ]
     },
     {
       "layer": "urbanRuins",
       "group": "sports",
-      "category": "sports",
+      "category": "rundown",
       "presets": [
         "diySpot",
         "highwayRuins",
         "graffitiPark",
         "parkour",
-        "dirtJumps"
+        "dirtJumps",
+        "buildingRuins"
       ],
       "options": [
         {
@@ -27555,9 +27581,10 @@
             "highwayRuins",
             "graffitiPark",
             "parkour",
-            "dirtJumps"
+            "dirtJumps",
+            "buildingRuins"
           ],
-          "default": "diySpot"
+          "default": "buildingRuins"
         },
         {
           "id": "skateItems",
@@ -27566,7 +27593,7 @@
           "max": 30.0,
           "step": 1.0,
           "unit": "count",
-          "default": 10.0
+          "default": 0.0
         },
         {
           "id": "graffiti",
@@ -27584,7 +27611,7 @@
           "max": 100.0,
           "step": 5.0,
           "unit": "%",
-          "default": 50.0
+          "default": 75.0
         },
         {
           "id": "overgrowth",
@@ -27593,12 +27620,12 @@
           "max": 100.0,
           "step": 5.0,
           "unit": "%",
-          "default": 35.0
+          "default": 50.0
         },
         {
           "id": "deck",
           "kind": "Toggle",
-          "default": true
+          "default": false
         },
         {
           "id": "deckSide",
@@ -27657,7 +27684,7 @@
           "max": 80.0,
           "step": 5.0,
           "unit": "%",
-          "default": 45.0
+          "default": 0.0
         },
         {
           "id": "ledges",
@@ -27666,7 +27693,7 @@
           "max": 20.0,
           "step": 1.0,
           "unit": "count",
-          "default": 4.0
+          "default": 0.0
         },
         {
           "id": "bowl",
@@ -27739,7 +27766,7 @@
           "max": 12.0,
           "step": 1.0,
           "unit": "count",
-          "default": 2.0
+          "default": 0.0
         },
         {
           "id": "benches",
@@ -27748,17 +27775,17 @@
           "max": 16.0,
           "step": 1.0,
           "unit": "count",
-          "default": 6.0
+          "default": 0.0
         },
         {
           "id": "lamps",
           "kind": "Toggle",
-          "default": true
+          "default": false
         },
         {
           "id": "fence",
           "kind": "Toggle",
-          "default": false
+          "default": true
         },
         {
           "id": "fenceGaps",
@@ -27878,7 +27905,10 @@
         }
       ],
       "shelvedStyles": [
-        "graffitiPark"
+        "diySpot",
+        "highwayRuins",
+        "graffitiPark",
+        "parkour"
       ]
     },
     {
@@ -28973,7 +29003,6 @@
         "waterGarden",
         "reedMarsh",
         "rainGarden",
-        "lakeland",
         "birdReserve"
       ],
       "options": [
@@ -28985,8 +29014,7 @@
             "waterGarden",
             "reedMarsh",
             "rainGarden",
-            "birdReserve",
-            "lakeland"
+            "birdReserve"
           ],
           "default": "wetlandPark"
         },

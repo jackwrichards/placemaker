@@ -1,6 +1,6 @@
 {
   "Placemaker.Recipe.UrbanRuins": "Stadtruinen",
-  "Placemaker.Recipe.UrbanRuins.Description": "Ein Skate-Spot in den Ruinen einer verfallenen Hochstraße: Pfeiler, eingestürzte Fahrbahn, selbstgebaute Rampen, Graffiti und Dirt-Jumps.",
+  "Placemaker.Recipe.UrbanRuins.Description": "Was die Stadt zurückließ: die Reste eines Gebäudes mit geflutetem Keller, zerbrochene Betonsäulen und die Dirtjumps, die Kinder dazwischen graben.",
   "Placemaker.UI.Group.spot": "Spot",
   "Placemaker.UI.Group.deck": "Hochstraße",
   "Placemaker.UI.Group.yard": "Hof",
@@ -95,5 +95,7 @@
   "Placemaker.AddOn.DirtJumps.Issue.NoPlace": "Kein freier Boden war groß genug für die Dirt-Jumps.",
   "Placemaker.Stat.SkateFeatures": "Skate-Elemente",
   "Placemaker.Stat.Pillars": "Pfeiler",
-  "Placemaker.Stat.Jumps": "Sprünge"
+  "Placemaker.Stat.Jumps": "Sprünge",
+  "Placemaker.Ruins.subtype.buildingRuins": "Gebäuderuine",
+  "Placemaker.Ruins.Preset.buildingRuins": "Gebäuderuine"
 }

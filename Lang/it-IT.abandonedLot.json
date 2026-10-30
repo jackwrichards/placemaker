@@ -102,5 +102,11 @@
   "Placemaker.Stat.RubblePiles": "Macerie",
   "Placemaker.Stat.JunkItems": "Cianfrusaglie",
   "Placemaker.Stat.Foundations": "Fondamenta",
-  "Placemaker.Stat.Shelters": "Ripari"
+  "Placemaker.Stat.Shelters": "Ripari",
+  "Placemaker.Abandoned.subtype.brokenCarPark": "Vecchio parcheggio",
+  "Placemaker.Abandoned.subtype.burntOut": "Lotto bruciato",
+  "Placemaker.Abandoned.subtype.emptyLot": "Terreno incolto",
+  "Placemaker.Abandoned.Preset.brokenCarPark": "Vecchio parcheggio",
+  "Placemaker.Abandoned.Preset.burntOut": "Lotto bruciato",
+  "Placemaker.Abandoned.Preset.emptyLot": "Terreno incolto"
 }

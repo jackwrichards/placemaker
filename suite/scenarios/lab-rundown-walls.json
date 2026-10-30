@@ -1,0 +1,21 @@
+{
+  "_about": "Lab (rundown makeover): the game's garden walls one row at a time (EU_Wall01..09, then EU_WallLow01..09, left to right), to pick ruin walls. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-rundown-walls.json -Who makeover-rundown",
+  "scenarios": [
+    {
+      "id": "walls-tall",
+      "land": { "shape": "rect", "size": [60, 40], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "lab", "op": "lineup", "names": ["EU_Wall01", "EU_Wall02", "EU_Wall03", "EU_Wall04", "EU_Wall05", "EU_Wall06", "EU_Wall07", "EU_Wall08", "EU_Wall09"], "perRow": 9, "gap": 2 },
+        { "do": "shot", "name": "low", "camera": { "target": "area", "view": "low" }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "walls-low",
+      "land": { "shape": "rect", "size": [60, 40], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "lab", "op": "lineup", "names": ["EU_WallLow01", "EU_WallLow02", "EU_WallLow03", "EU_WallLow04", "EU_WallLow05", "EU_WallLow06", "EU_WallLow07", "EU_WallLow08", "EU_WallLow09"], "perRow": 9, "gap": 2 },
+        { "do": "shot", "name": "low", "camera": { "target": "area", "view": "low" }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

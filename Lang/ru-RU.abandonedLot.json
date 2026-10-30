@@ -102,5 +102,11 @@
   "Placemaker.Stat.RubblePiles": "Обломки",
   "Placemaker.Stat.JunkItems": "Предметы хлама",
   "Placemaker.Stat.Foundations": "Фундаменты",
-  "Placemaker.Stat.Shelters": "Навесы"
+  "Placemaker.Stat.Shelters": "Навесы",
+  "Placemaker.Abandoned.subtype.brokenCarPark": "Старая парковка",
+  "Placemaker.Abandoned.subtype.burntOut": "Пепелище",
+  "Placemaker.Abandoned.subtype.emptyLot": "Пустой участок",
+  "Placemaker.Abandoned.Preset.brokenCarPark": "Старая парковка",
+  "Placemaker.Abandoned.Preset.burntOut": "Пепелище",
+  "Placemaker.Abandoned.Preset.emptyLot": "Пустой участок"
 }

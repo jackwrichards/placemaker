@@ -1,6 +1,6 @@
 {
   "Placemaker.Recipe.UrbanRuins": "Ruínas urbanas",
-  "Placemaker.Recipe.UrbanRuins.Description": "Um pico de skate entre as ruínas de um viaduto abandonado: pilares, tabuleiro caído, rampas improvisadas, grafite e saltos de terra.",
+  "Placemaker.Recipe.UrbanRuins.Description": "O que a cidade deixou para trás: a carcaça de um prédio com o porão alagado, colunas de concreto quebradas e as rampas de terra que a molecada cava entre elas.",
   "Placemaker.UI.Group.spot": "Pico",
   "Placemaker.UI.Group.deck": "Viaduto",
   "Placemaker.UI.Group.yard": "Pátio",
@@ -95,5 +95,7 @@
   "Placemaker.AddOn.DirtJumps.Issue.NoPlace": "Nenhum chão livre era grande o bastante para os saltos de terra.",
   "Placemaker.Stat.SkateFeatures": "Itens de skate",
   "Placemaker.Stat.Pillars": "Pilares",
-  "Placemaker.Stat.Jumps": "Saltos"
+  "Placemaker.Stat.Jumps": "Saltos",
+  "Placemaker.Ruins.subtype.buildingRuins": "Ruínas de prédio",
+  "Placemaker.Ruins.Preset.buildingRuins": "Ruínas de prédio"
 }

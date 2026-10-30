@@ -1,6 +1,6 @@
 {
   "Placemaker.Recipe.UrbanRuins": "Ruines urbaines",
-  "Placemaker.Recipe.UrbanRuins.Description": "Un spot de skate dans les ruines d'une autoroute effondrée : piliers, tablier tombé, rampes faites maison, graffitis et bosses de terre.",
+  "Placemaker.Recipe.UrbanRuins.Description": "Ce que la ville a laissé : la carcasse d'un bâtiment au sous-sol inondé, des colonnes de béton brisées et les bosses de terre que les jeunes creusent entre elles.",
   "Placemaker.UI.Group.spot": "Spot",
   "Placemaker.UI.Group.deck": "Autoroute",
   "Placemaker.UI.Group.yard": "Terrain",
@@ -95,5 +95,7 @@
   "Placemaker.AddOn.DirtJumps.Issue.NoPlace": "Aucun terrain libre n'était assez grand pour les bosses de terre.",
   "Placemaker.Stat.SkateFeatures": "Modules de skate",
   "Placemaker.Stat.Pillars": "Piliers",
-  "Placemaker.Stat.Jumps": "Obstacles"
+  "Placemaker.Stat.Jumps": "Obstacles",
+  "Placemaker.Ruins.subtype.buildingRuins": "Ruines d'immeuble",
+  "Placemaker.Ruins.Preset.buildingRuins": "Ruines d'immeuble"
 }

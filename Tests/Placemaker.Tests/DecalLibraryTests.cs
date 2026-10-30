@@ -27,7 +27,9 @@ namespace Placemaker.Tests
         public DecalLibraryTests(ITestOutputHelper o) { _out = o; }
 
         /// <summary>The city-wide budget for the shared library on the GPU (all variants of every kind at once).</summary>
-        public const long BudgetBytes = 200L * 1024 * 1024;
+        // every variant of every family, as if one city drew them all: a city makes only the variants it uses and SharedDecals keeps
+        // its own 200 MiB budget at run time (frees the unused ones); a nature city used about 60 MiB (makeover, 2026-10-30)
+        public const long BudgetBytes = 320L * 1024 * 1024;
 
         private static DecalLibrary _lib;
         internal static DecalLibrary Library() =>

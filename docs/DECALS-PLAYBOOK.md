@@ -261,3 +261,4 @@ When you learn something that holds for every type, put it here in the playbook 
 |---|---|---|---|---|
 | Library rounds 1-3 | 2026-10-29 | (this page, section 6) | B- after round 1 | 65 kinds, 484 variants, 131 MiB |
 | Sports park | 2026-10-29 | `docs/runbooks/sportsPark.md` | B+ (then B− for smudge, fixed) | first type on the shared library; built instances, codec v2, end caps, brushes, boundary passes; every style |
+| Rundown (abandoned lot, construction site, urban ruins) | 2026-10-30 | `docs/runbooks/rundown.md` | not graded | own category; grounds laid from the layer (RundownGround), rundown family (9 kinds), paint slot 3 for earth |

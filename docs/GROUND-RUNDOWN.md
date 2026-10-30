@@ -189,3 +189,11 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
 - 2026-10-30: the game draws its 10 m logs at full length whatever `Scale` says: use a bench as a seat by a fire.
 - 2026-10-30: macro patches that are not the ground's own colour read as smudges from the player's height (pink heather
   blobs, orange dry grass): keep them quiet and few, and put the colour in crisp stamps.
+
+## Lessons from rundown (abandoned lot, construction site, urban ruins; docs/runbooks/rundown.md)
+
+- 2026-10-30: **Terrain paint slot 1 ("dry grass") is invisible on the vanilla maps**; the earth is slot 3, the dark forest floor slot 2. Look at a slot in the game before relying on it. Paint films below about half strength barely show: lay earth in blobs at 0.6-0.95.
+- 2026-10-30: **Ten hectares of lawn cannot be turned into a wasteland by decals.** Paint changes the base; decals add the edges and the detail on top.
+- 2026-10-30: A type that knows its story while it plans can lay its decals itself (`RundownGround`, from the layer) instead of reading the plan back in `Weathering`: no shared file touched, every cause exact.
+- 2026-10-30: **The game's vehicle props are not placeable** (`Prop_*` match nothing in a lab lineup): no wrecks, no diggers. **`EU_Wall01Long` is a white balustrade**; `EU_Wall01/05/08` are the dark plain walls. Check props with a lab lineup (`suite/scenarios/lab-rundown-props.json`) before choosing them.
+- 2026-10-30: Evenly spread bushes read as a park; scrub grows in thickets with open ground between.

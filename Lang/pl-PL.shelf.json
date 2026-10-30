@@ -11,5 +11,6 @@
   "Placemaker.UI.MakeGroup.Sports": "Sport",
   "Placemaker.UI.MakeGroup.Neighbourhood": "Osiedle",
   "Placemaker.UI.MakeGroup.Industry": "Przemysł",
+  "Placemaker.UI.MakeGroup.Rundown": "Nieużytki",
   "Placemaker.UI.MakeGroup.Transport": "Transport"
 }

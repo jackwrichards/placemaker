@@ -1,0 +1,23 @@
+{
+  "_about": "Lab (rundown makeover): which of the construction site's machine, compound and heap props are placeable vanilla objects (the log's 'lineup matched' line lists the ones that exist). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-rundown-machines.json -Who makeover-rundown",
+  "scenarios": [
+    {
+      "id": "machines",
+      "land": { "shape": "rect", "size": [140, 100], "ground": "flat", "roads": "none" },
+      "steps": [
+        {
+          "do": "lab", "op": "lineup",
+          "names": [
+            "Prop_FrontendLoader01", "Prop_CoalTruck01", "Prop_MiningExcavator01", "Prop_OreMiningTruck01", "Prop_Tractor01", "Prop_TruckTrailer01", "Prop_TruckTrailer03",
+            "Prop_ParkMaintenanceVehicle01", "Prop_CarTrailer01", "Prop_CamperTrailer01", "Prop_CoalTruck01_StonePile01_Full", "Prop_CoalTruck01_StonePile01_Partial1",
+            "ConstructionCrane01", "BackupGenerator01", "LargeOpenContainer01", "TrashContainerEmpty04", "ToolShed03", "PortableToilet01", "ShippingContainer01",
+            "CableReel01", "OilPipe01", "GasBottlePallet01", "SafetyBarrier01", "ConcreteBarrier01", "PileSandSmall01", "PileStoneSmall01", "LightpoleCommercial01"
+          ],
+          "perRow": 9, "gap": 3
+        },
+        { "do": "shot", "name": "oblique", "camera": { "target": "area", "view": "oblique" }, "shotMode": "render" },
+        { "do": "shot", "name": "low", "camera": { "target": "area", "view": "low" }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

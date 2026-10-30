@@ -191,7 +191,7 @@ namespace Placemaker.Tests.Types
             var gen = TestKit.Gen(Id);
             Assert.Equal("industrial", GeneratorGroups.Of(gen));
             Assert.Equal(LayerKind.Fill, gen.Kind);
-            Assert.InRange(gen.Presets.Count, 4, 6);
+            Assert.InRange(gen.Presets.Count, 4, 8);   // (rundown) + old car park, burnt-out lot, vacant lot
             Assert.InRange(gen.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, 40);
             var subtype = gen.Controls.Single(c => c.Id == "subtype");
             Assert.Equal(gen.Presets.Select(p => p.Id), subtype.Options.Select(o => o.Value));
@@ -252,7 +252,8 @@ namespace Placemaker.Tests.Types
             double F(string preset, string fact) => RuinsChecks.Fact(p[preset], fact);
             // Overgrown: green. Rubble field: piles and mounds. Demolished: foundations in a row. Camp: shelters. Wasteland: intact fence + gravel.
             Assert.True(F("overgrown", "weeds") + F("overgrown", "youngTrees") > 2 * (F("rubbleField", "weeds") + F("rubbleField", "youngTrees")));
-            Assert.True(F("rubbleField", "rubblePiles") + F("rubbleField", "rubbleChunks") > 2 * (F("overgrown", "rubblePiles") + F("overgrown", "rubbleChunks")));
+            // (rundown) the rubble field is a few big tipped mounds now (each heap 1.3-1.8x), not a carpet of small chunks
+            Assert.True(F("rubbleField", "rubblePiles") + F("rubbleField", "rubbleChunks") > F("overgrown", "rubblePiles") + F("overgrown", "rubbleChunks"));
             Assert.True(F("rubbleField", "moundCells") > 0);
             Assert.True(F("demolished", "foundations") >= 2);
             Assert.True(F("squatterCamp", "shelters") >= 4);

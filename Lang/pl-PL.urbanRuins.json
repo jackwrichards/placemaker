@@ -1,6 +1,6 @@
 {
   "Placemaker.Recipe.UrbanRuins": "Miejskie ruiny",
-  "Placemaker.Recipe.UrbanRuins.Description": "Miejsce do jazdy na deskorolce wśród ruin rozpadającej się autostrady: filary, zawalona jezdnia, samoróbkowe rampy, graffiti i hopki.",
+  "Placemaker.Recipe.UrbanRuins.Description": "To, co zostawiło miasto: szkielet budynku z zalaną piwnicą, połamane betonowe słupy i ziemne hopki, które dzieciaki kopią między nimi.",
   "Placemaker.UI.Group.spot": "Miejsce",
   "Placemaker.UI.Group.deck": "Autostrada",
   "Placemaker.UI.Group.yard": "Plac",
@@ -95,5 +95,7 @@
   "Placemaker.AddOn.DirtJumps.Issue.NoPlace": "Żaden wolny teren nie był dość duży na hopki.",
   "Placemaker.Stat.SkateFeatures": "Przeszkody skate",
   "Placemaker.Stat.Pillars": "Filary",
-  "Placemaker.Stat.Jumps": "Hopki"
+  "Placemaker.Stat.Jumps": "Hopki",
+  "Placemaker.Ruins.subtype.buildingRuins": "Ruiny budynku",
+  "Placemaker.Ruins.Preset.buildingRuins": "Ruiny budynku"
 }

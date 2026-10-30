@@ -102,5 +102,11 @@
   "Placemaker.Stat.RubblePiles": "瓦礫",
   "Placemaker.Stat.JunkItems": "がらくたのアイテム",
   "Placemaker.Stat.Foundations": "基礎",
-  "Placemaker.Stat.Shelters": "小屋"
+  "Placemaker.Stat.Shelters": "小屋",
+  "Placemaker.Abandoned.subtype.brokenCarPark": "古い駐車場",
+  "Placemaker.Abandoned.subtype.burntOut": "焼け跡",
+  "Placemaker.Abandoned.subtype.emptyLot": "空き地",
+  "Placemaker.Abandoned.Preset.brokenCarPark": "古い駐車場",
+  "Placemaker.Abandoned.Preset.burntOut": "焼け跡",
+  "Placemaker.Abandoned.Preset.emptyLot": "空き地"
 }

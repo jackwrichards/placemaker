@@ -72,9 +72,9 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             c.Slider("coneSpacing", 6, 2, 20, 1, "m", ControlTier.More, "safety").Layout(1.5).Tip();
             c.Toggle("signs", true, ControlTier.More, "safety");
 
-            c.Choice("groundCover", "dirt", ControlTier.More, "ground", "dirt", "gravel", "none").Tip();
+            c.Choice("groundCover", "none", ControlTier.More, "ground", "dirt", "gravel", "none").Tip();
             c.Toggle("mudPaint", true, ControlTier.More, "ground").Tip();
-            c.Slider("paintLayer", 1, 1, 4, 1, "count", ControlTier.More, "ground").When("mudPaint=true").Tip();
+            c.Slider("paintLayer", 3, 1, 4, 1, "count", ControlTier.More, "ground").When("mudPaint=true").Tip();
             c.Slider("mudDecals", 3, 0, 10, 0.5, "per100m2", ControlTier.More, "ground").Tip();
             c.Toggle("puddles", true, ControlTier.More, "ground");
 
@@ -98,15 +98,15 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
 
         protected override void DefinePresets()
         {
-            Preset("foundation", ("subtype", "foundation"), ("depth", 6.0), ("workSize", 55.0), ("crane", true), ("machines", 4.0));
+            Preset("foundation", ("subtype", "foundation"), ("depth", 6.0), ("workSize", 55.0), ("crane", true), ("machines", 7.0), ("compound", "large"), ("piles", 20.0), ("stacks", 24.0));
             Preset("roadworks", ("subtype", "roadworks"), ("depth", 2.0), ("workSize", 60.0), ("crane", false), ("machines", 6.0),
                 ("coneSpacing", 6.0), ("groundCover", "none"), ("piles", 8.0), ("stacks", 6.0));
             Preset("compound", ("subtype", "compound"), ("compound", "large"), ("cabins", 10.0), ("containers", 10.0), ("toilets", 4.0),
-                ("crane", false), ("stacks", 20.0), ("piles", 8.0), ("groundCover", "gravel"), ("machines", 6.0));
+                ("crane", false), ("stacks", 30.0), ("piles", 14.0), ("groundCover", "gravel"), ("machines", 8.0));
             Preset("demolition", ("subtype", "demolition"), ("depth", 3.0), ("workSize", 60.0), ("piles", 24.0), ("stacks", 4.0),
-                ("crane", true), ("machines", 3.0), ("mudDecals", 4.0));
-            Preset("earthworks", ("subtype", "earthworks"), ("depth", 5.0), ("workSize", 75.0), ("machines", 8.0), ("piles", 6.0),
-                ("stacks", 2.0), ("crane", false), ("compound", "small"), ("coneSpacing", 10.0));
+                ("crane", true), ("machines", 6.0), ("mudDecals", 4.0), ("compound", "large"));
+            Preset("earthworks", ("subtype", "earthworks"), ("depth", 5.0), ("workSize", 75.0), ("machines", 12.0), ("piles", 14.0),
+                ("stacks", 8.0), ("crane", false), ("compound", "large"), ("coneSpacing", 10.0));
         }
 
         /// <summary>Everything the works zone of one subtype decided (geometry the rest of the plan works around).</summary>
@@ -138,6 +138,10 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             public readonly List<List<float2>> Tracks = new List<List<float2>>();
         }
 
+        /// <summary>(rundown, as the industrial quarry does) Placemaker's own vehicle props when the player picked no machines: the wheel loader,
+        /// the dump truck, the mining tractor (VehicleProps; the game's vehicles have no placeable props of their own).</summary>
+        private static readonly string[] OwnMachines = { Yards.VehicleProps.Loader(1), Yards.VehicleProps.Truck(1), Yards.VehicleProps.Tractor(1), Yards.VehicleProps.Loader(1), Yards.VehicleProps.Truck(1) };
+
         /// <summary>Type-specific curated defaults (over GritAssets' shared sets); null = shared only.</summary>
         private static readonly Dictionary<string, GritAssets.Set> ArtObjects = new Dictionary<string, GritAssets.Set>
         {
@@ -145,7 +149,15 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             [AssetCategories.FloodLight] = new GritAssets.Set(true, "LightpoleCommercial01|LightpoleCommercial02|LightpoleIndustrial01", "LightpoleCommercial02|LightpoleCommercial01|LightpoleIndustrial01"),
             // Welfare and office units are containers; a shed only when none are installed.
             [AssetCategories.ConstructionCabin] = new GritAssets.Set(false, "ShippingContainer01|ToolShed03", "ShippingContainer02|ToolShed03", "ShippingContainer03|ToolShed03"),
-        }, ArtSurfaces = null;
+            // (rundown, 2026-10-30) machines and heaps come from the shared set (GritAssets), which now names things that place
+        };
+
+        /// <summary>(rundown) Old slabs and road strips weathered grey, never the bright white Concrete Surface 02 (it read as fresh plaza paving).</summary>
+        private static readonly Dictionary<string, GritAssets.Set> ArtSurfaces = new Dictionary<string, GritAssets.Set>(StringComparer.Ordinal)
+        {
+            [AssetCategories.SurfacePaving] = new GritAssets.Set(true, "Pavement Surface 01|Concrete Surface 01"),
+            [AssetCategories.SurfaceAsphalt] = new GritAssets.Set(true, "Pavement Surface 01|Concrete Surface 01"),
+        };
 
         // Art pass: whatever the player left automatic gets the curated gritty defaults (GritAssets).
         protected override void PlanCore(LayerContext ctx) { PlanArt(ctx); GritAssets.Apply(ctx.Plan, ctx.Seed, ArtObjects, ArtSurfaces); GritAssets.CapDecals(ctx.Plan, ctx.LayerRegion.Area, 120f); }
@@ -157,7 +169,7 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             {
                 Ctx = ctx, Region = region, Occ = new Occupancy(region, ctx.Input.Reserved, ctx.Site), Subtype = ctx.S("subtype"),
                 Depth = math.max(0.5f, ctx.F("depth")), Ha = region.Area / 10000f,
-                Machines = ctx.L("machineAssets"), Materials = ctx.L("materialAssets"), Piles = ctx.L("pileAssets"),
+                Machines = ctx.L("machineAssets") != null && ctx.L("machineAssets").Length > 0 ? ctx.L("machineAssets") : OwnMachines, Materials = ctx.L("materialAssets"), Piles = ctx.L("pileAssets"),
                 Barriers = ctx.L("barrierAssets"), Cabins = ctx.L("cabinAssets"),
             };
             // Works follow the plot's dominant edges (a square plot used to get diagonal road strips).
@@ -224,12 +236,21 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
                 foreach (var k in new[] { -1f, 1f })
                     SiteKit.Put(ctx, s.Occ, s.Gate + s.Inward * 2.5f + along * k * 5.5f, LeisureKit.Yaw(s.Gate, s.Gate - s.Inward), sign, null, 0.6f, 0x5160u + (uint)(k + 2));
             }
+            Spoil(s, w);
+            Laydown(s);
             Materials(s, w);
             MoreMachines(s, w);
             if (ctx.B("lights")) Lights(s);
             ctx.Check();
 
             // 7. Mud: paint and decals over the works, the road and the gate apron.
+            // (rundown) no ground cover by default: the whole site is painted earth (a grey surface over all of it read as a flat
+            // plastic sheet), the mud zones darker on top, and the designed ground (8b) lays the ruts, spills and water
+            if (paint > 0 && ctx.S("groundCover") == "none")
+            {
+                var site = SiteKit.Inset(region.Ring, 1f);
+                if (site != null && site.Length >= 3) TerrainPaint.Patch(ctx, site, paint, 0.85f, 5f);
+            }
             if (paint > 0) foreach (var m in w.Mud) TerrainPaint.Patch(ctx, m, paint, 0.9f, 2f);
             float mud = ctx.F("mudDecals");
             if (mud > 0f)
@@ -248,6 +269,11 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             // 8. Ground cover over everything not already surfaced.
             string cover = ctx.S("groundCover");
             if (cover != "none") GroundCover(ctx, region, w.Surfaces, SurfaceCategory(ctx, cover), AssetMix.One(ctx.S("groundSurface")));
+
+            // 8b. (rundown) The designed ground: ruts, mud out of the gate, spills at the heaps, water in the dig (library decals).
+            var worksC = w.Ring != null ? Poly.Centroid(w.Ring) : s.Centre;
+            float worksR = w.Ring != null ? math.sqrt(math.abs(Poly.SignedArea(w.Ring)) / math.PI) : math.sqrt(region.Area) * 0.3f;
+            ConstructionGround.Dress(ctx, s.Subtype, s.Gate, s.Inward, s.HasGate, s.Tracks, w.Ring, w.Mud, worksC, worksR * 1.2f);
 
             // 9. Regions for features: the works are a place (features keep out), the free ground is the yard.
             if (w.Ring != null) ctx.AddRegion(w.Ring, WorksPlace, WorksPlace);
@@ -353,13 +379,13 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
 
             // Floor: excavator(s), rebar stacks, formwork / scaffold along the far wall, concrete mixer at the ramp top.
             string machine = SiteKit.Cat(ctx, s.Machines, AssetCategories.ConstructionMachine);
-            if (SiteKit.Put(ctx, s.Occ, pit.Local(pit.HalfLength * 0.4f, -rampSide * pit.HalfWidth * 0.2f), pit.Yaw + 0.6f, machine, s.Machines, 3f, 0xE0E0u)) s.MachinesPlaced++;
-            if (pit.HalfLength > 25f && SiteKit.Put(ctx, s.Occ, pit.Local(-pit.HalfLength * 0.1f, -rampSide * pit.HalfWidth * 0.4f), pit.Yaw - 0.9f, machine, s.Machines, 3f, 0xE0E1u)) s.MachinesPlaced++;
+            if (SiteKit.Put(ctx, s.Occ, pit.Local(pit.HalfLength * 0.4f, -rampSide * pit.HalfWidth * 0.2f), pit.Yaw + 0.6f, machine, s.Machines, 5.5f, 0xE0E0u)) s.MachinesPlaced++;
+            if (pit.HalfLength > 25f && SiteKit.Put(ctx, s.Occ, pit.Local(-pit.HalfLength * 0.1f, -rampSide * pit.HalfWidth * 0.4f), pit.Yaw - 0.9f, machine, s.Machines, 5.5f, 0xE0E1u)) s.MachinesPlaced++;
             string material = SiteKit.Cat(ctx, s.Materials, AssetCategories.ConstructionMaterial);
             s.StacksPlaced += SiteKit.Row(ctx, s.Occ, pit.Local(-pit.HalfLength * 0.3f, 0f), pit.Local(pit.HalfLength * 0.2f, 0f), 3.2f, material, s.Materials, 1.2f, 0x5EBu);
             string scaffold = SiteKit.Cat(ctx, null, AssetCategories.ConstructionScaffold, AssetCategories.ConstructionMaterial);
             SiteKit.Row(ctx, s.Occ, pit.Local(-pit.HalfLength + 3f, -rampSide * (pit.HalfWidth - 2f)), pit.Local(pit.HalfLength - 3f, -rampSide * (pit.HalfWidth - 2f)), 4f, scaffold, null, 1.2f, 0x5CAu);
-            if (SiteKit.Put(ctx, s.Occ, rampTop - pit.Axis * 8f + pit.Side * rampSide * 5f, pit.Yaw, machine, s.Machines, 2.5f, 0xE0E2u)) s.MachinesPlaced++;
+            if (SiteKit.Put(ctx, s.Occ, rampTop - pit.Axis * 8f + pit.Side * rampSide * 5f, pit.Yaw, machine, s.Machines, 5.5f, 0xE0E2u)) s.MachinesPlaced++;
             LeisureKit.TakeRect(s.Occ, pit);
             w.Anchors.Add(pit.Local(0f, rampSide * (pit.HalfWidth + 9f)));
             w.Anchors.Add(pit.Local(0f, -rampSide * (pit.HalfWidth + 9f)));
@@ -420,7 +446,7 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
                     }
                     // One machine per section, by what the section needs.
                     var mpos = rect.Center + nrm * hw * 0.3f * (((k & 1) == 0) ? 1f : -1f);
-                    if (SiteKit.Put(ctx, s.Occ, mpos, rect.Yaw, machine, s.Machines, 2.5f, 0x7A00u + (uint)(si * 31 + k))) s.MachinesPlaced++;
+                    if (SiteKit.Put(ctx, s.Occ, mpos, rect.Yaw, machine, s.Machines, 5.5f, 0x7A00u + (uint)(si * 31 + k))) s.MachinesPlaced++;
                     // Lane closure: barriers across half the strip at every section boundary.
                     if (barrier != null && k > 0)
                         SiteKit.Row(ctx, s.Occ, q0 + nrm * (hw - 0.8f), q0 + nrm * 0.5f, 2f, barrier, s.Barriers, 0.7f, 0xB100u + (uint)(si * 31 + k), false);
@@ -508,7 +534,7 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
                         SiteKit.Row(ctx, s.Occ, bay.Local(-bay.HalfLength + 1.5f, 0f), bay.Local(bay.HalfLength - 1.5f, 0f), 2.9f, container, null, 1.3f, h, true);
                         break;
                     default:
-                        if (SiteKit.Put(ctx, s.Occ, bay.Center, bay.Yaw, machine, s.Machines, 2.6f, h)) s.MachinesPlaced++;
+                        if (SiteKit.Put(ctx, s.Occ, bay.Center, bay.Yaw, machine, s.Machines, 5.5f, h)) s.MachinesPlaced++;
                         break;
                 }
                 i++;
@@ -589,7 +615,7 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             {
                 float a = i * 2.1f + 0.4f;
                 var p = c + new float2(math.cos(a), math.sin(a)) * r * 0.55f;
-                if (SiteKit.Put(ctx, s.Occ, p, a + 3.14f, machine, s.Machines, 3f, 0xDE40u + (uint)i)) s.MachinesPlaced++;
+                if (SiteKit.Put(ctx, s.Occ, p, a + 3.14f, machine, s.Machines, 5.5f, 0xDE40u + (uint)i)) s.MachinesPlaced++;
             }
             if (ctx.B("crane"))
             {
@@ -662,14 +688,14 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             entry += math.normalizesafe(s.Gate - entry) * 3f;
             w.Entry = entry; w.HasEntry = s.Region.ContainsDisc(entry, 2f);
             string machine = SiteKit.Cat(ctx, s.Machines, AssetCategories.ConstructionMachine);
-            if (SiteKit.Put(ctx, s.Occ, cutC, rng.NextFloat(0f, 6.28f), machine, s.Machines, 3f, 0xEA00u)) s.MachinesPlaced++;
+            if (SiteKit.Put(ctx, s.Occ, cutC, rng.NextFloat(0f, 6.28f), machine, s.Machines, 5.5f, 0xEA00u)) s.MachinesPlaced++;
             var loop = new List<float2> { entry };
             foreach (var hp in heaps)
             {
                 var foot = hp.c + math.normalizesafe(entry - hp.c) * (hp.r + 4f);
                 if (!s.Region.ContainsDisc(foot, 4f) || s.Region.CrossesBoundary(loop[loop.Count - 1], foot, false)) continue;
                 loop.Add(foot);
-                if (SiteKit.Put(ctx, s.Occ, hp.c, rng.NextFloat(0f, 6.28f), machine, s.Machines, 3f, 0xEA10u + (uint)loop.Count)) s.MachinesPlaced++;
+                if (SiteKit.Put(ctx, s.Occ, hp.c, rng.NextFloat(0f, 6.28f), machine, s.Machines, 5.5f, 0xEA10u + (uint)loop.Count)) s.MachinesPlaced++;
                 w.Mud.Add(LayerRegion.Circle(hp.c, hp.r, 14));
             }
             if (loop.Count > 1)
@@ -684,7 +710,7 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
                 {
                     var mid = math.lerp(loop[i], loop[i + 1], 0.5f);
                     var nrm = math.normalizesafe(new float2(-(loop[i + 1] - loop[i]).y, (loop[i + 1] - loop[i]).x));
-                    if (SiteKit.Put(ctx, s.Occ, mid + nrm * 7f, LeisureKit.Yaw(loop[i], loop[i + 1]), machine, s.Machines, 2.8f, 0xEA40u + (uint)i)) s.MachinesPlaced++;
+                    if (SiteKit.Put(ctx, s.Occ, mid + nrm * 7f, LeisureKit.Yaw(loop[i], loop[i + 1]), machine, s.Machines, 5.5f, 0xEA40u + (uint)i)) s.MachinesPlaced++;
                 }
             }
             // Survey stakes (cones) round the cut.
@@ -782,6 +808,74 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             switch (ctx.S("pileSize")) { case "small": return 1.6f; case "large": return 4f; default: return 2.6f; }
         }
 
+        // (rundown, the coordinator's round 7: "a big empty dirt field with cones and five machines") a site in work is dense:
+        // spoil banked beside the dig with a loader and a dump truck at it, and laydown yards packed with materials.
+        // (the resource piles PileStone/PileSand draw empty without their storage building: the lorry loads and rubble heaps instead)
+        private static readonly string[] SpoilIds = { "RubblePileConcrete02", "RubblePileMixed01", "RubblePileConcrete04", "RubblePileMixed03" };   // (the ore loads are orange)
+        private static readonly string[] LaydownIds = { "Pallet01", "Pallet02", "Pallet03", "Pallet04", "OilPipe01", "CableReel01", "CableReel02", "GasBottlePallet01", "CratePile01", "CratePile02", "BarrelPile01", "Pallet02" };
+
+        /// <summary>Big spoil heaps in a row along the works' longest side (outside it), the machines loading from them.</summary>
+        private static void Spoil(Site s, Works w)
+        {
+            if (w.Ring == null || s.Subtype == "compound") return;
+            var ctx = s.Ctx;
+            var ring = Poly.EnsureCcw((float2[])w.Ring.Clone());
+            int best = 0; float bl = 0f;
+            for (int i = 0; i < ring.Length; i++) { float l = math.distance(ring[i], ring[(i + 1) % ring.Length]); if (l > bl) { bl = l; best = i; } }
+            // the long side farther from the gate
+            for (int pass = 0; pass < 2; pass++)
+            {
+                int e = (best + pass * (ring.Length / 2)) % ring.Length;
+                var a = ring[e]; var b = ring[(e + 1) % ring.Length];
+                var t = math.normalizesafe(b - a); var outN = new float2(t.y, -t.x);
+                
+                float len = math.distance(a, b);
+                int n = math.clamp((int)(len / 11f), 2, 7);
+                for (int k = 0; k < n; k++)
+                {
+                    var p = math.lerp(a, b, (k + 0.5f) / n) + outN * 8f;
+                    uint v = Hashing.Mix(ctx.Seed, 0x5B01u + (uint)k * 7u + (uint)pass);
+                    if (!s.Region.ContainsDisc(p, 5f) || !s.Occ.Free(p, 4.5f, 0.3f, 0f)) continue;
+                    var o = ctx.Object(p, math.atan2(t.x, t.y), ObjectRole.Furniture, AssetMix.Pick(SpoilIds, v), v, -1, AssetCategories.ConstructionPile);
+                    o.Scale = 1.5f + 0.5f * Hashing.Unit(Hashing.Mix(v, 1u));
+                    s.Occ.Take(p, 5f, 2);
+                    s.PilesPlaced++;
+                    w.Anchors.Insert(0, p - outN * 9f);   // the machines work between the heap and the dig
+                    if (k % 2 == 0 && SiteKit.Put(ctx, s.Occ, p - outN * 9f + t * 4f, math.atan2(outN.x, outN.y), AssetCategories.ConstructionMachine, s.Machines, 5.5f, v + 3u)) s.MachinesPlaced++;
+                }
+            }
+        }
+
+        /// <summary>One or two laydown yards near the gate: materials packed in rows with a forklift lane between.</summary>
+        private static void Laydown(Site s)
+        {
+            var ctx = s.Ctx;
+            if (SiteKit.Cat(ctx, s.Materials, AssetCategories.ConstructionMaterial) == null) return;
+            int yards = s.Ha > 1.2f ? 2 : 1;
+            if (s.Subtype == "compound") yards += 1;
+            var used = new List<float2>();
+            for (int y = 0; y < yards; y++)
+            {
+                if (!Spots.Find(s.Occ, 9f, Spots.Preference.NearBoundary, Hashing.Mix(ctx.Seed, 0x1A70u + (uint)y), out var c, used, 30f, 1f, 800)) break;
+                used.Add(c);
+                var axis = s.Axis; var side = s.Side;
+                for (int r = -2; r <= 2; r++)
+                    for (int k = -3; k <= 3; k++)
+                    {
+                        if (r == 0) continue;   // the lane
+                        var p = c + axis * (k * 2.5f) + side * (r * 2.6f);
+                        uint v = Hashing.Mix(ctx.Seed, 0x1A80u + (uint)(y * 97 + r * 13 + k));
+                        if (Hashing.Unit(v) < 0.15f) continue;   // a gap where something was taken
+                        if (!s.Region.ContainsDisc(p, 1.2f) || !s.Occ.Free(p, 1.1f, 0.1f, 0f)) continue;
+                        // one material per row, as a yard is kept
+                        var id = LaydownIds[(int)(Hashing.Mix(ctx.Seed, 0x1A90u + (uint)(y * 7 + r + 5)) % (uint)LaydownIds.Length)];
+                        ctx.Object(p, math.atan2(axis.x, axis.y), ObjectRole.Furniture, AssetMix.Pick(new[] { id }, v), v, -1, AssetCategories.ConstructionMaterial);
+                        s.Occ.Take(p, 1.2f, 2);
+                        s.StacksPlaced++;
+                    }
+            }
+        }
+
         private static void Materials(Site s, Works w)
         {
             var ctx = s.Ctx;
@@ -831,7 +925,7 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
                 if (!Spots.Find(s.Occ, 3.5f, Spots.Preference.Open, Hashing.Mix(ctx.Seed, 0xAC0u + (uint)i), out var p, spots, 10f, 1f, 400)) break;
                 spots.Add(p);
                 if (w.Inside(p)) continue;
-                if (SiteKit.Put(ctx, s.Occ, p, Hashing.Unit(Hashing.Mix(ctx.Seed, 0xAC1u + (uint)i)) * 6.283f, machine, s.Machines, 3f, 0xAC2u + (uint)i)) s.MachinesPlaced++;
+                if (SiteKit.Put(ctx, s.Occ, p, Hashing.Unit(Hashing.Mix(ctx.Seed, 0xAC1u + (uint)i)) * 6.283f, machine, s.Machines, 5.5f, 0xAC2u + (uint)i)) s.MachinesPlaced++;
             }
         }
 

@@ -24,7 +24,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
     [AreaGenerator(311, Group = "sports")]
     public sealed class UrbanRuinsLayer : LeisureLayer
     {
-        public static readonly string[] Subtypes = { "diySpot", "highwayRuins", "graffitiPark", "parkour", "dirtJumps" };
+        public static readonly string[] Subtypes = { "diySpot", "highwayRuins", "graffitiPark", "parkour", "dirtJumps", "buildingRuins" };
 
         protected override string Area => "Ruins";
         public override string Id => "urbanRuins";
@@ -40,20 +40,21 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             Feature("restrooms"),
             Feature("shops", ("count", 1.0), ("where", "entrances")),
             Feature("decals", ("theme", "graffiti"), ("ground", "paved"), ("density", 1.0)),
-            DecayKit.Relabel(Feature("bigtrees", ("density", 1.0)), "Placemaker.Ruins.Feature.bigtrees"),
+            DecayKit.Relabel(Feature("bigtrees", ("density", 0.3)), "Placemaker.Ruins.Feature.bigtrees"),
             Feature("terrain", ("shape", "mounds"), ("height", 1.0)),
             StreetShopsFeature(Area),
         };
 
         protected override void DefineControls(ControlSet c)
         {
-            c.Choice("subtype", "diySpot", ControlTier.Essential, "spot", Subtypes).Tip();
-            c.Slider("skateItems", 10, 0, 30, 1, "count", ControlTier.Essential, "spot").Tip();
+            // (rundown, 2026-10-30) the standard style is the ruined building: the skate spots are hidden on the Rundown shelf
+            c.Choice("subtype", "buildingRuins", ControlTier.Essential, "spot", Subtypes).Tip();
+            c.Slider("skateItems", 0, 0, 30, 1, "count", ControlTier.Essential, "spot").Tip();
             c.Slider("graffiti", 60, 0, 100, 5, "%", ControlTier.Essential, "spot").Tip();
-            c.Slider("decay", 50, 0, 100, 5, "%", ControlTier.Essential, "spot").Tip();
-            c.Slider("overgrowth", 35, 0, 100, 5, "%", ControlTier.Essential, "spot").Tip();
+            c.Slider("decay", 75, 0, 100, 5, "%", ControlTier.Essential, "spot").Tip();
+            c.Slider("overgrowth", 50, 0, 100, 5, "%", ControlTier.Essential, "spot").Tip();
 
-            c.Toggle("deck", true, ControlTier.More, "deck").Tip();
+            c.Toggle("deck", false, ControlTier.More, "deck").Tip();
             c.Choice("deckSide", "side", ControlTier.More, "deck", "centre", "side").When("deck=true").Tip();
             c.Slider("deckWidth", 14, 8, 24, 1, "m", ControlTier.More, "deck").When("deck=true");
             c.Slider("pillarSpacing", 16, 10, 30, 1, "m", ControlTier.More, "deck").When("deck=true").Tip();
@@ -61,8 +62,8 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             c.Slider("embankment", 0, 0, 4, 0.5, "m", ControlTier.More, "deck").When("deck=true").Tip();
             c.Toggle("markings", true, ControlTier.More, "deck").When("deck=true").Tip();
 
-            c.Slider("padShare", 45, 0, 80, 5, "%", ControlTier.More, "skate").Tip();
-            c.Slider("ledges", 4, 0, 20, 1, "count", ControlTier.More, "skate").Tip();
+            c.Slider("padShare", 0, 0, 80, 5, "%", ControlTier.More, "skate").Tip();
+            c.Slider("ledges", 0, 0, 20, 1, "count", ControlTier.More, "skate").Tip();
             c.Slider("bowl", 0, 0, 3, 0.25, "m", ControlTier.More, "skate").Tip();
             c.AssetMulti("rampAssets", AssetCategories.SportsSkate, ControlTier.More, "skate");
             c.Asset("padSurface", AssetCategories.SurfacePaving, ControlTier.More, "skate");
@@ -72,11 +73,11 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             c.Slider("jumpSpacing", 9, 6, 14, 0.5, "m", ControlTier.More, "yard").Tip();
             c.Slider("blocks", 0, 0, 40, 1, "count", ControlTier.More, "yard").Tip();
             c.Slider("blockSpacing", 4.5, 3, 8, 0.5, "m", ControlTier.More, "yard");
-            c.Slider("walls", 2, 0, 12, 1, "count", ControlTier.More, "yard").Tip();
+            c.Slider("walls", 0, 0, 12, 1, "count", ControlTier.More, "yard").Tip();
 
-            c.Slider("benches", 6, 0, 16, 1, "count", ControlTier.More, "amenities");
-            c.Toggle("lamps", true, ControlTier.More, "amenities");
-            c.Toggle("fence", false, ControlTier.More, "amenities");
+            c.Slider("benches", 0, 0, 16, 1, "count", ControlTier.More, "amenities");
+            c.Toggle("lamps", false, ControlTier.More, "amenities");
+            c.Toggle("fence", true, ControlTier.More, "amenities");
             c.Slider("fenceGaps", 50, 0, 100, 5, "%", ControlTier.More, "amenities").When("fence=true").Tip();
 
             c.AssetMulti("slabAssets", AssetCategories.RuinsSlab, ControlTier.More, "assets");
@@ -100,14 +101,18 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
         {
             Preset("diySpot", ("subtype", "diySpot"), ("deck", true), ("deckSide", "side"), ("collapse", 20.0), ("padShare", 55.0), ("skateItems", 12.0),
                 ("ledges", 6.0), ("bowl", 1.5), ("walls", 2.0), ("jumpLines", 0.0), ("blocks", 0.0), ("graffiti", 75.0), ("decay", 45.0), ("overgrowth", 30.0));
-            Preset("highwayRuins", ("subtype", "highwayRuins"), ("deck", true), ("deckSide", "centre"), ("deckWidth", 18.0), ("collapse", 65.0), ("padShare", 20.0),
-                ("skateItems", 4.0), ("ledges", 2.0), ("embankment", 3.0), ("walls", 0.0), ("graffiti", 40.0), ("decay", 90.0), ("overgrowth", 70.0), ("benches", 2.0));
+            Preset("highwayRuins", ("subtype", "highwayRuins"), ("deck", true), ("deckSide", "centre"), ("deckWidth", 18.0), ("collapse", 65.0), ("padShare", 0.0),
+                ("skateItems", 0.0), ("ledges", 0.0), ("bowl", 0.0), ("embankment", 3.0), ("walls", 0.0), ("graffiti", 40.0), ("decay", 90.0), ("overgrowth", 70.0), ("benches", 0.0), ("lamps", false));
             Preset("graffitiPark", ("subtype", "graffitiPark"), ("deck", true), ("deckSide", "side"), ("collapse", 0.0), ("padShare", 60.0), ("skateItems", 6.0),
                 ("ledges", 4.0), ("walls", 10.0), ("graffiti", 100.0), ("decay", 25.0), ("overgrowth", 20.0), ("benches", 10.0));
             Preset("parkour", ("subtype", "parkour"), ("deck", false), ("padShare", 20.0), ("skateItems", 2.0), ("ledges", 0.0), ("blocks", 30.0),
                 ("blockSpacing", 4.5), ("walls", 6.0), ("graffiti", 45.0), ("decay", 40.0), ("overgrowth", 25.0));
             Preset("dirtJumps", ("subtype", "dirtJumps"), ("deck", true), ("deckSide", "side"), ("deckWidth", 12.0), ("collapse", 80.0), ("padShare", 0.0),
                 ("skateItems", 0.0), ("ledges", 0.0), ("jumpLines", 3.0), ("jumpHeight", 1.75), ("walls", 0.0), ("graffiti", 30.0), ("decay", 60.0), ("overgrowth", 55.0));
+            // (rundown, 2026-10-29) the ruins of a building: floor slab, half walls, column stumps, a basement pit with old rainwater
+            Preset("buildingRuins", ("subtype", "buildingRuins"), ("deck", false), ("padShare", 0.0), ("skateItems", 0.0), ("ledges", 0.0), ("bowl", 0.0),
+                ("jumpLines", 0.0), ("blocks", 0.0), ("walls", 0.0), ("graffiti", 20.0), ("decay", 75.0), ("overgrowth", 50.0), ("benches", 0.0), ("lamps", false),
+                ("fence", true), ("fenceGaps", 55.0), ("embankment", 0.0));
         }
 
         private struct Span { public OrientedRect R; public bool Collapsed, Ramp; }
@@ -123,7 +128,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
         private static readonly Dictionary<string, GritAssets.Set> ArtSurfaces = new Dictionary<string, GritAssets.Set>(System.StringComparer.Ordinal)
         {
             [AssetCategories.SurfacePaving] = new GritAssets.Set(true, "EAI - Surface Pack Concrete Weathered Asphalt Surface|Pavement Surface 01|Concrete Surface 01"),
-            [AssetCategories.SurfaceAsphalt] = new GritAssets.Set(true, "EAI - Surface Pack Concrete Cracked Asphalt Surface|Oil Surface 01|Pavement Surface 01"),
+            [AssetCategories.SurfaceAsphalt] = new GritAssets.Set(true, "EAI - Surface Pack Concrete Cracked Asphalt Surface|Pavement Surface 01|Concrete Surface 01"),
         };
 
         /// <summary>(rf-sports) Road arrows and a speed number: the fallen carriageway reads as a highway (the marking pool's best were no-parking stripes).</summary>
@@ -221,8 +226,13 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                 }
             }
 
+            // ── 2b. (rundown) The ruins of a building (Building ruins).
+            var building = sub == "buildingRuins" ? BuildingRuins.Plan(ctx, region, occ, all, keep, centre, axis, major, minor, decay) : null;
+            if (building != null) { var fr = building.Footprint.Ring; all.Add(fr); keep.Add(fr); }
+
             // ── 3. Spans on the ground: fallen deck pieces (broken asphalt), the ramp.
             var fallen = new List<DecayKit.Slab>();
+            var fallenR = new List<(OrientedRect r, DecayKit.Slab s)>();
             string slabCat = null;
             int markings = 0, fallenSlabs = 0;
             bool wantMarkings = ctx.B("markings") && AssetAvailability.Has(AssetCategories.DecalMarkings);
@@ -242,6 +252,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                     continue;
                 }
                 fallen.Add(slab);
+                fallenR.Add((shrunk, slab));
                 // Faded lane markings on the fallen carriageway (dashes on the centre and lane lines).
                 if (wantMarkings)
                 {
@@ -307,7 +318,8 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             ctx.Check();
 
             // ── 5. Paths from the entrances to the nearest pad (or the deck / the middle).
-            foreach (var g in gates)
+            // (rundown) no laid paths into a ruin: people climb in over the rubble (a path across the lawn read as a park)
+            foreach (var g in sub == "buildingRuins" ? new List<Gate>() : gates)
             {
                 float2 target = region.DeepestPoint(out _, null, 12);
                 float best = float.MaxValue;
@@ -485,10 +497,30 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
 
             // ── 10. Overgrowth reclaiming the edges and the fallen deck; weeds in its cracks.
             string weedCat = over > 0f ? DecayKit.Cat(ctx, ctx.L("weedAssets"), AssetCategories.RuinsWeeds, AssetCategories.Bush) : null;
+            var weedIds = Rundown.RundownPlants.Or(ctx.L("weedAssets"), Rundown.RundownPlants.Scrub);   // never the teal automatic bushes
+            var treeIds = Rundown.RundownPlants.Or(ctx.L("treeSpecies"), Rundown.RundownPlants.Trees);
             int crackWeeds = 0;
-            foreach (var slab in fallen) crackWeeds += DecayKit.CrackWeeds(ctx, occ, slab.Cracks, over, ctx.L("weedAssets"), weedCat, 0xC3Bu + (uint)crackWeeds);
-            var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, over, 15f + 40f * over, ctx.L("weedAssets"), weedCat, ctx.L("treeSpecies"), 0x0F7u,
-                p => keep.Inside(p, 1.2f), 16f);
+            foreach (var slab in fallen) crackWeeds += DecayKit.CrackWeeds(ctx, occ, slab.Cracks, over, weedIds, weedCat, 0xC3Bu + (uint)crackWeeds);
+            if (building != null)
+            {
+                // weeds up through the floor and a few young trees inside the walls (birch and poplar seed into ruins first)
+                crackWeeds += DecayKit.CrackWeeds(ctx, occ, building.Floor.Cracks, math.saturate(over * 1.2f), weedIds, weedCat, 0xC3Cu);
+                foreach (var (_, ys) in building.Yards) crackWeeds += DecayKit.CrackWeeds(ctx, occ, ys.Cracks, math.saturate(over * 1.2f), weedIds, weedCat, 0xC3Du + (uint)crackWeeds);
+                int saplings = 1 + (int)(over * 4f);
+                for (int k = 0, tries = 0; k < saplings && tries < 40; tries++)
+                {
+                    uint v = Hashing.Mix(ctx.Seed, 0x5A91u + (uint)tries);
+                    var fp = building.Footprint;
+                    var p = fp.Local((Hashing.Unit(v) - 0.5f) * fp.HalfLength * 1.7f, (Hashing.Unit(Hashing.Mix(v, 1u)) - 0.5f) * fp.HalfWidth * 1.7f);
+                    if (building.Pit != null && Geometry.Poly.Contains(building.Pit, p)) continue;
+                    if (!occ.Free(p, 2f, 0.3f, 0.1f)) continue;
+                    var t = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 2u)) * 6.283f, ObjectRole.Tree, (ctx.L("treeSpecies") != null && ctx.L("treeSpecies").Length > 0 ? AssetMix.Pick(ctx.L("treeSpecies"), v) : AssetMix.Pick(new[] { "BirchTree01", "EU_PoplarTree01", "EU_AlderTree01" }, v)), v, 0, AssetCategories.Tree);
+                    occ.Take(p, 2f, 2);
+                    k++;
+                }
+            }
+            var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, over, 4f + 18f * over, weedIds, weedCat, treeIds, 0x0F7u,
+                p => keep.Inside(p, 1.2f), 16f, sub == "buildingRuins" ? 0.85f : 0.4f);
             ctx.Check();
 
             // ── 11. Wear on the pads: cracks and graffiti along their edges.
@@ -509,6 +541,9 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                     }
                 }
             }
+
+            // ── 12. (rundown) The designed ground (library decals): old concrete, weedy cracks, lane lines, rubble, stagnant water.
+            UrbanRuinsGround.Dress(ctx, sub, decay, over, pads, fallenR, building);
 
             EmitGreenRegions(ctx, occ, 60f);
             CommonStats(ctx);

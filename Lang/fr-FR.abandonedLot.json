@@ -102,5 +102,11 @@
   "Placemaker.Stat.RubblePiles": "Gravats",
   "Placemaker.Stat.JunkItems": "Rebuts",
   "Placemaker.Stat.Foundations": "Fondations",
-  "Placemaker.Stat.Shelters": "Abris"
+  "Placemaker.Stat.Shelters": "Abris",
+  "Placemaker.Abandoned.subtype.brokenCarPark": "Vieux parking",
+  "Placemaker.Abandoned.subtype.burntOut": "Terrain incendié",
+  "Placemaker.Abandoned.subtype.emptyLot": "Terrain vague",
+  "Placemaker.Abandoned.Preset.brokenCarPark": "Vieux parking",
+  "Placemaker.Abandoned.Preset.burntOut": "Terrain incendié",
+  "Placemaker.Abandoned.Preset.emptyLot": "Terrain vague"
 }
