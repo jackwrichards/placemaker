@@ -1,5 +1,5 @@
 {
-  "_about": "Make-row category 'Parks' (Core/Tool/Shelf.cs; one file per category). Hide, never delete: type ids in hiddenTypes, style (preset) ids per type in hiddenStyles ({\"park\": [\"pocket\"]}), types moved in from another group in types. Hidden things keep their code and the game runner still builds them by id. Gardens fold into Parks. rf-parks (2026-10-16): cut to the best of the best, see docs/refactor/parks.md; picnic grounds fold into Park as the 'picnic' style. rf-shops2: the amphitheatre (Amphitheatre, Bandstand lawn) moves in from Shops & squares (the user: they belong in parks).",
+  "_about": "Make-row category 'Parks' (Core/Tool/Shelf.cs; one file per category). Hide, never delete: type ids in hiddenTypes, style (preset) ids per type in hiddenStyles ({\"park\": [\"pocket\"]}), types moved in from another group in types. Hidden things keep their code and the game runner still builds them by id. Gardens fold into Parks. rf-parks (2026-10-16): cut to the best of the best, see docs/refactor/parks.md; picnic grounds fold into Park as the 'picnic' style. rf-shops2: the amphitheatre (Amphitheatre, Bandstand lawn) moves in from Shops & squares (the user: they belong in parks). Parks makeover (2026-10-29/30, docs/runbooks/parks.md): two new park styles, Country park (wild) and Neglected; every park, botanical garden, memorial park and adventure playground gets places with moods (gully, rocky knoll, wet hollow, meadow, copse, standing stones) and the parks' decal ground; the zen tea garden is hidden (in a clean game it is a block of trees). Dog runs are the park's Dog run amenity; picnic grounds are the Picnic lawn style.",
   "id": "parks",
   "name": "Parks",
   "order": 3,
@@ -44,7 +44,8 @@
     ],
     "zenGarden": [
       "moss",
-      "bamboo"
+      "bamboo",
+      "tea"
     ],
     "amphitheatre": [
       "cinema",

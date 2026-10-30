@@ -248,7 +248,7 @@ namespace Placemaker.Core.Layers.Park
             PresetFeatures("picnic", "-flowerbeds");
             // Makeover (2026-10-29), the user: "maybe some parks are more genuine ... rural, urban; fenced and unfenced". The country
             // park: native groves and long grass, a fence of its own, dirt trails, rustic benches, no lamps or loose flowerbeds.
-            Preset("wild", ("style", "wild"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 30.0), ("bushDensity", 85.0),
+            Preset("wild", ("style", "wild"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 22.0), ("bushDensity", 70.0),
                 ("furniture", 2.0), ("lamps", false), ("bins", false), ("belt", true), ("curvedPaths", true), ("naturalGround", true), ("naturalLayer", 1.0),
                 ("animals", true), ("trails", 2.0), ("trailStyle", "painted"), ("desireLines", "worn"), ("fence", true), ("benchAsset", "CampgroundBench01"), ("carPark", true));
             PresetFeatures("wild", "-flowerbeds", "-playground", "-restrooms", "-bigtrees");

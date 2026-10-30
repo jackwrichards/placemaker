@@ -81,3 +81,20 @@ Leaves: the sports park's summer carpets read as mustard yellow under green birc
 - The knoll came out at half its height: SiteHarmony smoothed the change field (20 passes). Mood regions are protected now.
 - Places 8-20 m read as nothing from 45° in a 150 m block: hero places 22-28 % of the side.
 - Mood facts doubled (a layer can be planned twice on one plan): facts are set from local counts.
+
+## The CullForCascades crash (AGENTS.md "known bugs")
+
+Met again in run `20261030-001417-bushes` (a fresh game, the 4th build, tiny parks with no terraform at all): a native
+crash freeing memory in `NativeList<LaneSection>.set_Capacity` inside `TerrainSystem.CullForCascades`.
+
+Why (decompiled `Game.Simulation.TerrainSystem`): the road cull list is sized 6 sections per road-group entity
+(`m_RoadsGroup` count × 6 + max(n/4, 250)) and filled by `CullRoadsJob` with `AddNoResize`, which does not check the
+capacity in a release build. One edge can write up to 18 sections (`AddSegment` writes 1-3 per segment; 2 segments for the
+edge and up to 2 for each end node; the extra ones for terrain-shifting nets with offsets). Builds of many short paths push
+the list past its capacity; the job writes over the next heap block; the crash surfaces at the next resize. The 250
+margin explains "the 4th build".
+
+Workaround (`Game/Build/TerrainCullGuard.cs`, called at the start of `EmitNets`, build and ghost): complete every job that
+touches the list (`m_CullFinished`, `m_LaneCull`, `m_ClipMapCull`, each cascade's `m_LaneHandle`), then make its capacity
+at least 2 × its current length + 18 × the nets we add + 2000. The vanilla rule still grows it; we only keep it from
+overflowing. It logs when it grows the list and warns if it ever finds the list already longer than its capacity.

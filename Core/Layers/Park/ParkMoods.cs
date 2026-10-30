@@ -554,6 +554,21 @@ namespace Placemaker.Core.Layers.Park
                 o.Pitch = (U(3) - 0.5f) * tilt; o.Roll = (U(4) - 0.5f) * tilt;
                 _mine.Add((q, r * 0.6f));
                 Rocks++;
+                // a boulder never sits alone on the turf: broken pieces lie at its foot, more on its downhill side (a boulder
+                // dropped on the lawn read as a prop, run show-24-builds-1030-001417-7e24)
+                int bits = 2 + (int)(U(5) * 3f);
+                for (int i = 0; i < bits; i++)
+                {
+                    float a = U(6 + i) * 6.283f;
+                    float d = r * (0.55f + 0.45f * U(12 + i));
+                    var p = q + new float2(math.cos(a), math.sin(a)) * d;
+                    if (_s.Occ.Corridors.Overlaps(p, 0.6f, 0.5f) || !Mine(p, -1f) || Reserved(p, 0.6f)) continue;
+                    var o2 = _ctx.Object(p, U(20 + i) * 6.283f, ObjectRole.Furniture, new AssetRef(Pick(Stones, 30 + i), Stones), Var(), -1, AssetCategories.Rock);
+                    o2.Scale = 0.7f + 1.3f * U(40 + i) * math.saturate(scale + 0.3f);
+                    o2.Elevation = -0.15f * o2.Scale;
+                    o2.Pitch = (U(50 + i) - 0.5f) * 0.6f; o2.Roll = (U(60 + i) - 0.5f) * 0.6f;
+                    Rocks++;
+                }
                 return true;
             }
 

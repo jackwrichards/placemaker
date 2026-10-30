@@ -123,7 +123,7 @@ namespace Placemaker.Core.Layers.Park
         /// <summary>(makeover) Country park: a rough, genuine park of the edge of town: native groves, long grass, trails, few lamps.</summary>
         public static readonly ParkStyle Wild = new ParkStyle
         {
-            Id = "wild", GroveCoverage = 0.3f, GroveScale = 1.2f, TreeGroveShare = 0.62f, TreeBeltShare = 0.25f, TreeSolitaireCap = 0.13f,
+            Id = "wild", GroveCoverage = 0.24f, GroveScale = 1.2f, TreeGroveShare = 0.62f, TreeBeltShare = 0.25f, TreeSolitaireCap = 0.13f,
             BushGroveShare = 0.55f, BushBeltShare = 0.4f, ClearingFactor = 0.55f, Curved = true, GroundPatches = 2f,
         };
 
