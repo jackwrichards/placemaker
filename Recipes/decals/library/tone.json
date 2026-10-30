@@ -21,8 +21,8 @@
     },
     {
       "id": "mowingStripes", "name": "Mowing stripes", "tier": "macro",
-      "about": "Light and dark bands from a mower going up and down (along x), 5-6 m each like a real pitch, a little uneven: they read from far away. No fade across: rows laid side by side join without a line. Order 3: the pitch's own turf is a surface decal drawn in the same queue range; at order -1 the pieces whose variant index put them low vanished under it (broken bands, 2026-10-30).",
-      "texel": 0.08, "layers": "terrain", "order": 3, "lod": 80, "maxTexels": 256,
+      "about": "Light and dark bands from a mower going up and down (along x), 5-6 m each like a real pitch, a little uneven: they read from far away. No fade across: rows laid side by side join without a line.",
+      "texel": 0.08, "layers": "terrain", "order": -1, "lod": 80, "maxTexels": 256,
       "edge": { "feather": 0.5, "warp": 0, "warpScale": 4, "round": 0 },
       "variants": { "count": 1, "size": [14, 18], "aspect": [1, 1], "tile": "x", "width": [11, 11], "strength": [1, 1] },
       "ops": [

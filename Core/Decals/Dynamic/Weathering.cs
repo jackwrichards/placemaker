@@ -428,12 +428,15 @@ namespace Placemaker.Core.Decals.Dynamic
                 // a run fades at its ends, so short runs broke every band (the user, 2026-10-30)
                 float width = DecalVariants.FootprintOf(k, 0).y;
                 int rows = math.max(1, (int)math.floor(halfW * 2f / width));
+                // never thinned: a huge or busy site drops whole strip pieces, and a mowing row with a piece missing reads broken
+                float keep = _b.Density; _b.Density = 1f;
                 for (int i = 0; i < rows; i++)
                 {
                     float v = (i - (rows - 1) * 0.5f) * width;
                     var a = c + side * v - axis * (halfL + 1.5f); var b = c + side * v + axis * (halfL + 1.5f);
                     Brushes.EdgeStrip(_b, new[] { a, b }, "mowingStripes", new StripOptions { Gaps = 0f, Run = new float2(1000f, 1000f), Opacity = new float2(0.9f, 0.9f), Width = new float2(1f, 1f), Level = ColourLevel.Quiet, Cause = "tone:stripes" });
                 }
+                _b.Density = keep;
             }
 
             private static float2 LongAxis(float2[] ring)

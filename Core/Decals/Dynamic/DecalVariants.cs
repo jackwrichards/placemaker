@@ -123,7 +123,7 @@ namespace Placemaker.Core.Decals.Dynamic
     public static class DecalVariants
     {
         /// <summary>Bump when the generator or baking changes pixels: disk caches key on it.</summary>
-        public const int GeneratorVersion = 8;   // 8: stripes order 3 (forces a fresh game for the runner); 6: the mask's blue follows the coverage (DecalGenerator); 7: linear albedo (SharedDecals)
+        public const int GeneratorVersion = 9;   // 9: stripes back to order -1; 6: the mask's blue follows the coverage (DecalGenerator); 7: linear albedo (SharedDecals)
         /// <summary>Index offsets of a strip's end caps: CapEnd + i fades out toward +x, CapStart + i toward −x.</summary>
         public const int CapEnd = 100, CapStart = 200;
 
