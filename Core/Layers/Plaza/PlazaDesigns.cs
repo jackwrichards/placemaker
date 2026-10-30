@@ -60,6 +60,9 @@ namespace Placemaker.Core.Layers.Plaza
         {
             var k = new Kit(ctx, occ, region, gates, palette, pave, axis, fountainChild);
             ctx.Plan.Facts["plazaDesign"] = Array.IndexOf(Ids, design);
+            // (round 3) a real square's size in the middle of a big site, a surround in the design's manner round it (Surround.cs);
+            // the transit forecourt keeps its whole site (its platform runs along the street)
+            k.CapBox(design == "transit");
             switch (design)
             {
                 case "grand": Grand(k); break;
@@ -81,7 +84,7 @@ namespace Placemaker.Core.Layers.Plaza
                 default: Piazza(k); break;
             }
             ctx.Check();
-            k.FillLeftover();
+            if (k.Capped) k.Surround(SurroundManner(design)); else k.FillLeftover();
             ctx.Check();
             // The square's edge lamps in one rhythm (designs light their own walks first; these fill the outline).
             PlazaDressing.Lighting(ctx, occ, region, gates, k.C, 0f, k.Lamp);
@@ -938,7 +941,7 @@ namespace Placemaker.Core.Layers.Plaza
             public readonly PavingPalette P;
             public readonly PavingPlan Pave;
             public float2 A, S;
-            public readonly float2 C;
+            public float2 C;   // (round 3) moved by the transit forecourt toward its street on a big site
             /// <summary>Half sizes of the box (on A and S) round C the composition is laid in.</summary>
             public float HA, HB;
             /// <summary>Half sizes of the box to its real edge on the outline (HA/HB reach the frame margin past it).</summary>

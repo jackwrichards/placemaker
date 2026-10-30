@@ -29,6 +29,16 @@ namespace Placemaker.Core.Layers.Plaza
             var n = new float2(k.Ctx.Plan.Facts.TryGetValue("frontX", out var fx) ? (float)fx : 0f, k.Ctx.Plan.Facts.TryGetValue("frontY", out var fy) ? (float)fy : 1f);
             if (math.abs(math.dot(n, k.A)) > math.abs(math.dot(n, k.S))) k.TurnQuarter();
             if (math.dot(n, k.S) < 0f) k.Flip();
+            // (round 3) a big site: the forecourt keeps a real square's size along its street, a park behind it
+            if (k.HA > CapA + 6f || k.HB > CapB + 6f)
+            {
+                PlazaDressing.Extents(k.Region, k.C, k.A, out _, out _, out float minB, out _);
+                float hb0 = k.HB;
+                k.HA = math.min(k.HA, CapA); k.HB = math.min(k.HB, CapB);
+                k.C += k.S * (minB + k.HB + 0f) * (hb0 > k.HB ? 1f : 0f);
+                k.Capped = true;
+                k.Ctx.Plan.Facts["designCapped"] = 1;
+            }
             float ea = k.EA, eb = k.EB;
             if (ea < 10f || eb < 9f) { Piazza(k); return; }
             bool bikes = k.Ctx.Plan.Facts.TryGetValue("transitBikes", out var bf) && bf > 0;
@@ -87,6 +97,18 @@ namespace Placemaker.Core.Layers.Plaza
                     bool onWalk = false;
                     foreach (float uw in walks) if (math.abs(math.dot(p - k.C, k.A) - uw) < 4.5f) onWalk = true;
                     if (onWalk) continue;
+                    if (big)
+                    {
+                        // (round 3, the lead: "the transit grove is still open") rooms, not one grid: a third of the forecourt is open
+                        // paving with a cafe corner and a kiosk, the rest groves, by zones across and bands of ~22 m
+                        int zi = (int)((u + ea) / (2f * ea / 3f)), bi = (int)((v - vp - 10f) / 22f);
+                        if (((zi + bi * 2) % 3) == 1)
+                        {
+                            if (((iu + iv) % 4) == 0) k.CafeSet(p, k.Phase + 0.3f * iu, true, true);
+                            else if (((iu + iv) % 7) == 3) k.Stall(p, -k.S, true);
+                            continue;
+                        }
+                    }
                     if (big && trees > 0 && (iu % 2) == 0 && ((iu / 2 + iv) % 3) == 1 && v + 5f < eb && math.distance(p, focal) > 14f)
                     {
                         // a lawn island: grass in a dark kerb, two trees, benches facing out on its long sides

@@ -66,6 +66,7 @@ namespace Placemaker.Core.Decals.Dynamic
             _stalls = new List<Thing>(), _gates = new List<Thing>(), _skate = new List<Thing>(), _bollards = new List<Thing>();
         private readonly List<(float2 a, float2 b)> _walls = new List<(float2, float2)>();
         private float2 _centre;
+        private readonly List<float2[]> _aisles = new List<float2[]>();
         private BrushArea _hard, _site2;
         private PointGrid _surfGrid;
 
@@ -106,6 +107,7 @@ namespace Placemaker.Core.Decals.Dynamic
             foreach (var l in _layers)
             {
                 if (l.Facts.TryGetValue("grungy", out var g) && g > 0) _grungy = true;
+                foreach (var rg in l.Regions) if (rg?.Key != null && rg.Key.StartsWith("aisle:", StringComparison.Ordinal) && rg.Ring.Length >= 4) _aisles.Add(Poly.To2D(rg.Ring));
                 foreach (var s in l.Surfaces)
                 {
                     if (s?.Ring == null || s.Ring.Length < 3) continue;
@@ -416,6 +418,15 @@ namespace Placemaker.Core.Decals.Dynamic
                     if (U(501, i) < 0.5f * A) Brushes.At(_b, g + dir * 1.5f, dir, "cigaretteButts", 2.2f, Op(0.6f, 0.95f), 1, ColourLevel.Any, "feet:butts");
                 }
             }
+            // market aisles: a lane polished down the middle of each, gum and spills along it
+            for (int i = 0; i < _aisles.Count; i++)
+            {
+                var r = _aisles[i];
+                var m0 = (r[0] + r[3]) * 0.5f; var m1 = (r[1] + r[2]) * 0.5f;
+                if (math.distance(r[0], r[1]) < math.distance(r[1], r[2])) { m0 = (r[0] + r[1]) * 0.5f; m1 = (r[2] + r[3]) * 0.5f; }
+                Brushes.EdgeStrip(_b, new[] { m0, m1 }, "pavingWearStrip", new StripOptions { Gaps = 0.1f, Run = new float2(12f, 30f), Opacity = Op(0.55f, 0.9f), Width = new float2(0.8f, 1f), Level = ColourLevel.Quiet, Cause = "feet:aisle" });
+                Brushes.Scatter(_b, BrushArea.Of(r), "gumField", 0.12f * math.min(1.4f, A), new ScatterOptions { Opacity = Op(0.5f, 0.85f), Clump = 2f, Loners = 0.4f, Cause = "feet:aisle" });
+            }
             // benches: the busiest get gum and crumbs in front, butts at some
             for (int i = 0; i < _benches.Count && i < 40; i++)
             {
@@ -443,6 +454,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 if (U(530, i) < 0.75f * math.min(1.3f, A)) Brushes.At(_b, q, f, "gumField", Range(3.5f, 5f, 531, i), Op(0.5f, 0.85f), 0, ColourLevel.Any, "feet:stall");
                 if (U(532, i) < 0.5f * A) Brushes.At(_b, q + f * 0.5f, f, "drinkSpill", 1.5f, Op(0.5f, 0.85f), 1, ColourLevel.Any, "feet:spill");
                 if (U(533, i) < 0.4f * A) Brushes.At(_b, t.P - f * 1.2f, -f, "litterMix", 2.2f, Op(0.5f, 0.85f), 0, ColourLevel.Any, "feet:stallBack");
+                if (t.Id.StartsWith("Food", StringComparison.Ordinal) && U(534, i) < 0.8f) Brushes.At(_b, t.P + f * 1.2f, f, "cafeStains", 3.4f, Op(0.65f, 0.95f), 1, ColourLevel.Any, "feet:foodStall");
             }
             // bins: litter round them, a spill, rust at the foot of the steel ones
             for (int i = 0; i < _bins.Count && i < 30; i++)

@@ -81,10 +81,13 @@ namespace Placemaker.Core.Layers.Plaza
             foreach (float sv in new[] { -1f, 1f })
             {
                 // row pairs: aisle | row facing it | row back to back | aisle ...
-                float v = half + aisle;
+                float v = half + aisle, aisleFrom = half;
+                int ai = 0;
                 int pair = 0;
                 while (v + depth * 2f <= ib + 0.5f)
                 {
+                    // the aisle in front of this row pair: the ground design wears a lane down it (PlazaGround, regions "aisle:")
+                    k.Ctx.AddRegion(k.Box(-ia + 1f, ia - 1f, sv > 0 ? aisleFrom : -v, sv > 0 ? v : -aisleFrom).Ring, "aisle:" + (sv > 0 ? "n" : "s") + ai++, "aisle");
                     foreach (int side in new[] { 0, 1 })
                     {
                         float rv = v + depth * (side + 0.5f);
@@ -107,6 +110,7 @@ namespace Placemaker.Core.Layers.Plaza
                             }
                         }
                     }
+                    aisleFrom = v + depth * 2f;
                     v += depth * 2f + aisle * (1f + (1f - density) * 2.2f);
                     pair++;
                 }
@@ -133,6 +137,8 @@ namespace Placemaker.Core.Layers.Plaza
             for (int i = 0; i < n; i++)
                 k.Ctx.Object(p - facing * 0.6f + side * ((i - (n - 1) * 0.5f) * 1.05f + 1.4f * (i % 2 == 0 ? 1f : -1f)), yaw + (i % 2) * 1.57f, ObjectRole.Furniture,
                     AssetMix.Pick(Produce, Hashing.Mix(v, 13u + (uint)i)), Hashing.Mix(v, 17u + (uint)i), -1, AssetCategories.RuinsJunk);
+            if (Hashing.Unit(Hashing.Mix(v, 29u)) < 0.35f)
+                k.Ctx.Object(p + facing * 1.6f + side * 1.8f, yaw + 0.8f, ObjectRole.Furniture, AssetMix.Pick(Boxes, Hashing.Mix(v, 31u)), Hashing.Mix(v, 37u), -1, AssetCategories.RuinsJunk);
             k.Occ.Take(p, 2.1f, 1);
             return true;
         }

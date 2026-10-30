@@ -52,13 +52,14 @@ namespace Placemaker.Core.Layers.Plaza
             float R = 0f, bank = 2f, slope = TierRise / TierDepth;
             for (int it = 0; it < 4; it++)
             {
-                R = math.min(2f * ea - stageDepth - 6f, eb - 5f) - bank;
-                float h = math.max(0f, R - math.clamp(R * 0.26f, 5f, 11f)) * slope;
-                if (h > 6f) slope = 6f / math.max(1f, R - math.clamp(R * 0.26f, 5f, 11f));
+                // (round 3, the lead: "a huge flat white fan") the bowl takes about 70 % of the box's width, at most 34 m
+                R = math.min(math.min(2f * ea - stageDepth - 14f, eb * 0.72f) - bank, 34f);
+                float h = math.max(0f, R - math.clamp(R * 0.32f, 7f, 12f)) * slope;
+                if (h > 6f) slope = 6f / math.max(1f, R - math.clamp(R * 0.32f, 7f, 12f));
                 bank = math.max(2f, h / 0.42f);
             }
             if (R < 14f) { Piazza(k); return; }
-            float r0 = math.clamp(R * 0.26f, 5f, 11f);
+            float r0 = math.clamp(R * 0.32f, 7f, 12f);
             int rows = (int)math.floor((R - r0) / TierDepth);
             R = r0 + rows * TierDepth;
             float top = rows * TierDepth * slope;
@@ -85,7 +86,7 @@ namespace Placemaker.Core.Layers.Plaza
                 return float.NaN;
             }
             // ── the ground: an orchestra disc, the cone in 6-degree quads, the bank behind it, the stage floor ──
-            float sv = r0 + 4f;
+            float sv = r0 + 7f;
             const float StageRise = WallH;
             float sf = uF - r0 * 0.55f;   // the stage front: a chord across the back of the orchestra
             var stage = k.Box(s0 + 1.2f, sf, -sv, sv);
@@ -194,8 +195,9 @@ namespace Placemaker.Core.Layers.Plaza
                     bool hitsAisle = false;
                     foreach (float aa in aisleAngles) if (math.abs(mid - aa) * r < 1.6f) { hitsAisle = true; break; }
                     if (hitsAisle) continue;
-                    k.Lay(PFeature - 4, PavingShapes.Band(P(r - 0.1f, a), P(r - 0.1f, a1), 0.42f), k.P.Band);
-                    k.Wall(P(r, a), P(r, a1), 1, null, WallH - 0.3f, false);
+                    k.Lay(PFeature - 4, PavingShapes.Band(P(r - 0.3f, a), P(r - 0.3f, a1), 0.62f), k.P.Band);
+                    if (t % 3 == 0) k.Lay(PFeature - 3, PavingShapes.Band(P(r - TierDepth * 0.5f, a), P(r - TierDepth * 0.5f, a1), TierDepth * 0.5f), k.P.Inlay);
+                    k.Wall(P(r, a), P(r, a1), 1, null, WallH - 0.45f, false);
                 }
             }
             // the stone ends of the bowl: low cheek walls along both ends
@@ -237,9 +239,21 @@ namespace Placemaker.Core.Layers.Plaza
             k.Ctx.Object(sc, yaw, ObjectRole.Furniture, new AssetRef(k.Ctx.S("stageAsset") is string st && st.Length > 0 ? st : "StageSmall01", "StageSmall01"), k.V(0x57A6u), -1, AssetCategories.Stage);
             k.Occ.Take(sc, 4.5f, 0);
             var wa = k.W(s0 + 1.6f, -sv + 0.5f); var wb = k.W(s0 + 1.6f, sv - 0.5f);
-            k.Wall(wa, wb, 3);
+            k.Wall(wa, wb, 4);
             // a colonnade along the back of the stage (a pergola row), the skene of a real theatre
-            k.Canopy(k.W(s0 + 1.9f, sv - 1f), k.W(s0 + 1.9f, -sv + 1f), 1, "PergolaModular07", false);
+            k.Canopy(k.W(s0 + 1.9f, sv - 1f), k.W(s0 + 1.9f, -sv + 1f), 2, "PergolaModular07", false);
+            foreach (float s in new[] { -1f, 1f })
+            {
+                // the skene's towers: a gazebo on a walled base at each end of the stage
+                var tc = k.W(s0 + 3f, s * (sv + 3.4f));
+                for (int e = 0; e < 4; e++)
+                {
+                    float an = k.Phase + e * math.PI * 0.5f + math.PI * 0.25f;
+                    var q0 = tc + new float2(math.cos(an), math.sin(an)) * 3f; var q1 = tc + new float2(math.cos(an + math.PI * 0.5f), math.sin(an + math.PI * 0.5f)) * 3f;
+                    k.Wall(q0, q1, 2, null, 0f, false);
+                }
+                k.Gazebo(tc, k.Phase, s > 0 ? 1u : 2u, true);
+            }
             foreach (float s in new[] { -1f, 1f }) k.BigFlag(k.W(s0 + 2.6f, s * (sv - 1.2f)), true);
             foreach (var p in LeisureKit.Along(k.W(s0 - 1f, -sv), k.W(s0 - 1f, sv), 4.5f))
                 if (k.Region.ContainsDisc(p, 2f)) k.Tree(p, false, Poplars, 1.2f);
@@ -248,10 +262,29 @@ namespace Placemaker.Core.Layers.Plaza
             foreach (float s in new[] { -1f, 1f })
                 for (float u = s0 + 3f; u < uF - 2f; u += 5f)
                     k.Seat(k.W(u, s * (sv + 3.2f)), -k.S * s);
-            if (s0 + ea > 10f)
+            if (s0 + ea > 8f)
             {
-                k.Lay(PFeature + 7, k.Box(-ea, s0 - 0.5f, -sv - 4f, sv + 4f).Ring, k.P.Path);
-                foreach (var p in LeisureKit.Along(k.W(s0 - 5f, -sv - 2f), k.W(s0 - 5f, sv + 2f), 8f)) k.Tree(p, true, PlazaArt.PlaneTrees);
+                // the entrance court behind the stage: an avenue of trees in pits on both sides, a kiosk at each end, benches
+                float cu0 = -ea, cu1 = s0 - 0.8f, cvw = math.min(sv + 6f, eb - 2f);
+                k.Lay(PFeature + 7, k.Box(cu0, cu1, -cvw, cvw).Ring, k.P.Path);
+                k.Lay(PKerb, PavingShapes.Frame(k.Box(cu0, cu1, -cvw, cvw).Ring, 0.8f), k.P.Band);
+                foreach (float s in new[] { -1f, 1f })
+                {
+                    for (float v = 4f; v <= cvw - 3f; v += 7f) k.Tree(k.W((cu0 + cu1) * 0.5f, s * v), true, PlazaArt.PlaneTrees);
+                    k.Stall(k.W((cu0 + cu1) * 0.5f, s * (cvw - 2.5f)), -k.S * s, true);
+                    foreach (var q in LeisureKit.Along(k.W(cu0 + 2f, s * 2.5f), k.W(cu1 - 2f, s * 2.5f), 4f)) k.Seat(q, -k.S * s);
+                }
+            }
+            // the lawns either side of the bowl: grass terraces of picnic blankets facing the stage, tree groups beyond
+            foreach (float s in new[] { -1f, 1f })
+            {
+                for (float u = s0 + 4f; u < uF + R * 0.6f; u += 3.2f)
+                    for (float v = R + bank + 3f; v < eb - 6f; v += 3.4f)
+                    {
+                        var q = k.W(u, s * v);
+                        if (Hashing.Unit(k.V(0x7EB1u)) < 0.35f)
+                            LeisureKit.Put(k.Ctx, k.Occ, q, math.atan2(-k.S.x * s, -k.S.y * s), ObjectRole.Furniture, new AssetRef(AssetMix.Pick(Blanket, k.V(0x7EB2u)).Id), AssetCategories.Picnic, 1.2f, k.V(0x7EB3u), 0.1f, 0.05f);
+                    }
             }
             // the lawn's far side: trees in loose groups with benches
             for (float u = uF + R + bank + 4f; u < ea - 2f; u += 9f)

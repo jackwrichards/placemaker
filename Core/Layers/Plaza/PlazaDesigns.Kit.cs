@@ -38,6 +38,7 @@ namespace Placemaker.Core.Layers.Plaza
         private static readonly string[] StallIds = { "FoodStall01", "FoodStall03", "FoodStall02" };
         private static readonly string[] KioskIds = { "Kiosk01", "Kiosk02", "Kiosk03" };
         private static readonly string[] HighHedges = { "HedgePieceHigh01", "HedgePieceHigh02" };
+        private static readonly string[] GreenCityBushes = { "GreenBushCity01", "GreenBushCity02", "GreenBushCity03" };
         private static readonly string[] BoxPlanters = { "GreenBushCity01", "FlowerBushCity01", "GreenBushCity02", "FlowerBushCity02" };
         private static readonly string[] RaisedBedIds = { "GardenBed02WideHigh", "GardenBed03WideHigh", "GardenBed01WideHigh" };
         internal const float WallH = 0.9f;
@@ -572,7 +573,11 @@ namespace Placemaker.Core.Layers.Plaza
                     for (int i = 0; i < 4; i++)
                     {
                         float an = Phase + i * math.PI * 0.5f;
-                        Flowerbed(c + new float2(math.cos(an), math.sin(an)) * math.min(1.4f, apothem * 0.4f), an);
+                    {
+                        // (round 3, the lead: the flowerbeds in the basin drew teal-blue) green shrubs in the dry basin
+                        uint gv = V(0xF1B0u);
+                        Ctx.Object(c + new float2(math.cos(an), math.sin(an)) * math.min(1.4f, apothem * 0.4f), an, ObjectRole.Planter, AssetMix.Pick(GreenCityBushes, gv), gv, -1, AssetCategories.Planter);
+                    }
                     }
                 Occ.Take(c, rv + 1.6f, 0);
                 Ctx.Plan.Facts["fountainDrum"] = 1;
