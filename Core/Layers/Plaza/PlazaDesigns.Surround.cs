@@ -125,6 +125,7 @@ namespace Placemaker.Core.Layers.Plaza
             /// </summary>
             private void WildPiece(float2[] piece, ref int trees)
             {
+                float2[] bareLater;
                 var lr = LayerRegion.From(piece);
                 if (lr == null) return;
                 if (_paint == null)
@@ -132,6 +133,8 @@ namespace Placemaker.Core.Layers.Plaza
                     _paint = new Placemaker.Core.Paint.PaintKit(Ctx.Plan.Paint, Ctx.H, Hashing.Mix(Ctx.Seed, 0x51D0u)) { MaxPaints = 200, Outline = Region.Ring };
                     Ctx.Issue(IssueSeverity.Warning, TerrainPaint.PermanentKey);
                 }
+                // bare terrain, not paving: the piece is a hole in the square's paving field (the asphalt lot is laid first)
+                bareLater = piece;
                 // rank dry grass over everything, dirt worn through in patches
                 _paint.Fill(piece, TerrainMaterials.Dry, 0.85f, 2f, 0.8f);
                 _paint.Speckle(piece, TerrainMaterials.Dirt, 0.75f, 9f, 0.35f);
@@ -151,7 +154,8 @@ namespace Placemaker.Core.Layers.Plaza
                     var lot = LayerRegion.Rect(lotC, dirLong, lotL * 0.5f, lotW * 0.5f);
                     if (Fits(lot, 1f))
                     {
-                        Lay(PFeature + 9, lot, new AssetRef(GroundSurfaces.VAsphalt), SurfaceRole.Asphalt, AssetCategories.SurfaceAsphalt);
+                        // straight into the paving plan before the hole below (the kit's own lays come later and would be cut by it)
+                        Pave.Add(lot, SurfaceRole.Asphalt, new AssetRef(GroundSurfaces.VAsphalt), AssetCategories.SurfaceAsphalt);
                         // a skip and pallets at one end, cones from the last market day
                         Prop(this, lotC + dirLong * (lotL * 0.5f - 3f), math.atan2(side.x, side.y), "TrashContainerEmpty03", "industrial.skip", 2f);
                         Prop(this, lotC - dirLong * (lotL * 0.5f - 2f) + side * 3f, 0.5f, "Pallet01", AssetCategories.RuinsJunk, 0.7f);
@@ -202,6 +206,7 @@ namespace Placemaker.Core.Layers.Plaza
                             LeisureKit.Put(Ctx, Occ, q, an, ObjectRole.Bush, AssetMix.Pick(i == 3 ? DeadBushes : WildBushes, V(0x51DFu)), AssetCategories.RuinsWeeds, 0.9f, V(0x51E0u), 0.1f, 0.05f, 0);
                         }
                     }
+                Pave.Hole(new List<float2[]> { bareLater });
                 // 4) a poster wall along the piece where it is long enough
                 if (len > 30f)
                 {
