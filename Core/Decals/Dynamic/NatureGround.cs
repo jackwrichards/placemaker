@@ -840,11 +840,15 @@ namespace Placemaker.Core.Decals.Dynamic
                 // 1.1-1.8 s on a 42 ha forest)
                 var groups = Groups(9f);
                 var needleCrowns = new List<(float2, float)>(); var floorCrowns = new List<(float2, float)>(); var mossCrowns = new List<(float2, float)>();
+                var litterCrowns = new List<(float2, float)>();
+                int gi = 0;
                 foreach (var g in groups)
                 {
                     if (g.Count < 3) continue;
                     bool conifer = true;
                     foreach (var t in g) conifer &= t.Conifer;
+                    // broadleaf woods smother their floor in last year's leaves, most of them (the user, 2026-10-30)
+                    if (!conifer && U(520, gi++) < 0.75f) foreach (var t in g) litterCrowns.Add((t.P, t.Crown));
                     // small groups lay a thinner floor: their crowns count for less
                     float k = g.Count >= 12 ? 0.9f : 0.75f;
                     foreach (var t in g)
@@ -853,6 +857,8 @@ namespace Placemaker.Core.Decals.Dynamic
                         if (g.Count >= 5) mossCrowns.Add((t.P, t.Crown * 0.8f));
                     }
                 }
+                litterCrowns = Decimate(litterCrowns, perHa);
+                Brushes.Under(_b, litterCrowns, "leafLitterDeep", 1.1f * A * thin, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.75f, 1f), Scale = new float2(0.9f, 1.3f), Clump = 4f, Spread = 0.5f, Loners = 0.15f, Level = ColourLevel.Quiet, Cause = "woodland:litter" });
                 needleCrowns = Decimate(needleCrowns, perHa); floorCrowns = Decimate(floorCrowns, perHa); mossCrowns = Decimate(mossCrowns, perHa);
                 Brushes.Under(_b, needleCrowns, "pineNeedles", 0.2f * A, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.7f), Clump = 3f, Cause = "woodland" });
                 Brushes.Under(_b, floorCrowns, "woodlandFloor", 0.16f * A, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.7f), Clump = 3f, Cause = "woodland" });
