@@ -151,7 +151,7 @@ namespace Placemaker.Core.Layers.Park
             // a park without lawn rooms (one big lawn, few paths) offers discs in its open lawn instead
             int lawnRooms = 0;
             foreach (var cd in cands) if (!cd.core) lawnRooms++;
-            int maxPlaces = (int)math.clamp(math.round((lawnRooms + 2.5f) * amount), 1f, 6f);
+            int maxPlaces = (int)math.clamp(math.round((lawnRooms + 2.5f) * amount), 1f, math.min(14f, 6f + region.Area / 40000f));   // a big park has more places
             var taken = new List<float2>();
             foreach (var g in s.Gates) taken.Add(g.Position);
             // the open lawn keeps its heart, but a big one gives one or two places at its sides (a park with few paths has

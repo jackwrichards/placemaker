@@ -96,6 +96,21 @@ namespace Placemaker.Tests
             }
         }
 
+        [Theory]
+        [InlineData(24f, 24f)]
+        [InlineData(600f, 600f)]
+        public void TinyAndHugeParksStayQuick(float w, float d)
+        {
+            var sw = Stopwatch.StartNew();
+            var plan = Plan("park", "natural", w, d, p => 3f * math.sin(p.x / 60f) * math.cos(p.y / 50f));
+            sw.Stop();
+            var host = plan.Layers.First(l => l.GeneratorId == "park");
+            _out.WriteLine($"{w} x {d}: compose {sw.ElapsedMilliseconds} ms; {plan.Weathering}; moods {Fact(host, "moodPlaces")} terrain {Fact(host, "moodTerrainCells")} cells");
+            Assert.False(plan.HasErrors);
+            Assert.True(sw.ElapsedMilliseconds < 12000, $"compose {sw.ElapsedMilliseconds} ms");
+            Assert.True(plan.Weathering == null || plan.Weathering.Instances <= Weathering.MaxInstances);
+        }
+
         [Fact]
         public void ParkGroundIsDeterministic()
         {

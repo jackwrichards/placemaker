@@ -261,3 +261,4 @@ When you learn something that holds for every type, put it here in the playbook 
 |---|---|---|---|---|
 | Library rounds 1-3 | 2026-10-29 | (this page, section 6) | B- after round 1 | 65 kinds, 484 variants, 131 MiB |
 | Sports park | 2026-10-29 | `docs/runbooks/sportsPark.md` | B+ (then B− for smudge, fixed) | first type on the shared library; built instances, codec v2, end caps, brushes, boundary passes; every style |
+| Parks (park, botanical, memorial, adventure, zen) | 2026-10-30 | `docs/runbooks/parks.md` | not graded yet | places with moods (gully, knoll, hollow, meadow, copse, stones) on sculpted ground with vanilla rocks and logs; `ParkGround` on top of the shared causes (moods, runoff, path grit, play, neglect, raked gravel); 9 new kinds in `parks.json`; dark summer litter; 700 a hectare |

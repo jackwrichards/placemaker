@@ -115,7 +115,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 // (makeover) a type with its own design lays more causes on top of the shared ones: its own budget a hectare
                 float perHa = s.LayerId != null && Designs.ContainsKey(s.LayerId) ? ParkGround.PerHectare : PerHectare;
                 int cap = (int)math.clamp(ha * perHa, 150f, MaxInstances);
-                float density = math.min(1f, cap / math.max(1f, ha * perHa * 0.94f));
+                float density = math.min(1f, cap / math.max(1f, ha * 300f));
                 int start = host.DecalInstances.Count;
                 Scene scene = null; Report r = null;
                 for (int pass = 0; pass < 3; pass++)
