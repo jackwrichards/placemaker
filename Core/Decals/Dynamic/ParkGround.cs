@@ -44,7 +44,7 @@ namespace Placemaker.Core.Decals.Dynamic
         /// </summary>
         public static void Prepare(Weathering.Scene sc)
         {
-            sc.LeafScale = 0.42f;
+            sc.LeafScale = 0.55f;
             sc.LeafOverride = "leafLitterSummer";
         }
 

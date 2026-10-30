@@ -910,49 +910,69 @@ namespace Placemaker.Core.Layers.Park
                 // plots 7 m deep, shallower (down to 5 m) in a narrow room
                 float pd = math.clamp(v1 - v0 - 2f, 5f, 7f);
                 bool single = v1 - v0 - 2f < 2f * pd + spine;
-                for (float v = single ? (v0 + v1) * 0.5f - pd * 0.5f : v0 + 1f; single ? v <= (v0 + v1) * 0.5f : v + 2f * pd + spine <= v1 - 1f; v += single ? 1e6f : 2f * pd + spine + walk)
+                // the grid tried at a few offsets: the one that fits most plots in the room wins (one fixed grid fitted a single
+                // plot in an irregular room in the game, run show-park-wild-1030-032437-0104)
+                List<(float2 cc, float2[] ring, int side, int key)> Layout(float du, float dv)
                 {
-                    for (int side = 0; side < (single ? 1 : 2); side++)
-                    {
-                        float vc = v + (side == 0 ? pd * 0.5f : pd * 1.5f + spine);
-                        for (float u = u0 + 1f; u + pw <= u1 - 1f; u += pw + walk)
+                    var list = new List<(float2, float2[], int, int)>();
+                    int kk = 0;
+                    for (float v = (single ? (v0 + v1) * 0.5f - pd * 0.5f : v0 + 0.5f) + dv; single ? v <= (v0 + v1) * 0.5f + dv : v + 2f * pd + spine <= v1 - 0.5f; v += single ? 1e6f : 2f * pd + spine + walk)
+                        for (int side = 0; side < (single ? 1 : 2); side++)
                         {
-                            k++;
-                            var cc = c0 + ax * (u + pw * 0.5f) + sd * vc;
-                            var ring = new[] { cc - ax * pw * 0.5f - sd * pd * 0.5f, cc + ax * pw * 0.5f - sd * pd * 0.5f, cc + ax * pw * 0.5f + sd * pd * 0.5f, cc - ax * pw * 0.5f + sd * pd * 0.5f };
-                            bool ok = true;
-                            foreach (var q in ring) if (ParkMoods.Edge(_p, q) < 0.8f || _s.Occ.Corridors.Overlaps(q, 0.8f, 0.3f) || Reserved(q, 0.6f)) { ok = false; break; }
-                            if (!ok) continue;
-                            _n++;
-                            if (U(2000 + k) < 0.08f) continue;   // an empty plot, gone to grass
-                            GroundCover.Field(_ctx, ring, PlotKinds[(int)(Hashing.Mix(_v, (uint)k) % (uint)PlotKinds.Length)]);
-                            // worked soil under every plot (the crop surface alone read faint from above) and raised beds in half of them
-                            TerrainPaint.Patch(_ctx, ring, TerrainMaterials.Dirt, 0.95f, 0.6f);
-                            if (U(2500 + k) < 0.5f)
-                                for (int b = 0; b < 3; b++)
-                                {
-                                    var bp = cc + sd * ((b - 1) * 2.2f) + ax * (U(2600 + k * 3 + b) - 0.5f) * 0.8f;
-                                    _ctx.Object(bp, math.atan2(ax.x, ax.y), ObjectRole.Furniture, new AssetRef(Pick(Beds, 40 + b), Beds), Var(), -1, AssetCategories.GardenCrop);
-                                    Rocks++;
-                                }
-                            _mine.Add((cc, math.min(pw, pd) * 0.5f));
-                            plots++;
-                            // a shed at the back of one plot in three (the back = away from the spine walk)
-                            if (U(2100 + k) < 0.45f)
+                            float vc = v + (side == 0 ? pd * 0.5f : pd * 1.5f + spine);
+                            for (float u = u0 + 0.5f + du; u + pw <= u1 - 0.5f; u += pw + walk)
                             {
-                                var back = cc + sd * (side == 0 ? -1f : 1f) * (pd * 0.5f - 0.9f) + ax * (pw * 0.5f - 0.8f) * (U(2200 + k) < 0.5f ? -1f : 1f);
-                                var o = _ctx.Object(back, math.atan2(sd.x, sd.y) + (side == 0 ? 0f : math.PI), ObjectRole.Furniture, new AssetRef(Pick(Sheds, 3), Sheds), Var(), -1, AssetCategories.GardenShed);
-                                Rocks++;
+                                kk++;
+                                var cc = c0 + ax * (u + pw * 0.5f) + sd * vc;
+                                var ring = new[] { cc - ax * pw * 0.5f - sd * pd * 0.5f, cc + ax * pw * 0.5f - sd * pd * 0.5f, cc + ax * pw * 0.5f + sd * pd * 0.5f, cc - ax * pw * 0.5f + sd * pd * 0.5f };
+                                bool ok = true;
+                                foreach (var q in ring) if (ParkMoods.Edge(_p, q) < 0.4f || _s.Occ.Corridors.Overlaps(q, 0.8f, 0.3f) || Reserved(q, 0.6f)) { ok = false; break; }
+                                if (ok) list.Add((cc, ring, side, kk));
                             }
                         }
+                    return list;
+                }
+                var best = Layout(0f, 0f);
+                foreach (float du in new[] { 0f, 1.4f, 2.8f })
+                    foreach (float dv in new[] { 0f, -1.2f, 1.2f })
+                    {
+                        var l = Layout(du, dv);
+                        if (l.Count > best.Count) best = l;
                     }
-                    // along the spine walk: a water tank and, once, a greenhouse
-                    var mid = c0 + sd * (v + pd + spine * 0.5f);
+                foreach (var (cc, ring, side, kk) in best)
+                {
+                    k = kk;
+                    _n++;
+                    if (U(2000 + k) < 0.08f) continue;   // an empty plot, gone to grass
+                    GroundCover.Field(_ctx, ring, PlotKinds[(int)(Hashing.Mix(_v, (uint)k) % (uint)PlotKinds.Length)]);
+                    // worked soil under every plot (the crop surface alone read faint from above) and raised beds in half of them
+                    TerrainPaint.Patch(_ctx, ring, TerrainMaterials.Dirt, 0.95f, 0.6f);
+                    if (U(2500 + k) < 0.5f)
+                        for (int b2 = 0; b2 < 3; b2++)
+                        {
+                            var bp = cc + sd * ((b2 - 1) * pd * 0.3f) + ax * (U(2600 + k * 3 + b2) - 0.5f) * 0.8f;
+                            _ctx.Object(bp, math.atan2(ax.x, ax.y), ObjectRole.Furniture, new AssetRef(Pick(Beds, 40 + b2), Beds), Var(), -1, AssetCategories.GardenCrop);
+                            Rocks++;
+                        }
+                    _mine.Add((cc, math.min(pw, pd) * 0.5f));
+                    plots++;
+                    // a shed at the back of some plots (the back = away from the middle walk)
+                    if (U(2100 + k) < 0.45f)
+                    {
+                        var back = cc + sd * (side == 0 ? -1f : 1f) * (pd * 0.5f - 0.9f) + ax * (pw * 0.5f - 0.8f) * (U(2200 + k) < 0.5f ? -1f : 1f);
+                        _ctx.Object(back, math.atan2(sd.x, sd.y) + (side == 0 ? 0f : math.PI), ObjectRole.Furniture, new AssetRef(Pick(Sheds, 3), Sheds), Var(), -1, AssetCategories.GardenShed);
+                        Rocks++;
+                    }
+                }
+                // along the middle walk (or the row): a water tank and a greenhouse
+                if (best.Count > 0)
+                {
+                    float2 mid = float2.zero; foreach (var p in best) mid += p.cc; mid /= best.Count;
                     for (int t = 0; t < 2; t++)
                     {
-                        var q = mid + ax * math.lerp(u0 + 3f, u1 - 3f, U(2300 + t + (int)v));
-                        if (ParkMoods.Edge(_p, q) < 1.5f || _s.Occ.Corridors.Overlaps(q, 1.2f, 0.3f)) continue;
-                        bool glass = t == 1 && U(2400 + (int)v) < 0.6f;
+                        var q = mid + ax * (t == 0 ? -1f : 1f) * R(3f, 8f, 2300 + t) + sd * (single ? pd * 0.5f + 1.6f : 0f);
+                        if (ParkMoods.Edge(_p, q) < 1.2f || _s.Occ.Corridors.Overlaps(q, 1.2f, 0.3f)) continue;
+                        bool glass = t == 1;
                         _ctx.Object(q, math.atan2(ax.x, ax.y), ObjectRole.Furniture, glass ? new AssetRef(Pick(Glass, 4), Glass) : new AssetRef(Pick(Tanks, 5), Tanks), Var(), -1, glass ? AssetCategories.Glasshouse : AssetCategories.GardenShed);
                         Rocks++;
                     }
