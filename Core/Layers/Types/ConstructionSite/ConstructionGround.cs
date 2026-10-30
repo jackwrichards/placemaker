@@ -42,7 +42,7 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             // the haul roads: muddy twin ruts, and the tread carried out through the gate onto the street
             foreach (var t in tracks)
                 if (t != null && t.Count >= 2) gr.Ruts(t, 2.1f, true);
-            if (hasGate) gr.MudOut(gate - inward * 5f, inward, 16f);
+            if (hasGate) gr.MudOut(gate, inward, 18f);
 
             // the works
             if (works != null && works.Length >= 3)

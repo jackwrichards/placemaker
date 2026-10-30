@@ -71,6 +71,23 @@ namespace Placemaker.Tests
             }
         }
 
+        /// <summary>The rundown family's share of the shared GPU budget (every variant baked once), kept lean.</summary>
+        [Fact]
+        public void RundownFamilyStaysLean()
+        {
+            var lib = GroundDesignTests.Lib();
+            long bytes = 0; int n = 0;
+            foreach (var id in new[] { "rubbleSpread", "brickDust", "crackWeeds", "weedTufts", "burntPatch", "fadedLine", "soilSpill", "stagnantWater", "oilStainOld", "rankGrass" })
+            {
+                var k = lib.Get(id);
+                Assert.NotNull(k);
+                Assert.Equal("rundown", k.Family);
+                for (int i = 0; i < k.Variants.Count; i++) { var b = DecalVariants.Bake(k, i); bytes += DecalVariants.GpuBytes(b.Img.W, b.Img.H); n++; }
+            }
+            _out.WriteLine($"rundown family: {n} variants, {bytes / 1048576.0:F1} MiB on the GPU");
+            Assert.True(bytes <= 14L * 1024 * 1024, $"rundown family {bytes / 1048576.0:F1} MiB");
+        }
+
         [Fact]
         public void RundownGroundIsDeterministic()
         {

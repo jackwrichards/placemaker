@@ -19,7 +19,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
     {
         internal sealed class Result
         {
-            public OrientedRect Footprint;
+            public OrientedRect Footprint, FloorRect;
             public DecayKit.Slab Floor;
             public float2[] Pit;
             public readonly List<(float2 a, float2 b)> Walls = new List<(float2, float2)>();
@@ -43,7 +43,6 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             res.Footprint = fp;
             all.Add(fp.Ring);
             uint seed = Hashing.Mix(ctx.Seed, 0xB01Du);
-            res.Floor = DecayKit.BrokenSlab(ctx, fp, math.saturate(0.45f + 0.5f * decay), SurfaceRole.Paving, AssetMix.One(""), AssetCategories.SurfacePaving, seed);
 
             // rooms: a grid of 6-9 m cells
             int nu = math.max(1, (int)math.round(fp.HalfLength * 2f / 7.5f)), nv = math.max(1, (int)math.round(fp.HalfWidth * 2f / 7f));
@@ -57,7 +56,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                 Center = fp.Local(-fp.HalfLength + (pu0 + pw * 0.5f) * cu, 0f), Axis = fp.Axis,
                 HalfLength = pw * cu * 0.5f - 1.2f, HalfWidth = fp.HalfWidth - 1.2f,
             };
-            if (pit.HalfLength > 2f && pit.HalfWidth > 2f)
+            if (nu >= 2 && pit.HalfLength > 2f && pit.HalfWidth > 2f)
             {
                 res.Pit = pit.Ring;
                 float baseH = ctx.H(pit.Center);
@@ -71,6 +70,16 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                 keep.Add(outer.Ring);
                 occ.TakeCorridor(pit.Local(-pit.HalfLength, 0f), pit.Local(pit.HalfLength, 0f), pit.HalfWidth + 0.6f, 50);
             }
+
+            // the floor slab stops at the basement (the first pictures: a slab over the whole footprint hid the pit completely)
+            var floor = fp;
+            if (res.Pit != null)
+            {
+                float u0 = pu0 == 0 ? pw * cu : 0f, u1 = pu0 == 0 ? nu * cu : (nu - pw) * cu;
+                floor = new OrientedRect { Center = fp.Local(-fp.HalfLength + (u0 + u1) * 0.5f, 0f), Axis = fp.Axis, HalfLength = (u1 - u0) * 0.5f, HalfWidth = fp.HalfWidth };
+            }
+            res.Floor = DecayKit.BrokenSlab(ctx, floor, math.saturate(0.45f + 0.5f * decay), SurfaceRole.Paving, AssetMix.One(""), AssetCategories.SurfacePaving, seed);
+            res.FloorRect = floor;
 
             // walls along the outline and the room lines, in stretches; door gaps; taller pieces near the corners
             var lines = new List<(float2 a, float2 b, bool outer)>();

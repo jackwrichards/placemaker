@@ -47,13 +47,14 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
 
         protected override void DefineControls(ControlSet c)
         {
-            c.Choice("subtype", "diySpot", ControlTier.Essential, "spot", Subtypes).Tip();
-            c.Slider("skateItems", 10, 0, 30, 1, "count", ControlTier.Essential, "spot").Tip();
+            // (rundown, 2026-10-30) the standard style is the ruined building: the skate spots are hidden on the Rundown shelf
+            c.Choice("subtype", "buildingRuins", ControlTier.Essential, "spot", Subtypes).Tip();
+            c.Slider("skateItems", 0, 0, 30, 1, "count", ControlTier.Essential, "spot").Tip();
             c.Slider("graffiti", 60, 0, 100, 5, "%", ControlTier.Essential, "spot").Tip();
-            c.Slider("decay", 50, 0, 100, 5, "%", ControlTier.Essential, "spot").Tip();
-            c.Slider("overgrowth", 35, 0, 100, 5, "%", ControlTier.Essential, "spot").Tip();
+            c.Slider("decay", 75, 0, 100, 5, "%", ControlTier.Essential, "spot").Tip();
+            c.Slider("overgrowth", 50, 0, 100, 5, "%", ControlTier.Essential, "spot").Tip();
 
-            c.Toggle("deck", true, ControlTier.More, "deck").Tip();
+            c.Toggle("deck", false, ControlTier.More, "deck").Tip();
             c.Choice("deckSide", "side", ControlTier.More, "deck", "centre", "side").When("deck=true").Tip();
             c.Slider("deckWidth", 14, 8, 24, 1, "m", ControlTier.More, "deck").When("deck=true");
             c.Slider("pillarSpacing", 16, 10, 30, 1, "m", ControlTier.More, "deck").When("deck=true").Tip();
@@ -61,8 +62,8 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             c.Slider("embankment", 0, 0, 4, 0.5, "m", ControlTier.More, "deck").When("deck=true").Tip();
             c.Toggle("markings", true, ControlTier.More, "deck").When("deck=true").Tip();
 
-            c.Slider("padShare", 45, 0, 80, 5, "%", ControlTier.More, "skate").Tip();
-            c.Slider("ledges", 4, 0, 20, 1, "count", ControlTier.More, "skate").Tip();
+            c.Slider("padShare", 0, 0, 80, 5, "%", ControlTier.More, "skate").Tip();
+            c.Slider("ledges", 0, 0, 20, 1, "count", ControlTier.More, "skate").Tip();
             c.Slider("bowl", 0, 0, 3, 0.25, "m", ControlTier.More, "skate").Tip();
             c.AssetMulti("rampAssets", AssetCategories.SportsSkate, ControlTier.More, "skate");
             c.Asset("padSurface", AssetCategories.SurfacePaving, ControlTier.More, "skate");
@@ -72,11 +73,11 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             c.Slider("jumpSpacing", 9, 6, 14, 0.5, "m", ControlTier.More, "yard").Tip();
             c.Slider("blocks", 0, 0, 40, 1, "count", ControlTier.More, "yard").Tip();
             c.Slider("blockSpacing", 4.5, 3, 8, 0.5, "m", ControlTier.More, "yard");
-            c.Slider("walls", 2, 0, 12, 1, "count", ControlTier.More, "yard").Tip();
+            c.Slider("walls", 0, 0, 12, 1, "count", ControlTier.More, "yard").Tip();
 
-            c.Slider("benches", 6, 0, 16, 1, "count", ControlTier.More, "amenities");
-            c.Toggle("lamps", true, ControlTier.More, "amenities");
-            c.Toggle("fence", false, ControlTier.More, "amenities");
+            c.Slider("benches", 0, 0, 16, 1, "count", ControlTier.More, "amenities");
+            c.Toggle("lamps", false, ControlTier.More, "amenities");
+            c.Toggle("fence", true, ControlTier.More, "amenities");
             c.Slider("fenceGaps", 50, 0, 100, 5, "%", ControlTier.More, "amenities").When("fence=true").Tip();
 
             c.AssetMulti("slabAssets", AssetCategories.RuinsSlab, ControlTier.More, "assets");

@@ -145,6 +145,12 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             [AssetCategories.FloodLight] = new GritAssets.Set(true, "LightpoleCommercial01|LightpoleCommercial02|LightpoleIndustrial01", "LightpoleCommercial02|LightpoleCommercial01|LightpoleIndustrial01"),
             // Welfare and office units are containers; a shed only when none are installed.
             [AssetCategories.ConstructionCabin] = new GritAssets.Set(false, "ShippingContainer01|ToolShed03", "ShippingContainer02|ToolShed03", "ShippingContainer03|ToolShed03"),
+            // (rundown, 2026-10-30; a bug older than the makeover) the shared machine set names only vehicle props (Prop_FrontendLoader01,
+            // Prop_CoalTruck01, ...) and none of them is a placeable object (lab-rundown-machines: no match), so no site ever had a machine.
+            // The game has no placeable plant vehicles at all: the site's plant is what it has, generators, skips and gas pallets.
+            [AssetCategories.ConstructionMachine] = new GritAssets.Set(false, "BackupGenerator01", "LargeOpenContainer01", "TrashContainerEmpty04|LargeOpenContainer01", "GasBottlePallet01|BackupGenerator01"),
+            // the shared heap set's Prop_CoalTruck01_StonePile01_* partial loads do not exist either: the real loads and the small heaps
+            [AssetCategories.ConstructionPile] = new GritAssets.Set(false, "CoalTruck01_StonePile01", "CoalTruck01_OrePile01|CoalTruck01_StonePile01", "CoalTruck01_StonePile01"),
         };
 
         /// <summary>(rundown) Old slabs and road strips weathered grey, never the bright white Concrete Surface 02 (it read as fresh plaza paving).</summary>

@@ -115,6 +115,9 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 ("foundations", 0.0), ("youngTrees", 6.0), ("fence", false), ("desirePaths", true), ("walls", false), ("mounds", 0.0), ("shelters", 0.0));
         }
 
+        /// <summary>Free-standing advertising hoardings of the game's own brands (the vacant lot's billboard).</summary>
+        private static readonly string[] Hoardings = { "BillboardLarge01 - CatInACabin", "BillboardLarge02 - Pilestack", "BillboardLarge01 - Pilestack", "BillboardLarge02 - CatInACabin" };
+
         /// <summary>The wild plants of each kind of lot (vanilla wild bushes; the dead one where it burnt or dried out).</summary>
         private static string[] WeedsFor(string sub)
         {
@@ -371,6 +374,21 @@ namespace Placemaker.Core.Layers.Types.Ruins
                     rubbleTotal.Piles += SortedPiles(ctx, occ, zones, region, focus, axis, side, rubbleCat, pileScale);
             }
             ctx.Check();
+
+            // ── (rundown) The vacant lot's tell: an advertising hoarding on the street side, the lot let to whoever pays for the view.
+            if (sub == "emptyLot" && gates.Count > 0)
+            {
+                int seg = gates[0].Segment;
+                var a = region.Ring[seg]; var b = region.Ring[(seg + 1) % region.Ring.Length];
+                var inw = region.InwardNormal(seg);
+                float t = Hashing.Unit(Hashing.Mix(ctx.Seed, 0xB111u)) < 0.5f ? 0.22f : 0.78f;
+                var p = math.lerp(a, b, t) + inw * 4f;
+                if (region.ContainsDisc(p, 3f) && occ.Free(p, 3f, 0.3f, 0f))
+                {
+                    ctx.Object(p, math.atan2(-inw.x, -inw.y), ObjectRole.Furniture, AssetMix.Pick(Hoardings, Hashing.Mix(ctx.Seed, 0xB112u)), Hashing.Mix(ctx.Seed, 0xB112u), -1, AssetCategories.RuinsJunk);
+                    occ.Take(p, 3.5f, 2);
+                }
+            }
 
             // ── Junk dumped at the street side / along the fence.
             int junkItems = 0;

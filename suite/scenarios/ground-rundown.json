@@ -65,6 +65,16 @@
           "shotMode": "render"
         },
         {
+          "do": "wait",
+          "seconds": 15
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "with the ground, textures made"
+        },
+        {
           "do": "lab",
           "op": "grime",
           "on": false

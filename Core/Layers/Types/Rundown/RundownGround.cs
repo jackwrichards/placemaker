@@ -72,6 +72,8 @@ namespace Placemaker.Core.Layers.Types.Rundown
         public sealed class GroundLook
         {
             /// <summary>Bare soil patches (0..1 coverage), weed tufts, dry grass, grit and stones, mottle.</summary>
+            /// <summary>Rank grass: the uncut, seeded meadow of a lot nobody mows (the dense carpet that stops it reading as a lawn).</summary>
+            public float Rank = 0f;
             public float Bare = 0.25f, Weeds = 0.25f, Dry = 0.15f, Grit = 0.08f, Stones = 0f, Mottle = 0.12f, Moss = 0f, Litter = 0f;
             /// <summary>Weeds thicker toward the edges (fences catch seeds, nobody walks there): 0 even .. 1 edges only.</summary>
             public float EdgeWeeds = 0.5f;
@@ -98,6 +100,8 @@ namespace Placemaker.Core.Layers.Types.Rundown
                     Opacity = new float2(0.3f, 0.55f), Scale = new float2(0.45f, 0.8f), Clump = 4f, Spill = 1f, Loners = 0.35f, Cause = "ground:bare",
                 });
             }
+            if (g.Rank > 0f)
+                Brushes.Scatter(B, soil, "rankGrass", g.Rank, new ScatterOptions { Weight = p => math.saturate(0.45f + 0.55f * Mosaic(p, 21, 22f)) * (1f - 0.95f * Worn(p)), Opacity = new float2(0.7f, 1f), Clump = 3f, Spread = 0.8f, Loners = 0.2f, Spill = 1f, Cause = "ground:rank" });
             if (g.Soil == "gravel")
                 Brushes.Scatter(B, soil, "gravelCarpet", 0.35f, new ScatterOptions { Weight = p => 0.4f + 0.6f * Mosaic(p, 12, 30f), Opacity = new float2(0.35f, 0.6f), Clump = 2f, Cause = "ground:gravel" });
             if (g.Mottle > 0f)
@@ -227,8 +231,9 @@ namespace Placemaker.Core.Layers.Types.Rundown
             var side = new float2(-inward.y, inward.x);
             foreach (int s in new[] { -1, 1 })
             {
-                var a = gate + side * s * 0.9f + inward * length; var b = gate + side * s * 0.9f - inward * 0.5f;
-                Brushes.EdgeStrip(B, new[] { a, b }, "tyreTrack", new StripOptions { Side = 1, Gaps = 0f, Opacity = new float2(0.7f, 1f), Cause = "track:mudOut" });
+                var a = gate + side * s * 0.9f + inward * length; var b = gate + side * s * 0.9f - inward * 8f;   // out over the pavement onto the street
+                Brushes.EdgeStrip(B, new[] { a, b }, "tyreTrack", new StripOptions { Side = 1, Gaps = 0f, Opacity = new float2(0.85f, 1f), Width = new float2(1.3f, 1.5f), Cause = "track:mudOut" });
+                for (int k = 0; k < 4; k++) Brushes.At(B, math.lerp(a, b, 0.45f + k * 0.16f), b - a, "soilSpill", 3.5f, new float2(0.55f, 0.85f), 0, ColourLevel.Any, "track:mudOut");
             }
             Brushes.At(B, gate + inward * 4f, inward, "soilSpill", 8f, new float2(0.6f, 0.9f), 2, ColourLevel.Any, "track:gate");
         }

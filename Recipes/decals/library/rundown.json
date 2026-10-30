@@ -6,9 +6,9 @@
     {
       "id": "rubbleSpread", "name": "Broken rubble", "tier": "macro",
       "about": "Broken concrete and brick spread from a collapse or a dumped load: angular chunks, brick ends and grit over a thin film of dust, thick where it fell, thinning out.",
-      "texel": 0.034, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.88,
+      "texel": 0.04, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.88,
       "edge": { "feather": 1.5, "warp": 1.3, "warpScale": 3.6, "round": 0.85 },
-      "variants": { "count": 10, "size": [6.5, 12.5], "aspect": [0.5, 1], "strength": [0.8, 1], "fades": ["soft", "islands", "linear", "side", "wide"] },
+      "variants": { "count": 6, "size": [6.5, 12.5], "aspect": [0.5, 1], "strength": [0.8, 1], "fades": ["soft", "islands", "linear", "side", "wide"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 2.6, "octaves": 4, "warp": 1.2, "warpScale": 3 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.35 },
@@ -22,9 +22,9 @@
     {
       "id": "brickDust", "name": "Brick and mortar dust", "tier": "macro",
       "about": "Fine red-brown brick dust and mortar grit settled round a demolition: speckled, never a stain.",
-      "texel": 0.05, "layers": "ground", "order": 2, "lod": 40, "maxTexels": 384, "opacity": 0.6,
+      "texel": 0.06, "layers": "ground", "order": 2, "lod": 40, "maxTexels": 384, "opacity": 0.6,
       "edge": { "feather": 1.4, "warp": 1.4, "warpScale": 4, "round": 1 },
-      "variants": { "count": 8, "size": [8, 16], "aspect": [0.5, 1], "strength": [0.6, 1], "fades": ["soft", "islands", "linear", "wide", "side"] },
+      "variants": { "count": 5, "size": [8, 16], "aspect": [0.5, 1], "strength": [0.6, 1], "fades": ["soft", "islands", "linear", "wide", "side"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 3.2, "octaves": 5, "warp": 1.8, "warpScale": 4 },
         { "op": "fbm", "out": "g", "scale": 0.14, "octaves": 3 },
@@ -39,9 +39,9 @@
     {
       "id": "crackWeeds", "name": "Weedy crack (chain)", "tier": "macro",
       "about": "A wide crack in an old slab with weeds and grass pushing up along it: dark gap, soil in it, green and straw tufts on both lips. Pieces join end to end.",
-      "texel": 0.028, "layers": "ground", "order": 4, "lod": 30, "maxTexels": 512, "opacity": 0.9,
+      "texel": 0.03, "layers": "ground", "order": 4, "lod": 30, "maxTexels": 512, "opacity": 0.9,
       "edge": { "feather": 0.45, "warp": 0, "warpScale": 2.6, "round": 1 },
-      "variants": { "count": 10, "size": [10, 14], "width": [2.6, 3.6], "tile": "chain", "strength": [0.75, 1] },
+      "variants": { "count": 6, "size": [10, 14], "width": [2.6, 3.6], "tile": "chain", "strength": [0.75, 1] },
       "ops": [
         { "op": "cracks", "out": "c", "chain": true, "wander": 0.45, "seeds": 0.02, "step": 0.3, "turn": 0.3, "branch": 0.35, "len": [0.5, 1.6], "width": [0.03, 0.075], "warp": 0.01 },
         { "op": "fbm", "out": "w", "scale": 0.55, "octaves": 3 },
@@ -60,9 +60,9 @@
     {
       "id": "weedTufts", "name": "Weed tufts", "tier": "macro",
       "about": "Clumps of rough grass and weeds on bare or broken ground: green and straw tufts with soil between, the way a lot looks two summers after anyone cared.",
-      "texel": 0.03, "layers": "terrain", "order": 3, "lod": 34, "maxTexels": 512, "opacity": 0.85,
+      "texel": 0.036, "layers": "terrain", "order": 3, "lod": 34, "maxTexels": 512, "opacity": 0.85,
       "edge": { "feather": 1.3, "warp": 1.2, "warpScale": 3, "round": 1 },
-      "variants": { "count": 10, "size": [4, 8], "aspect": [0.5, 1], "strength": [0.7, 1], "fades": ["soft", "islands", "linear", "wide", "side"] },
+      "variants": { "count": 6, "size": [4, 8], "aspect": [0.5, 1], "strength": [0.7, 1], "fades": ["soft", "islands", "linear", "wide", "side"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 4, "warp": 1, "warpScale": 2.5 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.3 },
@@ -74,9 +74,9 @@
     {
       "id": "burntPatch", "name": "Burnt ground", "tier": "macro",
       "about": "Where something burnt out: black char in the middle, grey ash and charred bits, a scorched brown halo breaking up at the edge.",
-      "texel": 0.04, "layers": "ground", "order": 3, "lod": 45, "maxTexels": 512, "opacity": 1,
+      "texel": 0.045, "layers": "ground", "order": 3, "lod": 45, "maxTexels": 512, "opacity": 1,
       "edge": { "feather": 1.3, "warp": 1.5, "warpScale": 3.4, "round": 1 },
-      "variants": { "count": 8, "size": [6, 14], "aspect": [0.55, 1], "strength": [0.75, 1], "age": [0, 1], "fades": ["soft", "islands", "linear", "wide"] },
+      "variants": { "count": 6, "size": [6, 14], "aspect": [0.55, 1], "strength": [0.75, 1], "age": [0, 1], "fades": ["soft", "islands", "linear", "wide"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 2, "octaves": 5, "warp": 1.6, "warpScale": 3 },
         { "op": "fbm", "out": "g", "scale": 0.12, "octaves": 3 },
@@ -97,7 +97,7 @@
       "about": "An old painted line on asphalt or concrete, worn and flaking: bays of a car park nobody uses, a lane on a broken road.",
       "texel": 0.02, "layers": "ground", "order": 3, "lod": 30, "maxTexels": 512, "opacity": 0.7,
       "edge": { "feather": 0.05, "warp": 0.02, "warpScale": 1, "round": 1 },
-      "variants": { "count": 8, "size": [7, 10], "width": [0.32, 0.36], "tile": "x", "strength": [0.5, 1] },
+      "variants": { "count": 4, "size": [7, 10], "width": [0.32, 0.36], "tile": "x", "strength": [0.5, 1] },
       "ops": [
         { "op": "band", "in": "across", "out": "line", "at": 0, "width": 0.065 },
         { "op": "fbm", "out": "n", "scale": 0.9, "octaves": 3 },
@@ -112,9 +112,9 @@
     {
       "id": "soilSpill", "name": "Soil spill", "tier": "macro",
       "about": "Brown soil and clods dropped off a heap, a bucket or a lorry's tyres: thick near where it fell, crumbs further out.",
-      "texel": 0.04, "layers": "ground", "order": 3, "lod": 38, "maxTexels": 384, "opacity": 0.82,
+      "texel": 0.045, "layers": "ground", "order": 3, "lod": 38, "maxTexels": 384, "opacity": 0.82,
       "edge": { "feather": 1.1, "warp": 1.1, "warpScale": 2.6, "round": 1 },
-      "variants": { "count": 10, "size": [5, 11], "aspect": [0.45, 1], "strength": [0.7, 1], "wet": [0, 0.7], "fades": ["soft", "islands", "linear", "side", "wide"] },
+      "variants": { "count": 6, "size": [5, 11], "aspect": [0.45, 1], "strength": [0.7, 1], "wet": [0, 0.7], "fades": ["soft", "islands", "linear", "side", "wide"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 4, "warp": 1, "warpScale": 2.6 },
         { "op": "fbm", "out": "g", "scale": 0.1, "octaves": 3 },
@@ -129,9 +129,9 @@
     {
       "id": "stagnantWater", "name": "Stagnant water", "tier": "macro",
       "about": "Old rainwater standing in a pit or on a sunken slab: dark, brown-green and still, a scummy rim and silt where it shrinks back.",
-      "texel": 0.07, "layers": "ground", "order": 7, "lod": 50, "maxTexels": 384, "opacity": 0.8,
+      "texel": 0.08, "layers": "ground", "order": 7, "lod": 50, "maxTexels": 384, "opacity": 0.8,
       "edge": { "feather": 0.8, "warp": 0.8, "warpScale": 2.4, "round": 1 },
-      "variants": { "count": 10, "size": [5, 14], "aspect": [0.45, 1], "wet": [0.6, 1], "fades": ["soft", "islands", "linear", "wide"] },
+      "variants": { "count": 6, "size": [5, 14], "aspect": [0.45, 1], "wet": [0.6, 1], "fades": ["soft", "islands", "linear", "wide"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 1.8, "octaves": 4 },
         { "op": "remap", "in": "edge", "out": "depth", "lo": 0, "hi": 1.4 },
@@ -153,9 +153,9 @@
     {
       "id": "oilStainOld", "name": "Old oil stain", "tier": "macro",
       "about": "A big, old, sun-faded oil stain where a car or a machine stood for years: dark core, brown halo, no gloss.",
-      "texel": 0.05, "layers": "ground", "order": 3, "lod": 40, "maxTexels": 256, "opacity": 0.6,
+      "texel": 0.06, "layers": "ground", "order": 3, "lod": 40, "maxTexels": 256, "opacity": 0.6,
       "edge": { "feather": 1, "warp": 1.2, "warpScale": 2, "round": 1 },
-      "variants": { "count": 8, "size": [2.5, 6], "aspect": [0.55, 1], "strength": [0.6, 1], "fades": ["soft", "islands", "linear", "wide"] },
+      "variants": { "count": 4, "size": [2.5, 6], "aspect": [0.55, 1], "strength": [0.6, 1], "fades": ["soft", "islands", "linear", "wide"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 1.1, "octaves": 4, "warp": 0.8, "warpScale": 1.4 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.3 },
@@ -163,6 +163,21 @@
         { "op": "layer", "alpha": "cover", "alphaK": 0.45, "color": [70, 62, 52], "smooth": 0.2 },
         { "op": "remap", "in": "cover", "out": "core", "lo": 0.45, "hi": 0.95 },
         { "op": "layer", "alpha": "core", "alphaK": 0.6, "color": [34, 32, 30], "smooth": 0.3 }
+      ]
+    },
+    {
+      "id": "rankGrass", "name": "Rank grass", "tier": "macro",
+      "about": "Uncut grass and weeds gone to seed on a lot nobody mows: straw and olive blades in a dense carpet, darker clumps of dock and nettle, never a lawn.",
+      "texel": 0.042, "layers": "terrain", "order": 3, "lod": 34, "maxTexels": 512, "opacity": 0.85,
+      "edge": { "feather": 1.3, "warp": 1.2, "warpScale": 3, "round": 1 },
+      "variants": { "count": 6, "size": [8, 14], "aspect": [0.55, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "linear", "wide", "side"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 4, "warp": 1, "warpScale": 2.5 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.3 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "layer", "alpha": "cover", "alphaK": 0.3, "color": [132, 124, 82], "smooth": 0.15 },
+        { "op": "scatter", "stamp": "twig", "density": 140, "clusters": 10, "cluster": 0.6, "clusterRadius": [0.4, 1.4], "noise": { "scale": 2.2, "lo": -0.95, "hi": 0.2 }, "size": [0.22, 0.55], "aspect": [0.05, 0.12], "palette": [[156, 146, 94], [136, 130, 80], [114, 118, 64], [170, 160, 108], [98, 106, 56]], "alpha": [0.85, 1], "value": 0.12, "height": 0.7, "smooth": 0.12, "max": 60000 },
+        { "op": "scatter", "stamp": ["leaf", "blob"], "density": 3, "clusters": 6, "cluster": 0.7, "clusterRadius": [0.5, 1.4], "noise": { "scale": 2.2, "lo": -0.8, "hi": 0.3 }, "size": [0.3, 0.7], "aspect": [0.6, 1], "palette": [[70, 90, 40], [84, 98, 46], [62, 76, 36]], "alpha": [0.9, 1], "height": 0.8, "smooth": 0.12, "max": 8000 }
       ]
     }
   ]

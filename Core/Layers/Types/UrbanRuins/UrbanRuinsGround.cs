@@ -61,11 +61,15 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             }
             if (building != null)
             {
-                gr.Slab(building.Floor.Shards, building.Floor.Cracks, building.Footprint.Ring, false, weeds, 1f);
+                gr.Slab(building.Floor.Shards, building.Floor.Cracks, building.FloorRect.Ring, false, weeds, 1f);
                 if (building.Pit != null)
                 {
                     var pit = Poly.EnsureCcw((float2[])building.Pit.Clone());
                     gr.Pool(Brushes.Inset(pit, 0.8f) ?? pit, true);
+                    // what fell in: broken concrete and soil on the basement floor round the water
+                    var floorA = BrushArea.Of(pit);
+                    Brushes.Scatter(gr.B, floorA, "rubbleSpread", 0.35f, new ScatterOptions { Opacity = new float2(0.7f, 1f), Clump = 2f, Cause = "pit:rubble" });
+                    Brushes.Scatter(gr.B, floorA, "mudPatch", 0.3f, new ScatterOptions { Opacity = new float2(0.5f, 0.8f), Clump = 2f, Cause = "pit:mud" });
                     Brushes.EdgeStrip(gr.B, pit, "soilSpill", new StripOptions { Side = 1, Closed = true, Gaps = 0.3f, Opacity = new float2(0.5f, 0.85f), Cause = "pit:rim" });
                 }
                 foreach (var p in building.Rubble) gr.Rubble(p, 3.5f, 1f);
@@ -74,7 +78,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             // the yard
             var look = new RundownGround.GroundLook
             {
-                Bare = sub == "dirtJumps" ? 0.4f : 0.22f, Weeds = 0.35f + 0.4f * over, Dry = 0.3f, Grit = 0.12f, Stones = 0.06f, Mottle = 0.16f,
+                Rank = 0.2f + 0.3f * over, Bare = sub == "dirtJumps" ? 0.4f : 0.22f, Weeds = 0.35f + 0.4f * over, Dry = 0.3f, Grit = 0.12f, Stones = 0.06f, Mottle = 0.16f,
                 Moss = 0.03f, Litter = sub == "diySpot" || sub == "parkour" ? 0.08f : 0.04f, EdgeWeeds = 0.55f,
             };
             float Worn(float2 p)

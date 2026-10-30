@@ -17,11 +17,12 @@
     "urbanRuins": [
       "graffitiPark",
       "diySpot",
-      "parkour"
+      "parkour",
+      "highwayRuins"
     ],
     "constructionSite": [
       "roadworks"
     ]
   },
-  "_why": "Round 1 (2026-10-30, docs/runbooks/rundown.md): urban ruins' DIY skate spot and parkour yard are skate parks on a lawn (tan ramps, benches, lamps): sport, not a forgotten place, and they did not read as ruins in the game; hidden, still buildable by id. graffitiPark stays hidden (its point needs graffiti decal packs). constructionSite roadworks: a plus of road strips across a fenced lot reads as nothing real (a road is built along a street, not in a block); hidden."
+  "_why": "Round 1 (2026-10-30, docs/runbooks/rundown.md): urban ruins' DIY skate spot and parkour yard are skate parks on a lawn (tan ramps, benches, lamps): sport, not a forgotten place, and they did not read as ruins in the game; hidden, still buildable by id. graffitiPark stays hidden (its point needs graffiti decal packs). constructionSite roadworks: a plus of road strips across a fenced lot reads as nothing real (a road is built along a street, not in a block); hidden. Round 2 (2026-10-30): urbanRuins highwayRuins hidden: without a deck the game can carry (no placeable elevated deck piece) it is rows of broken columns in a field, not a broken highway; BMX dirt jumps keeps the columns as a backdrop to a real use."
 }
