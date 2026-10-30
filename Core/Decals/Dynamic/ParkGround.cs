@@ -27,6 +27,9 @@ namespace Placemaker.Core.Decals.Dynamic
         private static readonly HashSet<string> Formal = new HashSet<string>(StringComparer.Ordinal) { "botanicalGarden", "memorialPark", "zenGarden", "formalGarden", "cemeteryGrounds" };
         /// <summary>Plan fact set by a neglected park (ParkLayer).</summary>
         public const string NeglectedFact = "neglected";
+        /// <summary>Library instances a hectare (the sports park: 320). The shared causes alone filled a park block's 320 and every cause was
+        /// thinned to 40-60 % (run show-5-builds-1030-000121-ff10); about 1100 on a 150 x 140 block costs well under 0.2 ms a frame.</summary>
+        public const float PerHectare = 700f;
 
         public static Dictionary<string, Action<Weathering.Scene>> Register(Dictionary<string, Action<Weathering.Scene>> d)
         {

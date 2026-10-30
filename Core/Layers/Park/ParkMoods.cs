@@ -44,6 +44,8 @@ namespace Placemaker.Core.Layers.Park
         /// <summary>Outcrop / hollow / stones: height of the rise (negative: a dip).</summary>
         public float Rise;
         public uint Seed;
+        /// <summary>The ground the place may use: a lawn between the paths inset 3 m (or a blob in the open lawn). R is its inscribed radius, C its deepest point.</summary>
+        public float2[] Lawn;
     }
 
     public static class ParkMoods
@@ -79,6 +81,7 @@ namespace Placemaker.Core.Layers.Park
                 case "formal": case "modern": case "victorian": return new[] { 0f, 0.5f, 0f, 0.3f, 0.4f, 0f };
                 case "botanical": return new[] { 0.5f, 1.8f, 1.1f, 1.4f, 0.6f, 0f };
                 case "playground": return new[] { 0.9f, 1.6f, 0.4f, 0.6f, 1.4f, 0f };
+                case "memorial": return new[] { 0f, 0.6f, 0.3f, 1.4f, 1.0f, 1.3f };
                 default: return new[] { 1.2f, 1.1f, 1.0f, 1.0f, 1.0f, 0.15f };
             }
         }
@@ -91,19 +94,19 @@ namespace Placemaker.Core.Layers.Park
         /// <summary>
         /// Picks the places and their moods, shapes the ground (one Sculpt, emitted now so what is placed later stands on it)
         /// and takes their ground in the park's occupancy (the planting and furniture keep out). Call before furniture.
+        ///
+        /// A place is a whole lawn between the paths (inset 3 m from them), so every lawn of a park can be a room with its own
+        /// vibe; the lawn that holds the playground or the protected clearing stays the open lawn, and a big open lawn can still
+        /// give one disc-shaped place at its far side. (First try, discs of 8-38 m anywhere: in the game they rarely fitted
+        /// between the paths and read as nothing, run show-5-builds-1030-000121-ff10.)
         /// </summary>
         public static List<MoodPlace> Plan(LayerContext ctx, ParkSite s, List<float2[]> lawns, string style, bool terrain, float amount = 1f)
         {
             var places = new List<MoodPlace>();
             var region = s.LayerRegion;
-            if (amount <= 0f || region.Area < 1800f) return places;
+            if (amount <= 0f || region.Area < 1500f || lawns == null) return places;
             var pal = Palette(style);
-            float lawnArea = 0f;
-            foreach (var l in lawns) lawnArea += math.abs(Poly.Area(l));
-            if (lawnArea < 1200f) return places;
             uint seed = Hashing.Mix(ctx.Seed, 0x300Du);
-            int wanted = (int)math.clamp(math.round(lawnArea / 5000f * amount), 1f, 6f);
-            float side = math.sqrt(lawnArea);
             // ground statistics for the land's own reading (low, high, fall)
             float mean = 0f; int ns = 0; float lo = float.MaxValue, hi = float.MinValue;
             var mn = region.Min; var mx = region.Max;
@@ -117,69 +120,123 @@ namespace Placemaker.Core.Layers.Park
             mean = ns > 0 ? mean / ns : 0f;
             float relief = math.max(0.5f, hi - lo);
             var used = new int[Ids.Length];
-            var gates = new List<float2>();
-            foreach (var g in s.Gates) gates.Add(g.Position);
-            var taken = new List<float2>(gates);
-            for (int k = 0; k < wanted * 3 && places.Count < wanted; k++)
+
+            // candidates: the lawns, inset from the paths, biggest first; the open lawn (playground, clearing) offers a disc only
+            var cands = new List<(float2[] ring, float2 c, float ins, float area, bool core)>();
+            foreach (var l in lawns)
             {
+                if (l == null || l.Length < 3) continue;
+                float a = math.abs(Poly.Area(l));
+                if (a < 380f) continue;
+                var inset = Placemaker.Core.Decals.Dynamic.Brushes.Inset(Poly.EnsureCcw((float2[])l.Clone()), 3f);
+                if (inset == null || inset.Length < 3 || math.abs(Poly.Area(inset)) < 200f) continue;
+                inset = Poly.EnsureCcw(inset);
+                var lr = LayerRegion.From(inset);
+                if (lr == null) continue;
+                var c = lr.DeepestPoint(out float ins, null, 14);
+                if (ins < 5f) continue;
+                bool core = s.ClearingRadius > 0f && Poly.Contains(l, s.ClearingCenter);
+                foreach (var d in s.Occ.Discs.Items) if (d.Kind == 200 && Poly.Contains(l, d.P)) { core = true; break; }
+                if (s.Lake.Length >= 3 && Poly.Contains(l, Poly.Centroid(s.Lake))) core = true;
+                cands.Add((inset, c, ins, math.abs(Poly.Area(inset)), core));
+            }
+            cands.Sort((x, y) => y.area.CompareTo(x.area));
+            // a park without lawn rooms (one big lawn, few paths) offers discs in its open lawn instead
+            int lawnRooms = 0;
+            foreach (var cd in cands) if (!cd.core) lawnRooms++;
+            int maxPlaces = (int)math.clamp(math.round((lawnRooms + 1.5f) * amount), 1f, 6f);
+            var taken = new List<float2>();
+            foreach (var g in s.Gates) taken.Add(g.Position);
+            int k = 0;
+            foreach (var cd in cands)
+            {
+                if (places.Count >= maxPlaces) break;
                 ctx.Check();
-                uint ks = Hashing.Mix(seed, (uint)k);
-                // the first place is the park's hero (the biggest); then smaller ones
-                float r = math.clamp(side * (places.Count == 0 ? Rg(ks, 0.22f, 0.28f, 1) : Rg(ks, 0.12f, 0.18f, 1)), 8f, places.Count == 0 ? 38f : 24f);
-                if (!Spots.Find(s.Occ, r, Spots.Preference.Open, Hashing.Mix(ks, 2u), out var c, taken, r + 9f, 1.5f, 1200))
+                uint ks = Hashing.Mix(seed, (uint)k++);
+                float2[] ring = cd.ring; float2 c = cd.c; float r = cd.ins;
+                if (cd.core)
                 {
-                    r *= 0.75f;
-                    if (!Spots.Find(s.Occ, r, Spots.Preference.Open, Hashing.Mix(ks, 3u), out c, taken, r + 7f, 1.5f, 1200))
-                    {
-                        // a crowded park (a picnic lawn, a small block) still finds room for a small place at its edge
-                        r = 6.5f;
-                        if (!Spots.Find(s.Occ, r, Spots.Preference.NearBoundary, Hashing.Mix(ks, 4u), out c, taken, r + 6f, 1f, 1200)) continue;
-                    }
+                    // the open lawn keeps its heart: a disc place at its far side, only when it is big
+                    if (cd.area < 2600f) continue;
+                    float rr = math.clamp(math.sqrt(cd.area) * 0.2f, 9f, 24f);
+                    var occ = new Occupancy(LayerRegion.From(ring), ctx.Site, s.Occ.Discs, s.Occ.Corridors);
+                    if (!Spots.Find(occ, rr, Spots.Preference.NearBoundary, Hashing.Mix(ks, 2u), out c, taken, rr + 10f, 0.5f, 1200)) continue;
+                    if (s.InClearing(c, rr * 0.8f) || s.InLake(c, rr + 2f)) continue;
+                    r = rr; ring = LeisureKit.Blob(c, rr * 0.95f, ks, 18, 0.25f);
                 }
-                if (s.InLake(c, r + 2f) || s.InClearing(c, r * 0.8f)) continue;
                 // what the land says here
                 float h0 = ctx.H(c);
-                var grad = Grad(ctx, c, r * 0.6f);
+                var grad = Grad(ctx, c, math.max(4f, r * 0.6f));
                 float slope = math.length(grad);
                 float low = math.saturate((mean - h0) / relief * 2f + 0.5f);   // 1 = low ground
+                float len = LongExtent(ring, out _);
                 var w = new float[Ids.Length];
                 float total = 0f;
                 for (int pass = 0; pass < 2 && total <= 0f; pass++)
-                for (int m = 0; m < w.Length; m++)
                 {
-                    float x = pal[m];
-                    if (x <= 0f) { w[m] = 0f; continue; }
-                    switch ((Mood)m)
-                    {
-                        case Mood.Gully: x *= (r < 10.5f ? 0.15f : 1f) * (1f + math.saturate(slope / 0.04f) * 2.5f); break;
-                        case Mood.Hollow: x *= 0.6f + low * 1.8f; break;
-                        case Mood.Outcrop: x *= 0.7f + (1f - low) * 1.2f + math.saturate(slope / 0.06f); break;
-                        case Mood.Stones: x *= r < 9f ? 0f : 0.6f + (1f - low); break;
-                    }
-                    // never twice the same mood while others fit; a third time almost never
+                    total = 0f;
                     int fresh = 0;
                     for (int q = 0; q < pal.Length; q++) if (pal[q] > 0f && used[q] == 0) fresh++;
-                    if (used[m] > 0 && fresh > 0 && pass == 0) x = 0f;   // a repeat only when every mood of the palette is used
-                    else if (used[m] > 1) x *= 0.1f;
-                    w[m] = x; total += x;
+                    for (int m = 0; m < w.Length; m++)
+                    {
+                        float x = pal[m];
+                        if (x <= 0f) { w[m] = 0f; continue; }
+                        switch ((Mood)m)
+                        {
+                            // a gully wants a long room (it runs the length of it) and loves a slope
+                            case Mood.Gully: x *= (r < 6.5f || len < 24f ? 0.05f : math.saturate(len / 45f) + 0.3f) * (1f + math.saturate(slope / 0.04f) * 2.5f); break;
+                            case Mood.Hollow: x *= 0.6f + low * 1.8f; break;
+                            case Mood.Outcrop: x *= 0.7f + (1f - low) * 1.2f + math.saturate(slope / 0.06f); break;
+                            case Mood.Stones: x *= r < 8f ? 0f : 0.6f + (1f - low); break;
+                            case Mood.Glade: x *= r < 6f ? 0.4f : 1f; break;
+                        }
+                        // never twice the same mood while another of the palette is unused
+                        if (used[m] > 0 && fresh > 0 && pass == 0) x = 0f;
+                        else if (used[m] > 1) x *= 0.1f;
+                        w[m] = x; total += x;
+                    }
                 }
                 if (total <= 0f) break;
                 float pick = U(ks, 7) * total;
                 int mood = 0;
                 for (int m = 0; m < w.Length; m++) { pick -= w[m]; if (pick <= 0f) { mood = m; break; } }
-                var place = new MoodPlace { Mood = (Mood)mood, C = c, R = r, Seed = ks };
+                var place = new MoodPlace { Mood = (Mood)mood, C = c, R = r, Seed = ks, Lawn = ring };
                 Shape(ctx, s, place, grad);
                 places.Add(place);
                 used[mood]++;
                 taken.Add(c);
-                // the place's ground is its own (kind 205: planting and furniture keep out by its radius)
-                s.Occ.Take(c, r * (place.Mood == Mood.Glade || place.Mood == Mood.Meadow ? 0.92f : 1f), 205);
+                // the place's ground is its own: the park's planting, groves and furniture keep out (it plants its own)
+                s.Occ.TakePolygon(ring);
             }
             if (places.Count == 0) return places;
             if (terrain) Sculpt(ctx, s, places);
+            float area = 0f;
+            foreach (var p in places) area += math.abs(Poly.Area(p.Lawn));
             for (int m = 0; m < Ids.Length; m++) { ctx.Plan.Facts.Remove("mood." + Ids[m]); if (used[m] > 0) ctx.Plan.Facts["mood." + Ids[m]] = used[m]; }
             ctx.Plan.Facts["moodPlaces"] = places.Count;
+            ctx.Plan.Facts["moodArea"] = math.round(area);
             return places;
+        }
+
+        /// <summary>The ground the places took (m²): the park plants that much less of its own.</summary>
+        public static float Area(List<MoodPlace> places)
+        {
+            float a = 0f;
+            if (places != null) foreach (var p in places) a += math.abs(Poly.Area(p.Lawn));
+            return a;
+        }
+
+        /// <summary>Half the ring's extent along its long axis (principal axis of its vertices); the axis.</summary>
+        private static float LongExtent(float2[] ring, out float2 axis)
+        {
+            var c = Poly.Centroid(ring);
+            float sxx = 0f, syy = 0f, sxy = 0f;
+            foreach (var q in ring) { var d = q - c; sxx += d.x * d.x; syy += d.y * d.y; sxy += d.x * d.y; }
+            float ang = 0.5f * math.atan2(2f * sxy, sxx - syy);
+            axis = new float2(math.cos(ang), math.sin(ang));
+            float lo = float.MaxValue, hi = float.MinValue;
+            foreach (var q in ring) { float u = math.dot(q - c, axis); lo = math.min(lo, u); hi = math.max(hi, u); }
+            return hi - lo;
         }
 
         private static float2 Grad(LayerContext ctx, float2 c, float d)
@@ -189,51 +246,88 @@ namespace Placemaker.Core.Layers.Park
             return new float2(hx, hz) / (2f * d);
         }
 
-        /// <summary>The place's outline and, for a gully, its channel.</summary>
+        /// <summary>Distance from q to the place's lawn edge (negative outside).</summary>
+        internal static float Edge(MoodPlace p, float2 q)
+        {
+            float d = Poly.DistanceToBoundary(p.Lawn, q);
+            return Poly.Contains(p.Lawn, q) ? d : -d;
+        }
+
+        /// <summary>The place's outline and, for a gully, its channel along the room's length (or down the fall of the land).</summary>
         private static void Shape(LayerContext ctx, ParkSite s, MoodPlace p, float2 grad)
         {
             uint v = p.Seed;
+            float depthK = math.saturate(p.R / 12f + 0.35f);
             switch (p.Mood)
             {
                 case Mood.Gully:
                 {
-                    // downhill when the land falls, else across the place's long way
-                    var axis = math.lengthsq(grad) > 1e-5f ? -math.normalize(grad) : new float2(math.cos(U(v, 20) * 6.283f), math.sin(U(v, 20) * 6.283f));
+                    float len = LongExtent(p.Lawn, out var axis);
+                    // down the fall when the land falls clearly and the room is long enough that way
+                    if (math.length(grad) > 0.025f)
+                    {
+                        var down = -math.normalize(grad);
+                        if (math.abs(math.dot(down, axis)) > 0.5f) axis = down * math.sign(math.dot(down, axis));
+                        else if (math.dot(axis, down) < 0f) axis = -axis;
+                    }
                     var side = new float2(-axis.y, axis.x);
-                    float L = p.R * 2f * 0.92f;
-                    p.Depth = math.clamp(p.R * 0.11f, 1.1f, 2.4f);
-                    p.Floor = math.clamp(p.R * 0.09f, 1.2f, 2.2f);
-                    p.Half = p.Floor + p.Depth / 0.3f;   // the banks average 30 % (steepest ~45 %: never a sheet)
-                    // the channel must keep its banks inside the place
-                    float amp = math.max(0f, math.min(p.R * 0.2f, p.R - p.Half - 0.5f));
-                    int n = 13;
-                    var line = new float2[n];
-                    float ph = U(v, 21) * 6.283f, f = Rg(v, 0.9f, 1.6f, 22);
+                    p.Floor = math.clamp(p.R * 0.14f, 1.1f, 2.2f);
+                    p.Half = math.min(p.Floor + 2.4f / 0.3f, p.R - 0.6f);
+                    p.Depth = math.clamp((p.Half - p.Floor) * 0.3f, 0.7f, 2.4f);   // the banks average 30 % (steepest ~45 %: never a sheet)
+                    // the centreline: through the room's deepest point along its length, wandering, trimmed so its banks stay inside
+                    var c = Poly.Centroid(p.Lawn);
+                    var mid = p.C;
+                    float lo = float.MaxValue, hi = float.MinValue;
+                    foreach (var q in p.Lawn) { float u = math.dot(q - mid, axis); lo = math.min(lo, u); hi = math.max(hi, u); }
+                    int n = 17;
+                    var pts = new List<float2>();
+                    float ph = U(v, 21) * 6.283f, f = Rg(v, 0.7f, 1.4f, 22);
+                    float amp = math.min(p.R * 0.35f, 6f);
                     for (int i = 0; i < n; i++)
                     {
                         float t = i / (float)(n - 1);
-                        float u = (t - 0.5f) * L;
-                        float wob = math.sin(t * math.PI * f * 2f + ph) * amp * math.sin(t * math.PI);   // pinned at the ends
-                        line[i] = p.C + axis * u + side * wob;
+                        float u = math.lerp(lo, hi, t);
+                        float wob = math.sin(t * math.PI * f * 2f + ph) * amp;
+                        var q = mid + axis * u + side * wob;
+                        // pull the line toward the middle of the room where it runs thin
+                        for (int it = 0; it < 4 && Edge(p, q) < p.Half * 0.75f; it++)
+                        {
+                            float best = Edge(p, q); var bq = q;
+                            foreach (float sgn in new[] { -1f, 1f })
+                            {
+                                var q2 = q + side * sgn * 1.5f;
+                                float e2 = Edge(p, q2);
+                                if (e2 > best) { best = e2; bq = q2; }
+                            }
+                            if (bq.Equals(q)) break;
+                            q = bq;
+                        }
+                        if (Edge(p, q) >= math.max(1.5f, p.Half * 0.55f)) pts.Add(q);
                     }
-                    p.Line = line;
-                    p.Ring = Channel(line, p.Half + 1.5f);
+                    if (pts.Count < 4)
+                    {
+                        // too thin for a channel: a rocky knoll instead
+                        p.Mood = Mood.Outcrop;
+                        goto case Mood.Outcrop;
+                    }
+                    p.Line = pts.ToArray();
+                    p.Ring = p.Lawn;
                     break;
                 }
                 case Mood.Outcrop:
-                    p.Rise = Rg(v, 1.1f, 2.4f, 30) * math.saturate(p.R / 14f + 0.3f);
-                    p.Ring = LeisureKit.Blob(p.C, p.R * 0.92f, v, 18, 0.28f);
+                    p.Rise = Rg(v, 1.3f, 2.6f, 30) * depthK;
+                    p.Ring = p.Lawn;
                     break;
                 case Mood.Hollow:
-                    p.Rise = -Rg(v, 0.6f, 1.15f, 31) * math.saturate(p.R / 14f + 0.4f);
-                    p.Ring = LeisureKit.Blob(p.C, p.R * 0.9f, v, 18, 0.25f);
+                    p.Rise = -Rg(v, 0.7f, 1.3f, 31) * depthK;
+                    p.Ring = p.Lawn;
                     break;
                 case Mood.Stones:
                     p.Rise = Rg(v, 0.5f, 1.1f, 32);
-                    p.Ring = LeisureKit.Blob(p.C, p.R * 0.9f, v, 16, 0.2f);
+                    p.Ring = p.Lawn;
                     break;
                 default:
-                    p.Ring = LeisureKit.Blob(p.C, p.R * 0.95f, v, 18, 0.3f);
+                    p.Ring = p.Lawn;
                     break;
             }
         }
@@ -281,12 +375,12 @@ namespace Placemaker.Core.Layers.Park
             float2 mn = new float2(float.MaxValue), mx = new float2(float.MinValue);
             var shaped = places.FindAll(p => p.Mood == Mood.Gully || p.Mood == Mood.Outcrop || p.Mood == Mood.Hollow || p.Mood == Mood.Stones);
             if (shaped.Count == 0) return;
-            foreach (var p in shaped) { mn = math.min(mn, p.C - p.R - 4f); mx = math.max(mx, p.C + p.R + 4f); }
-            // free only inside a place and clear of every path (the paths keep their ground)
+            foreach (var p in shaped) foreach (var q in p.Lawn) { mn = math.min(mn, q - 4f); mx = math.max(mx, q + 4f); }
+            // free only inside a place's lawn and clear of every path (the paths keep their ground)
             var sc = new Common.Sculpt(ctx.H, mn, mx, 3f, q =>
             {
                 if (!region.ContainsDisc(q, 2f) || s.Occ.Corridors.Clearance(q, 3f) < 2.5f) return false;
-                foreach (var p in shaped) if (math.distancesq(q, p.C) < (p.R + 1f) * (p.R + 1f)) return true;
+                foreach (var p in shaped) if (Poly.Contains(p.Lawn, q)) return true;
                 return false;
             });
             sc.Shape((q, b, t) =>
@@ -294,38 +388,36 @@ namespace Placemaker.Core.Layers.Park
                 float off = 0f;
                 foreach (var p in shaped)
                 {
-                    float d = math.distance(q, p.C);
-                    if (d > p.R + 1f) continue;
-                    // every place fades to nothing at its rim
-                    float rim = 1f - Common.Sculpt.Smooth01((d - p.R * 0.55f) / (p.R * 0.45f));
+                    if (!Poly.Contains(p.Lawn, q)) continue;
+                    float e = Poly.DistanceToBoundary(p.Lawn, q);
+                    // every place fades to nothing at its lawn's edge, following the lawn's own shape
+                    float body = Common.Sculpt.Smooth01(e / math.max(3f, math.min(p.R, 16f) * 0.9f));
                     float noise = (ValueNoise.Sample(q / 5f, p.Seed) - 0.5f) * 0.35f;
                     switch (p.Mood)
                     {
                         case Mood.Gully:
                         {
                             float dl = LineDist(p.Line, q, out float tt);
-                            float ends = Common.Sculpt.Smooth01(tt / 0.22f) * Common.Sculpt.Smooth01((1f - tt) / 0.22f);
+                            float ends = Common.Sculpt.Smooth01(tt / 0.18f) * Common.Sculpt.Smooth01((1f - tt) / 0.18f);
                             float prof = 1f - Common.Sculpt.Smooth01((dl - p.Floor) / math.max(0.5f, p.Half - p.Floor));
+                            float edge = Common.Sculpt.Smooth01(e / 2.5f);
                             // the floor falls gently downhill along the channel; the banks are a little ragged
-                            float depth = p.Depth * (0.85f + 0.3f * tt) * ends;
+                            float depth = p.Depth * (0.85f + 0.3f * tt) * ends * edge;
                             off += -depth * prof + noise * prof * (1f - prof) * 2.2f;
                             break;
                         }
                         case Mood.Outcrop:
                         {
-                            float k = 1f - Common.Sculpt.Smooth01(d / (p.R * 0.95f));
-                            float lump = 0.75f + 0.5f * ValueNoise.Sample(q / 7f, p.Seed + 3u);
-                            off += p.Rise * k * lump + noise * k * 1.4f;
+                            float lump = 0.7f + 0.6f * ValueNoise.Sample(q / 7f, p.Seed + 3u);
+                            float toward = 1f - 0.35f * Common.Sculpt.Smooth01(math.distance(q, p.C) / math.max(6f, p.R * 2.2f));
+                            off += p.Rise * body * lump * toward + noise * body * 1.4f;
                             break;
                         }
                         case Mood.Hollow:
-                        {
-                            float k = 1f - Common.Sculpt.Smooth01(d / (p.R * 0.9f));
-                            off += p.Rise * k * (0.85f + 0.3f * ValueNoise.Sample(q / 6f, p.Seed + 5u));
+                            off += p.Rise * body * (0.85f + 0.3f * ValueNoise.Sample(q / 6f, p.Seed + 5u));
                             break;
-                        }
                         case Mood.Stones:
-                            off += p.Rise * (1f - Common.Sculpt.Smooth01(d / (p.R * 0.95f))) + noise * 0.3f * rim;
+                            off += p.Rise * body + noise * 0.3f * body;
                             break;
                     }
                 }
@@ -340,6 +432,7 @@ namespace Placemaker.Core.Layers.Park
                 ctx.Plan.Facts["moodTerrainRaise"] = math.round(res.MaxOffset * 10f) / 10f;
             }
         }
+
 
         // ───────────────────────── what stands in each place ─────────────────────────
 
@@ -390,7 +483,7 @@ namespace Placemaker.Core.Layers.Park
             private uint Var() => Hashing.Mix(_v, 0x77, _n);
             private bool Free(float2 q, float r)
             {
-                if (!_s.LayerRegion.ContainsDisc(q, r + 1f)) return false;
+                if (!_s.LayerRegion.ContainsDisc(q, r + 1f) || !Mine(q, -0.5f)) return false;
                 if (_s.Occ.Corridors.Overlaps(q, r, 0.8f)) return false;
                 foreach (var m in _mine) if (math.distancesq(m.p, q) < (m.r + r) * (m.r + r)) return false;
                 return true;
@@ -440,7 +533,7 @@ namespace Placemaker.Core.Layers.Park
             private bool Tree(float2 q, string[] species, int age, float spacing = 5.5f)
             {
                 _n++;
-                if (!_s.LayerRegion.ContainsDisc(q, 3.5f) || _s.Occ.Corridors.Overlaps(q, 2.5f, 0.35f) || _s.GateDistanceSq(q) < 100f) return false;
+                if (!_s.LayerRegion.ContainsDisc(q, 3.5f) || !Mine(q, 0.5f) || _s.Occ.Corridors.Overlaps(q, 2.5f, 0.35f) || _s.GateDistanceSq(q) < 100f) return false;
                 foreach (var m in _mine) if (math.distancesq(m.p, q) < math.max(spacing, m.r + 2f) * math.max(spacing, m.r + 2f)) return false;
                 if (_s.Occ.Discs.Overlaps(q, 2.5f, 0f) && !InOwn(q)) return false;
                 _ctx.Object(q, R(0f, 6.283f, 1), ObjectRole.Tree, new AssetRef(Pick(species, 2), species), Var(), age);
@@ -453,7 +546,7 @@ namespace Placemaker.Core.Layers.Park
             private bool Bush(float2 q, string[] species, float spacing = 2.4f)
             {
                 _n++;
-                if (!_s.LayerRegion.ContainsDisc(q, 1.6f) || _s.Occ.Corridors.Overlaps(q, 1.2f, 0.35f)) return false;
+                if (!_s.LayerRegion.ContainsDisc(q, 1.6f) || !Mine(q, 0.2f) || _s.Occ.Corridors.Overlaps(q, 1.2f, 0.35f)) return false;
                 foreach (var m in _mine) if (math.distancesq(m.p, q) < math.max(spacing, m.r + 0.9f) * math.max(spacing, m.r + 0.9f)) return false;
                 if (_s.Occ.Discs.Overlaps(q, 1.2f, 0f) && !InOwn(q)) return false;
                 _ctx.Object(q, R(0f, 6.283f, 1), ObjectRole.Bush, new AssetRef(Pick(species, 2), species), Var());
@@ -462,8 +555,22 @@ namespace Placemaker.Core.Layers.Park
                 return true;
             }
 
-            /// <summary>Inside this place's own disc (its occupancy is its own to plant).</summary>
-            private bool InOwn(float2 q) => math.distance(q, _p.C) < _p.R * 0.98f;
+            /// <summary>Inside this place's own ground (its occupancy is its own to plant).</summary>
+            private bool InOwn(float2 q) => Poly.Contains(_p.Lawn, q);
+            /// <summary>Inside the place's lawn, at least <paramref name="margin"/> from its edge (negative: that far outside is fine).</summary>
+            private bool Mine(float2 q, float margin) => ParkMoods.Edge(_p, q) >= margin;
+            /// <summary>A point of the place's lawn between eMin and eMax from its edge (the lawn's own shape, not a disc); NaN-free fallback: the deepest point.</summary>
+            private float2 Pt(int salt, float eMin = 0.5f, float eMax = 999f)
+            {
+                Poly.Bounds(_p.Lawn, out var lo, out var hi);
+                for (int t = 0; t < 16; t++)
+                {
+                    var q = math.lerp(lo, hi, new float2(Hashing.Unit(Hashing.Mix(_v, salt * 31 + t, 1)), Hashing.Unit(Hashing.Mix(_v, salt * 31 + t, 2))));
+                    float e = ParkMoods.Edge(_p, q);
+                    if (e >= eMin && e <= eMax) return q;
+                }
+                return _p.C;
+            }
 
             private string Pick(string[] a, int salt) => a[(int)(Hashing.Mix(_v, salt, _n) % (uint)a.Length)];
             private float2 Dir(float a) => new float2(math.cos(a), math.sin(a));
@@ -527,95 +634,109 @@ namespace Placemaker.Core.Layers.Park
             // ── outcrop ──
             public void Outcrop()
             {
+                float k = math.saturate(_p.R / 12f + 0.35f);
                 // the crown: a clump of big stones off-centre, the biggest tilted against its neighbours
-                var crown = _p.C + Dir(R(0f, 6.283f, 100)) * _p.R * R(0.05f, 0.25f, 101);
-                int big = (int)R(3f, 6f, 102);
-                Boulder(crown, R(0.95f, 1.35f, 103) * math.saturate(_p.R / 14f + 0.35f), 0.42f, 0.5f);
+                var crown = _p.C + Dir(R(0f, 6.283f, 100)) * _p.R * R(0.05f, 0.3f, 101);
+                int big = (int)R(4f, 7f, 102);
+                Boulder(crown, R(1.0f, 1.45f, 103) * k, 0.4f, 0.5f);
                 for (int i = 0; i < big; i++)
                 {
                     float a = R(0f, 6.283f, 104 + i);
-                    Boulder(crown + Dir(a) * R(2.2f, 4.5f, 110 + i) * math.saturate(_p.R / 14f + 0.4f), R(0.45f, 0.95f, 116 + i), R(0.35f, 0.55f, 122 + i), 0.7f);
+                    Boulder(crown + Dir(a) * R(2.4f, 5f, 110 + i) * k, R(0.5f, 1.05f, 116 + i) * k, R(0.35f, 0.55f, 122 + i), 0.7f);
                 }
-                // stones breaking the turf on the slopes, and scree spilling downhill (toward the place's lowest side)
+                // a second, smaller group elsewhere on a long knoll, and stones breaking the turf over the whole of it
+                if (LongEnough(26f))
+                {
+                    var g2 = Pt(127, _p.R * 0.4f);
+                    if (math.distance(g2, crown) > 9f)
+                        for (int i = 0; i < 4; i++) Boulder(g2 + Dir(R(0f, 6.283f, 140 + i)) * R(0f, 3.5f, 145 + i), R(0.45f, 0.95f, 150 + i) * k, R(0.35f, 0.55f, 155 + i), 0.7f);
+                }
                 var down = math.normalizesafe(_p.C - crown, Dir(R(0f, 6.283f, 128)));
-                int out_ = (int)(_p.R * R(0.5f, 0.8f, 129));
+                int out_ = (int)(math.sqrt(math.abs(Poly.Area(_p.Lawn))) * R(0.5f, 0.8f, 129));
                 for (int i = 0; i < out_; i++)
                 {
-                    float a = R(0f, 6.283f, 130 + i), d = _p.R * math.sqrt(R(0.15f, 0.8f, 160 + i));
-                    var q = _p.C + Dir(a) * d;
-                    if (U(190 + i) < 0.35f) Boulder(q, R(0.25f, 0.5f, 200 + i), R(0.4f, 0.6f, 230 + i), 0.8f);
-                    else Stone(q, R(0.9f, 2.2f, 260 + i));
+                    var q = Pt(160 + i, 1f);
+                    if (U(190 + i) < 0.3f) Boulder(q, R(0.25f, 0.55f, 200 + i), R(0.4f, 0.6f, 230 + i), 0.8f);
+                    else Stone(q, R(0.9f, 2.4f, 260 + i));
                 }
-                for (int i = 0; i < 10; i++) Stone(_p.C + down * _p.R * R(0.45f, 0.95f, 300 + i) + new float2(-down.y, down.x) * R(-4f, 4f, 310 + i), R(0.6f, 1.4f, 320 + i));
+                // scree spilling downhill from the crown
+                for (int i = 0; i < 12; i++) Stone(crown + down * R(3f, _p.R * 1.1f, 300 + i) + new float2(-down.y, down.x) * R(-4f, 4f, 310 + i), R(0.6f, 1.4f, 320 + i));
                 // a pine or a birch on the knoll, flowering scrub tucked between the stones
                 int nt = U(330) < 0.6f ? 1 : 2;
-                for (int i = 0; i < nt * 4 && nt > 0; i++) if (Tree(_p.C + Dir(R(0f, 6.283f, 331 + i)) * _p.R * R(0.35f, 0.75f, 340 + i), KnollTrees, U(350 + i) < 0.3f ? PlannedAge.Old : PlannedAge.Adult, 6f)) nt--;
-                for (int i = 0; i < (int)(_p.R * 0.6f); i++) Bush(_p.C + Dir(R(0f, 6.283f, 360 + i)) * _p.R * R(0.25f, 0.85f, 400 + i), U(440 + i) < 0.5f ? Wildflowers : Scrub, 1.8f);
+                for (int i = 0; i < nt * 6 && nt > 0; i++) if (Tree(Pt(331 + i, 2.5f), KnollTrees, U(350 + i) < 0.3f ? PlannedAge.Old : PlannedAge.Adult, 6f)) nt--;
+                for (int i = 0; i < (int)(_p.R * 0.9f); i++) Bush(Pt(360 + i, 0.8f), U(440 + i) < 0.4f ? Wildflowers : Scrub, 1.8f);
             }
+
+            private bool LongEnough(float len) => ParkMoodsLong(_p.Lawn) >= len;
+            private static float ParkMoodsLong(float2[] ring) { Poly.Bounds(ring, out var lo, out var hi); return math.cmax(hi - lo); }
 
             // ── hollow ──
             public void Hollow()
             {
-                // wet trees round the rim, in a loose crescent (the dip stays open to the sky)
-                float a0 = R(0f, 6.283f, 500), span = R(3.2f, 4.6f, 501);
-                int nt = (int)math.clamp(_p.R / 3.5f, 3f, 7f);
-                for (int i = 0; i < nt * 3 && nt > 0; i++)
+                // wet trees round the rim, in a loose crescent on one side (the dip stays open to the sky)
+                float a0 = R(0f, 6.283f, 500);
+                int nt = (int)math.clamp(_p.R / 2.6f, 3f, 8f);
+                for (int i = 0; i < nt * 5 && nt > 0; i++)
                 {
-                    float a = a0 + R(0f, span, 502 + i);
-                    if (Tree(_p.C + Dir(a) * _p.R * R(0.78f, 1.0f, 530 + i), WetTrees, i == 0 && _neglected ? PlannedAge.Dead : U(560 + i) < 0.25f ? PlannedAge.Old : PlannedAge.Adult, 5f)) nt--;
+                    var q = Pt(502 + i, 0.8f, 4.5f);
+                    var d = math.normalizesafe(q - _p.C);
+                    if (math.dot(d, Dir(a0)) < -0.2f) continue;
+                    if (Tree(q, WetTrees, i == 0 && _neglected ? PlannedAge.Dead : U(560 + i) < 0.25f ? PlannedAge.Old : PlannedAge.Adult, 5f)) nt--;
                 }
                 // rushes: low green scrub in drifts round the wet bottom
-                for (int i = 0; i < (int)(_p.R * 1.4f); i++)
+                int drifts = (int)math.clamp(_p.R / 3f, 2f, 6f);
+                for (int dr = 0; dr < drifts; dr++)
                 {
-                    float a = R(0f, 6.283f, 600 + i);
-                    Bush(_p.C + Dir(a) * _p.R * R(0.35f, 0.7f, 650 + i), Rushes, 1.7f);
+                    var c = Pt(600 + dr, _p.R * 0.25f, _p.R * 0.7f);
+                    int k = (int)R(4f, 9f, 620 + dr);
+                    for (int b = 0; b < k; b++) Bush(c + Dir(R(0f, 6.283f, 640 + b * 7 + dr)) * R(0.6f, 3.2f, 700 + b * 7 + dr), Rushes, 1.5f);
                 }
                 // a half-sunk log and a few stones at the water's edge
-                if (U(700) < 0.6f) Log(_p.C + Dir(R(0f, 6.283f, 701)) * _p.R * R(0.2f, 0.45f, 702), R(0f, 6.283f, 703), 0.18f);
-                for (int i = 0; i < 4; i++) Stone(_p.C + Dir(R(0f, 6.283f, 710 + i)) * _p.R * R(0.4f, 0.65f, 720 + i), R(0.8f, 1.6f, 730 + i));
+                if (U(780) < 0.6f) Log(Pt(781, _p.R * 0.4f), R(0f, 6.283f, 783), 0.18f);
+                for (int i = 0; i < 5; i++) Stone(Pt(790 + i, _p.R * 0.3f, _p.R * 0.7f), R(0.8f, 1.6f, 795 + i));
             }
 
             // ── meadow ──
             public void Meadow()
             {
-                int nt = (int)math.clamp(_p.R / 9f, 1f, 3f);
-                for (int i = 0; i < nt * 4 && nt > 0; i++)
-                    if (Tree(_p.C + Dir(R(0f, 6.283f, 800 + i)) * _p.R * R(0.2f, 0.7f, 820 + i), MeadowTrees, i == 0 ? PlannedAge.Old : PlannedAge.Adult, 12f)) nt--;
-                // wild flowering shrubs in drifts (clumps of 3-6), not dots
-                int drifts = (int)math.clamp(_p.R / 4f, 2f, 7f);
+                int nt = (int)math.clamp(_p.R / 8f, 1f, 3f);
+                for (int i = 0; i < nt * 5 && nt > 0; i++)
+                    if (Tree(Pt(800 + i, 3f), MeadowTrees, i == 0 ? PlannedAge.Old : PlannedAge.Adult, 12f)) nt--;
+                // wild flowering shrubs in drifts (clumps of 3-7), not dots, mostly toward the meadow's edge
+                int drifts = (int)math.clamp(math.sqrt(math.abs(Poly.Area(_p.Lawn))) / 6f, 2f, 8f);
                 for (int d = 0; d < drifts; d++)
                 {
-                    var c = _p.C + Dir(R(0f, 6.283f, 850 + d)) * _p.R * math.sqrt(R(0.05f, 0.8f, 870 + d));
-                    int k = (int)R(3f, 7f, 890 + d);
-                    for (int b = 0; b < k; b++) Bush(c + Dir(R(0f, 6.283f, 900 + b * 7 + d)) * R(0.8f, 3.5f, 960 + b * 7 + d), Wildflowers, 1.6f);
+                    var c = Pt(850 + d, 1f, math.max(3f, _p.R * 0.7f));
+                    int k = (int)R(3f, 8f, 890 + d);
+                    for (int b = 0; b < k; b++) Bush(c + Dir(R(0f, 6.283f, 900 + b * 7 + d)) * R(0.8f, 3.5f, 960 + b * 7 + d), U(1990 + b) < 0.7f ? Wildflowers : Scrub, 1.6f);
                 }
             }
 
             // ── glade ──
             public void Glade()
             {
-                // a ring of mixed trees round a clearing, thicker on one side
+                // a ring of mixed trees along the lawn's edge round a clearing, thicker on one side
                 float thick = R(0f, 6.283f, 1000);
-                int nt = (int)math.clamp(_p.R * 0.9f, 6f, 18f);
-                for (int i = 0; i < nt * 3 && nt > 0; i++)
+                int nt = (int)math.clamp(math.sqrt(math.abs(Poly.Area(_p.Lawn))) * 0.75f, 6f, 26f);
+                for (int i = 0; i < nt * 4 && nt > 0; i++)
                 {
-                    float a = R(0f, 6.283f, 1001 + i);
-                    float side = 0.5f + 0.5f * math.cos(a - thick);
-                    if (U(1060 + i) > 0.35f + 0.65f * side) continue;
-                    float d = _p.R * R(0.55f, 0.98f, 1120 + i);
-                    if (Tree(_p.C + Dir(a) * d, CopseTrees, U(1180 + i) < (_neglected ? 0.15f : 0.06f) ? PlannedAge.Dead : U(1240 + i) < 0.3f ? PlannedAge.Old : U(1300 + i) < 0.2f ? PlannedAge.Teen : PlannedAge.Adult, 5f)) nt--;
+                    var q = Pt(1001 + i, 1f, math.max(5f, _p.R * 0.55f));
+                    float side = 0.5f + 0.5f * math.dot(math.normalizesafe(q - _p.C), Dir(thick));
+                    if (U(1060 + i) > 0.3f + 0.7f * side) continue;
+                    if (Tree(q, CopseTrees, U(1180 + i) < (_neglected ? 0.15f : 0.06f) ? PlannedAge.Dead : U(1240 + i) < 0.3f ? PlannedAge.Old : U(1300 + i) < 0.2f ? PlannedAge.Teen : PlannedAge.Adult, 5f)) nt--;
                 }
                 // the old tree in the clearing
                 Tree(_p.C + Dir(R(0f, 6.283f, 1360)) * _p.R * R(0f, 0.2f, 1361), new[] { "OakTree01", "EU_ChestnutTree01" }, PlannedAge.Old, 4f);
                 // logs where they fell, scrub under the trees
                 int logs = (int)R(1f, 3.9f, 1370);
-                for (int i = 0; i < logs; i++) Log(_p.C + Dir(R(0f, 6.283f, 1371 + i)) * _p.R * R(0.35f, 0.7f, 1380 + i), R(0f, 6.283f, 1390 + i));
-                for (int i = 0; i < (int)(_p.R * 0.9f); i++)
+                for (int i = 0; i < logs; i++) Log(Pt(1371 + i, 3f), R(0f, 6.283f, 1390 + i));
+                for (int i = 0; i < (int)(_p.R * 1.2f); i++)
                 {
-                    float a = thick + R(-1.6f, 1.6f, 1400 + i);
-                    Bush(_p.C + Dir(a) * _p.R * R(0.6f, 1.0f, 1450 + i), Scrub, 2.2f);
+                    var q = Pt(1400 + i, 0.5f, 5f);
+                    if (math.dot(math.normalizesafe(q - _p.C), Dir(thick)) < -0.3f) continue;
+                    Bush(q, Scrub, 2.2f);
                 }
-                if (U(1500) < 0.5f) Stone(_p.C + Dir(R(0f, 6.283f, 1501)) * _p.R * 0.5f, 2f);
+                if (U(1500) < 0.5f) Stone(Pt(1501, 2f), 2f);
             }
 
             // ── standing stones ──
@@ -653,21 +774,21 @@ namespace Placemaker.Core.Layers.Park
                         TerrainPaint.Patch(_ctx, Channel(_p.Line, _p.Floor + 1.2f), TerrainMaterials.Dirt, 0.8f, 1.5f);
                         break;
                     case Mood.Outcrop:
-                        TerrainPaint.Patch(_ctx, LeisureKit.Blob(_p.C, _p.R * 0.95f, v, 16, 0.3f), TerrainMaterials.Dry, 0.7f, 3f);
+                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Dry, 0.7f, 3f);
                         TerrainPaint.Patch(_ctx, LeisureKit.Blob(_p.C, _p.R * 0.5f, v + 1u, 14, 0.35f), TerrainMaterials.Dirt, 0.6f, 2.5f);
                         break;
                     case Mood.Hollow:
-                        TerrainPaint.Patch(_ctx, LeisureKit.Blob(_p.C, _p.R * 0.85f, v, 16, 0.25f), TerrainMaterials.Lush, 0.75f, 3f);
+                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Lush, 0.75f, 3f);
                         TerrainPaint.Patch(_ctx, LeisureKit.Blob(_p.C, _p.R * 0.35f, v + 1u, 14, 0.3f), TerrainMaterials.Dirt, 0.55f, 2f);
                         break;
                     case Mood.Meadow:
-                        TerrainPaint.Patch(_ctx, LeisureKit.Blob(_p.C, _p.R * 0.95f, v, 18, 0.3f), TerrainMaterials.Dry, 0.85f, 4f);
+                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Dry, 0.85f, 4f);
                         break;
                     case Mood.Glade:
-                        TerrainPaint.Patch(_ctx, LeisureKit.Blob(_p.C, _p.R * 0.95f, v, 18, 0.25f), TerrainMaterials.Dirt, 0.45f, 4f);
+                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Dirt, 0.45f, 4f);
                         break;
                     case Mood.Stones:
-                        TerrainPaint.Patch(_ctx, LeisureKit.Blob(_p.C, _p.R * 0.9f, v, 16, 0.25f), TerrainMaterials.Dry, 0.75f, 3f);
+                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Dry, 0.75f, 3f);
                         break;
                 }
             }

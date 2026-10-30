@@ -112,8 +112,10 @@ namespace Placemaker.Core.Decals.Dynamic
                 // the budget follows the site's size: about PerHectare a hectare, never more than MaxInstances; a huge site is
                 // thinned evenly (every cause alike) from the start, and once more if it still came out over
                 float ha = Poly.Area(ring) / 10000f;
-                int cap = (int)math.clamp(ha * PerHectare, 150f, MaxInstances);
-                float density = math.min(1f, cap / math.max(1f, ha * 300f));
+                // (makeover) a type with its own design lays more causes on top of the shared ones: its own budget a hectare
+                float perHa = s.LayerId != null && Designs.ContainsKey(s.LayerId) ? ParkGround.PerHectare : PerHectare;
+                int cap = (int)math.clamp(ha * perHa, 150f, MaxInstances);
+                float density = math.min(1f, cap / math.max(1f, ha * perHa * 0.94f));
                 int start = host.DecalInstances.Count;
                 Scene scene = null; Report r = null;
                 for (int pass = 0; pass < 3; pass++)

@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+f814286b-dirty",
+  "assembly": "0.3.6+6b5097a7",
   "categories": [
     {
       "id": "zoning",
@@ -17560,6 +17560,11 @@
           "default": true
         },
         {
+          "id": "carPark",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
           "id": "fence",
           "kind": "Toggle",
           "default": false
@@ -18321,6 +18326,16 @@
         },
         {
           "id": "glasshouse",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "moods",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "moodGround",
           "kind": "Toggle",
           "default": true
         },

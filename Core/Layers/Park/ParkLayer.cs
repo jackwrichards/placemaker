@@ -550,7 +550,7 @@ namespace Placemaker.Core.Layers.Park
 
             // 5. Vegetation. Layout size: areal counts scale by 1/scale (between keeping the density and keeping the
             // spacing, since the canopies are real size); tree-to-tree clearances stay footprint-based (PlantFits).
-            float carved = (s.Lake.Length >= 3 ? Poly.Area(s.Lake) : 0f) + (plaza.Length >= 3 ? Poly.Area(plaza) : 0f);
+            float carved = (s.Lake.Length >= 3 ? Poly.Area(s.Lake) : 0f) + (plaza.Length >= 3 ? Poly.Area(plaza) : 0f) + ParkMoods.Area(moods);   // the places plant their own
             float plantedHa = math.max(0f, region.Area - carved) / 10000f;
             int trees = math.min(4000, (int)math.round(plantedHa * ctx.F("treeDensity") / ctx.Scale));
             int bushes = math.min(6000, (int)math.round(plantedHa * ctx.F("bushDensity") / ctx.Scale));

@@ -112,5 +112,9 @@
   "Placemaker.AddOn.FlagCircle.benches": "Bancos",
   "Placemaker.AddOn.FlagCircle.flagAsset": "Mastro",
   "Placemaker.AddOn.FlagCircle.Preset.small": "Pequeno",
-  "Placemaker.AddOn.FlagCircle.Preset.grand": "Imponente"
+  "Placemaker.AddOn.FlagCircle.Preset.grand": "Imponente",
+  "Placemaker.Memorial.moods": "Cantos com personalidade",
+  "Placemaker.Memorial.moods.Tooltip": "Cantos próprios nos gramados laterais, fora do eixo: uma campina de flores da memória, um círculo de menires, um bosque tranquilo, um outeiro de rochas.",
+  "Placemaker.Memorial.moodGround": "Moldar o terreno",
+  "Placemaker.Memorial.moodGround.Tooltip": "Deixa esses cantos elevar e baixar o terreno (o outeiro, a elevação sob as pedras). As mudanças no terreno são permanentes."
 }

@@ -112,5 +112,9 @@
   "Placemaker.AddOn.FlagCircle.benches": "Ławki",
   "Placemaker.AddOn.FlagCircle.flagAsset": "Maszt flagowy",
   "Placemaker.AddOn.FlagCircle.Preset.small": "Mały",
-  "Placemaker.AddOn.FlagCircle.Preset.grand": "Okazały"
+  "Placemaker.AddOn.FlagCircle.Preset.grand": "Okazały",
+  "Placemaker.Memorial.moods": "Miejsca z charakterem",
+  "Placemaker.Memorial.moods.Tooltip": "Własne miejsca na bocznych trawnikach, z dala od osi: łąka kwietna pamięci, krąg menhirów, cichy zagajnik, pagórek z głazami.",
+  "Placemaker.Memorial.moodGround": "Kształtuj teren",
+  "Placemaker.Memorial.moodGround.Tooltip": "Pozwala tym miejscom podnosić i obniżać teren (pagórek, wzniesienie pod kamieniami). Zmiany terenu są trwałe."
 }

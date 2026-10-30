@@ -112,5 +112,9 @@
   "Placemaker.AddOn.FlagCircle.benches": "長凳",
   "Placemaker.AddOn.FlagCircle.flagAsset": "旗桿",
   "Placemaker.AddOn.FlagCircle.Preset.small": "小",
-  "Placemaker.AddOn.FlagCircle.Preset.grand": "宏偉"
+  "Placemaker.AddOn.FlagCircle.Preset.grand": "宏偉",
+  "Placemaker.Memorial.moods": "特色角落",
+  "Placemaker.Memorial.moods.Tooltip": "在軸線之外的側草坪上自成一處：緬懷的野花草甸、立石圈、靜謐的小樹林、巨石小丘。",
+  "Placemaker.Memorial.moodGround": "塑造地形",
+  "Placemaker.Memorial.moodGround.Tooltip": "讓這些地方抬高或降低地面（小丘、立石下的高地）。地形改動是永久的。"
 }

@@ -90,6 +90,10 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
             c.Toggle("flowerRing", true, ControlTier.More, "planting").Tip();
             c.Toggle("borders", false, ControlTier.More, "planting").Tip();
             c.Toggle("bosque", false, ControlTier.More, "planting").Tip();
+            // makeover (2026-10-29): the side lawns get places of their own before any grove (ParkMoods): a wildflower meadow of
+            // remembrance, a ring of standing stones, a quiet copse, a knoll of boulders. Off the axis, so the axis stays solemn.
+            c.Toggle("moods", true, ControlTier.Essential, "planting").Tip();
+            c.Toggle("moodGround", true, ControlTier.More, "planting").When("moods=true").Tip();
             c.AssetMulti("treeSpecies", AssetCategories.Tree, ControlTier.More, "planting");
             // Lighting.
             c.Choice("lighting", "bollards", ControlTier.Essential, "lighting", "bollards", "lanterns", "uplights", "none").Tip();
@@ -166,6 +170,22 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
             public float2 Monument;
             public float Forecourt;
             public int Rooms, Sculptures, Plaques, Flags;
+            public List<Gate> Gates;
+            public ParkSite MoodSite;
+            public List<MoodPlace> Moods;
+            public float2 VistaA, VistaB;
+            public float Vista;
+        }
+
+        /// <summary>(makeover) Places with a mood in the ground the composition left, never on the vista along the axis.</summary>
+        private static void PlanMoods(State st)
+        {
+            var ctx = st.Ctx;
+            if (st.Moods != null || !ctx.B("moods")) return;
+            st.MoodSite = new ParkSite { LayerRegion = st.Region, Occ = st.Occ, Seed = ctx.Seed, Cancel = ctx.Cancel, Gates = st.Gates };
+            if (st.Vista > 0f) st.Occ.TakeCorridor(st.VistaA, st.VistaB, st.Vista + 2f, 7);   // the vista stays open
+            var open = FreeSpace.Pieces(st.Region, p => st.Occ.Corridors.Overlaps(p, 0.75f), 2f, 80f, ctx.Cancel);
+            st.Moods = ParkMoods.Plan(ctx, st.MoodSite, open, "memorial", ctx.B("moodGround"), 0.8f);
         }
 
         protected override void PlanCore(LayerContext ctx)
@@ -177,6 +197,7 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
                 PathAsset = AssetMix.One(ctx.S("pathAsset")),
             };
             var gates = Gates(ctx);
+            st.Gates = gates;
             Lawn.Cover(ctx, region.Ring, AssetMix.One("", ParkArt.Grass));
             bool trail = ctx.S("style") == "sculpture";
             float vista = 0f;
@@ -187,6 +208,7 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
                 trail = true;
             }
             if (trail) Trail(st, gates);
+            PlanMoods(st);   // the axial styles planned theirs before the groves (Axial); the trail here
             ctx.Check();
 
             // Enclosure.
@@ -217,6 +239,7 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
                 for (int i = 0; i + 1 < l.Nodes.Count; i++)
                     if (math.distance(l.Nodes[i], l.Nodes[i + 1]) > 0.5f) ctx.StraightNet(l.Nodes[i], l.Nodes[i + 1], l.Role, st.PathAsset);
 
+            ParkMoods.Emit(ctx, st.MoodSite, st.Moods, false);
             EmitGreenRegions(ctx, st.Occ, 100f);
             CommonStats(ctx);
             ctx.Stat("Placemaker.Stat.Rooms", st.Rooms, Keys.UnitCount);
@@ -447,6 +470,8 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
             if (ctx.B("rooms")) RoomRows(st, spans, roomsFrom);
             if (ctx.B("allees")) Allees(st, spans, alleeOff);
             if (ctx.B("borders")) Borders(st, spans, inner + 1.5f);
+            st.VistaA = start; st.VistaB = centreFocus ? far : mon; st.Vista = alleeOff + 2f;
+            PlanMoods(st);
             if (ctx.B("bosque"))
             {
                 float roomsOut = ctx.B("rooms") ? roomsFrom + ctx.F("roomSize") * 0.84f + 4f : (ctx.B("allees") ? alleeOff + 5f : inner + 6f);

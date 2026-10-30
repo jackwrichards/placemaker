@@ -1,21 +1,17 @@
 {
   "Placemaker.Recipe.MemorialPark": "Memorial park",
   "Placemaker.Recipe.MemorialPark.Description": "An axial procession to a focal monument, a reflecting pool, hedged garden rooms and quiet lighting.",
-
   "Placemaker.UI.Group.composition": "Composition",
   "Placemaker.UI.Group.monument": "Monument & art",
   "Placemaker.UI.Group.rooms": "Hedged rooms",
   "Placemaker.UI.Group.flagCircle": "Flag circle",
-
   "Placemaker.Category.memorial.monument": "monuments",
   "Placemaker.Category.memorial.sculpture": "sculptures",
   "Placemaker.Category.memorial.plaque": "plaques and wreaths",
   "Placemaker.Category.memorial.flag": "flagpoles",
   "Placemaker.Category.lamp.low": "low path lights",
-
   "Placemaker.Stat.Rooms": "Garden rooms",
   "Placemaker.Stat.Sculptures": "Sculptures",
-
   "Placemaker.Memorial.Name": "Memorial park",
   "Placemaker.Memorial.style": "Memorial type",
   "Placemaker.Memorial.style.Tooltip": "Sets the character: garden, paved square, war memorial, reflection garden or a sculpture park with a trail instead of an axis.",
@@ -110,12 +106,15 @@
   "Placemaker.Memorial.Issue.PoolNotFlat": "The ground under the pool is not flat (or raised); a water-look surface is used instead of real water.",
   "Placemaker.Memorial.Issue.PoolPermanent": "The pool basin is dug into the terrain permanently.",
   "Placemaker.Memorial.Issue.FewerSculptures": "Only {0} of {1} sculptures fit beside the trail.",
-
   "Placemaker.AddOn.FlagCircle.Name": "Flag circle",
   "Placemaker.AddOn.FlagCircle.flags": "Flags",
   "Placemaker.AddOn.FlagCircle.radius": "Radius",
   "Placemaker.AddOn.FlagCircle.benches": "Benches",
   "Placemaker.AddOn.FlagCircle.flagAsset": "Flagpole",
   "Placemaker.AddOn.FlagCircle.Preset.small": "Small",
-  "Placemaker.AddOn.FlagCircle.Preset.grand": "Grand"
+  "Placemaker.AddOn.FlagCircle.Preset.grand": "Grand",
+  "Placemaker.Memorial.moods": "Places with character",
+  "Placemaker.Memorial.moods.Tooltip": "Places of their own on the side lawns, off the axis: a wildflower meadow of remembrance, a ring of standing stones, a quiet copse, a knoll of boulders.",
+  "Placemaker.Memorial.moodGround": "Shape the ground",
+  "Placemaker.Memorial.moodGround.Tooltip": "Lets those places raise and lower the ground (the knoll, the rise under the stones). Terrain changes are permanent."
 }
