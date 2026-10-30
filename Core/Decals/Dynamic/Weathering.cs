@@ -388,7 +388,9 @@ namespace Placemaker.Core.Decals.Dynamic
                 // on the turf looked smudgy, "a waste of decals"; groundMottle there read as yellow blotches)
                 foreach (var t in Turf)
                 {
-                    if (Poly.Area(t) > 800f) Stripes(t);
+                    // stripes only on a real, bounded pitch (football, rugby, cricket square …), never on open turf or a huge
+                    // field: a mowing row has its own length and width, and big areas starved the rest of the budget (the user)
+                    if (Pitches.Contains(t) && StripePitch(t)) Stripes(t);
                     Brushes.Scatter(_b, BrushArea.Of(t), "grassClippings", 0.12f, new ScatterOptions { Opacity = new float2(0.45f, 0.8f), Clump = 2f, Loners = 0.5f, Level = ColourLevel.Quiet, Cause = "tone:clippings" });
                 }
                 foreach (var h in Hard) Brushes.Tone(_b, BrushArea.Of(h), "pavingTonePatch", new float2(0.3f, 0.5f), 0.3f, ColourLevel.Quiet, "tone:paving");
@@ -410,6 +412,15 @@ namespace Placemaker.Core.Decals.Dynamic
                 // the same moisture the paint used (GroundWear.LawnMoisture: its dry paint starts at 0.40, its lush at 0.62)
                 float dry = PaintSeed != 0u ? math.saturate((0.58f - GroundWear.LawnMoisture(PaintSeed, p)) / 0.22f) : ValueNoise.Clumps(p, 35f, H(2));
                 return math.saturate((0.15f + 0.35f * edge + 0.7f * dry - 0.15f) * (1f - 0.8f * shade));
+            }
+
+            /// <summary>A pitch with real bounds: roughly rectangular, at most 130 x 95 m (a full-size pitch with its run-off).</summary>
+            private static bool StripePitch(float2[] t)
+            {
+                var axis = LongAxis(t); var side = new float2(-axis.y, axis.x); var c = Poly.Centroid(t);
+                float hl = 0f, hw = 0f;
+                foreach (var q in t) { hl = math.max(hl, math.abs(math.dot(q - c, axis))); hw = math.max(hw, math.abs(math.dot(q - c, side))); }
+                return hl * 2f <= 130f && hw * 2f <= 95f && Poly.Area(t) >= 0.85f * (hl * 2f) * (hw * 2f);
             }
 
             /// <summary>Mowing stripes along the pitch's long side: strips laid end to end across it.</summary>

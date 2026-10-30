@@ -28,6 +28,7 @@ namespace Placemaker.Game.Assets
         private const int RecheckFrames = 120;
 
         private PrefabSystem _prefabs;
+        private int _findItFrames;
         private EntityQuery _prefabQuery;
         private int _lastPrefabCount = -1;
         private int _framesSinceCheck;
@@ -100,7 +101,10 @@ namespace Placemaker.Game.Assets
                 before = q.CalculateEntityCount();
             }
             catch (Exception) { before = -1; }
+            // never in a menu: our helpers are placed by Placemaker only (the companions already did this; now every one)
+            if (prefab.Has<UIObject>()) prefab.Remove<UIObject>();
             bool ok = prefabs.AddPrefab(prefab);
+            if (ok) FindItCompat.Track(prefabs, prefab);
             try
             {
                 if (before >= 0) s_ownPrefabs += math.max(0, q.CalculateEntityCount() - before);
@@ -121,6 +125,8 @@ namespace Placemaker.Game.Assets
                 try { UpdateIcons(); MaybeWriteDump(false); }
                 catch (Exception e) { Mod.Log.Warn("Placemaker icon update failed: " + e.Message); }
             }
+            // Find It indexes a loaded game in its own OnGameLoaded: hide our helpers from it once that has run, and now and then
+            if (++_findItFrames % 600 == 120) FindItCompat.Sweep(_prefabs);
             if (!_scanRequested && ++_framesSinceCheck < RecheckFrames) return;
             _framesSinceCheck = 0;
             // (core) Our own prefabs (decal and surface copies, companions, lots) never trigger a rescan.
