@@ -38,11 +38,16 @@ namespace Placemaker.Core.Layers.Plaza
             k.WallId = "EU_Wall03";
             k.Lay(PFrame, PavingShapes.Frame(k.Region.Ring, fw), k.P.Band);
             k.Lay(PPromenade, PavingShapes.Frame(k.Region.Ring, fw + 3.5f), k.P.Path);
+            // on a slope the bowl faces down it (the seats climb the hill): turn the frame so A runs up or down the fall
+            {
+                float hA = math.abs(k.Ctx.H(k.W(k.EA * 0.6f, 0f)) - k.Ctx.H(k.W(-k.EA * 0.6f, 0f))) / math.max(1f, k.EA);
+                float hS = math.abs(k.Ctx.H(k.W(0f, k.EB * 0.6f)) - k.Ctx.H(k.W(0f, -k.EB * 0.6f))) / math.max(1f, k.EB);
+                if (hS > hA + 0.01f) k.TurnQuarter();
+            }
             k.FaceUphill();
             float ea = k.EA, eb = k.EB;
             if (ea < 14f || eb < 14f) { Piazza(k); return; }
             // The long side of the box carries the bowl's width.
-            if (eb < ea * 0.75f) { k.TurnQuarter(); ea = k.EA; eb = k.EB; k.FaceUphill(); }
             float stageDepth = math.clamp(ea * 0.22f, 7f, 12f);
             float R = 0f, bank = 2f, slope = TierRise / TierDepth;
             for (int it = 0; it < 4; it++)
@@ -80,10 +85,29 @@ namespace Placemaker.Core.Layers.Plaza
                 return float.NaN;
             }
             // ── the ground: an orchestra disc, the cone in 6-degree quads, the bank behind it, the stage floor ──
+            float sv = r0 + 4f;
+            var stage = k.Box(s0 + 1.2f, uF - r0 * 0.15f, -sv, sv);
             int patches = 0;
             void Patch(float3[] ring, float target)
             {
                 var flat = Poly.To2D(ring);
+                // a patch that reaches past the outline (the bowl's ends on an L or a narrow site) is cut to it; the cut's new
+                // corners take the design's own height there
+                bool inside = true;
+                foreach (var q in flat) if (!k.Region.Contains(q)) { inside = false; break; }
+                if (!inside)
+                {
+                    var parts = Poly.Intersection(flat, k.Region.Ring);
+                    if (parts.Count == 0 || parts[0].Outer == null || parts[0].Outer.Length < 3) return;
+                    var cut = parts[0].Outer;
+                    var nr = new float3[cut.Length];
+                    for (int i = 0; i < cut.Length; i++)
+                    {
+                        float h = InRect(stage, cut[i]) ? hf : Ground(cut[i]);
+                        nr[i] = new float3(cut[i].x, math.isfinite(h) ? h : k.Ctx.H(cut[i]), cut[i].y);
+                    }
+                    ring = nr; flat = cut;
+                }
                 if (Poly.SignedArea(flat) < 0f) Array.Reverse(ring);
                 k.Ctx.Plan.Terraform.Add(new PlannedTerraform { Ring = ring, Kind = target >= k.Ctx.H(Poly.Centroid(Poly.To2D(ring))) ? TerraformKind.Raise : TerraformKind.Lower, TargetHeight = target, Permanent = true, Sloped = true });
                 patches++;
@@ -101,8 +125,6 @@ namespace Placemaker.Core.Layers.Plaza
                 Patch(new[] { V3(P(R, a), Cone(R, a)), V3(P(R, a1), Cone(R, a1)), V3(o1, k.Ctx.H(o1)) }, Cone(R, a));
                 Patch(new[] { V3(P(R, a), Cone(R, a)), V3(o1, k.Ctx.H(o1)), V3(o0, k.Ctx.H(o0)) }, k.Ctx.H(o0));
             }
-            float sv = r0 + 4f;
-            var stage = k.Box(s0 + 1.2f, uF - r0 * 0.15f, -sv, sv);
             Patch(Poly.To3D(stage.Ring, p => hf), hf);
             k.Ctx.Ground.Override(k.Region.Min, k.Region.Max, p => InRect(stage, p) ? hf : Ground(p));
             k.Ctx.Issue(IssueSeverity.Warning, TerrainShaper.PermanentKey);

@@ -1,0 +1,25 @@
+{
+  "_about": "The plazas makeover (docs/runbooks/plazas.md): does a kind draw on a square's paving? A pale square (rooms) is built, then the plaza kinds and two shared ones are laid by the lab on a grid over it, from above and at 45 degrees. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-plazas.json -Who makeover-plazas",
+  "scenarios": [
+    {
+      "id": "lab-plazas",
+      "site": "flat",
+      "pace": "settled",
+      "land": { "size": [120, 120], "gap": 10 },
+      "steps": [
+        { "do": "area", "tool": "land" },
+        { "do": "type", "layer": "plaza", "preset": "modern" },
+        { "do": "entrances" },
+        { "do": "build" },
+        { "do": "lab", "op": "library", "kinds": ["concreteStain", "gumField", "pavingGrimeStrip", "crackPaving", "skateScuffs", "jointWeeds", "leafSquareSummer", "cafeStains", "kerbGrimeStrip", "leafMixedSummer"], "variants": 3, "cell": 7, "cols": 6, "at": [-21, 21] },
+        { "do": "lab", "op": "library", "focus": "concreteStain", "margin": 2 },
+        { "do": "camera", "target": "build", "view": "top", "shot": "lab-top", "shotMode": "render" },
+        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "lab-45", "shotMode": "render" },
+        { "do": "lab", "op": "library", "focus": "pavingGrimeStrip", "margin": 2 },
+        { "do": "camera", "target": "build", "view": "closeup", "distance": 16, "shot": "lab-grime", "shotMode": "render" },
+        { "do": "lab", "op": "library", "focus": "kerbGrimeStrip", "margin": 2 },
+        { "do": "camera", "target": "build", "view": "closeup", "distance": 16, "shot": "lab-kerb", "shotMode": "render" }
+      ]
+    }
+  ]
+}

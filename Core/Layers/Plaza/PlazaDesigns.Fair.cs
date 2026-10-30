@@ -27,8 +27,11 @@ namespace Placemaker.Core.Layers.Plaza
 
         private static void Fair(Kit k, bool winter)
         {
+            // (game runner, 220 x 200) the winter fair as a field of scattered tables read empty: the Christmas market is the
+            // market square in winter (stalls in rows round a big spruce)
+            if (winter) { Market(k, true); k.Ctx.Plan.Facts["fairStalls"] = k.Ctx.Plan.Facts.TryGetValue("marketStalls", out var ms) ? ms : 0; k.Ctx.Plan.Facts["stalls"] = k.Ctx.Plan.Facts["fairStalls"]; return; }
             float fw = k.Fw;
-            k.Leftover(fw + 3f, "bosque");
+            if (!winter) k.Leftover(fw + 3f, "bosque");
             k.Lay(PFrame, PavingShapes.Frame(k.Region.Ring, fw), k.P.Band);
             k.Lay(PPromenade, PavingShapes.Frame(k.Region.Ring, fw + 3.5f), k.P.Path);
             float ea = k.EA, eb = k.EB;
@@ -59,19 +62,24 @@ namespace Placemaker.Core.Layers.Plaza
             // the food courts behind the stalls: picnic tables and benches under shade trees, grills
             foreach (float sv in new[] { -1f, 1f })
             {
-                float v0 = half + 6.5f, v1 = eb - 3f;
+                float v0 = half + 6.5f, v1 = math.min(eb - 3f, half + 26f);
                 if (v1 - v0 < 6f) continue;
                 int t = 0;
                 for (float v = v0 + 3f; v <= v1; v += 8f)
                     for (float u = kidsEnd + 5f; u <= stageEnd - 5f; u += 9f, t++)
                     {
                         var p = k.W(u + ((t & 1) * 4f), sv * v);
-                        if ((t % 4) == 0) { if (winter) { if ((t % 8) == 0) k.Tree(p, false, Spruces); } else k.Tree(p, false, PlazaArt.GardenTrees); }
+                        if ((t % 4) == 0) { if (winter) MarketProp(k, p, k.A, AssetMix.Pick(PicnicTables, k.V(0xFA1Fu)).Id, AssetCategories.Picnic, 1.3f); else k.Tree(p, false, PlazaArt.GardenTrees); }
                         else if ((t % 4) == 1 || (t % 4) == 3) MarketProp(k, p, k.A, AssetMix.Pick(PicnicTables, k.V(0xFA1Du)).Id, AssetCategories.Picnic, 1.3f);
                         else if (!winter && Hashing.Unit(k.V(0xFA1Eu)) < 0.4f) MarketProp(k, p, k.A, "Grill01", AssetCategories.Picnic, 0.8f);
                         else k.CafeSet(p, k.Phase + 0.4f, !winter, true);
                     }
             }
+            // beyond the food courts: an open green, picnic blankets in loose groups
+            foreach (float sv in new[] { -1f, 1f })
+                for (float v = half + 30f; v <= eb - 4f; v += 7f)
+                    for (float u = kidsEnd + 4f; u <= stageEnd - 4f; u += 7f)
+                        if (Hashing.Unit(k.V(0xFA40u)) < 0.22f) MarketProp(k, k.W(u + (Hashing.Unit(k.V(0xFA41u)) - 0.5f) * 4f, sv * v), k.A, AssetMix.Pick(Blanket, k.V(0xFA42u)).Id, AssetCategories.Picnic, 1.2f);
             // the stage end: the stage facing the midway, deckchairs and blankets in front, the backstage behind it
             {
                 var sc = k.W(ea - 4f, 0f);

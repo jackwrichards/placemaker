@@ -23,7 +23,10 @@ namespace Placemaker.Core.Layers.Plaza
         private static readonly string[] Produce = { "Crate01", "Crate02", "Crate03", "CratePile03" };
         private static readonly string[] Carts = { "FoodCart01", "FoodCart02" };
 
-        private static void Market(Kit k)
+        private static void Market(Kit k) => Market(k, false);
+
+        /// <summary>The market square; <paramref name="winter"/>: the Christmas market (stalls only, a big spruce for a cross, lights).</summary>
+        private static void Market(Kit k, bool winter)
         {
             float fw = k.Fw;
             k.Leftover(fw + 3f, "bosque");
@@ -45,7 +48,21 @@ namespace Placemaker.Core.Layers.Plaza
             float room = math.clamp(math.min(ia, ib) * 0.22f, 5f, 8f);
             k.Lay(PFeature + 3, PavingShapes.Polygon(k.C, room + 1.5f, 32, k.Phase), k.P.Focal);
             k.Lay(PKerb, PavingShapes.Annulus(k.C, room + 1.5f, 0.8f, 32), k.P.Band);
-            float keep = k.Centre(k.C, room, "fountain");
+            float keep;
+            if (winter)
+            {
+                k.Tree(k.C, false, Spruces, 3f);
+                for (int i = 0; i < 6; i++)
+                {
+                    float an = k.Phase + i * math.PI / 3f;
+                    var q = k.C + new float2(math.cos(an), math.sin(an)) * (room - 0.5f);
+                    if ((i & 1) == 0) MarketProp(k, q, -new float2(math.cos(an), math.sin(an)), "Snowman0" + (1 + i / 2), AssetCategories.EventChristmas, 0.9f);
+                    else k.Light(q);
+                }
+                keep = room + 1f;
+                k.Occ.Take(k.C, keep, 0);
+            }
+            else keep = k.Centre(k.C, room, "fountain");
             k.SeatRing(k.C, keep + 1.2f, 8, false);
             k.Core = keep;
             // cafes at the -A end
@@ -85,14 +102,13 @@ namespace Placemaker.Core.Layers.Plaza
                                 if (!k.Region.ContainsDisc(p, 2.4f) || math.distance(p, k.C) < keep + 4f) continue;
                                 float roll = Hashing.Unit(k.V(0x3A7Du));
                                 if (roll < 0.48f) { if (k.Stall(p, facing)) made++; }
-                                else if (roll < 0.92f) { if (ProduceStand(k, p, facing)) { made++; produce++; } }
+                                else if (roll < 0.92f) { if (winter ? k.Stall(p, facing, roll < 0.7f) : ProduceStand(k, p, facing)) { made++; if (!winter) produce++; } }
                                 else if (MarketProp(k, p, facing, AssetMix.Pick(Carts, k.V(0x3A7Eu)).Id, AssetCategories.MarketStall, 2.3f)) made++;
                             }
                         }
                     }
-                    v += depth * 2f + aisle;
+                    v += depth * 2f + aisle * (1f + (1f - density) * 2.2f);
                     pair++;
-                    if (!fill && pair >= math.max(1, (int)math.round(density * 3f))) break;
                 }
                 // bins along the cross street
                 foreach (var p in LeisureKit.Along(k.W(-ia + 2f, sv * (half + 0.9f)), k.W(ia - 2f, sv * (half + 0.9f)), 24f))

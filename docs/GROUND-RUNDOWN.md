@@ -159,3 +159,18 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
 - Frame time with and without the ground; instance counts; GPU memory; planning time on a tiny and a huge site.
 - Your runbook (what the user said, what failed and why, numbers, runs) and the playbook's log updated.
 - Say plainly: "on branch X, seen in the game runner, not in your game yet".
+
+## Lessons from plazas (2026-10-29, docs/runbooks/plazas.md)
+
+- Paving is not a lawn: on the pale vanilla paving, stains and grime at sports-park strengths (about 0.2 effective alpha)
+  are invisible from 100 m and even close up; only the leaf stamps (0.75-1) read. Paving kinds need 0.85-0.95 alpha in
+  their layers; crisp stains read where soft tone does not. Make your own strong copy (`pavingGrimeStrip`) rather than
+  retuning a shared kind.
+- The park's summer leaves read as yellow-orange stains on grey paving: squares use a darker olive-brown set
+  (`leafSquareSummer`). Never `leafWet` under summer trees: it is the autumn palette.
+- The ground colour carries most of a vibe: a grungy square on pale concrete still reads clean; dark tiles and asphalt
+  bands made it grungy before any decal.
+- A square of many small paving pieces spends its whole budget on seams: give joints a metre budget of their own.
+- One pass reads every paving piece edge once (dedup by midpoint) and classifies it by what lies 0.6 m either side
+  (hard / green / outside): that turns "every edge" into joints, soil spills and lawn wear.
+- Frame time is not the limit: the grungy square on 220 x 200 with 2066 instances drew in 7.50 ms, 7.36 ms switched off.
