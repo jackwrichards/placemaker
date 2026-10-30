@@ -108,6 +108,18 @@ both), so one decal can bridge the seam. Paint dirt under a `barePatch` decal an
 
 Build these once, generally, with tests; every later type reuses them.
 
+### Lessons from the sports park (2026-10-29; details in `docs/runbooks/sportsPark.md`)
+
+- **Frame time:** never a `MaterialPropertyBlock` per instance (0.7 µs per renderer: +1.6 ms for 2000). `SharedDecals`
+  puts the size in the transform and the opacity in 8 shared step materials: 1528 instances cost 0.03-0.2 ms.
+  `RenderMeshInstanced` draws nothing with CS2's DefaultDecal.
+- **Draw order:** the game draws its surfaces (turf, paving) as decals at the template queue; library decals must draw
+  above it or they vanish under the turf (`SharedDecals` does this for every kind).
+- **The look:** macro soft patches read as smudges from the player's height: faint and few. Detail is crisp and speckled.
+  Leaves follow the trees' species and the season. Dirt is grit, not mud. A seam strip must know its far side.
+- **One look first:** paint moisture (`GroundWear.LawnMoisture`), leaf colour (`Weathering.Season`), crack kind by
+  material, colour level by formality: decide them before any brush runs.
+
 ## 4. The method for a type
 
 1. **Read the type** in the game first (`tools/suite/Show.ps1 -Type <type> -Style all`): what is grass, what is hard,
@@ -245,4 +257,4 @@ When you learn something that holds for every type, put it here in the playbook 
 | Type | Date | Agent's runbook | Grade | Notes |
 |---|---|---|---|---|
 | Library rounds 1-3 | 2026-10-29 | (this page, section 6) | B- after round 1 | 65 kinds, 484 variants, 131 MiB |
-| Sports park | 2026-10-29 | `docs/runbooks/sportsPark.md` | not graded yet | first type on the shared library; built instances, codec v2, end caps, brushes, boundary passes; every style |
+| Sports park | 2026-10-29 | `docs/runbooks/sportsPark.md` | B+ (then B− for smudge, fixed) | first type on the shared library; built instances, codec v2, end caps, brushes, boundary passes; every style |

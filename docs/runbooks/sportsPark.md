@@ -101,6 +101,17 @@ its inside on the left. `Offset` moves the strip toward its heavy side (negative
 - Touched by causes (not the tone): 40-60 % of the site; strong (not counting leaf carpets): 3-13 %.
 - Grime 0 lays only the tone; 200 % lays more and stronger (coverage × min(2.2, amount), opacity scaled up to 1.3-1.4×).
 
+## Rules learnt for the look (every type)
+
+- **Macro soft patches are the riskiest decals.** From the player's height a big soft patch reads as a smudge or blotch,
+  not as variation. Use them faint (≤ 0.35) and few; the painted terrain already carries the big variation. Spend the
+  count on crisp, small, speckled things (single leaves, grit, cracks, clippings), which read as detail.
+- **Leaves must read as leaves.** Single leaf stamps big enough to see from 30-100 m, scattered, no film under them;
+  colour from the trees and the season (summer: brown and olive; autumn: the orange set).
+- **Wear is speckled, not mud.** Bare ground plus grit and small stones; mud only where water stands.
+- **Fewer is better when each one is right.** The user's words: "it doesn't mean more or less decals, it means correct."
+- **A strip must know its far side.** A grass-edge strip round a pitch landed on the running track as pale haze.
+
 ## Frame time and memory (game runner, community park on 220 x 200, camera on the whole park)
 
 | Drawing | Instances | Frame (median) | Ground switched off | Cost |
@@ -127,6 +138,12 @@ Weathering (planning, on a worker): 30-500 ms; it runs on every preview re-plan.
   speckled dirt versus mud" → paving cracks, a second crack ring in the car park, 2-3 cracks per hard court, grit beside
   paths, pebbles instead of mud at creases and gates; "it doesn't mean more or less decals, it means correct"; "maybe the
   trees need more variety too" (left: the planting is the composer's, see Left to do).
+- 2026-10-29 (B−, watching the game): "we're overdoing it with the amount of decals … the dirt's a bit too much … the
+  blurry white stuff … I can't tell that leaves are leaves; shouldn't they be more brown, speckled? … small smudginess is
+  fine, macro smudginess looks odd" and then "I didn't say cut them entirely": big soft kinds kept but fainter and fewer
+  (lawn tone 0.18-0.32, mottle 0.16 cover, dry grass 0.12), leaves browner with no base film, 40 % of the leaves per patch
+  then 1.4x larger so single leaves read, dirt a quarter more see-through with grit, fewer seams, oil and rust. Counts:
+  community 220 x 200 from 1999 to 1205, a city block 569.
 - 2026-10-29: the per-renderer cost: "optimize plus pick a reasonable amount per area" → no property blocks (above); a
   budget per hectare only if a later type needs it.
 
