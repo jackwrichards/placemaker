@@ -137,6 +137,7 @@ namespace Placemaker.Core.Layers.Types.Yards
             Fill(s, style);
             if (!s.Organic) YardEarth.Banks(s, bankMax, s.Salt(0xBA4Bu), ctx.S("edge") == "boulders" ? 1.6f : 0f);
             YardEarth.Crushed(s, s.Salt(0xC0C0u));
+            if (Id == "containerYard") LorriesOnLanes(s, s.Salt(0x10A1u));
             ctx.Check();
 
             YardFill.Edge(s, ctx.S("edge"), ctx.L("treeSpecies"), s.Salt(0xED6Eu));
@@ -167,6 +168,8 @@ namespace Placemaker.Core.Layers.Types.Yards
             GritAssets.CapDecals(ctx.Plan, region.Area, 110f);
             var terrain = Shape(ctx, region, mounds);
             YardKit.Settle(ctx, terrain);
+            // The marks of work (YardWear): ruts, oil, rust, dust, weeds, cracks, puddles, each where the yard gives it a reason.
+            if (ctx.B("paint")) YardWear.Lay(ctx, YardWear.Of(s, Id, style, ctx.S("ground")));
             EmitGreenRegions(ctx, s.Occ, 200f);
 
             ctx.Stat(Keys.StatArea, System.Math.Round(region.Area), Keys.UnitM2);
@@ -207,6 +210,10 @@ namespace Placemaker.Core.Layers.Types.Yards
         private static readonly AssetRef Dirt = new AssetRef("Oil Surface 01");
         /// <summary>Aisles: weathered asphalt from the surface packs, else the dark vanilla pavement (concrete would vanish on a concrete yard).</summary>
         private static readonly AssetRef AisleSurface = new AssetRef("Pavement Surface 01");
+        // Oil Surface 01 renders as beige earth (seen in the game: lanes read as sand tracks); the darkest vanilla hard surface is
+        // Pavement Surface 01, so the wheel path is that and the shoulders the lighter Pavement Surface 02.
+        private static readonly AssetRef WornLane = new AssetRef("Pavement Surface 01");
+        private static readonly AssetRef LaneShoulder = new AssetRef("Pavement Surface 02", "Pavement Surface 01");
         private static readonly AssetRef Concrete = new AssetRef("Concrete Surface 01", "Pavement Surface 02", "Concrete Surface 02");
 
         /// <summary>The yard surface, then the aisles on top (asphalt, so the lanes read from above).</summary>
@@ -228,8 +235,18 @@ namespace Placemaker.Core.Layers.Types.Yards
             // mud tracks), the way a real scrap yard does: no white roads through the mud.
             if (s.Organic) { OrganicYard.TrackSurfaces(s); OrganicYard.FieldGround(s, Hashing.Mix(ctx.Seed, 0x6F0Du)); return; }
             float hw = s.Spec.Aisle * 0.5f;
+            // Container yards (the makeover, 2026-10-30: uniform light lanes read clean and new from 45 degrees): the middle of
+            // every lane, where the carriers and lorries run, is the dark pavement; the shoulders the lighter one.
+            bool worn = ctx.LayerRegion != null && s.Ctx.Plan.GeneratorId == "containerYard";
             foreach (var (a, b) in s.Aisles)
-                    YardKit.Strip(ctx, a, b, hw, SurfaceRole.Asphalt, AisleSurface, AssetCategories.SurfaceAsphalt);
+            {
+                if (!worn) { YardKit.Strip(ctx, a, b, hw, SurfaceRole.Asphalt, AisleSurface, AssetCategories.SurfaceAsphalt); continue; }
+                var d = math.normalizesafe(b - a); var n = new float2(-d.y, d.x);
+                float mid = hw * 0.45f, side = (hw - mid) * 0.5f;
+                YardKit.Strip(ctx, a, b, mid, SurfaceRole.Asphalt, WornLane, AssetCategories.SurfaceAsphalt);
+                YardKit.Strip(ctx, a + n * (mid + side), b + n * (mid + side), side, SurfaceRole.Asphalt, LaneShoulder, AssetCategories.SurfaceAsphalt);
+                YardKit.Strip(ctx, a - n * (mid + side), b - n * (mid + side), side, SurfaceRole.Asphalt, LaneShoulder, AssetCategories.SurfaceAsphalt);
+            }
         }
 
         /// <summary>The yard levelled to one pad (blended to the ground at the outline) with the mounds on it: one sculpt.</summary>
@@ -245,6 +262,24 @@ namespace Placemaker.Core.Layers.Types.Yards
                 for (int i = 0; i < mounds.Count; i++) m = math.max(m, mounds[i].Offset(p));
                 return o + m;
             }, 45f, 12f, 4f);
+        }
+
+        /// <summary>Lorries waiting on the lanes for their box, parked on the lane's shoulder (one lane in three).</summary>
+        private static void LorriesOnLanes(IndustrialSite s, uint salt)
+        {
+            int i = 0;
+            foreach (var (a, b) in s.Aisles)
+            {
+                i++;
+                float len = math.distance(a, b);
+                if (len < 30f || Hashing.Unit(Hashing.Mix(salt, (uint)i)) > 0.4f) continue;
+                var d = (b - a) / len; var n = new float2(-d.y, d.x);
+                float t = len * (0.3f + 0.4f * Hashing.Unit(Hashing.Mix(salt, (uint)i + 99u)));
+                float sideK = Hashing.Unit(Hashing.Mix(salt, (uint)i + 7u)) < 0.5f ? 1f : -1f;
+                var p = a + d * t + n * sideK * (s.Spec.Aisle * 0.5f - 1.6f);
+                var item = IndustrialAssets.Truck;
+                s.Put(item, item.Pick(Hashing.Mix(salt, (uint)i + 3u)), p, d * (Hashing.Unit(Hashing.Mix(salt, (uint)i + 5u)) < 0.5f ? 1f : -1f), Hashing.Mix(salt, (uint)i + 11u), 0.05f, false);
+            }
         }
 
         // ───────────── shared helpers for the types ─────────────

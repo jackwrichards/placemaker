@@ -363,7 +363,7 @@ namespace Placemaker.Tests
             return string.IsNullOrEmpty(only) || only.Split(',').Contains(style);
         }
 
-        private static readonly ConcurrentDictionary<string, BakedVariant> _baked = new ConcurrentDictionary<string, BakedVariant>();
+        internal static readonly ConcurrentDictionary<string, BakedVariant> _baked = new ConcurrentDictionary<string, BakedVariant>();
 
         private void Picture(ComposedPlan plan, string name)
         {
@@ -392,13 +392,13 @@ namespace Placemaker.Tests
             }
         }
 
-        private static void Render(ComposedPlan plan, List<DecalInstance> list, float2 lo, float2 hi, float mpp, string file)
+        internal static void Render(ComposedPlan plan, List<DecalInstance> list, float2 lo, float2 hi, float mpp, string file, bool things = false, float3? ground = null)
         {
             var lib = Lib();
             int W = (int)((hi.x - lo.x) / mpp), H = (int)((hi.y - lo.y) / mpp);
             var px = new float3[W * H];
             // the painted lawn, the surfaces, then decals on terrain, the paths, decals on roads
-            var grass = new float3(0.33f, 0.43f, 0.2f);
+            var grass = ground ?? new float3(0.33f, 0.43f, 0.2f);
             for (int i = 0; i < px.Length; i++) px[i] = grass;
             foreach (var l in plan.Layers)
                 foreach (var s in l.Surfaces)
@@ -425,7 +425,8 @@ namespace Placemaker.Tests
                 }
             // decals that lie on roads too are drawn again over the paths
             foreach (var x in order) if ((x.k.Layers & DecalLayerBits.Roads) != 0) Draw(px, W, H, lo, mpp, x.d, x.k, onlyOver: new float3(0.66f, 0.64f, 0.6f));
-            // trees as dark dots (where the trunks are)
+            // trees as dark dots (where the trunks are); other objects as grey dots when asked
+            if (things) foreach (var l in plan.Layers) foreach (var o in l.Objects) if (o.Role != ObjectRole.Tree && o.Role != ObjectRole.Decal && o.Elevation > -0.05f) Disc(px, W, H, lo, mpp, o.Position.xz, 0.6f, new float3(0.2f, 0.22f, 0.26f));
             foreach (var l in plan.Layers) foreach (var o in l.Objects) if (o.Role == ObjectRole.Tree) Disc(px, W, H, lo, mpp, o.Position.xz, 0.5f, new float3(0.2f, 0.15f, 0.1f));
             var rgb = new byte[W * H * 3];
             for (int y = 0; y < H; y++)

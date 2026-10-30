@@ -139,6 +139,9 @@ namespace Placemaker.Core.Layers.Types.Logistics
         // Art pass (a4): curated, correctly sized goods for everything the player left automatic. The
         // automatic pools drew 35 m log piles as "lumber", 190 m coal mountains and a 37 m pipe rack as
         // "bulk", ship-deck container stacks, play cabins as offices and fire barrels as stock.
+        private static readonly string[] OwnTrucks = { Yards.VehicleProps.Truck(1), Yards.VehicleProps.Truck(2), Yards.VehicleProps.Truck(3), Yards.VehicleProps.Van(1), Yards.VehicleProps.Truck(2) };
+        private static readonly string[] OwnMachines = { Yards.VehicleProps.Loader(1), Yards.VehicleProps.Tractor(2), Yards.VehicleProps.Van(2) };
+
         private static readonly Dictionary<string, GritAssets.Set> ArtObjects = new Dictionary<string, GritAssets.Set>
         {
             // Timber bundles (3.5 × 4.7 m log stacks) and split firewood stacks.
@@ -215,6 +218,12 @@ namespace Placemaker.Core.Layers.Types.Logistics
 
             // Aisles become corridors so features (break area, restrooms, food truck) only take leftovers.
             AisleCorridors(y);
+            // The marks of work (YardWear): tyre tracks and old lines along the aisles, oil under trucks and forklifts, rust off the containers.
+            {
+                var brief = Yards.YardWear.Of(ctx, Id, ctx.S("style"), Hard(ctx) ? "concrete" : ctx.S("ground"), gates, inner.Ring);
+                brief.Markings = Hard(ctx);
+                Yards.YardWear.Lay(ctx, brief);
+            }
             EmitFreeRegions(ctx, occ, staff);
 
             ctx.Stat(Keys.StatArea, System.Math.Round(region.Area), Keys.UnitM2);
@@ -229,7 +238,17 @@ namespace Placemaker.Core.Layers.Types.Logistics
         private static void Ground(Yard y)
         {
             var ctx = y.Ctx;
+            // The automatic yard surface is the game's own worn ones (industrial makeover, 2026-10-30: the automatic asphalt and
+            // paving read as one bright white sheet in a clean game): dark pavement, grey pavement, gravel, oily earth.
             var asset = AssetMix.One(ctx.S("groundSurface"));
+            if (string.IsNullOrEmpty(asset.Id))
+                switch (ctx.S("ground"))
+                {
+                    case "concrete": asset = new AssetRef("Pavement Surface 02", "Pavement Surface 01"); break;
+                    case "gravel": asset = new AssetRef("Sand Surface 02", "Sand Surface 01"); break;
+                    case "dirt": asset = new AssetRef("Oil Surface 01"); break;
+                    default: asset = new AssetRef("Pavement Surface 01", "Pavement Surface 02"); break;
+                }
             switch (ctx.S("ground"))
             {
                 case "concrete": ctx.Surface(y.Inner.Ring, SurfaceRole.Paving, asset, AssetCategories.SurfacePaving); break;
@@ -392,15 +411,17 @@ namespace Placemaker.Core.Layers.Types.Logistics
             if (bays.Count == 0) return false;
 
             bool hard = Hard(ctx);
-            string truckCat = LeisureKit.Category(ctx, "", AssetCategories.LogisticsTruck);
+            // The game's own lorries (Placemaker's vehicle props) when the player picked none: the pack trailers of the art set are
+            // refused by the vanilla rule, so the bays stood empty in a clean game (industrial makeover, 2026-10-30).
             var truckIds = ctx.L("truckAssets");
-            if (truckIds.Length > 0) truckCat = AssetCategories.LogisticsTruck;
+            if (truckIds.Length == 0) truckIds = OwnTrucks;
+            string truckCat = AssetCategories.LogisticsTruck;
             string decal = ctx.B("markings") ? MarkingCategory(ctx) : null;
             float truckChance = ctx.F("trucks") / 100f;
             foreach (var r in bays)
             {
                 y.Bays++;
-                ctx.Surface(r.Ring, SurfaceRole.Paving, AssetMix.One(""), hard ? AssetCategories.SurfacePaving : AssetCategories.SurfaceAsphalt);
+                ctx.Surface(r.Ring, SurfaceRole.Paving, new AssetRef("Concrete Surface 02", "Pavement Surface 02"), hard ? AssetCategories.SurfacePaving : AssetCategories.SurfaceAsphalt);
                 if (decal != null)
                     for (int k = -1; k <= 1; k++)
                     {
@@ -599,13 +620,13 @@ namespace Placemaker.Core.Layers.Types.Logistics
             var ring = grown.Ring;
             bool whole = true;
             foreach (var q in ring) if (!y.Inner.Contains(q)) { whole = false; break; }
-            if (whole) { y.Ctx.Surface(ring, SurfaceRole.Paving, AssetMix.One(""), AssetCategories.SurfacePaving); return; }
+            if (whole) { y.Ctx.Surface(ring, SurfaceRole.Paving, new AssetRef("Pavement Surface 02", "Concrete Surface 02"), AssetCategories.SurfacePaving); return; }
             try
             {
                 var pieces = Poly.Intersection(ring, y.Inner.Ring);
                 foreach (var piece in pieces)
                     if (piece.Outer != null && piece.Outer.Length >= 3 && Poly.Area(piece.Outer) > 20f)
-                        y.Ctx.Surface(piece.Outer, SurfaceRole.Paving, AssetMix.One(""), AssetCategories.SurfacePaving);
+                        y.Ctx.Surface(piece.Outer, SurfaceRole.Paving, new AssetRef("Pavement Surface 02", "Concrete Surface 02"), AssetCategories.SurfacePaving);
             }
             catch (System.Exception) { /* a pad is decoration; skip on degenerate clips */ }
         }
@@ -670,7 +691,8 @@ namespace Placemaker.Core.Layers.Types.Logistics
             int wanted = (int)math.round(y.Inner.Area / 10000f * ctx.F("machines"));
             if (wanted <= 0) return;
             var ids = ctx.L("machineAssets");
-            string cat = ids.Length > 0 ? AssetCategories.LogisticsMachine : LeisureKit.Category(ctx, "", AssetCategories.LogisticsMachine, AssetCategories.LogisticsTruck);
+            if (ids.Length == 0) ids = OwnMachines;
+            string cat = AssetCategories.LogisticsMachine;
             if (cat == null) return;
             LatticeRange(y, y.S, y.PitchS, 0f, out int k0, out int k1);
             LatticeRange(y, y.A, y.PitchA, 0f, out int j0, out int j1);
@@ -747,11 +769,11 @@ namespace Placemaker.Core.Layers.Types.Logistics
             LatticeRange(y, y.S, y.PitchS, 0f, out int k0, out int k1);
             for (int k = k0; k <= k1; k++)
                 if (LeisureKit.Chord(y.Inner, y.Centre + y.S * (k * y.PitchS), y.A, 0f, out var a, out var b))
-                    y.Occ.TakeCorridor(a, b, y.Aisle * 0.5f, 101);
+                    { y.Occ.TakeCorridor(a, b, y.Aisle * 0.5f, 101); Yards.YardWear.NoteLane(y.Ctx.Plan, new[] { a, b }, y.Aisle * 0.5f, Hard(y.Ctx)); }
             LatticeRange(y, y.A, y.PitchA, 0f, out int j0, out int j1);
             for (int j = j0; j <= j1; j++)
                 if (LeisureKit.Chord(y.Inner, y.Centre + y.A * (j * y.PitchA), y.S, 0f, out var a, out var b))
-                    y.Occ.TakeCorridor(a, b, y.Aisle * 0.5f, 101);
+                    { y.Occ.TakeCorridor(a, b, y.Aisle * 0.5f, 101); Yards.YardWear.NoteLane(y.Ctx.Plan, new[] { a, b }, y.Aisle * 0.5f, Hard(y.Ctx)); }
         }
 
         /// <summary>Leftover yard space (not storage, lanes or bays) for features; largest is "core".</summary>

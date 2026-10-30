@@ -89,12 +89,20 @@ namespace Placemaker.Core.Build
         ///   items (or pool items when the palette lacks the category).
         /// • An explicit id that is not loaded falls back to its first loaded Fallback, else as automatic.
         /// </summary>
+        /// <summary>
+        /// Placemaker's vehicle props ("Placemaker Vehicle Car 1" …; VehiclePropSystem makes them from built-in vehicles only) count as
+        /// vanilla. Only that prefix: our other copies ("Placemaker Overlay (", decal copies) can come from asset packs:
+        /// without this the car yards built their fallbacks (trailer loads of boxes, cable reels, generators) instead of cars
+        /// (industrial makeover, 2026-10-30).
+        /// </summary>
+        public static bool IsOwn(string id) => id != null && id.StartsWith(Layers.Types.Yards.VehicleProps.Prefix, StringComparison.Ordinal);
+
         public static int Resolve(ComposedPlan plan, AutoAssetSource source)
         {
             if (plan?.Layers == null || source?.Pool == null) return 0;
             // usable = loaded, and vanilla unless the player picked it (hard-coded pack names, modded palette items: left out)
             Func<string, bool> exists = source.Vanilla == null ? source.Exists
-                : id => (source.Exists == null || source.Exists(id)) && (source.Vanilla(id) || plan.Picks.Contains(id));
+                : id => (source.Exists == null || source.Exists(id)) && (source.Vanilla(id) || plan.Picks.Contains(id) || IsOwn(id));
             int resolved = 0;
             var poolCache = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
             var candCache = new Dictionary<(string, string), IReadOnlyList<string>>();

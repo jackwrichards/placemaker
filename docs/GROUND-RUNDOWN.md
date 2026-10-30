@@ -159,3 +159,16 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
 - Frame time with and without the ground; instance counts; GPU memory; planning time on a tiny and a huge site.
 - Your runbook (what the user said, what failed and why, numbers, runs) and the playbook's log updated.
 - Say plainly: "on branch X, seen in the game runner, not in your game yet".
+
+## Lessons from industrial (2026-10-30, docs/runbooks/industrial.md)
+
+- Look at the type in the clean game before anything else: the car yards had no cars at all (the vanilla-only rule refused
+  Placemaker's own vehicle props; `AutoAssets.IsOwn`). A ground pass would have polished a field of cardboard boxes.
+- Judge decal strength only in the game: kinds that read well in the offline bake were invisible from 24 m in a busy yard;
+  round 2 needed about twice the alpha.
+- On concrete and asphalt, pale macro decals (dust) read as white clouds and saturated stains (rust) as paint: keep them
+  for bare ground, or faint and dull on hard ground.
+- When a type is made of many props per thing (a heap of 40 pieces), lay one mark per thing (`Room` spacing in
+  `YardWear`), never one per prop.
+- A layer that knows its own lanes, gates and style can lay its ground at the end of its plan (`YardWear.Lay`), with the
+  same budget loop as `Weathering.Apply`; no shared hook needed.

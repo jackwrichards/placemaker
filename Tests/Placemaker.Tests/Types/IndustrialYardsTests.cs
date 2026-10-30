@@ -248,7 +248,9 @@ namespace Placemaker.Tests.Types
             foreach (var t in Types.Concat(new[] { "scrapyard", "logisticsYard", "landfill", "quarry", "constructionSite", "abandonedLot" }))
             {
                 Assert.Equal("industry", shelf.CategoryOf(t, "industrial"));
-                Assert.False(shelf.IsTypeShelved(t, "industrial"), t + " is hidden");
+                // the makeover (2026-10-29, fewer and better): the logistics yard and the old scrapyard are hidden
+                bool hidden = t == "scrapyard" || t == "logisticsYard";
+                Assert.Equal(hidden, shelf.IsTypeShelved(t, "industrial"));
             }
             // The new types come first in the category (lowest order).
             int Pos(string id) => GeneratorRegistry.All.ToList().FindIndex(g => g.Id == id);
