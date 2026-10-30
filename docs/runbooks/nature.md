@@ -134,6 +134,17 @@ ridgeHike and canyonTrail (the ridge and gorge do not read; with the groves and 
 - Merged master's linear-albedo fix: heather went pink and was browned; trail dirt, rills and wild litter retuned.
 - Removed `FlowerBushWild01`/`FlowerBushWildElderly01` (render pale teal) from every nature palette.
 
+## Round 4 (2026-10-30)
+
+- Polka dots: reeds on the pond shores and the marsh rims now stand in drifts (a clump field with a cut, open wet margin
+  between), in sizes 0.6-1.5, with willow scrub (a young alder or a tall wild bush) now and then; vanilla has no reed or
+  water-plant props (the reeds are the narrow wild bushes). Heath: 230 bushes/ha instead of 340, every bush its own size
+  (big in a thicket's heart, small at the edge), bare peaty patches between. `show-3-builds-1030-044246-02fd`,
+  `show-natureReserve-heath-1030-044246-0b4f`.
+- Lake country fills all three lakes with the latest code (grown 60 s, same run).
+- Footpaths: vanilla has no dirt or gravel path net; the dirt decal is the only way to make a trail earth (it reads well
+  at 45°, paler at eye level on the path mesh).
+
 ## Left to do
 
 - The user has not graded the new ground yet.
