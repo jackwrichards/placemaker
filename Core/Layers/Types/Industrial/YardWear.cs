@@ -107,6 +107,25 @@ namespace Placemaker.Core.Layers.Types.Yards
             return b;
         }
 
+        /// <summary>
+        /// Scrub in a yard is dark wild green: automatic bushes (and the two flowering wild bushes, which render pale teal-blue in
+        /// the game: the parks agent, 2026-10-30) become FlowerBushWild02 / FlowerBushWildChild02. Dead bushes stay dead.
+        /// </summary>
+        public static int WildBushes(AreaPlan plan, uint seed)
+        {
+            int n = 0;
+            foreach (var o in plan.Objects)
+            {
+                if (o == null || o.Role != ObjectRole.Bush) continue;
+                string id = o.Asset.Id ?? "";
+                if (id.Length > 0 && id != "FlowerBushWild01" && id != "FlowerBushWildElderly01") continue;
+                bool child = (Hashing.Mix(seed, (int)o.Variation, 0xB05) & 3u) == 0;
+                o.Asset = new AssetRef(child ? "FlowerBushWildChild02" : "FlowerBushWild02", "FlowerBushWild02");
+                n++;
+            }
+            return n;
+        }
+
         public sealed class Report
         {
             public int Instances;
@@ -121,6 +140,7 @@ namespace Placemaker.Core.Layers.Types.Yards
         {
             var rep = new Report();
             var clock = System.Diagnostics.Stopwatch.StartNew();
+            WildBushes(ctx.Plan, ctx.Seed);
             try
             {
                 var lib = library ?? DecalLibrary.EnsureCurrent();
