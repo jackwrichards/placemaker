@@ -52,10 +52,10 @@
           "target": "build",
           "view": "closeup",
           "distance": 16,
-          "height": 2.5,
           "clearView": true,
           "shot": "log-moss-eye",
-          "shotMode": "render"
+          "shotMode": "render",
+          "pitch": 30
         },
         {
           "do": "lab",
@@ -69,10 +69,10 @@
           "target": "build",
           "view": "closeup",
           "distance": 16,
-          "height": 2.5,
           "clearView": true,
           "shot": "deadwood-eye",
-          "shotMode": "render"
+          "shotMode": "render",
+          "pitch": 30
         },
         {
           "do": "lab",
@@ -86,10 +86,10 @@
           "target": "build",
           "view": "closeup",
           "distance": 18,
-          "height": 3,
           "clearView": true,
           "shot": "floor-eye",
-          "shotMode": "render"
+          "shotMode": "render",
+          "pitch": 30
         },
         {
           "do": "lab",
@@ -103,10 +103,10 @@
           "target": "build",
           "view": "closeup",
           "distance": 14,
-          "height": 2.2,
           "clearView": true,
           "shot": "roots-eye",
-          "shotMode": "render"
+          "shotMode": "render",
+          "pitch": 30
         },
         {
           "do": "lab",
@@ -120,10 +120,10 @@
           "target": "build",
           "view": "closeup",
           "distance": 22,
-          "height": 4,
           "clearView": true,
           "shot": "glade-edge",
-          "shotMode": "render"
+          "shotMode": "render",
+          "pitch": 30
         }
       ]
     },
@@ -173,7 +173,7 @@
         {
           "do": "lab",
           "op": "grime",
-          "focus": "puddlePiece",
+          "focus": "marshMud",
           "index": 2,
           "margin": 10
         },
@@ -182,15 +182,15 @@
           "target": "build",
           "view": "closeup",
           "distance": 28,
-          "height": 5,
           "clearView": true,
           "shot": "marsh-eye",
-          "shotMode": "render"
+          "shotMode": "render",
+          "pitch": 30
         },
         {
           "do": "lab",
           "op": "grime",
-          "focus": "puddlePiece",
+          "focus": "marshMud",
           "index": 8,
           "margin": 10
         },
@@ -199,10 +199,10 @@
           "target": "build",
           "view": "closeup",
           "distance": 40,
-          "height": 10,
           "clearView": true,
           "shot": "marsh-mid",
-          "shotMode": "render"
+          "shotMode": "render",
+          "pitch": 40
         },
         {
           "do": "lab",
@@ -216,10 +216,10 @@
           "target": "build",
           "view": "closeup",
           "distance": 18,
-          "height": 3,
           "clearView": true,
           "shot": "sedge-eye",
-          "shotMode": "render"
+          "shotMode": "render",
+          "pitch": 30
         }
       ]
     },
@@ -274,10 +274,10 @@
           "target": "build",
           "view": "closeup",
           "distance": 12,
-          "height": 2.5,
           "clearView": true,
           "shot": "fire-eye",
-          "shotMode": "render"
+          "shotMode": "render",
+          "pitch": 30
         },
         {
           "do": "lab",
@@ -291,10 +291,10 @@
           "target": "build",
           "view": "closeup",
           "distance": 14,
-          "height": 2.5,
           "clearView": true,
           "shot": "pitch-eye",
-          "shotMode": "render"
+          "shotMode": "render",
+          "pitch": 30
         }
       ]
     }

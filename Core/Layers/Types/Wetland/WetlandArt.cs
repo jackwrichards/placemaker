@@ -15,8 +15,8 @@ namespace Placemaker.Core.Layers.Types.Wetland
         /// <summary>(nature makeover) Tussocks on a marsh rim: the low, round wild bushes.</summary>
         public static readonly string[] Tussocks = { "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWildChild01" };
         public static readonly string[] LakeTrees = { "PineTree01", "SpruceTree01", "BirchTree01", "EuropeanSpruce01", "PineTree01", "BirchTree01", "EU_AlderTree01" };
-        public static readonly string[] Bushes = { "GreenBushWild02", "GreenBushWildAdult01", "GreenBushWildElderly01", "FlowerBushWild01" };
-        public static readonly string[] GardenShrubs = { "FlowerBushWild02", "FlowerBushWild01", "GreenBushWild01" };
+        public static readonly string[] Bushes = { "GreenBushWild02", "GreenBushWildAdult01", "GreenBushWildElderly01", "FlowerBushWildDead02" };   // (nature makeover) FlowerBushWild01 and Elderly01 render pale teal in the game
+        public static readonly string[] GardenShrubs = { "FlowerBushWild02", "GreenBushWildTeen01", "GreenBushWild01" };
         public static readonly string[] Flowers = { "Flowerbed02", "Flowerbed01" };
         public static readonly string[] Hides = { "CampgroundShelter02", "CampgroundShelter01" };
         public static readonly string[] Lookouts = { "Gazebo03", "Gazebo02", "Gazebo01" };

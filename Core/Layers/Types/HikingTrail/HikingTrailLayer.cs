@@ -125,7 +125,7 @@ namespace Placemaker.Core.Layers.Types.Hiking
         }
 
         private static string[] Bushes(string landscape) => landscape == "meadow"
-            ? new[] { "GreenBushWildChild01", "FlowerBushWildChild02", "GreenBushWildTeen01", "GreenBushWild01", "FlowerBushWildElderly01" }
+            ? new[] { "GreenBushWildChild01", "FlowerBushWildChild02", "GreenBushWildTeen01", "GreenBushWild01", "GreenBushWildElderly01" }
             : new[] { "GreenBushWild01", "GreenBushWild02", "GreenBushWildAdult01", "GreenBushWildTeen01" };
 
         private static readonly string[] TrailBenches = { "CampgroundBench01", "CampgroundBench02" };
