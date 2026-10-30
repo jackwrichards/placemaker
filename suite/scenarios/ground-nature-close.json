@@ -1,0 +1,302 @@
+{
+  "_about": "The nature makeover (docs/runbooks/nature.md): eye-level looks into the woods and the marsh with the camera keys height + clearView (suite/README.md, Camera). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/ground-nature-close.json -Who makeover-nature",
+  "scenarios": [
+    {
+      "id": "close-woods",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "natureReserve",
+          "preset": "forest"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "trailDirt",
+          "index": 2,
+          "margin": 4
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 18,
+          "pitch": 12,
+          "clearView": true,
+          "shot": "trail-eye",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "trailDirt",
+          "index": 6,
+          "margin": 4
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 18,
+          "pitch": 12,
+          "clearView": true,
+          "shot": "trail-eye-2",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "pathEdgeWear",
+          "index": 8,
+          "margin": 4
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 14,
+          "pitch": 18,
+          "clearView": true,
+          "shot": "edge-eye",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "mossPatch",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 50,
+          "clearView": true,
+          "shot": "log-moss-above",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "twigs",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 50,
+          "clearView": true,
+          "shot": "deadwood-above",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "close-marsh",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "wetland",
+          "preset": "reedMarsh"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 45
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "marshMud",
+          "index": 2,
+          "margin": 10
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 28,
+          "clearView": true,
+          "shot": "marsh-eye",
+          "shotMode": "render",
+          "pitch": 30
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "marshMud",
+          "index": 8,
+          "margin": 10
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 40,
+          "clearView": true,
+          "shot": "marsh-mid",
+          "shotMode": "render",
+          "pitch": 40
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "sedgeLitter",
+          "index": 6,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 18,
+          "clearView": true,
+          "shot": "sedge-eye",
+          "shotMode": "render",
+          "pitch": 30
+        }
+      ]
+    },
+    {
+      "id": "close-camp",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "campground",
+          "preset": "forest"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "ashScorch",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 12,
+          "clearView": true,
+          "shot": "fire-eye",
+          "shotMode": "render",
+          "pitch": 30
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "trampledGrass",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 14,
+          "clearView": true,
+          "shot": "pitch-eye",
+          "shotMode": "render",
+          "pitch": 30
+        }
+      ]
+    }
+  ]
+}

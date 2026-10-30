@@ -21,12 +21,15 @@
       "open"
     ],
     "lookoutHill": [
-      "viewpointMound"
+      "viewpointMound",
+      "kiteHill"
     ],
     "hikingTrail": [
       "summitClimb",
-      "lakeshoreLoop"
+      "lakeshoreLoop",
+      "ridgeHike",
+      "canyonTrail"
     ]
   },
-  "_decisions": "rf-nature (docs/refactor/nature.md): wetland keeps all five; the hidden styles are the mundane or duplicate ones (see the doc for each grade)."
+  "_decisions": "rf-nature (docs/refactor/nature.md): wetland keeps all five; the hidden styles are the mundane or duplicate ones (see the doc for each grade). Nature makeover (2026-10-30, docs/runbooks/nature.md): kiteHill hidden (a bare grass dome with a cairn: hilltop and sledding do the hill better); ridgeHike and canyonTrail hidden (the ridge and the gorge do not read in the game unless the entrances sit at opposite ends; with the new groves and dirt trail they are forestTrail again)."
 }

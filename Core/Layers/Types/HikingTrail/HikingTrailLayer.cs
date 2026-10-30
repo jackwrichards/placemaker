@@ -125,7 +125,7 @@ namespace Placemaker.Core.Layers.Types.Hiking
         }
 
         private static string[] Bushes(string landscape) => landscape == "meadow"
-            ? new[] { "FlowerBushWild01", "FlowerBushWild02", "FlowerBushWildChild02", "GreenBushWildChild01" }
+            ? new[] { "GreenBushWildChild01", "FlowerBushWildChild02", "GreenBushWildTeen01", "GreenBushWild01", "GreenBushWildElderly01" }
             : new[] { "GreenBushWild01", "GreenBushWild02", "GreenBushWildAdult01", "GreenBushWildTeen01" };
 
         private static readonly string[] TrailBenches = { "CampgroundBench01", "CampgroundBench02" };
@@ -815,12 +815,23 @@ namespace Placemaker.Core.Layers.Types.Hiking
             int bushes = math.min(12000, (int)(ha * ctx.F("bushDensity")));
             float clump = landscape == "meadow" ? 40f : landscape == "forest" ? 24f : 18f;
             float floor = landscape == "meadow" ? 0.15f : landscape == "forest" ? 0.5f : 0.35f;
+            // (nature makeover) groves, not rows: the even scatter stopped early along the candidates' diagonal bands
             if (trees > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Tree, treeIds, Keys.Category(AssetCategories.Tree)))
-                LeisureKit.Plant(ctx, t.Occ, region, trees, ObjectRole.Tree, treeIds, 2.2f, clump, floor, 0x7AEEu, reject, 0, 3);
+                NatureKit.Plant(ctx, t.Occ, region, trees, ObjectRole.Tree, treeIds, 2.1f, clump * 1.3f, 0x7AEEu, reject, floor * 0.4f, landscape == "forest" ? 0.03f : 0f);
             ctx.Check();
             if (bushes > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Bush, bushIds, Keys.Category(AssetCategories.Bush)))
-                LeisureKit.Plant(ctx, t.Occ, region, bushes, ObjectRole.Bush, bushIds, 0.9f, landscape == "lakeshore" ? 10f : 14f, 0.3f, 0x7AEBu,
-                    p => (water != null && water(p) > 0.05f) || t.Occ.Paths.Clearance(p, t.Hw + 3f) < t.Hw + 1.2f);
+                NatureKit.Plant(ctx, t.Occ, region, bushes, ObjectRole.Bush, bushIds, 0.9f, landscape == "lakeshore" ? 12f : 16f, 0x7AEBu,
+                    p => (water != null && water(p) > 0.05f) || t.Occ.Paths.Clearance(p, t.Hw + 3f) < t.Hw + 1.2f, 0.1f);
+            ctx.Check();
+            // boulders where the ground is steep (the gorge's walls, the ridge's flanks) and fallen trunks in the wood
+            NatureKit.Rocks(ctx, t.Occ, region, math.clamp((int)math.round(ha * (landscape == "canyon" || landscape == "ridge" ? 2.5f : 0.8f)), 1, 40), 0x40C2u, p =>
+            {
+                if (t.Occ.Paths.Clearance(p, t.Hw + 4f) < t.Hw + 2f) return 0f;
+                var e = new float2(3f, 0f); var f = new float2(0f, 3f);
+                float slope = math.length(new float2(ctx.H(p + e) - ctx.H(p - e), ctx.H(p + f) - ctx.H(p - f))) / 6f;
+                return (landscape == "canyon" || landscape == "ridge" ? 0.45f : 0.15f) + math.saturate(slope * 3f);
+            });
+            if (landscape == "forest" || landscape == "canyon") NatureKit.Fallen(ctx, t.Occ, region, (int)(ha * 3f), 0x1066u, p => t.Occ.Paths.Clearance(p, t.Hw + 4f) >= t.Hw + 3f);
         }
 
         /// <summary>Worn tread painted along the trail (permanent terrain paint), one strip per straight-ish piece.</summary>

@@ -162,6 +162,54 @@ namespace Placemaker.Game.Suite
             bool fit = (target == "build" || target == "area") && (view == "oblique" || view == "low" || view == "top") && st.Ring != null && st.Ring.Length > 0 && c["distance"] == null;
             if (fit) dist = FitDistance(st.Ring, pivot, yaw, pitch, fov);
             if (c["distance"] != null) dist = (float)c["distance"];
+            // (nature makeover) an eye at a ground point and height looking at the target: "eye": [x, z] (block-relative, or
+            // absolute with "abs"), "height" metres above the ground there (1.7). Yaw, pitch and distance follow from the two.
+            if (c["eye"] is JArray)
+            {
+                var e2 = Pt(c["eye"], b, (bool?)c["abs"] ?? false);
+                float eh = _fixture.H(e2.x, e2.y) + ((float?)c["height"] ?? 1.7f);
+                var d = pivot - new float3(e2.x, eh, e2.y);
+                float horiz = math.max(0.1f, math.length(d.xz));
+                yaw = math.degrees(math.atan2(d.x, d.z));
+                pitch = math.clamp(math.degrees(math.atan2(-d.y, horiz)), 1f, 89.9f);
+                dist = math.length(d);
+            }
+            // (nature makeover) "clearView": true turns the camera round its target to the direction whose line of sight passes
+            // the fewest trees and bushes of the plan (a close or low look into a wood otherwise sees only the nearest crowns);
+            // the requested yaw breaks ties. "height" (with "distance") sets a low eye: the pitch follows.
+            if ((bool?)c["clearView"] == true)
+            {
+                if (c["height"] != null && c["eye"] == null)
+                    pitch = math.clamp(math.degrees(math.atan2((float)c["height"], math.max(1f, dist))), 1f, 89.9f);
+                var obs = new List<float2>(st.Sightblock);
+                var plan = obs.Count > 0 ? null : _tool.Plan;
+                if (plan?.Layers != null)
+                    foreach (var l in plan.Layers) foreach (var o in l.Objects)
+                        if (o != null && (o.Role == ObjectRole.Tree || o.Role == ObjectRole.Bush)) obs.Add(o.Position.xz);
+                float bestScore = float.MaxValue, bestYaw = yaw;
+                for (int k = 0; k < 24; k++)
+                {
+                    float y = yaw + k * 15f;
+                    float yr = math.radians(y), pr = math.radians(pitch);
+                    var f = new float3(math.sin(yr) * math.cos(pr), -math.sin(pr), math.cos(yr) * math.cos(pr));
+                    var eye = pivot - f * dist;
+                    float score = 0f;
+                    var a = eye.xz; var ab = pivot.xz - a; float L2 = math.max(1e-3f, math.lengthsq(ab));
+                    foreach (var q in obs)
+                    {
+                        float t = math.saturate(math.dot(q - a, ab) / L2);
+                        if (t > 0.97f) continue;   // things at the target itself are what we look at
+                        float dd = math.distance(q, a + ab * t);
+                        // the line is high above the ground near the eye on a steep look: crowns only block when the line is low
+                        float hLine = math.lerp(eye.y, pivot.y, t) - _fixture.H(q.x, q.y);
+                        if (dd < 3.5f && hLine < 18f) score += 1f - dd / 3.5f;
+                    }
+                    score += math.abs(((k * 15f + 180f) % 360f) - 180f) / 720f;
+                    if (score < bestScore) { bestScore = score; bestYaw = y; }
+                }
+                yaw = bestYaw;
+                (rec["camera"] as JObject ?? (JObject)(rec["camera"] = new JObject()))["clearView"] = Math.Round(bestScore, 2);
+            }
             var cr = rec["camera"] as JObject ?? (JObject)(rec["camera"] = new JObject());
             cr["target"] = target;
             cr["index"] = i;

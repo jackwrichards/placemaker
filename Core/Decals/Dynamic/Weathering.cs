@@ -46,7 +46,7 @@ namespace Placemaker.Core.Decals.Dynamic
         public static string Season = "Summer";
 
         /// <summary>The types (and their styles) that get a designed ground: every sports park style.</summary>
-        public static bool Wants(string layerId, SettingsBag values) => layerId == "sportsPark";
+        public static bool Wants(string layerId, SettingsBag values) => layerId == "sportsPark" || NatureGround.Wants(layerId);
 
         public static float Amount(SettingsBag values)
         {
@@ -112,6 +112,15 @@ namespace Placemaker.Core.Decals.Dynamic
                 Scene scene = null; Report r = null;
                 for (int pass = 0; pass < 3; pass++)
                 {
+                    if (NatureGround.Wants(s.LayerId))
+                    {
+                        // (nature makeover) wild ground has its own causes: flow, hollows, rock, trails, water (NatureGround.cs)
+                        r = new NatureGround.Design(layers, ring, site, ground, Hashing.Mix(host.Seed == 0 ? 1u : host.Seed, 0xD1Bu), s.Grime, s.LayerId, lib, host.DecalInstances, density, cap).Run();
+                        if (r.Instances <= cap || pass == 2) break;
+                        host.DecalInstances.RemoveRange(start, host.DecalInstances.Count - start);
+                        density *= cap / (float)r.Instances * 0.95f;
+                        continue;
+                    }
                     scene = new Scene(layers, ring, site, ground, Hashing.Mix(host.Seed == 0 ? 1u : host.Seed, 0xD1Au), s.Grime, lib, host.DecalInstances, density, cap)
                     {
                         // the painted lawn's moisture (GroundWear.LawnTint): dry-grass and clover decals land where the paint is dry or lush

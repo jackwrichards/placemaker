@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+ca601453-dirty",
+  "assembly": "0.3.6+f7a7dccf-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -20752,10 +20752,6 @@
           "id": "entrances",
           "kind": "Markers"
         }
-      ],
-      "shelvedStyles": [
-        "reclaim",
-        "tip"
       ]
     },
     {
@@ -20900,9 +20896,6 @@
           "id": "entrances",
           "kind": "Markers"
         }
-      ],
-      "shelvedStyles": [
-        "recycling"
       ]
     },
     {
@@ -22993,12 +22986,6 @@
           "kind": "Toggle",
           "default": false
         }
-      ],
-      "shelvedStyles": [
-        "gravelPit",
-        "sandPit",
-        "lakeDig",
-        "flooded"
       ]
     },
     {
@@ -25705,7 +25692,8 @@
         }
       ],
       "shelvedStyles": [
-        "viewpointMound"
+        "viewpointMound",
+        "kiteHill"
       ]
     },
     {
@@ -26677,8 +26665,7 @@
           "kind": "Toggle",
           "default": false
         }
-      ],
-      "shelved": true
+      ]
     },
     {
       "layer": "hikingTrail",
@@ -26976,6 +26963,8 @@
         }
       ],
       "shelvedStyles": [
+        "ridgeHike",
+        "canyonTrail",
         "summitClimb",
         "lakeshoreLoop"
       ]
@@ -27262,8 +27251,7 @@
           "kind": "Toggle",
           "default": false
         }
-      ],
-      "shelved": true
+      ]
     },
     {
       "layer": "abandonedLot",
@@ -28192,12 +28180,6 @@
           "kind": "Toggle",
           "default": false
         }
-      ],
-      "shelvedStyles": [
-        "capped",
-        "compost",
-        "recycling",
-        "flytip"
       ]
     },
     {
@@ -28991,6 +28973,7 @@
         "waterGarden",
         "reedMarsh",
         "rainGarden",
+        "lakeland",
         "birdReserve"
       ],
       "options": [
@@ -29002,7 +28985,8 @@
             "waterGarden",
             "reedMarsh",
             "rainGarden",
-            "birdReserve"
+            "birdReserve",
+            "lakeland"
           ],
           "default": "wetlandPark"
         },

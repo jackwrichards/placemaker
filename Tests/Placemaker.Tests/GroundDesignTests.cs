@@ -365,7 +365,7 @@ namespace Placemaker.Tests
 
         internal static readonly ConcurrentDictionary<string, BakedVariant> _baked = new ConcurrentDictionary<string, BakedVariant>();
 
-        private void Picture(ComposedPlan plan, string name)
+        internal void Picture(ComposedPlan plan, string name)
         {
             var lib = Lib();
             var list = Instances(plan);
@@ -439,7 +439,7 @@ namespace Placemaker.Tests
             DecalLibraryTests.Png(file, W, H, rgb);
         }
 
-        private static void Draw(float3[] px, int W, int H, float2 lo, float mpp, DecalInstance d, DecalKind k, float3? onlyOver = null)
+        internal static void Draw(float3[] px, int W, int H, float2 lo, float mpp, DecalInstance d, DecalKind k, float3? onlyOver = null)
         {
             if (!_baked.TryGetValue(d.Kind + "#" + d.Variant, out var b)) return;
             var size = b.Span * d.Scale;
@@ -465,7 +465,7 @@ namespace Placemaker.Tests
                 }
         }
 
-        private static void Fill(float3[] bg, int W, int H, float2 lo, float mpp, float2[] ring, float3 col)
+        internal static void Fill(float3[] bg, int W, int H, float2 lo, float mpp, float2[] ring, float3 col)
         {
             Poly.Bounds(ring, out var a, out var b);
             int x0 = math.max(0, (int)((a.x - lo.x) / mpp)), x1 = math.min(W - 1, (int)((b.x - lo.x) / mpp));
@@ -475,7 +475,7 @@ namespace Placemaker.Tests
                     if (Poly.Contains(ring, lo + new float2(x + 0.5f, y + 0.5f) * mpp)) bg[y * W + x] = col;
         }
 
-        private static void Disc(float3[] bg, int W, int H, float2 lo, float mpp, float2 p, float r, float3 col)
+        internal static void Disc(float3[] bg, int W, int H, float2 lo, float mpp, float2 p, float r, float3 col)
         {
             int x0 = math.max(0, (int)((p.x - r - lo.x) / mpp)), x1 = math.min(W - 1, (int)((p.x + r - lo.x) / mpp));
             int y0 = math.max(0, (int)((p.y - r - lo.y) / mpp)), y1 = math.min(H - 1, (int)((p.y + r - lo.y) / mpp));

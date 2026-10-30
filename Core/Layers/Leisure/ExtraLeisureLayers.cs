@@ -260,7 +260,7 @@ namespace Placemaker.Core.Layers.Leisure
         // avenue of one species, a quieter footpath beside it joined at both ends, copses and meadow around.
         private static readonly string[] GreenwayAvenue = { "NA_LindenTree01", "NA_LondonPlaneTree01" };
         private static readonly string[] GreenwayTrees = { "OakTree01", "EU_ChestnutTree01", "NA_LindenTree01", "BirchTree01" };
-        private static readonly string[] GreenwayBushes = { "GreenBushWild01", "GreenBushWildAdult01", "FlowerBushWild01", "FlowerBushWild02" };
+        private static readonly string[] GreenwayBushes = { "GreenBushWild01", "GreenBushWildAdult01", "GreenBushWildElderly01", "FlowerBushWild02" };
         private static readonly string[] GreenwayBenches = { "Pack10-Bench01", "Pack10-Bench03" };
         private static readonly string[] GreenwayLamps = { "LightpolePark01", "EU_LightpolePark01" };
         private static readonly string[] GreenwayBins = { "Trashbin01", "Trashbin02" };
@@ -321,8 +321,8 @@ namespace Placemaker.Core.Layers.Leisure
             if (ctx.B("lamps")) PathLamps(ctx, occ, 25f, AssetMix.Pick(GreenwayLamps, 0u), 0x1A7u);
             float ha = region.Area / 10000f;
             // Copses in the meadow: strong clumping (low floor) so trees gather instead of dotting the lawn evenly.
-            LeisureKit.Plant(ctx, occ, region, (int)(ha * ctx.F("treeDensity")), ObjectRole.Tree, GreenwayTrees, 2.4f, 22f, 0.15f, 0x7E7u);
-            LeisureKit.Plant(ctx, occ, region, (int)(ha * ctx.F("bushDensity")), ObjectRole.Bush, GreenwayBushes, 1f, 10f, 0.15f, 0xB07u);
+            NatureKit.Plant(ctx, occ, region, (int)(ha * ctx.F("treeDensity")), ObjectRole.Tree, GreenwayTrees, 2.3f, 28f, 0x7E7u, null, 0.05f);   // (nature makeover) groves, no bands
+            NatureKit.Plant(ctx, occ, region, (int)(ha * ctx.F("bushDensity")), ObjectRole.Bush, GreenwayBushes, 1f, 14f, 0xB07u, null, 0.08f);
             EmitGreenRegions(ctx, occ, 80f);
             CommonStats(ctx);
             ctx.Plan.Facts["restStops"] = stops;

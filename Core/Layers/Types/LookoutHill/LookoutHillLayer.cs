@@ -179,11 +179,22 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
             var treeIds = ctx.L("treeSpecies");
             if (treeIds.Length == 0 && AssetAvailability.Has(AssetCategories.Tree)) treeIds = TreesFor(sub);
             int trees = math.min(10000, (int)(ha * ctx.F("treeDensity")));
+            // (nature makeover) groves with glades between, not an even scatter (the hilltop's wood stood on a lattice)
             if (trees > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Tree, treeIds, Keys.Category(AssetCategories.Tree)))
-                LeisureKit.Plant(ctx, occ, region, trees, ObjectRole.Tree, treeIds, 2.5f, 24f, 0.35f, 0x7F00u, reject, 1, 3);
+                NatureKit.Plant(ctx, occ, region, trees, ObjectRole.Tree, treeIds, 2.3f, 30f, 0x7F00u, reject, 0.08f);
             int bushes = math.min(10000, (int)(ha * ctx.F("bushDensity")));
             if (bushes > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Bush, null, Keys.Category(AssetCategories.Bush)))
-                LeisureKit.Plant(ctx, occ, region, bushes, ObjectRole.Bush, Bushes, 1.1f, 12f, 0.3f, 0xB600u, reject);
+                NatureKit.Plant(ctx, occ, region, bushes, ObjectRole.Bush, Bushes, 1.1f, 16f, 0xB600u, reject, 0.1f);
+            // rock coming through on the steep shoulders and round the crest; stones spill downhill
+            Func<float2, float> built = p => ctx.H(p) + field.OffsetAt(p);
+            float Steep(float2 p) { var gr = field.Gradient(p); return math.length(gr); }
+            int rockGroups = sub == "kiteHill" ? (int)math.round(ha * 0.8f) : (int)math.round(ha * 2.2f) + 1;
+            NatureKit.Rocks(ctx, occ, region, math.clamp(rockGroups, 1, 40), 0x40C0u, p =>
+            {
+                if (math.distance(p, summit) < summitR + 5f) return 0f;
+                float crest = math.saturate(1f - math.abs(math.distance(p, summit) - summitR - 14f) / 18f);
+                return math.saturate(Steep(p) * 2.2f + crest * 0.6f) * (run && math.distance(p, (runA + runB) * 0.5f) < math.distance(runA, runB) * 0.6f ? 0.1f : 1f);
+            }, built);
             ctx.Check();
 
             // ── Regions, heights, stats ──
@@ -237,20 +248,40 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                 // A second entrance joins the first path when it can; otherwise it climbs on its own.
                 if (gi > 0 && main.Count > 1)
                 {
-                    int best = -1; float bd = float.MaxValue;
+                    // (nature makeover) the spur joins the climb where it is a walk: the nearest point of the main path it can
+                    // reach at a walking grade (the climb starts low, so there is one near the foot of the hill), not the
+                    // nearest point, which on a big site was a straight line cut up the hillside
+                    float H(float2 p) => field.OffsetAt(p) + ctx.H(p);
+                    float maxGrade = math.max(0.08f, ctx.F("grade") / 100f * 1.4f);
+                    int best = -1, near = -1; float bd = float.MaxValue, nd = float.MaxValue;
                     for (int i = 0; i < main.Count; i++)
                     {
                         float d = math.distance(main[i], g.Position);
-                        if (d < bd && Clear(region, occ, g.Position, main[i], hw)) { bd = d; best = i; }
+                        if (d >= bd && d >= nd) continue;
+                        if (!Clear(region, occ, g.Position, main[i], hw)) continue;
+                        if (d < nd) { nd = d; near = i; }
+                        if (d < bd && math.abs(H(main[i]) - H(g.Position)) <= math.max(1.5f, d * maxGrade)) { bd = d; best = i; }
                     }
-                    if (best >= 0 && bd < 120f)
+                    // nowhere near to join at a walking grade: a foot path round the bottom of the hill (along the outline,
+                    // where the ground stays low) to where the climb can be joined at a walk; else the entrance climbs on its own
+                    if (best < 0 && FootPath(ctx, occ, region, g, main, H, maxGrade, hw, role, asset, out float footLen)) { total += footLen; continue; }
+                    if (best < 0 && near >= 0 && nd < 14f) { best = near; bd = nd; }
+                    if (best >= 0 && bd < 160f)
                     {
                         if (bd >= 1f)
                         {
-                            var spur = ctx.StraightNet(g.Position, main[best], role, asset);
+                            var a = g.Position; var e = main[best];
+                            var cb = a + inward * bd * 0.35f; var cc = e + (a - e) * 0.3f;
+                            var spur = bd > 12f && CurveInside(region, a, cb, cc, e, hw) ? ctx.CurvedNet(a, cb, cc, e, role, asset) : ctx.StraightNet(a, e, role, asset);
                             AttachStart(spur, g);
-                            occ.TakeCorridor(g.Position, main[best], hw, 100);
-                            occ.Paths.Add(g.Position, main[best], hw, 100);
+                            var prev = a;
+                            for (int k = 1; k <= 16; k++)
+                            {
+                                var q = Composer.Bezier(spur.A, spur.B, spur.C, spur.D, k / 16f).xz;
+                                occ.TakeCorridor(prev, q, hw, 100);
+                                occ.Paths.Add(prev, q, hw, 100);
+                                prev = q;
+                            }
                         }
                         total += bd;
                         continue;
@@ -263,8 +294,17 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                     Summit = summit, SummitRadius = summitR, Seed = Hashing.Mix(ctx.Seed, (uint)gi + 0xC11u),
                 };
                 var pts = HillPaths.Climb(field, region, occ, g.Position, g.Position + inward * (hw + 2.5f), spec);
+                ctx.Plan.Facts["arrival" + gi] = HillPaths.LastArrival;
                 if (pts.Count < 3) continue;
-                if (!HillPaths.Reached(pts, spec)) ctx.Issue(IssueSeverity.Info, "Placemaker.LookoutHill.Issue.PathShort");
+                bool joined = false;
+                if (!HillPaths.Reached(pts, spec) && main.Count > 1)
+                {
+                    // (nature makeover) a second climb that stops short beside the first joins it: never a dead end on the hill
+                    var last = pts[pts.Count - 1]; int jb = -1; float jd = 30f;
+                    for (int i = 0; i < main.Count; i++) { float d = math.distance(main[i], last); if (d < jd) { jd = d; jb = i; } }
+                    if (jb >= 0) { if (jd > 0.5f) pts.Add(main[jb]); joined = true; }
+                }
+                if (!joined && !HillPaths.Reached(pts, spec)) ctx.Issue(IssueSeverity.Info, "Placemaker.LookoutHill.Issue.PathShort");
                 Relax(pts, region, hw);
                 var simple = Poly.SimplifyPolyline(pts, 0.6f);
                 int n = simple.Length;
@@ -276,7 +316,11 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                     var a = simple[i]; var b = simple[i + 1];
                     var p0 = i > 0 ? simple[i - 1] : a; var p3 = i + 2 < n ? simple[i + 2] : b;
                     var cb = a + (b - p0) / 6f; var cc = b - (p3 - a) / 6f;
-                    var net = i > 0 && i + 2 < n && CurveInside(region, a, cb, cc, b, hw)
+                    // (nature makeover) the last piece meets the plaza head on: it ends heading for the summit (a straight last piece
+                    // after the curve kinked where they met)
+                    bool last = i > 0 && i + 2 >= n && math.distance(b, summit) < summitR + 1.5f;
+                    if (last) cc = b + math.normalizesafe(b - summit) * math.distance(a, b) / 3f;
+                    var net = i > 0 && (i + 2 < n || last) && CurveInside(region, a, cb, cc, b, hw)
                         ? ctx.CurvedNet(a, cb, cc, b, role, asset) : ctx.StraightNet(a, b, role, asset);
                     if (i == 0) AttachStart(net, g);
                     // Pieces are added to the occupancy one by one; the last piece onto the plaza is fine.
@@ -313,6 +357,73 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                     if (region.ContainsDisc(q, hw + 1f)) pts[i] = q;
                 }
             }
+        }
+
+        /// <summary>
+        /// (nature makeover) The second entrance's walk to the climb round the foot of the hill: points a few metres inside the
+        /// outline, both ways round, until one comes within reach of the climb at a walking grade; the shorter way is laid as
+        /// smooth pieces and joined to the climb. False when neither way finds a join within half the outline.
+        /// </summary>
+        private static bool FootPath(LayerContext ctx, Occupancy occ, LayerRegion region, Gate g, List<float2> main, Func<float2, float> h,
+            float maxGrade, float hw, NetRole role, AssetRef asset, out float length)
+        {
+            length = 0f;
+            region.ClosestOnBoundary(g.Position, out int seg, out float t);
+            float s0 = region.AlongOf(seg, t), per = region.Perimeter;
+            float off = hw + 4f;
+            List<float2> best = null;
+            foreach (float dir in new[] { 1f, -1f })
+            {
+                var pts = new List<float2> { g.Position };
+                for (float s = 6f; s < per * 0.5f; s += 4f)
+                {
+                    var b = region.PointAt(((s0 + dir * s) % per + per) % per, out _, out var inw, out _);
+                    var p = b + inw * (off + 4f + 6f * ValueNoise.Clumps(b, 28f, Hashing.Mix(ctx.Seed, 0xF007u)));   // wandering a little in and out
+                    // near a corner the inset off one side lands on the other side's edge: skip it (the walk cuts the corner)
+                    if (!region.ContainsDisc(p, hw + 0.5f) || region.BoundaryDistance(p, off + 12f) < off + 2f) continue;
+                    if (occ.Discs.Overlaps(p, hw, 0.2f)) { pts = null; break; }
+                    pts.Add(p);
+                    int j = -1; float jd = 22f;
+                    for (int i = 0; i < main.Count; i++)
+                    {
+                        float d = math.distance(main[i], p);
+                        if (d < jd && math.abs(h(main[i]) - h(p)) <= math.max(1f, d * maxGrade)) { jd = d; j = i; }
+                    }
+                    if (j >= 0 && Clear(region, occ, p, main[j], hw)) { pts.Add(main[j]); break; }
+                    if (s + 4f >= per * 0.5f) pts = null;
+                }
+                if (pts == null || pts.Count < 3) continue;
+                if (best == null || pts.Count < best.Count) best = pts;
+            }
+            if (best == null) return false;
+            // round the outline's corners: a few passes of neighbour averaging, the gate and the join kept
+            for (int pass = 0; pass < 40; pass++)
+                for (int i = 2; i < best.Count - 2; i++)
+                {
+                    var q = best[i] * 0.5f + (best[i - 1] + best[i + 1]) * 0.25f;
+                    if (region.ContainsDisc(q, hw + 1f)) best[i] = q;
+                }
+            var simple = Poly.SimplifyPolyline(best, 0.6f);
+            int n = simple.Length;
+            for (int i = 0; i + 1 < n; i++)
+            {
+                var a = simple[i]; var b = simple[i + 1];
+                var p0 = i > 0 ? simple[i - 1] : a; var p3 = i + 2 < n ? simple[i + 2] : b;
+                var cb = a + (b - p0) / 6f; var cc = b - (p3 - a) / 6f;
+                var net = i > 0 && i + 2 < n && CurveInside(region, a, cb, cc, b, hw) ? ctx.CurvedNet(a, cb, cc, b, role, asset) : ctx.StraightNet(a, b, role, asset);
+                if (i == 0) AttachStart(net, g);
+                var prev = a;
+                for (int k = 1; k <= 6; k++)
+                {
+                    var q = Composer.Bezier(net.A, net.B, net.C, net.D, k / 6f).xz;
+                    occ.TakeCorridor(prev, q, hw, 100);
+                    occ.Paths.Add(prev, q, hw, 100);
+                    prev = q;
+                }
+                length += math.distance(a, b);
+            }
+            ctx.Plan.Facts["footPath"] = length;
+            return true;
         }
 
         private static void AttachStart(PlannedNet net, Gate g)
@@ -430,7 +541,7 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
         private static readonly string[] SummitPaving = { "Pavement Surface 01", "Pavement Surface 02" };
         private static readonly string[] TerracePaving = { "Tiles Surface 01", "Pavement Surface 02" };
         private static readonly string[] Lamps = { "LightpolePark03", "EU_LightpolePark03" };
-        private static readonly string[] Bushes = { "GreenBushWild01", "GreenBushWildAdult01", "FlowerBushWild01", "GreenBushWild02" };
+        private static readonly string[] Bushes = { "GreenBushWild01", "GreenBushWildAdult01", "GreenBushWildElderly01", "GreenBushWild02" };   // (nature makeover) no blue-flowered garden bush on a wild hill
         private static readonly string[] Blankets = { "PicnicBlanket01", "PicnicBlanket02", "PicnicBlanket03", "PicnicBlanket04", "PicnicBlanket05" };
 
         private static AssetRef BenchFor(LayerContext ctx) => ctx.S("subtype") == "terraces"
