@@ -39,6 +39,8 @@ namespace Placemaker.Core.Decals.Dynamic
         public const float RecentRain = 0.6f;
         /// <summary>Most library instances one weathered build places.</summary>
         public const int MaxInstances = 9000;
+        /// <summary>Library instances a hectare may have before the ground is thinned (a 220 x 200 m park lays about 270).</summary>
+        public const float PerHectare = 320f;
         /// <summary>The leaves' colours (the user, 2026-10-29: autumn leaves under green trees looked wrong): "Summer" kinds are olive,
         /// green and brown; "" is the autumn library. A later knob (the city's season).</summary>
         public static string Season = "Summer";
@@ -62,12 +64,16 @@ namespace Placemaker.Core.Decals.Dynamic
             public float Touched, Strong;
             public readonly List<string> Flaws = new List<string>();
             public double Ms;
+            /// <summary>How much of everything was laid (1 = all; below 1 a huge site was thinned to its budget).</summary>
+            public float Density = 1f;
+            /// <summary>Milliseconds per pass (tone, trees, seams …), the last run.</summary>
+            public readonly Dictionary<string, double> Timing = new Dictionary<string, double>(StringComparer.Ordinal);
 
             public override string ToString()
             {
                 var parts = new List<string>();
                 foreach (var kv in ByCause) parts.Add(kv.Key + " " + kv.Value);
-                return $"{Instances} library instances ({string.Join(", ", parts)}), {Touched * 100f:F0} % of the site touched by causes, {Strong * 100f:F1} % strong, flaws [{string.Join(", ", Flaws)}], {Ms:F0} ms";
+                return $"{Instances} library instances at {Density * 100f:F0} % density ({string.Join(", ", parts)}), {Touched * 100f:F0} % of the site touched by causes, {Strong * 100f:F1} % strong, flaws [{string.Join(", ", Flaws)}], {Ms:F0} ms ({string.Join(", ", System.Linq.Enumerable.Select(Timing, kv => kv.Key + " " + kv.Value.ToString("F0")))})";
             }
         }
 
@@ -97,18 +103,35 @@ namespace Placemaker.Core.Decals.Dynamic
                 AreaPlan host = layers.Find(l => l.GeneratorId == s.LayerId) ?? layers[0];
                 var ring = s.Ring != null && s.Ring.Length >= 3 ? s.Ring : area?.Ring2D();
                 if (ring == null || ring.Length < 3) continue;
-                var scene = new Scene(layers, ring, site, ground, Hashing.Mix(host.Seed == 0 ? 1u : host.Seed, 0xD1Au), s.Grime, lib, host.DecalInstances)
+                // the budget follows the site's size: about PerHectare a hectare, never more than MaxInstances; a huge site is
+                // thinned evenly (every cause alike) from the start, and once more if it still came out over
+                float ha = Poly.Area(ring) / 10000f;
+                int cap = (int)math.clamp(ha * PerHectare, 150f, MaxInstances);
+                float density = math.min(1f, cap / math.max(1f, ha * 300f));
+                int start = host.DecalInstances.Count;
+                Scene scene = null; Report r = null;
+                for (int pass = 0; pass < 3; pass++)
                 {
-                    // the painted lawn's moisture (GroundWear.LawnTint): dry-grass and clover decals land where the paint is dry or lush
-                    PaintSeed = s.LawnPainted ? GroundWear.PaintSeed(host.Seed) : 0u,
-                };
-                var r = scene.Run();
+                    scene = new Scene(layers, ring, site, ground, Hashing.Mix(host.Seed == 0 ? 1u : host.Seed, 0xD1Au), s.Grime, lib, host.DecalInstances, density, cap)
+                    {
+                        // the painted lawn's moisture (GroundWear.LawnTint): dry-grass and clover decals land where the paint is dry or lush
+                        PaintSeed = s.LawnPainted ? GroundWear.PaintSeed(host.Seed) : 0u,
+                    };
+                    r = scene.Run();
+                    if (r.Instances <= cap || pass == 2) break;
+                    host.DecalInstances.RemoveRange(start, host.DecalInstances.Count - start);
+                    density *= cap / (float)r.Instances * 0.95f;
+                }
+                r.Density = density;   // large sites are always handled, quietly (the user: warn only when a site is too small)
                 total.Instances += r.Instances;
                 foreach (var kv in r.ByCause) total.ByCause[kv.Key] = (total.ByCause.TryGetValue(kv.Key, out var n) ? n : 0) + kv.Value;
+                foreach (var kv in r.Timing) total.Timing[kv.Key] = (total.Timing.TryGetValue(kv.Key, out var tm) ? tm : 0) + kv.Value;
                 total.Flaws.AddRange(r.Flaws);
                 total.Touched = math.max(total.Touched, r.Touched);
                 total.Strong = math.max(total.Strong, r.Strong);
+                total.Density = math.min(total.Density, density);
                 host.Facts["decalInstances"] = r.Instances;
+                host.Facts["decalDensityPct"] = Math.Round(density * 100f);
                 host.Facts["decalTouchedPct"] = Math.Round(r.Touched * 100f, 1);
                 host.Facts["decalStrongPct"] = Math.Round(r.Strong * 100f, 1);
             }
@@ -149,13 +172,15 @@ namespace Placemaker.Core.Decals.Dynamic
             public readonly List<float2> Gates = new List<float2>();
             private float _pitchWidth;
             private BrushArea _lawn;
+            private PointGrid _treeGrid;
             /// <summary>The paint's seed when the lawn is painted (0: no painted moisture to follow).</summary>
             public uint PaintSeed;
 
-            public Scene(List<AreaPlan> layers, float2[] ring, SiteContext site, Func<float2, float> ground, uint seed, float amount, DecalLibrary lib, List<DecalInstance> into)
+            public Scene(List<AreaPlan> layers, float2[] ring, SiteContext site, Func<float2, float> ground, uint seed, float amount, DecalLibrary lib, List<DecalInstance> into, float density = 1f, int cap = MaxInstances)
             {
                 _layers = layers; _ring = Poly.EnsureCcw((float2[])ring.Clone()); _site = site; _ground = ground; _seed = seed; _amount = amount;
-                _b = new BrushContext(lib, seed, into) { Budget = (into?.Count ?? 0) + MaxInstances };
+                // the hard stop sits well above the cap: the pass is re-run thinner if it comes out over, never cut short
+                _b = new BrushContext(lib, seed, into) { Budget = (into?.Count ?? 0) + (int)(cap * 1.6f) + 200, Density = density };
                 Read();
             }
 
@@ -258,18 +283,20 @@ namespace Placemaker.Core.Decals.Dynamic
                 var clock = System.Diagnostics.Stopwatch.StartNew();
                 int before = Out.Count;
                 var flaws = PickFlaws();
-                Tone();
+                var lap = System.Diagnostics.Stopwatch.StartNew();
+                void Lap(string what) { _r.Timing[what] = lap.Elapsed.TotalMilliseconds; lap.Restart(); }
+                Tone(); Lap("tone");
                 if (_amount > 0f)
                 {
-                    Trees_(flaws);
-                    Seams();
-                    Play(flaws);
-                    Feet(flaws);
-                    Water(flaws);
-                    Wheels();
-                    Objects();
+                    Trees_(flaws); Lap("trees");
+                    Seams(); Lap("seams");
+                    Play(flaws); Lap("play");
+                    Feet(flaws); Lap("feet");
+                    Water(flaws); Lap("water");
+                    Wheels(); Lap("wheels");
+                    Objects(); Lap("objects");
                 }
-                Measure(out _r.Touched, out _r.Strong);
+                Measure(out _r.Touched, out _r.Strong); Lap("measure");
                 foreach (var kv in _b.ByCause) _r.ByCause[kv.Key] = kv.Value;
                 _r.Flaws.AddRange(flaws);
                 _r.Instances = Out.Count - before;
@@ -318,7 +345,8 @@ namespace Placemaker.Core.Decals.Dynamic
             {
                 float edge = 1f - math.saturate(Poly.DistanceToBoundary(_ring, p) / 25f);
                 float shade = 0f;
-                foreach (var t in Trees) { float d = math.distance(t.P, p); if (d < t.Crown * 2.5f) { shade = math.max(shade, 1f - d / (t.Crown * 2.5f)); if (shade > 0.9f) break; } }
+                if (_treeGrid == null) { _treeGrid = new PointGrid(20f); for (int i = 0; i < Trees.Count; i++) _treeGrid.Add(Trees[i].P, i); }
+                foreach (int i in _treeGrid.Near(p, 1)) { var t = Trees[i]; float d = math.distance(t.P, p); if (d < t.Crown * 2.5f) { shade = math.max(shade, 1f - d / (t.Crown * 2.5f)); if (shade > 0.9f) break; } }
                 // the same moisture the paint used (GroundWear.LawnMoisture: its dry paint starts at 0.40, its lush at 0.62)
                 float dry = PaintSeed != 0u ? math.saturate((0.58f - GroundWear.LawnMoisture(PaintSeed, p)) / 0.22f) : ValueNoise.Clumps(p, 35f, H(2));
                 return math.saturate((0.15f + 0.35f * edge + 0.7f * dry - 0.15f) * (1f - 0.8f * shade));
@@ -409,6 +437,8 @@ namespace Placemaker.Core.Decals.Dynamic
             {
                 var res = new List<List<TreeAt>>();
                 var done = new bool[Trees.Count];
+                var grid = new PointGrid(link);
+                for (int i = 0; i < Trees.Count; i++) grid.Add(Trees[i].P, i);
                 for (int i = 0; i < Trees.Count; i++)
                 {
                     if (done[i]) continue;
@@ -418,7 +448,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     while (q.Count > 0)
                     {
                         int a = q.Dequeue();
-                        for (int j = 0; j < Trees.Count; j++)
+                        foreach (int j in grid.Near(Trees[a].P, 1))
                             if (!done[j] && math.distancesq(Trees[a].P, Trees[j].P) < link * link) { done[j] = true; g.Add(Trees[j]); q.Enqueue(j); }
                     }
                     res.Add(g);
@@ -448,6 +478,25 @@ namespace Placemaker.Core.Decals.Dynamic
                     }
                 foreach (var f in Fences) { for (int i = 0; i + 1 < f.P.Length; i++) bars.Add(new Barrier { A = f.P[i], B = f.P[i + 1], Group = gid }); gid++; }
                 if (bars.Count == 0) return;
+                // every barrier in the cells it crosses (a ray only tests the barriers near it: thousands of trees on a big site)
+                const float cell = 16f;
+                var barGrid = new PointGrid(cell);
+                for (int b = 0; b < bars.Count; b++)
+                {
+                    float len = math.distance(bars[b].A, bars[b].B);
+                    int steps = math.max(1, (int)math.ceil(len / (cell * 0.5f)));
+                    long lastKey = long.MinValue;
+                    for (int k = 0; k <= steps; k++)
+                    {
+                        var q = math.lerp(bars[b].A, bars[b].B, k / (float)steps);
+                        long key = ((long)math.floor(q.x / cell) << 32) ^ (uint)(int)math.floor(q.y / cell);
+                        if (key == lastKey) continue;
+                        lastKey = key;
+                        barGrid.Add(q, b);
+                    }
+                }
+                var seenBar = new int[bars.Count];
+                int stamp = 0;
                 var hits = new List<(int bar, float2 p, float w)>();
                 var across = new float2(-Wind.y, Wind.x);
                 for (int t = 0; t < Trees.Count; t++)
@@ -459,12 +508,25 @@ namespace Placemaker.Core.Decals.Dynamic
                         var dir = math.normalizesafe(Wind + across * Range(-0.35f, 0.35f, 110 + ray, t));
                         var end = start + dir * 26f;
                         int best = -1; float bt = 2f; float2 bp = default;
-                        for (int b = 0; b < bars.Count; b++)
-                            if (Poly.SegmentIntersection(start, end, bars[b].A, bars[b].B, out var pt, out float ta, out _) && ta < bt && ta > 0.02f) { bt = ta; best = b; bp = pt; }
+                        stamp++;
+                        for (int k = 0; k <= 4; k++)
+                            foreach (int b in barGrid.Near(math.lerp(start, end, k / 4f), 1))
+                            {
+                                if (seenBar[b] == stamp) continue;
+                                seenBar[b] = stamp;
+                                if (Poly.SegmentIntersection(start, end, bars[b].A, bars[b].B, out var pt, out float ta, out _) && ta < bt && ta > 0.02f) { bt = ta; best = b; bp = pt; }
+                            }
                         if (best >= 0) hits.Add((best, bp, (1f - bt * 0.7f) / 3f));
                     }
                 }
                 var used = new bool[hits.Count];
+                var byGroup = new Dictionary<int, List<int>>();
+                for (int j = 0; j < hits.Count; j++)
+                {
+                    int gj = bars[hits[j].bar].Group;
+                    if (!byGroup.TryGetValue(gj, out var lj)) byGroup[gj] = lj = new List<int>();
+                    lj.Add(j);
+                }
                 var drifts = new List<(float2[] pts, float w)>();
                 for (int i = 0; i < hits.Count; i++)
                 {
@@ -475,9 +537,9 @@ namespace Placemaker.Core.Decals.Dynamic
                     for (bool grew = true; grew;)
                     {
                         grew = false;
-                        for (int j = 0; j < hits.Count; j++)
+                        foreach (int j in byGroup[g])
                         {
-                            if (used[j] || bars[hits[j].bar].Group != g) continue;
+                            if (used[j]) continue;
                             foreach (int m in members)
                                 if (math.distancesq(hits[m].p, hits[j].p) < 8f * 8f) { used[j] = true; members.Add(j); grew = true; break; }
                         }

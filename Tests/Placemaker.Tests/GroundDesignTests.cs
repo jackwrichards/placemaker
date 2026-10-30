@@ -39,11 +39,12 @@ namespace Placemaker.Tests
 
         public static readonly string[] Styles = { "community", "stadium", "tennisClub", "neighbourhood", "arena", "centreCourt", "hillside", "cageCourts", "athletics" };
 
-        internal static ComposedPlan Park(string preset, string site, double grime = 100)
+        internal static ComposedPlan Park(string preset, string site, double grime = 100) =>
+            Park(preset, site == "block" ? 146f : 216f, site == "block" ? 136f : 196f, site == "slope" ? p => 0.05f * p.y : (Func<float2, float>)null, grime);
+
+        internal static ComposedPlan Park(string preset, float w, float d, Func<float2, float> ground, double grime = 100)
         {
             Lib();
-            float w = site == "block" ? 146f : 216f, d = site == "block" ? 136f : 196f;
-            Func<float2, float> ground = site == "slope" ? p => 0.05f * p.y : (Func<float2, float>)null;
             var gen = GeneratorRegistry.Get("sportsPark");
             var editor = new DesignEditor(GeneratorRegistry.Get);
             var r = Recipe.Single(gen, 1);
@@ -324,6 +325,34 @@ namespace Placemaker.Tests
             float Sum(List<DecalInstance> l) => l.Where(d => !d.Cause.StartsWith("tone")).Sum(d => d.Opacity * d.Scale.x * d.Scale.y);
             _out.WriteLine($"100 %: {a.Count}, 0 %: {none.Count}, 200 %: {lots.Count}");
             Assert.True(Sum(lots) > Sum(a) * 1.3f, "Grime 200 % is not grimier");
+        }
+
+        // ───────────── tiny and huge selections ─────────────
+
+        [Theory]
+        [InlineData("community", 20f, 20f)]
+        [InlineData("community", 45f, 30f)]
+        [InlineData("arena", 30f, 25f)]
+        [InlineData("community", 600f, 600f)]
+        [InlineData("community", 1000f, 1000f)]
+        [InlineData("cageCourts", 700f, 500f)]
+        public void TinyAndHugeSitesStayWithinTheirBudget(string style, float w, float d)
+        {
+            var sw = Stopwatch.StartNew();
+            var plan = Park(style, w, d, null);
+            sw.Stop();
+            var wr = plan.Weathering;
+            Assert.NotNull(wr);
+            var list = Instances(plan);
+            float ha = w * d / 10000f;
+            int cap = (int)Math.Clamp(ha * Weathering.PerHectare, 150f, Weathering.MaxInstances);
+            _out.WriteLine($"{style} {w}x{d} ({ha:F1} ha): compose {sw.ElapsedMilliseconds} ms, weathering {wr.Ms:F0} ms, {list.Count} instances (cap {cap}), density {wr.Density:P0}"); _out.WriteLine("  " + wr);
+            Assert.InRange(list.Count, 1, cap);
+            Assert.True(wr.Ms < 15000, $"weathering took {wr.Ms:F0} ms");
+            var set = new DecalSet(); set.Instances.AddRange(list);
+            Assert.NotNull(DecalCodec.Decode(DecalCodec.Encode(set)));
+            // a thinned site keeps every cause: none of them is cut off by the budget
+            if (ha > 20f) foreach (var c in new[] { "tone:lawn", "leaves" }) Assert.True(wr.ByCause.ContainsKey(c), c);
         }
 
         // ───────────── pictures (PM_WRITE_GROUND=1) ─────────────

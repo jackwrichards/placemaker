@@ -48,6 +48,8 @@ namespace Placemaker.Core.Decals.Dynamic
         public readonly List<float2[]> Holes = new List<float2[]>();
         /// <summary>Optional extra test (inside the site, off a pitch …).</summary>
         public Func<float2, bool> Keep;
+        /// <summary>Optional box the area is cut to (a brush near a few crowns never samples the whole site).</summary>
+        public float2 ClipLo = new float2(float.MinValue), ClipHi = new float2(float.MaxValue);
         private float _area = -1f;
 
         public static BrushArea Of(float2[] ring, IEnumerable<float2[]> holes = null)
@@ -65,10 +67,12 @@ namespace Placemaker.Core.Decals.Dynamic
             lo = new float2(float.MaxValue); hi = new float2(float.MinValue);
             foreach (var r in Outer) { Poly.Bounds(r, out var a, out var b); lo = math.min(lo, a); hi = math.max(hi, b); }
             if (Outer.Count == 0) lo = hi = float2.zero;
+            lo = math.max(lo, ClipLo); hi = math.max(lo, math.min(hi, ClipHi));
         }
 
         public bool Contains(float2 p)
         {
+            if (math.any(p < ClipLo) || math.any(p > ClipHi)) return false;
             bool inside = false;
             foreach (var r in Outer) if (Poly.Contains(r, p)) { inside = true; break; }
             if (!inside) return false;
@@ -108,6 +112,9 @@ namespace Placemaker.Core.Decals.Dynamic
         public readonly List<DecalInstance> Out;
         /// <summary>Most instances this context may place (the rest of a brush call is dropped).</summary>
         public int Budget = 6000;
+        /// <summary>How much of everything (1 = as asked): a huge site is thinned evenly, every cause alike (fewer patches, longer
+        /// gaps between strip runs, a looser tone lattice), instead of the last causes getting nothing when the budget runs out.</summary>
+        public float Density = 1f;
         /// <summary>Colour level for every call that doesn't choose one.</summary>
         public ColourLevel Level = ColourLevel.Any;
         /// <summary>Fades never used (game runner: the hollow "ring" patches read as donuts, robotic from above).</summary>
@@ -214,6 +221,30 @@ namespace Placemaker.Core.Decals.Dynamic
         public string Cause = "strip";
     }
 
+    /// <summary>Points in square cells, for "what is near p" without walking every point (thousands of trees on a big site).</summary>
+    public sealed class PointGrid
+    {
+        private readonly float _cell;
+        private readonly Dictionary<long, List<int>> _cells = new Dictionary<long, List<int>>();
+        public PointGrid(float cell) { _cell = math.max(1f, cell); }
+        private static long Key(int x, int z) => ((long)x << 32) ^ (uint)z;
+        public void Add(float2 p, int index)
+        {
+            long k = Key((int)math.floor(p.x / _cell), (int)math.floor(p.y / _cell));
+            if (!_cells.TryGetValue(k, out var l)) _cells[k] = l = new List<int>();
+            l.Add(index);
+        }
+        /// <summary>Indices in the cell of p and <paramref name="ring"/> cells around it.</summary>
+        public IEnumerable<int> Near(float2 p, int ring)
+        {
+            int cx = (int)math.floor(p.x / _cell), cz = (int)math.floor(p.y / _cell);
+            for (int z = cz - ring; z <= cz + ring; z++)
+                for (int x = cx - ring; x <= cx + ring; x++)
+                    if (_cells.TryGetValue(Key(x, z), out var l))
+                        foreach (int i in l) yield return i;
+        }
+    }
+
     public static class Brushes
     {
         private static float MeanFootArea(DecalKind k, int[] pool)
@@ -257,6 +288,7 @@ namespace Placemaker.Core.Decals.Dynamic
             }
             if (samples == 0) return 0;
             float wArea = area.Area() * wsum / samples;
+            coverage *= math.saturate(ctx.Density);
             int n = (int)math.round(coverage * wArea / piece);
             if (n <= 0) n = r.F() < coverage * wArea / piece ? 1 : 0;
             int loners = (int)math.round(n * o.Loners);
@@ -333,7 +365,7 @@ namespace Placemaker.Core.Decals.Dynamic
             foreach (int v in pool) narrow += math.cmin(DecalVariants.FootprintOf(k, v));
             narrow /= math.max(1, pool.Length);
             // the step follows the patches' narrow side, so the soft edges overlap everywhere
-            float step = math.max(2f, narrow * (1.15f - math.saturate(overlap)));
+            float step = math.max(2f, narrow * (1.15f - math.saturate(overlap))) / math.sqrt(math.clamp(ctx.Density, 0.05f, 1f));
             area.Bounds(out var lo, out var hi);
             float ang = r.F() * math.PI;
             var ax = new float2(math.cos(ang), math.sin(ang)); var az = new float2(-ax.y, ax.x);
@@ -377,19 +409,23 @@ namespace Placemaker.Core.Decals.Dynamic
             int placed = 0;
             foreach (var stretch in Stretches(line, o.Closed, o.CornerDeg))
             {
+                // a thinned site drops whole stretches too (many short court and kerb sides would each keep a run otherwise)
+                if (ctx.Density < 0.999f && r.F() > math.sqrt(math.clamp(ctx.Density, 0.05f, 1f))) continue;
                 var arc = Arc(stretch);
                 float total = arc[arc.Length - 1];
                 if (total < 1.5f) continue;
                 // runs and gaps along the stretch
-                float at = o.Gaps > 0f ? r.R(0f, o.Run.x * 0.5f) * o.Gaps : 0f;
+                // a thinned site keeps the same runs and leaves longer gaps between them
+                float gaps = ctx.Density < 0.999f ? 1f - (1f - o.Gaps) * math.sqrt(math.clamp(ctx.Density, 0.05f, 1f)) : o.Gaps;
+                float at = gaps > 0f ? r.R(0f, o.Run.x * 0.5f) * gaps : 0f;
                 while (at < total - 1.5f && !ctx.Full)
                 {
                     float runLen = math.min(r.R(o.Run), total - at);
-                    if (o.Gaps <= 0f) runLen = total - at;
+                    if (gaps <= 0f) runLen = total - at;
                     if (total - (at + runLen) < 4f) runLen = total - at;   // no stub at the end
                     placed += Run(ctx, k, pool, stretch, arc, at, at + runLen, tiled, o, ref r);
                     at += runLen;
-                    if (o.Gaps > 0f) at += runLen * o.Gaps / math.max(0.05f, 1f - o.Gaps) * r.R(0.4f, 1.6f);
+                    if (gaps > 0f) at += runLen * gaps / math.max(0.05f, 1f - gaps) * r.R(0.4f, 1.6f);
                 }
             }
             return placed;
@@ -487,12 +523,15 @@ namespace Placemaker.Core.Decals.Dynamic
             if (canopies == null || canopies.Count == 0 || limit == null) return 0;
             o = o ?? new ScatterOptions { Cause = "under" };
             var crowns = new List<(float2 p, float r)>(canopies);
+            var grid = new PointGrid(24f);
+            for (int i = 0; i < crowns.Count; i++) grid.Add(crowns[i].p, i);
             Func<float2, float> field = p =>
             {
                 // leaves land within about two and a half crowns, centred a crown downwind; crowded crowns add up
                 float w = 0f;
-                foreach (var c in crowns)
+                foreach (int i in grid.Near(p, 1))
                 {
+                    var c = crowns[i];
                     var q = c.p + wind * c.r * 0.8f;
                     float d = math.distance(p, q) / (c.r * 2.6f + 3f);
                     if (d < 1f) w += 1f - d * d;
@@ -502,9 +541,12 @@ namespace Placemaker.Core.Decals.Dynamic
             var inner = o.Weight;
             o.Weight = inner == null ? field : (p => field(p) * inner(p));
             // the area: the limit, but only near crowns (fast rejection)
-            var a = new BrushArea { Keep = p => { foreach (var c in crowns) { float R = c.r * 3.4f + 3f; if (math.distancesq(p, c.p) < R * R) return limit.Keep == null || limit.Keep(p); } return false; } };
+            var a = new BrushArea { Keep = p => { foreach (int i in grid.Near(p, 1)) { var c = crowns[i]; float R = c.r * 3.4f + 3f; if (math.distancesq(p, c.p) < R * R) return limit.Keep == null || limit.Keep(p); } return false; } };
             a.Outer.AddRange(limit.Outer);
             a.Holes.AddRange(limit.Holes);
+            float2 clo = new float2(float.MaxValue), chi = new float2(float.MinValue);
+            foreach (var c in crowns) { float R = c.r * 3.4f + 3f; clo = math.min(clo, c.p - R); chi = math.max(chi, c.p + R); }
+            a.ClipLo = math.max(clo, limit.ClipLo); a.ClipHi = math.min(chi, limit.ClipHi);
             int n = Scatter(ctx, a, kind, coverage, o);
             o.Weight = inner;
             return n;
@@ -520,6 +562,9 @@ namespace Placemaker.Core.Decals.Dynamic
             if (k == null || ctx.Full) return 0;
             var pool = ctx.Variants(k, level);
             var r = ctx.Rng(kind);
+            // a thinned site keeps fewer hot spots (60 courts' corners are not 60 signature spots)
+            if (ctx.Density < 0.999f && r.F() > ctx.Density) return 0;
+            satellites = (int)math.round(satellites * math.min(1f, ctx.Density));
             dir = math.normalizesafe(dir, new float2(1f, 0f));
             var side = new float2(-dir.y, dir.x);
             int placed = 0;
