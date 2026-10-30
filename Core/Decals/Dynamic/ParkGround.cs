@@ -104,6 +104,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 if (!_formal) Runoff();
                 Play();
                 if (_neglect) Neglect();
+                if (_sc.Host?.GeneratorId == "zenGarden") Zen();
             }
 
             // ───────────── moods ─────────────
@@ -318,8 +319,81 @@ namespace Placemaker.Core.Decals.Dynamic
                     }
                     n++;
                 }
+                if (_sc.Host?.GeneratorId != "zenGarden")   // a dry garden's field keeps a crisp edge
                 foreach (var s in _sc.Sand)
                     Brushes.EdgeStrip(_b, Closed(s), "pathGrit", new StripOptions { Side = 1, Offset = -0.6f, Gaps = 0.4f, Closed = true, Opacity = Op(0.4f, 0.75f), Cause = "play:sandEdge" });
+            }
+
+            // ───────────── zen: the raked field ─────────────
+
+            /// <summary>
+            /// The dry garden's gravel field raked: rows of fine grooves side by side along its long axis, and two rings of grooves
+            /// round every group of stones (under a gravel surface the clean game shows no raking; the decals lie on it).
+            /// </summary>
+            private void Zen()
+            {
+                var k = _b.Lib.Get("rakedGravel");
+                if (k == null) return;
+                float width = DecalVariants.FootprintOf(k, 0).y;
+                foreach (var field in _sc.Sand)
+                {
+                    if (math.abs(Poly.Area(field)) < 60f) continue;
+                    var area = BrushArea.Of(field);
+                    var c = Poly.Centroid(field);
+                    float sxx = 0f, syy = 0f, sxy = 0f;
+                    foreach (var q in field) { var d = q - c; sxx += d.x * d.x; syy += d.y * d.y; sxy += d.x * d.y; }
+                    float ang = 0.5f * math.atan2(2f * sxy, sxx - syy);
+                    var axis = new float2(math.cos(ang), math.sin(ang)); var side = new float2(-axis.y, axis.x);
+                    float l0 = float.MaxValue, l1 = float.MinValue, w0 = float.MaxValue, w1 = float.MinValue;
+                    foreach (var q in field) { float u = math.dot(q - c, axis), v = math.dot(q - c, side); l0 = math.min(l0, u); l1 = math.max(l1, u); w0 = math.min(w0, v); w1 = math.max(w1, v); }
+                    // the stones in the field, grouped
+                    var stones = new List<float2>();
+                    foreach (var t in _things) if (t.cat == AssetCategories.Rock && Poly.Contains(field, t.p)) stones.Add(t.p);
+                    var groups = new List<(float2 c, float r)>();
+                    var used = new bool[stones.Count];
+                    for (int i = 0; i < stones.Count; i++)
+                    {
+                        if (used[i]) continue;
+                        used[i] = true;
+                        var members = new List<float2> { stones[i] };
+                        for (bool grew = true; grew;)
+                        {
+                            grew = false;
+                            for (int j = 0; j < stones.Count; j++)
+                                if (!used[j] && members.Exists(m => math.distance(m, stones[j]) < 4.5f)) { used[j] = true; members.Add(stones[j]); grew = true; }
+                        }
+                        float2 gc = float2.zero; foreach (var m in members) gc += m; gc /= members.Count;
+                        float gr = 1.5f; foreach (var m in members) gr = math.max(gr, math.distance(m, gc) + 1.6f);
+                        groups.Add((gc, gr));
+                    }
+                    var rows = new StripOptions { Gaps = 0f, Opacity = new float2(0.8f, 0.95f), Width = new float2(1f, 1f), Level = ColourLevel.Quiet, Cause = "zen:rows" };
+                    // straight rows, broken round the stone groups (their rings carry the lines there)
+                    for (float v = w0 + width * 0.5f; v < w1; v += width)
+                    {
+                        var run = new List<float2>();
+                        for (float u = l0 - 1f; u <= l1 + 1f; u += 1.5f)
+                        {
+                            var q = c + axis * u + side * v;
+                            bool keep = area.Contains(q);
+                            foreach (var g in groups) if (math.distance(q, g.c) < g.r + 2f * width + 0.4f) { keep = false; break; }
+                            if (keep) { run.Add(q); continue; }
+                            if (run.Count >= 3) Brushes.EdgeStrip(_b, run.ToArray(), "rakedGravel", rows);
+                            run.Clear();
+                        }
+                        if (run.Count >= 3) Brushes.EdgeStrip(_b, run.ToArray(), "rakedGravel", rows);
+                    }
+                    // two rings round each group
+                    foreach (var g in groups)
+                        for (int ring = 0; ring < 2; ring++)
+                        {
+                            float rr = g.r + width * (ring + 0.5f);
+                            int n = math.max(12, (int)(rr * 6.283f / 1.2f));
+                            var line = new float2[n + 1];
+                            bool inside = true;
+                            for (int i = 0; i <= n; i++) { float a = i / (float)n * 6.283f; line[i] = g.c + new float2(math.cos(a), math.sin(a)) * rr; inside &= area.Contains(line[i]); }
+                            if (inside) Brushes.EdgeStrip(_b, line, "rakedRing", new StripOptions { Gaps = 0f, CornerDeg = 80f, Opacity = new float2(0.8f, 0.95f), Width = new float2(1f, 1f), Level = ColourLevel.Quiet, Cause = "zen:rings" });
+                        }
+                }
             }
 
             // ───────────── neglect ─────────────

@@ -590,6 +590,7 @@ namespace Placemaker.Core.Layers.Park
             if (bushIds.Length == 0) bushIds = StyleBushes(style.Id);
             EmitItems(ctx, s, treeIds, bushIds);
             ParkMoods.Emit(ctx, s, moods, style.Id == "neglected");
+            if (style.Id == "neglected") Dumped(ctx, s);
             foreach (var g in gates)
                 if (g.Suggested) ctx.Plan.Facts["suggestedEntrances"] = (ctx.Plan.Facts.TryGetValue("suggestedEntrances", out var n) ? n : 0) + 1;
             clock.Lap("emit");
@@ -929,6 +930,35 @@ namespace Placemaker.Core.Layers.Park
             ctx.Surface(lake, SurfaceRole.Water, new AssetRef("", Array.Empty<string>()));
             ctx.Issue(IssueSeverity.Warning, "Placemaker.Park.Issue.LakePermanent");
             ctx.Stat(Keys.StatLakeArea, Math.Round(Poly.Area(lake)), Keys.UnitM2);
+        }
+
+        /// <summary>
+        /// (makeover) A neglected park: what people dumped at its edges and nobody took away: an old sofa, a pile of boxes, a
+        /// barrel, a heap of rotten wood, tucked against the thickets of the boundary (vanilla ruins.junk / ruins.rubble).
+        /// </summary>
+        private static void Dumped(LayerContext ctx, ParkSite s)
+        {
+            string[][] kinds =
+            {
+                new[] { "OutdoorSofa01", "OutdoorSofa02", "OutdoorSofa03" }, new[] { "CardboardBoxPile01", "CardboardBoxPile02", "CardboardBoxPile03" },
+                new[] { "Barrel01", "Barrel02", "Barrel03" }, new[] { "RubblePileWood01", "RubblePileWood02" }, new[] { "Pallet01", "Pallet02" },
+            };
+            int n = math.clamp((int)(s.LayerRegion.Area / 5000f), 2, 6), made = 0;
+            var avoid = new List<float2>();
+            foreach (var g in s.Gates) avoid.Add(g.Position);
+            for (int k = 0; k < n * 3 && made < n; k++)
+            {
+                uint v = Hashing.Mix(ctx.Seed, 0xD0Bu + (uint)k);
+                if (!Spots.Find(s.Occ, 2.2f, Spots.Preference.NearBoundary, v, out var p, avoid, 18f, 2f, 1500)) break;
+                var set = kinds[(made + (int)(v % 3u)) % kinds.Length];
+                var o = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 1u)) * 6.283f, ObjectRole.Furniture, new AssetRef(set[(int)(Hashing.Mix(v, 2u) % (uint)set.Length)], set), v, -1,
+                    set[0].StartsWith("Rubble") ? "ruins.rubble" : "ruins.junk");
+                if (set[0].StartsWith("Rubble")) o.Scale = 0.6f;
+                s.Occ.Take(p, 2.2f, 206);
+                avoid.Add(p);
+                made++;
+            }
+            ctx.Plan.Facts["dumped"] = made;
         }
 
         internal static string[] StyleTrees(string style)
