@@ -131,8 +131,8 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
             if (pts.Count < 5 || !Reached(pts, spec)) return;
             LastArrival = 2;
             // the longest stretch that fits first (the gentlest turn), shorter ones when the outline or a leg below is in the way
-            foreach (float f in new[] { 1f, 0.75f, 0.5f, 0.35f })
-                if (TryArrival(region, pts, spec, spec.SummitRadius + math.max(24f, spec.SummitRadius * 2f) * f)) { LastArrival = 1; return; }
+            foreach (float f in new[] { 1f, 0.8f, 0.6f, 0.45f, 0.3f })
+                if (TryArrival(region, pts, spec, spec.SummitRadius + math.max(40f, spec.SummitRadius * 3f) * f)) { LastArrival = 1; return; }
         }
 
         private static bool TryArrival(LayerRegion region, List<float2> pts, ClimbSpec spec, float reach)
@@ -146,7 +146,7 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
             float l0 = math.distance(a, spec.Summit) - spec.SummitRadius;
             if (l0 < 3f) return false;
             // the rim point facing the walker, nudged a little along its heading: the turn is spread over the whole stretch
-            var aim = math.normalizesafe(math.normalizesafe(a - spec.Summit) + t * 0.45f);
+            var aim = math.normalizesafe(math.normalizesafe(a - spec.Summit) + t * 0.85f);
             var e = spec.Summit + aim * spec.SummitRadius;
             float len = math.distance(a, e);
             var b = a + t * len * 0.4f;

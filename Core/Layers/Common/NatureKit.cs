@@ -40,21 +40,35 @@ namespace Placemaker.Core.Layers.Common
             // How much of the ground the woods may cover: the wanted count against what the ground holds packed. A random
             // acceptance alone saturates (every candidate gets its turn, the gaps fill up, the wood comes out even); the groves
             // are the share of the ground where the clump field is above its quantile, the rest is glade with a lone tree.
-            float capacity = region.Area / (math.PI * (radius * 1.45f) * (radius * 1.45f) / 0.85f);
-            float cover = math.clamp(wanted / math.max(1f, capacity), 0.06f, 1f);
+            // The ground that can take a tree at all (not water, not a path, not reserved): what the candidates say, each standing
+            // for its cell. A random sequential packing reaches about half of the hexagonal one: that is what the groves hold.
             var fieldVals = new float[cands.Count];
+            var usableVals = new List<float>(cands.Count);
+            var ok = new bool[cands.Count];
             for (int i = 0; i < cands.Count; i++)
+            {
                 fieldVals[i] = ValueNoise.Clumps(cands[i], groveScale, clump) * (0.75f + 0.25f * ValueNoise.Clumps(cands[i], groveScale * 0.35f, clump2));
-            var sorted = (float[])fieldVals.Clone();
+                ok[i] = (reject == null || !reject(cands[i])) && !occ.Corridors.Overlaps(cands[i], radius, 0.5f);
+                if (ok[i]) usableVals.Add(fieldVals[i]);
+            }
+            if (usableVals.Count == 0) return 0;
+            float cellArea = region.Area / math.max(1, cands.Count);
+            float usable = usableVals.Count * cellArea;
+            float perTree = math.PI * (radius * 2f + 0.4f) * (radius * 2f + 0.4f) * 0.25f / 0.45f;
+            float capacity = usable / perTree;
+            // never wall to wall: a wood always has its glades (the woods' edges are what reads from the player's height)
+            float cover = math.clamp(wanted / math.max(1f, capacity), 0.06f, 0.78f);
+            var sorted = usableVals.ToArray();
             Array.Sort(sorted);
             float cut = cover >= 0.999f ? -1f : sorted[math.clamp((int)((1f - cover) * sorted.Length), 0, sorted.Length - 1)];
             for (int ci = 0; ci < cands.Count; ci++)
             {
                 var p = cands[ci];
                 if (placed >= wanted) break;
+                if (!ok[ci]) continue;
                 float g = fieldVals[ci];
                 // inside a grove: (nearly) always; at its rim: thinning; in the glade: the odd lone tree
-                float chance = cut < 0f ? 1f : g >= cut ? math.lerp(0.55f, 1f, math.saturate((g - cut) / 0.08f)) : floor * 0.35f * math.saturate(1f - (cut - g) / 0.25f) + floor * 0.1f;
+                float chance = cut < 0f ? 1f : g >= cut ? math.lerp(0.55f, 1f, math.saturate((g - cut) / 0.08f)) : floor * 0.08f * math.saturate(1f - (cut - g) / 0.2f) + floor * 0.015f;   // per candidate (one every ~7 m²): a lone tree now and then, not a lawn of them
                 uint h = Hashing.Mix(clump, (int)(p.x * 13f), (int)(p.y * 7f));
                 if (Hashing.Unit(h) > chance) continue;
                 if (reject != null && reject(p)) continue;

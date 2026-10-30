@@ -460,14 +460,18 @@ namespace Placemaker.Core.Decals.Dynamic
             {
                 float cellA = _cell * _cell;
                 // a rill starts where enough ground drains on a slope steep enough to cut it
-                float startA = math.max(120f, cellA * 12f);
+                float startA = math.max(70f, cellA * 7f);
+                // rills are the site's signature: never thinned on a big site (half a rill reads as a smudge)
+                float keepDensity = _b.Density; _b.Density = 1f;
                 int n = _nx * _nz;
                 var used = new bool[n];
                 var sources = new List<int>();
                 for (int k = 0; k < n; k++)
                     if (_in[k] && !_wet[k] && _acc[k] >= startA && _slope[k] > 0.05f && _recv[k] >= 0 && _acc[_recv[k]] > _acc[k]) sources.Add(k);
-                // the biggest flows first: the main channels, then the side rills that join them
-                sources.Sort((a, b) => _acc[b].CompareTo(_acc[a]));
+                // the biggest flows on open ground first (the main channels where they show), then the side rills that join them
+                var score = new Dictionary<int, float>();
+                foreach (int k0 in sources) score[k0] = _acc[k0] * (1.15f - Shade(Pos(k0 % _nx, k0 / _nx)));
+                sources.Sort((a, b) => score[b].CompareTo(score[a]));
                 int lines = 0, maxLines = math.clamp((int)(Poly.Area(_ring) / 1500f), 6, 90);
                 foreach (int s0 in sources)
                 {
@@ -499,17 +503,30 @@ namespace Placemaker.Core.Decals.Dynamic
                     var line = Smooth(pts, 2);
                     float big = accs[accs.Count - 1];
                     bool bed = big > startA * 14f && _cell <= 8f;
-                    // cut where a trail crosses: water runs under a path's edge, not over its surface
-                    foreach (var piece in OffPaths(line, 1.2f))
+                    // laid where it shows: off the trails (it runs to a path's edge and on beyond it) and out from under the canopy
+                    // (under the crowns nobody sees it; it emerges at the wood's edge)
+                    int laidHere = 0;
+                    foreach (var piece in Visible(line))
                     {
                         if (piece.Length < 2) continue;
                         float len = 0f; for (int i = 1; i < piece.Length; i++) len += math.distance(piece[i - 1], piece[i]);
                         if (len < 6f) continue;
-                        Brushes.EdgeStrip(_b, piece, bed ? "dryStreamBed" : "runoffRill", new StripOptions
+                        laidHere += Brushes.EdgeStrip(_b, piece, bed ? "dryStreamBed" : "runoffRill", new StripOptions
                         {
-                            Gaps = bed ? 0.05f : 0.18f, Run = bed ? new float2(30f, 80f) : new float2(10f, 30f), CornerDeg = 70f,
-                            Opacity = Op(bed ? 0.7f : 0.55f, bed ? 0.95f : 0.85f), Width = bed ? new float2(0.9f, 1.25f) : new float2(0.75f, 1.15f), Cause = bed ? "water:bed" : "water:rill",
+                            Gaps = bed ? 0.04f : 0.1f, Run = bed ? new float2(30f, 80f) : new float2(14f, 40f), CornerDeg = 70f,
+                            Opacity = Op(bed ? 0.75f : 0.7f, bed ? 0.95f : 0.95f), Width = bed ? new float2(1f, 1.3f) : new float2(1f, 1.4f), Cause = bed ? "water:bed" : "water:rill",
                         });
+                    }
+                    // where it crosses a trail: the water washed grit across the path and fanned it out on the downhill side
+                    for (int i = 1; i < line.Length; i++)
+                    {
+                        if (PathDistance(line[i - 1]) > 0f && PathDistance(line[i]) <= 0f)
+                        {
+                            var dir = math.normalizesafe(line[math.min(line.Length - 1, i + 1)] - line[i - 1]);
+                            Brushes.At(_b, line[i], dir, "pebbles", 4.5f, Op(0.6f, 0.9f), 1, ColourLevel.Any, "water:washout");
+                            int j = i; while (j < line.Length - 1 && PathDistance(line[j]) <= 0.5f) j++;
+                            if (j < line.Length && !NearWet(line[j], 1)) Brushes.At(_b, line[j] + dir * 1.5f, dir, "gravelFan", bed ? 8f : 5.5f, Op(0.55f, 0.85f), 1, ColourLevel.Any, "water:washout");
+                        }
                     }
                     // the fan where it spreads out, and washed pebbles in it
                     if (end && math.lengthsq(endDir) > 0.1f)
@@ -520,6 +537,21 @@ namespace Placemaker.Core.Decals.Dynamic
                     }
                     lines++;
                 }
+                _b.Density = keepDensity;
+            }
+
+            /// <summary>The line cut into the pieces that show: clear of every trail by 0.3 m, out of the water and from under the canopy.</summary>
+            private List<float2[]> Visible(float2[] line)
+            {
+                var res = new List<float2[]>();
+                var cur = new List<float2>();
+                foreach (var p in line)
+                {
+                    if (PathDistance(p) > 0.3f && !WetAt(p) && Shade(p) < 0.55f) cur.Add(p);
+                    else { if (cur.Count >= 2) res.Add(cur.ToArray()); cur.Clear(); }
+                }
+                if (cur.Count >= 2) res.Add(cur.ToArray());
+                return res;
             }
 
             /// <summary>A polyline smoothed by Chaikin corner cutting (keeps its ends).</summary>

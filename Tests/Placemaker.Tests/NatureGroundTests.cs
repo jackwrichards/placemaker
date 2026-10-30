@@ -29,7 +29,7 @@ namespace Placemaker.Tests
 
         public static readonly (string type, string style)[] Styles =
         {
-            ("wetland", "wetlandPark"), ("wetland", "waterGarden"), ("wetland", "reedMarsh"), ("wetland", "rainGarden"), ("wetland", "birdReserve"),
+            ("wetland", "wetlandPark"), ("wetland", "waterGarden"), ("wetland", "reedMarsh"), ("wetland", "rainGarden"), ("wetland", "birdReserve"), ("wetland", "lakeland"),
             ("lookoutHill", "hilltop"), ("lookoutHill", "sledding"), ("lookoutHill", "terraces"), ("lookoutHill", "kiteHill"),
             ("natureReserve", "forest"), ("natureReserve", "heath"),
             ("hikingTrail", "forestTrail"), ("hikingTrail", "meadowWalk"), ("hikingTrail", "ridgeHike"), ("hikingTrail", "canyonTrail"),
@@ -83,12 +83,12 @@ namespace Placemaker.Tests
                     var plan = Plan(type, style, w, d, Ground(site));
                     var list = Instances(plan);
                     var wr = plan.Weathering;
-                    _out.WriteLine($"{type}/{style} {site}: plan {sw.ElapsedMilliseconds} ms; {wr}");
+                    _out.WriteLine($"{type}/{style} {site}: plan {sw.ElapsedMilliseconds} ms; trees {string.Join("+", plan.Layers.Select(l => l.GeneratorId + ":" + l.Objects.Count(o => o.Role == ObjectRole.Tree)))}, bushes {plan.Layers.Sum(l => l.Objects.Count(o => o.Role == ObjectRole.Bush))}, rocks {plan.Layers.Sum(l => l.Objects.Count(o => o.Category == "rock"))}; {string.Join(" ", plan.Layers.SelectMany(l => l.Facts).Where(kv => kv.Key.StartsWith("grove")).Select(kv => kv.Key + "=" + kv.Value.ToString("F3")))}");
                     Assert.NotNull(wr);
                     Assert.True(list.Count > 80, $"{type}/{style} {site}: only {list.Count} instances");
                     Assert.True(list.Count <= Weathering.MaxInstances);
                     Assert.All(list, x => Assert.True(Poly.Contains(Poly.To2D(DynamicDecalsTests.Block(w, d)), x.P) || Poly.DistanceToBoundary(Poly.To2D(DynamicDecalsTests.Block(w, d)), x.P) < 8f, $"{x.Kind} outside at {x.P}"));
-                    if (site == "hills" && type != "wetland") Assert.True(wr.ByCause.ContainsKey("water:rill") || wr.ByCause.ContainsKey("water:bed"), $"{type}/{style} hills: no runoff ({wr})");
+                    if (site == "hills" && type != "wetland") Assert.True(wr.ByCause.ContainsKey("water:rill") || wr.ByCause.ContainsKey("water:bed") || wr.ByCause.ContainsKey("water:washout") || wr.ByCause.ContainsKey("water:fan"), $"{type}/{style} hills: no runoff ({wr})");
                     if (type == "wetland") Assert.True(wr.ByCause.ContainsKey("water:bank"), $"{type}/{style}: no banks");
                     if (write) Picture(plan, Ground(site), $"nature-{type}-{style}-{site}");
                 }
@@ -127,9 +127,36 @@ namespace Placemaker.Tests
                     var tb = math.normalizesafe(Composer.Bezier(b.A, b.B, b.C, b.D, 0.1f).xz - b.A.xz);
                     worst = math.max(worst, math.degrees(math.acos(math.clamp(math.dot(ta, tb), -1f, 1f))));
                 }
+            // the tightest bend inside the pieces (radius from the turn over each 1/8 of a piece)
+            float tight = float.MaxValue;
+            foreach (var n in near)
+                for (int k = 1; k < 8; k++)
+                {
+                    var p0 = Composer.Bezier(n.A, n.B, n.C, n.D, (k - 1) / 8f).xz; var p1 = Composer.Bezier(n.A, n.B, n.C, n.D, k / 8f).xz; var p2 = Composer.Bezier(n.A, n.B, n.C, n.D, (k + 1) / 8f).xz;
+                    float ang = math.acos(math.clamp(math.dot(math.normalizesafe(p1 - p0), math.normalizesafe(p2 - p1)), -1f, 1f));
+                    if (ang > 1e-3f) tight = math.min(tight, (math.distance(p0, p1) + math.distance(p1, p2)) * 0.5f / ang);
+                }
+            _out.WriteLine($"{style}: tightest bend near the top r = {tight:F1} m, arrival {l.Facts.GetValueOrDefault("arrival0")}");
+            Assert.True(tight > 6f, $"{style}: a {tight:F1} m bend near the top");
             foreach (var n in near) _out.WriteLine($"piece {n.A.xz} -> {n.D.xz} (to summit {math.distance(n.D.xz, summit):F1} m)");
             _out.WriteLine($"{style} {w}x{d}: worst turn near the top {worst:F0}°");
             Assert.True(worst < 50f, $"{style}: a {worst:F0}° turn near the top");
+        }
+
+        /// <summary>The nature family's share of the GPU if every variant were made (the game makes only what a city uses).</summary>
+        [Fact]
+        public void NatureFamilyStaysLean()
+        {
+            long total = 0;
+            foreach (var k in GroundDesignTests.Lib().Kinds.Where(k => k.Family == "nature"))
+            {
+                long b = 0;
+                for (int i = 0; i < k.Variants.Count; i++) { var img = DecalVariants.Bake(k, i).Img; b += DecalVariants.GpuBytes(img.W, img.H); }
+                _out.WriteLine($"{k.Id}: {k.Variants.Count} variants, {b / 1048576.0:F2} MiB");
+                total += b;
+            }
+            _out.WriteLine($"nature family: {total / 1048576.0:F1} MiB");
+            Assert.True(total < 32L * 1048576, $"nature family {total / 1048576.0:F1} MiB");
         }
 
         [Fact]

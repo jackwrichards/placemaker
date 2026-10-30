@@ -28,7 +28,7 @@ namespace Placemaker.Core.Layers.Types.Wetland
         public const string LayerId = "wetland";
         public const string WaterPlace = "place:water";
         public const string PermanentKey = "Placemaker.Wetland.Issue.WaterPermanent";
-        public static readonly string[] Subtypes = { "wetlandPark", "waterGarden", "reedMarsh", "rainGarden", "birdReserve" };
+        public static readonly string[] Subtypes = { "wetlandPark", "waterGarden", "reedMarsh", "rainGarden", "birdReserve", "lakeland" };
 
         protected override string Area => "Wetland";
         public override string Id => LayerId;
@@ -109,6 +109,11 @@ namespace Placemaker.Core.Layers.Types.Wetland
             Preset("rainGarden", ("subtype", "rainGarden"), ("waterCover", 20.0), ("ponds", 3.0), ("depth", 0.5), ("islands", 0.0), ("shelf", false),
                 ("boardwalks", 4.0), ("zigzag", false), ("benches", 2.5), ("terrace", true), ("reeds", 50.0), ("reedBelt", 3.0), ("treeDensity", 50.0),
                 ("bushDensity", 160.0), ("hides", 0.0), ("hummocks", 0.0), ("animals", false));
+            // (nature makeover) Lake country: big clear lakes with rocky, wooded shores (pine, spruce, birch), boulders at the
+            // waterline, few reeds, a trail along the banks and one boardwalk across a narrows.
+            Preset("lakeland", ("subtype", "lakeland"), ("waterCover", 45.0), ("ponds", 3.0), ("depth", 2.2), ("islands", 2.0), ("boardwalks", 1.0),
+                ("benches", 1.0), ("reeds", 22.0), ("reedBelt", 2.0), ("treeDensity", 90.0), ("bushDensity", 50.0), ("hides", 0.0), ("hummocks", 1.5),
+                ("animals", true));
             Preset("birdReserve", ("subtype", "birdReserve"), ("waterCover", 45.0), ("ponds", 1.0), ("depth", 1.8), ("islands", 6.0), ("boardwalks", 1.0),
                 ("benches", 0.5), ("reeds", 80.0), ("reedBelt", 5.0), ("treeDensity", 90.0), ("screen", true), ("hides", 4.0), ("lookout", true),
                 ("fence", true), ("hummocks", 1.5));
@@ -118,7 +123,9 @@ namespace Placemaker.Core.Layers.Types.Wetland
         private struct Style
         {
             public float Wander, Jitter, BlobScale, PathAmp;
-            public bool Linear, Lamps, Flowers, GardenMargin;
+            public bool Linear, Lamps, Flowers, GardenMargin, Lakeland;
+            /// <summary>(nature makeover) Depth (m) of the shallow marsh hollows dug in the wet ground round the ponds (0 = none).</summary>
+            public float Hollows;
             public int ExtraLoops;
             public float TrailWidth;
 
@@ -127,10 +134,11 @@ namespace Placemaker.Core.Layers.Types.Wetland
                 switch (subtype)
                 {
                     case "waterGarden": return new Style { Wander = 0.35f, Jitter = 0.12f, BlobScale = 0.55f, PathAmp = 4f, Lamps = true, Flowers = true, ExtraLoops = 1 };
-                    case "reedMarsh": return new Style { Wander = 0.9f, Jitter = 0.32f, BlobScale = 0.8f, PathAmp = 8f, ExtraLoops = -1 };
+                    case "reedMarsh": return new Style { Wander = 0.9f, Jitter = 0.32f, BlobScale = 0.8f, PathAmp = 8f, ExtraLoops = -1, Hollows = 0.5f };
+                    case "lakeland": return new Style { Wander = 0.55f, Jitter = 0.2f, BlobScale = 1.15f, PathAmp = 6f, Lakeland = true };
                     case "rainGarden": return new Style { Wander = 0.15f, Jitter = 0.15f, BlobScale = 0.3f, PathAmp = 3f, Linear = true, GardenMargin = true, Flowers = true };
-                    case "birdReserve": return new Style { Wander = 0.55f, Jitter = 0.26f, BlobScale = 1f, PathAmp = 7f, ExtraLoops = 0 };
-                    default: return new Style { Wander = 0.6f, Jitter = 0.24f, BlobScale = 0.7f, PathAmp = 6f };
+                    case "birdReserve": return new Style { Wander = 0.55f, Jitter = 0.26f, BlobScale = 1f, PathAmp = 7f, ExtraLoops = 0, Hollows = 0.35f };
+                    default: return new Style { Wander = 0.6f, Jitter = 0.24f, BlobScale = 0.7f, PathAmp = 6f, Hollows = 0.4f };
                 }
             }
         }
@@ -252,17 +260,19 @@ namespace Placemaker.Core.Layers.Types.Wetland
             // 6. Shore planting: reeds (and flowers / garden margins), then wet woodland.
             int reeds = ShorePlanting(ctx, occ, water, style, shelf);
             ctx.Check();
+            if (style.Lakeland) RockyShores(ctx, occ, water);
             PlantLand(ctx, occ, water, style, ha);
             ctx.Check();
 
             // 7. Ground: marsh paint around the water, hummocks on dry land.
             if (ctx.B("marshPaint")) MarshPaint(ctx, water, ctx.F("reedBelt") + 3f, ctx.I("marshLayer"));
+            var hollow = style.Hollows > 0.05f && water.Ponds.Count > 0 ? MarshHollows(ctx, occ, water, style.Hollows) : null;
             float hum = ctx.F("hummocks");
             if (hum > 0.05f)
                 TerrainShaper.Shape(ctx, region, new TerrainSpec
                 {
                     Mode = TerrainMode.Mounds, Height = hum, Scale = 18f, MaxSlopePct = 20f, Falloff = 14f, Seed = Hashing.Mix(ctx.Seed, 0x4077u),
-                    Skip = p => water.InWater(p, 8f) || occ.Corridors.Overlaps(p, 3f),
+                    Skip = p => water.InWater(p, 8f) || occ.Corridors.Overlaps(p, 3f) || NearHollow(hollow, p),
                 });
             if (ctx.B("animals"))
             {
@@ -541,7 +551,7 @@ namespace Placemaker.Core.Layers.Types.Wetland
         private static void PlantLand(LayerContext ctx, Occupancy occ, WaterBodies water, Style style, float ha)
         {
             var region = ctx.LayerRegion;
-            var treeIds = WetlandArt.Or(ctx.L("treeSpecies"), WetlandArt.Trees, AssetCategories.WetlandTree);
+            var treeIds = WetlandArt.Or(ctx.L("treeSpecies"), style.Lakeland ? WetlandArt.LakeTrees : WetlandArt.Trees, AssetCategories.WetlandTree);
             var bushIds = WetlandArt.Or(ctx.L("bushSpecies"), WetlandArt.Bushes, AssetCategories.Bush);
             string treeCat = LeisureKit.Category(ctx, treeIds.Length > 0 ? "x" : "", AssetCategories.WetlandTree, AssetCategories.Tree);
             uint salt = Hashing.Mix(ctx.Seed, 0x7EE5u);
@@ -554,7 +564,9 @@ namespace Placemaker.Core.Layers.Types.Wetland
             if (treeCat != null)
             {
                 int trees = math.min(8000, (int)(ha * ctx.F("treeDensity")));
-                LeisureKit.Plant(ctx, occ, region, trees, ObjectRole.Tree, treeIds, 2.2f, 22f, 0.3f, 0x7E1u, Reject, 1, 3,
+                if (style.Lakeland)   // (nature makeover) lake country: groves down to the rocky shore, glades between
+                    NatureKit.Plant(ctx, occ, region, trees, ObjectRole.Tree, treeIds, 2.2f, 30f, 0x7E1u, p => water.InWater(p, 1.5f), 0.12f, 0.02f, treeCat == AssetCategories.Tree ? null : treeCat);
+                else LeisureKit.Plant(ctx, occ, region, trees, ObjectRole.Tree, treeIds, 2.2f, 22f, 0.3f, 0x7E1u, Reject, 1, 3,
                     treeCat == AssetCategories.Tree ? null : treeCat);
                 if (ctx.B("screen"))
                 {
@@ -588,7 +600,102 @@ namespace Placemaker.Core.Layers.Types.Wetland
             }
             int bushes = math.min(8000, (int)(ha * ctx.F("bushDensity")));
             if (bushes > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Bush, bushIds, Keys.Category(AssetCategories.Bush)))
-                LeisureKit.Plant(ctx, occ, region, bushes, ObjectRole.Bush, bushIds, 0.9f, 10f, 0.3f, 0xB05u, p => water.InWater(p, 1f));
+            {
+                if (style.Lakeland) NatureKit.Plant(ctx, occ, region, bushes, ObjectRole.Bush, bushIds, 0.9f, 14f, 0xB05u, p => water.InWater(p, 1f), 0.08f);
+                else LeisureKit.Plant(ctx, occ, region, bushes, ObjectRole.Bush, bushIds, 0.9f, 10f, 0.3f, 0xB05u, p => water.InWater(p, 1f));
+            }
+        }
+
+        /// <summary>Within a hummock cell (12 m) of a marsh hollow: the two terraforms never overlap.</summary>
+        private static bool NearHollow(System.Func<float2, float> hollow, float2 p)
+        {
+            if (hollow == null) return false;
+            for (int dy = -1; dy <= 1; dy++)
+                for (int dx = -1; dx <= 1; dx++)
+                    if (hollow(p + new float2(dx, dy) * 8f) > 0.005f) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// (nature makeover) Shallow marsh hollows in the wet ground round the ponds: organic dips 25-60 cm deep, kept off the
+        /// trails, boardwalks and the ponds' own banks, so the designed ground (Decals/Dynamic/NatureGround) finds real hollows
+        /// to fill with marsh mud and sedge even on flat land. Sloped terraform (Common/Sculpt); what stands in them is put back
+        /// onto the new ground. Returns the depth field (null when nothing was dug).
+        /// </summary>
+        private static System.Func<float2, float> MarshHollows(LayerContext ctx, Occupancy occ, WaterBodies water, float depth)
+        {
+            var region = ctx.LayerRegion;
+            float belt = ctx.F("reedBelt");
+            var centres = new List<(float2 c, float r, float d)>();
+            int want = math.clamp((int)(region.Area / 1600f), 2, 40);
+            foreach (var p in Scatter.Candidates(region, 5f, Hashing.Mix(ctx.Seed, 0x4011u), 6000, ctx.Cancel, true))
+            {
+                if (centres.Count >= want) break;
+                float dw = water.Distance(p, 40f);
+                if (dw < 5f || dw > belt + 18f || water.InWater(p, 5f)) continue;
+                uint v = Hashing.Mix(ctx.Seed, 0x4012u + (uint)centres.Count * 977u + (uint)(p.x * 3f));
+                float r = 5f + 6f * Hashing.Unit(v);
+                if (occ.Corridors.Overlaps(p, r + 2.5f, 0f) || !region.ContainsDisc(p, r + 4f)) continue;
+                bool far = true;
+                foreach (var o in centres) if (math.distance(o.c, p) < (o.r + r) * 0.9f) { far = false; break; }
+                if (!far) continue;
+                centres.Add((p, r, depth * (0.6f + 0.5f * Hashing.Unit(Hashing.Mix(v, 1u)))));
+            }
+            if (centres.Count == 0) return null;
+            uint ns = Hashing.Mix(ctx.Seed, 0x4013u);
+            System.Func<float2, float> field = p =>
+            {
+                float best = 0f;
+                foreach (var (c, r, d) in centres)
+                {
+                    float rr = r * (0.75f + 0.5f * ValueNoise.Clumps(p, 6f, ns));
+                    float t = math.distance(p, c) / rr;
+                    if (t < 1f) best = math.max(best, d * (1f - t * t) * (1f - t * t));
+                }
+                return best;
+            };
+            var sc = Sculpt.Over(ctx, region, null, 3f, p => water.InWater(p, 4f) || occ.Corridors.Overlaps(p, 1.5f, 0f));
+            sc.Shape((p, h0, cur) => { float d = field(p); return d > 0.01f ? h0 - d : float.NaN; });
+            sc.Smooth(1);
+            sc.LimitGrade(0.2f);
+            var res = sc.Emit(ctx, new[] { region.Ring }, 0.05f);
+            if (res == null || res.Cells == 0) return null;
+            // what already stands in a hollow sits on the new ground
+            foreach (var o in ctx.Plan.Objects) if (field(o.Position.xz) > 0.01f) o.Position = ctx.P3(o.Position.xz);
+            ctx.Plan.Facts["marshHollows"] = centres.Count;
+            return field;
+        }
+
+        /// <summary>
+        /// (nature makeover, lake country) Rocky shores: boulders set at the waterline here and there along the banks, half in
+        /// the water, small stones spilled round them.
+        /// </summary>
+        private static void RockyShores(LayerContext ctx, Occupancy occ, WaterBodies water)
+        {
+            if (!AssetAvailability.Has(AssetCategories.Rock)) return;
+            var region = ctx.LayerRegion;
+            int k = 0;
+            foreach (var (s, outward, island) in water.Shore(3f))
+            {
+                uint v = Hashing.Mix(ctx.Seed, 0x5C0Bu + (uint)k++);
+                if (Hashing.Unit(v) > (island ? 0.3f : 0.16f)) continue;
+                var p = s + outward * (0.4f + Hashing.Unit(Hashing.Mix(v, 1u)) * 1.2f);
+                float sc = 0.45f + 0.7f * Hashing.Unit(Hashing.Mix(v, 2u));
+                if (!region.ContainsDisc(p, 3f) || !occ.Free(p, 2.2f * sc, 0.5f, 0.3f)) continue;
+                var o = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 3u)) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(NatureKit.Boulders, v), v, -1, AssetCategories.Rock);
+                o.Scale = sc;
+                o.Elevation = -0.4f * sc;
+                occ.Take(p, 2.2f * sc, 5);
+                for (int i = 0; i < 4; i++)
+                {
+                    uint w = Hashing.Mix(v, (uint)(20 + i));
+                    var q = p + outward * (Hashing.Unit(w) * 3f - 1f) + new float2(-outward.y, outward.x) * (Hashing.Unit(Hashing.Mix(w, 1u)) - 0.5f) * 5f;
+                    if (!region.ContainsDisc(q, 1f) || !occ.Free(q, 0.5f, 0.3f, 0.2f)) continue;
+                    var st = ctx.Object(q, Hashing.Unit(Hashing.Mix(w, 2u)) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(NatureKit.Stones, w), w, -1, AssetCategories.Rock);
+                    st.Scale = 0.6f + 0.8f * Hashing.Unit(Hashing.Mix(w, 3u));
+                    occ.Take(q, 0.5f, 5);
+                }
+            }
         }
 
         private static void MarshPaint(LayerContext ctx, WaterBodies water, float reach, int layer)

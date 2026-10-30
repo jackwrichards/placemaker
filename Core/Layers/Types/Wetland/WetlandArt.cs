@@ -11,6 +11,8 @@ namespace Placemaker.Core.Layers.Types.Wetland
     {
         public static readonly string[] Reeds = { "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWild01", "GreenBushWildChild01" };
         public static readonly string[] Trees = { "EU_AlderTree01", "BirchTree01", "EU_PoplarTree01" };
+        /// <summary>(nature makeover) Lake country: northern shores of pine, spruce and birch, an alder at the water.</summary>
+        public static readonly string[] LakeTrees = { "PineTree01", "SpruceTree01", "BirchTree01", "EuropeanSpruce01", "PineTree01", "BirchTree01", "EU_AlderTree01" };
         public static readonly string[] Bushes = { "GreenBushWild02", "GreenBushWildAdult01", "GreenBushWildElderly01", "FlowerBushWild01" };
         public static readonly string[] GardenShrubs = { "FlowerBushWild02", "FlowerBushWild01", "GreenBushWild01" };
         public static readonly string[] Flowers = { "Flowerbed02", "Flowerbed01" };
