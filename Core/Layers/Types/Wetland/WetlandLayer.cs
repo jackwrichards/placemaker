@@ -530,7 +530,9 @@ namespace Placemaker.Core.Layers.Types.Wetland
                     var p = s + outward * o + new float2(Hashing.Unit(h) - 0.5f, Hashing.Unit(Hashing.Mix(h)) - 0.5f) * 0.6f;
                     // Thicker at the waterline, thinning up the bank.
                     float edge = 1f - math.saturate(math.max(0f, o) / math.max(1f, hi + 0.5f)) * 0.6f;
-                    float chance = density * edge * Scatter.Clustering(p, 9f, clump, 0.25f);
+                    // (nature makeover) reeds in drifts with open wet margin between (the even spread read as polka dots)
+                    float drift = ValueNoise.Clumps(p, 16f, clump); drift = math.saturate((drift - 0.42f) / 0.3f);
+                    float chance = density * edge * (0.03f + 1.1f * drift * drift);
                     if (Hashing.Unit(Hashing.Mix(h, 3u)) > chance) continue;
                     if (!region.ContainsDisc(p, 1f) || !occ.Free(p, 0.8f, 1f, 0.3f)) continue;
                     if (!island && o > 0.5f && water.InWater(p, 0f) && !water.OnIsland(p)) continue;
@@ -539,7 +541,7 @@ namespace Placemaker.Core.Layers.Types.Wetland
                     bool shrub = style.GardenMargin && (bushIds.Length > 0 || AssetAvailability.Has(AssetCategories.Bush)) && !flower && o > 1f && Hashing.Unit(Hashing.Mix(v, 11u)) < 0.4f;
                     if (flower) ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Planter, AssetMix.Pick(WetlandArt.Flowers, v), v, -1, flowerCat);
                     else if (shrub) ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Bush, AssetMix.Pick(bushIds, v), v);
-                    else if (reedCat != null) ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Bush, AssetMix.Pick(reedIds, v), v, -1, reedCat);
+                    else if (reedCat != null) { var ro = ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Bush, AssetMix.Pick(reedIds, v), v, -1, reedCat); ro.Scale = 0.6f + 0.9f * Hashing.Unit(Hashing.Mix(v, 12u)) * (0.5f + 0.5f * drift); }
                     else continue;
                     occ.Take(p, 0.8f, 4);
                     placed++;
@@ -697,13 +699,22 @@ namespace Placemaker.Core.Layers.Types.Wetland
                         var p = c + new float2(x, y) + new float2(Hashing.Unit(v) - 0.5f, Hashing.Unit(Hashing.Mix(v, 1u)) - 0.5f) * 1.1f;
                         float f = field(p) / math.max(0.05f, d);   // 1 in the middle, 0 at the rim and beyond
                         float t = math.distance(p, c) / r;
-                        float chance = f > 0.55f ? 0.04f : f > 0.12f ? 0.6f : t < 1.3f ? 0.22f : 0f;
+                        // drifts round the rim (a part of the ring thick, a part open), never an even necklace
+                        float drift = math.saturate((ValueNoise.Clumps(p, 9f, Hashing.Mix(ctx.Seed, 0x4A5Du)) - 0.4f) / 0.3f);
+                        float chance = (f > 0.55f ? 0.02f : f > 0.12f ? 0.75f : t < 1.3f ? 0.25f : 0f) * drift;
                         if (Hashing.Unit(Hashing.Mix(v, 2u)) > chance) continue;
                         if (!region.ContainsDisc(p, 1f) || !occ.Free(p, 0.7f, 0.5f, 0.15f) || ReservedNear(ctx, p, 1.5f)) continue;
                         bool tussock = f <= 0.12f;
                         var id = tussock ? AssetMix.Pick(WetlandArt.Tussocks, v) : AssetMix.Pick(reeds, v);
+                        if (tussock && Hashing.Unit(Hashing.Mix(v, 7u)) < 0.1f && occ.Free(p, 1.8f, 0.5f, 0.2f))
+                        {
+                            // willow scrub: a young alder or a tall wild bush now and then on the rim
+                            bool tree = Hashing.Unit(Hashing.Mix(v, 8u)) < 0.5f;
+                            ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 3u)) * 6.283f, tree ? ObjectRole.Tree : ObjectRole.Bush, new AssetRef("", tree ? "EU_AlderTree01" : "GreenBushWild02"), v, tree ? 0 : -1);
+                            occ.Take(p, 1.8f, 4); placed++; continue;
+                        }
                         var o = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 3u)) * 6.283f, ObjectRole.Bush, id, v);
-                        o.Scale = tussock ? 0.7f + 0.4f * Hashing.Unit(Hashing.Mix(v, 4u)) : 0.9f + 0.4f * Hashing.Unit(Hashing.Mix(v, 4u));
+                        o.Scale = tussock ? 0.45f + 0.5f * Hashing.Unit(Hashing.Mix(v, 4u)) : 0.6f + 0.9f * Hashing.Unit(Hashing.Mix(v, 4u));
                         occ.Take(p, 0.7f, 4);
                         placed++;
                     }

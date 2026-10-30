@@ -86,7 +86,9 @@ namespace Placemaker.Core.Layers.Common
                     if (heart > 0.5f && Hashing.Unit(Hashing.Mix(v, 5u)) < dead) age = PlannedAge.Dead;
                     if (age == 1 && Hashing.Unit(Hashing.Mix(v, 6u)) < 0.35f) age = 0;
                 }
-                ctx.Object(p, Hashing.Unit(v) * 6.283f, role, AssetMix.Pick(ids, v), v, age, category);
+                var po = ctx.Object(p, Hashing.Unit(v) * 6.283f, role, AssetMix.Pick(ids, v), v, age, category);
+                // bushes of every size: big in a thicket's heart, small at its edge and alone (one size everywhere read as polka dots)
+                if (role == ObjectRole.Bush) po.Scale = math.lerp(0.5f, 1.35f, Hashing.Unit(Hashing.Mix(v, 9u)) * (cut < 0f ? 1f : 0.45f + 0.55f * math.saturate((g - cut) / 0.15f + 0.3f)));
                 occ.Take(p, age == 0 ? rr * 0.6f : rr, role == ObjectRole.Tree ? 3 : 4);
                 placed++;
             }

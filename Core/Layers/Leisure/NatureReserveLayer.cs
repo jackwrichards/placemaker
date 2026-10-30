@@ -46,7 +46,7 @@ namespace Placemaker.Core.Layers.Leisure
         protected override void DefinePresets()
         {
             Preset("forest", ("treeDensity", 260.0), ("bushDensity", 120.0), ("clearings", 2.0));
-            Preset("heath", ("treeDensity", 20.0), ("bushDensity", 340.0), ("clearings", 3.0), ("lookout", true));
+            Preset("heath", ("treeDensity", 20.0), ("bushDensity", 230.0), ("clearings", 3.0), ("lookout", true));
             Preset("wildwood", ("treeDensity", 380.0), ("bushDensity", 200.0), ("clearings", 1.0), ("benches", 0.5), ("lookout", false));
         }
 

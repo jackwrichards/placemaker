@@ -110,6 +110,9 @@ namespace Placemaker.Core.Decals.Dynamic
                     Feet(); Lap("feet");
                     Camp(); Lap("camp");
                 }
+                // a fan or washout thrown downhill past the outline is not this site's to lay
+                for (int i = Out.Count - 1; i >= before; i--)
+                    if (!Poly.Contains(_ring, Out[i].P) && Poly.DistanceToBoundary(_ring, Out[i].P) > 4f) { string c = Out[i].Cause; Out.RemoveAt(i); if (c != null && _b.ByCause.TryGetValue(c, out int nc)) _b.ByCause[c] = nc - 1; }
                 foreach (var kv in _b.ByCause) _r.ByCause[kv.Key] = kv.Value;
                 _r.Instances = Out.Count - before;
                 _r.Ms = clock.Elapsed.TotalMilliseconds;
@@ -385,6 +388,8 @@ namespace Placemaker.Core.Decals.Dynamic
                 {
                     // heather over the open heath, thinning under the few trees and along the trails
                     Brushes.Scatter(_b, _wild, "heathPatch", 0.75f, new ScatterOptions { Weight = p => (0.35f + 0.65f * ValueNoise.Clumps(p, 22f, H(3))) * (1f - Shade(p) * 0.8f) * math.saturate(PathDistance(p) / 2.5f), Opacity = new float2(0.7f, 1f), Clump = 4f, Spread = 0.6f, Loners = 0.2f, Spill = 1f, Cause = "ground:heath" });
+                    // bare peaty scars and sheep-bitten patches between the heather
+                    Brushes.Scatter(_b, _wild, "barePatch", 0.06f, new ScatterOptions { Weight = p => 1f - ValueNoise.Clumps(p, 22f, H(3)), Opacity = new float2(0.35f, 0.6f), Clump = 2f, Loners = 0.4f, Cause = "ground:bare" });
                 }
             }
 
