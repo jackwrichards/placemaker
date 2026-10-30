@@ -246,7 +246,7 @@ namespace Placemaker.Core.Decals.Dynamic
         private void Tone()
         {
             // few, big, quiet: the paving's own tile already varies; the tone only breaks up its evenness from afar
-            Brushes.Tone(_b, _hard, "pavingToneSquare", new float2(0.26f, 0.42f), 0.2f, ColourLevel.Quiet, "tone:paving");
+            Brushes.Tone(_b, _hard, "pavingTonePatch", new float2(0.26f, 0.42f), 0.2f, ColourLevel.Quiet, "tone:paving");
             // crisp old stains over the slabs (not soft smudges): water marks, rust, the places puddles always sit
             Brushes.Scatter(_b, _hard, "concreteStain", 0.03f * math.min(1.6f, math.max(0.4f, A)), new ScatterOptions { Weight = p => 0.25f + 0.75f * ValueNoise.Clumps(p, 26f, H(3)), Opacity = new float2(0.4f, 0.75f), Clump = 2.5f, Loners = 0.4f, Level = ColourLevel.Quiet, Cause = "tone:stains" });
             foreach (var g in _green)
@@ -360,7 +360,7 @@ namespace Placemaker.Core.Decals.Dynamic
             for (int i = 0; i < _trees.Count; i++)
             {
                 var t = _trees[i];
-                if (What(t.P + new float2(1.6f, 0f)) == 1 && U(400, i) < 0.8f) Brushes.At(_b, t.P, Weathering.Wind, U(404, i) < 0.6f ? "mulchSquare" : "mossSquare", Range(2.8f, 3.8f, 401, i), Op(0.55f, 0.9f), 1, ColourLevel.Any, "trees:pit");
+                if (What(t.P + new float2(1.6f, 0f)) == 1 && U(400, i) < 0.8f) Brushes.At(_b, t.P, Weathering.Wind, U(404, i) < 0.6f ? "barkMulch" : "mossPatch", Range(2.8f, 3.8f, 401, i), Op(0.55f, 0.9f), 1, ColourLevel.Any, "trees:pit");
                 if (U(402, i) < 0.18f * A) Brushes.At(_b, t.P + Weathering.Wind * t.Crown * 0.3f, Weathering.Wind, "birdDroppings", Range(1.6f, 2.4f, 403, i), Op(0.6f, 0.9f), 1, ColourLevel.Any, "trees:birds");
             }
             // drifts against the walls downwind of trees
@@ -552,7 +552,7 @@ namespace Placemaker.Core.Decals.Dynamic
                         line.Add(q);
                     }
                     if (line.Count < 3) continue;
-                    Brushes.CracksAlong(_b, line, "crackPaving", new StripOptions { Opacity = Op(0.45f, 0.8f), Cause = "age:crack" });
+                    Brushes.CracksAlong(_b, line, "crackConcrete", new StripOptions { Opacity = Op(0.45f, 0.8f), Cause = "age:crack" });
                     cracks++;
                     // weeds take a crack that nobody sweeps
                     if (A > 1.2f && U(706, i * 8 + c) < 0.5f) Brushes.At(_b, line[line.Count / 2], d, "weedTufts", Range(1.6f, 2.4f, 707, i), Op(0.7f, 1f), 1, ColourLevel.Any, "age:weeds");
@@ -573,7 +573,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 // the corner that stays wet: moss over the paving
                 var c = _ring[(int)(U(840) * _ring.Length) % _ring.Length];
                 var inward = math.normalizesafe(_centre - c);
-                Brushes.At(_b, c + inward * 4f, inward, "mossSquare", 6f, Op(0.5f, 0.85f), 3, ColourLevel.Any, "flaw:mossyCorner");
+                Brushes.At(_b, c + inward * 4f, inward, "mossPatch", 6f, Op(0.5f, 0.85f), 3, ColourLevel.Any, "flaw:mossyCorner");
         }
 
         // ───────────── neglect ─────────────

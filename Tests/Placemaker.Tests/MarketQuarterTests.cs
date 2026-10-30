@@ -133,7 +133,7 @@ namespace Placemaker.Tests
             }
         }
 
-        [Theory]
+        [Theory(Skip = "(the plazas makeover, 2026-10-29) the market quarter is retired: every market square is the designed market (PlazaDesigns.Market, DesignedSquaresTests); MarketSquareLayer.DesignedMarket = false brings it back")]
         [MemberData(nameof(Shapes))]
         public void BigMarketFillsTheWholeSiteToItsRim(string shape)
         {
@@ -161,7 +161,7 @@ namespace Placemaker.Tests
             Assert.True(p.Facts["foodCarts"] >= 1, $"{shape}: food carts {p.Facts["foodCarts"]}");
         }
 
-        [Fact]
+        [Fact(Skip = "(the plazas makeover) the market quarter is retired: every market square is the designed market (PlazaDesigns.Market, DesignedSquaresTests); MarketSquareLayer.DesignedMarket = false brings it back")]
         public void TheMarketStreetRunsBetweenTheTwoGates()
         {
             var ring = TestKit.Rect(300, 280);
@@ -176,7 +176,7 @@ namespace Placemaker.Tests
             Assert.True(bent.Facts.ContainsKey("marketStreetCurved"));
         }
 
-        [Fact]
+        [Fact(Skip = "(the plazas makeover) the market quarter is retired: every market square is the designed market (PlazaDesigns.Market, DesignedSquaresTests); MarketSquareLayer.DesignedMarket = false brings it back")]
         public void EveryGateGetsBikeRacksBollardsAndAFoodCart()
         {
             var ring = TestKit.Rect(300, 280);
@@ -188,7 +188,7 @@ namespace Placemaker.Tests
             Assert.Contains(p.Objects, o => o.Role == ObjectRole.AccessPoint && math.distance(o.Position.xz, gate) < 1f);
         }
 
-        [Fact]
+        [Fact(Skip = "(the plazas makeover) the market quarter is retired: every market square is the designed market (PlazaDesigns.Market, DesignedSquaresTests); MarketSquareLayer.DesignedMarket = false brings it back")]
         public void GroundPaintLeavesSoilInThePitsAndLawnInTheIslands()
         {
             var ring = TestKit.Rect(300, 280);

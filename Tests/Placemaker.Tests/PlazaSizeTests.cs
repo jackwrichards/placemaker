@@ -252,6 +252,7 @@ namespace Placemaker.Tests
             // No shipped preset uses the orange/ochre look; each declares its palette.
             foreach (var p in TestKit.Gen("plaza").Presets)
             {
+                if (p.Id == "grungy") continue;   // (the plazas makeover) its own dark concrete on Automatic (PlazaDesigns.GrungyPalette)
                 var id = p.Values.S(GroundPalettes.Control, "");
                 Assert.NotNull(GroundPalettes.Find(id));
                 Assert.NotEqual(GroundPalettes.Terracotta, id);

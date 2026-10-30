@@ -8,13 +8,13 @@
       "about": "Weeds and moss growing out of a paving joint, a wall foot or a kerb line: a dark seam of dirt with green tufts and moss along it, broken into runs (+z is the wall or kerb when there is one).",
       "texel": 0.016, "layers": "ground", "order": 5, "lod": 26, "maxTexels": 512, "opacity": 0.95,
       "edge": { "feather": 0.06, "warp": 0.05, "warpScale": 0.8, "round": 1, "widthNoise": 0.55 },
-      "variants": { "count": 8, "size": [6, 9], "width": [0.32, 0.6], "tile": "x", "strength": [0.6, 1] },
+      "variants": { "count": 5, "size": [6, 9], "width": [0.32, 0.6], "tile": "x", "strength": [0.6, 1] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 1.1, "octaves": 4, "stretch": [3, 1] },
         { "op": "remap", "in": "n", "out": "runs", "lo": -0.45, "hi": 0.25 },
         { "op": "band", "in": "across", "out": "seam", "at": 0, "width": 0.09 },
         { "op": "mul", "a": "seam", "b": "shape", "c": "runs", "out": "g" },
-        { "op": "layer", "alpha": "g", "alphaK": 0.95, "color": [48, 46, 40], "smooth": 0.15 },
+        { "op": "layer", "alpha": "g", "alphaK": 0.95, "color": [48, 46, 40], "smooth": 0.15, "height": 0.35 },
         { "op": "remap", "in": "n", "out": "mossy", "lo": 0, "hi": 0.5 },
         { "op": "mul", "a": "mossy", "b": "shape", "out": "m" },
         { "op": "mul", "a": "m", "b": "seam", "out": "mm" },
@@ -27,12 +27,12 @@
       "about": "A few tufts of grass and dandelion pushing up through cracked paving or concrete: green clumps with dry stalks round them, in a tight cluster.",
       "texel": 0.015, "layers": "ground", "order": 6, "lod": 22, "maxTexels": 384, "opacity": 0.92,
       "edge": { "feather": 0.35, "warp": 0.4, "warpScale": 1.2, "round": 1 },
-      "variants": { "count": 8, "size": [1.2, 2.6], "aspect": [0.35, 1], "strength": [0.75, 1], "fades": ["soft"] },
+      "variants": { "count": 5, "size": [1.2, 2.6], "aspect": [0.35, 1], "strength": [0.75, 1], "fades": ["soft"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 0.6, "octaves": 3 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.3, "hi": 0.4 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "dirt" },
-        { "op": "layer", "alpha": "dirt", "alphaK": 0.12, "color": [70, 64, 52], "smooth": 0.15 },
+        { "op": "layer", "alpha": "dirt", "alphaK": 0.12, "color": [70, 64, 52], "smooth": 0.15, "height": 0.35 },
         { "op": "scatter", "stamp": ["leaf", "twig", "birch"], "density": 120, "clusters": 120, "cluster": 0.8, "clusterRadius": [0.1, 0.3], "size": [0.04, 0.13], "aspect": [0.2, 0.55], "palette": [[82, 110, 42], [100, 130, 50], [66, 90, 36], [150, 140, 76], [176, 160, 92], [120, 140, 56]], "alpha": [0.9, 1], "height": 0.9, "smooth": 0.2 }
       ]
     },
@@ -41,13 +41,13 @@
       "about": "Soil, bark crumbs and old leaves washed and kicked out of a planting bed onto the paving beside it: thick against the bed (+z), thinning to a few crumbs.",
       "texel": 0.02, "layers": "ground", "order": 5, "lod": 28, "maxTexels": 512, "opacity": 0.95,
       "edge": { "feather": 0.18, "warp": 0.2, "warpScale": 1.2, "round": 1, "widthNoise": 0.45 },
-      "variants": { "count": 8, "size": [7, 10], "width": [0.7, 1.3], "tile": "x", "strength": [0.6, 1] },
+      "variants": { "count": 6, "size": [7, 10], "width": [0.7, 1.3], "tile": "x", "strength": [0.6, 1] },
       "ops": [
         { "op": "remap", "in": "across", "out": "side", "lo": -0.45, "hi": 0.45 },
         { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 4, "stretch": [2.5, 1] },
         { "op": "remap", "in": "n", "out": "runs", "lo": -0.45, "hi": 0.3 },
         { "op": "mul", "a": "side", "b": "runs", "c": "shape", "out": "g" },
-        { "op": "layer", "alpha": "g", "alphaK": 0.85, "color": [66, 54, 42], "color2": [84, 70, 54], "tone": "n", "vary": 0.1, "smooth": 0.15 },
+        { "op": "layer", "alpha": "g", "alphaK": 0.85, "color": [66, 54, 42], "color2": [84, 70, 54], "tone": "n", "vary": 0.1, "smooth": 0.15, "height": 0.35 },
         { "op": "scatter", "stamp": ["pebble", "chip", "blob", "oak"], "density": 60, "clusters": 18, "cluster": 0.55, "clusterRadius": [0.2, 0.7], "side": 0.85, "size": [0.016, 0.07], "palette": [[92, 74, 54], [74, 60, 46], [120, 92, 60], [110, 98, 60], [60, 50, 40]], "alpha": [0.75, 1], "height": 0.5, "smooth": 0.2 }
       ]
     },
@@ -56,18 +56,18 @@
       "about": "The lane thousands of feet polish across a square: the paving a shade darker and smoother down the middle, grit and grime along its margins, repeating along +x.",
       "texel": 0.04, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 384, "opacity": 0.8,
       "edge": { "feather": 0.8, "warp": 0.5, "warpScale": 2.2, "round": 1, "widthNoise": 0.35 },
-      "variants": { "count": 6, "size": [11, 14], "width": [2.4, 3.8], "tile": "x", "strength": [0.6, 1] },
+      "variants": { "count": 4, "size": [11, 14], "width": [2.4, 3.8], "tile": "x", "strength": [0.6, 1] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 4, "stretch": [4, 1] },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.7, "hi": 0.2 },
         { "op": "abs", "in": "across", "out": "aa" },
         { "op": "remap", "in": "aa", "out": "core", "lo": 1.4, "hi": 0.2 },
         { "op": "mul", "a": "core", "b": "macro", "c": "shape", "out": "g" },
-        { "op": "layer", "alpha": "g", "alphaK": 0.5, "color": [64, 62, 58], "smooth": 0.42 },
+        { "op": "layer", "alpha": "g", "alphaK": 0.5, "color": [64, 62, 58], "smooth": 0.42, "height": 0.35 },
         { "op": "remap", "in": "aa", "out": "rim", "lo": 0.7, "hi": 1.5 },
         { "op": "mul", "a": "rim", "b": "shape", "out": "r" },
         { "op": "scatter", "stamp": ["pebble", "blob"], "density": 22, "clusters": 9, "cluster": 0.5, "clusterRadius": [0.2, 0.6], "noise": { "scale": 1.4, "lo": -0.3, "hi": 0.5 }, "size": [0.012, 0.035], "palette": [[96, 92, 84], [70, 68, 64], [120, 114, 104]], "alpha": [0.5, 0.85], "height": 0.3, "smooth": 0.2 },
-        { "op": "layer", "alpha": "r", "alphaK": 0.12, "color": [74, 70, 62], "smooth": 0.15 }
+        { "op": "layer", "alpha": "r", "alphaK": 0.12, "color": [74, 70, 62], "smooth": 0.15, "height": 0.35 }
       ]
     },
     {
@@ -75,12 +75,12 @@
       "about": "Under and round a cafe table: coffee rings and dried spills, a few crumbs, sugar papers and butts, darker where chairs scrape.",
       "texel": 0.012, "layers": "ground", "order": 5, "lod": 20, "maxTexels": 384, "opacity": 0.98,
       "edge": { "feather": 0.8, "warp": 0.7, "warpScale": 1.3, "round": 1 },
-      "variants": { "count": 8, "size": [2.6, 4.2], "aspect": [0.7, 1], "strength": [0.6, 1], "fades": ["soft", "islands"] },
+      "variants": { "count": 5, "size": [2.6, 4.2], "aspect": [0.7, 1], "strength": [0.6, 1], "fades": ["soft", "islands"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 0.5, "octaves": 3 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.4, "hi": 0.4 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "s" },
-        { "op": "layer", "alpha": "s", "alphaK": 0.35, "color": [84, 70, 54], "smooth": 0.35 },
+        { "op": "layer", "alpha": "s", "alphaK": 0.35, "color": [84, 70, 54], "smooth": 0.35, "height": 0.35 },
         { "op": "scatter", "stamp": ["splat", "blob"], "density": 9, "clusters": 14, "cluster": 0.6, "clusterRadius": [0.2, 0.6], "size": [0.06, 0.2], "aspect": [0.5, 1], "palette": [[92, 70, 48], [76, 58, 42], [110, 90, 62]], "alpha": [0.6, 0.9], "smooth": 0.45 },
         { "op": "scatter", "stamp": ["paper", "butt", "cap", "blob"], "density": 4, "clusters": 6, "cluster": 0.4, "clusterRadius": [0.3, 0.8], "size": [0.018, 0.05], "palette": [[220, 214, 200], [200, 170, 120], [180, 60, 40], [90, 86, 80]], "alpha": [0.8, 1], "height": 0.3, "smooth": 0.2 }
       ]
@@ -90,13 +90,13 @@
       "about": "Years of flattened gum where people stand and wait (a door, a stop, the bench by the kiosk): dense grey-black dots that read as a speckled shadow from afar, thinning outwards.",
       "texel": 0.015, "layers": "ground", "order": 5, "lod": 26, "maxTexels": 512, "opacity": 0.98,
       "edge": { "feather": 1.2, "warp": 1.1, "warpScale": 2.4, "round": 1 },
-      "variants": { "count": 6, "size": [5, 9], "aspect": [0.55, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "linear"] },
+      "variants": { "count": 4, "size": [5, 9], "aspect": [0.55, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "linear"] },
       "ops": [
         { "op": "remap", "in": "radial", "out": "core", "lo": 1, "hi": 0.1 },
         { "op": "fbm", "out": "n", "scale": 1.2, "octaves": 3 },
         { "op": "remap", "in": "n", "out": "thin", "lo": -0.6, "hi": 0.4 },
         { "op": "mul", "a": "core", "b": "thin", "c": "shape", "out": "g" },
-        { "op": "layer", "alpha": "g", "alphaK": 0.2, "color": [60, 58, 56], "smooth": 0.2 },
+        { "op": "layer", "alpha": "g", "alphaK": 0.2, "color": [60, 58, 56], "smooth": 0.2, "height": 0.35 },
         { "op": "scatter", "stamp": "blob", "density": 140, "clusters": 24, "cluster": 0.3, "clusterRadius": [0.5, 1.4], "noise": { "scale": 1.2, "lo": -0.8, "hi": 0.2 }, "size": [0.045, 0.09], "aspect": [0.75, 1], "palette": [[66, 64, 62], [88, 86, 84], [52, 50, 50], [112, 110, 106], [128, 124, 118]], "alpha": [0.85, 1], "height": 0.1, "smooth": 0.3, "max": 40000 }
       ]
     },
@@ -105,12 +105,12 @@
       "about": "Where skaters ride a ledge, a kerb or a bench: black rubber streaks and grey wax smears in sweeping groups, chipped edges, a few board-sized scrapes.",
       "texel": 0.015, "layers": "ground", "order": 6, "lod": 24, "maxTexels": 512, "opacity": 0.98,
       "edge": { "feather": 0.9, "warp": 0.8, "warpScale": 1.8, "round": 1 },
-      "variants": { "count": 8, "size": [4, 7.5], "aspect": [0.35, 0.8], "strength": [0.6, 1], "fades": ["soft", "linear", "islands"] },
+      "variants": { "count": 5, "size": [4, 7.5], "aspect": [0.35, 0.8], "strength": [0.6, 1], "fades": ["soft", "linear", "islands"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 4, "stretch": [5, 1] },
         { "op": "remap", "in": "n", "out": "smear", "lo": 0.1, "hi": 0.6 },
         { "op": "mul", "a": "smear", "b": "shape", "out": "s" },
-        { "op": "layer", "alpha": "s", "alphaK": 0.45, "color": [58, 56, 54], "smooth": 0.5 },
+        { "op": "layer", "alpha": "s", "alphaK": 0.45, "color": [58, 56, 54], "smooth": 0.5, "height": 0.35 },
         { "op": "scatter", "stamp": "twig", "density": 16, "clusters": 9, "cluster": 0.8, "clusterRadius": [0.3, 0.9], "angle": 0, "angleJitter": 22, "size": [0.4, 1.1], "aspect": [0.05, 0.11], "palette": [[30, 30, 30], [44, 42, 42], [60, 58, 58]], "alpha": [0.8, 1], "height": 0.05, "smooth": 0.35 },
         { "op": "scatter", "stamp": "twig", "density": 6, "clusters": 5, "cluster": 0.7, "clusterRadius": [0.3, 0.8], "angle": 0, "angleJitter": 30, "size": [0.2, 0.5], "aspect": [0.05, 0.12], "palette": [[150, 148, 144], [170, 166, 160]], "alpha": [0.3, 0.55], "smooth": 0.55 }
       ]
@@ -120,12 +120,12 @@
       "about": "Old concrete's own record: a water stain with a pale crust of lime at its rim, rust run from a fitting, a darker patch where a puddle always sits. Crisp-edged, not a smudge.",
       "texel": 0.03, "layers": "ground", "order": 5, "lod": 36, "maxTexels": 384, "opacity": 0.95,
       "edge": { "feather": 0.5, "warp": 0.9, "warpScale": 1.6, "round": 1 },
-      "variants": { "count": 8, "size": [3, 7], "aspect": [0.4, 1], "strength": [0.6, 1], "fades": ["soft", "islands", "side", "linear"] },
+      "variants": { "count": 6, "size": [3, 7], "aspect": [0.4, 1], "strength": [0.6, 1], "fades": ["soft", "islands", "side", "linear"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 1.2, "octaves": 5, "warp": 0.8, "warpScale": 1.6 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.15, "hi": 0.05 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "s" },
-        { "op": "layer", "alpha": "s", "alphaK": 0.85, "color": [70, 68, 62], "color2": [96, 84, 66], "tone": "n", "vary": 0.12, "varyScale": 0.4, "smooth": 0.25 },
+        { "op": "layer", "alpha": "s", "alphaK": 0.85, "color": [70, 68, 62], "color2": [96, 84, 66], "tone": "n", "vary": 0.12, "varyScale": 0.4, "smooth": 0.25, "height": 0.35 },
         { "op": "scatter", "stamp": ["blob", "pebble"], "density": 8, "clusters": 6, "cluster": 0.6, "clusterRadius": [0.2, 0.6], "size": [0.01, 0.03], "palette": [[120, 82, 52], [90, 70, 52], [60, 58, 54]], "alpha": [0.5, 0.85], "smooth": 0.2 }
       ]
     },
@@ -134,13 +134,13 @@
       "about": "Where rain runs off the paving into a drain or a low corner: a long dark streak of silt and grime, wettest and darkest at its low end (+x), with grit left along its edges.",
       "texel": 0.035, "layers": "ground", "order": 6, "lod": 34, "maxTexels": 384, "opacity": 0.9,
       "edge": { "feather": 0.7, "warp": 0.5, "warpScale": 1.4, "round": 1 },
-      "variants": { "count": 6, "size": [4, 8], "aspect": [0.22, 0.4], "strength": [0.6, 1], "fades": ["soft", "linear"] },
+      "variants": { "count": 4, "size": [4, 8], "aspect": [0.22, 0.4], "strength": [0.6, 1], "fades": ["soft", "linear"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 1.2, "octaves": 4, "stretch": [4, 1] },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.3 },
         { "op": "remap", "in": "along", "out": "low", "lo": -2.5, "hi": 2.5 },
         { "op": "mul", "a": "shape", "b": "macro", "c": "low", "out": "s" },
-        { "op": "layer", "alpha": "s", "alphaK": 0.85, "color": [52, 50, 46], "color2": [70, 64, 54], "tone": "n", "smooth": 0.5 },
+        { "op": "layer", "alpha": "s", "alphaK": 0.85, "color": [52, 50, 46], "color2": [70, 64, 54], "tone": "n", "smooth": 0.5, "height": 0.35 },
         { "op": "scatter", "stamp": ["pebble", "blob", "leaf"], "density": 18, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.2, 0.5], "noise": { "scale": 1, "lo": -0.4, "hi": 0.4 }, "size": [0.012, 0.045], "palette": [[96, 90, 78], [80, 76, 68], [110, 92, 60]], "alpha": [0.6, 0.9], "height": 0.3, "smooth": 0.25 }
       ]
     },
@@ -149,7 +149,7 @@
       "about": "Summer leaves under the trees of a square: darker olive, green-brown and a few dry brown, smaller and sparser than in a park (it is swept), so they read as leaves on pale paving, not as yellow stains.",
       "texel": 0.041, "layers": "ground", "order": 6, "lod": 40, "maxTexels": 512, "opacity": 0.762,
       "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
-      "variants": { "count": 12, "size": [8.25, 13.5], "aspect": [0.55, 1], "strength": [0.75, 1], "age": [0.2, 0.8], "fades": ["soft", "islands", "linear", "wide", "side"] },
+      "variants": { "count": 6, "size": [8.25, 13.5], "aspect": [0.55, 1], "strength": [0.75, 1], "age": [0.2, 0.8], "fades": ["soft", "islands", "linear", "wide", "side"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 3.9, "octaves": 4, "warp": 1.5, "warpScale": 3.75 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.3, "hi": 0.5 },
@@ -163,85 +163,14 @@
       "about": "Dark grime, grit and moss packed into a joint between paving and a band, or against a wall foot (+z): strong enough to read on pale paving from the player's height.",
       "texel": 0.035, "layers": "ground", "order": 5, "lod": 30, "maxTexels": 384, "opacity": 0.95,
       "edge": { "feather": 0.168, "warp": 0.168, "warpScale": 1.12, "round": 1, "widthNoise": 0.4 },
-      "variants": { "count": 8, "size": [8.4, 10.5], "width": [0.45, 0.85], "tile": "x", "strength": [0.6, 1] },
+      "variants": { "count": 6, "size": [8.4, 10.5], "width": [0.45, 0.85], "tile": "x", "strength": [0.6, 1] },
       "ops": [
         { "op": "remap", "in": "across", "out": "side", "lo": -0.28, "hi": 0.28 },
         { "op": "fbm", "out": "n", "scale": 1.96, "octaves": 4, "stretch": [3, 1] },
         { "op": "remap", "in": "n", "out": "runs", "lo": -0.4, "hi": 0.3 },
         { "op": "mul", "a": "side", "b": "runs", "c": "shape", "out": "g" },
-        { "op": "layer", "alpha": "g", "alphaK": 0.9, "color": [46, 44, 38], "color2": [66, 62, 52], "tone": "n", "vary": 0.1, "smooth": 0.2 },
+        { "op": "layer", "alpha": "g", "alphaK": 0.9, "color": [46, 44, 38], "color2": [66, 62, 52], "tone": "n", "vary": 0.1, "smooth": 0.2, "height": 0.35 },
         { "op": "scatter", "stamp": ["pebble", "blob", "leaf"], "density": 51.02, "clusters": 15.306, "cluster": 0.6, "clusterRadius": [0.28, 0.84], "side": 0.9, "size": [0.014, 0.056], "palette": [[96, 88, 76], [110, 82, 50], [70, 66, 60]], "alpha": [0.7, 1], "height": 0.5, "smooth": 0.2 }
-      ]
-    },
-    {
-      "id": "crackPaving", "name": "Paving crack (chain)", "tier": "macro",
-      "about": "The concrete crack drawn above the paving surfaces of a square (orders below 5 vanished under them), a little darker. Pieces join end to end.",
-      "texel": 0.029, "layers": "ground", "order": 5, "lod": 22, "maxTexels": 512, "opacity": 0.95,
-      "edge": { "feather": 0.52, "warp": 0, "warpScale": 2.6, "round": 1 },
-      "variants": { "count": 8, "size": [11.7, 15.6], "width": [3.12, 4.68], "tile": "chain", "strength": [0.75, 1] },
-      "ops": [
-        { "op": "cracks", "out": "c", "chain": true, "wander": 0.52, "seeds": 0.018, "step": 0.325, "turn": 0.25, "branch": 0.3, "len": [0.52, 1.82], "width": [0.016, 0.039], "warp": 0.01 },
-        { "op": "mul", "a": "cHalo", "b": 0.15, "out": "halo" },
-        { "op": "layer", "alpha": "halo", "color": [96, 92, 86], "smooth": 0.2 },
-        { "op": "layer", "alpha": "c", "alphaK": 1, "color": [40, 38, 36], "smooth": 0.1, "height": -1, "ao": 0.6 }
-      ]
-    },
-    {
-      "id": "pavingToneSquare", "name": "Paving tone (square)", "tier": "macro",
-      "about": "The paving tone patch drawn above a square's paving surfaces (orders below 5 vanished under them).",
-      "texel": 0.09, "layers": "ground", "order": 5, "lod": 80, "maxTexels": 288, "opacity": 0.85,
-      "edge": { "feather": 5, "warp": 3, "warpScale": 10, "round": 1 },
-      "variants": { "count": 10, "size": [18, 24], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
-      "ops": [
-        { "op": "fbm", "out": "n", "scale": 4, "octaves": 4, "warp": 2, "warpScale": 5 },
-        { "op": "fbm", "out": "f", "scale": 0.6, "octaves": 3, "seed": 5 },
-        { "op": "abs", "in": "n", "out": "an" },
-        { "op": "remap", "in": "an", "out": "a", "lo": 0.1, "hi": 0.7, "k": 0.442 },
-        { "op": "mul", "a": "a", "b": "shape", "out": "shp0" },
-        { "op": "layer", "alpha": "shp0", "color": [96, 92, 84], "color2": [196, 190, 178], "tone": "n", "vary": 0, "smooth": 0.2 },
-        { "op": "remap", "in": "f", "out": "spots", "lo": 0.35, "hi": 0.8, "k": 0.204 },
-        { "op": "mul", "a": "spots", "b": "shape", "out": "shp1" },
-        { "op": "layer", "alpha": "shp1", "color": [80, 76, 70], "smooth": 0.2 }
-      ]
-    },
-    {
-      "id": "mossSquare", "name": "Moss on paving", "tier": "macro",
-      "about": "Moss on a square's shady paving, drawn above its paving surfaces.",
-      "texel": 0.048, "layers": "ground", "order": 5, "lod": 30, "maxTexels": 256, "opacity": 0.582,
-      "edge": { "feather": 0.75, "warp": 0.9, "warpScale": 2.1, "round": 1 },
-      "variants": { "count": 8, "size": [4.5, 9], "aspect": [0.5, 1], "strength": [0.6, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
-      "ops": [
-        { "op": "fbm", "out": "n", "scale": 1.35, "octaves": 4, "warp": 0.75, "warpScale": 1.8 },
-        { "op": "fbm", "out": "g", "scale": 0.12, "octaves": 3 },
-        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
-        { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.4 },
-        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
-        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 3, "out": "moss" },
-        { "op": "layer", "alpha": "moss", "alphaK": 0.9, "color": [78, 98, 42], "color2": [58, 76, 34], "tone": "g", "vary": 0.14, "varyScale": 0.3, "smooth": 0.18, "height": 0.4 }
-      ]
-    },
-    {
-      "id": "gumSquare", "name": "Chewing gum (square)", "tier": "detail",
-      "about": "Flattened gum on paving, grey-black dots, most of them old (outside shops, at crossings and stops).",
-      "texel": 0.017, "layers": "ground", "order": 5, "lod": 20, "maxTexels": 384, "opacity": 0.896,
-      "edge": { "feather": 0.84, "warp": 0.84, "warpScale": 1.96, "round": 1 },
-      "variants": { "count": 4, "size": [4.2, 8.4], "aspect": [0.6, 1], "strength": [0.8, 1] },
-      "ops": [
-        { "op": "scatter", "stamp": "blob", "density": 7.143, "clusters": 7.653, "cluster": 0.3, "clusterRadius": [0.42, 1.12], "size": [0.028, 0.063], "aspect": [0.8, 1], "palette": [[70, 68, 66], [90, 88, 86], [56, 54, 54], [110, 108, 104]], "alpha": [0.75, 0.95], "height": 0.1, "smooth": 0.3 }
-      ]
-    },
-    {
-      "id": "mulchSquare", "name": "Soil and bark round a tree pit", "tier": "macro",
-      "about": "Soil and bark chips kicked out of a tree pit onto the paving round it, drawn above a square's paving.",
-      "texel": 0.034, "layers": "ground", "order": 5, "lod": 36, "maxTexels": 512, "opacity": 0.762,
-      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
-      "variants": { "count": 8, "size": [6, 10.5], "aspect": [0.45, 1], "strength": [0.75, 1], "fades": ["linear", "soft", "side", "islands", "wide", "ring"] },
-      "ops": [
-        { "op": "fbm", "out": "n", "scale": 2.1, "octaves": 3 },
-        { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.3 },
-        { "op": "mul", "a": "shape", "b": "macro", "out": "crumb" },
-        { "op": "layer", "alpha": "crumb", "alphaK": 0.25, "color": [70, 52, 38], "smooth": 0.15 },
-        { "op": "scatter", "stamp": "chip", "density": 20, "clusters": 6.667, "cluster": 0.45, "clusterRadius": [0.75, 2.4], "noise": { "scale": 2.4, "lo": -1, "hi": 0.25 }, "size": [0.09, 0.21], "aspect": [0.3, 0.55], "palette": [[132, 92, 60], [112, 78, 52], [150, 108, 70], [96, 68, 46], [164, 124, 84]], "alpha": [0.9, 1], "value": 0.12, "height": 0.7, "smooth": 0.2, "max": 40000 }
       ]
     }
   ]
