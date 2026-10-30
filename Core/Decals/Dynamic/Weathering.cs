@@ -424,14 +424,15 @@ namespace Placemaker.Core.Decals.Dynamic
                 var c = Poly.Centroid(turf);
                 float halfL = 0f, halfW = 0f;
                 foreach (var q in turf) { halfL = math.max(halfL, math.abs(math.dot(q - c, axis))); halfW = math.max(halfW, math.abs(math.dot(q - c, side))); }
-                // rows exactly one stripe pair wide, side by side (the bands carry on across the rows)
+                // rows exactly one stripe pair wide, side by side (the bands carry on across the rows); one run a row, end to end:
+                // a run fades at its ends, so short runs broke every band (the user, 2026-10-30)
                 float width = DecalVariants.FootprintOf(k, 0).y;
                 int rows = math.max(1, (int)math.floor(halfW * 2f / width));
                 for (int i = 0; i < rows; i++)
                 {
                     float v = (i - (rows - 1) * 0.5f) * width;
                     var a = c + side * v - axis * (halfL + 1.5f); var b = c + side * v + axis * (halfL + 1.5f);
-                    Brushes.EdgeStrip(_b, new[] { a, b }, "mowingStripes", new StripOptions { Gaps = 0f, Opacity = new float2(0.85f, 1f), Width = new float2(1f, 1f), Level = ColourLevel.Quiet, Cause = "tone:stripes" });
+                    Brushes.EdgeStrip(_b, new[] { a, b }, "mowingStripes", new StripOptions { Gaps = 0f, Run = new float2(1000f, 1000f), Opacity = new float2(0.9f, 0.9f), Width = new float2(1f, 1f), Level = ColourLevel.Quiet, Cause = "tone:stripes" });
                 }
             }
 
