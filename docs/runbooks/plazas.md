@@ -83,6 +83,25 @@ metre budget of their own so a square of many small pieces (garden rooms) never 
   spruce, snowmen, lights).
 - On a slope the theatre turns so its seats climb the fall (it faced across the slope with a cliff at one end).
 
+## Round 3 (2026-10-30, the lead: "big sites must be composed, not a small module tiled across")
+
+- **Big sites:** a designed square keeps a real square's size (box at most 140 x 124 m with margins, `PlazaDesigns.CapA/CapB`)
+  in the middle of a big site; the ground round it gets a surround in the design's manner (`PlazaDesigns.Surround.cs`):
+  park (lawn, tree clusters on a jittered lattice with 40 % left open, a walk round the square, paths from every gate,
+  lamps), promenade (two rows of trees in pits, benches, cafes, then park) for the markets and the dining terrace, wild
+  (rough grass, wild and dead bushes, a skip, jersey barriers) for the grungy square. The transit forecourt keeps a real
+  square's size along its street with a park behind it.
+- **Grungy:** the pit scales with the site (up to 60 x 42 m, a half pipe and rows of rails on a big floor), framed by a
+  ring of big planter boxes; the four quarters get rooms (kiosk court at the busiest gate, fenced-off works with rubble
+  and cones, a poster-wall court, an unkept garden); dark asphalt repairs snapped to the slab grid; the rest open.
+- **Theatre:** the bowl takes ~70 % of the box (at most 34 m), a larger orchestra, a wide dark band under every tier and a
+  darker ring every third, lips showing 0.45 m; a raised stage 0.9 m with stone faces and stairs, a four-course back wall,
+  a two-deep colonnade and a gazebo tower at each end; an entrance court with an avenue and kiosks; picnic blankets on the
+  lawns beside the bowl.
+- **Market:** aisles worn (regions "aisle:" read by PlazaGround), stains under food stalls, crates by produce stands; the
+  fountain basins hold green shrubs (the flowerbeds drew teal-blue).
+- Runs: `show-15-builds-1030-041544-a4b7` (every shown style, 220 x 200), `show-15-builds-1030-041701-3540` (block).
+
 ## Numbers
 
 - Frame time (game runner, 220 x 200, camera on the whole square): grungy 2066 instances, 7.42 ms with the ground,
