@@ -43,6 +43,57 @@
         {
           "do": "lab",
           "op": "grime",
+          "focus": "trailDirt",
+          "index": 2,
+          "margin": 4
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 18,
+          "pitch": 12,
+          "clearView": true,
+          "shot": "trail-eye",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "trailDirt",
+          "index": 6,
+          "margin": 4
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 18,
+          "pitch": 12,
+          "clearView": true,
+          "shot": "trail-eye-2",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "pathEdgeWear",
+          "index": 8,
+          "margin": 4
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 14,
+          "pitch": 18,
+          "clearView": true,
+          "shot": "edge-eye",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
           "focus": "mossPatch",
           "index": 3,
           "margin": 6
@@ -51,11 +102,11 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
-          "distance": 16,
+          "distance": 24,
+          "pitch": 50,
           "clearView": true,
-          "shot": "log-moss-eye",
-          "shotMode": "render",
-          "pitch": 30
+          "shot": "log-moss-above",
+          "shotMode": "render"
         },
         {
           "do": "lab",
@@ -68,62 +119,11 @@
           "do": "camera",
           "target": "build",
           "view": "closeup",
-          "distance": 16,
+          "distance": 24,
+          "pitch": 50,
           "clearView": true,
-          "shot": "deadwood-eye",
-          "shotMode": "render",
-          "pitch": 30
-        },
-        {
-          "do": "lab",
-          "op": "grime",
-          "focus": "woodlandFloor",
-          "index": 8,
-          "margin": 6
-        },
-        {
-          "do": "camera",
-          "target": "build",
-          "view": "closeup",
-          "distance": 18,
-          "clearView": true,
-          "shot": "floor-eye",
-          "shotMode": "render",
-          "pitch": 30
-        },
-        {
-          "do": "lab",
-          "op": "grime",
-          "focus": "exposedRoots",
-          "index": 0,
-          "margin": 6
-        },
-        {
-          "do": "camera",
-          "target": "build",
-          "view": "closeup",
-          "distance": 14,
-          "clearView": true,
-          "shot": "roots-eye",
-          "shotMode": "render",
-          "pitch": 30
-        },
-        {
-          "do": "lab",
-          "op": "grime",
-          "focus": "leafLitterWild",
-          "index": 10,
-          "margin": 8
-        },
-        {
-          "do": "camera",
-          "target": "build",
-          "view": "closeup",
-          "distance": 22,
-          "clearView": true,
-          "shot": "glade-edge",
-          "shotMode": "render",
-          "pitch": 30
+          "shot": "deadwood-above",
+          "shotMode": "render"
         }
       ]
     },
