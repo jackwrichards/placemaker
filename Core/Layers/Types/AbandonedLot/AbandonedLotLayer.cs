@@ -558,11 +558,11 @@ namespace Placemaker.Core.Layers.Types.Ruins
             float reach = math.clamp(math.sqrt(region.Area) * 0.8f, 25f, 160f);
             int mounds = math.clamp(4 + (int)(region.Area / 4000f), 4, 12);
             int placed = 0;
-            for (int m = 0; m < mounds; m++)
+            for (int m = 0, made = 0; m < mounds * 3 && made < mounds; m++)
             {
                 uint h = Hashing.Mix(ctx.Seed, 0x7199u + (uint)m * 17u);
                 // a fan from the way in: each lorry tipped a little further in or to the side of the last
-                float d = math.lerp(12f, reach, (m + Hashing.Unit(h)) / mounds);
+                float d = math.lerp(12f, reach, Hashing.Unit(h));
                 float s = (Hashing.Unit(Hashing.Mix(h, 1u)) - 0.5f) * reach * 0.9f;
                 var c = g0 + inw * d + side * s;
                 if (!region.ContainsDisc(c, 7f)) continue;
@@ -573,7 +573,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 for (int k = 0; k < heaps; k++)
                 {
                     var p = c + dir * ((k - heaps * 0.5f) * 3.6f * big) + new float2(-dir.y, dir.x) * ((Hashing.Unit(Hashing.Mix(h, 10u + (uint)k)) - 0.5f) * 3f);
-                    if (!region.ContainsDisc(p, 4f) || zones.Inside(p, 1f)) continue;
+                    if (!region.ContainsDisc(p, 4f) || zones.Inside(p, 1f) || !occ.Free(p, 3.5f * big, 0.3f, 0f)) continue;
                     uint v = Hashing.Mix(h, 20u + (uint)k);
                     var o = ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(ids, v), v, -1, cat);
                     o.Scale = big * (0.85f + 0.3f * Hashing.Unit(Hashing.Mix(v, 1u)));
@@ -581,6 +581,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
                     here++; placed++;
                 }
                 if (here == 0) continue;
+                made++;
                 st.Mounds.Add((c, 5f * big + heaps * 1.5f));
                 // the oldest mounds are grown over: scrub on their flanks
                 if (m % 2 == 1)

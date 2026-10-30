@@ -811,7 +811,7 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
         // (rundown, the coordinator's round 7: "a big empty dirt field with cones and five machines") a site in work is dense:
         // spoil banked beside the dig with a loader and a dump truck at it, and laydown yards packed with materials.
         // (the resource piles PileStone/PileSand draw empty without their storage building: the lorry loads and rubble heaps instead)
-        private static readonly string[] SpoilIds = { "OreMiningTruck01_OrePile01", "OreMiningTruck01_OrePile03", "RubblePileConcrete02", "OreMiningTruck01_OrePile02" };
+        private static readonly string[] SpoilIds = { "RubblePileConcrete02", "RubblePileMixed01", "RubblePileConcrete04", "RubblePileMixed03" };   // (the ore loads are orange)
         private static readonly string[] LaydownIds = { "Pallet01", "Pallet02", "Pallet03", "Pallet04", "OilPipe01", "CableReel01", "CableReel02", "GasBottlePallet01", "CratePile01", "CratePile02", "BarrelPile01", "Pallet02" };
 
         /// <summary>Big spoil heaps in a row along the works' longest side (outside it), the machines loading from them.</summary>
