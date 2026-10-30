@@ -1,21 +1,77 @@
 {
-  "_about": "The plazas makeover (docs/runbooks/plazas.md): do the plaza kinds draw in the game? The lab lays them (and a shared grime strip and leaves to compare) on open flat ground, from above and close. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-plazas.json -Who makeover-plazas",
+  "_about": "The plazas makeover (docs/runbooks/plazas.md): how library kinds draw in the game against the offline bake. The lab lays plaza kinds and the sports park's visible kinds (lawn tone, stripes, bare patch, leaves) on open flat ground and photographs them from above. It found the albedo drawn a gamma too bright (fixed in SharedDecals). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-plazas.json -Who makeover-plazas",
   "scenarios": [
     {
       "id": "lab-plazas",
       "site": "flat",
       "pace": "settled",
-      "land": { "size": [120, 120], "gap": 10 },
+      "land": {
+        "size": [
+          120,
+          120
+        ],
+        "gap": 10
+      },
       "steps": [
-        { "do": "camera", "target": "block", "view": "oblique" },
-        { "do": "lab", "op": "library", "kinds": ["concreteStain", "gumField", "pavingGrimeStrip", "skateScuffs", "jointWeeds", "leafSquareSummer", "cafeStains", "bedSpillStrip", "kerbGrimeStrip", "leafMixedSummer"], "variants": 3, "cell": 8, "cols": 6, "at": [-24, 24] },
-        { "do": "camera", "target": "build", "view": "top", "shot": "lab-top", "shotMode": "render" },
-        { "do": "lab", "op": "library", "focus": "concreteStain", "margin": 1 },
-        { "do": "camera", "target": "build", "view": "top", "shot": "lab-stain-top", "shotMode": "render" },
-        { "do": "lab", "op": "library", "focus": "pavingGrimeStrip", "margin": 1 },
-        { "do": "camera", "target": "build", "view": "top", "shot": "lab-grime-top", "shotMode": "render" },
-        { "do": "lab", "op": "library", "focus": "leafSquareSummer", "margin": 1 },
-        { "do": "camera", "target": "build", "view": "top", "shot": "lab-leaves-top", "shotMode": "render" }
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "oblique"
+        },
+        {
+          "do": "lab",
+          "op": "library",
+          "kinds": [
+            "concreteStain",
+            "barePatch",
+            "leafSquareSummer",
+            "leafMixedSummer",
+            "lawnTonePatch",
+            "mowingStripes",
+            "pavingGrimeStrip",
+            "gumField"
+          ],
+          "variants": 2,
+          "cell": 8,
+          "cols": 4,
+          "at": [
+            -16,
+            48
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "lab-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "library",
+          "focus": "concreteStain",
+          "margin": 3
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "lab-rows1-2",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "library",
+          "focus": "leafSquareSummer",
+          "margin": 3
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "lab-rows3-4",
+          "shotMode": "render"
+        }
       ]
     }
   ]

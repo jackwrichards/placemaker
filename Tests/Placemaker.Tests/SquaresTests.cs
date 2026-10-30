@@ -145,16 +145,16 @@ namespace Placemaker.Tests
             // (2026-10-28) The designed plazas replace the classic compositions (PlazaDesignTests).
             Assert.True(Hidden("plaza", "squares", "fountain"));
             // (the plazas makeover, 2026-10-29) cut to the best: the weaker twins hidden, the grungy square shown
-            foreach (var d in PlazaDesignTests.Designs) Assert.Equal(d == "waterSteps" || d == "piazza" || d == "railed" || d == "marketHall" || d == "modern", Hidden("plaza", "squares", d));
+            foreach (var d in PlazaDesignTests.Designs) Assert.Equal(d == "grand" || d == "waterSteps" || d == "piazza" || d == "railed" || d == "marketHall" || d == "modern", Hidden("plaza", "squares", d));
             Assert.False(Hidden("plaza", "squares", "grungy"));
-            Assert.False(Hidden("marketSquare", "squares", "weekly"));
+            Assert.True(Hidden("marketSquare", "squares", "weekly"));   // (2026-10-30) the type's Standard is the designed market; grand is the plaza's Standard
             Assert.False(Hidden("marketSquare", "squares", "bigMarket"));
             Assert.False(shelf.IsTypeShelved("fairground", "events"));   // back as the events side of Plazas
             // (2026-10-28) Plazas is its own category again, the plaza type shown in it
             Assert.False(shelf.IsTypeShelved("plaza", "squares"));
             Assert.Equal("plazas", shelf.CategoryOf("plaza", "squares"));
             Assert.True(Hidden("amphitheatre", "events", "classic"));   // the stone theatre replaces the old bowl
-            Assert.False(Hidden("amphitheatre", "events", "theatre"));
+            Assert.True(Hidden("amphitheatre", "events", "theatre"));   // the amphitheatre's Standard is the stone theatre
             Assert.False(shelf.IsTypeShelved("amphitheatre", "events"));
             Assert.Equal("plazas", shelf.CategoryOf("amphitheatre", "events"));
         }

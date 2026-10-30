@@ -1,4 +1,4 @@
-// Plaza layer: walkable paved square with centerpiece(s), furniture arrangement, access points.
+﻿// Plaza layer: walkable paved square with centerpiece(s), furniture arrangement, access points.
 // Planner ported from ParkManager (tomkpunkt, GPL-3.0), Geometry/PlazaPlanner.cs and
 // Geometry/PlazaVariantRoller.cs (randomisation, now respecting locked controls).
 //
@@ -42,7 +42,7 @@ namespace Placemaker.Core.Layers.Plaza
             }
         }
 
-        /// <summary>Amenities a plaza offers (round 5): the hard-surface ones — no dog run on a square.</summary>
+        /// <summary>Amenities a plaza offers (round 5): the hard-surface ones â€” no dog run on a square.</summary>
         public static readonly string[] Hosted = { "basketball", "tableTennis", "chess", "fitness", "splashPad", "bandstand", "noticeboard", "volleyball",
             "bigStatue", "obelisk", "triumphalArch", "sculptureWalk", "terraceGarden", "folly" };
         protected override bool HostsStreetShops => true;
@@ -74,7 +74,7 @@ namespace Placemaker.Core.Layers.Plaza
                 // fits, centred on its focal point; the square lights itself (no second lamp ring).
                 Preset = Park.ParkLayer.Bag(("size", PlazaTiers.FountainSize), ("apron", false), ("benches", 6.0), ("lamps", false), ("planters", false)), DefaultOn = true,
             },
-            // Art pass a2: the square plants its own trees (treeLayout: allée / bosque / groves) — the scattered
+            // Art pass a2: the square plants its own trees (treeLayout: allÃ©e / bosque / groves) â€” the scattered
             // feature trees are opt-in.
             new FeatureInfo { Layer = "plazatrees", LabelKey = "Placemaker.Plaza.Feature.trees", TooltipKey = "Placemaker.Plaza.Feature.trees.Tooltip",
                 Preset = Park.ParkLayer.Bag(("layout", "islands"), ("spacing", 16.0)) },
@@ -208,35 +208,35 @@ namespace Placemaker.Core.Layers.Plaza
 
         protected override void DefinePresets()
         {
-            // Art pass a2: each preset is a designed square — its paving (s18: its ground palette + pattern), its
+            // Art pass a2: each preset is a designed square â€” its paving (s18: its ground palette + pattern), its
             // focal point, its planting and seating that faces that focal point (see PlazaDressing).
-            Preset("civic", ("palette", GroundPalettes.Classic), ("centerMode", "single"), ("centerSize", 4.0), ("centerKind", "statue"), ("furniture", 8.0),
+            Preset("civic", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Classic), ("centerMode", "single"), ("centerSize", 4.0), ("centerKind", "statue"), ("furniture", 8.0),
                 ("arrangement", new[] { "bench" }), ("arrangementMode", "center"), ("arrangementGap", 5.0), ("treeLayout", "grid"), ("pattern", "border"),
                 ("lighting", "feature"), ("bollards", true), ("planters", 0.0), ("beds", 0.0));
-            Preset("fountain", ("palette", GroundPalettes.Sandstone), ("centerMode", "single"), ("centerSize", 9.0), ("centerKind", "fountain"), ("furniture", 0.0),
+            Preset("fountain", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Sandstone), ("centerMode", "single"), ("centerSize", 9.0), ("centerKind", "fountain"), ("furniture", 0.0),
                 ("pattern", "scatter"), ("beds", 4.0), ("treeLayout", "edge"), ("lighting", "feature"), ("planters", 8.0));
-            Preset("market", ("palette", GroundPalettes.Cobble), ("centerMode", "none"), ("furniture", 0.0), ("stalls", 18.0), ("cafe", 2.0), ("treeLayout", "edge"),
+            Preset("market", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Cobble), ("centerMode", "none"), ("furniture", 0.0), ("stalls", 18.0), ("cafe", 2.0), ("treeLayout", "edge"),
                 ("pattern", "none"), ("beds", 0.0), ("shade", 0.0));
-            Preset("garden", ("palette", GroundPalettes.Garden), ("centerMode", "single"), ("centerSize", 4.0), ("centerKind", "any"), ("furniture", 0.0),
+            Preset("garden", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Garden), ("centerMode", "single"), ("centerSize", 4.0), ("centerKind", "any"), ("furniture", 0.0),
                 ("lawns", 30.0), ("beds", 2.0), ("treeLayout", "edge"), ("border", "grass"), ("pattern", "none"));
-            Preset("sunken", ("palette", GroundPalettes.Garden), ("centerMode", "single"), ("centerSize", 4.0), ("furniture", 0.0), ("levels", "sunken"), ("levelHeight", 2.0),
+            Preset("sunken", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Garden), ("centerMode", "single"), ("centerSize", 4.0), ("furniture", 0.0), ("levels", "sunken"), ("levelHeight", 2.0),
                 ("lawns", 25.0), ("beds", 0.0), ("planters", 0.0), ("treeLayout", "edge"), ("centerKind", "fountain"), ("pattern", "none"));
-            Preset("amphitheatre", ("palette", GroundPalettes.Classic), ("centerMode", "none"), ("furniture", 0.0), ("amphitheatre", true), ("rows", 6.0), ("shade", 0.0),
+            Preset("amphitheatre", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Classic), ("centerMode", "none"), ("furniture", 0.0), ("amphitheatre", true), ("rows", 6.0), ("shade", 0.0),
                 ("treeLayout", "edge"), ("lighting", "feature"), ("pattern", "none"), ("beds", 2.0));
-            Preset("terraced", ("palette", GroundPalettes.Modern), ("centerMode", "single"), ("centerSize", 4.0), ("furniture", 0.0), ("levels", "terracedUp"), ("levelCount", 3.0),
+            Preset("terraced", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Modern), ("centerMode", "single"), ("centerSize", 4.0), ("furniture", 0.0), ("levels", "terracedUp"), ("levelCount", 3.0),
                 ("levelHeight", 2.5), ("beds", 4.0), ("treeLayout", "edge"), ("centerKind", "statue"), ("pattern", "none"));
-            Preset("cafe", ("palette", GroundPalettes.BrickStone), ("centerMode", "single"), ("centerSize", 3.0), ("centerKind", "fountain"), ("furniture", 0.0), ("cafe", 6.0),
+            Preset("cafe", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.BrickStone), ("centerMode", "single"), ("centerSize", 3.0), ("centerKind", "fountain"), ("furniture", 0.0), ("cafe", 6.0),
                 ("shade", 2.0), ("planters", 0.0), ("pattern", "grid"), ("games", true), ("jets", false), ("treeLayout", "edge"), ("beds", 0.0));
             // Round 5: architectural level variants (PlazaLevels) and two classic squares.
-            Preset("splitLevel", ("palette", GroundPalettes.Modern), ("centerMode", "single"), ("centerSize", 3.0), ("furniture", 0.0), ("levels", "split"), ("levelHeight", 1.5),
+            Preset("splitLevel", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Modern), ("centerMode", "single"), ("centerSize", 3.0), ("furniture", 0.0), ("levels", "split"), ("levelHeight", 1.5),
                 ("levelPlanters", true), ("treeLayout", "edge"), ("pattern", "border"), ("beds", 2.0));
-            Preset("cascade", ("palette", GroundPalettes.Modern), ("centerMode", "axis"), ("centerSize", 3.0), ("centerSpacing", 18.0), ("centerKind", "fountain"),
+            Preset("cascade", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Modern), ("centerMode", "axis"), ("centerSize", 3.0), ("centerSpacing", 18.0), ("centerKind", "fountain"),
                 ("furniture", 6.0), ("arrangement", new[] { "bench" }), ("arrangementMode", "center"), ("arrangementGap", 4.0), ("levels", "cascade"),
                 ("levelCount", 4.0), ("levelHeight", 1.0), ("levelPlanters", true), ("beds", 0.0), ("treeLayout", "edge"), ("pattern", "none"));
-            Preset("podium", ("palette", GroundPalettes.Modern), ("centerMode", "single"), ("centerSize", 4.0), ("centerKind", "statue"), ("furniture", 8.0),
+            Preset("podium", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Modern), ("centerMode", "single"), ("centerSize", 4.0), ("centerKind", "statue"), ("furniture", 8.0),
                 ("arrangement", new[] { "bench" }), ("arrangementMode", "center"), ("arrangementGap", 6.0), ("levels", "podium"),
                 ("levelHeight", 1.5), ("levelPlanters", true), ("lighting", "feature"), ("bollards", true), ("pattern", "grid"), ("beds", 0.0), ("treeLayout", "edge"));
-            Preset("sunkenCourt", ("palette", GroundPalettes.Modern), ("centerMode", "single"), ("centerSize", 3.0), ("centerKind", "fountain"), ("furniture", 0.0), ("levels", "sunkenCourt"),
+            Preset("sunkenCourt", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Modern), ("centerMode", "single"), ("centerSize", 3.0), ("centerKind", "fountain"), ("furniture", 0.0), ("levels", "sunkenCourt"),
                 ("levelHeight", 2.0), ("levelPlanters", true), ("cafe", 3.0), ("shade", 0.0), ("treeLayout", "grid"), ("pattern", "none"), ("beds", 0.0));
             // 2026-10-28: the old piazza (gridded sandstone, kiosks) is now the designed old-town piazza (PlazaDesigns).
             Preset("piazza", ("palette", GroundPalettes.Cobble), (PlazaDesigns.Control, "piazza"), ("centerKind", "fountain"), ("furniture", 0.0),
@@ -255,9 +255,9 @@ namespace Placemaker.Core.Layers.Plaza
             Preset("dining", ("palette", GroundPalettes.Modern), (PlazaDesigns.Control, "dining"), ("centerKind", "fountain"), ("furniture", 0.0));
             Preset("grandSteps", ("palette", GroundPalettes.Classic), (PlazaDesigns.Control, "grandSteps"), ("centerKind", "fountain"), ("furniture", 0.0), ("lighting", "feature"));
             // 2026-10-29 (the plazas makeover): the grungy square, its own design and contents (PlazaDesigns.Grungy), worn by default.
-            Preset("grungy", (PlazaDesigns.Control, "grungy"), ("centerKind", "statue"), ("furniture", 0.0), ("lighting", "standard"), (Placemaker.Core.Decals.DressingControls.StyleId, "gritty"));
+            Preset("grungy", (PlazaDesigns.Control, "grungy"), ("centerKind", "statue"), ("furniture", 0.0), ("lighting", "standard"));   // worn by default: DressingProfiles (plaza, grungy) is Gritty
             Preset("modern", ("palette", GroundPalettes.Modern), (PlazaDesigns.Control, "modern"), ("centerKind", "statue"), ("furniture", 0.0), ("lighting", "standard"));
-            Preset("green", ("palette", GroundPalettes.Garden), ("centerMode", "single"), ("centerSize", 4.0), ("centerKind", "statue"), ("furniture", 0.0), ("lawns", 40.0),
+            Preset("green", (PlazaDesigns.Control, PlazaDesigns.Classic), ("palette", GroundPalettes.Garden), ("centerMode", "single"), ("centerSize", 4.0), ("centerKind", "statue"), ("furniture", 0.0), ("lawns", 40.0),
                 ("beds", 0.0), ("treeLayout", "edge"), ("border", "grass"), ("pattern", "none"));
 
             // Playtest 4b: presets look complete. On top of the DefaultOn fountain each square turns on what
@@ -288,7 +288,7 @@ namespace Placemaker.Core.Layers.Plaza
 
         /// <summary>
         /// ParkManager's variant roller, per control: centre mode (15 % none), spacing, arrangement
-        /// mode/gap, density and a mirror-symmetric arrangement — but never a locked control.
+        /// mode/gap, density and a mirror-symmetric arrangement â€” but never a locked control.
         /// </summary>
         protected override bool RandomizeControl(ControlSchema control, ref Random rng, SettingsBag into)
         {
@@ -496,7 +496,7 @@ namespace Placemaker.Core.Layers.Plaza
         }
 
         /// <summary>
-        /// (s18) Micro and small squares: one clear idea (PlazaCompact) — field, one border band, a focal piece that
+        /// (s18) Micro and small squares: one clear idea (PlazaCompact) â€” field, one border band, a focal piece that
         /// fits with its pad and seating, lamps on the edge rhythm. Big-square elements (lawns, beds, rings, axes,
         /// grids, amphitheatre, pool) are left out; activities the player asked for (stalls, cafe, shade) and
         /// amenities still come, each only where it fits.

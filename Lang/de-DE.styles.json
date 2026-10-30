@@ -29,5 +29,8 @@
   "Placemaker.Standard.logisticsYard": "Lkw-Hof",
   "Placemaker.Standard.scrapyard": "Kranplatz",
   "Placemaker.Standard.abandonedLot": "Leeres Grundstück",
-  "Placemaker.Standard.landfill": "Stadtdeponie"
+  "Placemaker.Standard.landfill": "Stadtdeponie",
+  "Placemaker.Standard.plaza": "Großer Platz",
+  "Placemaker.Standard.marketSquare": "Marktplatz",
+  "Placemaker.Standard.fairground": "Sommerfest"
 }

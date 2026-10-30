@@ -89,7 +89,8 @@ namespace Placemaker.Tests
             var ring = Shape(shape, area);
             var r2 = Poly.To2D(ring);
             string label = $"{shape} {area} m² {(preset == "" ? "default" : preset)}";
-            var plan = Compose(ring, preset == "" ? null : preset);
+            // (the plazas makeover) the size tiers of the classic composition; the type default is now the grand square (PlazaDesignTests)
+            var plan = preset == "" ? Compose(ring, null, s => s.Values["design"] = "classic") : Compose(ring, preset);
             Assert.DoesNotContain(plan.AllIssues(), i => i.Severity == IssueSeverity.Error);
             var plaza = plan.Layers.First(l => l.GeneratorId == "plaza");
             var pieces = plaza.Surfaces.Select(s => Poly.To2D(s.Ring)).ToList();

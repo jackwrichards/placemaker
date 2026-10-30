@@ -138,6 +138,19 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
 
 ## 7. Engine facts that cost hours (don't relearn them)
 
+- **The decal albedo is linear (fixed 2026-10-30, plazas makeover).** The library's albedo went up as an sRGB-flagged DXT5,
+  but the game's decal shader samples it without decoding, so every colour drew about a gamma too bright: a mid grey
+  (70) as about 140, olive-brown summer leaves as yellow-orange, dark grime as a pale haze (the user's "blurry white
+  stuff"). `SharedDecals.LinearAlbedo` now converts the albedo to linear values and uploads a linear texture
+  (`DecalVariants.GeneratorVersion` 7, so the disk cache refills). Found with the lab
+  (`suite/scenarios/lab-plazas.json`): a pure black and a dark brown blob drew right, every mid tone drew pale; after the fix
+  the colours drew as the bake shows. The sports park looks as it did, a touch richer, at the same frame time (runs
+  `send-ground-sports-1030-031347` against `-1029-214234`). Judge colours in the game, not only in the bake.
+- **The mask map's blue follows the coverage** (GeneratorVersion 6). It was 255 over the whole box, the opacity the shader
+  can blend a decal's normal, smoothness and AO by. That made no visible difference in the lab, but it is the right packing.
+- **Render order is not why a decal looks faint.** Moving kinds to orders 5-6 changed nothing. Small, thin film kinds on
+  bright paving (grime strips, gum) still read faintly from the player's height: make them wide and dark enough to read.
+
 - **Never a `MaterialPropertyBlock` per decal.** 0.7 µs per renderer: +1.6 ms for 2000. `SharedDecals` puts the size in
   the transform and the opacity in 8 shared step materials: 1500 instances cost ~0.03-0.2 ms. Measure with the scenario's
   "with / switched off" frames.
@@ -174,4 +187,4 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
 - One pass reads every paving piece edge once (dedup by midpoint) and classifies it by what lies 0.6 m either side
   (hard / green / outside): that turns "every edge" into joints, soil spills and lawn wear.
 - Frame time is not the limit: the grungy square on 220 x 200 with 2066 instances drew in 7.42 ms, 7.40 ms switched off.
-- The library's film layers (stains, grime strips, wear) render far fainter in the game than in the offline bake, on paving and on grass alike; stamp kinds with relief (leaves) read. Moving them up the render queue changed nothing. Check a kind in the game early (suite/scenarios/lab-plazas.json) before tuning a whole design on bakes.
+- Judge colours in the game: the library albedo drew a gamma too bright until 2026-10-30 (section 7). A lab run that lays a kind on open ground takes ten minutes and saves tuning a whole design on bakes.

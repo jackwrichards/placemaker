@@ -86,7 +86,10 @@ namespace Placemaker.Core.Layers.Plaza
             }
             // ── the ground: an orchestra disc, the cone in 6-degree quads, the bank behind it, the stage floor ──
             float sv = r0 + 4f;
-            var stage = k.Box(s0 + 1.2f, uF - r0 * 0.15f, -sv, sv);
+            const float StageRise = WallH;
+            float sf = uF - r0 * 0.55f;   // the stage front: a chord across the back of the orchestra
+            var stage = k.Box(s0 + 1.2f, sf, -sv, sv);
+            float hs = hf + StageRise;
             int patches = 0;
             void Patch(float3[] ring, float target)
             {
@@ -103,7 +106,7 @@ namespace Placemaker.Core.Layers.Plaza
                     var nr = new float3[cut.Length];
                     for (int i = 0; i < cut.Length; i++)
                     {
-                        float h = InRect(stage, cut[i]) ? hf : Ground(cut[i]);
+                        float h = InRect(stage, cut[i]) ? hs : Ground(cut[i]);
                         nr[i] = new float3(cut[i].x, math.isfinite(h) ? h : k.Ctx.H(cut[i]), cut[i].y);
                     }
                     ring = nr; flat = cut;
@@ -114,7 +117,13 @@ namespace Placemaker.Core.Layers.Plaza
             }
             float3 V3(float2 p, float h) => new float3(p.x, h, p.y);
             var disc = new List<float3>();
-            for (int i = 0; i < 24; i++) disc.Add(V3(F + Dir(i * math.PI / 12f) * (r0 + 0.2f), hf));
+            for (int i = 0; i < 24; i++)
+            {
+                var q = F + Dir(i * math.PI / 12f) * (r0 + 0.2f);
+                float du = math.dot(q - F, k.A);
+                if (du < sf - uF) q += k.A * (sf - uF - du);
+                disc.Add(V3(q, hf));
+            }
             Patch(disc.ToArray(), hf);
             float step = math.radians(6f);
             for (float a = -math.PI * 0.5f - ext; a < math.PI * 0.5f + ext - 1e-3f; a += step)
@@ -125,8 +134,29 @@ namespace Placemaker.Core.Layers.Plaza
                 Patch(new[] { V3(P(R, a), Cone(R, a)), V3(P(R, a1), Cone(R, a1)), V3(o1, k.Ctx.H(o1)) }, Cone(R, a));
                 Patch(new[] { V3(P(R, a), Cone(R, a)), V3(o1, k.Ctx.H(o1)), V3(o0, k.Ctx.H(o0)) }, k.Ctx.H(o0));
             }
-            Patch(Poly.To3D(stage.Ring, p => hf), hf);
-            k.Ctx.Ground.Override(k.Region.Min, k.Region.Max, p => InRect(stage, p) ? hf : Ground(p));
+            Patch(Poly.To3D(stage.Ring, p => hs), hs);
+            // two ramps of steps up to the stage at its front corners (sloped quads cut into the platform's edge)
+            var stairs = new List<(float2 foot, float2 head)>();
+            foreach (float s in new[] { -1f, 1f })
+            {
+                float v = s * (sv - 2.2f);
+                var foot = k.W(sf + 2.6f, v); var head = k.W(sf - 0.2f, v);
+                stairs.Add((foot, head));
+                var nn = k.S * 1.3f;
+                Patch(new[] { V3(head - nn, hs), V3(head + nn, hs), V3(foot + nn, hf), V3(foot - nn, hf) }, (hf + hs) * 0.5f);
+            }
+            bool OnStair(float2 p, out float h)
+            {
+                h = 0f;
+                foreach (var (foot, head) in stairs)
+                {
+                    var d = math.normalizesafe(foot - head); float l = math.distance(foot, head);
+                    float t = math.dot(p - head, d), w = math.abs(math.dot(p - head, new float2(-d.y, d.x)));
+                    if (t >= 0f && t <= l && w <= 1.3f) { h = math.lerp(hs, hf, t / l); return true; }
+                }
+                return false;
+            }
+            k.Ctx.Ground.Override(k.Region.Min, k.Region.Max, p => OnStair(p, out var hh) ? hh : InRect(stage, p) ? hs : Ground(p));
             k.Ctx.Issue(IssueSeverity.Warning, TerrainShaper.PermanentKey);
             k.Ctx.Plan.Facts[Placemaker.Core.Build.SiteHarmony.OwnGroundFact] = 1;
             k.Ctx.Plan.Facts["designTerrainPatches"] = patches;
@@ -193,7 +223,16 @@ namespace Placemaker.Core.Layers.Plaza
             }
 
             // ── the stage: the game's stage, a stone back wall, tall flags, poplars behind ──
-            var sc = k.W((s0 + 1.2f + uF - r0 * 0.15f) * 0.5f, 0f);
+            // the stage's stone faces: the front wall (left open at the stairs) and the two sides, one course to the platform's top
+            {
+                var gaps = new List<(float at, float half)>();
+                foreach (var (foot, head) in stairs) gaps.Add((math.dot(head - k.W(sf + 0.15f, -sv), k.S), 1.5f));
+                k.WallWithGaps(k.W(sf + 0.15f, -sv), k.W(sf + 0.15f, sv), gaps, 1);
+                foreach (float s in new[] { -1f, 1f }) k.Wall(k.W(s0 + 1.2f, s * (sv + 0.15f)), k.W(sf, s * (sv + 0.15f)), 1);
+                foreach (var (foot, head) in stairs) k.Flight(foot, head, 2.4f, true, false, k.P.Path);
+                foreach (float s in new[] { -1f, 1f }) k.Light(k.W(sf + 1.2f, s * (sv - 4.6f)));
+            }
+            var sc = k.W((s0 + 1.2f + sf) * 0.5f + 0.6f, 0f);
             float yaw = math.atan2(k.A.x, k.A.y);
             k.Ctx.Object(sc, yaw, ObjectRole.Furniture, new AssetRef(k.Ctx.S("stageAsset") is string st && st.Length > 0 ? st : "StageSmall01", "StageSmall01"), k.V(0x57A6u), -1, AssetCategories.Stage);
             k.Occ.Take(sc, 4.5f, 0);

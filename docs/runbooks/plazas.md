@@ -66,12 +66,13 @@ metre budget of their own so a square of many small pieces (garden rooms) never 
 
 ## Look rules the pictures taught
 
-- **The library's film layers render far fainter in the game than in the offline bake.** On the squares' paving (and on
-  open grass in the lab) the stains, grime strips, wear lanes, cafe stains and skate scuffs barely show even at 0.85-0.95
-  layer alpha, while stamp kinds with relief (leaves) read clearly. The sports park's kerb shot shows the same. Moving the
-  kinds to render orders 5-6 changed nothing (the queue was not the cause). This is the biggest open item: it needs a look
-  at how SharedDecals' material blends a decal's albedo against a surface (lab: `suite/scenarios/lab-plazas.json`, run
-  `send-lab-plazas-1030-015243`). Until then the squares' ground reads through leaves, the paving colours, the props.
+- **Colours drew a gamma too bright in the game (found and fixed 2026-10-30).** The lab (`suite/scenarios/lab-plazas.json`)
+  laid kinds on open ground: a black and a dark brown blob drew right, every mid tone drew pale (concrete stains as pale
+  grey, olive leaves as yellow, grime as haze). The albedo texture was sRGB-flagged but sampled without decoding;
+  `SharedDecals.LinearAlbedo` now uploads linear values in a linear texture (GeneratorVersion 7). Also fixed: the mask's blue
+  follows the coverage (it was 255 over the whole box; no visible change). Ruled out first: render order (orders 5-6, no
+  change), texel size, smoothness, the decal layer, an albedo-only material. The sports park looks as it did, a touch richer,
+  same frame time. On bright paving, thin dark film kinds still read softly from the player's height.
 - The park's summer leaves read as yellow-orange stains on grey paving and even on grass: squares use their own darker
   olive-brown set (`leafSquareSummer`). `leafWet` is the autumn palette: never under summer trees.
 - A grungy square on pale concrete still reads clean: the ground colour carries most of the vibe. Dark tiles, asphalt
@@ -114,9 +115,5 @@ metre budget of their own so a square of many small pieces (garden rooms) never 
 
 ## Left to do
 
-- The faint film layers (above): the one thing between the squares' ground and the user's bar.
-- The theatre's stage end is plain (the game's small stage, a wall, a colonnade, poplars): a raised stage and a bigger
-  backdrop would finish it.
-- The transit forecourt on a big site is a large paved grove; the mall park stays hidden (a shops type, needs growth).
-- The plaza type's default (classic) design is still the old slab when no style is picked.
-- `PM_ALL=1 node mock/run.js --test tests/i18n.spec.ts` not run for the new labels (they are as short as the English).
+- The squares' grime strips and gum read softly on bright paving even with correct colours: wider and darker kinds would help.
+- The mall park stays hidden (a shops type, needs growth).

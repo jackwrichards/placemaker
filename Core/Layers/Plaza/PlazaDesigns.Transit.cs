@@ -65,10 +65,46 @@ namespace Placemaker.Core.Layers.Plaza
             float bikeU = bikes ? 0f : ea * 0.45f;
             int t = 0;
             float pitch = trees == 2 ? 15f : 13f;
-            for (float v = vp + 10f; v <= eb - 2.5f; v += 11f)
-                for (float u = -ea + 3f; u <= ea - 3f + 0.01f; u += pitch, t++)
+            // (the plazas makeover, game runner on 220 x 200) a big forecourt was one endless grove: it is broken into rooms by
+            // two cross walks, and every few cells a lawn island with trees and benches round it takes the place of the grid
+            bool big = ea * eb > 2600f;
+            var walks = new List<float>();
+            if (big)
+                foreach (float su in new[] { -1f, 1f })
                 {
-                    var p = k.W(u + (trees == 1 ? ((int)((v - vp) / 11f) & 1) * 6.5f : 0f), v);
+                    float uw = su * ea * 0.5f;
+                    walks.Add(uw);
+                    k.Lay(PWalk, k.Box(uw - 2f, uw + 2f, vp + 6f, eb).Ring, k.P.Path);
+                    k.Light(k.W(uw + 2.6f, (vp + eb) * 0.5f));
+                }
+            int iv = 0;
+            for (float v = vp + 10f; v <= eb - 2.5f; v += 11f, iv++)
+            {
+                int iu = 0;
+                for (float u = -ea + 3f; u <= ea - 3f + 0.01f; u += pitch, t++, iu++)
+                {
+                    var p = k.W(u + (trees == 1 ? (iv & 1) * 6.5f : 0f), v);
+                    bool onWalk = false;
+                    foreach (float uw in walks) if (math.abs(math.dot(p - k.C, k.A) - uw) < 4.5f) onWalk = true;
+                    if (onWalk) continue;
+                    if (big && trees > 0 && (iu % 2) == 0 && ((iu / 2 + iv) % 3) == 1 && v + 5f < eb && math.distance(p, focal) > 14f)
+                    {
+                        // a lawn island: grass in a dark kerb, two trees, benches facing out on its long sides
+                        var c = p + k.A * (pitch * 0.5f);
+                        var isl = new OrientedRect { Center = c, Axis = k.A, HalfLength = pitch * 0.5f + 1.5f, HalfWidth = 3.2f };
+                        if (k.Fits(isl, 1f) && k.Occ.Free(c, 4f, 0.2f, 0.1f))
+                        {
+                            k.Lay(PFeature, isl.Ring, k.Grass, SurfaceRole.Grass, AssetCategories.SurfaceGrass);
+                            k.Lay(PKerb, PavingShapes.Frame(new OrientedRect { Center = c, Axis = k.A, HalfLength = isl.HalfLength + 0.5f, HalfWidth = isl.HalfWidth + 0.5f }.Ring, 0.5f), k.P.Band);
+                            k.Tree(c - k.A * (pitch * 0.3f), false, PlazaArt.GardenTrees);
+                            k.Tree(c + k.A * (pitch * 0.3f), false, PlazaArt.GardenTrees);
+                            foreach (float sv in new[] { -1f, 1f })
+                                foreach (var q in LeisureKit.Along(c - k.A * (pitch * 0.4f) + k.S * (sv * 4.6f), c + k.A * (pitch * 0.4f) + k.S * (sv * 4.6f), 3.6f)) k.Seat(q, k.S * sv);
+                            LeisureKit.TakeRect(k.Occ, isl);
+                            iu++; u += pitch; t++;
+                            continue;
+                        }
+                    }
                     if (trees == 3 && (t % 4) >= 2) { if ((t % 4) == 2) k.CafeSet(p, k.Phase + 0.3f, true, true); continue; }
                     if (math.distance(p, focal) < 9f || math.abs(u) < 4.5f) continue;
                     bool inBikes = bikes ? math.abs(u) > 6f && (t % 3) != 0 : u > bikeU;
@@ -83,6 +119,7 @@ namespace Placemaker.Core.Layers.Plaza
                     else if ((t & 3) != 3) { if (trees > 0) k.Tree(p, true, PlazaArt.PlaneTrees); k.Seat(p - k.A * 2.6f, -k.A); }
                     else k.CafeSet(p, k.Phase + 0.3f, true, true);
                 }
+            }
             foreach (float su in new[] { -1f, 1f }) k.Light(k.W(su * 3.6f, (vp + vf) * 0.5f));
             if (bikes)
                 foreach (float su in new[] { -1f, 1f })

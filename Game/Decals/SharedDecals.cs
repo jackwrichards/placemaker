@@ -200,7 +200,7 @@ namespace Placemaker.Game.Decals
                         {
                             var b = DecalVariants.Bake(v.K, v.Index);
                             v.W = b.Img.W; v.H = b.Img.H; v.Span = b.Span;
-                            v.A = DecalTexture.Bc3Chain(b.Img.Albedo, v.W, v.H, alphaWeighted: true, normal: false);
+                            v.A = DecalTexture.Bc3Chain(LinearAlbedo(b.Img.Albedo), v.W, v.H, alphaWeighted: true, normal: false);
                             v.N = DecalTexture.Bc3Chain(b.Img.Normal, v.W, v.H, alphaWeighted: false, normal: true);
                             v.M = DecalTexture.Bc3Chain(b.Img.Mask, v.W, v.H, alphaWeighted: false, normal: false);
                             WriteCache(file, v);
@@ -360,7 +360,7 @@ namespace Placemaker.Game.Decals
         {
             try
             {
-                var a = Tex(v.A, v.W, v.H, false); var n = Tex(v.N, v.W, v.H, true); var m = Tex(v.M, v.W, v.H, true);
+                var a = Tex(v.A, v.W, v.H, true); var n = Tex(v.N, v.W, v.H, true); var m = Tex(v.M, v.W, v.H, true);
                 v.A = v.N = v.M = null;
                 if (a == null || n == null || m == null) { if (a) UnityEngine.Object.Destroy(a); if (n) UnityEngine.Object.Destroy(n); if (m) UnityEngine.Object.Destroy(m); return false; }
                 v.Tex = new[] { a, n, m };
@@ -389,6 +389,33 @@ namespace Placemaker.Game.Decals
         }
 
         private static void Set(Material m, string name, Texture t) { if (m.HasProperty(name)) m.SetTexture(name, t); }
+
+        /// <summary>
+        /// (plazas makeover, 2026-10-30) The albedo in linear values in a linear texture. The game's decal shader read the sRGB-flagged
+        /// albedo without decoding it: every colour drew about a gamma too bright (a mid grey 70 as 140, olive leaves as yellow,
+        /// dark grime as a pale haze: the "blurry white stuff"; lab send-lab-plazas-1030-025840). Converting here, at the one
+        /// place textures are made, draws the colours the bake shows whether or not the shader decodes.
+        /// </summary>
+        private static byte[] LinearAlbedo(byte[] srgb)
+        {
+            var o = (byte[])srgb.Clone();
+            for (int i = 0; i < o.Length; i += 4)
+                for (int c = 0; c < 3; c++) o[i + c] = ToLinear[o[i + c]];
+            return o;
+        }
+
+        private static readonly byte[] ToLinear = MakeToLinear();
+        private static byte[] MakeToLinear()
+        {
+            var t = new byte[256];
+            for (int i = 0; i < 256; i++)
+            {
+                double c = i / 255.0;
+                double l = c <= 0.04045 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4);
+                t[i] = (byte)Math.Max(0, Math.Min(255, (int)Math.Round(l * 255.0)));
+            }
+            return t;
+        }
 
         private static Texture2D Tex(byte[] bc3, int w, int h, bool linear)
         {

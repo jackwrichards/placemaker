@@ -307,7 +307,11 @@ namespace Placemaker.Core.Decals.Dynamic
                     float hd = Hh[math.max(0, y - 1) * W + x], hu = Hh[math.min(H - 1, y + 1) * W + x];
                     var n = math.normalize(new float3(-(hr - hl) * k.Bump / (2f * tx), -(hu - hd) * k.Bump / (2f * tz), 1f));
                     img.Normal[q] = Byte(n.x * 0.5f + 0.5f); img.Normal[q + 1] = Byte(n.y * 0.5f + 0.5f); img.Normal[q + 2] = Byte(n.z * 0.5f + 0.5f); img.Normal[q + 3] = 255;
-                    img.Mask[q] = 0; img.Mask[q + 1] = Byte(Ao[i]); img.Mask[q + 2] = 255; img.Mask[q + 3] = Byte(Sm[i]);
+                    // (plazas makeover, 2026-10-30) the mask's blue is the opacity the decal shader blends normals, smoothness and AO by:
+                    // it follows the albedo's coverage. At 255 everywhere every texel of the box (even a fully transparent one) took the
+                    // decal's flat normal and its smoothness: a pale sheen over the whole box (the "blurry white stuff") that washed out
+                    // every film kind and showed leaves as yellow haze (game runner send-lab-plazas-1030-021710).
+                    img.Mask[q] = 0; img.Mask[q + 1] = Byte(Ao[i]); img.Mask[q + 2] = Byte(a); img.Mask[q + 3] = Byte(Sm[i]);
                 }
             img.Ms = clock.Elapsed.TotalMilliseconds;
             return img;
