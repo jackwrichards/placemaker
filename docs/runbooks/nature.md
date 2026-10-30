@@ -121,6 +121,19 @@ ridgeHike and canyonTrail (the ridge and gorge do not read; with the groves and 
 - Library: the nature family is 17.6 MiB if every variant were made (`NatureFamilyStaysLean`); 6-8 variants per kind,
   coarser texels on the speckle kinds.
 
+## Round 3 (2026-10-30)
+
+- Runner camera keys (`Game/Suite/SuiteShots.cs`, additive): `eye` + `height` (an eye at a ground point), `clearView`
+  (turns round the target to the line of sight with the fewest trees and bushes of the last built plan). In
+  `suite/schema.json` and `suite/README.md` (Camera). Scenario `suite/scenarios/ground-nature-close.json`. Lesson: eye
+  height (2-3 m) in a wood still sees crowns; looking along a trail at 12-30° is what shows a wood's ground.
+- Marsh: the hollows are dug before the woodland, planted (a ring of reeds, tussocks on the rim, the wet middle kept
+  open) and laid as `place:marsh` regions that the designed ground fills (peat, standing water, sedge). Reed marsh at 45°
+  (`show-21-builds-1030-034143-4058` `18-wetland-reedMarsh.06-45-clean.png`) and close
+  (`send-ground-nature-close-1030-035729` `02-close-marsh.10-marsh-mid.png`) read as marsh.
+- Merged master's linear-albedo fix: heather went pink and was browned; trail dirt, rills and wild litter retuned.
+- Removed `FlowerBushWild01`/`FlowerBushWildElderly01` (render pale teal) from every nature palette.
+
 ## Left to do
 
 - The user has not graded the new ground yet.
