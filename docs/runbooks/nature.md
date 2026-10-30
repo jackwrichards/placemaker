@@ -102,6 +102,25 @@ ridgeHike and canyonTrail (the ridge and gorge do not read; with the groves and 
 - A second entrance joined the climb at its nearest point: on a big site a straight line up the hillside. It now joins at
   the nearest point it can reach at walking grade, as a gentle curve.
 
+## Round 2 (the coordinator's six points, 2026-10-30)
+
+- Rills: drained-area rills start lower (70 m²), are ordered by open ground, laid only where they show (off paths, out of
+  water, out from under canopy), never thinned; slope rills on open convex hillsides (where water spreads and no channel
+  gathers); washouts (grit, a fan) where a rill crosses a trail; the kind darker and wider (1.4-2.4 m). Run
+  `send-ground-nature-1030-025021` `02-ground-nature-hill.09-rill.png`.
+- Marsh: the wetland digs its own shallow hollows (25-60 cm, `MarshHollows`, sloped terraform) in the wet ground round the
+  ponds for reedMarsh, wetlandPark and birdReserve, so the designed ground fills them with marsh mud and sedge on flat land.
+- Close looks under the trees: `suite/scenarios/ground-nature.json` (woods, deadwood, log moss, roots). The runner's cameras
+  sit south of their target and the canopy fills every close and low shot in a forest; the woodland floor was judged from
+  the 45° view and the offline renderer.
+- Hilltop: the arrival curve is longer (up to 3 plaza radii), the last piece points at the summit (worst turn near the top
+  2-4°, tightest bend 10-12 m, `ClimbArrivesHeadOn`); a second entrance with no walking-grade join nearby takes a foot path
+  round the bottom of the hill (`FootPath`) instead of a straight cut or a dead end.
+- Lake country (`wetland` style `lakeland`, 12 languages): three big clear lakes, pine/spruce/birch groves to the shore,
+  boulders and stones at the waterline, few reeds, one boardwalk. `show-7-builds-1030-025011-5b1e` `06-wetland-lakeland.06-45-clean.png`.
+- Library: the nature family is 17.6 MiB if every variant were made (`NatureFamilyStaysLean`); 6-8 variants per kind,
+  coarser texels on the speckle kinds.
+
 ## Left to do
 
 - The user has not graded the new ground yet.
