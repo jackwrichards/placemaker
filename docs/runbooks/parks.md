@@ -128,3 +128,12 @@ Workaround (`Game/Build/TerrainCullGuard.cs`, called at the start of `EmitNets`,
 touches the list (`m_CullFinished`, `m_LaneCull`, `m_ClipMapCull`, each cascade's `m_LaneHandle`), then make its capacity
 at least 2 × its current length + 18 × the nets we add + 2000. The vanilla rule still grows it; we only keep it from
 overflowing. It logs when it grows the list and warns if it ever finds the list already longer than its capacity.
+
+## Frame time, memory, planning
+
+- `send-ground-parks-1030-004853` (natural park, 220 x 200, 1330 library instances, 207 variants, 47.2 MiB on the GPU):
+  median frame 6.80 ms before the build, 8.08 ms with the park and its ground, 8.04 ms with the ground switched off:
+  the ground costs about 0.04 ms (the rest is the park's trees and props).
+- Planning (`ParkGroundTests.TinyAndHugeParksStayQuick`, natural, rolling ground): 24 x 24 m 0.2 s; 600 x 600 m 1.5-1.6 s
+  compose with 4660 instances at 83 % density, 8 places, weathering 0.7 s (most of it the shared trees pass).
+- A city block: 600-1000 instances (budget 700 a hectare).
