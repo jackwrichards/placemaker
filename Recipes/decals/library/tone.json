@@ -29,10 +29,10 @@
         { "op": "wave", "in": "across", "out": "w", "period": 3, "sharp": 1, "warp": 0.15, "warpScale": 4 },
         { "op": "fbm", "out": "n", "scale": 3, "octaves": 3, "stretch": [3, 1] },
         { "op": "remap", "in": "n", "out": "even", "lo": -0.8, "hi": 0.4 },
-        { "op": "remap", "in": "w", "out": "light", "lo": 0.55, "hi": 0.8, "k": 0.14 },
+        { "op": "remap", "in": "w", "out": "light", "lo": 0.55, "hi": 0.8, "k": 0.224 },
         { "op": "mul", "a": "light", "b": "even", "c": "shape", "out": "l" },
         { "op": "layer", "alpha": "l", "color": [150, 168, 86], "smooth": 0.22 },
-        { "op": "remap", "in": "w", "out": "dark", "lo": 0.45, "hi": 0.2, "k": 0.13 },
+        { "op": "remap", "in": "w", "out": "dark", "lo": 0.45, "hi": 0.2, "k": 0.208 },
         { "op": "mul", "a": "dark", "b": "even", "c": "shape", "out": "dk" },
         { "op": "layer", "alpha": "dk", "color": [40, 62, 22], "smooth": 0.18 }
       ]
@@ -91,10 +91,10 @@
         { "op": "fbm", "out": "n", "scale": 5, "octaves": 5, "warp": 3, "warpScale": 6 },
         { "op": "fbm", "out": "m", "scale": 1.2, "octaves": 3, "seed": 3 },
         { "op": "abs", "in": "n", "out": "an" },
-        { "op": "remap", "in": "an", "out": "a", "lo": 0.05, "hi": 0.6, "k": 0.38 },
+        { "op": "remap", "in": "an", "out": "a", "lo": 0.05, "hi": 0.6, "k": 0.475 },
         { "op": "mul", "a": "a", "b": "shape", "out": "shp0" },
         { "op": "layer", "alpha": "shp0", "color": [54, 80, 28], "color2": [138, 134, 72], "tone": "n", "vary": 0, "smooth": 0.18 },
-        { "op": "remap", "in": "m", "out": "fine", "lo": 0.2, "hi": 0.8, "k": 0.12 },
+        { "op": "remap", "in": "m", "out": "fine", "lo": 0.2, "hi": 0.8, "k": 0.15 },
         { "op": "mul", "a": "fine", "b": "shape", "out": "shp1" },
         { "op": "layer", "alpha": "shp1", "color": [44, 66, 24], "smooth": 0.2 }
       ]
@@ -109,10 +109,10 @@
         { "op": "fbm", "out": "n", "scale": 4, "octaves": 4, "warp": 2, "warpScale": 5 },
         { "op": "fbm", "out": "f", "scale": 0.6, "octaves": 3, "seed": 5 },
         { "op": "abs", "in": "n", "out": "an" },
-        { "op": "remap", "in": "an", "out": "a", "lo": 0.1, "hi": 0.7, "k": 0.26 },
+        { "op": "remap", "in": "an", "out": "a", "lo": 0.1, "hi": 0.7, "k": 0.442 },
         { "op": "mul", "a": "a", "b": "shape", "out": "shp0" },
         { "op": "layer", "alpha": "shp0", "color": [96, 92, 84], "color2": [196, 190, 178], "tone": "n", "vary": 0, "smooth": 0.2 },
-        { "op": "remap", "in": "f", "out": "spots", "lo": 0.35, "hi": 0.8, "k": 0.12 },
+        { "op": "remap", "in": "f", "out": "spots", "lo": 0.35, "hi": 0.8, "k": 0.204 },
         { "op": "mul", "a": "spots", "b": "shape", "out": "shp1" },
         { "op": "layer", "alpha": "shp1", "color": [80, 76, 70], "smooth": 0.2 }
       ]
@@ -128,7 +128,7 @@
         { "op": "worley", "out": "cell", "scale": 5, "mode": "id", "warp": 1, "warpScale": 3 },
         { "op": "mix", "a": "n", "b": "cell", "t": 0.4, "out": "t" },
         { "op": "abs", "in": "t", "out": "at" },
-        { "op": "remap", "in": "at", "out": "a", "lo": 0.05, "hi": 0.6, "k": 0.32 },
+        { "op": "remap", "in": "at", "out": "a", "lo": 0.05, "hi": 0.6, "k": 0.512 },
         { "op": "mul", "a": "a", "b": "shape", "out": "shp0" },
         { "op": "layer", "alpha": "shp0", "color": [44, 44, 46], "color2": [112, 110, 106], "tone": "t", "vary": 0, "smooth": 0.25 }
       ]
@@ -142,7 +142,7 @@
       "ops": [
         { "op": "fbm", "out": "n", "scale": 4, "octaves": 5, "warp": 2, "warpScale": 5 },
         { "op": "abs", "in": "n", "out": "an" },
-        { "op": "remap", "in": "an", "out": "a", "lo": 0.1, "hi": 0.7, "k": 0.32 },
+        { "op": "remap", "in": "an", "out": "a", "lo": 0.1, "hi": 0.7, "k": 0.512 },
         { "op": "mul", "a": "a", "b": "shape", "out": "shp0" },
         { "op": "layer", "alpha": "shp0", "color": [80, 64, 48], "color2": [176, 156, 124], "tone": "n", "vary": 0, "smooth": 0.18 }
       ]

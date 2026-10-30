@@ -290,15 +290,17 @@ namespace Placemaker.Core.Decals.Dynamic
                 foreach (var t in Turf)
                 {
                     var a = BrushArea.Of(t);
-                    Brushes.Tone(_b, a, "lawnTonePatch", new float2(0.3f, 0.55f), 0.5f, ColourLevel.Quiet, "tone:turf");
+                    // game runner 2026-10-29: at 0.3-0.55 a pitch stayed one flat plastic green; real turf varies a lot
+                    Brushes.Tone(_b, a, "lawnTonePatch", new float2(0.7f, 1f), 0.6f, ColourLevel.Full, "tone:turf");
+                    Brushes.Scatter(_b, a, "groundMottle", 0.25f, new ScatterOptions { Weight = p => 0.3f + 0.7f * (1f - math.saturate(Poly.DistanceToBoundary(t, p) / 12f)), Opacity = new float2(0.35f, 0.65f), Clump = 2f, Level = ColourLevel.Quiet, Cause = "tone:turfMottle" });
                     if (Poly.Area(t) > 800f) Stripes(t);
                 }
-                foreach (var h in Hard) Brushes.Tone(_b, BrushArea.Of(h), "pavingTonePatch", new float2(0.4f, 0.75f), 0.5f, ColourLevel.Quiet, "tone:paving");
-                foreach (var h in Asphalt) Brushes.Tone(_b, BrushArea.Of(h), "asphaltTonePatch", new float2(0.5f, 0.85f), 0.5f, ColourLevel.Any, "tone:asphalt");
+                foreach (var h in Hard) Brushes.Tone(_b, BrushArea.Of(h), "pavingTonePatch", new float2(0.75f, 1f), 0.6f, ColourLevel.Any, "tone:paving");
+                foreach (var h in Asphalt) Brushes.Tone(_b, BrushArea.Of(h), "asphaltTonePatch", new float2(0.8f, 1f), 0.6f, ColourLevel.Full, "tone:asphalt");
                 foreach (var c in Courts)
                 {
                     bool clay = Clay.Contains(c);
-                    Brushes.Tone(_b, BrushArea.Of(c), clay ? "dirtTonePatch" : "asphaltTonePatch", new float2(0.25f, 0.5f), 0.45f, ColourLevel.Quiet, "tone:court");
+                    Brushes.Tone(_b, BrushArea.Of(c), clay ? "dirtTonePatch" : "asphaltTonePatch", new float2(0.6f, 0.95f), 0.55f, ColourLevel.Any, "tone:court");
                 }
             }
 
@@ -329,7 +331,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 {
                     float v = -halfW + (i + 0.5f) * halfW * 2f / rows;
                     var a = c + side * v - axis * (halfL - 1f); var b = c + side * v + axis * (halfL - 1f);
-                    Brushes.EdgeStrip(_b, new[] { a, b }, "mowingStripes", new StripOptions { Gaps = 0f, Opacity = new float2(0.45f, 0.7f), Width = new float2(1f, 1f), Level = ColourLevel.Quiet, Cause = "tone:stripes" });
+                    Brushes.EdgeStrip(_b, new[] { a, b }, "mowingStripes", new StripOptions { Gaps = 0f, Opacity = new float2(0.85f, 1f), Width = new float2(1f, 1f), Level = ColourLevel.Quiet, Cause = "tone:stripes" });
                 }
             }
 
