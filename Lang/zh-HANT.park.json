@@ -189,5 +189,17 @@
   "Placemaker.Group.assets": "素材",
   "Placemaker.Group.divider": "分隔線",
   "Placemaker.Group.seating": "座位",
-  "Placemaker.Group.extras": "附加"
+  "Placemaker.Group.extras": "附加",
+  "Placemaker.Park.style.wild": "鄉野公園",
+  "Placemaker.Park.Preset.wild": "鄉野公園",
+  "Placemaker.Park.style.neglected": "荒廢",
+  "Placemaker.Park.Preset.neglected": "荒廢",
+  "Placemaker.Park.moods": "特色角落",
+  "Placemaker.Park.moods.Tooltip": "公園裡有幾處地方依地勢各有氛圍：多岩的乾溝、巨石小丘、濕潤的窪地、草甸一角、倒木橫陳的小樹林。",
+  "Placemaker.Park.moodGround": "塑造地形",
+  "Placemaker.Park.moodGround.Tooltip": "讓這些地方下挖或抬高地面（乾溝、小丘、窪地）。地形改動是永久的。",
+  "Placemaker.Park.carPark": "停車場",
+  "Placemaker.Park.carPark.Tooltip": "臨街的一處小停車場，緊鄰正門，四周種樹（0.7 公頃以上的公園）。",
+  "Placemaker.Park.communityGarden": "社區菜園",
+  "Placemaker.Park.communityGarden.Tooltip": "一塊草坪變成菜園：翻好的土地和作物壟組成的小塊地，中間是草徑，還有工具棚、水箱、溫室和高床花壇。"
 }

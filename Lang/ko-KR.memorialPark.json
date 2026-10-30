@@ -112,5 +112,7 @@
   "Placemaker.AddOn.FlagCircle.benches": "벤치",
   "Placemaker.AddOn.FlagCircle.flagAsset": "깃대",
   "Placemaker.AddOn.FlagCircle.Preset.small": "소형",
-  "Placemaker.AddOn.FlagCircle.Preset.grand": "웅장함"
+  "Placemaker.AddOn.FlagCircle.Preset.grand": "웅장함",
+  "Placemaker.Memorial.moods": "개성 있는 장소",
+  "Placemaker.Memorial.moods.Tooltip": "축에서 벗어난 옆 잔디밭에 고유한 장소를 둡니다: 추모의 야생화 초원, 선돌 원형, 조용한 숲, 바위 언덕."
 }

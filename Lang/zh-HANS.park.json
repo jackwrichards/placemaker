@@ -189,5 +189,17 @@
   "Placemaker.Group.assets": "资产",
   "Placemaker.Group.divider": "分隔",
   "Placemaker.Group.seating": "座位",
-  "Placemaker.Group.extras": "额外项"
+  "Placemaker.Group.extras": "额外项",
+  "Placemaker.Park.style.wild": "乡野公园",
+  "Placemaker.Park.Preset.wild": "乡野公园",
+  "Placemaker.Park.style.neglected": "荒废",
+  "Placemaker.Park.Preset.neglected": "荒废",
+  "Placemaker.Park.moods": "特色角落",
+  "Placemaker.Park.moods.Tooltip": "公园里有几处地方依地势各有氛围：多岩的干沟、巨石小丘、湿润的洼地、草甸一角、倒木横陈的小树林。",
+  "Placemaker.Park.moodGround": "塑造地形",
+  "Placemaker.Park.moodGround.Tooltip": "让这些地方下挖或抬高地面（干沟、小丘、洼地）。地形改动是永久的。",
+  "Placemaker.Park.carPark": "停车场",
+  "Placemaker.Park.carPark.Tooltip": "临街的一处小停车场，紧邻正门，四周种树（0.7 公顷以上的公园）。",
+  "Placemaker.Park.communityGarden": "社区菜园",
+  "Placemaker.Park.communityGarden.Tooltip": "一块草坪变成菜园：翻好的土地和作物垄组成的小块地，中间是草径，还有工具棚、水箱、温室和高床花坛。"
 }

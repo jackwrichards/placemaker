@@ -151,6 +151,12 @@ namespace Placemaker.Core.Layers.Park
             legacyLawn.HideWhenOff = true;
             c.Toggle("naturalGround", false, ControlTier.More, "ground").Tip();
             c.Slider("naturalLayer", 1, 1, 4, 1, "count", ControlTier.More, "ground").When("naturalGround=true").Tip();
+            // Makeover (2026-10-29): places with their own mood (a rocky gully, a knoll of boulders, a wet hollow, a meadow
+            // corner, a copse with fallen logs, standing stones): ParkMoods.cs. "moodGround" lets them shape the ground.
+            c.Toggle("moods", true, ControlTier.Essential, "layout").Tip();
+            c.Toggle("moodGround", true, ControlTier.More, "layout").When("moods=true").Tip();
+            c.Toggle("carPark", false, ControlTier.More, "boundary").Tip();
+            c.Toggle("communityGarden", false, ControlTier.More, "layout").Tip();
             c.Toggle("fence", false, ControlTier.More, "boundary");
             c.Asset("fenceAsset", AssetCategories.Fence, ControlTier.More, "boundary").When("fence=true");
 
@@ -179,6 +185,8 @@ namespace Placemaker.Core.Layers.Park
             c.Chance("belt", 0.8f);
             c.Chance("curvedPaths", 0.8f);
             c.Fixed("groundSurface");
+            c.Fixed("carPark");
+            c.Fixed("communityGarden");
             c.RandomRange("bushDensity", 15, 90);
             c.Chance("bikePath", 0.15f);
             c.RandomRange("smallPaths", 0, 2);
@@ -240,6 +248,19 @@ namespace Placemaker.Core.Layers.Park
             // or loose flowerbeds (they found no room on a city block and said so on every build).
             PresetFeatures("urban", "plaza", "shops", StreetShopsLayer, "-picnic", "-flowerbeds", "-playground", "-bigtrees");
             PresetFeatures("picnic", "-flowerbeds");
+            // Makeover (2026-10-29), the user: "maybe some parks are more genuine ... rural, urban; fenced and unfenced". The country
+            // park: native groves and long grass, a fence of its own, dirt trails, rustic benches, no lamps or loose flowerbeds.
+            Preset("wild", ("style", "wild"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 22.0), ("bushDensity", 70.0),
+                ("furniture", 2.0), ("lamps", false), ("bins", false), ("belt", true), ("curvedPaths", true), ("naturalGround", true), ("naturalLayer", 1.0),
+                ("animals", true), ("trails", 2.0), ("trailStyle", "painted"), ("desireLines", "worn"), ("fence", true), ("benchAsset", "CampgroundBench01"), ("carPark", true), ("communityGarden", true));
+            PresetFeatures("wild", "-flowerbeds", "-playground", "-restrooms", "-bigtrees");
+            PresetFeatureValues("wild", "picnic", ("groups", 2.0), ("tables", 1.0));
+            // The neglected park is its own version (the user: neglect "changes the entire vibe of everything"), not a grime amount:
+            // thickets and old trees close in, the lawns go to seed, the paths crack and gather moss, litter, a tired playground.
+            Preset("neglected", ("style", "neglected"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 34.0), ("bushDensity", 150.0),
+                ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", true), ("curvedPaths", true), ("naturalGround", true), ("naturalLayer", 3.0),
+                ("desireLines", "worn"));
+            PresetFeatures("neglected", "-flowerbeds", "-bigtrees");
             // The urban pocket's plaza stays an open paved square (the park's own trees already ring it; with the plaza's edge trees
             // the canopy closed over it on a round site).
             PresetFeatureValues("urban", "plaza", ("treeLayout", "none"));
@@ -335,14 +356,20 @@ namespace Placemaker.Core.Layers.Park
         {
             var clock = new PlanClock(ctx.Plan.Timings);   // (perf) the park's own steps, shown in brackets after "park"
             ShoreKit.CarveShore(ctx);   // g2: the wet part + a shore band go to the "Shore" feature
+            // makeover: the park's own car park on its street side (the rest of the park keeps the remaining ground)
+            Gate lotGate = default;
+            bool hasLot = ctx.B("carPark") && ParkCarPark.Plan(ctx, out lotGate);
             var region = ctx.LayerRegion;
             var style = ParkStyle.Get(ctx.S("style"));
+            if (style.Id == "neglected") ctx.Plan.Facts[Placemaker.Core.Decals.Dynamic.ParkGround.NeglectedFact] = 1;
             string pathMode = ctx.S("paths");
             int wantedGates = Entrances.WantedByArea(region.Area);
             var tiers = PathHierarchyOptions.From(ctx.Settings);
             // Typed entrances (pedestrian, bike, main, service): walk gates first (the main walk's gate
             // indices), then service gates.
-            var gates = OrderGates(Entrances.ResolveTyped(ctx.Input, region, wantedGates, EntranceKinds.Park), out int walkCount);
+            var resolved = Entrances.ResolveTyped(ctx.Input, region, wantedGates, EntranceKinds.Park);
+            if (hasLot) resolved.Add(lotGate);
+            var gates = OrderGates(resolved, out int walkCount);
 
             // 0. Places carved out for features (only when a child will fill them).
             float2[] plaza = Array.Empty<float2>();
@@ -505,22 +532,48 @@ namespace Placemaker.Core.Layers.Park
             ctx.Check();
             clock.Lap("clearings");
 
+            // 3d. Places with a mood of their own (ParkMoods): they take their ground before the furniture and planting.
+            // the community garden folds in as a lawn room of allotments (ParkMoods.Allotments), with or without the other places
+            bool allotments = ctx.B("communityGarden");
+            var moods = ctx.B("moods") || allotments ? ParkMoods.Plan(ctx, s, lawns, ctx.B("moods") ? style.Id : "none", ctx.B("moodGround"), 1f, allotments) : new List<MoodPlace>();
+            ctx.Check();
+            clock.Lap("moods");
+
             // 4. Furniture first so planting keeps clear of it (ParkManager ordering).
             GatewayProps(ctx, s);
+            // (makeover) the groves are known before the benches, so a bench can sit in their shade (they only read the outline)
+            bool groves = ctx.F("treeDensity") > 0f || ctx.F("bushDensity") > 0f;
+            if (groves) ParkPlanting.BuildGroves(s, style);
             float per100 = ctx.F("furniture");
             if (per100 > 0f && s.Curves.Count > 0)
             {
                 // Layout size: furniture per 100 m of path at design size → closer along the (real-size) paths.
                 float benchInterval = 100f / per100 * ctx.Scale;
-                ParkPlanting.PathFurniture(s, ParkItemKind.Bench, benchInterval, ParkPlanting.BenchRadius, 0x7f4a7c15u);
-                if (ctx.B("lamps")) ParkPlanting.PathFurniture(s, ParkItemKind.Lamp, benchInterval * 0.68f, ParkPlanting.LampRadius, 0x94d049bbu);
+                bool regular = style.Formal || style.Grid;   // a formal park keeps its rhythm; the others seat people where they would sit
+                if (regular) ParkPlanting.PathFurniture(s, ParkItemKind.Bench, benchInterval, ParkPlanting.BenchRadius, 0x7f4a7c15u);
+                else
+                {
+                    var views = new List<float2>();
+                    foreach (var m in moods) views.Add(m.C);
+                    if (s.Lake.Length >= 3) views.Add(Poly.Centroid(s.Lake));
+                    foreach (var cl in clearings) views.Add(cl.c);
+                    ParkPlanting.SeatBenches(s, benchInterval, views, ParkPlanting.BenchRadius);
+                }
+                // lamps light the main walks (the trails and side paths stay dark)
+                if (ctx.B("lamps"))
+                {
+                    float widest = 0f;
+                    foreach (var c in s.Curves) if (c.Tier != PathTier.Trail && c.Tier != PathTier.Desire) widest = math.max(widest, c.HalfWidth);
+                    ParkPlanting.PathFurniture(s, ParkItemKind.Lamp, benchInterval * 0.68f, ParkPlanting.LampRadius, 0x94d049bbu,
+                        regular ? (Func<PathCurve, bool>)null : c => c.Tier != PathTier.Trail && c.Tier != PathTier.Desire && c.HalfWidth >= widest * 0.8f);
+                }
                 if (ctx.B("bins")) ParkPlanting.Bins(s, per100 / 3f);   // Bins: one per scaled 90 m of path
             }
             ctx.Check();
 
             // 5. Vegetation. Layout size: areal counts scale by 1/scale (between keeping the density and keeping the
             // spacing, since the canopies are real size); tree-to-tree clearances stay footprint-based (PlantFits).
-            float carved = (s.Lake.Length >= 3 ? Poly.Area(s.Lake) : 0f) + (plaza.Length >= 3 ? Poly.Area(plaza) : 0f);
+            float carved = (s.Lake.Length >= 3 ? Poly.Area(s.Lake) : 0f) + (plaza.Length >= 3 ? Poly.Area(plaza) : 0f) + ParkMoods.Area(moods);   // the places plant their own
             float plantedHa = math.max(0f, region.Area - carved) / 10000f;
             int trees = math.min(4000, (int)math.round(plantedHa * ctx.F("treeDensity") / ctx.Scale));
             int bushes = math.min(6000, (int)math.round(plantedHa * ctx.F("bushDensity") / ctx.Scale));
@@ -529,11 +582,12 @@ namespace Placemaker.Core.Layers.Park
             bool canTrees = trees > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Tree, treeIds, Keys.Category(AssetCategories.Tree));
             bool canBushes = bushes > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Bush, bushIds, Keys.Category(AssetCategories.Bush));
             clock.Lap("furniture");
-            if (canTrees || canBushes) ParkPlanting.BuildGroves(s, style);
+            if ((canTrees || canBushes) && !groves) ParkPlanting.BuildGroves(s, style);
             if (canTrees) ParkPlanting.Vegetation(s, style, trees, true, belt);
             ctx.Check();
             clock.Lap("trees");
             if (canBushes) ParkPlanting.Vegetation(s, style, bushes, false, belt);
+            if (s.BushDrifts > 0) { ctx.Plan.Facts["bushDrifts"] = s.BushDrifts; ctx.Plan.Facts["bushesWanted"] = s.BushesWanted; ctx.Plan.Facts["bushesPlanted"] = s.BushesPlanted; }
             if (ctx.B("animals")) ParkPlanting.AnimalSpawners(s);
             ctx.Check();
             clock.Lap("bushes");
@@ -542,10 +596,12 @@ namespace Placemaker.Core.Layers.Park
             if (ctx.B("groundSurface")) Lawn.Cover(ctx, region.Ring, AssetMix.One(ctx.S("surface")));
             if (ctx.B("naturalGround")) NaturalGround(ctx, s, lawns, style, amenities);
             float pathLength;
-            if (ctx.S("trailStyle") == "painted" && s.Curves.Exists(c => c.Tier == PathTier.Trail))
+            // (makeover) a neglected park's side paths are half lost under the grass: worn earth, no paving (the main walk stays)
+            Predicate<PathCurve> lost = style.Id == "neglected" ? c => c.Tier == PathTier.Trail || c.Tier == PathTier.Small : c => c.Tier == PathTier.Trail;
+            if ((ctx.S("trailStyle") == "painted" || style.Id == "neglected") && s.Curves.Exists(lost))
             {
-                pathLength = ParkPaths.Emit(ctx, s.Curves.FindAll(c => c.Tier != PathTier.Trail), s.Gates, TierAssets(ctx));
-                PaintedTrails(ctx, s.Curves.FindAll(c => c.Tier == PathTier.Trail), s.Gates);
+                pathLength = ParkPaths.Emit(ctx, s.Curves.FindAll(c => !lost(c)), s.Gates, TierAssets(ctx));
+                PaintedTrails(ctx, s.Curves.FindAll(lost), s.Gates, style.Id == "neglected" ? 0.55f : 0.85f);
             }
             else pathLength = ParkPaths.Emit(ctx, s.Curves, s.Gates, TierAssets(ctx));
             if (ctx.B("fence"))
@@ -559,6 +615,8 @@ namespace Placemaker.Core.Layers.Park
             if (treeIds.Length == 0) treeIds = StyleTrees(style.Id);
             if (bushIds.Length == 0) bushIds = StyleBushes(style.Id);
             EmitItems(ctx, s, treeIds, bushIds);
+            ParkMoods.Emit(ctx, s, moods, style.Id == "neglected");
+            if (style.Id == "neglected") { Dumped(ctx, s); Neglect(ctx, s, clearings, amenities); }
             foreach (var g in gates)
                 if (g.Suggested) ctx.Plan.Facts["suggestedEntrances"] = (ctx.Plan.Facts.TryGetValue("suggestedEntrances", out var n) ? n : 0) + 1;
             clock.Lap("emit");
@@ -568,8 +626,12 @@ namespace Placemaker.Core.Layers.Park
             if (pondFeature && s.Lake.Length >= 3) ctx.AddRegion(s.Lake, PondPlace, PondPlace, "water");
             foreach (var (layer, rect) in amenities) ctx.AddRegion(rect.Ring, Amenities.Place(layer), Amenities.Place(layer));
             for (int i = 0; i < lawns.Count; i++)
+            {
+                // a lawn that became a place is the place's: the features (picnic, restrooms …) stay on the park's own lawns
+                if (i != coreIndex && moods.Exists(m => m.Lawn != null && Poly.Contains(m.Lawn, Poly.Centroid(lawns[i])) && Poly.Area(m.Lawn) > 0.5f * Poly.Area(lawns[i]))) continue;
                 if (i == coreIndex) ctx.AddRegion(lawns[i], "green:" + i, RegionTags.Green, RegionTags.Core);
                 else ctx.AddRegion(lawns[i], "green:" + i, RegionTags.Green);
+            }
             var strips = region.BoundaryStrips(ctx.M(BeltDepth, 4f), math.clamp((int)math.round(region.Perimeter / 250f), 2, 6));
             for (int i = 0; i < strips.Count; i++) ctx.AddRegion(strips[i], "edge:" + i, RegionTags.Edge);
             clock.Lap("regions");
@@ -806,14 +868,14 @@ namespace Placemaker.Core.Layers.Park
         /// (s33) Trails painted into the ground (TrailPaint): a dirt stroke per trail, plus an invisible pedestrian path so
         /// cims can walk it when the playset has one (never the drivable invisible paths); otherwise visual only (Info).
         /// </summary>
-        private static void PaintedTrails(LayerContext ctx, List<PathCurve> trails, List<Gate> gates)
+        private static void PaintedTrails(LayerContext ctx, List<PathCurve> trails, List<Gate> gates, float strength = 0.85f)
         {
             var kit = new Placemaker.Core.Paint.PaintKit(ctx.Plan.Paint, ctx.H, Hashing.Mix(ctx.Seed, 0x7A11u)) { Outline = ctx.LayerRegion.Ring };
             string walk = TrailPaint.WalkableNet(ctx.Site);
             foreach (var c in trails)
             {
                 if (c.Samples == null || c.Samples.Length < 2) continue;
-                TrailPaint.Stroke(kit, c.Samples, math.max(1.6f, c.HalfWidth * 2f + 0.4f), 0.85f);
+                TrailPaint.Stroke(kit, c.Samples, math.max(1.6f, c.HalfWidth * 2f + 0.4f), strength);
                 if (walk == null) continue;
                 var net = ctx.CurvedNet(c.A, c.B, c.C, c.D, c.Role, new AssetRef(walk));
                 net.Category = AssetCategories.InvisiblePath;
@@ -900,6 +962,97 @@ namespace Placemaker.Core.Layers.Park
             ctx.Stat(Keys.StatLakeArea, Math.Round(Poly.Area(lake)), Keys.UnitM2);
         }
 
+        /// <summary>
+        /// (makeover) A neglected park: what people dumped at its edges and nobody took away: an old sofa, a pile of boxes, a
+        /// barrel, a heap of rotten wood, tucked against the thickets of the boundary (vanilla ruins.junk / ruins.rubble).
+        /// </summary>
+        private static void Dumped(LayerContext ctx, ParkSite s)
+        {
+            string[][] kinds =
+            {
+                new[] { "OutdoorSofa01", "OutdoorSofa02", "OutdoorSofa03" }, new[] { "CardboardBoxPile01", "CardboardBoxPile02", "CardboardBoxPile03" },
+                new[] { "Barrel01", "Barrel02", "Barrel03" }, new[] { "RubblePileWood01", "RubblePileWood02" }, new[] { "Pallet01", "Pallet02" },
+            };
+            int n = math.clamp((int)(s.LayerRegion.Area / 5000f), 2, 6), made = 0;
+            var avoid = new List<float2>();
+            foreach (var g in s.Gates) avoid.Add(g.Position);
+            for (int k = 0; k < n * 3 && made < n; k++)
+            {
+                uint v = Hashing.Mix(ctx.Seed, 0xD0Bu + (uint)k);
+                if (!Spots.Find(s.Occ, 2.2f, Spots.Preference.NearBoundary, v, out var p, avoid, 18f, 2f, 1500)) break;
+                var set = kinds[(made + (int)(v % 3u)) % kinds.Length];
+                var o = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 1u)) * 6.283f, ObjectRole.Furniture, new AssetRef(set[(int)(Hashing.Mix(v, 2u) % (uint)set.Length)], set), v, -1,
+                    set[0].StartsWith("Rubble") ? "ruins.rubble" : "ruins.junk");
+                if (set[0].StartsWith("Rubble")) o.Scale = 0.6f;
+                s.Occ.Take(p, 2.2f, 206);
+                avoid.Add(p);
+                made++;
+            }
+            ctx.Plan.Facts["dumped"] = made;
+        }
+
+        /// <summary>
+        /// (makeover) Neglect at the human level, readable from 45°: the playground fenced off behind a builders' fence with a
+        /// barrier and cones where its path comes in, junk and litter by the toilet block.
+        /// </summary>
+        private static void Neglect(LayerContext ctx, ParkSite s, List<(string layer, float2 c, float r)> clearings, List<(string layer, OrientedRect rect)> amenities)
+        {
+            int fenced = 0, junk = 0;
+            var fence = new AssetRef("FenceIndustrialLow01", "FenceIndustrialHigh01", "FenceResidentialLow01");
+            var barrier = new AssetRef("ConstructionBarrier02", "ConstructionBarrier01");
+            var cone = new AssetRef("TrafficCone01", "TrafficCone02");
+            foreach (var (layer, c, r) in clearings)
+            {
+                if (layer != "playground") continue;
+                float rr = r + 1.2f;
+                int n = math.clamp((int)(rr * 6.283f / 4f), 10, 28);
+                float a0 = Hashing.Unit(Hashing.Mix(ctx.Seed, 0xFE0u)) * 6.283f;
+                for (int i = 0; i < n; i++)
+                {
+                    float a = a0 + i * 6.283f / n, b = a0 + (i + 1) * 6.283f / n;
+                    var p0 = c + new float2(math.cos(a), math.sin(a)) * rr;
+                    var p1 = c + new float2(math.cos(b), math.sin(b)) * rr;
+                    var mid = (p0 + p1) * 0.5f;
+                    if (!s.LayerRegion.ContainsDisc(mid, 0.5f)) continue;
+                    // where a path comes in, the gap is closed by a barrier and cones (a fence never crosses a path net)
+                    if (s.Occ.Corridors.Overlaps(p0, 0.6f, 0.2f) || s.Occ.Corridors.Overlaps(p1, 0.6f, 0.2f) || s.Occ.Corridors.Overlaps(mid, 0.6f, 0.2f))
+                    {
+                        var t = math.normalizesafe(p1 - p0);
+                        var bo = ctx.Object(mid + (c - mid) * 0.08f, math.atan2(t.x, t.y) + 1.5708f, ObjectRole.Furniture, barrier, Hashing.Mix(ctx.Seed, 0xFE1u + (uint)i), -1, AssetCategories.ConstructionBarrier);
+                        for (int k = 0; k < 2; k++)
+                            ctx.Object(mid + t * (k == 0 ? -1.4f : 1.4f) + (mid - c) * 0.12f, k * 1.3f, ObjectRole.Furniture, cone, Hashing.Mix(ctx.Seed, 0xFE2u + (uint)(i * 2 + k)), -1, AssetCategories.ConstructionCone);
+                        junk++;
+                        continue;
+                    }
+                    ctx.StraightNet(p0, p1, NetRole.Fence, fence);
+                    fenced++;
+                }
+            }
+            // the toilet block: bin bags, boxes and a barrel round it
+            string[][] litter = { new[] { "CardboardBoxPile01", "CardboardBoxPile02", "CardboardBoxPile03" }, new[] { "Barrel01", "Barrel02", "Barrel03" } };
+            int li = 0;
+            var toilets = new List<(float2 c, float r)>();
+            foreach (var (layer, c, r) in clearings) if (layer == "restrooms") toilets.Add((c, r));
+            foreach (var (layer, rect) in amenities)
+                if (layer.IndexOf("restroom", StringComparison.OrdinalIgnoreCase) >= 0 || layer.IndexOf("toilet", StringComparison.OrdinalIgnoreCase) >= 0)
+                    toilets.Add((rect.Center, math.max(rect.HalfLength, rect.HalfWidth)));
+            foreach (var (tc, tr) in toilets)
+            {
+                for (int k = 0; k < 8 && li < 3; k++)
+                {
+                    uint v = Hashing.Mix(ctx.Seed, 0xFE3u + (uint)k);
+                    float a = Hashing.Unit(v) * 6.283f;
+                    var p = tc + new float2(math.cos(a), math.sin(a)) * (tr + 1.2f);
+                    if (!s.LayerRegion.ContainsDisc(p, 1f) || s.Occ.Corridors.Overlaps(p, 1.2f, 0.2f)) continue;
+                    var set = litter[li % litter.Length];
+                    ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 1u)) * 6.283f, ObjectRole.Furniture, new AssetRef(set[(int)(Hashing.Mix(v, 2u) % (uint)set.Length)], set), v, -1, "ruins.junk");
+                    li++; junk++;
+                }
+            }
+            ctx.Plan.Facts["neglectFence"] = fenced;
+            ctx.Plan.Facts["neglectJunk"] = junk;
+        }
+
         internal static string[] StyleTrees(string style)
         {
             switch (style)
@@ -912,6 +1065,8 @@ namespace Placemaker.Core.Layers.Park
                 case "riverside": return new[] { "EU_AlderTree01", "EU_PoplarTree01", "BirchTree01", "OakTree01" };
                 case "pocket": return new[] { "NA_LindenTree01", "NA_LondonPlaneTree01", "BirchTree01" };
                 case "picnic": return new[] { "OakTree01", "EU_ChestnutTree01", "NA_LondonPlaneTree01", "NA_LindenTree01" };
+                case "wild": return new[] { "OakTree01", "BirchTree01", "EU_AlderTree01", "NA_HickoryTree01", "OakTree01", "PineTree01", "BirchTree01" };
+                case "neglected": return new[] { "BirchTree01", "OakTree01", "EU_PoplarTree01", "NA_HickoryTree01", "EU_AlderTree01", "NA_LindenTree01" };
                 default: return ParkArt.ParkTrees;
             }
         }
@@ -922,6 +1077,8 @@ namespace Placemaker.Core.Layers.Park
             {
                 case "formal": case "modern": case "urban": case "woodland": return ParkArt.GreenShrubs;
                 case "meadow": case "wildflower": case "garden": return ParkArt.FlowerShrubs;
+                case "wild": return new[] { "GreenBushWild01", "GreenBushWildAdult01", "FlowerBushWild02", "GreenBushWild02", "GreenBushWildElderly01" };
+                case "neglected": return new[] { "GreenBushWildElderly01", "FlowerBushWildDead02", "GreenBushWildAdult01", "FlowerBushWild02", "GreenBushWild02", "GreenBushWildElderly01" };
                 default: return ParkArt.MixedShrubs;
             }
         }
@@ -931,14 +1088,37 @@ namespace Placemaker.Core.Layers.Park
             var bench = AssetMix.One(ctx.S("benchAsset"), ParkArt.Benches);
             var lamp = AssetMix.One(ctx.S("lampAsset"), ParkArt.ParkLamps);
             var bin = AssetMix.One(ctx.S("binAsset"), ParkArt.Bins);
+            bool neglected = ctx.S("style") == "neglected";
             foreach (var it in s.Items)
             {
                 switch (it.Kind)
                 {
-                    case ParkItemKind.Tree: ctx.Object(it.Position, it.Yaw, ObjectRole.Tree, AssetMix.Pick(treeIds, it.Variant), it.Variant, it.Age); break;
+                    case ParkItemKind.Tree:
+                    {
+                        // a neglected park: old trees, and the odd dead one nobody has taken down
+                        int age = it.Age;
+                        if (neglected) { float u = Hashing.Unit(Hashing.Mix(ctx.Seed, (int)math.floor(it.Position.x * 3f), (int)math.floor(it.Position.y * 3f))); age = u < 0.12f ? PlannedAge.Dead : u < 0.45f ? PlannedAge.Old : age; }
+                        ctx.Object(it.Position, it.Yaw, ObjectRole.Tree, AssetMix.Pick(treeIds, it.Variant), it.Variant, age);
+                        break;
+                    }
                     case ParkItemKind.Bush: ctx.Object(it.Position, it.Yaw, ObjectRole.Bush, AssetMix.Pick(bushIds, it.Variant), it.Variant); break;
-                    case ParkItemKind.Bench: ctx.Object(it.Position, it.Yaw, ObjectRole.Bench, bench, it.Variant); break;
-                    case ParkItemKind.Lamp: ctx.Object(it.Position, it.Yaw, ObjectRole.Lamp, lamp, it.Variant); break;
+                    case ParkItemKind.Bench:
+                    {
+                        // a neglected park: a bench gone (only its scuff stays), another kicked over on its back or its side
+                        float u = neglected ? Hashing.Unit(Hashing.Mix(it.Variant, 0xBE0u)) : 1f;
+                        if (u < 0.15f) break;
+                        var o = ctx.Object(it.Position, it.Yaw, ObjectRole.Bench, bench, it.Variant);
+                        if (u < 0.42f) { o.Roll = (u < 0.3f ? 1f : -1f) * 1.5f; o.Elevation = 0.25f; }
+                        else if (u < 0.55f) { o.Pitch = 0.22f; o.Roll = 0.12f; }
+                        break;
+                    }
+                    case ParkItemKind.Lamp:
+                    {
+                        var o = ctx.Object(it.Position, it.Yaw, ObjectRole.Lamp, lamp, it.Variant);
+                        // leaning lamp posts nobody straightened
+                        if (neglected) { float u = Hashing.Unit(Hashing.Mix(it.Variant, 0x1A3u)); if (u < 0.35f) { o.Pitch = (u - 0.17f) * 0.9f; o.Roll = (Hashing.Unit(Hashing.Mix(it.Variant, 7u)) - 0.5f) * 0.25f; } }
+                        break;
+                    }
                     case ParkItemKind.Bin: ctx.Object(it.Position, it.Yaw, ObjectRole.Bin, bin, it.Variant); break;
                     case ParkItemKind.Spawner:
                         ctx.Object(it.Position, 0f, ObjectRole.AnimalSpawner, new AssetRef("", "Forest Animal Spawner"), it.Variant); break;

@@ -657,5 +657,9 @@
   "Placemaker.Stat.Seats": "Miejsca siedzące",
   "Placemaker.Stat.Sheds": "Szopy",
   "Placemaker.Stat.Stalls": "Stragany",
-  "Placemaker.Stat.TerrainChange": "Zmiana terenu"
+  "Placemaker.Stat.TerrainChange": "Zmiana terenu",
+  "Placemaker.Botanical.moods": "Miejsca z charakterem",
+  "Placemaker.Botanical.moods.Tooltip": "Kilka miejsc w ogrodzie dostaje własny nastrój, zależnie od terenu: skalniak na pagórku z głazami, łąka kwietna, ogród bagienny w wilgotnym zagłębieniu, polana.",
+  "Placemaker.Botanical.moodGround": "Kształtuj teren",
+  "Placemaker.Botanical.moodGround.Tooltip": "Pozwala tym miejscom obniżać i podnosić teren (jar, pagórek, zagłębienie). Zmiany terenu są trwałe."
 }

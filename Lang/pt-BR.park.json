@@ -189,5 +189,17 @@
   "Placemaker.Group.assets": "Elementos",
   "Placemaker.Group.divider": "Divisor",
   "Placemaker.Group.seating": "Assentos",
-  "Placemaker.Group.extras": "Extras"
+  "Placemaker.Group.extras": "Extras",
+  "Placemaker.Park.style.wild": "Parque rural",
+  "Placemaker.Park.Preset.wild": "Parque rural",
+  "Placemaker.Park.style.neglected": "Abandonado",
+  "Placemaker.Park.Preset.neglected": "Abandonado",
+  "Placemaker.Park.moods": "Cantos com personalidade",
+  "Placemaker.Park.moods.Tooltip": "Alguns cantos do parque ganham um clima próprio, conforme o terreno: uma ravina pedregosa, um outeiro de rochas, uma baixada úmida, um canto de campina, um bosque com troncos caídos.",
+  "Placemaker.Park.moodGround": "Moldar o terreno",
+  "Placemaker.Park.moodGround.Tooltip": "Deixa esses cantos cavar e elevar o terreno (a ravina, o outeiro, a baixada). As mudanças no terreno são permanentes.",
+  "Placemaker.Park.carPark": "Estacionamento",
+  "Placemaker.Park.carPark.Tooltip": "Um pequeno estacionamento do lado da rua, ao lado da entrada principal, com árvores nas bordas (parques de 0,7 ha ou mais).",
+  "Placemaker.Park.communityGarden": "Horta comunitária",
+  "Placemaker.Park.communityGarden.Tooltip": "Um gramado vira hortas: canteiros de terra trabalhada e fileiras de cultivo com caminhos de grama, galpões, caixas d'água, uma estufa e canteiros elevados."
 }

@@ -657,5 +657,9 @@
   "Placemaker.Stat.Seats": "座位",
   "Placemaker.Stat.Sheds": "小屋",
   "Placemaker.Stat.Stalls": "攤位",
-  "Placemaker.Stat.TerrainChange": "地形變更"
+  "Placemaker.Stat.TerrainChange": "地形變更",
+  "Placemaker.Botanical.moods": "特色角落",
+  "Placemaker.Botanical.moods.Tooltip": "園中有幾處地方依地勢各有氛圍：巨石小丘上的岩石園、野花草甸、濕潤窪地裡的沼澤園、林間空地。",
+  "Placemaker.Botanical.moodGround": "塑造地形",
+  "Placemaker.Botanical.moodGround.Tooltip": "讓這些地方下挖或抬高地面（乾溝、小丘、窪地）。地形改動是永久的。"
 }

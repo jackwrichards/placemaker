@@ -101,5 +101,9 @@
   "Placemaker.AddOn.Kickabout.goalAsset": "Gol",
   "Placemaker.AddOn.Kickabout.Preset.small": "Pequeno",
   "Placemaker.AddOn.Kickabout.Preset.pitch": "Campinho",
-  "Placemaker.AddOn.Kickabout.Issue.Smaller": "O gramado de bate-bola foi reduzido para caber no espaço livre."
+  "Placemaker.AddOn.Kickabout.Issue.Smaller": "O gramado de bate-bola foi reduzido para caber no espaço livre.",
+  "Placemaker.AdvPlay.moods": "Cantos selvagens",
+  "Placemaker.AdvPlay.moods.Tooltip": "Terreno selvagem entre as zonas de brincar, conforme o terreno: um outeiro de rochas para escalar, uma ravina pedregosa, um bosque com troncos para equilibrar.",
+  "Placemaker.AdvPlay.moodGround": "Moldar o terreno",
+  "Placemaker.AdvPlay.moodGround.Tooltip": "Deixa esses cantos cavar e elevar o terreno (a ravina, o outeiro). As mudanças no terreno são permanentes."
 }

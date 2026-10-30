@@ -189,5 +189,17 @@
   "Placemaker.Group.assets": "アセット",
   "Placemaker.Group.divider": "仕切り",
   "Placemaker.Group.seating": "座席",
-  "Placemaker.Group.extras": "追加要素"
+  "Placemaker.Group.extras": "追加要素",
+  "Placemaker.Park.style.wild": "田園公園",
+  "Placemaker.Park.Preset.wild": "田園公園",
+  "Placemaker.Park.style.neglected": "荒れた公園",
+  "Placemaker.Park.Preset.neglected": "荒れた公園",
+  "Placemaker.Park.moods": "個性ある場所",
+  "Placemaker.Park.moods.Tooltip": "公園のいくつかの場所が、地形に合わせて独自の雰囲気を持ちます：岩の多い涸れ沢、巨石の小丘、湿った窪地、草地の一角、倒木のある木立。",
+  "Placemaker.Park.moodGround": "地形を造る",
+  "Placemaker.Park.moodGround.Tooltip": "それらの場所が地面を掘り下げたり盛り上げたりします（涸れ沢、小丘、窪地）。地形の変更は元に戻りません。",
+  "Placemaker.Park.carPark": "駐車場",
+  "Placemaker.Park.carPark.Tooltip": "通り側、正面入口の隣にある木に縁取られた小さな駐車場です（0.7 ha 以上の公園）。",
+  "Placemaker.Park.communityGarden": "コミュニティガーデン",
+  "Placemaker.Park.communityGarden.Tooltip": "芝生の一区画が市民農園になります：耕した土と作物の畝の区画、その間の芝の通路、物置、貯水タンク、温室、レイズドベッド。"
 }

@@ -189,5 +189,17 @@
   "Placemaker.Group.assets": "Zasoby",
   "Placemaker.Group.divider": "Separator",
   "Placemaker.Group.seating": "Miejsca siedzące",
-  "Placemaker.Group.extras": "Wyposażenie"
+  "Placemaker.Group.extras": "Wyposażenie",
+  "Placemaker.Park.style.wild": "Park wiejski",
+  "Placemaker.Park.Preset.wild": "Park wiejski",
+  "Placemaker.Park.style.neglected": "Zaniedbany",
+  "Placemaker.Park.Preset.neglected": "Zaniedbany",
+  "Placemaker.Park.moods": "Miejsca z charakterem",
+  "Placemaker.Park.moods.Tooltip": "Kilka miejsc w parku dostaje własny nastrój, zależnie od terenu: skalisty jar, pagórek z głazami, wilgotne zagłębienie, kąt łąki, zagajnik z powalonymi pniami.",
+  "Placemaker.Park.moodGround": "Kształtuj teren",
+  "Placemaker.Park.moodGround.Tooltip": "Pozwala tym miejscom obniżać i podnosić teren (jar, pagórek, zagłębienie). Zmiany terenu są trwałe.",
+  "Placemaker.Park.carPark": "Parking",
+  "Placemaker.Park.carPark.Tooltip": "Mały parking od strony ulicy, obok głównego wejścia, z drzewami wzdłuż krawędzi (parki od 0,7 ha).",
+  "Placemaker.Park.communityGarden": "Ogród społeczny",
+  "Placemaker.Park.communityGarden.Tooltip": "Jeden trawnik staje się działkami: poletka uprawnej ziemi i grządek z trawiastymi ścieżkami, szopy, zbiorniki na wodę, szklarnia i podwyższone grządki."
 }

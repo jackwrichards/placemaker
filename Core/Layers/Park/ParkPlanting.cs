@@ -42,6 +42,8 @@ namespace Placemaker.Core.Layers.Park
         public float2[] Lake = Array.Empty<float2>();
         public float2 ClearingCenter;
         public float ClearingRadius;
+        /// <summary>(makeover) The shrub drifts: how many, and the shrubs wanted and planted (plan facts).</summary>
+        public int BushDrifts, BushesWanted, BushesPlanted;
         public readonly List<ParkItem> Items = new List<ParkItem>();
         public readonly List<Grove> Groves = new List<Grove>();
         public uint Seed;
@@ -163,6 +165,7 @@ namespace Placemaker.Core.Layers.Park
             else grid.Prepare(s, boundaryClearance, 1.2f, 4.2f * 0.45f);
             if (style.Formal) { FormalVegetation(s, target, tree, belt); return; }
             if (style.Grid) { GridVegetation(s, target, tree, belt); return; }
+            if (!tree) { BushDrifts(s, style, target, belt, boundaryClearance); return; }
             if (style.RowBelt && belt && tree)
             {
                 // Street-tree row first (its share of the target); the rest plants naturally without a band.
@@ -251,6 +254,194 @@ namespace Placemaker.Core.Layers.Park
             }
         }
 
+        /// <summary>
+        /// (makeover) Shrubs the way a gardener plants them: drifts of 3-7 of mixed species and sizes, massed on the inside of the
+        /// paths' bends, under the trees' canopies, round the groves and along the outline, with real open lawn between. The old
+        /// scatter spread one size 3.5 m apart over every lawn: polka dots (run show-23-builds-1030-033711-0b14, park garden).
+        /// </summary>
+        private static void BushDrifts(ParkSite s, ParkStyle style, int target, bool belt, float boundaryClearance)
+        {
+            var rng = Hashing.Rng(s.Seed, 0x9e3779b9u);
+            var region = s.LayerRegion;
+            var grid = s.PlantGrid;
+            bool thicket = style.Id == "neglected" || style.Id == "wild";
+            // (an anchor beside a path is a border: long and narrow in the strip between the walk and the lawn room, which may be
+            // a place with a mood of its own; elsewhere a drift is a broad group)
+            var anchors = new List<(float2 p, float2 axis, float key, float wide)>();
+            float wideNext = 1.8f;
+            void Anchor(float2 p, float2 axis, float w) => anchors.Add((p, axis, math.pow(math.max(1e-4f, rng.NextFloat()), 1f / math.max(0.05f, w)), wideNext));
+            // the inside of every bend (the bend's reason to be there)
+            foreach (var c in s.Curves)
+            {
+                if (c.Length < 12f || c.Tier == PathTier.Desire) continue;
+                for (float a = 5f; a < c.Length - 5f; a += 3f)
+                {
+                    c.At(a - 4f, out var t0); var p1 = c.At(a, out var t1); c.At(a + 4f, out var t2);
+                    float turn = t0.x * t2.y - t0.y * t2.x;
+                    if (math.abs(turn) < 0.22f) continue;
+                    var inside = new float2(-t1.y, t1.x) * math.sign(turn);
+                    wideNext = 0.9f;
+                    Anchor(p1 + inside * (c.HalfWidth + rng.NextFloat(1.9f, 2.6f)), t1, 1.6f + 2f * math.abs(turn));
+                    a += 5f;
+                }
+                // and here and there along the walk, set back from its edge (the second choice, after the bends)
+                for (float a = rng.NextFloat(4f, 14f); a < c.Length - 4f; a += rng.NextFloat(12f, 22f))
+                {
+                    var p = c.At(a, out var t);
+                    float side = rng.NextFloat() < 0.5f ? -1f : 1f;
+                    Anchor(p + new float2(-t.y, t.x) * side * (c.HalfWidth + rng.NextFloat(1.9f, 2.6f)), t, 0.6f);
+                }
+                // the corners where paths meet
+                if (rng.NextFloat() < 0.5f) { var e = c.At(math.min(6f, c.Length * 0.3f), out var te); Anchor(e + new float2(-te.y, te.x) * (rng.NextFloat() < 0.5f ? -1f : 1f) * (c.HalfWidth + 2.2f), te, 1.2f); }
+            }
+            wideNext = 1.8f;
+            // under the trees, at the canopy's rim
+            foreach (var it in s.Items)
+            {
+                if (it.Kind != ParkItemKind.Tree || rng.NextFloat() > 0.7f) continue;
+                float ang = rng.NextFloat(0f, math.PI * 2f);
+                var d = new float2(math.cos(ang), math.sin(ang));
+                Anchor(it.Position + d * rng.NextFloat(2.8f, 4.8f), new float2(-d.y, d.x), 1.1f);
+            }
+            // round the groves (the understorey fringe) and along the outline
+            foreach (var g in s.Groves)
+            {
+                int k = math.clamp((int)(g.Area / 250f), 2, 12);
+                for (int i = 0; i < k; i++)
+                {
+                    float ang = rng.NextFloat(0f, math.PI * 2f);
+                    var p = g.Point(ang, rng.NextFloat(0.9f, 1.15f));
+                    var q = g.Point(ang + 0.15f, 1f);
+                    Anchor(p, math.normalizesafe(q - p, new float2(1f, 0f)), 1.3f);
+                }
+            }
+            if (belt && region.Perimeter > 0f)
+                for (float along = rng.NextFloat(0f, 20f); along < region.Perimeter; along += rng.NextFloat(14f, 30f))
+                {
+                    var b = region.PointAt(along, out var tan, out var inward, out _);
+                    Anchor(b + inward * (boundaryClearance + rng.NextFloat(0.5f, 4f)), tan, 0.9f);
+                }
+            anchors.Sort((x, y) => y.key.CompareTo(x.key));
+            var used = new List<float2>();
+            int accepted = 0;
+            foreach (var an in anchors)
+            {
+                if (accepted >= target) break;
+                if ((accepted & 255) == 0) s.Cancel.ThrowIfCancellationRequested();
+                bool near = false;
+                foreach (var u in used) if (math.distancesq(u, an.p) < 30f) { near = true; break; }
+                if (near) continue;
+                // massed: a few small groups, most of 5-11 (a lone pair read as dots from 45°, run show-7-builds-1030-042140-997c)
+                int n = thicket ? rng.NextInt(6, 15) : rng.NextFloat() < 0.25f ? rng.NextInt(3, 5) : rng.NextInt(5, 12);
+                uint lead = rng.NextUInt(), second = rng.NextUInt();
+                var axis = math.normalizesafe(an.axis, new float2(1f, 0f));
+                var across = new float2(-axis.y, axis.x);
+                float step = rng.NextFloat(1.4f, 1.9f);
+                int got = 0;
+                for (int b = 0, tries = 0; b < n && accepted < target && tries < n * 3; tries++)
+                {
+                    float along = (b - (n - 1) * 0.5f) * step + rng.NextFloat(-0.8f, 0.8f);
+                    var p = an.p + axis * along + across * rng.NextFloat(-an.wide, an.wide) * (1f - 0.6f * math.abs(along) / (n * step));
+                    if (tries >= n * 2) b++;   // the last tries move on to the next shrub of the drift
+                    // one or two species lead the drift, a third (often a smaller one) mixes in
+                    float u = rng.NextFloat();
+                    uint variant = u < 0.55f ? lead : u < 0.85f ? second : rng.NextUInt();
+                    float radius = rng.NextFloat(0.9f, 1.4f);
+                    int cell = grid != null && grid.Ready ? grid.Cell(p) : -1;
+                    byte fx = cell >= 0 ? grid.Static(cell) : PlantGrid.Maybe;
+                    if (fx == PlantGrid.Fail || fx == PlantGrid.Maybe && !FixedFits(s, p, radius, boundaryClearance)) continue;
+                    if (TooClose(s, p, false, 1.4f, radius, 1.4f, 2.6f)) continue;
+                    s.Add(new ParkItem { Kind = ParkItemKind.Bush, Position = p, Radius = radius, Yaw = rng.NextFloat(0f, math.PI * 2f), Variant = variant, Age = -1 });
+                    accepted++; got++;
+                    if (tries < n * 2) b++;
+                }
+                if (got > 0) { used.Add(an.p); s.BushDrifts++; }
+            }
+            s.BushesWanted = target; s.BushesPlanted = accepted;
+        }
+
+        /// <summary>
+        /// (makeover) Benches where people sit: facing a view across the path (a place with a mood, the lake, the playground,
+        /// in pairs there), at the outside of a bend, at the shady edge of a grove, near a junction; long stretches have none.
+        /// The old benches stood one every n metres along every path: a metronome.
+        /// </summary>
+        public static void SeatBenches(ParkSite s, float interval, List<float2> views, float footprint)
+        {
+            if (interval <= 0f || float.IsInfinity(interval) || s.Curves.Count == 0) return;
+            var rng = Hashing.Rng(s.Seed, 0x7f4a7c15u);
+            float total = 0f;
+            foreach (var c in s.Curves) if (c.Tier != PathTier.Desire) total += c.Length;
+            int budget = math.min(MaxFurniture, math.max(1, (int)math.round(total / interval)));
+            var cands = new List<(float2 q, float yaw, float score, float2 tan, bool play)>();
+            foreach (var c in s.Curves)
+            {
+                if (c.Length < 8f || c.Tier == PathTier.Desire) continue;
+                for (float a = 3f; a < c.Length - 3f; a += 4f)
+                {
+                    c.At(math.max(0f, a - 4f), out var t0); var p = c.At(a, out var tan); c.At(math.min(c.Length, a + 4f), out var t2);
+                    float turn = t0.x * t2.y - t0.y * t2.x;
+                    var normal = new float2(-tan.y, tan.x);
+                    for (int sd = -1; sd <= 1; sd += 2)
+                    {
+                        float side = sd;
+                        var q = p + normal * (c.HalfWidth + footprint + 0.2f) * side;
+                        var facing = -normal * side;
+                        float score = 0f; bool play = false;
+                        foreach (var v in views)
+                        {
+                            var to = v - q; float d = math.length(to);
+                            if (d < 4f || d > 38f) continue;
+                            float dot = math.dot(to / d, facing);
+                            if (dot > 0.55f) score = math.max(score, 2.2f * dot * (1f - d / 42f));
+                        }
+                        if (s.ClearingRadius > 0f)
+                        {
+                            float d = math.distance(q, s.ClearingCenter) - s.ClearingRadius;
+                            if (d > 0f && d < 9f && math.dot(math.normalizesafe(s.ClearingCenter - q), facing) > 0.4f) { score = math.max(score, 2.6f); play = true; }
+                        }
+                        // the outside of a bend looks along both arms of the path
+                        if (math.abs(turn) > 0.25f && math.sign(turn) == -side) score += 1.2f * math.abs(turn);
+                        // shade: the rim of a grove
+                        foreach (var g in s.Groves)
+                        {
+                            float d = math.distance(q, g.Center);
+                            if (d > g.Radius * 0.55f && d < g.Radius * 1.15f) { score += 0.9f; break; }
+                        }
+                        // not at the gate, a little near the junctions
+                        if (s.GateDistanceSq(q) < 225f) score -= 1.5f;
+                        if (a < 12f || a > c.Length - 12f) score += 0.4f;
+                        score += rng.NextFloat(0f, 0.5f);
+                        cands.Add((q, Wrap(PathSideYaw(normal, side)), score, tan, play));
+                    }
+                }
+            }
+            cands.Sort((x, y) => y.score.CompareTo(x.score));
+            int count = 0;
+            for (int pass = 0; pass < 2 && count < budget; pass++)
+            {
+                float min = pass == 0 ? 1.1f : -99f, gap = pass == 0 ? Layout.M(24f, 6f) : Layout.M(48f, 8f);
+                int want = pass == 0 ? budget : math.max(1, budget / 2);
+                foreach (var cd in cands)
+                {
+                    if (count >= want) break;
+                    if (cd.score < min) break;
+                    if (!FurnitureFits(s, cd.q, footprint, ParkItemKind.Bench, gap)) continue;
+                    s.Add(new ParkItem { Kind = ParkItemKind.Bench, Position = cd.q, Radius = footprint, Yaw = cd.yaw, Variant = rng.NextUInt(), Age = -1 });
+                    count++;
+                    // a pair by the playground or at a fine view: two benches side by side
+                    if ((cd.play && rng.NextFloat() < 0.7f || cd.score > 2.6f && rng.NextFloat() < 0.3f) && count < budget)
+                    {
+                        var q2 = cd.q + cd.tan * (rng.NextFloat() < 0.5f ? -1f : 1f) * (footprint * 2f + 0.6f);
+                        if (FurnitureFits(s, q2, footprint, ParkItemKind.Bench, footprint * 2f))
+                        {
+                            s.Add(new ParkItem { Kind = ParkItemKind.Bench, Position = q2, Radius = footprint, Yaw = cd.yaw, Variant = rng.NextUInt(), Age = -1 });
+                            count++;
+                        }
+                    }
+                }
+            }
+        }
+
         /// <summary>(perf) PlantFits with the grid's quick answers first: always the same answer as PlantFits.</summary>
         private static bool QuickFits(PlantGrid grid, ParkSite s, float2 p, bool tree, float radius, float spacing, float boundaryClearance)
         {
@@ -286,7 +477,7 @@ namespace Placemaker.Core.Layers.Park
         }
 
         /// <summary>ParkManager's spacing rules: own layer keeps `spacing`, others their collision gaps.</summary>
-        private static bool TooClose(ParkSite s, float2 p, bool tree, float spacing, float radius)
+        private static bool TooClose(ParkSite s, float2 p, bool tree, float spacing, float radius, float bushGap = 3.5f, float bushTreeGap = 6f)
         {
             var near = s.Scratch;
             var discs = s.Occ.Discs;
@@ -305,7 +496,7 @@ namespace Placemaker.Core.Layers.Park
                     case (int)ParkItemKind.Bin: combined = radius + 0.75f; break;
                     case (int)ParkItemKind.Tree:
                     case (int)ParkItemKind.Bush:
-                        combined = tree || o.Kind == (int)ParkItemKind.Tree ? 6f : 3.5f; break;
+                        combined = tree ? 6f : o.Kind == (int)ParkItemKind.Tree ? bushTreeGap : bushGap; break;
                     default: combined = radius + o.R + 0.3f; break;   // reserved / spawner / anything else
                 }
                 if (dsq < combined * combined) return true;
@@ -524,7 +715,7 @@ namespace Placemaker.Core.Layers.Park
         // ───────────── furniture ─────────────
 
         /// <summary>Benches and lamps along paths at intervals derived from "per 100 m".</summary>
-        public static void PathFurniture(ParkSite s, ParkItemKind kind, float interval, float footprint, uint salt)
+        public static void PathFurniture(ParkSite s, ParkItemKind kind, float interval, float footprint, uint salt, Func<PathCurve, bool> only = null)
         {
             if (interval <= 0f || float.IsInfinity(interval)) return;
             var rng = Hashing.Rng(s.Seed, salt);
@@ -533,7 +724,7 @@ namespace Placemaker.Core.Layers.Park
             for (int ci = 0; ci < s.Curves.Count && count < MaxFurniture; ci++)
             {
                 var c = s.Curves[ci];
-                if (c.Length < interval * 0.55f) continue;
+                if (c.Length < interval * 0.55f || only != null && !only(c)) continue;
                 int pieces = Math.Max(1, (int)Math.Floor(c.Length / interval));
                 for (int i = 0; i < pieces && count < MaxFurniture; i++)
                 {

@@ -226,3 +226,16 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
   (hard / green / outside): that turns "every edge" into joints, soil spills and lawn wear.
 - Frame time is not the limit: the grungy square on 220 x 200 with 2066 instances drew in 7.42 ms, 7.40 ms switched off.
 - Judge colours in the game: the library albedo drew a gamma too bright until 2026-10-30 (section 7). A lab run that lays a kind on open ground takes ten minutes and saves tuning a whole design on bakes.
+
+## Lessons from parks (2026-10-29/30, `docs/runbooks/parks.md`)
+
+- 2026-10-30: **Summer leaves read mustard yellow in the game** under green birches (the sports park's `leaf…Summer` carpets):
+  a park lays a sparse dark olive-brown litter (`leafLitterSummer`) at ~40 % of the cover (`Scene.LeafScale/LeafOverride`).
+- 2026-10-30: **A mood is a room, not a disc.** Discs of 8-38 m dropped "anywhere" rarely fitted between paths and read as
+  nothing from 45°; giving each lawn between the paths (inset 3 m) one mood made every room of a park different.
+- 2026-10-30: **Site harmony smooths designed ground.** Its change field is blurred 20 passes; tag designed places as
+  regions (`mood:*`) and protect them, or a 1.5 m knoll comes out at 0.75 m.
+- 2026-10-30: **Boulders are already buried.** `Boulder01-08` sit 1.3-1.8 m below their origin; a negative Elevation of
+  half their height on top hides them. Sink 0.35-0.55 × 1.6 m × scale for "coming up through the turf".
+- 2026-10-30: **A type with its own design needs its own budget.** The shared causes alone filled 320 a hectare and every
+  cause was thinned to 40-60 %; parks use 700 a hectare (`ParkGround.PerHectare`).

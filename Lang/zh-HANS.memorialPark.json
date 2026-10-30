@@ -112,5 +112,7 @@
   "Placemaker.AddOn.FlagCircle.benches": "长椅",
   "Placemaker.AddOn.FlagCircle.flagAsset": "旗杆",
   "Placemaker.AddOn.FlagCircle.Preset.small": "小型",
-  "Placemaker.AddOn.FlagCircle.Preset.grand": "宏伟"
+  "Placemaker.AddOn.FlagCircle.Preset.grand": "宏伟",
+  "Placemaker.Memorial.moods": "特色角落",
+  "Placemaker.Memorial.moods.Tooltip": "在轴线之外的侧草坪上自成一处：缅怀的野花草甸、立石圈、静谧的小树林、巨石小丘。"
 }

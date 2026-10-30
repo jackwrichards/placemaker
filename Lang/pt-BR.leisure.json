@@ -657,5 +657,9 @@
   "Placemaker.Stat.Seats": "Assentos",
   "Placemaker.Stat.Sheds": "Galpões",
   "Placemaker.Stat.Stalls": "Barracas",
-  "Placemaker.Stat.TerrainChange": "Mudança no terreno"
+  "Placemaker.Stat.TerrainChange": "Mudança no terreno",
+  "Placemaker.Botanical.moods": "Cantos com personalidade",
+  "Placemaker.Botanical.moods.Tooltip": "Alguns cantos do jardim ganham um clima próprio, conforme o terreno: um jardim de pedras num outeiro de rochas, uma campina de flores silvestres, um jardim de brejo numa baixada úmida, uma clareira.",
+  "Placemaker.Botanical.moodGround": "Moldar o terreno",
+  "Placemaker.Botanical.moodGround.Tooltip": "Deixa esses cantos cavar e elevar o terreno (a ravina, o outeiro, a baixada). As mudanças no terreno são permanentes."
 }

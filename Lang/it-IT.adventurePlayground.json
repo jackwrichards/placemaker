@@ -101,5 +101,9 @@
   "Placemaker.AddOn.Kickabout.goalAsset": "Porta",
   "Placemaker.AddOn.Kickabout.Preset.small": "Piccolo",
   "Placemaker.AddOn.Kickabout.Preset.pitch": "Campetto",
-  "Placemaker.AddOn.Kickabout.Issue.Smaller": "Il prato per il pallone è stato rimpicciolito per stare nello spazio libero."
+  "Placemaker.AddOn.Kickabout.Issue.Smaller": "Il prato per il pallone è stato rimpicciolito per stare nello spazio libero.",
+  "Placemaker.AdvPlay.moods": "Angoli selvaggi",
+  "Placemaker.AdvPlay.moods.Tooltip": "Terreno selvaggio tra le zone gioco, letto dal terreno: un poggio di massi da scalare, un burrone roccioso, un boschetto con tronchi in equilibrio.",
+  "Placemaker.AdvPlay.moodGround": "Modellare il terreno",
+  "Placemaker.AdvPlay.moodGround.Tooltip": "Lascia che quei luoghi scavino e alzino il terreno (il burrone, il poggio). Le modifiche al terreno sono permanenti."
 }

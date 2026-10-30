@@ -154,9 +154,10 @@ namespace Placemaker.Tests
         [Fact]
         public void LakeIsOptInPermanentAndWarned()
         {
-            var plain = TestKit.Plan("park", TestKit.Input(Hectare5));
+            var off = new SettingsBag(); off.Values["moods"] = false;   // (parks makeover) the places shape the ground by default
+            var plain = TestKit.Plan("park", TestKit.Input(Hectare5, off));
             Assert.Empty(plain.Terraform);
-            var s = new SettingsBag(); s.Values["lake"] = true;
+            var s = new SettingsBag(); s.Values["lake"] = true; s.Values["moods"] = false;
             var plan = TestKit.Plan("park", TestKit.Input(Hectare5, s));
             Assert.Single(plan.Terraform);
             Assert.True(plan.Terraform[0].Permanent);
@@ -177,8 +178,8 @@ namespace Placemaker.Tests
         [Fact]
         public void DensityControlsScaleCounts()
         {
-            var lo = new SettingsBag(); lo.Values["treeDensity"] = 10.0;
-            var hi = new SettingsBag(); hi.Values["treeDensity"] = 60.0;
+            var lo = new SettingsBag(); lo.Values["treeDensity"] = 10.0; lo.Values["moods"] = false;   // the park's own planting
+            var hi = new SettingsBag(); hi.Values["treeDensity"] = 60.0; hi.Values["moods"] = false;
             int a = TestKit.Count(TestKit.Plan("park", TestKit.Input(Hectare5, lo)), ObjectRole.Tree);
             int b = TestKit.Count(TestKit.Plan("park", TestKit.Input(Hectare5, hi)), ObjectRole.Tree);
             Assert.True(b > a * 3, $"{a} → {b}");

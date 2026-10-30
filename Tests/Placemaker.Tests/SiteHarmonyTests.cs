@@ -58,11 +58,12 @@ namespace Placemaker.Tests
         }
 
         /// <summary>A type with its default features, optionally with the Terrain feature (rolling hills) on.</summary>
-        public static ComposedPlan Compose(string type, string ground, bool terrain, bool harmony = true, string terrainPreset = "rolling")
+        public static ComposedPlan Compose(string type, string ground, bool terrain, bool harmony = true, string terrainPreset = "rolling", bool moods = true)
         {
             var r = Editor.SingleLayerRecipe(GeneratorRegistry.Get(type), 7);
             uint n = 0;
             Editor.AddDefaultFeatures(r, () => ++n);
+            if (!moods) r.Root.Settings.Values["moods"] = false;   // (parks makeover) the places' own ground, off to test the Terrain feature alone
             if (terrain)
             {
                 if (!Editor.SetFeature(r, RecipePaths.Root, "terrain", true, 900)) r.Root.Children.Add(new RecipeStep { Layer = "terrain", Seed = 900, Settings = GeneratorRegistry.Get("terrain").Defaults() });
@@ -177,8 +178,8 @@ namespace Placemaker.Tests
         public void Mounds_NeverInsidePathCorridors(string type)
         {
             var site = SiteOn("smoothhill");
-            var off = Compose(type, "smoothhill", false);
-            var on = Compose(type, "smoothhill", true);
+            var off = Compose(type, "smoothhill", false, moods: false);
+            var on = Compose(type, "smoothhill", true, moods: false);
             var fOff = SiteHarmony.FinalGround(off, site.HeightAt);
             var fOn = SiteHarmony.FinalGround(on, site.HeightAt);
             float changed = 0f, inCorridor = 0f;
@@ -233,6 +234,7 @@ namespace Placemaker.Tests
             var r = Editor.SingleLayerRecipe(GeneratorRegistry.Get("park"), 7);
             uint n = 0;
             Editor.AddDefaultFeatures(r, () => ++n);
+            r.Root.Settings.Values["moods"] = false;   // (parks makeover) the places shape the ground unless switched off
             var plan = Composer.Compose(r, new AreaShape { Ring = Site, Source = AreaSource.Drawn }, ZoningCutoutTests.Streets(Site), CancellationToken.None);
             Assert.Equal(0, plan.Layers.Sum(l => l.Terraform.Count(t => !math.isfinite(t.WaterLevel))));
             Assert.DoesNotContain(plan.AllIssues(), i => i.Key == TerrainShaper.PermanentKey);

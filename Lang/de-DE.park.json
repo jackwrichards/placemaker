@@ -189,5 +189,17 @@
   "Placemaker.Group.assets": "Assets",
   "Placemaker.Group.divider": "Trennlinie",
   "Placemaker.Group.seating": "Sitzplätze",
-  "Placemaker.Group.extras": "Extras"
+  "Placemaker.Group.extras": "Extras",
+  "Placemaker.Park.style.wild": "Landpark",
+  "Placemaker.Park.Preset.wild": "Landpark",
+  "Placemaker.Park.style.neglected": "Verwildert",
+  "Placemaker.Park.Preset.neglected": "Verwildert",
+  "Placemaker.Park.moods": "Orte mit Charakter",
+  "Placemaker.Park.moods.Tooltip": "Ein paar Orte im Park bekommen eine eigene Stimmung, passend zum Gelände: eine felsige Rinne, ein Hügel mit Findlingen, eine feuchte Senke, eine Wiesenecke, ein Wäldchen mit umgestürzten Stämmen.",
+  "Placemaker.Park.moodGround": "Gelände formen",
+  "Placemaker.Park.moodGround.Tooltip": "Diese Orte dürfen das Gelände absenken und anheben (Rinne, Hügel, Senke). Geländeänderungen sind dauerhaft.",
+  "Placemaker.Park.carPark": "Parkplatz",
+  "Placemaker.Park.carPark.Tooltip": "Ein kleiner Parkplatz auf der Straßenseite neben dem Haupteingang, mit Bäumen an den Rändern (Parks ab 0,7 ha).",
+  "Placemaker.Park.communityGarden": "Gemeinschaftsgarten",
+  "Placemaker.Park.communityGarden.Tooltip": "Ein Rasenstück wird zu Kleingärten: Parzellen mit bearbeiteter Erde und Beetreihen, Graswege dazwischen, Schuppen, Wassertanks, ein Gewächshaus und Hochbeete."
 }

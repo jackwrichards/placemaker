@@ -101,5 +101,9 @@
   "Placemaker.AddOn.Kickabout.goalAsset": "골대",
   "Placemaker.AddOn.Kickabout.Preset.small": "소형",
   "Placemaker.AddOn.Kickabout.Preset.pitch": "경기장",
-  "Placemaker.AddOn.Kickabout.Issue.Smaller": "빈 공간에 맞추려고 공놀이 잔디밭을 작게 만들었습니다."
+  "Placemaker.AddOn.Kickabout.Issue.Smaller": "빈 공간에 맞추려고 공놀이 잔디밭을 작게 만들었습니다.",
+  "Placemaker.AdvPlay.moods": "야생 공간",
+  "Placemaker.AdvPlay.moods.Tooltip": "놀이 구역 사이의 야생 지형(지형에 맞춤): 기어오를 바위 언덕, 바위 협곡, 균형 잡기 통나무가 있는 숲.",
+  "Placemaker.AdvPlay.moodGround": "지형 다듬기",
+  "Placemaker.AdvPlay.moodGround.Tooltip": "그 장소들이 땅을 파거나 돋웁니다(협곡, 언덕). 지형 변경은 영구적입니다."
 }

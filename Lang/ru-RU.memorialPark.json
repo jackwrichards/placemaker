@@ -112,5 +112,7 @@
   "Placemaker.AddOn.FlagCircle.benches": "Скамейки",
   "Placemaker.AddOn.FlagCircle.flagAsset": "Флагшток",
   "Placemaker.AddOn.FlagCircle.Preset.small": "Маленький",
-  "Placemaker.AddOn.FlagCircle.Preset.grand": "Большой"
+  "Placemaker.AddOn.FlagCircle.Preset.grand": "Большой",
+  "Placemaker.Memorial.moods": "Особые уголки",
+  "Placemaker.Memorial.moods.Tooltip": "Свои места на боковых лужайках, в стороне от оси: луг полевых цветов памяти, круг менгиров, тихая роща, холм с валунами."
 }

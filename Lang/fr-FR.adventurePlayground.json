@@ -101,5 +101,9 @@
   "Placemaker.AddOn.Kickabout.goalAsset": "But",
   "Placemaker.AddOn.Kickabout.Preset.small": "Petite",
   "Placemaker.AddOn.Kickabout.Preset.pitch": "Terrain",
-  "Placemaker.AddOn.Kickabout.Issue.Smaller": "La pelouse de foot a été réduite pour tenir dans l'espace libre."
+  "Placemaker.AddOn.Kickabout.Issue.Smaller": "La pelouse de foot a été réduite pour tenir dans l'espace libre.",
+  "Placemaker.AdvPlay.moods": "Coins sauvages",
+  "Placemaker.AdvPlay.moods.Tooltip": "Un terrain sauvage entre les zones de jeu, selon le terrain : une butte de rochers à escalader, un ravin rocheux, un bosquet aux troncs pour l'équilibre.",
+  "Placemaker.AdvPlay.moodGround": "Modeler le terrain",
+  "Placemaker.AdvPlay.moodGround.Tooltip": "Laisse ces lieux creuser et relever le terrain (le ravin, la butte). Les modifications du terrain sont permanentes."
 }

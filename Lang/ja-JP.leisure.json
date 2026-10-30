@@ -657,5 +657,9 @@
   "Placemaker.Stat.Seats": "座席",
   "Placemaker.Stat.Sheds": "物置小屋",
   "Placemaker.Stat.Stalls": "屋台",
-  "Placemaker.Stat.TerrainChange": "地形の変化"
+  "Placemaker.Stat.TerrainChange": "地形の変化",
+  "Placemaker.Botanical.moods": "個性ある場所",
+  "Placemaker.Botanical.moods.Tooltip": "庭園のいくつかの場所が、地形に合わせて独自の雰囲気を持ちます：巨石の小丘のロックガーデン、野草の草地、湿った窪地の湿生園、林間の空き地。",
+  "Placemaker.Botanical.moodGround": "地形を造る",
+  "Placemaker.Botanical.moodGround.Tooltip": "それらの場所が地面を掘り下げたり盛り上げたりします（涸れ沢、小丘、窪地）。地形の変更は元に戻りません。"
 }

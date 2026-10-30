@@ -112,5 +112,7 @@
   "Placemaker.AddOn.FlagCircle.benches": "Bancos",
   "Placemaker.AddOn.FlagCircle.flagAsset": "Mástil",
   "Placemaker.AddOn.FlagCircle.Preset.small": "Pequeño",
-  "Placemaker.AddOn.FlagCircle.Preset.grand": "Monumental"
+  "Placemaker.AddOn.FlagCircle.Preset.grand": "Monumental",
+  "Placemaker.Memorial.moods": "Rincones con carácter",
+  "Placemaker.Memorial.moods.Tooltip": "Rincones propios en los prados laterales, fuera del eje: una pradera de flores del recuerdo, un círculo de menhires, un bosquete tranquilo, un otero de peñascos."
 }

@@ -101,5 +101,9 @@
   "Placemaker.AddOn.Kickabout.goalAsset": "球門",
   "Placemaker.AddOn.Kickabout.Preset.small": "小",
   "Placemaker.AddOn.Kickabout.Preset.pitch": "球場",
-  "Placemaker.AddOn.Kickabout.Issue.Smaller": "踢球草坪已縮小，以配合可用空間。"
+  "Placemaker.AddOn.Kickabout.Issue.Smaller": "踢球草坪已縮小，以配合可用空間。",
+  "Placemaker.AdvPlay.moods": "野趣角落",
+  "Placemaker.AdvPlay.moods.Tooltip": "遊樂區之間的野趣地帶（依地勢）：可攀爬的巨石小丘、多岩的溝谷、有平衡木頭的小樹林。",
+  "Placemaker.AdvPlay.moodGround": "塑造地形",
+  "Placemaker.AdvPlay.moodGround.Tooltip": "讓這些地方下挖或抬高地面（溝谷、小丘）。地形改動是永久的。"
 }

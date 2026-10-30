@@ -67,7 +67,7 @@ namespace Placemaker.Tests.Types
         [Fact]
         public void SchemaIsDeepTidyAndLocalised()
         {
-            TypeChecks09.AssertSchema(Id, 5);
+            TypeChecks09.AssertSchema(Id, 5, 41);   // (parks makeover) + places with character
             TypeChecks09.AssertAddOnKeys("flagCircle");
         }
 

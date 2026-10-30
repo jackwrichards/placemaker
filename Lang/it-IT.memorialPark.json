@@ -112,5 +112,7 @@
   "Placemaker.AddOn.FlagCircle.benches": "Panchine",
   "Placemaker.AddOn.FlagCircle.flagAsset": "Pennone",
   "Placemaker.AddOn.FlagCircle.Preset.small": "Piccolo",
-  "Placemaker.AddOn.FlagCircle.Preset.grand": "Grandioso"
+  "Placemaker.AddOn.FlagCircle.Preset.grand": "Grandioso",
+  "Placemaker.Memorial.moods": "Luoghi di carattere",
+  "Placemaker.Memorial.moods.Tooltip": "Luoghi propri sui prati laterali, fuori dall'asse: un prato fiorito della memoria, un cerchio di menhir, un boschetto quieto, un poggio di massi."
 }

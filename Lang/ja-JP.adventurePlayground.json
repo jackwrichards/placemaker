@@ -101,5 +101,9 @@
   "Placemaker.AddOn.Kickabout.goalAsset": "ゴール",
   "Placemaker.AddOn.Kickabout.Preset.small": "小",
   "Placemaker.AddOn.Kickabout.Preset.pitch": "競技場",
-  "Placemaker.AddOn.Kickabout.Issue.Smaller": "空きスペースに合わせてボール遊びの芝生を小さくしました。"
+  "Placemaker.AddOn.Kickabout.Issue.Smaller": "空きスペースに合わせてボール遊びの芝生を小さくしました。",
+  "Placemaker.AdvPlay.moods": "野性の場所",
+  "Placemaker.AdvPlay.moods.Tooltip": "遊び場の間の野性の地面（地形に合わせて）：よじ登れる巨石の小丘、岩の峡谷、平均台になる丸太のある木立。",
+  "Placemaker.AdvPlay.moodGround": "地形を造る",
+  "Placemaker.AdvPlay.moodGround.Tooltip": "それらの場所が地面を掘り下げたり盛り上げたりします（峡谷、小丘）。地形の変更は元に戻りません。"
 }

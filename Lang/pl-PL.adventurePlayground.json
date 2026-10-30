@@ -101,5 +101,9 @@
   "Placemaker.AddOn.Kickabout.goalAsset": "Bramka",
   "Placemaker.AddOn.Kickabout.Preset.small": "Mały",
   "Placemaker.AddOn.Kickabout.Preset.pitch": "Boisko",
-  "Placemaker.AddOn.Kickabout.Issue.Smaller": "Trawnik do gry w piłkę zmniejszono, by zmieścił się w wolnym miejscu."
+  "Placemaker.AddOn.Kickabout.Issue.Smaller": "Trawnik do gry w piłkę zmniejszono, by zmieścił się w wolnym miejscu.",
+  "Placemaker.AdvPlay.moods": "Dzikie zakątki",
+  "Placemaker.AdvPlay.moods.Tooltip": "Dziki teren między strefami zabaw, zależnie od terenu: pagórek z głazami do wspinaczki, skalisty wąwóz, zagajnik z pniami do balansowania.",
+  "Placemaker.AdvPlay.moodGround": "Kształtuj teren",
+  "Placemaker.AdvPlay.moodGround.Tooltip": "Pozwala tym miejscom obniżać i podnosić teren (wąwóz, pagórek). Zmiany terenu są trwałe."
 }

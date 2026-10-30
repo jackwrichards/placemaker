@@ -189,5 +189,17 @@
   "Placemaker.Group.assets": "Объекты",
   "Placemaker.Group.divider": "Разделитель",
   "Placemaker.Group.seating": "Сиденья",
-  "Placemaker.Group.extras": "Детали"
+  "Placemaker.Group.extras": "Детали",
+  "Placemaker.Park.style.wild": "Сельский парк",
+  "Placemaker.Park.Preset.wild": "Сельский парк",
+  "Placemaker.Park.style.neglected": "Заброшенный",
+  "Placemaker.Park.Preset.neglected": "Заброшенный",
+  "Placemaker.Park.moods": "Особые уголки",
+  "Placemaker.Park.moods.Tooltip": "Несколько мест в парке получают своё настроение по рельефу: каменистый овраг, холм с валунами, сырая низина, уголок луга, роща с упавшими стволами.",
+  "Placemaker.Park.moodGround": "Менять рельеф",
+  "Placemaker.Park.moodGround.Tooltip": "Позволяет этим местам углублять и поднимать землю (овраг, холм, низина). Изменения рельефа необратимы.",
+  "Placemaker.Park.carPark": "Парковка",
+  "Placemaker.Park.carPark.Tooltip": "Небольшая парковка со стороны улицы рядом с главным входом, с деревьями по краям (парки от 0,7 га).",
+  "Placemaker.Park.communityGarden": "Общественный огород",
+  "Placemaker.Park.communityGarden.Tooltip": "Одна лужайка становится огородами: участки вскопанной земли и грядок с травяными дорожками, сараи, баки для воды, теплица и высокие грядки."
 }

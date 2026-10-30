@@ -85,7 +85,6 @@
   "Placemaker.Park.pathStyle.circuit": "Perimeter circuit",
   "Placemaker.Park.Issue.NoRoomForAmenity": "There is no free room for the {0} in this park.",
   "Placemaker.Park.Issue.AmenityMoved": "The {0} did not fit at the chosen position and was placed elsewhere.",
-
   "Placemaker.Campground.Name": "Campground",
   "Placemaker.Campground.pitchSize": "Pitch size",
   "Placemaker.Campground.pitchSize.Tooltip": "Side length of each pitch. Tents need about 8 m, caravans 12 m or more.",
@@ -114,14 +113,12 @@
   "Placemaker.Campground.Preset.meadow": "Meadow camp",
   "Placemaker.Campground.Preset.caravan": "Caravan park",
   "Placemaker.Campground.Issue.NoPitches": "No pitch fits along the paths. Try a smaller pitch size or a larger area.",
-
   "Placemaker.Common.Issue.NoAssets": "No {0} are installed, so none were placed.",
   "Placemaker.Common.Issue.InvalidArea": "The area outline is not valid (it crosses itself or is too thin).",
   "Placemaker.Common.Issue.AreaTooSmall": "The area is too small ({0} m², needs at least {1} m²).",
   "Placemaker.Common.Issue.AreaTooLarge": "The area is too large ({0} m², at most {1} m²).",
   "Placemaker.Common.Issue.SurfaceDropped": "Part of the ground surface has a shape the game cannot draw and was left out.",
   "Placemaker.Common.Issue.NoSpace": "There is no free space left for {0}.",
-
   "Placemaker.Stat.Area": "Area",
   "Placemaker.Stat.PathLength": "Paths",
   "Placemaker.Stat.Trees": "Trees",
@@ -137,7 +134,6 @@
   "Placemaker.Stat.Pitches": "Pitches",
   "Placemaker.Stat.Parts": "Parts",
   "Placemaker.Stat.LakeArea": "Lake",
-
   "Placemaker.Category.surface": "surfaces",
   "Placemaker.Category.surface.grass": "grass surfaces",
   "Placemaker.Category.surface.paving": "paving surfaces",
@@ -179,10 +175,8 @@
   "Placemaker.Category.parking.decal": "parking markings",
   "Placemaker.Category.parking.charger": "chargers",
   "Placemaker.Category.zone": "zones",
-
   "Placemaker.Unit.perHa": "/ha",
   "Placemaker.Unit.per100m": "/100 m",
-
   "Placemaker.Group.layout": "Layout",
   "Placemaker.Group.planting": "Planting",
   "Placemaker.Group.furniture": "Furniture",
@@ -195,5 +189,17 @@
   "Placemaker.Group.assets": "Assets",
   "Placemaker.Group.divider": "Divider",
   "Placemaker.Group.seating": "Seating",
-  "Placemaker.Group.extras": "Extras"
+  "Placemaker.Group.extras": "Extras",
+  "Placemaker.Park.style.wild": "Country park",
+  "Placemaker.Park.Preset.wild": "Country park",
+  "Placemaker.Park.style.neglected": "Neglected",
+  "Placemaker.Park.Preset.neglected": "Neglected",
+  "Placemaker.Park.moods": "Places with character",
+  "Placemaker.Park.moods.Tooltip": "A few places in the park get a mood of their own, read from the land: a rocky gully, a knoll of boulders, a wet hollow, a meadow corner, a copse with fallen logs.",
+  "Placemaker.Park.moodGround": "Shape the ground",
+  "Placemaker.Park.moodGround.Tooltip": "Lets those places cut and raise the ground (the gully, the knoll, the hollow). Terrain changes are permanent.",
+  "Placemaker.Park.carPark": "Car park",
+  "Placemaker.Park.carPark.Tooltip": "A small car park on the street side, next to the main entrance, with trees along its edges (parks of 0.7 ha or more).",
+  "Placemaker.Park.communityGarden": "Community garden",
+  "Placemaker.Park.communityGarden.Tooltip": "One lawn room becomes allotments: plots of worked soil and crop rows with grass walks between, sheds, water tanks, a greenhouse and raised beds."
 }

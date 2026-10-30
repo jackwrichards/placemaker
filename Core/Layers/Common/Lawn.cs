@@ -40,9 +40,11 @@ namespace Placemaker.Core.Layers.Common
             ["sportsPark"] = Painted,
             // Manicured: the grass surface.
             ["formalGarden"] = Surface,
-            ["botanicalGarden"] = Surface,
+            // (parks makeover, 2026-10-29) the botanical garden and the memorial park are painted terrain with a quiet decal ground
+            // (ParkGround): the whole-site grass surface read as plastic in every picture (run show-22-builds-1029-232925-79c4).
+            ["botanicalGarden"] = Painted,
             ["cemeteryGrounds"] = Surface,
-            ["memorialPark"] = Surface,
+            ["memorialPark"] = Painted,
             ["fairground"] = Surface,
             ["amphitheatre"] = Surface,
             ["skatePark"] = Surface,
@@ -53,7 +55,6 @@ namespace Placemaker.Core.Layers.Common
         private static readonly Dictionary<string, string> PresetDefaults = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["park/formal"] = Surface,
-            ["park/garden"] = Surface,
             ["park/victorian"] = Surface,
             ["park/modern"] = Surface,
         };

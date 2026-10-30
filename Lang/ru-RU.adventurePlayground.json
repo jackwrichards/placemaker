@@ -101,5 +101,9 @@
   "Placemaker.AddOn.Kickabout.goalAsset": "Ворота",
   "Placemaker.AddOn.Kickabout.Preset.small": "Маленький",
   "Placemaker.AddOn.Kickabout.Preset.pitch": "Поле",
-  "Placemaker.AddOn.Kickabout.Issue.Smaller": "Газон для игры в мяч уменьшен, чтобы поместиться на свободном месте."
+  "Placemaker.AddOn.Kickabout.Issue.Smaller": "Газон для игры в мяч уменьшен, чтобы поместиться на свободном месте.",
+  "Placemaker.AdvPlay.moods": "Дикие уголки",
+  "Placemaker.AdvPlay.moods.Tooltip": "Дикая земля между игровыми зонами по рельефу: холм с валунами для лазания, каменистый овраг, роща с брёвнами для равновесия.",
+  "Placemaker.AdvPlay.moodGround": "Менять рельеф",
+  "Placemaker.AdvPlay.moodGround.Tooltip": "Позволяет этим местам углублять и поднимать землю (овраг, холм). Изменения рельефа необратимы."
 }
