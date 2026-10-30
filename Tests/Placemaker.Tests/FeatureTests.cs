@@ -210,7 +210,8 @@ namespace Placemaker.Tests
         [Fact]
         public void ParkWithPondHandsTheBasinToThePondLayer()
         {
-            var plan = Compose(With("park", "pond"), TestKit.Rect(260, 200));
+            var pr = With("park", "pond"); pr.Root.Settings.Values["moods"] = false;   // (parks makeover) the places shape the ground unless switched off
+            var plan = Compose(pr, TestKit.Rect(260, 200));
             Assert.False(plan.HasErrors, Errors(plan));
             var park = plan.Layers.Single(l => l.GeneratorId == "park");
             Assert.Empty(park.Terraform);

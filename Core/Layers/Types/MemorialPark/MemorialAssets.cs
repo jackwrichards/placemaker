@@ -13,9 +13,9 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
         public static readonly string[] Sculptures = { "StoneHead01", "StoneHead02", "StoneHead03", "BicycleStatue01", "StandingStone02", "StandingStone06" };
         public static readonly string[] Plaques = { "OldCemeteryTombstone04", "OldCemeteryTombstone01", "OldCemeteryTombstone03" };
         public static readonly string[] Flags = { "FlagPole01", "FlagPole02" };
-        public static readonly string[] WreathShrubs = { "FlowerBushWild01", "FlowerBushWild02" };
+        public static readonly string[] WreathShrubs = { "FlowerBushWildElderly01", "FlowerBushWild02" };
         /// <summary>Poppies when the player has the VFP pack, otherwise red/pink flowering shrubs.</summary>
-        public static readonly string[] Poppies = { "VFP PoppyBushWild", "FlowerBushWild01", "FlowerBushWild02" };
+        public static readonly string[] Poppies = { "VFP PoppyBushWild", "FlowerBushWildElderly01", "FlowerBushWild02" };
         public static readonly string[] Avenue = ParkArt.AvenueTrees;
         public static readonly string[] LawnTrees = { "NA_LindenTree01", "OakTree01", "EU_ChestnutTree01" };
         /// <summary>(rf-parks) The rill of fountains down a reflecting pool (vanilla, ~3.5 m across).</summary>

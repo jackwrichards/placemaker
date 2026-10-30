@@ -421,9 +421,9 @@ namespace Placemaker.Tests
         [InlineData("adventurePlayground", "painted")]
         [InlineData("animalPark", "painted")]
         [InlineData("formalGarden", "surface")]
-        [InlineData("memorialPark", "surface")]
+        [InlineData("memorialPark", "painted")]   // (parks makeover) painted terrain with the parks' decal ground
         [InlineData("cemeteryGrounds", "surface")]
-        [InlineData("botanicalGarden", "surface")]
+        [InlineData("botanicalGarden", "painted")]
         [InlineData("sportsPark", "surface")]
         [InlineData("fairground", "surface")]
         public void LawnDefaultsPerType(string type, string expected)
@@ -442,7 +442,7 @@ namespace Placemaker.Tests
             var park = GeneratorRegistry.Get("park");
             foreach (var p in park.Presets)
             {
-                string want = p.Id == "formal" || p.Id == "garden" || p.Id == "victorian" || p.Id == "modern" ? Lawn.Surface : Lawn.Painted;
+                string want = p.Id == "formal" || p.Id == "victorian" || p.Id == "modern" ? Lawn.Surface : Lawn.Painted;   // (parks makeover) Garden walk is painted now
                 Assert.Equal(want, p.Values.S(DressingControls.LawnId, null));
             }
             // A type without a lawn has no choice.

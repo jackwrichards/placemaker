@@ -66,7 +66,7 @@ namespace Placemaker.Core.Layers.Park
         private static readonly string[] MeadowTrees = { "OakTree01", "BirchTree01", "EU_ChestnutTree01" };
         private static readonly string[] Scrub = { "GreenBushWild01", "GreenBushWildAdult01", "GreenBushWild02", "GreenBushWildElderly01", "FlowerBushWildElderly01" };
         private static readonly string[] Rushes = { "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWildChild01", "GreenBushWild01" };
-        private static readonly string[] Wildflowers = { "FlowerBushWild01", "FlowerBushWild02", "FlowerBushWildChild02", "FlowerBushWildElderly01" };
+        private static readonly string[] Wildflowers = { "FlowerBushWildElderly01", "FlowerBushWild02", "FlowerBushWildChild02", "FlowerBushWildElderly01" };
 
         /// <summary>The moods a style can have and how much it likes each (gully, outcrop, hollow, meadow, glade, stones).</summary>
         public static float[] Palette(string style)
@@ -78,7 +78,8 @@ namespace Placemaker.Core.Layers.Park
                 case "picnic": return new[] { 0.4f, 0.9f, 0.6f, 1.3f, 1.4f, 0f };
                 case "wild": return new[] { 1.4f, 1.0f, 1.0f, 1.4f, 1.0f, 0.7f };
                 case "neglected": return new[] { 0.8f, 0.5f, 1.2f, 1.2f, 1.2f, 0f };
-                case "formal": case "modern": case "victorian": return new[] { 0f, 0.5f, 0f, 0.3f, 0.4f, 0f };
+                // the strict geometric idioms keep their geometry: no moods
+                case "formal": case "modern": case "victorian": return new[] { 0f, 0f, 0f, 0f, 0f, 0f };
                 case "botanical": return new[] { 0.5f, 1.8f, 1.1f, 1.4f, 0.6f, 0f };
                 case "playground": return new[] { 0.9f, 1.6f, 0.4f, 0.6f, 1.4f, 0f };
                 case "memorial": return new[] { 0f, 0.6f, 0.3f, 1.4f, 1.0f, 1.3f };
@@ -136,8 +137,11 @@ namespace Placemaker.Core.Layers.Park
                 var c = lr.DeepestPoint(out float ins, null, 14);
                 if (ins < 5f) continue;
                 bool core = s.ClearingRadius > 0f && Poly.Contains(l, s.ClearingCenter);
-                foreach (var d in s.Occ.Discs.Items) if (d.Kind == 200 && Poly.Contains(l, d.P)) { core = true; break; }
+                // a lawn that already holds something of the type (a playground clearing, a play zone, a hub: any taken disc of 3 m or
+                // more) keeps it: the lawn is the open one and offers only a disc place clear of it
+                foreach (var d in s.Occ.Discs.Items) if ((d.Kind == 200 || d.R >= 3f && d.Kind != 205) && Poly.Contains(l, d.P)) { core = true; break; }
                 if (s.Lake.Length >= 3 && Poly.Contains(l, Poly.Centroid(s.Lake))) core = true;
+                foreach (var poly in s.Occ.Polygons) if (poly != null && poly.Length >= 3 && Poly.Contains(l, Poly.Centroid(poly))) { core = true; break; }
                 cands.Add((inset, c, ins, math.abs(Poly.Area(inset)), core));
             }
             cands.Sort((x, y) => y.area.CompareTo(x.area));
@@ -200,6 +204,14 @@ namespace Placemaker.Core.Layers.Park
                 float pick = U(ks, 7) * total;
                 int mood = 0;
                 for (int m = 0; m < w.Length; m++) { pick -= w[m]; if (pick <= 0f) { mood = m; break; } }
+                // a knoll, a hollow or a stone ring has a size of its own: in a big lawn it takes a piece round the lawn's heart and
+                // the rest of the lawn stays the park's (whole big lawns spread 50 stones thin, run show-24-builds-1030-001417-7e24)
+                float cap = Cap((Mood)mood);
+                if (r > cap + 2f)
+                {
+                    ring = Within(LeisureKit.Blob(c, cap + 4f, ks, 18, 0.22f), ring, c);
+                    r = cap;
+                }
                 var place = new MoodPlace { Mood = (Mood)mood, C = c, R = r, Seed = ks, Lawn = ring };
                 Shape(ctx, s, place, grad);
                 places.Add(place);
@@ -216,6 +228,32 @@ namespace Placemaker.Core.Layers.Park
             ctx.Plan.Facts["moodPlaces"] = places.Count;
             ctx.Plan.Facts["moodArea"] = math.round(area);
             return places;
+        }
+
+        /// <summary>The largest inscribed radius a mood uses (m); a meadow, a copse and a gully take a whole lawn.</summary>
+        private static float Cap(Mood m)
+        {
+            switch (m)
+            {
+                case Mood.Outcrop: return 15f;
+                case Mood.Hollow: return 14f;
+                case Mood.Stones: return 10f;
+                case Mood.Glade: return 22f;
+                default: return 999f;
+            }
+        }
+
+        /// <summary>The blob's points pulled toward <paramref name="c"/> until they lie inside the lawn (a blob clipped to its lawn, near enough).</summary>
+        private static float2[] Within(float2[] blob, float2[] lawn, float2 c)
+        {
+            var o = new float2[blob.Length];
+            for (int i = 0; i < blob.Length; i++)
+            {
+                var q = blob[i];
+                for (int k = 0; k < 12 && !Poly.Contains(lawn, q); k++) q = math.lerp(q, c, 0.2f);
+                o[i] = q;
+            }
+            return Poly.EnsureCcw(o);
         }
 
         /// <summary>The ground the places took (m²): the park plants that much less of its own.</summary>
@@ -379,7 +417,7 @@ namespace Placemaker.Core.Layers.Park
             // free only inside a place's lawn and clear of every path (the paths keep their ground)
             var sc = new Common.Sculpt(ctx.H, mn, mx, 3f, q =>
             {
-                if (!region.ContainsDisc(q, 2f) || s.Occ.Corridors.Clearance(q, 3f) < 2.5f) return false;
+                if (!region.ContainsDisc(q, 5f) || s.Occ.Corridors.Clearance(q, 3f) < 2.5f || ctx.Input?.Reserved != null && ctx.Input.Reserved.Blocks(q, 2f)) return false;
                 foreach (var p in shaped) if (Poly.Contains(p.Lawn, q)) return true;
                 return false;
             });
@@ -400,7 +438,7 @@ namespace Placemaker.Core.Layers.Park
                             float dl = LineDist(p.Line, q, out float tt);
                             float ends = Common.Sculpt.Smooth01(tt / 0.18f) * Common.Sculpt.Smooth01((1f - tt) / 0.18f);
                             float prof = 1f - Common.Sculpt.Smooth01((dl - p.Floor) / math.max(0.5f, p.Half - p.Floor));
-                            float edge = Common.Sculpt.Smooth01(e / 2.5f);
+                            float edge = Common.Sculpt.Smooth01(e / math.max(2.5f, p.Depth / 0.3f));
                             // the floor falls gently downhill along the channel; the banks are a little ragged
                             float depth = p.Depth * (0.85f + 0.3f * tt) * ends * edge;
                             off += -depth * prof + noise * prof * (1f - prof) * 2.2f;
@@ -423,7 +461,8 @@ namespace Placemaker.Core.Layers.Park
                 }
                 return b + off;
             });
-            sc.LimitGrade(0.42f, 10);
+            sc.LimitGrade(0.28f, 14);                   // the change itself no steeper than 28 % (no step against the ground round it)
+            sc.LimitGrade(0.34f, 14, absolute: true);   // banks at most 34 % over the ground as it is (on a hill too): under 0.65 m a heightmap texel (site harmony calls 0.8 m a curtain)
             var res = sc.Emit(ctx, null);
             if (res.Cells > 0)
             {
@@ -476,14 +515,28 @@ namespace Placemaker.Core.Layers.Park
             public int Rocks, Plants;
             private readonly List<(float2 p, float r)> _mine = new List<(float2, float)>();
 
-            public Emitter(LayerContext ctx, ParkSite s, MoodPlace p, bool neglected) { _ctx = ctx; _s = s; _p = p; _neglected = neglected; _v = Hashing.Mix(p.Seed, 0xE1u); }
+            private readonly string[] _trees, _bushes;
+
+            public Emitter(LayerContext ctx, ParkSite s, MoodPlace p, bool neglected)
+            {
+                _ctx = ctx; _s = s; _p = p; _neglected = neglected; _v = Hashing.Mix(p.Seed, 0xE1u);
+                // the player's species choice (when the host has one) is used for every tree and bush of the places too
+                _trees = ctx.L("treeSpecies") ?? Array.Empty<string>();
+                _bushes = ctx.L("bushSpecies") ?? Array.Empty<string>();
+                float td = ctx.F("treeDensity");
+                _density = td > 0f && ctx.ControlOf?.Invoke("treeDensity") != null ? math.saturate(td / 26f) : 1f;
+                if (ctx.ControlOf?.Invoke("treeDensity") != null && td <= 0f) _density = 0f;
+            }
+            private readonly float _density;
 
             private float U(int a) => Hashing.Unit(Hashing.Mix(_v, a, _n));
             private float R(float lo, float hi, int a) => math.lerp(lo, hi, U(a));
             private uint Var() => Hashing.Mix(_v, 0x77, _n);
+            /// <summary>Space another step reserved (a parking lot, a centrepiece of a mixed recipe).</summary>
+            private bool Reserved(float2 q, float r) => _ctx.Input?.Reserved != null && _ctx.Input.Reserved.Blocks(q, r);
             private bool Free(float2 q, float r)
             {
-                if (!_s.LayerRegion.ContainsDisc(q, r + 1f) || !Mine(q, -0.5f)) return false;
+                if (!_s.LayerRegion.ContainsDisc(q, r + 1f) || !Mine(q, -0.5f) || Reserved(q, r)) return false;
                 if (_s.Occ.Corridors.Overlaps(q, r, 0.8f)) return false;
                 foreach (var m in _mine) if (math.distancesq(m.p, q) < (m.r + r) * (m.r + r)) return false;
                 return true;
@@ -533,9 +586,13 @@ namespace Placemaker.Core.Layers.Park
             private bool Tree(float2 q, string[] species, int age, float spacing = 5.5f)
             {
                 _n++;
+                if (_trees.Length == 0 && !AssetAvailability.Has(AssetCategories.Tree)) return false;   // a playset without trees
+                // the park's tree density speaks for the places too (26 a hectare = as designed)
+                if (U(11) > _density) return false;
                 if (!_s.LayerRegion.ContainsDisc(q, 3.5f) || !Mine(q, 0.5f) || _s.Occ.Corridors.Overlaps(q, 2.5f, 0.35f) || _s.GateDistanceSq(q) < 100f) return false;
                 foreach (var m in _mine) if (math.distancesq(m.p, q) < math.max(spacing, m.r + 2f) * math.max(spacing, m.r + 2f)) return false;
-                if (_s.Occ.Discs.Overlaps(q, 2.5f, 0f) && !InOwn(q)) return false;
+                if (_s.Occ.Discs.Overlaps(q, 2.5f, 0f) && !InOwn(q) || Reserved(q, 2.5f)) return false;
+                if (_trees.Length > 0) species = _trees;   // the player's own species win
                 _ctx.Object(q, R(0f, 6.283f, 1), ObjectRole.Tree, new AssetRef(Pick(species, 2), species), Var(), age);
                 _mine.Add((q, 2.6f));
                 _s.Occ.Take(q, 2.5f, (int)ParkItemKind.Tree);
@@ -548,7 +605,9 @@ namespace Placemaker.Core.Layers.Park
                 _n++;
                 if (!_s.LayerRegion.ContainsDisc(q, 1.6f) || !Mine(q, 0.2f) || _s.Occ.Corridors.Overlaps(q, 1.2f, 0.35f)) return false;
                 foreach (var m in _mine) if (math.distancesq(m.p, q) < math.max(spacing, m.r + 0.9f) * math.max(spacing, m.r + 0.9f)) return false;
-                if (_s.Occ.Discs.Overlaps(q, 1.2f, 0f) && !InOwn(q)) return false;
+                if (_s.Occ.Discs.Overlaps(q, 1.2f, 0f) && !InOwn(q) || Reserved(q, 1.2f)) return false;
+                if (_bushes.Length > 0) species = _bushes;
+                else if (!AssetAvailability.Has(AssetCategories.Bush)) return false;
                 _ctx.Object(q, R(0f, 6.283f, 1), ObjectRole.Bush, new AssetRef(Pick(species, 2), species), Var());
                 _mine.Add((q, 1.1f));
                 Plants++;

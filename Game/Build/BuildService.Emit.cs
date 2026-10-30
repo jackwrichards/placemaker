@@ -128,6 +128,8 @@ namespace Placemaker.Game.Build
         {
             _heightsValid = false;
             _sagNotes = _splitNotes = 0;
+            // (2026-10-30) room in the terrain's road cull list before our nets come: TerrainCullGuard.cs (the CullForCascades crash)
+            TerrainCullGuard.Reserve(_terrain, _work.Nets.Count);
             if (!_gEmission) ScanLivePits("before the nets");
             _netIndex = new PlanIndex(NetIndexCell);
             _objectIndex = _objectIndex ?? new PlanIndex(ObjectIndexCell);

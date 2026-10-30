@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+6b5097a7",
+  "assembly": "0.3.6+3e36c19b",
   "categories": [
     {
       "id": "zoning",
@@ -18468,7 +18468,7 @@
             "painted",
             "surface"
           ],
-          "default": "surface"
+          "default": "painted"
         },
         {
           "id": "dressPaintWear",
@@ -25816,6 +25816,16 @@
           "default": true
         },
         {
+          "id": "moods",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "moodGround",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "logs",
           "kind": "Slider",
           "min": 0.0,
@@ -26275,6 +26285,16 @@
           "default": false
         },
         {
+          "id": "moods",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "moodGround",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "treeSpecies",
           "kind": "AssetMulti",
           "default": []
@@ -26379,7 +26399,7 @@
             "painted",
             "surface"
           ],
-          "default": "surface"
+          "default": "painted"
         },
         {
           "id": "dressPaintWear",

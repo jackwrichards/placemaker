@@ -56,7 +56,7 @@
     },
     {
       "id": "meadowFlowers", "name": "Meadow flowers", "tier": "macro",
-      "about": "Long unmown grass, a little paler and drier than the lawn, full of wild flowers: buttercup yellow, daisy white, a little clover pink and knapweed purple, in drifts.",
+      "about": "Long unmown grass, a little paler and drier than the lawn, full of wild flowers: mostly daisy white, pale buttercup yellow, a little clover lilac, in drifts. Pale colours: saturated yellows read as orange rust in the game (run show-24-builds-1030-001417-7e24).",
       "texel": 0.05, "layers": "terrain", "order": 1, "lod": 40, "maxTexels": 384, "opacity": 0.6,
       "edge": { "feather": 1, "warp": 1.3, "warpScale": 3.2, "round": 1 },
       "variants": { "count": 10, "size": [7, 13], "aspect": [0.5, 1], "strength": [0.6, 1], "age": [0, 1], "fades": ["soft", "islands", "linear", "wide", "side"] },
@@ -65,9 +65,9 @@
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.3 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
         { "op": "layer", "alpha": "cover", "alphaK": 0.32, "color": [122, 126, 64], "color2": [104, 116, 56], "tone": "n", "smooth": 0.2 },
-        { "op": "scatter", "stamp": "blob", "density": 22, "clusters": 14, "cluster": 0.75, "clusterRadius": [0.4, 1.4], "size": [0.06, 0.1], "palette": [[236, 206, 52], [244, 222, 70], [226, 190, 40]], "alpha": [0.8, 1], "height": 0.4, "smooth": 0.2, "max": 20000 },
-        { "op": "scatter", "stamp": "blob", "density": { "age": [6, 16] }, "clusters": 12, "cluster": 0.8, "clusterRadius": [0.3, 1.1], "size": [0.05, 0.09], "palette": [[240, 240, 230], [232, 230, 236]], "alpha": [0.8, 1], "height": 0.4, "smooth": 0.2, "max": 20000 },
-        { "op": "scatter", "stamp": "blob", "density": 4, "clusters": 8, "cluster": 0.85, "clusterRadius": [0.3, 0.9], "size": [0.06, 0.1], "palette": [[168, 96, 168], [190, 120, 170], [150, 90, 160]], "alpha": [0.75, 1], "height": 0.4, "smooth": 0.2, "max": 8000 }
+        { "op": "scatter", "stamp": "blob", "density": 12, "clusters": 14, "cluster": 0.75, "clusterRadius": [0.4, 1.4], "size": [0.06, 0.1], "palette": [[236, 228, 140], [244, 236, 170], [226, 214, 120]], "alpha": [0.8, 1], "height": 0.4, "smooth": 0.2, "max": 20000 },
+        { "op": "scatter", "stamp": "blob", "density": { "age": [10, 22] }, "clusters": 12, "cluster": 0.8, "clusterRadius": [0.3, 1.1], "size": [0.05, 0.09], "palette": [[240, 240, 230], [232, 230, 236]], "alpha": [0.8, 1], "height": 0.4, "smooth": 0.2, "max": 20000 },
+        { "op": "scatter", "stamp": "blob", "density": 3, "clusters": 8, "cluster": 0.85, "clusterRadius": [0.3, 0.9], "size": [0.06, 0.1], "palette": [[176, 140, 196], [196, 170, 210], [160, 130, 190]], "alpha": [0.75, 1], "height": 0.4, "smooth": 0.2, "max": 8000 }
       ]
     },
     {

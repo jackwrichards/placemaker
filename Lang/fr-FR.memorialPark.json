@@ -114,7 +114,5 @@
   "Placemaker.AddOn.FlagCircle.Preset.small": "Petite",
   "Placemaker.AddOn.FlagCircle.Preset.grand": "Majestueux",
   "Placemaker.Memorial.moods": "Lieux de caractère",
-  "Placemaker.Memorial.moods.Tooltip": "Des lieux à part sur les pelouses latérales, hors de l'axe : une prairie fleurie du souvenir, un cercle de menhirs, un bosquet paisible, une butte de rochers.",
-  "Placemaker.Memorial.moodGround": "Modeler le terrain",
-  "Placemaker.Memorial.moodGround.Tooltip": "Laisse ces lieux relever et abaisser le terrain (la butte, l'éminence sous les pierres). Les modifications du terrain sont permanentes."
+  "Placemaker.Memorial.moods.Tooltip": "Des lieux à part sur les pelouses latérales, hors de l'axe : une prairie fleurie du souvenir, un cercle de menhirs, un bosquet paisible, une butte de rochers."
 }

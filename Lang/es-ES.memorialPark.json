@@ -114,7 +114,5 @@
   "Placemaker.AddOn.FlagCircle.Preset.small": "Pequeño",
   "Placemaker.AddOn.FlagCircle.Preset.grand": "Monumental",
   "Placemaker.Memorial.moods": "Rincones con carácter",
-  "Placemaker.Memorial.moods.Tooltip": "Rincones propios en los prados laterales, fuera del eje: una pradera de flores del recuerdo, un círculo de menhires, un bosquete tranquilo, un otero de peñascos.",
-  "Placemaker.Memorial.moodGround": "Modelar el terreno",
-  "Placemaker.Memorial.moodGround.Tooltip": "Deja que esos rincones eleven y bajen el terreno (el otero, la loma bajo las piedras). Los cambios de terreno son permanentes."
+  "Placemaker.Memorial.moods.Tooltip": "Rincones propios en los prados laterales, fuera del eje: una pradera de flores del recuerdo, un círculo de menhires, un bosquete tranquilo, un otero de peñascos."
 }

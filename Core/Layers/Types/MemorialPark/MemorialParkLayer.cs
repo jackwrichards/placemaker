@@ -93,7 +93,6 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
             // makeover (2026-10-29): the side lawns get places of their own before any grove (ParkMoods): a wildflower meadow of
             // remembrance, a ring of standing stones, a quiet copse, a knoll of boulders. Off the axis, so the axis stays solemn.
             c.Toggle("moods", true, ControlTier.Essential, "planting").Tip();
-            c.Toggle("moodGround", true, ControlTier.More, "planting").When("moods=true").Tip();
             c.AssetMulti("treeSpecies", AssetCategories.Tree, ControlTier.More, "planting");
             // Lighting.
             c.Choice("lighting", "bollards", ControlTier.Essential, "lighting", "bollards", "lanterns", "uplights", "none").Tip();
@@ -185,7 +184,7 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
             st.MoodSite = new ParkSite { LayerRegion = st.Region, Occ = st.Occ, Seed = ctx.Seed, Cancel = ctx.Cancel, Gates = st.Gates };
             if (st.Vista > 0f) st.Occ.TakeCorridor(st.VistaA, st.VistaB, st.Vista + 2f, 7);   // the vista stays open
             var open = FreeSpace.Pieces(st.Region, p => st.Occ.Corridors.Overlaps(p, 0.75f), 2f, 80f, ctx.Cancel);
-            st.Moods = ParkMoods.Plan(ctx, st.MoodSite, open, "memorial", ctx.B("moodGround"), 0.8f);
+            st.Moods = ParkMoods.Plan(ctx, st.MoodSite, open, "memorial", true, 0.8f);
         }
 
         protected override void PlanCore(LayerContext ctx)

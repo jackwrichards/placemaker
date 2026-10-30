@@ -114,7 +114,5 @@
   "Placemaker.AddOn.FlagCircle.Preset.small": "Piccolo",
   "Placemaker.AddOn.FlagCircle.Preset.grand": "Grandioso",
   "Placemaker.Memorial.moods": "Luoghi di carattere",
-  "Placemaker.Memorial.moods.Tooltip": "Luoghi propri sui prati laterali, fuori dall'asse: un prato fiorito della memoria, un cerchio di menhir, un boschetto quieto, un poggio di massi.",
-  "Placemaker.Memorial.moodGround": "Modellare il terreno",
-  "Placemaker.Memorial.moodGround.Tooltip": "Lascia che quei luoghi alzino e abbassino il terreno (il poggio, il rialzo sotto le pietre). Le modifiche al terreno sono permanenti."
+  "Placemaker.Memorial.moods.Tooltip": "Luoghi propri sui prati laterali, fuori dall'asse: un prato fiorito della memoria, un cerchio di menhir, un boschetto quieto, un poggio di massi."
 }

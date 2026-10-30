@@ -114,7 +114,5 @@
   "Placemaker.AddOn.FlagCircle.Preset.small": "Small",
   "Placemaker.AddOn.FlagCircle.Preset.grand": "Grand",
   "Placemaker.Memorial.moods": "Places with character",
-  "Placemaker.Memorial.moods.Tooltip": "Places of their own on the side lawns, off the axis: a wildflower meadow of remembrance, a ring of standing stones, a quiet copse, a knoll of boulders.",
-  "Placemaker.Memorial.moodGround": "Shape the ground",
-  "Placemaker.Memorial.moodGround.Tooltip": "Lets those places raise and lower the ground (the knoll, the rise under the stones). Terrain changes are permanent."
+  "Placemaker.Memorial.moods.Tooltip": "Places of their own on the side lawns, off the axis: a wildflower meadow of remembrance, a ring of standing stones, a quiet copse, a knoll of boulders."
 }

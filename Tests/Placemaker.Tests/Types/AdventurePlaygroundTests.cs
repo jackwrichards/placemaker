@@ -108,7 +108,7 @@ namespace Placemaker.Tests.Types
             return r;
         }
 
-        public static void AssertSchema(string layer, int minPresets = 4)
+        public static void AssertSchema(string layer, int minPresets = 4, int maxControls = 40)
         {
             var g = TestKit.Gen(layer);
             var lang = TestKit.Lang();
@@ -125,7 +125,7 @@ namespace Placemaker.Tests.Types
             foreach (var p in g.Presets) Need(p.LabelKey);
             foreach (var f in Features.Of(g)) { Need(f.LabelKey); Need(f.TooltipKey); }
             Assert.True(missing.Count == 0, "Missing en-US keys: " + string.Join(", ", missing));
-            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, 40);
+            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, maxControls);
             Assert.InRange(g.Presets.Count, minPresets, 6);
             var groups = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).Select(c => c.Group).Where(x => x != "entrances" && x != "shops").Distinct().Count();
             Assert.InRange(groups, 4, 8);
@@ -296,7 +296,9 @@ namespace Placemaker.Tests.Types
 
             var jungle = P("jungle");
             Assert.True(Cat(jungle, AssetCategories.PlayClimb) > Cat(adventure, AssetCategories.PlayClimb), $"climb {Cat(jungle, AssetCategories.PlayClimb)} vs {Cat(adventure, AssetCategories.PlayClimb)}");
-            Assert.Empty(jungle.Terraform);
+            // (parks makeover) the wild places shape the ground; the jungle itself does not
+            var jv = Preset("jungle").Values.Clone(); jv.Values["moods"] = false;
+            Assert.Empty(TestKit.Gen(Id).Plan(TestKit.Input(ring, jv, 7, null, TestKit.RoadAlongBottom(200)), System.Threading.CancellationToken.None).Terraform);
         }
 
         [Fact]

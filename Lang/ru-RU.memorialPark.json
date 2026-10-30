@@ -114,7 +114,5 @@
   "Placemaker.AddOn.FlagCircle.Preset.small": "Маленький",
   "Placemaker.AddOn.FlagCircle.Preset.grand": "Большой",
   "Placemaker.Memorial.moods": "Особые уголки",
-  "Placemaker.Memorial.moods.Tooltip": "Свои места на боковых лужайках, в стороне от оси: луг полевых цветов памяти, круг менгиров, тихая роща, холм с валунами.",
-  "Placemaker.Memorial.moodGround": "Менять рельеф",
-  "Placemaker.Memorial.moodGround.Tooltip": "Позволяет этим местам поднимать и опускать землю (холм, возвышение под камнями). Изменения рельефа необратимы."
+  "Placemaker.Memorial.moods.Tooltip": "Свои места на боковых лужайках, в стороне от оси: луг полевых цветов памяти, круг менгиров, тихая роща, холм с валунами."
 }

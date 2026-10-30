@@ -52,7 +52,10 @@ namespace Placemaker.Tests
             var none = Compose(Recipe("park", 7, Set(("groundSurface", false), (DressingControls.PaintWearId, 0.0))));
             int added = Paints(bare) - Paints(none);
             _out.WriteLine($"ground wear paints: {added}");
-            Assert.True(added > 5, $"only {added} ground-wear paints on a bare-lawn park");
+            // (parks makeover, 2026-10-29) a park is weathered by the shared decal library (ParkGround): the paint keeps only its soft
+            // tone (lawn tint, the lived-in mulch under the crowns); the wear that paint used to fake is laid as decals.
+            Assert.True(added >= 1, $"only {added} ground-wear paints on a bare-lawn park");
+            Assert.True(bare.Weathering != null && bare.Weathering.Instances > 0, "no decal ground");
             Assert.True(added <= GroundWear.MaxPaints);
             // Wear is dirt / dry grass (stronger since the 2026-10-14 tuning: 100 % = 3x the old base).
             foreach (var p in bare.Layers.SelectMany(l => l.Paint).Skip(0))

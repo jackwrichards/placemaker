@@ -180,7 +180,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     if (_sc.Trees.Count > 0)
                         Brushes.EdgeStrip(_b, Offset(line, R(-0.8f, 0.8f, 40, salt)), _sc.LeafKind("leafDriftStrip"), new StripOptions { Gaps = 0.55f, Run = new float2(6f, 16f), Opacity = Op(0.5f, 0.85f), Cause = "mood:gullyLeaves" });
                     // the banks: scree at their feet, moss on the shady side, rock breaking through, rills down the sides
-                    Brushes.Scatter(_b, area, "screeFan", 0.25f * _a, new ScatterOptions { Weight = p => { float d = Dist(line, p); return math.saturate(1f - math.abs(d - r * 0.32f) / (r * 0.25f)); }, Opacity = Op(0.5f, 0.85f), Clump = 2.5f, Cause = "mood:gullyScree" });
+                    Brushes.Scatter(_b, area, "screeFan", 0.25f * _a, new ScatterOptions { Weight = p => { float d = Dist(line, p); return math.saturate(1f - math.abs(d - 5f) / 3.5f); }, Opacity = Op(0.5f, 0.85f), Clump = 2.5f, Cause = "mood:gullyScree" });
                     Brushes.Scatter(_b, area, "mossPatch", 0.14f * _a, new ScatterOptions { Weight = p => math.saturate(0.4f + (p.y - c.y) / r), Opacity = Op(0.35f, 0.65f), Clump = 2.5f, Cause = "mood:moss" });
                     Rocky(area, c, r, salt);
                     int rills = 2 + (int)(U(41, salt) * 4f);
@@ -189,7 +189,7 @@ namespace Placemaker.Core.Decals.Dynamic
                         float t = R(0.15f, 0.85f, 42 + k, salt);
                         var at = PointAlong(line, t, out var tan);
                         var nrm = new float2(-tan.y, tan.x) * (U(50 + k, salt) < 0.5f ? -1f : 1f);
-                        var start = at + nrm * r * R(0.45f, 0.7f, 60 + k, salt);
+                        var start = at + nrm * R(4.5f, 8f, 60 + k, salt);
                         var trace = Trace(start, 18, 1.4f, 0.01f);
                         if (trace.Count >= 4) Brushes.EdgeStrip(_b, trace, "runoffRill", new StripOptions { Gaps = 0.2f, Opacity = Op(0.45f, 0.8f), Width = new float2(0.65f, 0.95f), Cause = "mood:bankRill" });
                     }

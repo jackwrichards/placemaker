@@ -114,7 +114,5 @@
   "Placemaker.AddOn.FlagCircle.Preset.small": "Klein",
   "Placemaker.AddOn.FlagCircle.Preset.grand": "Prächtig",
   "Placemaker.Memorial.moods": "Orte mit Charakter",
-  "Placemaker.Memorial.moods.Tooltip": "Eigene Orte auf den Seitenwiesen, abseits der Achse: eine Wildblumenwiese des Gedenkens, ein Kreis aus Menhiren, ein stilles Wäldchen, ein Hügel mit Findlingen.",
-  "Placemaker.Memorial.moodGround": "Gelände formen",
-  "Placemaker.Memorial.moodGround.Tooltip": "Diese Orte dürfen das Gelände anheben und absenken (Hügel, Anhöhe unter den Steinen). Geländeänderungen sind dauerhaft."
+  "Placemaker.Memorial.moods.Tooltip": "Eigene Orte auf den Seitenwiesen, abseits der Achse: eine Wildblumenwiese des Gedenkens, ein Kreis aus Menhiren, ein stilles Wäldchen, ein Hügel mit Findlingen."
 }

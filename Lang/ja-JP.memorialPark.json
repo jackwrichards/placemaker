@@ -114,7 +114,5 @@
   "Placemaker.AddOn.FlagCircle.Preset.small": "小",
   "Placemaker.AddOn.FlagCircle.Preset.grand": "大",
   "Placemaker.Memorial.moods": "個性ある場所",
-  "Placemaker.Memorial.moods.Tooltip": "軸線を外れた脇の芝生に独自の場所を設けます：追悼の野草の草地、立石の環、静かな木立、巨石の小丘。",
-  "Placemaker.Memorial.moodGround": "地形を造る",
-  "Placemaker.Memorial.moodGround.Tooltip": "それらの場所が地面を盛り上げたり下げたりします（小丘、立石の下の高まり）。地形の変更は元に戻りません。"
+  "Placemaker.Memorial.moods.Tooltip": "軸線を外れた脇の芝生に独自の場所を設けます：追悼の野草の草地、立石の環、静かな木立、巨石の小丘。"
 }
