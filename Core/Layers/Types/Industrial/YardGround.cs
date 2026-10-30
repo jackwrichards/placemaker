@@ -136,9 +136,9 @@ namespace Placemaker.Core.Layers.Types.Yards
                 AssetRef asset; SurfaceRole role;
                 switch (b.Use)
                 {
-                    // Container slabs: worn grey pavement, now and then an old concrete slab (the makeover, 2026-10-30: all-concrete blocks
+                    // Container slabs: worn grey pavement (the makeover, 2026-10-30: all-concrete blocks
                     // read as bright vanilla sheets from 45 degrees).
-                    case "stacks": case "box20": case "box40": case "units": case "containers": asset = (b.Index % 3) == 0 ? Hard.Concrete : Hard.Pavement; role = SurfaceRole.Paving; break;
+                    case "stacks": case "box20": case "box40": case "units": case "containers": asset = Hard.Pavement; role = SurfaceRole.Paving; break;
                     case "wrecks": case "carports": asset = (b.Index % 3) == 0 ? Hard.Gravel : Hard.Ore; role = SurfaceRole.Ground; break;
                     case "mountain": case "heaps": case "crusher": case "crushed": asset = (b.Index % 3) == 2 ? Hard.Ore : Hard.Rubbish; role = SurfaceRole.Ground; break;
                     case "bays": case "parts": asset = ground == "concrete" ? Hard.Concrete : Hard.Rubbish; role = ground == "concrete" ? SurfaceRole.Paving : SurfaceRole.Ground; break;

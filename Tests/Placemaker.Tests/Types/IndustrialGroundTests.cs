@@ -52,6 +52,18 @@ namespace Placemaker.Tests.Types
         }
 
         [Fact]
+        public void OnlyOurVehiclePropsCountAsVanilla()
+        {
+            Assert.True(Placemaker.Core.Build.AutoAssets.IsOwn("Placemaker Vehicle Car 3"));
+            Assert.True(Placemaker.Core.Build.AutoAssets.IsOwn(Placemaker.Core.Layers.Types.Yards.VehicleProps.Loader(1)));
+            // our other runtime copies can be made from asset-pack prefabs: never let in by the vanilla rule
+            Assert.False(Placemaker.Core.Build.AutoAssets.IsOwn("Placemaker Overlay (Some Pack Surface)"));
+            Assert.False(Placemaker.Core.Build.AutoAssets.IsOwn("Placemaker Decal Copy"));
+            Assert.False(Placemaker.Core.Build.AutoAssets.IsOwn("Prop_FrontendLoader01"));
+            Assert.False(Placemaker.Core.Build.AutoAssets.IsOwn(null));
+        }
+
+        [Fact]
         public void MarksAreDeterministic()
         {
             var a = Plan("carYard", "salvage", 160, 140).DecalInstances;

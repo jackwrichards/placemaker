@@ -193,6 +193,39 @@ namespace Placemaker.Core.Layers.Types.Quarry
                 default: return new[] { "RubblePileConcrete02", "OreMiningTruck01_OrePile01", "RubblePileConcrete01", "RubblePileConcrete04" };
             }
         }
+        private static readonly string[] OwnScree = { "Rock01", "Rock05", "Rock09", "Rock12", "Rock16", "Rock21", "Rock25", "Rock29", "Boulder02", "Rock02", "Rock07", "Boulder06" };
+
+        /// <summary>
+        /// Blasted rock waiting for the loader on the working floor: rubble heaps at the foot of the lowest wall, boulders thrown
+        /// round them (an open pit's floor was an empty sheet of earth in the clean game).
+        /// </summary>
+        private static void FloorHeaps(Q q)
+        {
+            var ctx = q.Ctx;
+            if (q.Pit == null || !q.Active) return;
+            var ids = OwnPiles(q.Subtype);
+            int want = math.clamp((int)(q.Pit.Area / 2500f), 2, 7), n = 0;
+            uint salt = Hashing.Mix(ctx.Seed, 0xF100u);
+            foreach (var p in Scatter.Candidates(q.Pit, 9f, salt, 600, ctx.Cancel))
+            {
+                if (n >= want) break;
+                if (q.Wet(p)) continue;
+                float d = q.Pit.BoundaryDistance(p, q.Levels * q.BenchW + 40f);
+                // on the floor, near its wall (where the face was blasted)
+                if (d < q.Levels * q.BenchW + 2f || d > q.Levels * q.BenchW + 18f) continue;
+                uint v = Hashing.Mix(salt, (uint)n + 1u);
+                if (!SiteKit.Put(ctx, q.Occ, p, Hashing.Unit(v) * 6.28f, AssetCategories.ConstructionPile, ids, 5f, 0xF110u + (uint)n)) continue;
+                n++;
+                for (int k = 0; k < 3; k++)
+                {
+                    float a = Hashing.Unit(Hashing.Mix(v, (uint)k + 7u)) * 6.28f;
+                    var b = p + new float2(math.cos(a), math.sin(a)) * (6.5f + 2f * Hashing.Unit(Hashing.Mix(v, (uint)k + 11u)));
+                    SiteKit.Put(ctx, q.Occ, b, a, AssetCategories.Rock, new[] { "Boulder02", "Boulder04", "Boulder06", "Rock21" }, 2.4f, 0xF120u + (uint)(n * 7 + k), 0.2f);
+                }
+            }
+            q.Heaps += n;
+        }
+
         private static string[] Or(string[] chosen, string[] own) { if (chosen != null) foreach (var c in chosen) if (!string.IsNullOrEmpty(c)) return chosen; return own; }
 
         private void PlanArt(LayerContext ctx)
@@ -261,6 +294,7 @@ namespace Placemaker.Core.Layers.Types.Quarry
             // 7. Pit dressing: banks, scree, machines, overgrowth.
             if (q.WaterRing != null) Banks(q, mudZones);
             if (q.Pit != null) Scree(q);
+            FloorHeaps(q);
             Machines(q);
             Overgrowth(q);
             ctx.Check();
@@ -718,7 +752,7 @@ namespace Placemaker.Core.Layers.Types.Quarry
             var ctx = q.Ctx;
             int wanted = math.min(240, (int)(ctx.F("scree") * q.Pit.Area / 10000f));
             if (wanted <= 0) return;
-            var ids = ctx.L("rockAssets");
+            var ids = Or(ctx.L("rockAssets"), OwnScree);
             string rock = SiteKit.Cat(ctx, ids, AssetCategories.Rock);
             if (rock == null) return;
             uint clump = Hashing.Mix(ctx.Seed, 0x5C4Eu);
