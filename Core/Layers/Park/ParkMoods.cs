@@ -167,6 +167,14 @@ namespace Placemaker.Core.Layers.Park
                 int tries = cd.area >= 6000f ? 2 : cd.area >= 1800f ? 1 : 0;
                 for (int t = 0; t < tries; t++) order.Add(cd);
             }
+            // the community garden, when asked, gets the first pick: the room that holds plots best goes first in line
+            if (allotment)
+            {
+                int bi = order.FindIndex(cd => !cd.core && cd.area >= 600f && cd.ins >= 5.5f);
+                if (bi < 0) bi = order.FindIndex(cd => cd.core);
+                if (bi > 0) { var first = order[bi]; order.RemoveAt(bi); order.Insert(0, first); }
+                maxPlaces = math.max(maxPlaces, places.Count + 1 + (Sum(pal) > 0f ? 1 : 0));
+            }
             int k = 0;
             foreach (var cd in order)
             {
