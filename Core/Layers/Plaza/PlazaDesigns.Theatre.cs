@@ -53,7 +53,7 @@ namespace Placemaker.Core.Layers.Plaza
             for (int it = 0; it < 4; it++)
             {
                 // (round 3, the lead: "a huge flat white fan") the bowl takes about 70 % of the box's width, at most 34 m
-                R = math.min(math.min(2f * ea - stageDepth - 14f, eb * 0.72f) - bank, 34f);
+                R = math.min(math.min(2f * ea - stageDepth - 14f, eb * 0.72f) - bank, ea * eb > 5000f ? 40f : 34f);   // up to 80 m across on a big site
                 float h = math.max(0f, R - math.clamp(R * 0.32f, 7f, 12f)) * slope;
                 if (h > 6f) slope = 6f / math.max(1f, R - math.clamp(R * 0.32f, 7f, 12f));
                 bank = math.max(2f, h / 0.42f);
@@ -268,11 +268,26 @@ namespace Placemaker.Core.Layers.Plaza
                 float cu0 = -ea, cu1 = s0 - 0.8f, cvw = math.min(sv + 6f, eb - 2f);
                 k.Lay(PFeature + 7, k.Box(cu0, cu1, -cvw, cvw).Ring, k.P.Path);
                 k.Lay(PKerb, PavingShapes.Frame(k.Box(cu0, cu1, -cvw, cvw).Ring, 0.8f), k.P.Band);
+                k.Lay(PFeature + 5, k.Box(cu0, cu1, -2.4f, 2.4f).Ring, k.P.Band);   // the processional way, in dark stone
                 foreach (float s in new[] { -1f, 1f })
                 {
-                    for (float v = 4f; v <= cvw - 3f; v += 7f) k.Tree(k.W((cu0 + cu1) * 0.5f, s * v), true, PlazaArt.PlaneTrees);
-                    k.Stall(k.W((cu0 + cu1) * 0.5f, s * (cvw - 2.5f)), -k.S * s, true);
-                    foreach (var q in LeisureKit.Along(k.W(cu0 + 2f, s * 2.5f), k.W(cu1 - 2f, s * 2.5f), 4f)) k.Seat(q, -k.S * s);
+                    // a tree avenue either side of the processional way, benches between the trees, kiosks at the outer end
+                    for (float u = cu0 + 3f; u <= cu1 - 3f; u += 7f) k.Tree(k.W(u, s * 5.5f), true, PlazaArt.PlaneTrees);
+                    if (cvw > 14f) for (float u = cu0 + 6.5f; u <= cu1 - 3f; u += 7f) k.Tree(k.W(u, s * 11f), true, PlazaArt.PlaneTrees);
+                    foreach (var q in LeisureKit.Along(k.W(cu0 + 6.5f, s * 3.4f), k.W(cu1 - 3f, s * 3.4f), 7f)) k.Seat(q, -k.S * s);
+                    k.Stall(k.W(cu0 + 4f, s * (cvw - 3f)), -k.S * s, true);
+                }
+            }
+            // allées radiating from the bowl across its lawns (the grounds belong to the theatre), benches facing the stage
+            foreach (float deg in new[] { -80f, -50f, -20f, 20f, 50f, 80f })
+            {
+                float an = math.radians(deg);
+                for (float r = R + bank + 5f; ; r += 9f)
+                {
+                    var q = P(r, an);
+                    if (!k.Region.ContainsDisc(q, k.Fw + 3f)) break;
+                    k.Tree(q, false, PlazaArt.GardenTrees);
+                    if (((int)(r / 9f) & 1) == 0) k.Seat(q + Dir(an + 0.09f) * 0f + new float2(-Dir(an).y, Dir(an).x) * 2.2f, -Dir(an));
                 }
             }
             // the lawns either side of the bowl: grass terraces of picnic blankets facing the stage, tree groups beyond
@@ -289,7 +304,7 @@ namespace Placemaker.Core.Layers.Plaza
             // the lawn's far side: trees in loose groups with benches
             for (float u = uF + R + bank + 4f; u < ea - 2f; u += 9f)
                 for (float v = -eb + 4f; v < eb - 3f; v += 10f)
-                    if (Hashing.Unit(k.V(0x7EA2u)) < 0.55f) k.Tree(k.W(u, v + (Hashing.Unit(k.V(0x7EA3u)) - 0.5f) * 4f), false, PlazaArt.GardenTrees);
+                    if (Hashing.Unit(k.V(0x7EA2u)) < 0.12f) k.Tree(k.W(u, v + (Hashing.Unit(k.V(0x7EA3u)) - 0.5f) * 4f), false, PlazaArt.GardenTrees);
             k.Core = r0;
             k.Ctx.Plan.Facts["theatreRadius"] = (float)Math.Round(R, 1);
         }

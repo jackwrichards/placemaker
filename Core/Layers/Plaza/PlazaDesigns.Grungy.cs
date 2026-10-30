@@ -88,9 +88,10 @@ namespace Placemaker.Core.Layers.Plaza
             lv.Add(-pu, pu, -pv, pv, -WallH, b);
             lv.Emit();
             var gaps = new List<Gap> { new Gap(0, 0f, 2.4f) };
-            Edges(k, -pu, pu, -pv, pv, B4(b), true, Head.None, gaps, k.P.Field);
+            Edges(k, -pu, pu, -pv, pv, B4(b), true, Head.None, gaps, new AssetRef(GroundSurfaces.VTilesDark, GroundSurfaces.VAsphalt));
             var floor = k.Box(-pu + b, pu - b, -pv + b, pv - b);
-            k.Lay(PFeature, floor.Ring, k.P.Path);
+            // (round 4: "the skate pit is a blank white slab") dark, stained concrete: the ramps and rails read on it
+            k.Lay(PFeature, floor.Ring, new AssetRef(GroundSurfaces.VAsphalt, GroundSurfaces.VTilesDark));
             k.Flight(k.W(-pu + b + 0.2f, 0f), k.W(-pu - 0.4f, 0f), 4.4f, true, false);
             // the ledge: a low concrete wall along both long rims, open in the middle
             foreach (float sv in new[] { -1f, 1f })

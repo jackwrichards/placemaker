@@ -62,7 +62,8 @@ namespace Placemaker.Core.Layers.Plaza
             ctx.Plan.Facts["plazaDesign"] = Array.IndexOf(Ids, design);
             // (round 3) a real square's size in the middle of a big site, a surround in the design's manner round it (Surround.cs);
             // the transit forecourt keeps its whole site (its platform runs along the street)
-            k.CapBox(design == "transit");
+            // the theatre grows with its site instead (a real Greek theatre is 60-80 m across) and lays out its own grounds
+            if (design != "theatre") k.CapBox(design == "transit");
             switch (design)
             {
                 case "grand": Grand(k); break;
