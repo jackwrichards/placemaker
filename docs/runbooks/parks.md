@@ -159,5 +159,5 @@ now prints MiB per family).
   place for the allotments' layer; not done.
 - `SiteHarmonyTests` park on a bumpy hill with the Terrain feature: 0.84 m step (limit 0.8) at a picnic shelter's pad
   whose spot moved because the places took lawns; the places do not terraform with the Terrain feature on.
-- Last commits after `show-23-builds-1030-012225-3eac` (memorial groves before places, creamier meadow flowers, leaner
-  decal family, botanical bed edging, massed boulder crowns) passed the tests but were not seen in the game.
+- The last commits after `show-23-builds-1030-012225-3eac` (memorial groves before its places, creamier meadow flowers,
+  the leaner decal family) passed the tests but were not seen in the game.
