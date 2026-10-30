@@ -59,8 +59,8 @@ namespace Placemaker.Core.Layers.Common
                 if (Hashing.Unit(h) > chance) continue;
                 if (reject != null && reject(p)) continue;
                 // crowns of every size: a spacing that varies from tree to tree (a fixed one packs into a lattice)
-                float rr = radius * math.lerp(0.62f, 1.15f, Hashing.Unit(Hashing.Mix(h, 77u)));
-                if (!occ.Free(p, rr, rr * 0.6f, 0.4f)) continue;
+                float rr = radius * math.lerp(0.8f, 1.2f, Hashing.Unit(Hashing.Mix(h, 77u)));
+                if (!occ.Free(p, rr, rr * 0.6f, 0.4f) || occ.Corridors.Overlaps(p, radius, role == ObjectRole.Tree ? 1.6f : 0.5f)) continue;
                 uint v = Hashing.Mix(ctx.Seed, salt * 31u + (uint)placed);
                 int age = -1;
                 if (role == ObjectRole.Tree)
@@ -141,17 +141,22 @@ namespace Placemaker.Core.Layers.Common
         public static int Fallen(LayerContext ctx, Occupancy occ, LayerRegion region, int count, uint salt, Func<float2, bool> ok = null)
         {
             int placed = 0;
+            // a trunk falls where trees stand: at least two trees within 9 m (logs alone on a meadow read as dropped props)
+            var trees = new List<float2>();
+            foreach (var o in ctx.Plan.Objects) if (o != null && o.Role == ObjectRole.Tree) trees.Add(o.Position.xz);
+            bool InWood(float2 q) { int c = 0; foreach (var t in trees) if (math.distancesq(t, q) < 81f && ++c >= 2) return true; return false; }
             for (int tries = 0; placed < count && tries < count * 14; tries++)
             {
                 uint v = Hashing.Mix(ctx.Seed, salt + (uint)tries);
                 var p = region.Min + new float2(Hashing.Unit(v), Hashing.Unit(Hashing.Mix(v, 1u))) * (region.Max - region.Min);
                 float yaw = Hashing.Unit(Hashing.Mix(v, 2u)) * 6.283f;
                 var along = new float2(math.sin(yaw), math.cos(yaw));
-                if (!region.ContainsDisc(p, 6f) || (ok != null && !ok(p))) continue;
-                if (!occ.Free(p, 1.2f, 0f, 0.2f) || !occ.Free(p + along * 3.5f, 0.8f, 0f, 0.2f) || !occ.Free(p - along * 3.5f, 0.8f, 0f, 0.2f)) continue;
+                if (!region.ContainsDisc(p, 6f) || (ok != null && !ok(p)) || !InWood(p)) continue;
+                // the game draws its logs at their full 10 m whatever the scale
+                if (!occ.Free(p, 1.2f, 0f, 0.2f) || !occ.Free(p + along * 4.8f, 0.8f, 0f, 0.2f) || !occ.Free(p - along * 4.8f, 0.8f, 0f, 0.2f) || !occ.Free(p + along * 2.5f, 0.8f, 0f, 0.2f) || !occ.Free(p - along * 2.5f, 0.8f, 0f, 0.2f)) continue;
                 var o = ctx.Object(p, yaw, ObjectRole.Furniture, AssetMix.Pick(Logs, v), v, -1, AssetCategories.PlayNature);
-                o.Scale = 0.65f + 0.35f * Hashing.Unit(Hashing.Mix(v, 3u));
-                occ.TakeCorridor(p - along * 3.6f, p + along * 3.6f, 0.6f, 5);
+
+                occ.TakeCorridor(p - along * 5.2f, p + along * 5.2f, 0.6f, 5);
                 placed++;
             }
             return placed;

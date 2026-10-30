@@ -272,9 +272,9 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                             var spur = bd > 12f && CurveInside(region, a, cb, cc, e, hw) ? ctx.CurvedNet(a, cb, cc, e, role, asset) : ctx.StraightNet(a, e, role, asset);
                             AttachStart(spur, g);
                             var prev = a;
-                            for (int k = 1; k <= 8; k++)
+                            for (int k = 1; k <= 16; k++)
                             {
-                                var q = Composer.Bezier(spur.A, spur.B, spur.C, spur.D, k / 8f).xz;
+                                var q = Composer.Bezier(spur.A, spur.B, spur.C, spur.D, k / 16f).xz;
                                 occ.TakeCorridor(prev, q, hw, 100);
                                 occ.Paths.Add(prev, q, hw, 100);
                                 prev = q;
@@ -458,7 +458,7 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
         private static readonly string[] SummitPaving = { "Pavement Surface 01", "Pavement Surface 02" };
         private static readonly string[] TerracePaving = { "Tiles Surface 01", "Pavement Surface 02" };
         private static readonly string[] Lamps = { "LightpolePark03", "EU_LightpolePark03" };
-        private static readonly string[] Bushes = { "GreenBushWild01", "GreenBushWildAdult01", "FlowerBushWild01", "GreenBushWild02" };
+        private static readonly string[] Bushes = { "GreenBushWild01", "GreenBushWildAdult01", "GreenBushWildElderly01", "GreenBushWild02" };   // (nature makeover) no blue-flowered garden bush on a wild hill
         private static readonly string[] Blankets = { "PicnicBlanket01", "PicnicBlanket02", "PicnicBlanket03", "PicnicBlanket04", "PicnicBlanket05" };
 
         private static AssetRef BenchFor(LayerContext ctx) => ctx.S("subtype") == "terraces"

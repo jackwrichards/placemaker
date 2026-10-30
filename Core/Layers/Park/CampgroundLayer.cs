@@ -116,16 +116,21 @@ namespace Placemaker.Core.Layers.Park
                 {
                     // Art pass (a1): breathing room between pitches (trees grow in the gaps) and the two sides
                     // staggered by half a step, so the loop reads as a campsite rather than a row of plots.
+                    // (nature makeover) no even necklace: the gap to the next pitch, the set-back from the path and the odd
+                    // missing pitch vary, the way a campsite fills a wood
                     float step = size + math.max(2.5f, size * 0.45f);
-                    for (float along = 4f + size * 0.5f; along < cv.Length - 4f - size * 0.5f; along += step)
+                    int pi = 0;
+                    for (float along = 4f + size * 0.5f; along < cv.Length - 4f - size * 0.5f; along += step * (0.8f + 0.9f * Hashing.Unit(Hashing.Mix(ctx.Seed, 0x9170 + pi, (int)cv.Length))))
                         for (int sideIndex = 0; sideIndex < 2; sideIndex++)
                         {
-                            float at = along + (sideIndex == 1 ? step * 0.5f : 0f);
+                            uint pv = Hashing.Mix(ctx.Seed, 0x9171 + pi++, sideIndex);
+                            if (Hashing.Unit(pv) < 0.18f) continue;
+                            float at = along + (sideIndex == 1 ? step * (0.3f + 0.4f * Hashing.Unit(Hashing.Mix(pv, 1u))) : 0f);
                             if (at > cv.Length - 4f - size * 0.5f) continue;
                             var p = cv.At(at, out var t);
                             var n = new float2(-t.y, t.x);
                             float side = sideIndex == 0 ? 1f : -1f;
-                            var c = p + n * side * (cv.HalfWidth + 0.8f + size * 0.5f);
+                            var c = p + n * side * (cv.HalfWidth + 0.8f + size * 0.5f + 3.5f * Hashing.Unit(Hashing.Mix(pv, 2u)));
                             if (!PitchFits(region, occ, c, t, size, gatePoints)) continue;
                             pitches.Add((c, t, side));
                             occ.Take(c, size * 0.5f, 1);
@@ -228,8 +233,7 @@ namespace Placemaker.Core.Layers.Park
                     float a = k * 1.2566f + 0.3f;
                     var dir = new float2(math.cos(a), math.sin(a));
                     var lp = clearing + dir * 4.2f;
-                    var o = ctx.Object(lp, math.atan2(-dir.y, dir.x), ObjectRole.Bench, AssetMix.Pick(NatureKit.Logs, (uint)k), Hashing.Mix(ctx.Seed, 0xF1F0u + (uint)k), -1, AssetCategories.PlayNature);
-                    o.Scale = 0.38f;
+                    ctx.Object(lp, math.atan2(-dir.x, -dir.y), ObjectRole.Bench, AssetMix.Pick(CampArt.FireSeats, (uint)k), Hashing.Mix(ctx.Seed, 0xF1F0u + (uint)k), -1, AssetCategories.Bench);   // facing the fire
                 }
                 occ.Take(clearing, 5.5f, 2);
             }
@@ -288,8 +292,8 @@ namespace Placemaker.Core.Layers.Park
                 float a = yaw + (k == 0 ? 0.6f : 2.4f) + Hashing.Unit(Hashing.Mix(v, (uint)k + 70u)) * 0.5f;
                 var dir = new float2(math.cos(a), math.sin(a));
                 var lp = c + dir * (r + 1.5f);
-                var o = ctx.Object(lp, math.atan2(-dir.y, dir.x), ObjectRole.Furniture, AssetMix.Pick(NatureKit.Logs, Hashing.Mix(v, (uint)k + 80u)), Hashing.Mix(v, (uint)k + 80u), -1, AssetCategories.PlayNature);
-                o.Scale = 0.24f;
+                // (the game draws its 10 m logs at full length whatever the scale: a camp bench is the seat)
+                ctx.Object(lp, math.atan2(-dir.x, -dir.y), ObjectRole.Bench, AssetMix.Pick(CampArt.FireSeats, Hashing.Mix(v, (uint)k + 80u)), Hashing.Mix(v, (uint)k + 80u), -1, AssetCategories.Bench);
             }
             ctx.AddRegion(LayerRegion.Circle(c, r + 0.4f, 10), "fire:" + (v & 0xFFFF), FireTag);
         }

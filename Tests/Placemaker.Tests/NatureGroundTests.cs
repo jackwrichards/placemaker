@@ -95,6 +95,43 @@ namespace Placemaker.Tests
             }
         }
 
+        /// <summary>The climb meets the summit plaza head on: no piece near the top turns more than 50° from the one before.</summary>
+        [Theory]
+        [InlineData("hilltop", 216f, 196f)]
+        [InlineData("hilltop", 146f, 136f)]
+        [InlineData("kiteHill", 216f, 196f)]
+        [InlineData("sledding", 216f, 196f)]
+        [InlineData("terraces", 216f, 196f)]
+        public void ClimbArrivesHeadOn(string style, float w, float d)
+        {
+            var plan = Plan("lookoutHill", style, w, d, null);
+            var l = plan.Layers.First(x => x.GeneratorId == "lookoutHill");
+            var summit = new float2((float)l.Facts["summitX"], (float)l.Facts["summitZ"]);
+            var pts = new List<float2>();
+            // the climb's pieces in order, sampled
+            var nets = l.Nets.Where(n => n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide).ToList();
+            var near = nets.Where(n => math.distance(n.D.xz, summit) < 40f || math.distance(n.A.xz, summit) < 40f).ToList();
+            float worst = 0f;
+            foreach (var n in near)
+            {
+                for (int k = 0; k <= 8; k++) pts.Add(Composer.Bezier(n.A, n.B, n.C, n.D, k / 8f).xz);
+            }
+            // turn between consecutive pieces that meet
+            foreach (var a in near)
+                foreach (var b in near)
+                {
+                    if (a == b || math.distance(a.D.xz, b.A.xz) > 0.5f) continue;
+                    // a junction (the second entrance's spur joins here) may meet at any angle
+                    if (nets.Count(n => math.distance(n.A.xz, a.D.xz) < 0.5f || math.distance(n.D.xz, a.D.xz) < 0.5f) > 2) continue;
+                    var ta = math.normalizesafe(a.D.xz - Composer.Bezier(a.A, a.B, a.C, a.D, 0.9f).xz);
+                    var tb = math.normalizesafe(Composer.Bezier(b.A, b.B, b.C, b.D, 0.1f).xz - b.A.xz);
+                    worst = math.max(worst, math.degrees(math.acos(math.clamp(math.dot(ta, tb), -1f, 1f))));
+                }
+            foreach (var n in near) _out.WriteLine($"piece {n.A.xz} -> {n.D.xz} (to summit {math.distance(n.D.xz, summit):F1} m)");
+            _out.WriteLine($"{style} {w}x{d}: worst turn near the top {worst:F0}°");
+            Assert.True(worst < 50f, $"{style}: a {worst:F0}° turn near the top");
+        }
+
         [Fact]
         public void SameSeedSameGround()
         {

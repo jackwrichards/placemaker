@@ -134,7 +134,8 @@ namespace Placemaker.Core.Decals.Dynamic
             {
                 string id = ((o.Asset.Id ?? "") + " " + (o.Asset.Fallbacks != null && o.Asset.Fallbacks.Length > 0 ? o.Asset.Fallbacks[0] : "") + " " + (o.Category ?? "")).ToLowerInvariant();
                 if (DressingWorld.IsConifer(o)) return "pineNeedles";
-                if (id.Contains("birch") || id.Contains("alder") || id.Contains("poplar")) return "leafBirch";
+                // (nature) birch, alder and poplar drop the mixed brown-olive set: the birch set read as a yellow carpet in summer
+                if (id.Contains("birch") || id.Contains("alder") || id.Contains("poplar")) return "leafMixed";
                 if (id.Contains("oak")) return "leafOak";
                 if (id.Contains("plane") || id.Contains("linden")) return "leafPlane";
                 if (id.Contains("chestnut") || id.Contains("hickory") || id.Contains("maple")) return "leafMaple";
@@ -373,13 +374,57 @@ namespace Placemaker.Core.Decals.Dynamic
                 // faint mottling over all the open ground: the big variation is the paint's, this is the grain
                 Brushes.Scatter(_b, _wild, "groundMottle", 0.14f, new ScatterOptions { Weight = p => 0.3f + 0.7f * ValueNoise.Clumps(p, 34f, H(1)), Opacity = new float2(0.18f, 0.35f), Clump = 2.5f, Spill = 2f, Level = ColourLevel.Quiet, Cause = "ground:mottle" });
                 // dry grass where the ground drains and the sun falls: knolls, the south-facing upper slopes, open ground away from shade
-                Brushes.Scatter(_b, _wild, "dryGrass", 0.2f, new ScatterOptions { Weight = Dry, Opacity = new float2(0.3f, 0.55f), Clump = 3f, Spill = 2f, Cause = "ground:dry" });
+                Brushes.Scatter(_b, _wild, "dryGrass", 0.12f, new ScatterOptions { Weight = Dry, Opacity = new float2(0.2f, 0.4f), Clump = 3f, Spill = 2f, Level = ColourLevel.Quiet, Cause = "ground:dry" });
                 // damp lows: where water gathers but does not stand
                 Brushes.Scatter(_b, _wild, "dampPatch", 0.06f, new ScatterOptions { Weight = p => Damp(p) * (1f - Dry(p)), Opacity = new float2(0.25f, 0.45f), Clump = 2.5f, Loners = 0.2f, Cause = "ground:damp" });
+                if (_amount > 0f) Terracettes();
                 if (Heath)
                 {
                     // heather over the open heath, thinning under the few trees and along the trails
                     Brushes.Scatter(_b, _wild, "heathPatch", 0.55f, new ScatterOptions { Weight = p => (0.35f + 0.65f * ValueNoise.Clumps(p, 22f, H(3))) * (1f - Shade(p) * 0.8f) * math.saturate(PathDistance(p) / 2.5f), Opacity = new float2(0.55f, 0.9f), Clump = 4f, Spread = 0.6f, Loners = 0.2f, Spill = 1f, Cause = "ground:heath" });
+                }
+            }
+
+            /// <summary>
+            /// Terracettes: on open grassy slopes, the narrow level tracks that grazing feet tread along the contours, in bands of
+            /// three to five a step apart (any grass hill steeper than about 1 in 7). Read from the built ground's slope.
+            /// </summary>
+            private void Terracettes()
+            {
+                int n = _nx * _nz, bands = 0, maxBands = math.clamp((int)(Poly.Area(_ring) / 4500f), 1, 18);
+                for (int k0 = 0; k0 < n && bands < maxBands && !_b.Full; k0++)
+                {
+                    int k = (int)((k0 * 7919L + 13) % n);
+                    if (!_in[k] || _wet[k] || _slope[k] < 0.19f || _slope[k] > 0.7f || U(60, k) > 0.12f) continue;
+                    var seed = Pos(k % _nx, k / _nx);
+                    if (Shade(seed) > 0.15f || PathDistance(seed) < 3f) continue;
+                    var down = _down[k];
+                    int lines = 3 + (int)(U(61, k) * 3f);
+                    float gap = 1.6f + U(62, k) * 1.1f;
+                    bool any = false;
+                    for (int li = 0; li < lines; li++)
+                    {
+                        var start = seed + down * (li * gap) + new float2(-down.y, down.x) * (U(63, li + k) - 0.5f) * 4f;
+                        var pts = new List<float2>();
+                        for (int dir = -1; dir <= 1; dir += 2)
+                        {
+                            var p = start; var seg = new List<float2>();
+                            float len = 8f + U(64, k * 7 + li * 2 + dir) * 22f;
+                            for (float s = 0f; s < len; s += 2f)
+                            {
+                                At(p, out float sl, out var dn, out _, out _);
+                                if (sl < 0.12f || !Poly.Contains(_ring, p) || WetAt(p) || PathDistance(p) < 1.5f || Shade(p) > 0.3f) break;
+                                seg.Add(p);
+                                p += new float2(-dn.y, dn.x) * dir * 2f;
+                            }
+                            if (dir < 0) { seg.Reverse(); pts.AddRange(seg); }
+                            else if (seg.Count > 1) pts.AddRange(seg.GetRange(1, seg.Count - 1));
+                        }
+                        if (pts.Count < 4) continue;
+                        Brushes.EdgeStrip(_b, Smooth(pts, 2), "animalTrail", new StripOptions { Gaps = 0.35f, Run = new float2(5f, 16f), Opacity = Op(0.28f, 0.5f), Width = new float2(0.6f, 0.85f), CornerDeg = 60f, Cause = "ground:terracette" });
+                        any = true;
+                    }
+                    if (any) bands++;
                 }
             }
 
@@ -652,8 +697,8 @@ namespace Placemaker.Core.Decals.Dynamic
                 foreach (var kv in bySpecies)
                 {
                     string kind = Leaf(kv.Key);
-                    float cov = (kind == "pineNeedles" ? 0.7f : kind == "blossomPetals" ? 0.35f : 0.75f) * A * thin;
-                    Brushes.Under(_b, kv.Value, kind, cov, Weathering.Wind, fall, new ScatterOptions { Opacity = Op(0.5f, 0.95f), Scale = new float2(0.9f, 1.4f), Clump = 5f, Spread = 0.55f, Loners = 0.25f, Spill = 2f, Cause = "leaves" });
+                    float cov = (kind == "pineNeedles" ? 0.5f : kind == "blossomPetals" ? 0.3f : 0.52f) * A * thin;
+                    Brushes.Under(_b, kv.Value, kind, cov, Weathering.Wind, fall, new ScatterOptions { Opacity = Op(0.45f, 0.85f), Scale = new float2(0.9f, 1.4f), Clump = 5f, Spread = 0.55f, Loners = 0.25f, Spill = 2f, Level = ColourLevel.Quiet, Cause = "leaves" });
                 }
                 // groups: woodland floor and moss in the deep shade, a few sticks
                 var groups = Groups(9f);
@@ -664,9 +709,9 @@ namespace Placemaker.Core.Decals.Dynamic
                     bool conifer = true;
                     foreach (var t in g) { crowns.Add((t.P, t.Crown * 0.9f)); conifer &= t.Conifer; }
                     float big = math.min(1f, g.Count / 12f);
-                    Brushes.Under(_b, crowns, conifer ? "pineNeedles" : "woodlandFloor", (conifer ? 0.3f : 0.26f) * A * (0.6f + 0.4f * big), Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.7f), Clump = 3f, Cause = "woodland" });
-                    if (g.Count >= 5) Brushes.Under(_b, crowns, "mossPatch", 0.08f * A, float2.zero, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.6f), Clump = 2f, Loners = 0.4f, Cause = "woodland:moss" });
-                    Brushes.Under(_b, crowns, "twigs", 0.06f * A, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.5f, 0.85f), Clump = 2f, Loners = 0.5f, Cause = "woodland:twigs" });
+                    Brushes.Under(_b, crowns, conifer ? "pineNeedles" : "woodlandFloor", (conifer ? 0.22f : 0.18f) * A * (0.6f + 0.4f * big), Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.7f), Clump = 3f, Cause = "woodland" });
+                    if (g.Count >= 5) Brushes.Under(_b, crowns, "mossPatch", 0.05f * A, float2.zero, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.6f), Clump = 2f, Loners = 0.4f, Cause = "woodland:moss" });
+                    Brushes.Under(_b, crowns, "twigs", 0.04f * A, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.5f, 0.85f), Clump = 2f, Loners = 0.5f, Cause = "woodland:twigs" });
                 }
                 // dead trees: their bark and branches on the ground round them
                 if (dead.Count > 0)
@@ -703,12 +748,28 @@ namespace Placemaker.Core.Decals.Dynamic
 
             private void Feet()
             {
+                // the trail itself: packed earth and grit over the game's paved path, laid along whole chains of pieces so it never
+                // fades out at a joint (the greenway's spine stays a made path: it is a cycle route). Never thinned: half a dirt
+                // trail is a broken look, not a lighter one.
+                if (_type != "greenwayPark")
+                {
+                    var dirt = _b.Lib.Get("trailDirt");
+                    float w = dirt == null ? 3.3f : DecalVariants.FootprintOf(dirt, 0).y;
+                    float keep = _b.Density; _b.Density = 1f;
+                    foreach (var (chain, half) in Chains())
+                    {
+                        if (half >= 2.2f) continue;
+                        float sz = (half * 2f + 0.5f) / math.max(1f, w);
+                        Brushes.EdgeStrip(_b, chain, "trailDirt", new StripOptions { Gaps = 0f, Run = new float2(400f, 900f), Opacity = Op(0.85f, 0.95f), Width = new float2(sz, sz * 1.05f), CornerDeg = 80f, Cause = "feet:trail" });
+                    }
+                    _b.Density = keep;
+                }
                 foreach (var l in _paths)
                 {
                     if (l.Deck) continue;
                     // the trail's edge trodden into the ground on both sides, broken often (a wild trail is uneven)
                     for (int side = -1; side <= 1; side += 2)
-                        Brushes.EdgeStrip(_b, Offset(l.P, side * (l.Half + 0.55f)), "pathEdgeWear", new StripOptions { Side = side > 0 ? -1 : 1, Gaps = 0.4f, Run = new float2(8f, 26f), Opacity = Op(0.4f, 0.75f), Width = new float2(0.7f, 1f), Cause = "feet:edge" });
+                        Brushes.EdgeStrip(_b, Offset(l.P, side * (l.Half + 0.55f)), "pathEdgeWear", new StripOptions { Side = side > 0 ? -1 : 1, Gaps = 0.5f, Run = new float2(8f, 26f), Opacity = Op(0.28f, 0.55f), Width = new float2(0.65f, 0.95f), Level = ColourLevel.Quiet, Cause = "feet:edge" });
                     // roots bared where the trail passes close to a big tree
                     for (int i = 0; i < l.P.Length; i += 3)
                     {
@@ -743,6 +804,52 @@ namespace Placemaker.Core.Decals.Dynamic
                     Brushes.At(_b, p + fwd * 1.2f, fwd, "barePatch", 3.5f, Op(0.3f, 0.55f), 0, ColourLevel.Any, "feet:bench");
                 }
                 AnimalTrails();
+            }
+
+            /// <summary>The trails joined end to end where exactly two pieces meet (a junction of three ends the chains there).</summary>
+            private List<(float2[] pts, float half)> Chains()
+            {
+                var lines = _paths.FindAll(l => !l.Deck && l.P.Length >= 2);
+                int n = lines.Count;
+                var used = new bool[n];
+                int Degree(float2 p) { int c = 0; foreach (var l in lines) { if (math.distancesq(l.P[0], p) < 0.25f) c++; if (math.distancesq(l.P[l.P.Length - 1], p) < 0.25f) c++; } return c; }
+                int Next(float2 end, int skip, out bool reversed)
+                {
+                    reversed = false;
+                    if (Degree(end) != 2) return -1;
+                    for (int j = 0; j < n; j++)
+                    {
+                        if (used[j] || j == skip) continue;
+                        if (math.distancesq(lines[j].P[0], end) < 0.25f) return j;
+                        if (math.distancesq(lines[j].P[lines[j].P.Length - 1], end) < 0.25f) { reversed = true; return j; }
+                    }
+                    return -1;
+                }
+                var res = new List<(float2[], float)>();
+                for (int i = 0; i < n; i++)
+                {
+                    if (used[i]) continue;
+                    used[i] = true;
+                    var pts = new List<float2>(lines[i].P);
+                    float half = lines[i].Half;
+                    // forward from the end, then backward from the start
+                    for (int dir = 0; dir < 2; dir++)
+                    {
+                        while (true)
+                        {
+                            var end = dir == 0 ? pts[pts.Count - 1] : pts[0];
+                            int j = Next(end, -1, out bool rev);
+                            if (j < 0) break;
+                            used[j] = true;
+                            half = math.max(half, lines[j].Half);
+                            var add = new List<float2>(lines[j].P);
+                            if (dir == 0) { if (rev) add.Reverse(); pts.AddRange(add.GetRange(1, add.Count - 1)); }
+                            else { if (!rev) add.Reverse(); add.RemoveAt(add.Count - 1); pts.InsertRange(0, add); }
+                        }
+                    }
+                    res.Add((pts.ToArray(), half));
+                }
+                return res;
             }
 
             private static float2[] Offset(float2[] line, float d)

@@ -67,6 +67,8 @@ namespace Placemaker.Core.Layers.Park
         public static readonly string[] Shelter = { "CampgroundShelter02", "CampgroundShelter01" };
         /// <summary>(nature makeover) The camp's woodstore.</summary>
         public static readonly string[] Woodstore = { "FirewoodShelter02", "FirewoodShelter01" };
+        /// <summary>(nature makeover) Seats round a fire ring: the timber camp benches.</summary>
+        public static readonly string[] FireSeats = { "CampgroundBench01", "CampgroundBench02" };
         public static readonly string[] Trees = { "OakTree01", "BirchTree01", "EU_AlderTree01", "NA_HickoryTree01", "PineTree01", "SpruceTree01" };
         public static readonly string[] ForestTrees = { "PineTree01", "SpruceTree01", "BirchTree01", "EuropeanSpruce01", "PineTree01", "EU_AlderTree01" };
     }

@@ -260,7 +260,7 @@ namespace Placemaker.Core.Layers.Leisure
         // avenue of one species, a quieter footpath beside it joined at both ends, copses and meadow around.
         private static readonly string[] GreenwayAvenue = { "NA_LindenTree01", "NA_LondonPlaneTree01" };
         private static readonly string[] GreenwayTrees = { "OakTree01", "EU_ChestnutTree01", "NA_LindenTree01", "BirchTree01" };
-        private static readonly string[] GreenwayBushes = { "GreenBushWild01", "GreenBushWildAdult01", "FlowerBushWild01", "FlowerBushWild02" };
+        private static readonly string[] GreenwayBushes = { "GreenBushWild01", "GreenBushWildAdult01", "GreenBushWildElderly01", "FlowerBushWild02" };
         private static readonly string[] GreenwayBenches = { "Pack10-Bench01", "Pack10-Bench03" };
         private static readonly string[] GreenwayLamps = { "LightpolePark01", "EU_LightpolePark01" };
         private static readonly string[] GreenwayBins = { "Trashbin01", "Trashbin02" };

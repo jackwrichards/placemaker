@@ -72,7 +72,7 @@ namespace Placemaker.Core.Layers.Leisure
         }
 
         private static string[] Bushes(string character) => character == "heath"
-            ? new[] { "FlowerBushWild01", "FlowerBushWild02", "FlowerBushWildElderly01", "GreenBushWildChild01" }
+            ? new[] { "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWildElderly01", "FlowerBushWildDead02", "GreenBushWildChild01", "GreenBushWild01" }   // (nature makeover) moor scrub: low, mostly green, a little dead; the heather is the ground decal
             : new[] { "GreenBushWild01", "GreenBushWild02", "GreenBushWildAdult01", "GreenBushWildElderly01" };
 
         /// <summary>Open timber shelter as the automatic lookout (the lookout pool is 32-56 m buildings).</summary>
@@ -88,7 +88,7 @@ namespace Placemaker.Core.Layers.Leisure
             var gates = Gates(ctx);
             // No lawn surface: a reserve stands on natural ground (a mown grass texture under a forest read as a park).
             int loops = math.max(1, ParkPathPlanner.LoopsByArea(region.Area));
-            NaturalPaths(ctx, occ, gates, loops, 7f, 15f, "narrow", AssetMix.One(ctx.S("trailAsset")), region.Area > 20000f);
+            NaturalPaths(ctx, occ, gates, loops, 5f, 34f, "narrow", AssetMix.One(ctx.S("trailAsset")), region.Area > 20000f);
             ctx.Check();
 
             // Lookout beside the trail at the highest point.

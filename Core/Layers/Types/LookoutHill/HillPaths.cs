@@ -135,7 +135,8 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
             float l0 = math.distance(a, spec.Summit) - spec.SummitRadius;
             if (l0 < 3f) return;
             // the arrival point: where the heading, swung toward the summit, meets the plaza rim
-            var aim = math.normalizesafe(a + t * l0 * 0.9f - spec.Summit);
+            // the rim point facing the walker, nudged a little along its heading: the turn is spread over the whole stretch
+            var aim = math.normalizesafe(math.normalizesafe(a - spec.Summit) + t * 0.45f);
             var e = spec.Summit + aim * spec.SummitRadius;
             float len = math.distance(a, e);
             var b = a + t * len * 0.4f;
