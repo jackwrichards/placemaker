@@ -367,6 +367,12 @@ nearly orthographic), `closeup` (yaw 30, pitch 38, 45-60 m), `low` (pitch 20). T
 and looks north; the noon sun is behind it. The game lifts the eye over terrain and clamps tilt: the rendered pitch
 and distance are read back and the request corrected (up to 3 passes).
 
+To stand inside a glade or look along a bank (nature makeover): `"eye": [x, z]` (block-relative, or absolute with
+`abs`) and `"height"` (m above the ground there, default 1.7) put the eye there looking at the target; yaw, pitch and
+distance follow. `"clearView": true` turns the camera round its target (in 15° steps) to the direction whose line of
+sight passes the fewest trees and bushes of the last built plan; with `"height"` and `"distance"` it is a low eye that
+far away. Without these keys every camera step behaves as before.
+
 ## Shots
 
 * `shotMode`: `render` (the clean scene: no outline, no icons, no street names), `overlay` (with Placemaker's outline,

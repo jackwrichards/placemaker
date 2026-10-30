@@ -53,6 +53,11 @@ namespace Placemaker.Game.Suite
                 yield return Frames(1);
                 rec["ghostPendingAtPress"] = _tool.GhostPending;
             }
+            // (nature makeover) what grows in the plan, for camera steps with "clearView" after the build
+            st.Sightblock.Clear();
+            if (_tool.Plan?.Layers != null)
+                foreach (var l in _tool.Plan.Layers) foreach (var o in l.Objects)
+                    if (o != null && (o.Role == ObjectRole.Tree || o.Role == ObjectRole.Bush)) st.Sightblock.Add(o.Position.xz);
             var primary = _tool.SuitePrimaryInfo();
             if (!primary.Enabled && primary.Reason == "Placemaker.Reason.AcknowledgePermanent")
             {

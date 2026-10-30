@@ -40,6 +40,8 @@ namespace Placemaker.Core.Decals.Dynamic
         public const string WaterTag = "place:water";
         /// <summary>The tag of a fire ring's spot (CampgroundLayer.FireTag).</summary>
         public const string FireTag = "place:fire";
+        /// <summary>The tag of a marsh hollow the type dug (WetlandLayer.MarshHollows).</summary>
+        public const string MarshTag = "place:marsh";
 
         internal sealed class Design
         {
@@ -63,7 +65,7 @@ namespace Placemaker.Core.Decals.Dynamic
             private readonly List<(float2 p, float r)> _rocks = new List<(float2, float)>();
             private readonly List<(float2 p, float yaw)> _logs = new List<(float2, float)>();
             private readonly List<(float2 p, float yaw)> _tents = new List<(float2, float)>(), _fires = new List<(float2, float)>(), _tables = new List<(float2, float)>(), _benches = new List<(float2, float)>();
-            private readonly List<float2[]> _water = new List<float2[]>(), _hard = new List<float2[]>(), _pads = new List<float2[]>();
+            private readonly List<float2[]> _water = new List<float2[]>(), _hard = new List<float2[]>(), _pads = new List<float2[]>(), _marsh = new List<float2[]>();
             private readonly List<float2> _gates = new List<float2>();
             private PointGrid _treeGrid, _pathGrid;
             private readonly List<(float2 a, float2 b, float half)> _pathSegs = new List<(float2, float2, float)>();
@@ -168,6 +170,7 @@ namespace Placemaker.Core.Decals.Dynamic
                         if (reg?.Tags == null || reg.Ring.Length < 3) continue;
                         if (Array.IndexOf(reg.Tags, WaterTag) >= 0) _water.Add(Poly.EnsureCcw(Poly.To2D(reg.Ring)));
                         else if (Array.IndexOf(reg.Tags, FireTag) >= 0) _fires.Add((Poly.Centroid(Poly.To2D(reg.Ring)), 0f));
+                        else if (Array.IndexOf(reg.Tags, MarshTag) >= 0) _marsh.Add(Poly.EnsureCcw(Poly.To2D(reg.Ring)));
                     }
                     foreach (var o in l.Objects)
                     {
@@ -453,6 +456,7 @@ namespace Placemaker.Core.Decals.Dynamic
             {
                 Rills();
                 Marsh();
+                DugMarsh();
                 Banks();
             }
 
@@ -672,10 +676,45 @@ namespace Placemaker.Core.Decals.Dynamic
                     blo -= _cell; bhi += _cell;
                     marsh.Outer.Add(_ring); rim.Outer.Add(_ring);
                     marsh.ClipLo = rim.ClipLo = blo; marsh.ClipHi = rim.ClipHi = bhi;
-                    Brushes.Scatter(_b, marsh, "marshMud", 0.7f, new ScatterOptions { Opacity = Op(0.55f, 0.9f), Clump = 3f, Spread = 0.5f, Loners = 0.15f, Cause = "water:marsh" });
-                    Brushes.Scatter(_b, rim, "sedgeLitter", 0.25f, new ScatterOptions { Opacity = Op(0.5f, 0.85f), Clump = 3f, Loners = 0.3f, Cause = "water:sedge" });
+                    // a real marsh basin (30 cm and more): saturated peat over the whole floor, standing water in the lowest part
+                    bool wet = deepest >= 0.22f;
+                    Brushes.Scatter(_b, marsh, "marshMud", wet ? 1.1f : 0.7f, new ScatterOptions { Opacity = Op(wet ? 0.75f : 0.55f, 1f), Clump = 3f, Spread = 0.5f, Loners = 0.15f, Cause = "water:marsh" });
+                    if (wet)
+                    {
+                        var pool = new BrushArea { Keep = p => { int c = CellOf(p); return c >= 0 && Depth(c) > deepest * 0.6f && PathDistance(p) > 0.5f; } };
+                        pool.Outer.Add(_ring); pool.ClipLo = blo; pool.ClipHi = bhi;
+                        Brushes.Scatter(_b, pool, "puddlePiece", 0.9f, new ScatterOptions { Opacity = new float2(0.8f, 1f), Scale = new float2(1f, 1.5f), Clump = 2f, Spread = 0.4f, Loners = 0.1f, Cause = "water:pool" });
+                    }
+                    Brushes.Scatter(_b, rim, "sedgeLitter", wet ? 0.45f : 0.25f, new ScatterOptions { Opacity = Op(0.5f, 0.85f), Clump = 3f, Loners = 0.3f, Cause = "water:sedge" });
                     Brushes.Scatter(_b, rim, "dampPatch", 0.2f, new ScatterOptions { Opacity = Op(0.3f, 0.5f), Clump = 2f, Cause = "water:damp" });
                     laid++;
+                }
+            }
+
+            /// <summary>
+            /// The marsh hollows the type dug (place:marsh): saturated black peat over the floor, standing water mirrored in its
+            /// lowest middle, dead sedge thick round the rim, damp ground spreading out. Laid on the hollow itself, so it reads
+            /// whatever the land grid's cells make of a 30-60 cm dip.
+            /// </summary>
+            private void DugMarsh()
+            {
+                foreach (var m in _marsh)
+                {
+                    if (_b.Full) break;
+                    var c = Poly.Centroid(m);
+                    float r = math.sqrt(Poly.Area(m) / math.PI);
+                    var inner = new float2[m.Length];
+                    for (int i = 0; i < m.Length; i++) inner[i] = c + (m[i] - c) * 0.55f;
+                    var floor = BrushArea.Of(m); floor.Keep = p => PathDistance(p) > 0.4f;
+                    var pool = BrushArea.Of(inner); pool.Keep = p => PathDistance(p) > 0.6f;
+                    Brushes.Fill(_b, m, "marshMud", Op(0.85f, 1f), ColourLevel.Any, "water:marsh");
+                    Brushes.Scatter(_b, floor, "marshMud", 1.2f, new ScatterOptions { Opacity = Op(0.8f, 1f), Clump = 3f, Spread = 0.45f, Loners = 0.1f, Spill = 1f, Cause = "water:marsh" });
+                    Brushes.Fill(_b, inner, "puddlePiece", new float2(0.9f, 1f), ColourLevel.Any, "water:pool");
+                    Brushes.Scatter(_b, pool, "puddlePiece", 0.8f, new ScatterOptions { Opacity = new float2(0.85f, 1f), Scale = new float2(1f, 1.4f), Clump = 2f, Spread = 0.4f, Loners = 0.1f, Cause = "water:pool" });
+                    var ring = new BrushArea { Keep = p => { float d = math.distance(p, c) / r; return d > 0.6f && d < 1.35f && PathDistance(p) > 0.3f; } };
+                    ring.Outer.Add(_ring); ring.ClipLo = c - r * 1.4f; ring.ClipHi = c + r * 1.4f;
+                    Brushes.Scatter(_b, ring, "sedgeLitter", 0.7f, new ScatterOptions { Opacity = Op(0.65f, 0.95f), Clump = 3f, Loners = 0.2f, Cause = "water:sedge" });
+                    Brushes.Scatter(_b, ring, "dampPatch", 0.3f, new ScatterOptions { Opacity = Op(0.4f, 0.6f), Clump = 2f, Cause = "water:damp" });
                 }
             }
 

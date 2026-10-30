@@ -632,10 +632,10 @@ namespace Placemaker.Core.Layers.Types.Wetland
             {
                 if (centres.Count >= want) break;
                 float dw = water.Distance(p, 40f);
-                if (dw < 5f || dw > belt + 18f || water.InWater(p, 5f)) continue;
+                if (dw < 4f || dw > belt + 26f || water.InWater(p, 4f)) continue;
                 uint v = Hashing.Mix(ctx.Seed, 0x4012u + (uint)centres.Count * 977u + (uint)(p.x * 3f));
-                float r = 5f + 6f * Hashing.Unit(v);
-                if (occ.Corridors.Overlaps(p, r + 2.5f, 0f) || !region.ContainsDisc(p, r + 4f)) continue;
+                float r = 7f + 8f * Hashing.Unit(v);
+                if (occ.Corridors.Overlaps(p, r + 2.5f, 0f) || !region.ContainsDisc(p, r + 4f) || occ.Discs.Overlaps(p, 1.5f, 0f)) continue;
                 bool far = true;
                 foreach (var o in centres) if (math.distance(o.c, p) < (o.r + r) * 0.9f) { far = false; break; }
                 if (!far) continue;
@@ -663,7 +663,44 @@ namespace Placemaker.Core.Layers.Types.Wetland
             // what already stands in a hollow sits on the new ground
             foreach (var o in ctx.Plan.Objects) if (field(o.Position.xz) > 0.01f) o.Position = ctx.P3(o.Position.xz);
             ctx.Plan.Facts["marshHollows"] = centres.Count;
+            // the hollows as "place:marsh" regions: the designed ground lays the marsh (peat, standing water, sedge) on them
+            for (int i = 0; i < centres.Count; i++) ctx.AddRegion(LeisureKit.Blob(centres[i].c, centres[i].r, Hashing.Mix(ctx.Seed, 0x4014u + (uint)i), 14, 0.22f), "marsh:" + i, "place:marsh");
+            ctx.Plan.Facts["marshPlants"] = MarshPlanting(ctx, occ, centres, field);
             return field;
+        }
+
+        /// <summary>
+        /// (nature makeover) What grows in a marsh hollow: the open wet middle left bare (the designed ground lays standing
+        /// water and peat there), a dense ring of reeds round it, tussocks of low grassy bushes on the rim. Returns plants placed.
+        /// </summary>
+        private static int MarshPlanting(LayerContext ctx, Occupancy occ, List<(float2 c, float r, float d)> centres, System.Func<float2, float> field)
+        {
+            if (!AssetAvailability.Has(AssetCategories.Bush)) return 0;
+            var reeds = WetlandArt.Or(ctx.L("reedSpecies"), WetlandArt.Reeds, AssetCategories.Bush);
+            if (reeds.Length == 0) return 0;
+            var region = ctx.LayerRegion;
+            int placed = 0, k = 0;
+            foreach (var (c, r, d) in centres)
+            {
+                for (float y = -r * 1.3f; y <= r * 1.3f; y += 1.5f)
+                    for (float x = -r * 1.3f; x <= r * 1.3f; x += 1.5f)
+                    {
+                        uint v = Hashing.Mix(ctx.Seed, 0x4A5Cu + (uint)k++);
+                        var p = c + new float2(x, y) + new float2(Hashing.Unit(v) - 0.5f, Hashing.Unit(Hashing.Mix(v, 1u)) - 0.5f) * 1.1f;
+                        float f = field(p) / math.max(0.05f, d);   // 1 in the middle, 0 at the rim and beyond
+                        float t = math.distance(p, c) / r;
+                        float chance = f > 0.55f ? 0.04f : f > 0.12f ? 0.6f : t < 1.3f ? 0.22f : 0f;
+                        if (Hashing.Unit(Hashing.Mix(v, 2u)) > chance) continue;
+                        if (!region.ContainsDisc(p, 1f) || !occ.Free(p, 0.7f, 0.5f, 0.15f)) continue;
+                        bool tussock = f <= 0.12f;
+                        var id = tussock ? AssetMix.Pick(WetlandArt.Tussocks, v) : AssetMix.Pick(reeds, v);
+                        var o = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 3u)) * 6.283f, ObjectRole.Bush, id, v);
+                        o.Scale = tussock ? 0.7f + 0.4f * Hashing.Unit(Hashing.Mix(v, 4u)) : 0.9f + 0.4f * Hashing.Unit(Hashing.Mix(v, 4u));
+                        occ.Take(p, 0.7f, 4);
+                        placed++;
+                    }
+            }
+            return placed;
         }
 
         /// <summary>

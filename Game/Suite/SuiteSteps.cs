@@ -37,6 +37,8 @@ namespace Placemaker.Game.Suite
             public int Group;
             public bool Built, Deleted;
             public float2[] Ring;
+            /// <summary>(nature makeover) Trees and bushes of the last built plan (camera "clearView").</summary>
+            public readonly List<float2> Sightblock = new List<float2>();
             public float3 Focus;
             public float Radius = 80f;
             public int FileIndex;

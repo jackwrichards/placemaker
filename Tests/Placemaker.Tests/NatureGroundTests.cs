@@ -83,7 +83,7 @@ namespace Placemaker.Tests
                     var plan = Plan(type, style, w, d, Ground(site));
                     var list = Instances(plan);
                     var wr = plan.Weathering;
-                    _out.WriteLine($"{type}/{style} {site}: plan {sw.ElapsedMilliseconds} ms; trees {string.Join("+", plan.Layers.Select(l => l.GeneratorId + ":" + l.Objects.Count(o => o.Role == ObjectRole.Tree)))}, bushes {plan.Layers.Sum(l => l.Objects.Count(o => o.Role == ObjectRole.Bush))}, rocks {plan.Layers.Sum(l => l.Objects.Count(o => o.Category == "rock"))}; {string.Join(" ", plan.Layers.SelectMany(l => l.Facts).Where(kv => kv.Key.StartsWith("grove")).Select(kv => kv.Key + "=" + kv.Value.ToString("F3")))}; {wr}");
+                    _out.WriteLine($"{type}/{style} {site}: plan {sw.ElapsedMilliseconds} ms; trees {string.Join("+", plan.Layers.Select(l => l.GeneratorId + ":" + l.Objects.Count(o => o.Role == ObjectRole.Tree)))}, bushes {plan.Layers.Sum(l => l.Objects.Count(o => o.Role == ObjectRole.Bush))}, rocks {plan.Layers.Sum(l => l.Objects.Count(o => o.Category == "rock"))}; {string.Join(" ", plan.Layers.SelectMany(l => l.Facts).Where(kv => kv.Key.StartsWith("grove") || kv.Key.StartsWith("marsh")).Select(kv => kv.Key + "=" + kv.Value.ToString("F3")))}; {wr}");
                     Assert.NotNull(wr);
                     Assert.True(list.Count > 80, $"{type}/{style} {site}: only {list.Count} instances");
                     Assert.True(list.Count <= Weathering.MaxInstances);
