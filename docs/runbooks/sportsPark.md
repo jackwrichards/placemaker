@@ -46,7 +46,7 @@ Before any brush runs, the design knows the whole site and every layer agrees wi
 | Area | Ground | Paint | Surface | Decals |
 |---|---|---|---|---|
 | Park lawn (between everything) | painted terrain (`dressLawn` default is now Painted) | lawn tint (lush/dry clumps), lived-in mulch under crowns | none | `lawnTonePatch` tone everywhere, `groundMottle` clumps, `dryGrass` toward the open edges and away from shade, a little `cloverPatch` in the shade |
-| Pitches, infields | grass surface (turf) | none (paint cannot show through) | turf | faint `lawnTonePatch`, `mowingStripes` along the long side, goalmouths, crease, spots, centre, spine, linesmen |
+| Pitches, infields | grass surface (turf) | none (paint cannot show through) | turf | `mowingStripes` (5.5 m bands, subtle), a few `grassClippings`, one bald goalmouth in a halo of thinned grass, a thinned spine, spots, linesmen. No tone patches |
 | Courts | asphalt or clay surface | none | court | `asphaltTonePatch` / `dirtTonePatch` faint, `seamGrime` along the edge, cracks across hard courts, grit and leaves in the downwind corners, `claySpillStrip` round clay courts |
 | Paving, terraces | paving surface | none | paving | `pavingTonePatch`, `kerbGrimeStrip` inside the edges |
 | Car park | asphalt surface + aisles | none | asphalt | `asphaltTonePatch`, cracks a step in from the edges, `crackWeb`, a pothole, tyre tracks in both lanes, oil at the busy stalls, puddles in the low points |
@@ -143,6 +143,9 @@ Weathering (planning, on a worker): 30-500 ms; it runs on every preview re-plan.
   with no fade across (a fade drew a dark line at every row seam).
 - Turf mottle and scattered bare spots on the pitch read as yellow blotches; ring-fade patches as donuts. Pitch wear is one
   bald goalmouth in a halo of thinned grass and a continuous thinned spine; brushes never use the ring fade.
+- Big soft tone patches on the turf looked smudgy (the user: "a waste of decals, I'd rather that go into more fine-grained stuff"): tone belongs on large uneven ground (lawn, asphalt) at low opacity; on a mown pitch the stripes are the tone.
+- A dry-grass edge strip round the turf lay on the running track outside it and read as pale haze: a seam strip must know what lies on its far side.
+- The sports park's automatic trees were one species per park (the automatic pool picks one per step): now a mix of the game's broadleaf trees in clumps.
 - A grid mask for BrushArea made planning 50x slower (built per area, many small areas): measure before optimising.
 - First pass: leaves were a few lonely blobs (the fall zone, 1.6 crowns, was smaller than one leaf patch, 8-13 m, so
   Scatter placed one or two per tree). Fixed: a fall zone of 2.6 crowns + 3 m, coverage 1.1.
@@ -154,4 +157,5 @@ Weathering (planning, on a worker): 30-500 ms; it runs on every preview re-plan.
 
 - Tree variety (the user): the sports park plants one or two species per belt; a mixed planting would give mixed leaves.
 - Show the new kinds (tone patches, clay spill, summer leaves) in the decal browser.
+- The five `Types.SportsParkTests` that fail (RespectsReservedSpace, EveryPresetPlans…, FieldsFill…, Facilities…, PresetsLookDistinct) fail on the base commit 62e845d2 too: not from the ground work.
 - A season knob from the city (summer / autumn leaf sets), when the game's season is readable.

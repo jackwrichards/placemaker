@@ -293,9 +293,9 @@ namespace Placemaker.Core.Decals.Dynamic
             private void Tone()
             {
                 // the lawn: big faint patches everywhere, mottled from above, drier toward the open edges and away from trees
-                Brushes.Tone(_b, _lawn, "lawnTonePatch", new float2(0.35f, 0.6f), 0.3f, ColourLevel.Any, "tone:lawn");
-                Brushes.Scatter(_b, _lawn, "groundMottle", 0.35f, new ScatterOptions { Weight = p => 0.35f + 0.65f * ValueNoise.Clumps(p, 30f, H(1)), Opacity = new float2(0.35f, 0.7f), Clump = 2.5f, Spill = 3f, Level = ColourLevel.Quiet, Cause = "tone:mottle" });
-                Brushes.Scatter(_b, _lawn, "dryGrass", 0.22f, new ScatterOptions { Weight = Dryness, Opacity = new float2(0.4f, 0.8f), Clump = 3f, Spill = 2f, Cause = "tone:dry" });
+                Brushes.Tone(_b, _lawn, "lawnTonePatch", new float2(0.18f, 0.32f), 0.2f, ColourLevel.Quiet, "tone:lawn");
+                Brushes.Scatter(_b, _lawn, "groundMottle", 0.16f, new ScatterOptions { Weight = p => 0.35f + 0.65f * ValueNoise.Clumps(p, 30f, H(1)), Opacity = new float2(0.25f, 0.45f), Clump = 2.5f, Spill = 3f, Level = ColourLevel.Quiet, Cause = "tone:mottle" });
+                Brushes.Scatter(_b, _lawn, "dryGrass", 0.12f, new ScatterOptions { Weight = Dryness, Opacity = new float2(0.3f, 0.55f), Clump = 3f, Spill = 2f, Cause = "tone:dry" });
                 Brushes.Scatter(_b, _lawn, "cloverPatch", 0.05f, new ScatterOptions { Weight = p => 1f - Dryness(p), Opacity = new float2(0.4f, 0.7f), Clump = 3f, Loners = 0.2f, Cause = "tone:clover" });
                 // the pitches and turf: mowing stripes and fine clippings, no tone patches (the user, 2026-10-29: the big soft tone
                 // on the turf looked smudgy, "a waste of decals"; groundMottle there read as yellow blotches)
@@ -304,12 +304,12 @@ namespace Placemaker.Core.Decals.Dynamic
                     if (Poly.Area(t) > 800f) Stripes(t);
                     Brushes.Scatter(_b, BrushArea.Of(t), "grassClippings", 0.12f, new ScatterOptions { Opacity = new float2(0.45f, 0.8f), Clump = 2f, Loners = 0.5f, Level = ColourLevel.Quiet, Cause = "tone:clippings" });
                 }
-                foreach (var h in Hard) Brushes.Tone(_b, BrushArea.Of(h), "pavingTonePatch", new float2(0.5f, 0.8f), 0.45f, ColourLevel.Quiet, "tone:paving");
-                foreach (var h in Asphalt) Brushes.Tone(_b, BrushArea.Of(h), "asphaltTonePatch", new float2(0.8f, 1f), 0.6f, ColourLevel.Full, "tone:asphalt");
+                foreach (var h in Hard) Brushes.Tone(_b, BrushArea.Of(h), "pavingTonePatch", new float2(0.3f, 0.5f), 0.3f, ColourLevel.Quiet, "tone:paving");
+                foreach (var h in Asphalt) Brushes.Tone(_b, BrushArea.Of(h), "asphaltTonePatch", new float2(0.45f, 0.7f), 0.35f, ColourLevel.Quiet, "tone:asphalt");
                 foreach (var c in Courts)
                 {
                     bool clay = Clay.Contains(c);
-                    Brushes.Tone(_b, BrushArea.Of(c), clay ? "dirtTonePatch" : "asphaltTonePatch", new float2(0.6f, 0.95f), 0.55f, ColourLevel.Any, "tone:court");
+                    Brushes.Tone(_b, BrushArea.Of(c), clay ? "dirtTonePatch" : "asphaltTonePatch", new float2(0.35f, 0.6f), 0.35f, ColourLevel.Quiet, "tone:court");
                 }
             }
 
@@ -378,11 +378,11 @@ namespace Placemaker.Core.Decals.Dynamic
                 {
                     string kind = Leaf(kv.Key);
                     // smothered, never a blotch: overlapping patches over the whole fall zone, heaviest where crowns crowd
-                    float cov = (kind == "pineNeedles" ? 0.8f : kind == "blossomPetals" ? 0.55f : 1.1f) * A;
+                    float cov = (kind == "pineNeedles" ? 0.55f : kind == "blossomPetals" ? 0.4f : 0.7f) * A;
                     Brushes.Under(_b, kv.Value, kind, cov, Wind, fall, new ScatterOptions { Opacity = Op(0.55f, 1f), Scale = new float2(0.9f, 1.45f), Clump = 5f, Spread = 0.55f, Loners = 0.25f, Spill = 2f, Cause = "leaves" });
                     // mixed leaves blown further on, thinner
                     if (kind != "pineNeedles")
-                        Brushes.Under(_b, Shift(kv.Value, Wind, 1.8f), Leaf("leafMixed"), 0.35f * A, Wind, fall, new ScatterOptions { Opacity = Op(0.4f, 0.8f), Clump = 2.5f, Loners = 0.45f, Level = ColourLevel.Quiet, Cause = "leaves:blown" });
+                        Brushes.Under(_b, Shift(kv.Value, Wind, 1.8f), Leaf("leafMixed"), 0.2f * A, Wind, fall, new ScatterOptions { Opacity = Op(0.4f, 0.8f), Clump = 2.5f, Loners = 0.45f, Level = ColourLevel.Quiet, Cause = "leaves:blown" });
                 }
                 // under groups of trees: woodland floor and a little bare earth, overlapping the leaves
                 var groups = TreeGroups(9f);
@@ -391,7 +391,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     if (g.Count < 3) continue;
                     var crowns = new List<(float2, float)>();
                     foreach (var t in g) crowns.Add((t.P, t.Crown * 0.9f));
-                    Brushes.Under(_b, crowns, "woodlandFloor", 0.4f * A, Wind * 0.3f, _lawn, new ScatterOptions { Opacity = Op(0.45f, 0.85f), Clump = 3f, Cause = "woodland" });
+                    Brushes.Under(_b, crowns, "woodlandFloor", 0.22f * A, Wind * 0.3f, _lawn, new ScatterOptions { Opacity = Op(0.35f, 0.65f), Clump = 3f, Cause = "woodland" });
                     Brushes.Under(_b, crowns, "barePatch", 0.08f * A, Wind * 0.2f, _lawn, new ScatterOptions { Opacity = Op(0.3f, 0.6f), Clump = 2f, Loners = 0.5f, Cause = "woodland:bare" });
                 }
                 // drifts: leaves blown downwind pile against the first barrier
@@ -528,11 +528,11 @@ namespace Placemaker.Core.Decals.Dynamic
                 // path edges: worn grass on the grass side (pathEdgeWear lies on terrain only: it never paints the path)
                 foreach (var l in Paths)
                     for (int side = -1; side <= 1; side += 2)
-                        Brushes.EdgeStrip(_b, l.P, "pathEdgeWear", new StripOptions { Side = -side, Offset = -(l.Half + 0.8f), Gaps = 0.25f, Run = new float2(12f, 40f), Opacity = Op(0.7f, 1f), Cause = "seam:path" });
+                        Brushes.EdgeStrip(_b, l.P, "pathEdgeWear", new StripOptions { Side = -side, Offset = -(l.Half + 0.8f), Gaps = 0.5f, Run = new float2(10f, 30f), Opacity = Op(0.6f, 0.9f), Cause = "seam:path" });
                 // kerb grime: inside paving and the car park, against their edges
                 foreach (var set in new[] { Hard, Asphalt })
                     foreach (var r in set)
-                        Brushes.EdgeStrip(_b, Ring(r), "kerbGrimeStrip", new StripOptions { Side = -1, Offset = -0.3f, Gaps = 0.35f, Closed = true, Opacity = Op(0.55f, 0.9f), Cause = "seam:kerb" });
+                        Brushes.EdgeStrip(_b, Ring(r), "kerbGrimeStrip", new StripOptions { Side = -1, Offset = -0.3f, Gaps = 0.55f, Closed = true, Opacity = Op(0.55f, 0.9f), Cause = "seam:kerb" });
                 // courts: grime along the line where the court meets the grass, wear just outside it
                 foreach (var c in Courts)
                 {
@@ -565,7 +565,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 Brushes.Scatter(_b, _lawn, "pebbles", 0.03f * A, new ScatterOptions { Weight = NearHard, Opacity = Op(0.3f, 0.55f), Clump = 2f, Loners = 0.5f, Level = ColourLevel.Quiet, Cause = "seam:grit" });
                 // fences: the strip of rough grass and grime the mower never reaches
                 foreach (var f in Fences)
-                    Brushes.EdgeStrip(_b, f.P, "fenceLine", new StripOptions { Side = U(300, f.P.Length) < 0.5f ? 1 : -1, Gaps = 0.2f, Run = new float2(16f, 45f), Opacity = Op(0.6f, 1f), Cause = "seam:fence" });
+                    Brushes.EdgeStrip(_b, f.P, "fenceLine", new StripOptions { Side = U(300, f.P.Length) < 0.5f ? 1 : -1, Gaps = 0.4f, Run = new float2(16f, 45f), Opacity = Op(0.6f, 1f), Cause = "seam:fence" });
             }
 
             /// <summary>1 right beside a path or paving, fading to 0 by 6 m (where grit lands).</summary>
@@ -620,7 +620,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     bool dugout = st.Id.StartsWith("SportParkBench", StringComparison.Ordinal);
                     var c = st.P + front * (dugout ? 2.4f : 9f);
                     var along = new float2(front.y, -front.x);
-                    Brushes.At(_b, c, along, "barePatch", dugout ? 7f : 14f, Op(0.4f, 0.72f), dugout ? 1 : 2, ColourLevel.Any, dugout ? "play:dugout" : "play:stand");
+                    Brushes.At(_b, c, along, dugout ? "pebbles" : "barePatch", dugout ? 6f : 12f, Op(0.3f, 0.55f), 1, ColourLevel.Any, dugout ? "play:dugout" : "play:stand");
                 }
                 // courts: grit and leaves in the downwind corners, clay spilling off its courts, a few cracks on hard courts
                 int n = 0;
@@ -706,23 +706,24 @@ namespace Placemaker.Core.Decals.Dynamic
                     // the goalmouth: wide and shallow, skewed off-centre (keepers dive one way more than the other)
                     var gm = g + inward * Range(4.5f, 6.5f, 42, e + no * 4) + side * Range(-1.5f, 1.5f, 43, e + no * 4);
                     // one bald area hugging the six-yard box, in a halo of thinned grass (game runner: scattered satellites read as spots)
-                    Brushes.At(_b, gm, side, "barePatch", Range(13f, 17f, 45, e) * k, Op(worst ? 0.7f : 0.52f, 0.85f), worst ? 2 : 1, ColourLevel.Any, worst ? "flaw:baldGoalmouth" : "play:goalmouth");
-                    Brushes.At(_b, gm + inward * 3f, side, "dryGrass", Range(20f, 26f, 46, e) * k, Op(0.38f, 0.65f), 1, ColourLevel.Quiet, "play:goalmouthHalo");
+                    Brushes.At(_b, gm, side, "barePatch", Range(13f, 17f, 45, e) * k, Op(worst ? 0.52f : 0.4f, 0.65f), worst ? 2 : 1, ColourLevel.Any, worst ? "flaw:baldGoalmouth" : "play:goalmouth");
+                    Brushes.At(_b, gm + inward * 3f, side, "dryGrass", Range(20f, 26f, 46, e) * k, Op(0.28f, 0.48f), 1, ColourLevel.Quiet, "play:goalmouthHalo");
+                    Brushes.At(_b, gm, side, "pebbles", Range(7f, 9f, 47, e), Op(0.45f, 0.75f), 1, ColourLevel.Quiet, "play:goalmouthGrit");
                     // the crease: worn through to the soil, muddy after rain
                     var cr = g + inward * Range(1.6f, 2.6f, 48, e) + side * Range(-0.6f, 0.6f, 49, e);
-                    Brushes.At(_b, cr, side, "barePatch", Range(6f, 8f, 51, e) * k, Op(0.5f, 0.8f), 1, ColourLevel.Any, "play:crease");
+                    Brushes.At(_b, cr, side, "barePatch", Range(6f, 8f, 51, e) * k, Op(0.38f, 0.6f), 0, ColourLevel.Any, "play:crease");
                     Brushes.At(_b, cr, side, "pebbles", Range(5f, 7f, 50, e), Op(0.45f, 0.75f), 0, ColourLevel.Quiet, "play:crease");
                     // the penalty spot and the arc a keeper's kicks churn
                     Brushes.At(_b, g + inward * Range(10f, 12f, 52, e), side, "barePatch", Range(5f, 7f, 53, e), Op(0.25f, 0.42f), 0, ColourLevel.Any, "play:spot");
                 }
                 // centre spot and the spine: midfield takes the most running
-                Brushes.At(_b, centre + side * Range(-2f, 2f, 61, no), axis, "barePatch", Range(10f, 13f, 63, no), Op(0.38f, 0.64f), 1, ColourLevel.Any, "play:centre");
+                Brushes.At(_b, centre + side * Range(-2f, 2f, 61, no), axis, "barePatch", Range(10f, 13f, 63, no), Op(0.28f, 0.48f), 1, ColourLevel.Any, "play:centre");
                 var corridor = new[] { g1 + axis * 10f - side * 10f, g2 - axis * 10f - side * 10f, g2 - axis * 10f + side * 10f, g1 + axis * 10f + side * 10f };
                 float half = len * 0.5f;
                 // the spine: a continuous band of thinned grass down the middle (many faint overlapping pieces), bare only
                 // here and there near midfield
                 Func<float2, float> spine = p => { float u = math.abs(math.dot(p - centre, axis)) / half, v = math.abs(math.dot(p - centre, side)) / 10f; return math.saturate((1f - u * u) * (1f - v * 0.7f)); };
-                Brushes.Scatter(_b, BrushArea.Of(corridor), "dryGrass", 0.8f * A, new ScatterOptions { Weight = spine, Opacity = Op(0.3f, 0.55f), Clump = 6f, Spread = 0.4f, Loners = 0.1f, Scale = new float2(0.8f, 1.2f), Level = ColourLevel.Quiet, Cause = "play:spine" });
+                Brushes.Scatter(_b, BrushArea.Of(corridor), "dryGrass", 0.8f * A, new ScatterOptions { Weight = spine, Opacity = Op(0.22f, 0.4f), Clump = 6f, Spread = 0.4f, Loners = 0.1f, Scale = new float2(0.8f, 1.2f), Level = ColourLevel.Quiet, Cause = "play:spine" });
                 Brushes.Scatter(_b, BrushArea.Of(corridor), "barePatch", 0.1f * A, new ScatterOptions { Weight = p => spine(p) * spine(p), Opacity = Op(0.2f, 0.38f), Clump = 3f, Spread = 0.35f, Loners = 0f, Scale = new float2(0.6f, 0.9f), Cause = "play:spine" });
                 // the linesmen: each runs one half, on opposite touchlines, just outside the line
                 for (int e = 0; e < 2; e++)
@@ -760,7 +761,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     int dir = idx < line.P.Length / 2 ? 1 : -1;
                     var inward = math.normalizesafe(line.P[math.clamp(idx + dir * 3, 0, line.P.Length - 1)] - line.P[idx]);
                     var side = new float2(-inward.y, inward.x) * (U(400, n) < 0.5f ? 1f : -1f);
-                    Brushes.At(_b, g + inward * 3f + side * (line.Half + 1.2f), inward, "barePatch", Range(5f, 8f, 401, n), Op(0.4f, 0.72f), 1, ColourLevel.Any, "feet:gate");
+                    Brushes.At(_b, g + inward * 3f + side * (line.Half + 1.2f), inward, "barePatch", Range(5f, 7f, 401, n), Op(0.3f, 0.52f), 0, ColourLevel.Any, "feet:gate");
                     Brushes.At(_b, g + inward * 2f + side * (line.Half + 0.8f), inward, "pebbles", Range(4f, 6f, 403, n), Op(0.45f, 0.8f), 0, ColourLevel.Quiet, "feet:gate");
                     Brushes.At(_b, g + inward * 6f, inward, "footprintsMud", Range(7f, 10f, 402, n), Op(0.5f, 0.85f), 1, ColourLevel.Any, "feet:prints");
                     n++;
@@ -772,7 +773,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     if (line == null || d > 60f) continue;
                     var at = line.P[idx];
                     var toPitch = math.normalizesafe(c - at);
-                    Brushes.At(_b, at + toPitch * (line.Half + 1.5f), toPitch, "barePatch", Range(6f, 9f, 410, n), Op(0.45f, 0.78f), 2, ColourLevel.Any, "feet:offPitch");
+                    Brushes.At(_b, at + toPitch * (line.Half + 1.5f), toPitch, "pebbles", Range(5f, 7f, 410, n), Op(0.4f, 0.7f), 1, ColourLevel.Any, "feet:offPitch");
                     Brushes.At(_b, at, math.normalizesafe(line.P[math.min(line.P.Length - 1, idx + 1)] - line.P[math.max(0, idx - 1)]), "footprintsMud", 9f, Op(0.45f, 0.8f), 1, ColourLevel.Any, "feet:prints");
                     n++;
                 }
@@ -823,7 +824,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     if (U(210, i) > 0.6f) continue;
                     var b = lawnBenches[i].b;
                     var front = new float2(math.sin(b.Yaw), math.cos(b.Yaw));
-                    Brushes.At(_b, b.P + front * 1.2f, new float2(front.y, -front.x), "barePatch", Range(3.5f, 5f, 211, i), Op(0.4f, 0.75f), 1, ColourLevel.Any, "feet:bench");
+                    Brushes.At(_b, b.P + front * 1.2f, new float2(front.y, -front.x), "barePatch", Range(3f, 4.5f, 211, i), Op(0.3f, 0.55f), 0, ColourLevel.Any, "feet:bench");
                     if (U(212, i) < 0.4f) Brushes.At(_b, b.P + front * 0.8f, front, "litterMix", Range(2.5f, 4f, 213, i), Op(0.5f, 0.9f), 0, ColourLevel.Any, "feet:litter");
                     bn++;
                 }
@@ -972,7 +973,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     float near = math.saturate(1f - math.distance(l.P[l.P.Length / 2], walk) / 80f);
                     // tyre tracks in both lanes, faint, stronger near the walk-in
                     for (int s = -1; s <= 1; s += 2)
-                        Brushes.EdgeStrip(_b, l.P, "tyreTrack", new StripOptions { Side = s, Offset = l.Half * 0.45f, Gaps = 0.3f, Run = new float2(10f, 30f), Opacity = Op(0.35f + near * 0.3f, 0.7f + near * 0.3f), Cause = "wheels:tyres" });
+                        Brushes.EdgeStrip(_b, l.P, "tyreTrack", new StripOptions { Side = s, Offset = l.Half * 0.45f, Gaps = 0.5f, Run = new float2(10f, 30f), Opacity = Op(0.35f + near * 0.3f, 0.7f + near * 0.3f), Cause = "wheels:tyres" });
                     n++;
                 }
                 // oil under the busy stalls: the ones nearest the walk-in carry most of it
@@ -981,7 +982,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 bays.Sort((x, y) => x.d.CompareTo(y.d));
                 for (int i = 0; i < bays.Count; i++)
                 {
-                    float p = math.lerp(0.8f, 0.15f, i / math.max(1f, bays.Count - 1f)) * math.min(1.3f, A);
+                    float p = math.lerp(0.55f, 0.08f, i / math.max(1f, bays.Count - 1f)) * math.min(1.3f, A);
                     if (U(160, i) > p) continue;
                     var b = bays[i].t;
                     float2 toAisle = new float2(math.sin(b.Yaw), math.cos(b.Yaw));
@@ -998,7 +999,7 @@ namespace Placemaker.Core.Decals.Dynamic
             {
                 for (int i = 0; i < Steel.Count; i++)
                 {
-                    if (U(200, i) > 0.45f) continue;
+                    if (U(200, i) > 0.3f) continue;
                     var s = Steel[i];
                     bool mast = s.Id.StartsWith("LightpoleIndustrial", StringComparison.Ordinal);
                     float sz = mast ? Range(2f, 3f, 201, i) : Range(1.2f, 1.8f, 202, i);
