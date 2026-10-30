@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+b380186d",
+  "assembly": "0.3.6+1c580ee1-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -18544,6 +18544,15 @@
           "default": "edge"
         },
         {
+          "id": "grime",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 300.0,
+          "step": 10.0,
+          "unit": "%",
+          "default": 100.0
+        },
+        {
           "id": "pitchCount",
           "kind": "Slider",
           "min": 1.0,
@@ -18843,7 +18852,7 @@
             "painted",
             "surface"
           ],
-          "default": "surface"
+          "default": "painted"
         },
         {
           "id": "dressPaintWear",
