@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+c1f9b324",
+  "assembly": "0.3.6+209ceda2",
   "categories": [
     {
       "id": "zoning",
@@ -33,9 +33,6 @@
       "groups": [
         "parks",
         "gardens"
-      ],
-      "types": [
-        "amphitheatre"
       ]
     },
     {
@@ -66,7 +63,10 @@
         "mallPark",
         "outdoorMall",
         "highStreet",
-        "shoppingPlaza"
+        "shoppingPlaza",
+        "amphitheatre",
+        "transitPlaza",
+        "fairground"
       ]
     },
     {
@@ -15995,6 +15995,7 @@
           "default": 2.5
         }
       ],
+      "shelved": true,
       "shelvedStyles": [
         "promenade"
       ]
@@ -16026,6 +16027,7 @@
         "marketHall",
         "dining",
         "grandSteps",
+        "grungy",
         "modern",
         "green"
       ],
@@ -16248,7 +16250,13 @@
             "waterSteps",
             "marketHall",
             "dining",
-            "grandSteps"
+            "grandSteps",
+            "grungy",
+            "theatre",
+            "market",
+            "transit",
+            "fair",
+            "winterFair"
           ],
           "default": "classic"
         },
@@ -16711,7 +16719,12 @@
         "cascade",
         "podium",
         "sunkenCourt",
+        "piazza",
+        "grand",
+        "railed",
         "waterSteps",
+        "marketHall",
+        "modern",
         "green"
       ]
     },
@@ -20765,6 +20778,10 @@
           "id": "entrances",
           "kind": "Markers"
         }
+      ],
+      "shelvedStyles": [
+        "reclaim",
+        "tip"
       ]
     },
     {
@@ -20909,6 +20926,9 @@
           "id": "entrances",
           "kind": "Markers"
         }
+      ],
+      "shelvedStyles": [
+        "recycling"
       ]
     },
     {
@@ -23004,12 +23024,18 @@
           "kind": "Toggle",
           "default": false
         }
+      ],
+      "shelvedStyles": [
+        "gravelPit",
+        "sandPit",
+        "lakeDig",
+        "flooded"
       ]
     },
     {
       "layer": "fairground",
       "group": "events",
-      "category": "shops",
+      "category": "plazas",
       "presets": [
         "fairground",
         "festival",
@@ -23427,8 +23453,8 @@
           "default": false
         }
       ],
-      "shelved": true,
       "shelvedStyles": [
+        "fairground",
         "festival",
         "funfair",
         "foodTrucks"
@@ -23437,8 +23463,9 @@
     {
       "layer": "amphitheatre",
       "group": "events",
-      "category": "parks",
+      "category": "plazas",
       "presets": [
+        "theatre",
         "classic",
         "cinema",
         "bandstand",
@@ -23454,9 +23481,10 @@
             "cinema",
             "bandstand",
             "meadow",
-            "speakers"
+            "speakers",
+            "theatre"
           ],
-          "default": "classic"
+          "default": "theatre"
         },
         {
           "id": "rows",
@@ -23806,7 +23834,10 @@
         }
       ],
       "shelvedStyles": [
+        "theatre",
+        "classic",
         "cinema",
+        "bandstand",
         "meadow",
         "speakers"
       ]
@@ -24114,7 +24145,7 @@
     {
       "layer": "transitPlaza",
       "group": "transport",
-      "category": "transport",
+      "category": "plazas",
       "presets": [
         "parkRide",
         "busPlaza",
@@ -24429,7 +24460,10 @@
           "default": false
         }
       ],
-      "shelved": true
+      "shelvedStyles": [
+        "taxiRank",
+        "forecourt"
+      ]
     },
     {
       "layer": "ai",
@@ -25710,7 +25744,8 @@
         }
       ],
       "shelvedStyles": [
-        "viewpointMound"
+        "viewpointMound",
+        "kiteHill"
       ]
     },
     {
@@ -26682,7 +26717,8 @@
           "kind": "Toggle",
           "default": false
         }
-      ]
+      ],
+      "shelved": true
     },
     {
       "layer": "hikingTrail",
@@ -26980,6 +27016,8 @@
         }
       ],
       "shelvedStyles": [
+        "ridgeHike",
+        "canyonTrail",
         "summitClimb",
         "lakeshoreLoop"
       ]
@@ -27266,7 +27304,8 @@
           "kind": "Toggle",
           "default": false
         }
-      ]
+      ],
+      "shelved": true
     },
     {
       "layer": "abandonedLot",
@@ -27557,6 +27596,8 @@
       ],
       "shelvedStyles": [
         "overgrown",
+        "demolished",
+        "squatterCamp",
         "emptyLot"
       ]
     },
@@ -27908,7 +27949,8 @@
         "diySpot",
         "highwayRuins",
         "graffitiPark",
-        "parkour"
+        "parkour",
+        "dirtJumps"
       ]
     },
     {
@@ -28210,6 +28252,12 @@
           "kind": "Toggle",
           "default": false
         }
+      ],
+      "shelvedStyles": [
+        "capped",
+        "compost",
+        "recycling",
+        "flytip"
       ]
     },
     {
@@ -29003,6 +29051,7 @@
         "waterGarden",
         "reedMarsh",
         "rainGarden",
+        "lakeland",
         "birdReserve"
       ],
       "options": [
@@ -29014,7 +29063,8 @@
             "waterGarden",
             "reedMarsh",
             "rainGarden",
-            "birdReserve"
+            "birdReserve",
+            "lakeland"
           ],
           "default": "wetlandPark"
         },
