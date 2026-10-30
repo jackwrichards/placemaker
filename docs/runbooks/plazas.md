@@ -104,6 +104,11 @@ metre budget of their own so a square of many small pieces (garden rooms) never 
 | `show-20-builds-1030-020329-c08e` | FINAL: every shown style on a block, 45 / close / low / terrain, 20 of 20 built |
 | `show-6-builds-1030-020426-5939` | FINAL: market, big market, theatre, Christmas market, fair, grungy on 220 x 200 at 5 % |
 | `send-lab-plazas-1030-015243` | the plaza kinds on open ground: film layers faint, leaves strong |
+| `send-lab-plazas-1030-021710` | the cause: black and dark brown blobs draw right, every mid tone pale |
+| `send-lab-plazas-1030-031221` | after the linear-albedo fix: stains, bare patches, leaves in their true colours |
+| `send-ground-sports-1030-031347` | the sports park after the fix: as before, a touch richer; 7.35 ms with the ground, 7.15 ms off |
+| `show-16-builds-1030-032202-aee7` | ROUND 2 FINAL: every shown style on a block (45 / close / low / terrain), 16 of 16 built |
+| `show-7-builds-1030-032347-e4ee` | ROUND 2 FINAL: plaza Standard, grungy, theatre, transit, market, Christmas market on 220 x 200 at 5 % |
 
 ## What failed and why
 
@@ -117,3 +122,4 @@ metre budget of their own so a square of many small pieces (garden rooms) never 
 
 - The squares' grime strips and gum read softly on bright paving even with correct colours: wider and darker kinds would help.
 - The mall park stays hidden (a shops type, needs growth).
+- A big transit forecourt (220 x 200) is still a large grove even with cross walks and lawn islands; the islands read only close up.
