@@ -129,7 +129,7 @@ namespace Placemaker.Core.Layers.Plaza
                 if (lr == null) return;
                 if (_paint == null)
                 {
-                    _paint = new Placemaker.Core.Paint.PaintKit(Ctx.Plan.Paint, Ctx.H, Hashing.Mix(Ctx.Seed, 0x51D0u)) { MaxPaints = 200 };
+                    _paint = new Placemaker.Core.Paint.PaintKit(Ctx.Plan.Paint, Ctx.H, Hashing.Mix(Ctx.Seed, 0x51D0u)) { MaxPaints = 200, Outline = Region.Ring };
                     Ctx.Issue(IssueSeverity.Warning, TerrainPaint.PermanentKey);
                 }
                 // rank dry grass over everything, dirt worn through in patches
