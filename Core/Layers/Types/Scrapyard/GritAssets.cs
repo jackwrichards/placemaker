@@ -47,17 +47,17 @@ namespace Placemaker.Core.Layers.Types.Scrapyard
         {
             // Scrap: rusty ore-coloured loads and dark metal heaps, drums, cable drums, crates — reads as
             // sorted metal from above. Weighted towards the heaps.
-            [AssetCategories.ScrapHeap] = Mixed("CoalTruck01_OrePile01", "CoalTruck01_OrePile01|Prop_CoalTruck01_OrePile01_Full", "Prop_CoalTruck01_OrePile01_Partial2|CoalTruck01_OrePile01",
+            [AssetCategories.ScrapHeap] = Mixed("CoalTruck01_OrePile01", "CoalTruck01_OrePile01", "CoalTruck01_OrePile01",
                 "CoalTruck01_CoalPile01", "BarrelPile02", "BarrelPile03", "CableReel02", "CratePile03"),
             // No vanilla car wrecks or tyres exist: vehicle props (utility vans, trailers, caravans, truck
             // cabs) stand in for wrecks, low dark coal loads for tyre heaps.
-            [AssetCategories.ScrapWreck] = Mixed("Prop_ParkMaintenanceVehicle01|Prop_CarTrailer01", "Prop_ParkMaintenanceVehicle01|Prop_CarTrailer01", "Prop_CarTrailer01|Prop_ParkMaintenanceVehicle01",
-                "Prop_ParkMaintenanceVehicle01|Prop_CarTrailer01", "Prop_CarTrailer01|Prop_ParkMaintenanceVehicle01", "Prop_CamperTrailer01|Prop_ParkMaintenanceVehicle01"),
-            [AssetCategories.ScrapTire] = Mixed("Prop_CoalTruck01_CoalPile01_Partial2|CoalTruck01_CoalPile01", "CoalTruck01_CoalPile01", "Prop_CoalTruck01_CoalPile01_Partial1|CoalTruck01_CoalPile01"),
+            [AssetCategories.ScrapWreck] = Mixed("Placemaker Vehicle Car 2|Placemaker Vehicle Car 3", "Placemaker Vehicle Car 4|Placemaker Vehicle Car 5", "Placemaker Vehicle Car 6|Placemaker Vehicle Car 2",
+                "Placemaker Vehicle Car 7|Placemaker Vehicle Car 3", "Placemaker Vehicle Van 1|Placemaker Vehicle Car 4", "Placemaker Vehicle Camper 1|Placemaker Vehicle Car 5"),
+            [AssetCategories.ScrapTire] = Mixed("CoalTruck01_CoalPile01"),
             [AssetCategories.ScrapContainer] = Mixed("ShippingContainer01", "ShippingContainer02", "ShippingContainer03", "ShippingContainer01", "ShippingContainer03"),
             [AssetCategories.ScrapPallet] = Mixed("CratePile01", "CratePile02", "CratePile03", "Pallet02", "Pallet01", "Crate02", "Pallet04"),
             [AssetCategories.ScrapBarrel] = Mixed("BarrelPile01", "Barrel01", "Barrel03", "Barrel02", "BarrelPile03", "GasBottleRack01|GasBottlePallet01", "Barrel01"),
-            [AssetCategories.ScrapMachine] = Mixed("Prop_FrontendLoader01|Prop_CoalTruck01", "Prop_FrontendLoader01|Prop_CoalTruck01", "Prop_CoalTruck01|Prop_FrontendLoader01"),
+            [AssetCategories.ScrapMachine] = Mixed("Placemaker Vehicle Loader 1|BackupGenerator01", "Placemaker Vehicle Loader 1|BackupGenerator01", "Placemaker Vehicle Truck 1|BackupGenerator01"),
             [AssetCategories.ScrapCabin] = Same("ParkingLotBooth01|ToolShed03|ShippingContainer01"),
             [AssetCategories.ScrapBarrier] = Mixed("ConcreteBarrier01", "ConcreteBarrier02", "ConcreteBarrier03"),
 
@@ -65,19 +65,21 @@ namespace Placemaker.Core.Layers.Types.Scrapyard
             [AssetCategories.LandfillGarbage] = Mixed("Trashpile01", "Trashpile02", "Trashpile03", "Trashpile06", "Trashpile04", "Trashpile08",
                 "CoalTruck01_GarbagePile01", "Trashbag01", "Trashbag03"),
             [AssetCategories.LandfillSkip] = Mixed("LargeOpenContainer01|TrashContainerEmpty04", "TrashContainerEmpty04|LargeOpenContainer01", "TrashContainerEmpty03|TrashContainerEmpty04"),
-            [AssetCategories.LandfillPile] = Mixed("CoalTruck01_StonePile01", "CoalTruck01_OrePile01", "Prop_CoalTruck01_StonePile01_Partial2|CoalTruck01_StonePile01", "CoalTruck01_CoalPile01"),
+            [AssetCategories.LandfillPile] = Mixed("CoalTruck01_StonePile01", "CoalTruck01_OrePile01", "CoalTruck01_StonePile01", "CoalTruck01_CoalPile01"),
             [AssetCategories.LandfillBale] = Mixed("CardboardBoxPile01", "CardboardBoxPile02", "CardboardBoxPile03", "CratePile02"),
 
             // Construction.
             [AssetCategories.ConstructionCabin] = Mixed("ShippingContainer01", "ShippingContainer02", "ToolShed03|ShippingContainer03"),
             [AssetCategories.ConstructionToilet] = Same("PortableToilet01"),
             [AssetCategories.ConstructionContainer] = Mixed("ShippingContainer01", "ShippingContainer02", "ShippingContainer03"),
-            [AssetCategories.ConstructionMachine] = Mixed("Prop_FrontendLoader01|Prop_CoalTruck01", "Prop_CoalTruck01|Prop_FrontendLoader01", "Prop_FrontendLoader01|Prop_CoalTruck01"),
+            // (rundown, 2026-10-30) the old Prop_ vehicle names never placed (lab-rundown-machines): Placemaker's own vehicle props (VehicleProps,
+            // made from the game's vehicles; AutoAssets.IsOwn lets them through): the wheel loader, the dump truck, the mining tractor
+            [AssetCategories.ConstructionMachine] = Mixed("Placemaker Vehicle Loader 1|BackupGenerator01", "Placemaker Vehicle Truck 1|BackupGenerator01", "Placemaker Vehicle Loader 1|BackupGenerator01", "Placemaker Vehicle Tractor 1|Placemaker Vehicle Truck 1|BackupGenerator01"),
             [AssetCategories.ConstructionCrane] = Same("ConstructionCrane01"),
             [AssetCategories.ConstructionBarrier] = Same("SafetyBarrier01|SafetyBarrier03|ConcreteBarrier01", "SafetyBarrier03|SafetyBarrier01|ConcreteBarrier01", "ConcreteBarrier01|ConcreteBarrier02"),
             [AssetCategories.ConstructionCone] = Same("SafetyCone01|SafetyCone02", "SafetyCone03|SafetyCone01"),
             [AssetCategories.ConstructionMaterial] = Mixed("Pallet01", "Pallet02", "Pallet03", "CableReel01", "CableReel02", "GasBottlePallet01", "CratePile01", "Pallet04", "OilPipe01|Pallet02"),
-            [AssetCategories.ConstructionPile] = Mixed("CoalTruck01_StonePile01", "Prop_CoalTruck01_StonePile01_Full|CoalTruck01_StonePile01", "CoalTruck01_OrePile01", "Prop_CoalTruck01_StonePile01_Partial2|CoalTruck01_StonePile01"),
+            [AssetCategories.ConstructionPile] = Mixed("CoalTruck01_StonePile01", "CoalTruck01_StonePile01", "CoalTruck01_OrePile01"),
             [AssetCategories.ConstructionRubble] = Mixed("RubblePileConcrete01", "RubblePileConcrete02", "RubblePileConcrete03", "RubblePileConcrete04", "RubblePileMixed01", "RubblePileMixed02", "RubblePileMixed03", "RubblePileWood01"),
             [AssetCategories.ConstructionSkip] = Mixed("LargeOpenContainer01|TrashContainerEmpty04", "TrashContainerEmpty04|LargeOpenContainer01"),
             // No scaffold props exist: tall chain-link panels read as a site hoarding round the work.

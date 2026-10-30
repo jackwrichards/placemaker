@@ -93,7 +93,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             {
                 li++;
                 var t = math.normalizesafe(b - a);
-                float yaw = math.atan2(t.x, t.y) + math.PI * 0.5f;
+                float yaw = math.atan2(t.x, t.y);   // the walls run along their local Z (0.2 x 0.9 x 3.0 m)
                 float len = math.distance(a, b);
                 for (float s = 1.4f; s < len - 1.2f; s += 2.8f)
                 {
@@ -124,7 +124,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                     var a0 = pr[e]; var b0 = pr[(e + 1) % 4];
                     var t0 = math.normalizesafe(b0 - a0);
                     var outN = new float2(t0.y, -t0.x);
-                    float yaw0 = math.atan2(t0.x, t0.y) + math.PI * 0.5f;
+                    float yaw0 = math.atan2(t0.x, t0.y);
                     float len0 = math.distance(a0, b0);
                     for (float s0 = 1.5f; s0 < len0 - 1f; s0 += 2.9f)
                     {
@@ -132,7 +132,12 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                         var p = a0 + t0 * s0 + outN * 0.9f;
                         uint v = Hashing.Mix(seed, 0xBA5Eu + (uint)e * 131u + (uint)(s0 * 10f));
                         if (!occ.Free(p, 0.5f, 0.1f, 0f) && !region.Contains(p)) continue;
-                        var o = ctx.Object(p, yaw0, ObjectRole.Furniture, AssetMix.Pick(Low, v), v, -1, AssetCategories.RuinsWall);
+                        // a masonry retaining wall: two skins side by side, standing a metre and a half over the hole
+                        foreach (float skin in new[] { 0f, 0.22f })
+                        {
+                            var o = ctx.Object(p + outN * skin, yaw0, ObjectRole.Furniture, AssetMix.Pick(Tall, v + (uint)(skin * 10f)), v, -1, AssetCategories.RuinsWall);
+                            o.Scale = 1.5f + 0.35f * Hashing.Unit(Hashing.Mix(v, 7u));
+                        }
                         res.WallPieces++;
                     }
                 }

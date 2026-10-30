@@ -261,7 +261,8 @@ namespace Placemaker.Core.Layers.Types.Ruins
                         if (stands && occ.Free(p, 0.7f, 0.6f, 0.05f))
                         {
                             // (rundown) dark masonry only (the automatic wall pool gave white balustrades), low stubs and the odd taller piece
-                            var wo = ctx.Object(p, yaw, ObjectRole.Furniture, AssetMix.Pick(Hashing.Unit(Hashing.Mix(v, 5u)) < 0.3f ? UrbanRuins.BuildingRuins.Tall : UrbanRuins.BuildingRuins.Low, v), v, -1, wallCat);
+                            // the garden walls run along their local Z (lab: 0.2 x 0.9 x 3.0 m): the old +90 degrees stood every piece across the slab edge like a comb
+                            var wo = ctx.Object(p, math.atan2(t.x, t.y), ObjectRole.Furniture, AssetMix.Pick(Hashing.Unit(Hashing.Mix(v, 5u)) < 0.3f ? UrbanRuins.BuildingRuins.Tall : UrbanRuins.BuildingRuins.Low, v), v, -1, wallCat);
                             if (Hashing.Unit(Hashing.Mix(v, 5u)) < 0.12f) wo.Scale = 1.3f + 0.5f * Hashing.Unit(Hashing.Mix(v, 6u));
                             occ.Take(p, 0.9f, 2);
                             walls++;
