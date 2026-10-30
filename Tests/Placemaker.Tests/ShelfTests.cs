@@ -42,7 +42,7 @@ namespace Placemaker.Tests
             Assert.Equal("plazas", shelf.CategoryOf("plaza", "squares"));
             Assert.Equal("plazas", shelf.CategoryOf("mallPark", "commercial"));
             Assert.Equal("shops", shelf.CategoryOf("fairground", "events"));
-            Assert.False(shelf.IsTypeShelved("quarry", "industrial"));
+            Assert.True(shelf.IsTypeShelved("quarry", "industrial"));   // the makeover (2026-10-29): empty pits in the clean game
             Assert.Equal("industry", shelf.CategoryOf("containerYard", "industrial"));
             Assert.True(shelf.IsTypeShelved("restArea", "transport"));
             Assert.False(shelf.IsTypeShelved("park", "parks"));

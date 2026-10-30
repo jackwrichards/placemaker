@@ -82,7 +82,15 @@ namespace Placemaker.Core.Layers.Types.Yards
         {
             var b = new YardBrief { Type = type, Style = style, Ring = s.Region.Ring, Ground = ground };
             bool hardLanes = !s.Organic;
-            foreach (var (p, q) in s.Aisles) b.Lanes.Add((new[] { p, q }, s.Spec.Aisle * 0.5f, hardLanes));
+            // pieces of one bending track (end to end) become one lane, so its bends are not read as crossings
+            List<float2> run = null;
+            foreach (var (p, q) in s.Aisles)
+            {
+                if (run != null && math.distancesq(run[run.Count - 1], p) < 0.01f) { run.Add(q); continue; }
+                if (run != null) b.Lanes.Add((run.ToArray(), s.Spec.Aisle * 0.5f, hardLanes));
+                run = new List<float2> { p, q };
+            }
+            if (run != null) b.Lanes.Add((run.ToArray(), s.Spec.Aisle * 0.5f, hardLanes));
             foreach (var g in s.Gates) b.Gates.Add((g.Position, s.Region.InwardNormal(g.Segment)));
             b.Markings = hardLanes && ground == "concrete";
             return b;

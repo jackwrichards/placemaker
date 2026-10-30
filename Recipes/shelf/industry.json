@@ -1,5 +1,5 @@
 {
-  "_about": "Make-row category 'Industrial' (Core/Tool/Shelf.cs; one file per category). Hide, never delete: type ids in hiddenTypes, style (preset) ids per type in hiddenStyles ({\"park\": [\"pocket\"]}), types moved in from another group in types. Hidden things keep their code and the game runner still builds them by id. Industrial (2026-10-19, the user: 'a whole new Industrial category ... industrial awesomeness ... like someone handcrafted it'): the handcrafted yards first (container yard, car yard, junk yard, industrial works: Core/Layers/Types/Industrial), then every type of the 'industrial' group that was hidden before (logistics yard, scrapyard, landfill, quarry, construction site, abandoned lot). The zoning type Industrial estate stays in Zoning (it zones lots; it does not build a yard).",
+  "_about": "Make-row category 'Industrial' (Core/Tool/Shelf.cs; one file per category). Hide, never delete: type ids in hiddenTypes, style (preset) ids per type in hiddenStyles ({\"park\": [\"pocket\"]}), types moved in from another group in types. Hidden things keep their code and the game runner still builds them by id. Industrial (2026-10-19, the user: 'a whole new Industrial category ... industrial awesomeness ... like someone handcrafted it'): the handcrafted yards first (container yard, car yard, junk yard, industrial works: Core/Layers/Types/Industrial), then every type of the 'industrial' group that was hidden before (logistics yard, scrapyard, landfill, quarry, construction site, abandoned lot). The zoning type Industrial estate stays in Zoning (it zones lots; it does not build a yard). Makeover (2026-10-29, the user: fewer, better; every survivor A+): seen in the clean game (run show-42-builds-1029-232950-eebd), hidden what reads empty or as a grid there: the logistics yard and the old scrapyard (the container, car and junk yards do their work better), the quarry (its pits are grass with nothing in them without asset packs), the junk yard reclaim (sparse goods on bare slabs) and tip and the works recycling (rows of identical skips), and every landfill but the active tip.",
   "id": "industry",
   "name": "Industrial",
   "order": 9,
@@ -8,6 +8,24 @@
     "industrial"
   ],
   "types": [],
-  "hiddenTypes": [],
-  "hiddenStyles": {}
+  "hiddenTypes": [
+    "logisticsYard",
+    "scrapyard",
+    "quarry"
+  ],
+  "hiddenStyles": {
+    "junkYard": [
+      "reclaim",
+      "tip"
+    ],
+    "industrialWorks": [
+      "recycling"
+    ],
+    "landfill": [
+      "capped",
+      "compost",
+      "recycling",
+      "flytip"
+    ]
+  }
 }
