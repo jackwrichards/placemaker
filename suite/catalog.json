@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+0b61788b",
+  "assembly": "0.3.6+ca601453-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -22994,7 +22994,12 @@
           "default": false
         }
       ],
-      "shelved": true
+      "shelvedStyles": [
+        "gravelPit",
+        "sandPit",
+        "lakeDig",
+        "flooded"
+      ]
     },
     {
       "layer": "fairground",

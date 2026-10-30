@@ -46,6 +46,8 @@ namespace Placemaker.Core.Layers.Types.Yards
         public readonly List<float2> Seeps = new List<float2>();
         /// <summary>Lay painted lines along hard lanes (container terminals, logistics, the tip).</summary>
         public bool Markings;
+        /// <summary>Where dust may settle (null: anywhere off hard ground). The quarry: its pit only (dust on the lawn read as white blobs).</summary>
+        public float2[] DustArea;
         /// <summary>How hard the yard is worked (scales every cause; 1 = as designed).</summary>
         public float Grime = 1f;
         public bool Hard => Ground == "concrete";
@@ -180,7 +182,7 @@ namespace Placemaker.Core.Layers.Types.Yards
             private readonly List<float2[]> _slabs = new List<float2[]>(), _hard = new List<float2[]>();
 
             /// <summary>On concrete, paving or asphalt (dust and rust there read as paint: the game runner, 2026-10-30).</summary>
-            private bool OnHard(float2 p) { if (_y.Hard) return true; foreach (var r in _hard) if (Poly.Contains(r, p)) return true; return false; }
+            private bool OnHard(float2 p) { if (_y.Hard) return true; if (_y.DustArea != null && !Poly.Contains(_y.DustArea, p)) return true; foreach (var r in _hard) if (Poly.Contains(r, p)) return true; return false; }
             private readonly List<(float2 p, float2 dir, float half, bool hard)> _crossings = new List<(float2, float2, float, bool)>();
             private static readonly float2 Wind = Weathering.Wind;
             private readonly Dictionary<string, (PointGrid g, List<float2> pts)> _spots = new Dictionary<string, (PointGrid, List<float2>)>(StringComparer.Ordinal);

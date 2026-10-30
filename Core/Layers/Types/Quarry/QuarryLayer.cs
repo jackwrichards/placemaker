@@ -327,7 +327,7 @@ namespace Placemaker.Core.Layers.Types.Quarry
                     dry.Clear();
                 }
                 if (dry.Count > 1) brief.Lanes.Add((dry.ToArray(), q.RoadHalf, false));
-                brief.Grime = q.Active ? 1f : 0.55f;
+                brief.Grime = q.Active ? 1f : 0.55f; brief.DustArea = q.Pit?.Ring;
                 Yards.YardWear.Lay(ctx, brief);
             }
 

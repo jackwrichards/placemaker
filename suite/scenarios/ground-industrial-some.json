@@ -111,6 +111,224 @@
       ]
     },
     {
+      "id": "containerYard-depot",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "containerYard",
+          "preset": "depot"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 70,
+          "shot": "mid",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "rustRunoff",
+          "index": 2,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-rustRunoff",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "crackConcrete",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-crackConcrete",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "laneGrime",
+          "index": 4,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-laneGrime",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "puddlePiece",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-puddlePiece",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "containerYard-storage",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "containerYard",
+          "preset": "storage"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 70,
+          "shot": "mid",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "crackWeeds",
+          "index": 2,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-crackWeeds",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "fadedLineYellow",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-fadedLineYellow",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "weedStrip",
+          "index": 4,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-weedStrip",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "skidMark",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-skidMark",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
       "id": "carYard-salvage",
       "site": "flat",
       "pace": "settled",
@@ -220,6 +438,224 @@
       ]
     },
     {
+      "id": "carYard-crusher",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "carYard",
+          "preset": "crusher"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 70,
+          "shot": "mid",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "scrapGrit",
+          "index": 2,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-scrapGrit",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "yardRut",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-yardRut",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "dustDrift",
+          "index": 4,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-dustDrift",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "puddlePiece",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-puddlePiece",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "carYard-breakers",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "carYard",
+          "preset": "breakers"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 70,
+          "shot": "mid",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "oilSpot",
+          "index": 2,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-oilSpot",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "yardRut",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-yardRut",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "rustRunoff",
+          "index": 4,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-rustRunoff",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "oilDrips",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-oilDrips",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
       "id": "junkYard-sorted",
       "site": "flat",
       "pace": "settled",
@@ -324,6 +760,551 @@
           "view": "closeup",
           "distance": 24,
           "shot": "close-yardRut",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "industrialWorks-salvage",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "industrialWorks",
+          "preset": "salvage"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 70,
+          "shot": "mid",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "rustRunoff",
+          "index": 2,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-rustRunoff",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "laneGrime",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-laneGrime",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "crackWeeds",
+          "index": 4,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-crackWeeds",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "oilSpot",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-oilSpot",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "industrialWorks-works",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "industrialWorks",
+          "preset": "works"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 70,
+          "shot": "mid",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "dustDrift",
+          "index": 2,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-dustDrift",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "crackConcrete",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-crackConcrete",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "oilSpot",
+          "index": 4,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-oilSpot",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "pebbles",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-pebbles",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "landfill-active",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "landfill",
+          "preset": "active"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 70,
+          "shot": "mid",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "litterMix",
+          "index": 2,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-litterMix",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "leachateSeep",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-leachateSeep",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "yardRut",
+          "index": 4,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-yardRut",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "weedStrip",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-weedStrip",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "quarry-openPit",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "quarry",
+          "preset": "openPit"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 70,
+          "shot": "mid",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "yardRut",
+          "index": 2,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-yardRut",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "dustDrift",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-dustDrift",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "oilSpot",
+          "index": 4,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-oilSpot",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "pebbles",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-pebbles",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "quarry-abandoned",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "quarry",
+          "preset": "abandoned"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 70,
+          "shot": "mid",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "yardRut",
+          "index": 2,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-yardRut",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "weedStrip",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-weedStrip",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "dryGrass",
+          "index": 4,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-dryGrass",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "oilSpot",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-oilSpot",
           "shotMode": "render"
         }
       ]
