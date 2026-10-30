@@ -679,6 +679,7 @@ namespace Placemaker.Core.Decals.Dynamic
             private void Trees()
             {
                 if (_trees.Count == 0) return;
+                var sw = System.Diagnostics.Stopwatch.StartNew();
                 var fall = BrushArea.Of(_ring); fall.Keep = p => !WetAt(p);
                 var bySpecies = new Dictionary<string, List<(float2, float)>>(StringComparer.Ordinal);
                 var dead = new List<(float2, float)>();
@@ -698,27 +699,55 @@ namespace Placemaker.Core.Decals.Dynamic
                 {
                     string kind = Leaf(kv.Key);
                     float cov = (kind == "pineNeedles" ? 0.5f : kind == "blossomPetals" ? 0.3f : 0.52f) * A * thin;
-                    Brushes.Under(_b, kv.Value, kind, cov, Weathering.Wind, fall, new ScatterOptions { Opacity = Op(0.45f, 0.85f), Scale = new float2(0.9f, 1.4f), Clump = 5f, Spread = 0.55f, Loners = 0.25f, Spill = 2f, Level = ColourLevel.Quiet, Cause = "leaves" });
+                    Brushes.Under(_b, Decimate(kv.Value, perHa), kind, cov, Weathering.Wind, fall, new ScatterOptions { Opacity = Op(0.45f, 0.85f), Scale = new float2(0.9f, 1.4f), Clump = 5f, Spread = 0.55f, Loners = 0.25f, Spill = 2f, Level = ColourLevel.Quiet, Cause = "leaves" });
                 }
+                _r.Timing["trees:leaves"] = sw.Elapsed.TotalMilliseconds; sw.Restart();
                 // groups: woodland floor and moss in the deep shade, a few sticks
+                // all groups in one brush call per kind (a call per group sampled its area again for each of hundreds of groups:
+                // 1.1-1.8 s on a 42 ha forest)
                 var groups = Groups(9f);
+                var needleCrowns = new List<(float2, float)>(); var floorCrowns = new List<(float2, float)>(); var mossCrowns = new List<(float2, float)>();
                 foreach (var g in groups)
                 {
                     if (g.Count < 3) continue;
-                    var crowns = new List<(float2, float)>();
                     bool conifer = true;
-                    foreach (var t in g) { crowns.Add((t.P, t.Crown * 0.9f)); conifer &= t.Conifer; }
-                    float big = math.min(1f, g.Count / 12f);
-                    Brushes.Under(_b, crowns, conifer ? "pineNeedles" : "woodlandFloor", (conifer ? 0.22f : 0.18f) * A * (0.6f + 0.4f * big), Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.7f), Clump = 3f, Cause = "woodland" });
-                    if (g.Count >= 5) Brushes.Under(_b, crowns, "mossPatch", 0.05f * A, float2.zero, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.6f), Clump = 2f, Loners = 0.4f, Cause = "woodland:moss" });
-                    Brushes.Under(_b, crowns, "twigs", 0.04f * A, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.5f, 0.85f), Clump = 2f, Loners = 0.5f, Cause = "woodland:twigs" });
+                    foreach (var t in g) conifer &= t.Conifer;
+                    // small groups lay a thinner floor: their crowns count for less
+                    float k = g.Count >= 12 ? 0.9f : 0.75f;
+                    foreach (var t in g)
+                    {
+                        (conifer ? needleCrowns : floorCrowns).Add((t.P, t.Crown * k));
+                        if (g.Count >= 5) mossCrowns.Add((t.P, t.Crown * 0.8f));
+                    }
                 }
+                needleCrowns = Decimate(needleCrowns, perHa); floorCrowns = Decimate(floorCrowns, perHa); mossCrowns = Decimate(mossCrowns, perHa);
+                Brushes.Under(_b, needleCrowns, "pineNeedles", 0.2f * A, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.7f), Clump = 3f, Cause = "woodland" });
+                Brushes.Under(_b, floorCrowns, "woodlandFloor", 0.16f * A, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.7f), Clump = 3f, Cause = "woodland" });
+                Brushes.Under(_b, mossCrowns, "mossPatch", 0.05f * A, float2.zero, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.6f), Clump = 2f, Loners = 0.4f, Cause = "woodland:moss" });
+                var allCrowns = new List<(float2, float)>(needleCrowns); allCrowns.AddRange(floorCrowns);
+                Brushes.Under(_b, allCrowns, "twigs", 0.04f * A, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.5f, 0.85f), Clump = 2f, Loners = 0.5f, Cause = "woodland:twigs" });
+                _r.Timing["trees:groups"] = sw.Elapsed.TotalMilliseconds; sw.Restart();
                 // dead trees: their bark and branches on the ground round them
                 if (dead.Count > 0)
                 {
                     Brushes.Under(_b, dead, "twigs", 0.5f * A, Weathering.Wind * 0.4f, _wild, new ScatterOptions { Opacity = Op(0.55f, 0.9f), Clump = 2f, Cause = "woodland:deadwood" });
                     Brushes.Under(_b, dead, "barkMulch", 0.2f * A, float2.zero, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.6f), Clump = 2f, Cause = "woodland:deadwood" });
                 }
+            }
+
+            /// <summary>
+            /// A dense wood's crowns thinned for the leaf field: every k-th crown, k growing past 90 trees a hectare, each grown by
+            /// √k. The field saturates where crowns overlap anyway; the brush's cost was the crowns it looked at per sample
+            /// (1.1-1.7 s on a 42 ha forest, now a fraction).
+            /// </summary>
+            private static List<(float2, float)> Decimate(List<(float2 p, float r)> crowns, float perHa)
+            {
+                int k = (int)math.ceil(perHa / 90f);
+                if (k <= 1 || crowns.Count < 8) return crowns;
+                float grow = math.sqrt(k) * 0.85f;
+                var o = new List<(float2, float)>(crowns.Count / k + 1);
+                for (int i = 0; i < crowns.Count; i += k) o.Add((crowns[i].p, crowns[i].r * grow));
+                return o;
             }
 
             private List<List<Tree>> Groups(float link)

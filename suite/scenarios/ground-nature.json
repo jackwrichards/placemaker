@@ -1,0 +1,342 @@
+{
+  "_about": "The nature makeover (docs/runbooks/nature.md): frame time before the build, with the designed ground and with it switched off, then close looks by kind. Campground forest is the heaviest nature build (most instances and objects); lookout hill on hills shows runoff, scree and terracettes. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/ground-nature.json -Who makeover-nature",
+  "scenarios": [
+    {
+      "id": "ground-nature-camp",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "before the build"
+        },
+        {
+          "do": "type",
+          "layer": "campground",
+          "preset": "forest"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "with the ground"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": false
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "ground switched off"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45-off",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": true
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "ashScorch",
+          "index": 2,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 22,
+          "shot": "fire-ring",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "trailDirt",
+          "index": 3,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 30,
+          "shot": "trail",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "trampledGrass",
+          "index": 4,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 26,
+          "shot": "pitch",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "exposedRoots",
+          "index": 0,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 22,
+          "shot": "roots",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "leafMixedSummer",
+          "index": 4,
+          "margin": 10
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 34,
+          "shot": "leaves",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ground-nature-hill",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          300,
+          260
+        ],
+        "gap": 10,
+        "ground": "hills"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "before the build"
+        },
+        {
+          "do": "type",
+          "layer": "lookoutHill",
+          "preset": "hilltop"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "with the ground"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": false
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "ground switched off"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45-off",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": true
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "runoffRill",
+          "index": 2,
+          "margin": 10
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 34,
+          "shot": "rill",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "animalTrail",
+          "index": 3,
+          "margin": 10
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 34,
+          "shot": "terracettes",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "screeApron",
+          "index": 0,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 30,
+          "shot": "scree",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "trailDirt",
+          "index": 5,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "low",
+          "distance": 24,
+          "shot": "trail-low",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "gravelFan",
+          "index": 0,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 28,
+          "shot": "fan",
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}
