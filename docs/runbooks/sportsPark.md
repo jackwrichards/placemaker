@@ -93,6 +93,17 @@ its inside on the left. `Offset` moves the strip toward its heavy side (negative
 | `lawnTonePatch`, `pavingTonePatch`, `asphaltTonePatch`, `dirtTonePatch` | the tone sheets (`xy`) have a hard square edge when laid alone; these are the same looks as big soft patches with ragged fades | not shown yet |
 | `claySpillStrip` | clay kicked off a court onto the grass | not shown yet |
 
+## Any size of selection (the user: "a tiny tiny zone or a MASSIVE zone")
+
+- Budget: `Weathering.PerHectare` 320 instances a hectare, at most `MaxInstances` 9000. A huge site is thinned evenly from
+  the start (`BrushContext.Density`: Scatter coverage, Tone lattice, whole strip stretches and gaps, hot spots), and re-run
+  thinner if it still came out over; never cut short (a hard stop would leave the last causes, the car park, with nothing).
+- No warning for large sites (the user: large is always handled). Small sites warn only through the type's own checks
+  ("no room for the pitch"): the ground never warns.
+- Planning time (`TinyAndHugeSitesStayWithinTheirBudget`): 20 x 20 m 3 ms; 600 x 600 m 1.2 s; 1000 x 1000 m 2.9 s
+  (whole plan 4.4 s); cage courts 700 x 500 m 2.3 s. Trees, barriers and crowns are in point grids; Under clips its area
+  to the crowns (it sampled the whole site for every tree group: 6.3 s).
+
 ## Settings and numbers
 
 - Instances per build (Grime 100 %): 700-1500 on a city block, 1200-3100 on 220 × 200 (cage courts the most: many
@@ -151,6 +162,9 @@ Weathering (planning, on a worker): 30-500 ms; it runs on every preview re-plan.
 
 | Run id | What it shows | Pictures |
 |---|---|---|
+| `show-30-builds-1029-213226-a383` | FINAL: every style on block, 220 x 200 and 5 % slope, 45/top/close; 30 of 30 built, 0 game errors; 439-3030 instances per build | `shots/*-45-clean.png`, `*-close-clean.png` |
+| `send-ground-sports-1029-214245` | FINAL frame time: 1411 instances, 14.08 ms with the ground vs 14.42 ms off (no measurable cost; busy machine) | |
+| `send-ground-sports-1029-210911` | the property-block fix: 1528 instances, 7.87 ms vs 7.84 ms off (was +1.05 ms) | `shots/01-ground-sports.20-leaves.png` |
 | `show-10-builds-1029-154915-8109` | BEFORE: every style on 220 × 200, v1 grime on community only, grass-surface lawns, tennis nets along the courts | `shots/02-sportsPark-community-big.05-45-clean.png`, `04-…tennisClub…07-close-clean.png` |
 
 ## What failed and why
