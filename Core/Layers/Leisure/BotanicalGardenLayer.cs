@@ -82,6 +82,8 @@ namespace Placemaker.Core.Layers.Leisure
         private static readonly string[] AccentTrees = { "NA_LindenTree01", "AppleTree01", "BirchTree01" };
         private static readonly string[] FlowerBeds = { "Flowerbed01", "Flowerbed02" };
         private static readonly string[] FlowerShrubs = { "FlowerBushCity01", "FlowerBushCity02", "FlowerBushCity03", "FlowerBushWild02", "FlowerBushWild02" };
+        /// <summary>(parks makeover) Carpet beds are edged with clipped green city shrubs: the flowering wild and city shrubs read as pale teal rings round the beds (run show-24-builds-1030-003548-0555).</summary>
+        private static readonly string[] BedEdging = { "GreenBushCity01", "GreenBushCity02", "GreenBushCity03" };
         private static readonly string[] Shrubbery = { "GreenBushWild02", "GreenBushWildAdult01", "GreenBushWildElderly01", "FlowerBushWild02", "GreenBushWild01" };
         private static readonly string[] MeadowFlowers = { "FlowerBushWild02", "FlowerBushWild02", "FlowerBushWildChild02", "GreenBushWildChild01" };
         private static readonly string[] Glasshouses = { "Greenhouse02", "Greenhouse03", "Greenhouse01" };
@@ -140,7 +142,7 @@ namespace Placemaker.Core.Layers.Leisure
                     for (int i = 0; i < ne; i++)
                     {
                         float a = i * 2f * math.PI / ne;
-                        ctx.Object(c + new float2(math.cos(a), math.sin(a)) * er, a, ObjectRole.Bush, AssetMix.Pick(FlowerShrubs, Hashing.Mix(v, 0x100u)), Hashing.Mix(v, 0x200u + (uint)i), -1, bush);
+                        ctx.Object(c + new float2(math.cos(a), math.sin(a)) * er, a, ObjectRole.Bush, AssetMix.Pick(BedEdging, Hashing.Mix(v, 0x100u)), Hashing.Mix(v, 0x200u + (uint)i), -1, bush);
                         edge++;
                     }
                 }
@@ -149,7 +151,7 @@ namespace Placemaker.Core.Layers.Leisure
                     foreach (float sw in new[] { -1f, 1f })
                         for (float u = -hl; u <= hl + 0.01f; u += 1.5f)
                         {
-                            ctx.Object(c + axis * u + nrm * sw * (hw + 0.8f), yaw, ObjectRole.Bush, AssetMix.Pick(FlowerShrubs, Hashing.Mix(v, 0x100u)), Hashing.Mix(v, 0x300u + (uint)edge), -1, bush);
+                            ctx.Object(c + axis * u + nrm * sw * (hw + 0.8f), yaw, ObjectRole.Bush, AssetMix.Pick(BedEdging, Hashing.Mix(v, 0x100u)), Hashing.Mix(v, 0x300u + (uint)edge), -1, bush);
                             edge++;
                         }
                 }
