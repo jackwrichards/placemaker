@@ -415,18 +415,19 @@ namespace Placemaker.Game.Decals
             }
             var go = new GameObject(Prefix + " " + v.Id) { hideFlags = HideFlags.HideAndDontSave };
             UnityEngine.Object.DontDestroyOnLoad(go);
+            // a unit box scaled by the transform, and the variant's shared material at the instance's opacity step: no property
+            // block, so every instance of a variant and step shares one material (property blocks kept Unity from batching:
+            // 0.7 µs a renderer, 1528 instances +1.05 ms, game runner 2026-10-29)
             go.transform.SetPositionAndRotation(new Vector3(inst.Centre.x, inst.Y, inst.Centre.y), Quaternion.Euler(0f, math.degrees(inst.Yaw), 0f));
-            go.AddComponent<MeshFilter>().sharedMesh = BoxMesh(size);
+            go.transform.localScale = new Vector3(size.x, 1f, size.y);
+            if (_unit == null) _unit = BoxMesh(new float2(1f, 1f));
+            go.AddComponent<MeshFilter>().sharedMesh = _unit;
             var mr = go.AddComponent<MeshRenderer>();
-            mr.sharedMaterial = v.Mat;
+            inst.Step = math.clamp((int)math.round(inst.Opacity * Steps), 1, Steps);
+            mr.sharedMaterial = StepMaterial(v, inst.Step);
             mr.shadowCastingMode = ShadowCastingMode.Off; mr.receiveShadows = false;
             mr.lightProbeUsage = LightProbeUsage.Off; mr.reflectionProbeUsage = ReflectionProbeUsage.Off;
             mr.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
-            // the instance's own box size and opacity; the variant's textures and material stay shared
-            inst.Block = new MaterialPropertyBlock();
-            inst.Block.SetVector("colossal_MeshSize", new Vector4(size.x, BoxHeight, size.y, 0f));
-            inst.Block.SetVector("_BaseColor", new Vector4(1f, 1f, 1f, inst.Opacity));
-            mr.SetPropertyBlock(inst.Block);
             inst.Go = go; inst.Renderer = mr;
         }
 
@@ -481,12 +482,10 @@ namespace Placemaker.Game.Decals
                 if (i.Renderer == null) continue;
                 bool on = fade > 0.01f;
                 if (i.Renderer.enabled != on) i.Renderer.enabled = on;
-                if (on && math.abs(fade - i.Fade) > 0.03f)
-                {
-                    i.Fade = fade;
-                    i.Block.SetVector("_BaseColor", new Vector4(1f, 1f, 1f, i.Opacity * fade));
-                    i.Renderer.SetPropertyBlock(i.Block);
-                }
+                if (!on) continue;
+                // the fade swaps the opacity step's shared material
+                int st = math.clamp((int)math.round(i.Opacity * fade * Steps), 1, Steps);
+                if (st != i.Step) { i.Step = st; i.Renderer.sharedMaterial = StepMaterial(i.V, st); }
             }
         }
 
