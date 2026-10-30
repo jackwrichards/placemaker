@@ -63,6 +63,24 @@ namespace Placemaker.Tests.Types
         }
 
         [Fact]
+        public void TheTheatreTierLipsFollowTheTiers()
+        {
+            var plan = EventsKit.Plan("amphitheatre", EventsKit.OneHa, Preset("amphitheatre", "theatre"), TestKit.RoadAlongBottom(300));
+            var orch = plan.Objects.Where(o => o.Category == AssetCategories.Stage).Select(o => o.Position.xz).First();
+            int bad = 0, n = 0;
+            var cen = new float2((float)plan.Facts["theatreFx"], (float)plan.Facts["theatreFz"]);
+            foreach (var o in plan.Objects.Where(o => (o.Asset.Id ?? "").StartsWith("EU_Wall") && o.Elevation < -0.2f && o.Elevation > -0.6f))
+            {
+                var fwd = new float2(math.sin(o.Yaw), math.cos(o.Yaw));
+                var rad = math.normalizesafe(o.Position.xz - cen);
+                n++;
+                if (math.abs(math.dot(fwd, rad)) > 0.3f) bad++;
+            }
+            Assert.True(n > 50, "lips " + n);
+            Assert.True(bad == 0, bad + " of " + n + " tier lips run across their tier");
+        }
+
+        [Fact]
         public void TheTheatreIsASmoothBowlOfTiers()
         {
             var plan = EventsKit.Plan("amphitheatre", EventsKit.OneHa, Preset("amphitheatre", "theatre"), TestKit.RoadAlongBottom(300));

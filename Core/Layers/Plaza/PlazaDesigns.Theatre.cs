@@ -35,7 +35,9 @@ namespace Placemaker.Core.Layers.Plaza
         private static void Theatre(Kit k)
         {
             float fw = k.Fw;
-            k.WallId = "EU_Wall03";
+            // (the user, 2026-10-30: "doesn't look quite right") solid stone everywhere: EU_Wall03 draws as a see-through
+            // balustrade, so the tiers read as rows of railings
+            k.WallId = "EU_Wall01";
             k.Lay(PFrame, PavingShapes.Frame(k.Region.Ring, fw), k.P.Band);
             k.Lay(PPromenade, PavingShapes.Frame(k.Region.Ring, fw + 3.5f), k.P.Path);
             // on a slope the bowl faces down it (the seats climb the hill): turn the frame so A runs up or down the fall
@@ -163,14 +165,28 @@ namespace Placemaker.Core.Layers.Plaza
             k.Ctx.Plan.Facts["designTerrainPatches"] = patches;
             k.Ctx.Plan.Facts["theatreRows"] = rows;
             k.Ctx.Plan.Facts["theatreRise"] = (float)Math.Round(top, 2);
+            k.Ctx.Plan.Facts["theatreFx"] = F.x; k.Ctx.Plan.Facts["theatreFz"] = F.y;
 
             // ── paving: the cavea in stone, a dark band under every tier, the orchestra round, the stage ──
             var cavea = new List<float2>();
             for (float a = -math.PI * 0.5f; a <= math.PI * 0.5f + 1e-3f; a += step) cavea.Add(P(R + 0.4f, a));
             for (float a = math.PI * 0.5f; a >= -math.PI * 0.5f - 1e-3f; a -= step) cavea.Add(P(r0, a));
             k.Lay(PFeature + 2, Poly.EnsureCcw(cavea.ToArray()), k.P.Accent);
+            // every tier a full ring of stone, alternate tiers a shade darker: continuous stone tiers that read from 45 degrees
+            for (int t = 0; t < rows; t++)
+            {
+                if ((t & 1) == 0) continue;
+                float ra = r0 + t * TierDepth, rb = ra + TierDepth;
+                var ring = new List<float2>();
+                for (float a = -math.PI * 0.5f; a <= math.PI * 0.5f + 1e-3f; a += step * 0.5f) ring.Add(P(rb, a));
+                for (float a = math.PI * 0.5f; a >= -math.PI * 0.5f - 1e-3f; a -= step * 0.5f) ring.Add(P(ra, a));
+                k.Lay(PFeature + 1, Poly.EnsureCcw(ring.ToArray()), k.P.Path);
+            }
             k.Lay(PFeature - 2, PavingShapes.Polygon(F, r0 - 0.9f, 32, k.Phase), k.P.Focal);
             k.Lay(PFeature - 3, PavingShapes.Annulus(F, r0 - 0.1f, 0.8f, 32), k.P.Band);
+            k.Lay(PFeature - 4, PavingShapes.Annulus(F, r0 * 0.55f, 0.6f, 32), k.P.Band);
+            k.Lay(PFeature - 5, PavingShapes.Polygon(F, 1.6f, 16, k.Phase), k.P.Inlay);
+            k.Occ.Take(F, r0 - 0.5f, 0);   // the orchestra stays open
             k.Lay(PFeature - 1, stage.Ring, k.P.Focal);
             k.Lay(PKerb, PavingShapes.Frame(stage.Ring, 0.6f), k.P.Band);
             // the lawn round it all, the parodoi from both sides into the orchestra
@@ -183,25 +199,36 @@ namespace Placemaker.Core.Layers.Plaza
             var aisleAngles = new List<float>();
             for (int i = 0; i < aisles; i++) aisleAngles.Add(-math.PI * 0.5f + math.PI * (i + 0.5f) / aisles);
             foreach (float a in aisleAngles) k.Flight(P(r0 + 0.3f, a), P(R - 0.2f, a), 1.5f, false, false, k.P.Path);
+            var bounds = new List<float> { -math.PI * 0.5f };
+            bounds.AddRange(aisleAngles);
+            bounds.Add(math.PI * 0.5f);
+            int benches = 0;
             for (int t = 1; t <= rows; t++)
             {
                 float r = r0 + t * TierDepth;
-                // lip pieces about 3 m of arc, left out where an aisle climbs
-                float da = math.clamp(5f / r, 0.04f, 0.4f);
-                for (float a = -math.PI * 0.5f; a < math.PI * 0.5f - 1e-3f; a += da)
+                float gap = 1.05f / r;   // half the aisle (1.5 m) plus a hand's breadth, as an angle at this tier
+                for (int sgm = 0; sgm + 1 < bounds.Count; sgm++)
                 {
-                    float a1 = math.min(a + da, math.PI * 0.5f);
-                    float mid = (a + a1) * 0.5f;
-                    bool hitsAisle = false;
-                    foreach (float aa in aisleAngles) if (math.abs(mid - aa) * r < 1.6f) { hitsAisle = true; break; }
-                    if (hitsAisle) continue;
-                    k.Lay(PFeature - 4, PavingShapes.Band(P(r - 0.3f, a), P(r - 0.3f, a1), 0.62f), k.P.Band);
-                    if (t % 3 == 0) k.Lay(PFeature - 3, PavingShapes.Band(P(r - TierDepth * 0.5f, a), P(r - TierDepth * 0.5f, a1), TierDepth * 0.5f), k.P.Inlay);
-                    k.Wall(P(r, a), P(r, a1), 1, null, WallH - 0.45f, false);
+                    float a0 = bounds[sgm] + (sgm == 0 ? 0f : gap), a1 = bounds[sgm + 1] - (sgm + 1 == bounds.Count - 1 ? 0f : gap);
+                    if (a1 - a0 < 0.01f) continue;
+                    int pieces = math.max(1, (int)math.round((a1 - a0) * r / 5f));
+                    for (int i = 0; i < pieces; i++)
+                    {
+                        float b0 = math.lerp(a0, a1, i / (float)pieces), b1 = math.lerp(a0, a1, (i + 1) / (float)pieces);
+                        // the riser: a stone lip showing the tier's rise
+                        k.Wall(P(r, b0), P(r, b1), 1, null, WallH - TierRise, false);
+                    }
+                    // stone benches on every third tier, facing the stage
+                    if (t % 3 == 2)
+                        for (float a = a0 + 1.4f / r; a < a1 - 1.2f / r; a += 3.2f / r)
+                        {
+                            var q = P(r - TierDepth * 0.45f, a);
+                            k.Ctx.Object(q, math.atan2(F.x - q.x, F.y - q.y), ObjectRole.Bench, new AssetRef(PlazaArt.ModernBenches[0], PlazaArt.ModernBenches), k.V(0xBE7Au), -1, AssetCategories.Bench);
+                            benches++;
+                        }
                 }
             }
-            // the stone ends of the bowl: low cheek walls along both ends
-            foreach (float s in new[] { -1f, 1f }) k.Wall(P(r0 + 0.5f, s * math.PI * 0.5f) + k.A * 0.15f * -1f, P(R, s * math.PI * 0.5f) - k.A * 0.15f, 1, null, 0.3f, false);
+            k.Ctx.Plan.Facts["theatreBenches"] = benches;
             var taken = new List<float2>();
             for (float a = -math.PI * 0.5f - ext; a <= math.PI * 0.5f + ext + 1e-3f; a += step) taken.Add(P(R + bank, a));
             k.Occ.TakePolygon(taken.ToArray());
@@ -239,9 +266,9 @@ namespace Placemaker.Core.Layers.Plaza
             k.Ctx.Object(sc, yaw, ObjectRole.Furniture, new AssetRef(k.Ctx.S("stageAsset") is string st && st.Length > 0 ? st : "StageSmall01", "StageSmall01"), k.V(0x57A6u), -1, AssetCategories.Stage);
             k.Occ.Take(sc, 4.5f, 0);
             var wa = k.W(s0 + 1.6f, -sv + 0.5f); var wb = k.W(s0 + 1.6f, sv - 0.5f);
-            k.Wall(wa, wb, 4);
-            // a colonnade along the back of the stage (a pergola row), the skene of a real theatre
-            k.Canopy(k.W(s0 + 1.9f, sv - 1f), k.W(s0 + 1.9f, -sv + 1f), 2, "PergolaModular07", false);
+            // the skene: a solid stone back wall five courses high (4.5 m) with wings returning toward the orchestra
+            k.Wall(wa, wb, 5);
+            foreach (float s in new[] { -1f, 1f }) k.Wall(k.W(s0 + 1.6f, s * (sv - 0.5f)), k.W(s0 + 6f, s * (sv - 0.5f)), 4);
             foreach (float s in new[] { -1f, 1f })
             {
                 // the skene's towers: a gazebo on a walled base at each end of the stage

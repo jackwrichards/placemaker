@@ -42,7 +42,7 @@ namespace Placemaker.Core.Layers.Leisure
             { "cemeteryGrounds", new[] { "decals" } },
             { "greenwayPark", new[] { "decals" } },
             { "adventurePlayground", new[] { "restrooms", "decals" } },
-            { "amphitheatre", new[] { "restrooms", "flowerbeds", "decals" } },
+            { "amphitheatre", new[] { "restrooms", "decals" } },   // (the plazas makeover) no flowerbeds: they landed in a row on the orchestra
             { "animalPark", new[] { "restrooms", "decals" } },
             { "beach", new[] { "restrooms", "picnic", "decals" } },
             { "fairground", new[] { "restrooms", "decals" } },
