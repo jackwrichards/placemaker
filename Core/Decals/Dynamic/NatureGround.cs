@@ -904,7 +904,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     float keep = _b.Density; _b.Density = 1f;
                     foreach (var (chain, half) in Chains())
                     {
-                        if (half >= 2.2f) continue;
+                        if (half >= 3.2f) continue;   // wide walks too (a campsite's drive-in track is dirt); never a road-sized net
                         float sz = (half * 2f + 0.5f) / math.max(1f, w);
                         Brushes.EdgeStrip(_b, chain, "trailDirt", new StripOptions { Gaps = 0f, Run = new float2(400f, 900f), Opacity = Op(0.85f, 0.95f), Width = new float2(sz, sz * 1.05f), CornerDeg = 80f, Cause = "feet:trail" });
                     }
