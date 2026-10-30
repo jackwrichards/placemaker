@@ -293,20 +293,18 @@ namespace Placemaker.Core.Decals.Dynamic
             private void Tone()
             {
                 // the lawn: big faint patches everywhere, mottled from above, drier toward the open edges and away from trees
-                Brushes.Tone(_b, _lawn, "lawnTonePatch", new float2(0.5f, 0.8f), 0.3f, ColourLevel.Any, "tone:lawn");
+                Brushes.Tone(_b, _lawn, "lawnTonePatch", new float2(0.35f, 0.6f), 0.3f, ColourLevel.Any, "tone:lawn");
                 Brushes.Scatter(_b, _lawn, "groundMottle", 0.35f, new ScatterOptions { Weight = p => 0.35f + 0.65f * ValueNoise.Clumps(p, 30f, H(1)), Opacity = new float2(0.35f, 0.7f), Clump = 2.5f, Spill = 3f, Level = ColourLevel.Quiet, Cause = "tone:mottle" });
                 Brushes.Scatter(_b, _lawn, "dryGrass", 0.22f, new ScatterOptions { Weight = Dryness, Opacity = new float2(0.4f, 0.8f), Clump = 3f, Spill = 2f, Cause = "tone:dry" });
                 Brushes.Scatter(_b, _lawn, "cloverPatch", 0.05f, new ScatterOptions { Weight = p => 1f - Dryness(p), Opacity = new float2(0.4f, 0.7f), Clump = 3f, Loners = 0.2f, Cause = "tone:clover" });
-                // the pitches and turf: faint, so the stripes and wear sit on a living green
+                // the pitches and turf: mowing stripes and fine clippings, no tone patches (the user, 2026-10-29: the big soft tone
+                // on the turf looked smudgy, "a waste of decals"; groundMottle there read as yellow blotches)
                 foreach (var t in Turf)
                 {
-                    var a = BrushArea.Of(t);
-                    // game runner 2026-10-29: at 0.3-0.55 a pitch stayed one flat plastic green; real turf varies a lot
-                    // (game runner: groundMottle on turf read as yellow blotches all over the pitch; the tone alone varies it)
-                    Brushes.Tone(_b, a, "lawnTonePatch", new float2(0.6f, 0.9f), 0.35f, ColourLevel.Quiet, "tone:turf");
                     if (Poly.Area(t) > 800f) Stripes(t);
+                    Brushes.Scatter(_b, BrushArea.Of(t), "grassClippings", 0.12f, new ScatterOptions { Opacity = new float2(0.45f, 0.8f), Clump = 2f, Loners = 0.5f, Level = ColourLevel.Quiet, Cause = "tone:clippings" });
                 }
-                foreach (var h in Hard) Brushes.Tone(_b, BrushArea.Of(h), "pavingTonePatch", new float2(0.75f, 1f), 0.6f, ColourLevel.Any, "tone:paving");
+                foreach (var h in Hard) Brushes.Tone(_b, BrushArea.Of(h), "pavingTonePatch", new float2(0.5f, 0.8f), 0.45f, ColourLevel.Quiet, "tone:paving");
                 foreach (var h in Asphalt) Brushes.Tone(_b, BrushArea.Of(h), "asphaltTonePatch", new float2(0.8f, 1f), 0.6f, ColourLevel.Full, "tone:asphalt");
                 foreach (var c in Courts)
                 {
@@ -541,10 +539,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     Brushes.EdgeStrip(_b, Ring(c), "seamGrime", new StripOptions { Side = -1, Offset = -0.15f, Gaps = 0.2f, Closed = true, Opacity = Op(0.6f, 0.95f), Cause = "seam:court" });
                     Brushes.EdgeStrip(_b, Ring(c), "pathEdgeWear", new StripOptions { Side = 1, Offset = -1.1f, Gaps = 0.4f, Closed = true, Opacity = Op(0.45f, 0.8f), Cause = "seam:courtEdge" });
                 }
-                // turf against the lawn (a pitch's edge is mown differently and trodden by the subs)
-                foreach (var t in Turf)
-                    if (Poly.Area(t) > 800f)
-                        Brushes.EdgeStrip(_b, Ring(t), "pathEdgeWear", new StripOptions { Side = 1, Offset = -0.6f, Gaps = 0.55f, Closed = true, Opacity = Op(0.3f, 0.6f), Cause = "seam:turf" });
+                // (no strip round the turf: outside a pitch is often a running track or paving, where dry-grass wear read as pale haze)
                 // paving: a few long cracks across each slab of paving, a crack web here and there (the user: more cracks)
                 int pc = 0;
                 foreach (var r in Hard)

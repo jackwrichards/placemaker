@@ -85,10 +85,10 @@
     },
     {
       "id": "lawnTonePatch", "name": "Lawn tone patch", "tier": "macro",
-      "about": "The lawn tone as a big soft patch (32-46 m) with a ragged fade on every side: laid overlapping over a whole lawn so it varies everywhere without the square edge of a sheet.",
-      "texel": 0.2, "layers": "terrain", "order": -2, "lod": 80, "maxTexels": 256, "opacity": 0.85,
+      "about": "The lawn tone as a big soft patch (24-32 m) with a ragged fade on every side: laid overlapping over a whole lawn so it varies everywhere without the square edge of a sheet.",
+      "texel": 0.11, "layers": "terrain", "order": -2, "lod": 80, "maxTexels": 320, "opacity": 0.85,
       "edge": { "feather": 5, "warp": 3, "warpScale": 10, "round": 1 },
-      "variants": { "count": 10, "size": [32, 46], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
+      "variants": { "count": 10, "size": [24, 32], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 5, "octaves": 5, "warp": 3, "warpScale": 6 },
         { "op": "fbm", "out": "m", "scale": 1.2, "octaves": 3, "seed": 3 },
@@ -103,10 +103,10 @@
     },
     {
       "id": "pavingTonePatch", "name": "Paving tone patch", "tier": "macro",
-      "about": "Paving tone as a big soft patch (24-34 m) that fades out raggedly: overlapping over plazas, terraces and path aprons.",
-      "texel": 0.14, "layers": "ground", "order": -2, "lod": 80, "maxTexels": 256, "opacity": 0.85,
+      "about": "Paving tone as a big soft patch (18-24 m) that fades out raggedly: overlapping over plazas, terraces and path aprons.",
+      "texel": 0.09, "layers": "ground", "order": -2, "lod": 80, "maxTexels": 288, "opacity": 0.85,
       "edge": { "feather": 5, "warp": 3, "warpScale": 10, "round": 1 },
-      "variants": { "count": 10, "size": [24, 34], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
+      "variants": { "count": 10, "size": [18, 24], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 4, "octaves": 4, "warp": 2, "warpScale": 5 },
         { "op": "fbm", "out": "f", "scale": 0.6, "octaves": 3, "seed": 5 },
@@ -121,10 +121,10 @@
     },
     {
       "id": "asphaltTonePatch", "name": "Asphalt tone patch", "tier": "macro",
-      "about": "Asphalt tone as a big soft patch (24-34 m): weathered, uneven tarmac over a car park or a hard court, no square edge.",
-      "texel": 0.14, "layers": "ground", "order": -2, "lod": 80, "maxTexels": 256, "opacity": 0.85,
+      "about": "Asphalt tone as a big soft patch (18-24 m): weathered, uneven tarmac over a car park or a hard court, no square edge.",
+      "texel": 0.09, "layers": "ground", "order": -2, "lod": 80, "maxTexels": 288, "opacity": 0.85,
       "edge": { "feather": 5, "warp": 3, "warpScale": 10, "round": 1 },
-      "variants": { "count": 10, "size": [24, 34], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
+      "variants": { "count": 10, "size": [18, 24], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 6, "octaves": 4, "warp": 2.5, "warpScale": 6 },
         { "op": "worley", "out": "cell", "scale": 5, "mode": "id", "warp": 1, "warpScale": 3 },
@@ -137,10 +137,10 @@
     },
     {
       "id": "dirtTonePatch", "name": "Dirt tone patch", "tier": "macro",
-      "about": "Dirt and clay tone as a big soft patch (24-34 m): a clay court or a bare yard scuffed unevenly, fading out raggedly.",
-      "texel": 0.14, "layers": "ground", "order": -2, "lod": 80, "maxTexels": 256, "opacity": 0.85,
+      "about": "Dirt and clay tone as a big soft patch (18-24 m): a clay court or a bare yard scuffed unevenly, fading out raggedly.",
+      "texel": 0.09, "layers": "ground", "order": -2, "lod": 80, "maxTexels": 288, "opacity": 0.85,
       "edge": { "feather": 4, "warp": 2.5, "warpScale": 8, "round": 1 },
-      "variants": { "count": 8, "size": [24, 34], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
+      "variants": { "count": 8, "size": [18, 24], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 4, "octaves": 5, "warp": 2, "warpScale": 5 },
         { "op": "abs", "in": "n", "out": "an" },
