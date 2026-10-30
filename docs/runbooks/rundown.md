@@ -85,3 +85,26 @@ lorries drive), so it lays its decals right there, from its own causes, through 
 | `show-17-builds-1029-232943-f816` | BEFORE: every style of the three types, plain green ground, no decals (vanilla has no dirt decals), white walls |
 | `show-6-builds-1029-235436-5714` | first designed grounds: paint slot 3 found, rubble field reads |
 | `show-9-builds-1030-000649-d2af`, `show-6-builds-1030-000649-1925`, `show-4-builds-1030-000713-903d` | round 2 |
+| `show-19-builds-1030-002631-720a` | round 3: car park reads (dark asphalt, faded bays, weedy cracks), dark masonry walls |
+| `show-18-builds-1030-005232-5281` | FINAL round 4: every shown style, 45 / close / low (the low view frames too far to judge) |
+| `send-ground-rundown-1030-005242` | frame time and close-ups by kind (rubble, bays, weedy crack, burnt, basement, mud out) |
+
+## Numbers
+
+- Planning (offline, `RundownGroundTests`): 20-350 ms a style on 146 x 136 and 216 x 196 m; every style lays 170-580
+  instances a hectare; huge sites (700 x 600 m) stay under `Weathering.MaxInstances`.
+- Frame time (`send-ground-rundown-1030-005242`, rubble field on 220 x 200, 2610 instances): before the build 6.69 ms,
+  with the ground 7.17 ms, ground switched off 7.05 ms (+0.12 ms). Caveat: the log shows the variants still being made
+  when "with the ground" was measured; worth one re-measure.
+- GPU: the whole category's kinds 56 MiB after five builds (budget 200 MiB).
+
+## Left to do (honest)
+
+- Overgrown lot still reads half like a park from 45 degrees (lawn green under the scrub; paint slot 2 under thickets is
+  subtle). Needs a meadow look: a straw-coloured weed kind laid densely, or fewer, bigger thickets.
+- Vacant lot is plausible but plain.
+- Construction sites have no machines (the game's vehicles are not placeable props); the mud tracked out of the gate does
+  not show in the close-up yet; "frame" stage (a building going up) has no vanilla pieces.
+- Building ruins: the basement pit is not obvious in the pictures (the floor slab covers it); the camera never found it.
+- Broken highway: pillars and fallen spans only (no vanilla deck to stand on the pillars).
+- Not done: under-the-overpass spaces and leftover strips (verges, medians, rail edges) as types.

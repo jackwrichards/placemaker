@@ -26,7 +26,10 @@ namespace Placemaker.Tests
             var shelf = Shipped();
             Assert.Empty(shelf.Warnings);
             var shown = shelf.Categories.Where(c => !c.Hidden).Select(c => c.Id).ToArray();
-            Assert.Equal(new[] { "zoning", "roads", "parking", "parks", "beach", "shops", "plazas", "nature", "farms", "sports", "industry", "ai" }, shown);
+            Assert.Equal(new[] { "zoning", "roads", "parking", "parks", "beach", "shops", "plazas", "nature", "farms", "sports", "industry", "rundown", "ai" }, shown);
+            // Rundown (2026-10-29): abandoned lot and construction site moved in from Industrial, urban ruins from Sports
+            Assert.Equal("rundown", shelf.CategoryOf("abandonedLot", "industrial"));
+            Assert.Equal("rundown", shelf.CategoryOf("urbanRuins", "sports"));
             Assert.False(shelf.Category("industry").Hidden);   // Industrial (2026-10-19): its own category again
             Assert.True(shelf.Category("transport").Hidden);
             foreach (var g in GeneratorRegistry.All)

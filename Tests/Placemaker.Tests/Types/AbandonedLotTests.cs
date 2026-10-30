@@ -191,7 +191,7 @@ namespace Placemaker.Tests.Types
             var gen = TestKit.Gen(Id);
             Assert.Equal("industrial", GeneratorGroups.Of(gen));
             Assert.Equal(LayerKind.Fill, gen.Kind);
-            Assert.InRange(gen.Presets.Count, 4, 6);
+            Assert.InRange(gen.Presets.Count, 4, 8);   // (rundown) + old car park, burnt-out lot, vacant lot
             Assert.InRange(gen.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, 40);
             var subtype = gen.Controls.Single(c => c.Id == "subtype");
             Assert.Equal(gen.Presets.Select(p => p.Id), subtype.Options.Select(o => o.Value));
