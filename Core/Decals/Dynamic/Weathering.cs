@@ -371,7 +371,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     Brushes.Under(_b, kv.Value, kind, cov, Wind, fall, new ScatterOptions { Opacity = Op(0.55f, 1f), Scale = new float2(0.9f, 1.45f), Clump = 5f, Spread = 0.55f, Loners = 0.25f, Spill = 2f, Cause = "leaves" });
                     // mixed leaves blown further on, thinner
                     if (kind != "pineNeedles")
-                        Brushes.Under(_b, Shift(kv.Value, Wind, 1.8f), "leafMixed", 0.35f * A, Wind, fall, new ScatterOptions { Opacity = Op(0.4f, 0.8f), Clump = 2.5f, Loners = 0.45f, Cause = "leaves:blown" });
+                        Brushes.Under(_b, Shift(kv.Value, Wind, 1.8f), "leafMixed", 0.35f * A, Wind, fall, new ScatterOptions { Opacity = Op(0.4f, 0.8f), Clump = 2.5f, Loners = 0.45f, Level = ColourLevel.Quiet, Cause = "leaves:blown" });
                 }
                 // under groups of trees: woodland floor and a little bare earth, overlapping the leaves
                 var groups = TreeGroups(9f);

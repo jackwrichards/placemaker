@@ -25,6 +25,8 @@ namespace Placemaker.Game.Suite
         /// </summary>
         private IEnumerator LabLibrary(ScenarioState st, JObject step, JObject rec)
         {
+            // {"op":"library","instanced":false}: draw the library with one renderer per instance (true: GPU instancing, the default)
+            if (step["instanced"] != null) { SharedDecals.SetInstanced((bool)step["instanced"]); rec["instanced"] = SharedDecals.Instanced; yield return Frames(30); yield break; }
             if ((bool?)step["clear"] == true) { rec["cleared"] = SharedDecals.Clear("lab"); _libraryCells.Clear(); yield break; }
             if (step["focus"] != null)
             {

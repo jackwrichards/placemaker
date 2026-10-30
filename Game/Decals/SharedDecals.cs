@@ -7,6 +7,8 @@
 // Unused variants are freed when the library is over its GPU budget. Nothing is an entity or a prefab: the save never
 // sees any of it, and removing the mod leaves nothing behind (the disk cache is in ModsData, like the build audits).
 // Driven by DynamicDecalSystem's update (Tick): uploads within a time budget, distance culling, hidden in infoviews.
+// Drawing: GPU instancing by default (one RenderMeshInstanced call per variant and opacity step, no GameObject per
+// instance: 2000 renderers cost about 1.6 ms a frame); Instanced = false draws one renderer per instance (the lab compares).
 
 using System;
 using System.Collections.Concurrent;
@@ -45,6 +47,8 @@ namespace Placemaker.Game.Decals
             public long Bytes;
             public int Refs;
             public int LastUse;
+            /// <summary>Instanced drawing: the variant's material at 8 opacity steps (index 1..8), unit box size.</summary>
+            public Material[] Steps;
             public bool FromDisk;
             public double Ms;
             // worker results
@@ -65,7 +69,18 @@ namespace Placemaker.Game.Decals
             internal MeshRenderer Renderer;
             internal MaterialPropertyBlock Block;
             internal float Cull, Fade = -1f;
+            /// <summary>Instanced drawing: the box's matrix (unit box scaled to the instance) and its opacity step (0 = not drawn).</summary>
+            internal Matrix4x4 M;
+            internal int Step = -1;
         }
+
+        /// <summary>Draw with GPU instancing (default) or one renderer per instance (lab: compare).</summary>
+        public static bool Instanced { get; private set; } = true;
+        private const int Steps = 8;
+        private sealed class Batch { public Material Mat; public readonly List<Matrix4x4> M = new List<Matrix4x4>(); public Bounds B; public bool Has; }
+        private static readonly Dictionary<Material, Batch> _batches = new Dictionary<Material, Batch>();
+        private static bool _dirty = true;
+        private static Mesh _unit;
 
         private static readonly Dictionary<string, Variant> _variants = new Dictionary<string, Variant>(StringComparer.Ordinal);
         private static readonly List<Instance> _instances = new List<Instance>();
@@ -121,7 +136,7 @@ namespace Placemaker.Game.Decals
         {
             int n = 0;
             for (int i = _instances.Count - 1; i >= 0; i--)
-                if (owner == null || _instances[i].Owner == owner) { Free(_instances[i]); _instances.RemoveAt(i); n++; }
+                if (owner == null || _instances[i].Owner == owner) { Free(_instances[i]); _instances.RemoveAt(i); n++; _dirty = true; }
             for (int i = _waiting.Count - 1; i >= 0; i--)
                 if (owner == null || _waiting[i].Owner == owner) { _waiting[i].V.Refs--; _waiting.RemoveAt(i); n++; }
             return n;
@@ -137,6 +152,8 @@ namespace Placemaker.Game.Decals
             _variants.Clear();
             foreach (var m in _meshes.Values) if (m != null) UnityEngine.Object.Destroy(m);
             _meshes.Clear();
+            _batches.Clear();
+            _unit = null;
         }
 
         private static void Free(Instance i)
@@ -149,6 +166,8 @@ namespace Placemaker.Game.Decals
         private static void FreeVariant(Variant v)
         {
             if (v.Mat != null) UnityEngine.Object.Destroy(v.Mat);
+            if (v.Steps != null) foreach (var m in v.Steps) if (m != null) { _batches.Remove(m); UnityEngine.Object.Destroy(m); }
+            v.Steps = null;
             if (v.Tex != null) foreach (var t in v.Tex) if (t != null) UnityEngine.Object.Destroy(t);
             v.Mat = null; v.Tex = null; v.Bytes = 0; v.State = 0;
         }
@@ -272,11 +291,69 @@ namespace Placemaker.Game.Decals
                     }
                     Make(inst);
                     _instances.Add(inst);
-                    if (hide || _hidden) inst.Renderer.enabled = false;
+                    if (inst.Renderer != null && (hide || _hidden)) inst.Renderer.enabled = false;
                 }
             }
             Cull(hide);
+            if (Instanced) Draw(hide);
             if (Time.frameCount % 300 == 0) Evict();
+        }
+
+        /// <summary>Switches between instanced drawing and one renderer per instance (the lab compares frame times).</summary>
+        public static void SetInstanced(bool on)
+        {
+            if (on == Instanced) return;
+            Instanced = on;
+            foreach (var i in _instances)
+            {
+                if (i.Go != null) UnityEngine.Object.Destroy(i.Go);
+                i.Go = null; i.Renderer = null; i.Step = -1; i.Fade = -1f;
+                Make(i);
+            }
+            _dirty = true;
+        }
+
+        private static Material StepMaterial(Variant v, int step)
+        {
+            if (v.Steps == null) v.Steps = new Material[Steps + 1];
+            var m = v.Steps[step];
+            if (m != null) return m;
+            m = new Material(v.Mat) { name = v.Mat.name + " " + step, hideFlags = HideFlags.HideAndDontSave, enableInstancing = true };
+            m.SetVector("colossal_MeshSize", new Vector4(1f, BoxHeight, 1f, 0f));
+            if (m.HasProperty("_BaseColor")) m.SetVector("_BaseColor", new Vector4(1f, 1f, 1f, step / (float)Steps));
+            return v.Steps[step] = m;
+        }
+
+        private static void Draw(bool hide)
+        {
+            if (hide || _instances.Count == 0) return;
+            if (_dirty)
+            {
+                foreach (var b in _batches.Values) { b.M.Clear(); b.Has = false; }
+                foreach (var i in _instances)
+                {
+                    if (i.Step <= 0 || i.V?.Mat == null) continue;
+                    var mat = StepMaterial(i.V, i.Step);
+                    if (!_batches.TryGetValue(mat, out var b)) _batches[mat] = b = new Batch { Mat = mat };
+                    float r = i.V.Span.x * i.Scale.x + i.V.Span.y * i.Scale.y;
+                    var bb = new Bounds(new Vector3(i.Centre.x, i.Y, i.Centre.y), new Vector3(r, BoxHeight, r));
+                    if (b.Has) b.B.Encapsulate(bb); else { b.B = bb; b.Has = true; }
+                    b.M.Add(i.M);
+                }
+                _dirty = false;
+            }
+            if (_unit == null) _unit = BoxMesh(new float2(1f, 1f));
+            foreach (var b in _batches.Values)
+            {
+                if (b.M.Count == 0 || b.Mat == null) continue;
+                var rp = new RenderParams(b.Mat)
+                {
+                    worldBounds = b.B, shadowCastingMode = ShadowCastingMode.Off, receiveShadows = false,
+                    lightProbeUsage = LightProbeUsage.Off, reflectionProbeUsage = ReflectionProbeUsage.Off, motionVectorMode = MotionVectorGenerationMode.ForceNoMotion,
+                };
+                for (int start = 0; start < b.M.Count; start += 1023)
+                    Graphics.RenderMeshInstanced(rp, _unit, 0, b.M, math.min(1023, b.M.Count - start), start);
+            }
         }
 
         private static bool Upload(Variant v, Material template)
@@ -324,6 +401,16 @@ namespace Placemaker.Game.Decals
         {
             var v = inst.V;
             var size = v.Span * inst.Scale;
+            // parks are looked at from far away: macro kinds stay to 600 m at least; small details (litter, prints, rust) go sooner
+            inst.Cull = v.K.Tier == "detail" ? math.clamp(v.K.Lod * math.max(size.x, size.y), 200f, 600f) : math.clamp(v.K.Lod * math.max(size.x, size.y), 600f, 2000f);
+            if (Instanced)
+            {
+                // a unit box scaled to the instance: the step materials say the box is 1 x 1 (colossal_MeshSize)
+                inst.M = Matrix4x4.TRS(new Vector3(inst.Centre.x, inst.Y, inst.Centre.y), Quaternion.Euler(0f, math.degrees(inst.Yaw), 0f), new Vector3(size.x, 1f, size.y));
+                inst.Step = math.clamp((int)math.round(inst.Opacity * Steps), 1, Steps);
+                _dirty = true;
+                return;
+            }
             var go = new GameObject(Prefix + " " + v.Id) { hideFlags = HideFlags.HideAndDontSave };
             UnityEngine.Object.DontDestroyOnLoad(go);
             go.transform.SetPositionAndRotation(new Vector3(inst.Centre.x, inst.Y, inst.Centre.y), Quaternion.Euler(0f, math.degrees(inst.Yaw), 0f));
@@ -339,8 +426,6 @@ namespace Placemaker.Game.Decals
             inst.Block.SetVector("_BaseColor", new Vector4(1f, 1f, 1f, inst.Opacity));
             mr.SetPropertyBlock(inst.Block);
             inst.Go = go; inst.Renderer = mr;
-            // parks are looked at from far away: macro kinds stay to 600 m at least; small details (litter, prints, rust) go sooner
-            inst.Cull = v.K.Tier == "detail" ? math.clamp(v.K.Lod * math.max(size.x, size.y), 200f, 600f) : math.clamp(v.K.Lod * math.max(size.x, size.y), 600f, 2000f);
         }
 
         private static Mesh BoxMesh(float2 size)
@@ -383,9 +468,15 @@ namespace Placemaker.Game.Decals
             {
                 _cullFrom = (_cullFrom + 1) % _instances.Count;
                 var i = _instances[_cullFrom];
-                if (i.Renderer == null) continue;
                 float d = math.distance(p, new float3(i.Centre.x, i.Y, i.Centre.y));
                 float fade = math.saturate((i.Cull - d) / (i.Cull * 0.25f));
+                if (Instanced)
+                {
+                    int step = fade <= 0.01f ? 0 : math.clamp((int)math.round(i.Opacity * fade * Steps), 1, Steps);
+                    if (step != i.Step) { i.Step = step; _dirty = true; }
+                    continue;
+                }
+                if (i.Renderer == null) continue;
                 bool on = fade > 0.01f;
                 if (i.Renderer.enabled != on) i.Renderer.enabled = on;
                 if (on && math.abs(fade - i.Fade) > 0.03f)
