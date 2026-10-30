@@ -486,7 +486,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     // most groves smother their ground in last year's leaves, some are left grassy (the user, 2026-10-30: "more
                     // actual brown mulch that smothers under trees or in certain areas, but not in others")
                     if (U(520, gi++) < 0.7f)
-                        Brushes.Under(_b, crowns, "leafLitterDeep", 1.1f * A, Wind * 0.3f, _lawn, new ScatterOptions { Opacity = Op(0.75f, 1f), Scale = new float2(0.9f, 1.3f), Clump = 4f, Spread = 0.5f, Loners = 0.15f, Level = ColourLevel.Quiet, Cause = "woodland:litter" });
+                        Brushes.Under(_b, crowns, "leafLitterDeep", 2.8f * A, Wind * 0.3f, _lawn, new ScatterOptions { Opacity = Op(0.75f, 1f), Scale = new float2(0.9f, 1.3f), Clump = 4f, Spread = 0.5f, Loners = 0.15f, Level = ColourLevel.Quiet, Cause = "woodland:litter" });
                     Brushes.Under(_b, crowns, "woodlandFloor", 0.22f * A, Wind * 0.3f, _lawn, new ScatterOptions { Opacity = Op(0.35f, 0.65f), Clump = 3f, Cause = "woodland" });
                     Brushes.Under(_b, crowns, "barePatch", 0.08f * A, Wind * 0.2f, _lawn, new ScatterOptions { Opacity = Op(0.3f, 0.6f), Clump = 2f, Loners = 0.5f, Cause = "woodland:bare" });
                 }

@@ -858,7 +858,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     }
                 }
                 litterCrowns = Decimate(litterCrowns, perHa);
-                Brushes.Under(_b, litterCrowns, "leafLitterDeep", 1.1f * A * thin, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.75f, 1f), Scale = new float2(0.9f, 1.3f), Clump = 4f, Spread = 0.5f, Loners = 0.15f, Level = ColourLevel.Quiet, Cause = "woodland:litter" });
+                Brushes.Under(_b, litterCrowns, "leafLitterDeep", 2.8f * A * math.max(thin, 0.6f), Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.75f, 1f), Scale = new float2(0.9f, 1.3f), Clump = 4f, Spread = 0.5f, Loners = 0.15f, Level = ColourLevel.Quiet, Cause = "woodland:litter" });
                 needleCrowns = Decimate(needleCrowns, perHa); floorCrowns = Decimate(floorCrowns, perHa); mossCrowns = Decimate(mossCrowns, perHa);
                 Brushes.Under(_b, needleCrowns, "pineNeedles", 0.2f * A, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.7f), Clump = 3f, Cause = "woodland" });
                 Brushes.Under(_b, floorCrowns, "woodlandFloor", 0.16f * A, Weathering.Wind * 0.3f, _wild, new ScatterOptions { Opacity = Op(0.35f, 0.7f), Clump = 3f, Cause = "woodland" });
