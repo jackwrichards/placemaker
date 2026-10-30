@@ -58,14 +58,37 @@ Leaves: the sports park's summer carpets read as mustard yellow under green birc
 
 ## New library kinds (`Recipes/decals/library/parks.json`)
 
-`runoffRill` (strip), `gullyGravel`, `screeFan`, `meadowFlowers`, `wetSilt`, `leafLitterSummer`, `pathGrit` (strip).
+`runoffRill` (strip), `gullyGravel`, `screeFan`, `meadowFlowers` (pale: saturated yellow read as orange rust), `wetSilt`,
+`leafLitterSummer`, `rakedGravel` (strip, the dry garden's rows), `rakedRing` (short strip, rings round the stones),
+`pathGrit` (strip).
+
+## Other types
+
+- Botanical garden: places too (a rock garden on a knoll, a wildflower meadow, a bog garden in a hollow, a glade), painted lawn.
+- Memorial park: places on the side lawns before the groves, never on the vista along the axis (stones, meadow, copse,
+  knoll); painted lawn; one control only (`moods`; its schema test allows 41 controls).
+- Adventure playground: wild places between the play zones (a knoll to scramble, a ravine, a copse with logs); lawns that
+  hold a zone or the hub stay open.
+- Zen garden: the dry garden's gravel is raked (rows along the field, two rings round each stone group). Tea garden hidden.
+
+## Palette lessons
+
+- `FlowerBushWild01` and `FlowerBushWildElderly01` are pale teal in the game (bush test run `20261030-003549-bushes`): out of
+  every parks palette (`ParkArt`, botanical, memorial, moods). `FlowerBushWild02` / `Child02` are dark and quiet. (Other
+  categories still use them: parking, beach, golf, lookout hill, hiking, waterfront, animal park.)
+- Summer leaves: dark olive-brown litter, sparse.
 
 ## Shared code touched (small, additive)
 
 - `Weathering.cs`: `Designs` (per-type designs; `Wants` includes them), `Scene.Design/Host/LeafScale/LeafOverride` and
-  read accessors; `Run` calls the design after the shared causes; a park without goals never picks the bald goalmouth.
-- `SiteHarmony.cs`: mood regions are protected from the change smoothing.
+  read accessors; `Run` calls the design after the shared causes; a park without goals never picks the bald goalmouth; a
+  type with a design has its own budget a hectare (`ParkGround.PerHectare` 700; the sports park unchanged at 320).
+- `SiteHarmony.cs`: mood regions keep the Terrain feature's decor out and are protected from the change smoothing (softly,
+  over 4 m inside their rim).
 - `Lawn.cs`: botanical garden and memorial park default to painted terrain; Garden walk no longer forces a grass surface.
+- `Game/Build/TerrainCullGuard.cs` + one line in `BuildService.Emit.cs` (the crash, below).
+- Tests that assume a park plans no terraform switch `moods` off (ParkTests, FeatureTests, SiteHarmonyTests, the adventure
+  jungle check); lawn-default tests follow `Lawn.cs`; GroundWear's bare-lawn test checks the decal ground.
 
 ## Runs
 
@@ -73,13 +96,20 @@ Leaves: the sports park's summer carpets read as mustard yellow under green birc
 |---|---|
 | `show-22-builds-1029-232925-79c4` | BEFORE: every visible Parks style, 45 + close |
 | `show-6-builds-1029-235043-0788` | first moods: places too small, boulders buried out of sight, terrain smoothed by site harmony, yellow leaf carpets |
+| `show-5-builds-1030-000121-ff10` | discs in the open: 2-3 tiny places per park, invisible from 45°; leaves fixed |
+| `show-24-builds-1030-001417-7e24` | places as whole lawns: the rooms differ; big lawns spread stones thin (memorial, shrubbery); teal bushes |
+| `20261030-001417-bushes` | the CullForCascades crash at the 4th build (no terraform in that run) |
+| `20261030-003549-bushes` | with the guard: 10 of 10 built; the road cull list was at 3988 sections in a capacity of 4096 |
 
 ## What failed and why
 
 - Boulders vanished: the model already sits 1.35 m in the ground; sinking it by half its height on top buried it. Sink
-  0.35-0.55 of 1.6 m × scale.
+  0.35-0.55 of 1.6 m × scale; broken stones at its foot so it never reads as a dropped prop.
 - The knoll came out at half its height: SiteHarmony smoothed the change field (20 passes). Mood regions are protected now.
-- Places 8-20 m read as nothing from 45° in a 150 m block: hero places 22-28 % of the side.
+- Discs of 8-38 m rarely fitted between the paths: places are lawns between the paths; knolls, hollows and stone rings take
+  a piece (inscribed radius 15 / 14 / 10 m) of a big lawn.
+- Banks at 42 % read as curtains to the harmony checks on a hill: the change is limited to 28 % and the result to 34 % over
+  the ground as it is, 5 m off the outline.
 - Mood facts doubled (a layer can be planned twice on one plan): facts are set from local counts.
 
 ## The CullForCascades crash (AGENTS.md "known bugs")
