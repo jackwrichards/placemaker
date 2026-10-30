@@ -102,6 +102,17 @@ namespace Placemaker.Tests
         }
 
         [Fact]
+        public void TheCacheCleanUpKeepsOnlyCurrentRecipes()
+        {
+            var lib = Library();
+            var k = Shared(lib).First();
+            string current = DecalVariants.CacheKey(k, 0) + ".bc3", cap = DecalVariants.CacheKey(k, DecalVariants.CapEnd) + ".bc3";
+            string old = $"{k.Id}-0-00000000.bc3", gone = "noSuchKind-3-1a2b3c4d.bc3";
+            var stale = DecalVariants.StaleCacheFiles(new[] { current, cap, old, gone, "notes.txt", "odd-name.bc3" }, lib);
+            Assert.Equal(new[] { old, gone }, stale);
+        }
+
+        [Fact]
         public void TheWholeLibraryFitsTheBudget()
         {
             long bytes = 0; int n = 0;

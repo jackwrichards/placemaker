@@ -22,6 +22,7 @@
 // run of strip pieces never stops in a hard cut (Brushes.EdgeStrip, CracksAlong).
 
 using System;
+using System.Collections.Generic;
 using Unity.Mathematics;
 using Placemaker.Core.Tool;
 
@@ -222,6 +223,33 @@ namespace Placemaker.Core.Decals.Dynamic
         /// <summary>The disk cache key of a variant: the kind's recipe text, the index and the generator version.</summary>
         public static string CacheKey(DecalKind k, int index) =>
             $"{k.Id}-{index}-{Fnv(k.Json + "|" + GeneratorVersion):x8}";
+
+        /// <summary>
+        /// The disk cache's files that no current recipe can use: a kind that is gone, or a hash from an older recipe or
+        /// generator (every recipe change leaves its old variants behind: 916 MB of them on the developer's machine,
+        /// 2026-10-30). Only names of the cache's own form (kind-index-hash.bc3) are ever returned.
+        /// </summary>
+        public static List<string> StaleCacheFiles(IEnumerable<string> fileNames, DecalLibrary lib)
+        {
+            var stale = new List<string>();
+            var hashes = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var name in fileNames)
+            {
+                if (name == null || !name.EndsWith(".bc3", StringComparison.OrdinalIgnoreCase)) continue;
+                string stem = name.Substring(0, name.Length - 4);
+                int b = stem.LastIndexOf('-'); if (b <= 0) continue;
+                int a = stem.LastIndexOf('-', b - 1); if (a <= 0) continue;
+                if (!int.TryParse(stem.Substring(a + 1, b - a - 1), out _)) continue;
+                string kind = stem.Substring(0, a), hash = stem.Substring(b + 1);
+                if (!hashes.TryGetValue(kind, out var want))
+                {
+                    var k = lib?.Get(kind);
+                    hashes[kind] = want = k == null ? null : Fnv(k.Json + "|" + GeneratorVersion).ToString("x8");
+                }
+                if (want == null || !string.Equals(hash, want, StringComparison.OrdinalIgnoreCase)) stale.Add(name);
+            }
+            return stale;
+        }
 
         /// <summary>GPU bytes of one variant: three BC3 maps with mips.</summary>
         public static long GpuBytes(int w, int h) => 3L * DecalTexture.Bc3Size(w, h);

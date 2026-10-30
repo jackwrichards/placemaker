@@ -102,6 +102,31 @@ namespace Placemaker.Game.Decals
 
         private static string CacheDir => Path.Combine(EnvPath.kUserDataPath, "ModsData", "Placemaker", "decal-cache");
 
+        private static int _pruned;
+
+        /// <summary>Deletes, once a session and on a background thread, the cached variants no current recipe can use (DecalVariants.StaleCacheFiles).</summary>
+        public static void PruneCache(DecalLibrary lib)
+        {
+            if (lib == null || lib.Count == 0 || Interlocked.Exchange(ref _pruned, 1) == 1) return;
+            new Thread(() =>
+            {
+                try
+                {
+                    if (!Directory.Exists(CacheDir)) return;
+                    var names = new List<string>();
+                    foreach (var f in Directory.GetFiles(CacheDir, "*.bc3")) names.Add(Path.GetFileName(f));
+                    int n = 0; long bytes = 0;
+                    foreach (var name in DecalVariants.StaleCacheFiles(names, lib))
+                    {
+                        var file = Path.Combine(CacheDir, name);
+                        try { bytes += new FileInfo(file).Length; File.Delete(file); n++; } catch { }
+                    }
+                    if (n > 0) Mod.Log.Info($"Placemaker dynamic decals: removed {n} old cached variants ({bytes / 1048576.0:F0} MB) of {names.Count} in the disk cache.");
+                }
+                catch (Exception e) { Mod.Log.Warn("Placemaker dynamic decals: cache clean-up failed: " + e.Message); }
+            }) { IsBackground = true, Name = "Placemaker decal cache clean-up", Priority = System.Threading.ThreadPriority.BelowNormal }.Start();
+        }
+
         /// <summary>Places one instance of a library variant ("kind#index", or a kind: its variant from the seed).</summary>
         public static Instance Place(string variantId, string owner, float2 centre, float yaw, float scale = 1f, float opacity = 1f, uint seed = 0) =>
             Place(variantId, owner, centre, yaw, new float2(scale, scale), opacity, seed);

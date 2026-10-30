@@ -163,6 +163,7 @@ namespace Placemaker.Game.Decals
                 DecalLibrary.Current = lib;
                 Mod.Log.Info($"Placemaker dynamic decals: {lib.Count} kinds in the library ({path}).");
                 foreach (var w in lib.Warnings) Mod.Log.Warn("Placemaker dynamic decals: " + w);
+                SharedDecals.PruneCache(lib);
             }
             catch (Exception e) { Mod.Log.Warn("Placemaker dynamic decals: cannot read the decal library: " + e.Message); }
         }
