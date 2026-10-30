@@ -8,6 +8,17 @@ first type done: B+ then "nailed it", every number and mistake). This page is th
 "within reason, do more with less". Every decal must have a reason a visitor would recognise (a tree dropped these leaves,
 feet wore this edge, rain sits in this dip). Fewer, right, crisp pieces beat many soft ones.
 
+**This is a guide, not a cage.** It is how we did the sports park, not the only way. The user, 2026-10-29: if a rule or
+part of this guide blocks your creative freedom, break from it; if you find a cooler way, do it. Only one thing ranks
+above your judgement: **performance comes first** (frame time in a running city, planning time, memory: measure them as
+in sections 7 and 8). Within that, do whatever makes the ground best, and write what you did differently, and why, into
+your type's runbook so the next agent learns from it.
+
+Build on the existing systems, don't rewrite them (the user: "invent your decals, or invent a new way to draw them, but
+don't rewrite everything"). Invent new decal kinds, new brushes, new causes, a new way to lay them out, all freely; keep
+the shared pieces (the library, the instance record, `SharedDecals`, the budget, the brushes others use) and extend them.
+If one of them truly blocks you, change it with care and keep the other types working.
+
 ## 1. What you have (all built, all tested)
 
 | Piece | Where | Use |
