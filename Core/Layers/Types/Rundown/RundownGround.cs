@@ -72,8 +72,6 @@ namespace Placemaker.Core.Layers.Types.Rundown
         public sealed class GroundLook
         {
             /// <summary>Bare soil patches (0..1 coverage), weed tufts, dry grass, grit and stones, mottle.</summary>
-            /// <summary>Rank grass: the uncut, seeded meadow of a lot nobody mows (the dense carpet that stops it reading as a lawn).</summary>
-            public float Rank = 0f;
             public float Bare = 0.25f, Weeds = 0.25f, Dry = 0.15f, Grit = 0.08f, Stones = 0f, Mottle = 0.12f, Moss = 0f, Litter = 0f;
             /// <summary>Weeds thicker toward the edges (fences catch seeds, nobody walks there): 0 even .. 1 edges only.</summary>
             public float EdgeWeeds = 0.5f;
@@ -100,8 +98,6 @@ namespace Placemaker.Core.Layers.Types.Rundown
                     Opacity = new float2(0.3f, 0.55f), Scale = new float2(0.45f, 0.8f), Clump = 4f, Spill = 1f, Loners = 0.35f, Cause = "ground:bare",
                 });
             }
-            if (g.Rank > 0f)
-                Brushes.Scatter(B, soil, "rankGrass", g.Rank, new ScatterOptions { Weight = p => math.saturate(0.45f + 0.55f * Mosaic(p, 21, 22f)) * (1f - 0.95f * Worn(p)), Opacity = new float2(0.7f, 1f), Clump = 3f, Spread = 0.8f, Loners = 0.2f, Spill = 1f, Cause = "ground:rank" });
             if (g.Soil == "gravel")
                 Brushes.Scatter(B, soil, "gravelCarpet", 0.35f, new ScatterOptions { Weight = p => 0.4f + 0.6f * Mosaic(p, 12, 30f), Opacity = new float2(0.35f, 0.6f), Clump = 2f, Cause = "ground:gravel" });
             if (g.Mottle > 0f)

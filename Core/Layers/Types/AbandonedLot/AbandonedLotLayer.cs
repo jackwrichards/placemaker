@@ -51,7 +51,8 @@ namespace Placemaker.Core.Layers.Types.Ruins
 
         protected override void DefineControls(ControlSet c)
         {
-            c.Choice("subtype", "overgrown", ControlTier.Essential, "lot", Subtypes).Tip();
+            // (rundown, 2026-10-30) the standard lot is the rubble field: overgrown and vacant lot are hidden (they read as a park and as a lawn)
+            c.Choice("subtype", "rubbleField", ControlTier.Essential, "lot", Subtypes).Tip();
             c.Slider("overgrowth", 60, 0, 100, 5, "%", ControlTier.Essential, "lot").Tip();
             c.Slider("rubble", 30, 0, 100, 5, "%", ControlTier.Essential, "lot").Tip();
             c.Slider("junk", 30, 0, 100, 5, "%", ControlTier.Essential, "lot").Tip();

@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+5495af6d-dirty",
+  "assembly": "0.3.6+6f2ce3a2-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -27578,7 +27578,7 @@
             "dirtJumps",
             "buildingRuins"
           ],
-          "default": "diySpot"
+          "default": "buildingRuins"
         },
         {
           "id": "skateItems",
@@ -27587,7 +27587,7 @@
           "max": 30.0,
           "step": 1.0,
           "unit": "count",
-          "default": 10.0
+          "default": 0.0
         },
         {
           "id": "graffiti",
@@ -27605,7 +27605,7 @@
           "max": 100.0,
           "step": 5.0,
           "unit": "%",
-          "default": 50.0
+          "default": 75.0
         },
         {
           "id": "overgrowth",
@@ -27614,12 +27614,12 @@
           "max": 100.0,
           "step": 5.0,
           "unit": "%",
-          "default": 35.0
+          "default": 50.0
         },
         {
           "id": "deck",
           "kind": "Toggle",
-          "default": true
+          "default": false
         },
         {
           "id": "deckSide",
@@ -27678,7 +27678,7 @@
           "max": 80.0,
           "step": 5.0,
           "unit": "%",
-          "default": 45.0
+          "default": 0.0
         },
         {
           "id": "ledges",
@@ -27687,7 +27687,7 @@
           "max": 20.0,
           "step": 1.0,
           "unit": "count",
-          "default": 4.0
+          "default": 0.0
         },
         {
           "id": "bowl",
@@ -27760,7 +27760,7 @@
           "max": 12.0,
           "step": 1.0,
           "unit": "count",
-          "default": 2.0
+          "default": 0.0
         },
         {
           "id": "benches",
@@ -27769,17 +27769,17 @@
           "max": 16.0,
           "step": 1.0,
           "unit": "count",
-          "default": 6.0
+          "default": 0.0
         },
         {
           "id": "lamps",
           "kind": "Toggle",
-          "default": true
+          "default": false
         },
         {
           "id": "fence",
           "kind": "Toggle",
-          "default": false
+          "default": true
         },
         {
           "id": "fenceGaps",
@@ -27900,6 +27900,7 @@
       ],
       "shelvedStyles": [
         "diySpot",
+        "highwayRuins",
         "graffitiPark",
         "parkour"
       ]

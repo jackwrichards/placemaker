@@ -78,7 +78,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             // the yard
             var look = new RundownGround.GroundLook
             {
-                Rank = 0.2f + 0.3f * over, Bare = sub == "dirtJumps" ? 0.4f : 0.22f, Weeds = 0.35f + 0.4f * over, Dry = 0.3f, Grit = 0.12f, Stones = 0.06f, Mottle = 0.16f,
+                Bare = sub == "dirtJumps" ? 0.4f : 0.22f, Weeds = 0.35f + 0.4f * over, Dry = 0.3f, Grit = 0.12f, Stones = 0.06f, Mottle = 0.16f,
                 Moss = 0.03f, Litter = sub == "diySpot" || sub == "parkour" ? 0.08f : 0.04f, EdgeWeeds = 0.55f,
             };
             float Worn(float2 p)

@@ -43,21 +43,21 @@ namespace Placemaker.Core.Layers.Types.Ruins
             {
                 // (the first game pictures: the lots still read as lawn; a rundown lot is weeds and soil, the grass the exception)
                 case "overgrown":
-                    g.Rank = 0.8f; g.Bare = 0.08f; g.Weeds = 0.6f; g.Dry = 0.2f; g.Grit = 0.04f; g.Mottle = 0.2f; g.Moss = 0.08f; g.Litter = 0.03f; g.EdgeWeeds = 0.25f; break;
+                    g.Bare = 0.08f; g.Weeds = 0.6f; g.Dry = 0.2f; g.Grit = 0.04f; g.Mottle = 0.2f; g.Moss = 0.08f; g.Litter = 0.03f; g.EdgeWeeds = 0.25f; break;
                 case "rubbleField":
                     g.Soil = "dust"; g.Bare = 0.6f; g.Weeds = 0.2f; g.Dry = 0.18f; g.Grit = 0.32f; g.Stones = 0.2f; g.Mottle = 0.14f; g.Litter = 0.03f; g.EdgeWeeds = 0.75f; break;
                 case "demolished":
                     g.Soil = "dust"; g.Bare = 0.65f; g.Weeds = 0.07f; g.Dry = 0.1f; g.Grit = 0.3f; g.Stones = 0.08f; g.Mottle = 0.12f; g.EdgeWeeds = 0.9f; g.EdgeReach = 6f; break;
                 case "squatterCamp":
-                    g.Rank = 0.3f; g.Bare = 0.45f; g.Weeds = 0.45f; g.Dry = 0.32f; g.Grit = 0.14f; g.Mottle = 0.16f; g.Litter = 0.16f; g.EdgeWeeds = 0.55f; break;
+                    g.Bare = 0.45f; g.Weeds = 0.45f; g.Dry = 0.32f; g.Grit = 0.14f; g.Mottle = 0.16f; g.Litter = 0.16f; g.EdgeWeeds = 0.55f; break;
                 case "fencedWasteland":
-                    g.Soil = "gravel"; g.Rank = 0.25f; g.Bare = 0.3f; g.Weeds = 0.32f; g.Dry = 0.26f; g.Grit = 0.24f; g.Stones = 0.07f; g.Mottle = 0.12f; g.EdgeWeeds = 0.9f; g.EdgeReach = 9f; break;
+                    g.Soil = "gravel"; g.Bare = 0.3f; g.Weeds = 0.32f; g.Dry = 0.26f; g.Grit = 0.24f; g.Stones = 0.07f; g.Mottle = 0.12f; g.EdgeWeeds = 0.9f; g.EdgeReach = 9f; break;
                 case "brokenCarPark":
-                    g.Rank = 0.4f; g.Bare = 0.22f; g.Weeds = 0.65f; g.Dry = 0.35f; g.Grit = 0.16f; g.Mottle = 0.14f; g.Litter = 0.08f; g.EdgeWeeds = 0.5f; break;
+                    g.Bare = 0.22f; g.Weeds = 0.65f; g.Dry = 0.35f; g.Grit = 0.16f; g.Mottle = 0.14f; g.Litter = 0.08f; g.EdgeWeeds = 0.5f; break;
                 case "burntOut":
                     g.Bare = 0.45f; g.Weeds = 0.24f; g.Dry = 0.45f; g.Grit = 0.16f; g.Mottle = 0.14f; g.Litter = 0.05f; g.EdgeWeeds = 0.7f; break;
                 case "emptyLot":
-                    g.Rank = 0.35f; g.Bare = 0.2f; g.Weeds = 0.4f; g.Dry = 0.55f; g.Grit = 0.08f; g.Mottle = 0.2f; g.Litter = 0.06f; g.EdgeWeeds = 0.6f; g.EdgeReach = 10f; break;
+                    g.Bare = 0.2f; g.Weeds = 0.4f; g.Dry = 0.55f; g.Grit = 0.08f; g.Mottle = 0.2f; g.Litter = 0.06f; g.EdgeWeeds = 0.6f; g.EdgeReach = 10f; break;
             }
             // the player's Overgrowth moves the balance between soil and weeds (the style's look stays its own)
             float k = math.lerp(0.55f, 1.45f, math.saturate(over));

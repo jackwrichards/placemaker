@@ -49,7 +49,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             float cu = fp.HalfLength * 2f / nu, cv = fp.HalfWidth * 2f / nv;
             // the basement: one or two cells at the end farther from the street fell in
             int pu = Hashing.Unit(Hashing.Mix(seed, 1u)) < 0.5f ? 0 : nu - 1;
-            int pw = math.min(nu, math.max(1, nu / 3));
+            int pw = math.min(nu - 1, math.max(1, (nu + 1) / 2));   // (rundown) half the building fell in: a third read as nothing from the street
             int pu0 = pu == 0 ? 0 : nu - pw;
             var pit = new OrientedRect
             {
