@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+67b0d9e2",
+  "assembly": "0.3.6+f7a7dccf-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -28973,6 +28973,7 @@
         "waterGarden",
         "reedMarsh",
         "rainGarden",
+        "lakeland",
         "birdReserve"
       ],
       "options": [
@@ -28984,7 +28985,8 @@
             "waterGarden",
             "reedMarsh",
             "rainGarden",
-            "birdReserve"
+            "birdReserve",
+            "lakeland"
           ],
           "default": "wetlandPark"
         },

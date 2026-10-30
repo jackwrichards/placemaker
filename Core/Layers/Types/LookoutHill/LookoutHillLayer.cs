@@ -262,7 +262,10 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                         if (d < nd) { nd = d; near = i; }
                         if (d < bd && math.abs(H(main[i]) - H(g.Position)) <= math.max(1.5f, d * maxGrade)) { bd = d; best = i; }
                     }
-                    if (best < 0 || bd > 160f) { best = near; bd = nd; }
+                    // nowhere near to join at a walking grade: a foot path round the bottom of the hill (along the outline,
+                    // where the ground stays low) to where the climb can be joined at a walk; else the entrance climbs on its own
+                    if (best < 0 && FootPath(ctx, occ, region, g, main, H, maxGrade, hw, role, asset, out float footLen)) { total += footLen; continue; }
+                    if (best < 0 && near >= 0 && nd < 14f) { best = near; bd = nd; }
                     if (best >= 0 && bd < 160f)
                     {
                         if (bd >= 1f)
@@ -293,7 +296,15 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                 var pts = HillPaths.Climb(field, region, occ, g.Position, g.Position + inward * (hw + 2.5f), spec);
                 ctx.Plan.Facts["arrival" + gi] = HillPaths.LastArrival;
                 if (pts.Count < 3) continue;
-                if (!HillPaths.Reached(pts, spec)) ctx.Issue(IssueSeverity.Info, "Placemaker.LookoutHill.Issue.PathShort");
+                bool joined = false;
+                if (!HillPaths.Reached(pts, spec) && main.Count > 1)
+                {
+                    // (nature makeover) a second climb that stops short beside the first joins it: never a dead end on the hill
+                    var last = pts[pts.Count - 1]; int jb = -1; float jd = 30f;
+                    for (int i = 0; i < main.Count; i++) { float d = math.distance(main[i], last); if (d < jd) { jd = d; jb = i; } }
+                    if (jb >= 0) { if (jd > 0.5f) pts.Add(main[jb]); joined = true; }
+                }
+                if (!joined && !HillPaths.Reached(pts, spec)) ctx.Issue(IssueSeverity.Info, "Placemaker.LookoutHill.Issue.PathShort");
                 Relax(pts, region, hw);
                 var simple = Poly.SimplifyPolyline(pts, 0.6f);
                 int n = simple.Length;
@@ -346,6 +357,73 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                     if (region.ContainsDisc(q, hw + 1f)) pts[i] = q;
                 }
             }
+        }
+
+        /// <summary>
+        /// (nature makeover) The second entrance's walk to the climb round the foot of the hill: points a few metres inside the
+        /// outline, both ways round, until one comes within reach of the climb at a walking grade; the shorter way is laid as
+        /// smooth pieces and joined to the climb. False when neither way finds a join within half the outline.
+        /// </summary>
+        private static bool FootPath(LayerContext ctx, Occupancy occ, LayerRegion region, Gate g, List<float2> main, Func<float2, float> h,
+            float maxGrade, float hw, NetRole role, AssetRef asset, out float length)
+        {
+            length = 0f;
+            region.ClosestOnBoundary(g.Position, out int seg, out float t);
+            float s0 = region.AlongOf(seg, t), per = region.Perimeter;
+            float off = hw + 4f;
+            List<float2> best = null;
+            foreach (float dir in new[] { 1f, -1f })
+            {
+                var pts = new List<float2> { g.Position };
+                for (float s = 6f; s < per * 0.5f; s += 4f)
+                {
+                    var b = region.PointAt(((s0 + dir * s) % per + per) % per, out _, out var inw, out _);
+                    var p = b + inw * (off + 4f + 6f * ValueNoise.Clumps(b, 28f, Hashing.Mix(ctx.Seed, 0xF007u)));   // wandering a little in and out
+                    // near a corner the inset off one side lands on the other side's edge: skip it (the walk cuts the corner)
+                    if (!region.ContainsDisc(p, hw + 0.5f) || region.BoundaryDistance(p, off + 12f) < off + 2f) continue;
+                    if (occ.Discs.Overlaps(p, hw, 0.2f)) { pts = null; break; }
+                    pts.Add(p);
+                    int j = -1; float jd = 22f;
+                    for (int i = 0; i < main.Count; i++)
+                    {
+                        float d = math.distance(main[i], p);
+                        if (d < jd && math.abs(h(main[i]) - h(p)) <= math.max(1f, d * maxGrade)) { jd = d; j = i; }
+                    }
+                    if (j >= 0 && Clear(region, occ, p, main[j], hw)) { pts.Add(main[j]); break; }
+                    if (s + 4f >= per * 0.5f) pts = null;
+                }
+                if (pts == null || pts.Count < 3) continue;
+                if (best == null || pts.Count < best.Count) best = pts;
+            }
+            if (best == null) return false;
+            // round the outline's corners: a few passes of neighbour averaging, the gate and the join kept
+            for (int pass = 0; pass < 40; pass++)
+                for (int i = 2; i < best.Count - 2; i++)
+                {
+                    var q = best[i] * 0.5f + (best[i - 1] + best[i + 1]) * 0.25f;
+                    if (region.ContainsDisc(q, hw + 1f)) best[i] = q;
+                }
+            var simple = Poly.SimplifyPolyline(best, 0.6f);
+            int n = simple.Length;
+            for (int i = 0; i + 1 < n; i++)
+            {
+                var a = simple[i]; var b = simple[i + 1];
+                var p0 = i > 0 ? simple[i - 1] : a; var p3 = i + 2 < n ? simple[i + 2] : b;
+                var cb = a + (b - p0) / 6f; var cc = b - (p3 - a) / 6f;
+                var net = i > 0 && i + 2 < n && CurveInside(region, a, cb, cc, b, hw) ? ctx.CurvedNet(a, cb, cc, b, role, asset) : ctx.StraightNet(a, b, role, asset);
+                if (i == 0) AttachStart(net, g);
+                var prev = a;
+                for (int k = 1; k <= 6; k++)
+                {
+                    var q = Composer.Bezier(net.A, net.B, net.C, net.D, k / 6f).xz;
+                    occ.TakeCorridor(prev, q, hw, 100);
+                    occ.Paths.Add(prev, q, hw, 100);
+                    prev = q;
+                }
+                length += math.distance(a, b);
+            }
+            ctx.Plan.Facts["footPath"] = length;
+            return true;
         }
 
         private static void AttachStart(PlannedNet net, Gate g)

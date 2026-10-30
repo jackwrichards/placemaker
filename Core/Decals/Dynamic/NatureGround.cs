@@ -537,7 +537,52 @@ namespace Placemaker.Core.Decals.Dynamic
                     }
                     lines++;
                 }
+                SlopeRills(used);
                 _b.Density = keepDensity;
+            }
+
+            /// <summary>
+            /// Rills on open, steep slopes: on a convex hill the water spreads instead of gathering, so the drained-area test finds
+            /// no channel, yet rain cuts short parallel rills down any bare steep slope. Seeds on open ground (no canopy, off the
+            /// paths), 14 m apart at least, each walked straight down the steepest way while the slope holds.
+            /// </summary>
+            private void SlopeRills(bool[] used)
+            {
+                int n = _nx * _nz, laid = 0;
+                float open = 0f;
+                for (int k = 0; k < n; k++) if (_in[k] && !_wet[k] && _slope[k] > 0.12f) open += _cell * _cell;
+                int want = math.clamp((int)(open / 2200f), 0, 24);
+                var seeds = new List<float2>();
+                for (int k0 = 0; k0 < n && laid < want && !_b.Full; k0++)
+                {
+                    int k = (int)((k0 * 104729L + 7) % n);
+                    if (!_in[k] || _wet[k] || used[k] || _slope[k] < 0.12f) continue;
+                    var p0 = Pos(k % _nx, k / _nx);
+                    if (Shade(p0) > 0.15f || PathDistance(p0) < 3f) continue;
+                    bool far = true;
+                    foreach (var s in seeds) if (math.distancesq(s, p0) < 14f * 14f) { far = false; break; }
+                    if (!far) continue;
+                    var pts = new List<float2> { p0 };
+                    var p = p0;
+                    for (int step = 0; step < 30; step++)
+                    {
+                        At(p, out float sl, out var dn, out _, out _);
+                        if (sl < 0.06f || math.lengthsq(dn) < 0.1f) break;
+                        // a little meander: rills wander round tussocks
+                        float wob = (ValueNoise.Clumps(p, 7f, H(66, laid)) - 0.5f) * 0.7f;
+                        dn = new float2(dn.x * math.cos(wob) - dn.y * math.sin(wob), dn.x * math.sin(wob) + dn.y * math.cos(wob));
+                        p += dn * 1.6f;
+                        if (!Poly.Contains(_ring, p) || WetAt(p) || PathDistance(p) < 0.3f || Shade(p) > 0.5f) break;
+                        pts.Add(p);
+                    }
+                    if (pts.Count < 7) continue;
+                    seeds.Add(p0);
+                    Brushes.EdgeStrip(_b, Smooth(pts, 1), "runoffRill", new StripOptions { Gaps = 0f, Run = new float2(60f, 90f), CornerDeg = 70f, Opacity = Op(0.65f, 0.9f), Width = new float2(0.85f, 1.15f), Cause = "water:rill" });
+                    At(p, out float endSlope, out var endDown, out _, out _);
+                    if (endSlope < 0.06f && PathDistance(p) > 1f && !NearWet(p, 1) && math.lengthsq(endDown) > 0.1f)
+                        Brushes.At(_b, p + endDown, endDown, "gravelFan", 4.5f, Op(0.5f, 0.8f), 0, ColourLevel.Any, "water:fan");
+                    laid++;
+                }
             }
 
             /// <summary>The line cut into the pieces that show: clear of every trail by 0.3 m, out of the water and from under the canopy.</summary>
