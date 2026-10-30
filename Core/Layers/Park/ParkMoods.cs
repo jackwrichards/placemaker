@@ -566,11 +566,12 @@ namespace Placemaker.Core.Layers.Park
             }
 
             /// <summary>A boulder coming up through the ground: scaled, turned, tilted and sunk by a share of its height.</summary>
-            private bool Boulder(float2 q, float scale, float sink, float tilt)
+            private bool Boulder(float2 q, float scale, float sink, float tilt, bool pack = false)
             {
                 _n++;
                 float r = 2.4f * scale;
-                if (!Free(q, r * 0.6f)) return false;
+                // packed boulders (an outcrop's crown) lean into each other: only paths, the outline and reserved space stop them
+                if (pack ? !_s.LayerRegion.ContainsDisc(q, r * 0.6f + 1f) || _s.Occ.Corridors.Overlaps(q, r * 0.6f, 0.8f) || Reserved(q, r * 0.6f) || !Mine(q, -0.5f) : !Free(q, r * 0.6f)) return false;
                 var o = _ctx.Object(q, R(0f, 6.283f, 1), ObjectRole.Furniture, new AssetRef(Pick(Boulders, 2), Boulders), Var(), -1, AssetCategories.Rock);
                 o.Scale = scale;
                 o.Elevation = -sink * 1.6f * scale;   // the game's negative elevation: buried, colliding with nothing
@@ -692,7 +693,10 @@ namespace Placemaker.Core.Layers.Park
                         if (U(14 + side) < 0.35f) continue;
                         float sc = R(0.32f, 0.75f, 16) * (U(17) < 0.18f ? 1.6f : 1f) * math.lerp(0.7f, 1f, ends);
                         var q = at + nrm * side * bank * R(0.7f, 1.2f, 18) + tan * R(-1f, 1f, 19);
-                        if (Boulder(q, sc, R(0.35f, 0.55f, 20), 0.6f) && U(21) < 0.55f)
+                        bool placed = Boulder(q, sc, R(0.35f, 0.55f, 20), 0.6f);
+                        // banks of a barranca are broken rock: a second stone leans on the first more often than not
+                        if (placed && U(27) < 0.6f) Boulder(q + tan * R(1.2f, 2.6f, 28) * (U(29) < 0.5f ? -1f : 1f) + nrm * side * R(-0.6f, 0.8f, 31), sc * R(0.5f, 0.85f, 32), R(0.35f, 0.55f, 33), 0.9f, true);
+                        if (placed && U(21) < 0.55f)
                             Stone(q + nrm * side * R(1f, 2.2f, 22) + tan * R(-1.5f, 1.5f, 23), R(1.2f, 2.4f, 24));
                     }
                     // cobbles on the floor
@@ -734,12 +738,12 @@ namespace Placemaker.Core.Layers.Park
                 float k = math.saturate(_p.R / 12f + 0.35f);
                 // the crown: a clump of big stones off-centre, the biggest tilted against its neighbours
                 var crown = _p.C + Dir(R(0f, 6.283f, 100)) * _p.R * R(0.05f, 0.3f, 101);
-                int big = (int)R(4f, 7f, 102);
-                Boulder(crown, R(1.0f, 1.45f, 103) * k, 0.4f, 0.5f);
+                int big = (int)R(5f, 9f, 102);
+                Boulder(crown, R(1.1f, 1.6f, 103) * k, 0.4f, 0.5f, true);
                 for (int i = 0; i < big; i++)
                 {
                     float a = R(0f, 6.283f, 104 + i);
-                    Boulder(crown + Dir(a) * R(2.4f, 5f, 110 + i) * k, R(0.5f, 1.05f, 116 + i) * k, R(0.35f, 0.55f, 122 + i), 0.7f);
+                    Boulder(crown + Dir(a) * R(1.6f, 4.2f, 110 + i) * k, R(0.45f, 1.15f, 116 + i) * k, R(0.3f, 0.55f, 122 + i), 0.9f, true);   // a massed crown, not lumps on a lawn
                 }
                 // a second, smaller group elsewhere on a long knoll, and stones breaking the turf over the whole of it
                 if (LongEnough(26f))
