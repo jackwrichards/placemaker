@@ -510,7 +510,12 @@ namespace Placemaker.Core.Layers.Types.Ruins
         public static float2[] Inset(LayerRegion region, float d)
         {
             var r = region.InsetVertices(d);
-            return Poly.IsSimple(r) && Poly.SignedArea(r) > 20f ? r : null;
+            if (Poly.IsSimple(r) && Poly.SignedArea(r) > 20f) return r;
+            // (rundown, 2026-10-30) a drawn or filled area has many short edges at its rounded corners: moving vertices folds
+            // them over (not simple), and every caller (the whole lot's paint, the wasteland pad) silently got nothing; a true
+            // polygon offset keeps the largest piece
+            var o = ConstructionSite.SiteKit.Inset(region.Ring, d);
+            return o != null && Poly.SignedArea(o) > 20f ? o : null;
         }
     }
 }

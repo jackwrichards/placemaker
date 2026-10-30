@@ -42,7 +42,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
         {
             Feature(DebrisAddOn.LayerId, ("mix", "junk"), ("where", "edges")),
             DirtJumps.InPlace(Feature(DirtJumpsAddOn.LayerId, ("lines", 1.0), ("height", 1.25))),
-            DecayKit.Relabel(Feature("bigtrees", ("density", 1.5)), "Placemaker.Abandoned.Feature.bigtrees"),
+            DecayKit.Relabel(Feature("bigtrees", ("density", 0.3)), "Placemaker.Abandoned.Feature.bigtrees"),
             Feature("rocks", ("size", "small"), ("clusters", 3.0)),
             Feature("decals", ("theme", "dirt"), ("ground", "lawn"), ("density", 1.5)),
             Feature("terrain", ("shape", "mounds"), ("height", 1.0)),
@@ -104,7 +104,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
             Preset("demolished", ("subtype", "demolished"), ("overgrowth", 10.0), ("rubble", 45.0), ("junk", 10.0), ("graffiti", 15.0),
                 ("foundations", 3.0), ("cracking", 25.0), ("focus", "street"), ("youngTrees", 0.0), ("fenceGaps", 0.0), ("desirePaths", false));
             Preset("squatterCamp", ("subtype", "squatterCamp"), ("overgrowth", 50.0), ("rubble", 20.0), ("junk", 70.0), ("graffiti", 55.0),
-                ("foundations", 1.0), ("cracking", 60.0), ("shelters", 7.0), ("campfire", true), ("fenceGaps", 60.0), ("focus", "corner"));
+                ("foundations", 1.0), ("cracking", 60.0), ("shelters", 7.0), ("campfire", true), ("fenceGaps", 60.0), ("focus", "corner"), ("youngTrees", 6.0));
             Preset("fencedWasteland", ("subtype", "fencedWasteland"), ("overgrowth", 35.0), ("rubble", 10.0), ("junk", 15.0), ("graffiti", 25.0),
                 ("foundations", 0.0), ("fenceGaps", 0.0), ("youngTrees", 5.0), ("desirePaths", false), ("walls", false));
             // (rundown, 2026-10-29) three more kinds of forgotten lot, each its own story and ground (AbandonedLotGround)

@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Placemaker.Core;
+using Placemaker.Core.Build;
 using Placemaker.Core.Decals.Dynamic;
 using Placemaker.Core.Geometry;
 using Placemaker.Core.Layers.Common;
@@ -114,6 +115,17 @@ namespace Placemaker.Tests
             Assert.False(Placemaker.Core.Build.AutoAssets.IsOwn("Placemaker Decal Copy"));
             Assert.False(Placemaker.Core.Build.AutoAssets.IsOwn("Prop_FrontendLoader01"));
             Assert.False(Placemaker.Core.Build.AutoAssets.IsOwn(null));
+        }
+
+        /// <summary>The lot is painted bare earth over its whole core (the coordinator, round 7: "lawn everywhere").</summary>
+        [Fact]
+        public void LotsArePaintedEarthAllOver()
+        {
+            var plan = Plan("abandonedLot", "rubbleField", 146f, 136f);
+            var paints = plan.Layers.SelectMany(l => l.Paint).ToList();
+            foreach (var p in paints) _out.WriteLine($"layer {p.Layer} strength {p.Strength:F2} knock {p.Knockout} erase {p.Erase} area {Poly.Area(Poly.To2D(p.Ring)):F0}");
+            var stamps = PaintRaster.Build(paints, new PaintRasterOptions { Cell = 1.75f, Align = 3.5f });
+            Assert.True(PaintRaster.Sample(stamps, 3, new float2(73f, 68f)) > 0.8f, "the middle of the lot is earth");
         }
 
         [Fact]

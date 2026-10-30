@@ -40,7 +40,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             Feature("restrooms"),
             Feature("shops", ("count", 1.0), ("where", "entrances")),
             Feature("decals", ("theme", "graffiti"), ("ground", "paved"), ("density", 1.0)),
-            DecayKit.Relabel(Feature("bigtrees", ("density", 1.0)), "Placemaker.Ruins.Feature.bigtrees"),
+            DecayKit.Relabel(Feature("bigtrees", ("density", 0.3)), "Placemaker.Ruins.Feature.bigtrees"),
             Feature("terrain", ("shape", "mounds"), ("height", 1.0)),
             StreetShopsFeature(Area),
         };
