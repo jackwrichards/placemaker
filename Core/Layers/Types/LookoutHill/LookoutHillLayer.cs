@@ -305,7 +305,11 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                     var a = simple[i]; var b = simple[i + 1];
                     var p0 = i > 0 ? simple[i - 1] : a; var p3 = i + 2 < n ? simple[i + 2] : b;
                     var cb = a + (b - p0) / 6f; var cc = b - (p3 - a) / 6f;
-                    var net = i > 0 && i + 2 < n && CurveInside(region, a, cb, cc, b, hw)
+                    // (nature makeover) the last piece meets the plaza head on: it ends heading for the summit (a straight last piece
+                    // after the curve kinked where they met)
+                    bool last = i > 0 && i + 2 >= n && math.distance(b, summit) < summitR + 1.5f;
+                    if (last) cc = b + math.normalizesafe(b - summit) * math.distance(a, b) / 3f;
+                    var net = i > 0 && (i + 2 < n || last) && CurveInside(region, a, cb, cc, b, hw)
                         ? ctx.CurvedNet(a, cb, cc, b, role, asset) : ctx.StraightNet(a, b, role, asset);
                     if (i == 0) AttachStart(net, g);
                     // Pieces are added to the occupancy one by one; the last piece onto the plaza is fine.

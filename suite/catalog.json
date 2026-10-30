@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+1c580ee1-dirty",
+  "assembly": "0.3.6+67b0d9e2",
   "categories": [
     {
       "id": "zoning",
@@ -25692,7 +25692,8 @@
         }
       ],
       "shelvedStyles": [
-        "viewpointMound"
+        "viewpointMound",
+        "kiteHill"
       ]
     },
     {
@@ -26962,6 +26963,8 @@
         }
       ],
       "shelvedStyles": [
+        "ridgeHike",
+        "canyonTrail",
         "summitClimb",
         "lakeshoreLoop"
       ]

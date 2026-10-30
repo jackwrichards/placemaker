@@ -381,7 +381,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 if (Heath)
                 {
                     // heather over the open heath, thinning under the few trees and along the trails
-                    Brushes.Scatter(_b, _wild, "heathPatch", 0.55f, new ScatterOptions { Weight = p => (0.35f + 0.65f * ValueNoise.Clumps(p, 22f, H(3))) * (1f - Shade(p) * 0.8f) * math.saturate(PathDistance(p) / 2.5f), Opacity = new float2(0.55f, 0.9f), Clump = 4f, Spread = 0.6f, Loners = 0.2f, Spill = 1f, Cause = "ground:heath" });
+                    Brushes.Scatter(_b, _wild, "heathPatch", 0.75f, new ScatterOptions { Weight = p => (0.35f + 0.65f * ValueNoise.Clumps(p, 22f, H(3))) * (1f - Shade(p) * 0.8f) * math.saturate(PathDistance(p) / 2.5f), Opacity = new float2(0.7f, 1f), Clump = 4f, Spread = 0.6f, Loners = 0.2f, Spill = 1f, Cause = "ground:heath" });
                 }
             }
 
@@ -697,7 +697,8 @@ namespace Placemaker.Core.Decals.Dynamic
                 float thin = math.clamp(80f / math.max(1f, perHa), 0.35f, 1f);
                 foreach (var kv in bySpecies)
                 {
-                    string kind = Leaf(kv.Key);
+                    // broadleaf trees drop the wild litter (dark brown and olive); needles and petals keep their own
+                    string kind = kv.Key == "pineNeedles" || kv.Key == "blossomPetals" ? Leaf(kv.Key) : _b.Lib.Has("leafLitterWild") ? "leafLitterWild" : Leaf(kv.Key);
                     float cov = (kind == "pineNeedles" ? 0.5f : kind == "blossomPetals" ? 0.3f : 0.52f) * A * thin;
                     Brushes.Under(_b, Decimate(kv.Value, perHa), kind, cov, Weathering.Wind, fall, new ScatterOptions { Opacity = Op(0.45f, 0.85f), Scale = new float2(0.9f, 1.4f), Clump = 5f, Spread = 0.55f, Loners = 0.25f, Spill = 2f, Level = ColourLevel.Quiet, Cause = "leaves" });
                 }

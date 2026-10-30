@@ -147,7 +147,7 @@
     {
       "id": "heathPatch", "name": "Heather", "tier": "macro",
       "about": "Low heath: heather in muted mauve and russet, bilberry olive and dry grass between, in clumps that run into each other. For open heath and moor.",
-      "texel": 0.035, "layers": "terrain", "order": 1, "lod": 50, "maxTexels": 384, "opacity": 0.85,
+      "texel": 0.035, "layers": "terrain", "order": 1, "lod": 50, "maxTexels": 384, "opacity": 0.95,
       "edge": { "feather": 1.4, "warp": 1.4, "warpScale": 3.6, "round": 0.9 },
       "variants": { "count": 10, "size": [7, 14], "aspect": [0.35, 0.8], "strength": [0.75, 1], "fades": ["islands", "soft", "islands", "wide", "side"] },
       "ops": [
@@ -157,8 +157,8 @@
         { "op": "remap", "in": "n", "out": "macro", "lo": -1, "hi": -0.05 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
         { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.4, "out": "base" },
-        { "op": "layer", "alpha": "base", "alphaK": 0.6, "color": [80, 70, 52], "color2": [72, 60, 54], "tone": "n", "vary": 0.14, "varyScale": 0.4, "smooth": 0.12, "height": 0.3 },
-        { "op": "scatter", "stamp": "blob", "density": 150, "clusters": 12, "cluster": 0.6, "clusterRadius": [0.5, 1.8], "noise": { "scale": 1.4, "lo": -1.2, "hi": 0.1 }, "size": [0.1, 0.22], "aspect": [0.6, 1], "palette": [[96, 64, 78], [84, 58, 70], [108, 78, 88], [82, 84, 52], [74, 62, 52], [100, 70, 80]], "alpha": [0.85, 1], "value": 0.14, "height": 0.7, "smooth": 0.12, "max": 40000 }
+        { "op": "layer", "alpha": "base", "alphaK": 0.75, "color": [68, 58, 44], "color2": [60, 50, 44], "tone": "n", "vary": 0.14, "varyScale": 0.4, "smooth": 0.12, "height": 0.3 },
+        { "op": "scatter", "stamp": "blob", "density": 150, "clusters": 12, "cluster": 0.6, "clusterRadius": [0.5, 1.8], "noise": { "scale": 1.4, "lo": -1.2, "hi": 0.1 }, "size": [0.1, 0.22], "aspect": [0.6, 1], "palette": [[80, 52, 64], [68, 46, 56], [92, 62, 72], [62, 64, 40], [58, 48, 40], [86, 58, 66]], "alpha": [0.85, 1], "value": 0.14, "height": 0.7, "smooth": 0.12, "max": 40000 }
       ]
     },
     {
@@ -265,6 +265,20 @@
         { "op": "layer", "alpha": "grass", "alphaK": 0.35, "color": [102, 108, 62], "color2": [86, 94, 52], "tone": "n", "smooth": 0.12 },
         { "op": "scatter", "stamp": "pebble", "density": 22, "clusters": 8, "cluster": 0.4, "clusterRadius": [0.3, 1.2], "edgeBias": -0.3, "noise": { "scale": 1.6, "lo": -0.9, "hi": 0.3 }, "size": [0.02, 0.06], "aspect": [0.6, 0.95], "palette": [[150, 142, 128], [128, 122, 112], [166, 154, 134], [110, 104, 96]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.22, "max": 24000 },
         { "op": "scatter", "stamp": "rock", "density": 0.5, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.4, 1.2], "edgeBias": -0.4, "size": [0.06, 0.16], "aspect": [0.65, 0.95], "palette": [[146, 140, 130], [124, 118, 110]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "leafLitterWild", "name": "Leaf litter (wild, summer)", "tier": "macro",
+      "about": "The nature types' summer leaf litter: last year's leaves gone dark brown and olive under green trees, single leaves that read as leaves, no gold (the summer set read as a yellow carpet in the bright wild light).",
+      "texel": 0.041, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.72,
+      "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
+      "variants": { "count": 12, "size": [8.25, 13.5], "aspect": [0.55, 1], "strength": [0.75, 1], "age": [0.2, 0.8], "fades": ["soft", "islands", "linear", "wide", "ring", "side"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 3.9, "octaves": 4, "warp": 1.5, "warpScale": 3.75 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.3, "hi": 0.5 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "film" },
+        { "op": "layer", "alpha": "film", "alphaK": { "age": [0.01, 0.03] }, "color": [80, 64, 42], "smooth": 0.2 },
+        { "op": "scatter", "stamp": ["oak", "maple", "birch", "leaf"], "density": 5.334, "clusters": 8.889, "cluster": 0.4, "clusterRadius": [1.2, 3.6], "noise": { "scale": 3.3, "lo": -1, "hi": 0.25 }, "size": [0.21, 0.546], "aspect": [0.55, 0.95], "palette": [[98, 78, 50], [84, 66, 42], [112, 90, 56], [78, 72, 44], [94, 88, 52], [72, 58, 38], [104, 84, 54]], "alpha": [0.75, 1], "value": 0.12, "height": 0.5, "smooth": 0.32, "max": 40000 }
       ]
     }
   ]
