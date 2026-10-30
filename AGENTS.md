@@ -157,17 +157,8 @@ ode_modules`.
 - Plazas and market squares: their shops face the city streets (these types have no lanes); for the Shops & squares
   agent to decide.
 - The roads presets strict-grid and superblocks build nothing.
-- The game crashes (native, `TerrainSystem.CullForCascades`) on the 4th build of `Show.ps1 -Category parks -Type park
-  -Style all -Views 45,top -Modes clean,zoning,terrain` (park-garden, right after its terraform and terrain paint);
-  park-garden alone builds fine (runs `queue-1016-003552`, `queue-1016-004950`).
-
-## How the user works
-
-- They are not a programmer. Use plain language and short answers.
-- Never tell the user something is fixed in their game unless you saw it work in the game (`Show.ps1`) **and** it is
-  installed. You don't install (the lead does, above), so say it plainly: "fixed on branch X and seen in the game
-  runner; not in your game yet". Compare the time on `Mods\Placemaker\Placemaker.dll` with the commit (the game queue
-  does not leave your build installed).
-- Fix things everywhere they occur: every type and code path that shares the mechanism, not just the one in the
-  screenshot.
-- Helper agents use the strongest model. Commit when a piece of work is done; the user tests in game.
+- The game crash (native, `TerrainSystem.CullForCascades`) on the 4th park build: the terrain road-cull list overflows
+  (sized 6 per road, an edge can write 18). Guarded by `Game/Build/TerrainCullGuard.cs` (makeover-parks): 10 of 10 builds
+  after it, but the crash was intermittent, so not proven.
+- `SiteHarmonyTests` bumpy hill with the Terrain feature fails for carYard, junkYard, industrialWorks, containerYard,
+  campground, marketSquare and fairground (curtain jumps about 1 m; seen after the 2026-10-30 makeover merges).
