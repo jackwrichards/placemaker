@@ -177,3 +177,13 @@ now prints MiB per family).
   places step aside (only the allotments, which shape nothing, stay when asked). The test passes.
 - Seen in `show-23-builds-1030-021248-0d30` (every shown style, 23 of 23 built): memorial groves are back before its places,
   meadow flowers are cream and white (no orange), the leaner family draws as before.
+
+## After the decal gamma fix (master e6846605, merged)
+
+Decals now draw their true colours, so everything tuned against the haze was retuned (763f61f0): meadow flowers get
+their yellow back, summer leaf litter is a lighter brown, opacities a step lower (runoff 0.6, path grit 0.65, scree
+0.78, gully gravel 0.8, wet silt 0.55), leaf cover 55 %. The mustard carpets under birches were mostly the gamma.
+Allotments try the plot grid at a few offsets and keep the best (11 plots in the country park).
+Re-looked at all 23 shown styles, 45Â° and close: `show-23-builds-1030-033711-0b14` (23 of 23 built). The ground reads
+natural: dry patches, worn path edges, rock gardens, no washed-out haze. Still to look at: the zen gardens keep a few
+teal edge bushes from their own palette.
