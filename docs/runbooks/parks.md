@@ -187,3 +187,32 @@ Allotments try the plot grid at a few offsets and keep the best (11 plots in the
 Re-looked at all 23 shown styles, 45Â° and close: `show-23-builds-1030-033711-0b14` (23 of 23 built). The ground reads
 natural: dry patches, worn path edges, rock gardens, no washed-out haze. Still to look at: the zen gardens keep a few
 teal edge bushes from their own palette.
+
+## Round 3 (the lead: "from good to masterpiece")
+
+- Polka dots gone: the park's shrubs are planted in drifts (`ParkPlanting.BushDrifts`): mostly 5-11 (6-14 in wild and
+  neglected), two lead species and a third mixed in, 1.4-1.9 m apart along an axis. Anchors: the inside of path bends and
+  path corners (narrow borders in the strip between the walk and the lawn room, which is often a place), here and there
+  along a walk, the canopy rim of trees, round the groves, along the outline. A lawn with no anchor gets no shrub: real
+  open lawn. The shrub lists mix sizes (child, teen, adult, elderly prefabs, lilac with greens in the garden). The places
+  plant drifts too (`Emitter.Drifts`: knoll, copse). Facts `bushDrifts`, `bushesWanted`, `bushesPlanted`.
+- Benches where people sit (`ParkPlanting.SeatBenches`, every style but formal and grid): candidates every 4 m on both
+  sides of every path, scored by a view across the path (a place, the lake, a feature clearing), the playground (pairs),
+  the outside of a bend, a grove's shady rim, near junctions, never at a gate; the best taken 24 m apart, a second pass
+  only when fewer than half the budget found a reason. Lamps only along the main walks. The groves are built before the
+  furniture (they only read the outline).
+- The first place on level ground is always the knoll where the style has one (a gully only where the land falls), with
+  a dark stand of spruce and pine (`KnollStand`, planted before its loose stones; it may step 4 m onto the park's lawn).
+  A place's trees keep spacing from trees only; a stone keeps them off itself (every stone held 4 m free before and the
+  stand was one tree). `ParkGroundTests.TheKnollReadsFromAfar`: 12 parks, every one with a knoll and a stand of 2-6.
+- The wet hollow's leaves are the summer litter ("leafWet" has no summer variant: orange autumn leaves under poplars).
+- Zen gardens: explicit greens when the player chose none (clipped city shrubs for the o-karikomi, wild greens for the
+  bamboo fallback); the automatic pool gave the pale teal edge bushes. Seen gone.
+- Neglected: the playground fenced off (a builders' fence round its clearing, a barrier and cones where its path comes
+  in; fact `neglectFence`), junk by the toilet block (`neglectJunk`), side paths half lost (painted worn earth at 0.55,
+  the main walk stays paved), 15 % of benches gone, a quarter kicked over, lamp posts leaning, 12 % dead trees. The fence
+  and the earth paths read from 45Â°.
+- Runs: show-10-builds-1030-035920-b213 (first look), show-10-builds-1030-051032-4df3 (park and zen, all built),
+  show-7-builds-1030-051503-52b8 (final park).
+- Not there yet: park natural's knoll lands in the lawn room by the west belt of trees on the test block; its rocks and
+  stand show from 45Â° but it is not yet a landmark from across the city.

@@ -84,6 +84,25 @@ namespace Placemaker.Tests
                 new GroundDesignTests(_out).Picture(plan, $"{type}-{style}-{site}");
         }
 
+        /// <summary>Round 3: on level ground the first place is the knoll, and its dark stand of conifers stands (it reads from across the city).</summary>
+        [Fact]
+        public void TheKnollReadsFromAfar()
+        {
+            int fails = 0; double total = 0;
+            foreach (var st in new[] { "natural", "default", "garden" })
+                for (uint seed = 1; seed <= 4; seed++)
+                {
+                    var plan = Plan("park", st == "default" ? null : st, 146f, 136f, null, seed);
+                    var host = plan.Layers.First(l => l.GeneratorId == "park");
+                    _out.WriteLine($"{st} seed {seed}: outcrop {Fact(host, "mood.outcrop")} stand {Fact(host, "moodStand")} rocks {Fact(host, "moodRocks")} drifts {Fact(host, "bushDrifts")} bushes {Fact(host, "bushesPlanted")}/{Fact(host, "bushesWanted")}");
+                    Assert.True(Fact(host, "mood.outcrop") >= 1, $"{st} seed {seed}: no knoll");
+                    if (Fact(host, "moodStand") < 2) fails++;
+                    total += Fact(host, "moodStand");
+                }
+            Assert.True(fails == 0, $"{fails} knolls without their stand");
+            Assert.True(total >= 12 * 3, $"stands of {total / 12:F1} trees on average");
+        }
+
         [Fact]
         public void EverySeedHasDistinctMoods()
         {

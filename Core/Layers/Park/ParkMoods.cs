@@ -61,11 +61,11 @@ namespace Placemaker.Core.Layers.Park
         public static readonly string[] StandingStones = { "StandingStone01", "StandingStone02", "StandingStone03", "StandingStone04", "StandingStone05", "StandingStone06", "StandingStone07", "StandingStone08" };
         private static readonly string[] WetTrees = { "EU_PoplarTree01", "EU_AlderTree01", "EU_PoplarTree01", "BirchTree01" };   // columnar poplars mark the hollow from afar
         private static readonly string[] RimTrees = { "EU_AlderTree01", "BirchTree01", "OakTree01" };
-        private static readonly string[] KnollTrees = { "PineTree01", "BirchTree01", "PineTree01" };
+        private static readonly string[] KnollTrees = { "SpruceTree01", "PineTree01", "SpruceTree01", "PineTree01", "BirchTree01" };
         // dark spires against pale meadow: the copse reads from 45° as a dark mass with a few broadleaves in it
         private static readonly string[] CopseTrees = { "SpruceTree01", "PineTree01", "SpruceTree01", "OakTree01", "PineTree01", "BirchTree01", "SpruceTree01" };
         private static readonly string[] MeadowTrees = { "OakTree01", "BirchTree01", "EU_ChestnutTree01" };
-        private static readonly string[] Scrub = { "GreenBushWild01", "GreenBushWildAdult01", "GreenBushWild02", "GreenBushWildElderly01", "FlowerBushWild02" };
+        private static readonly string[] Scrub = { "GreenBushWild01", "GreenBushWildAdult01", "GreenBushWild02", "GreenBushWildElderly01", "GreenBushWildTeen01", "GreenBushWildChild01" };
         private static readonly string[] Rushes = { "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWildChild01", "GreenBushWild01" };
         private static readonly string[] Wildflowers = { "FlowerBushWild02", "FlowerBushWild02", "FlowerBushWildChild02", "FlowerBushWild02" };
 
@@ -167,6 +167,12 @@ namespace Placemaker.Core.Layers.Park
                 int tries = cd.area >= 6000f ? 2 : cd.area >= 1800f ? 1 : 0;
                 for (int t = 0; t < tries; t++) order.Add(cd);
             }
+            // the knoll (the first place) goes where it is seen: when the open lawn is much bigger than the biggest lawn room, a knoll at
+            // its side beats one in a strip by the outline (park natural's rocks hid under the belt, run show-10-builds-1030-051032-4df3)
+            {
+                int ci = order.FindIndex(cd => cd.core), ni = order.FindIndex(cd => !cd.core);
+                if (ci > 0 && (ni < 0 || order[ci].area > order[ni].area * 1.5f)) { var first = order[ci]; order.RemoveAt(ci); order.Insert(0, first); }
+            }
             // the community garden, when asked, gets the first pick: the room that holds plots best goes first in line
             if (allotment)
             {
@@ -190,7 +196,8 @@ namespace Placemaker.Core.Layers.Park
                     for (int t = 0; t < 3 && !found; t++)
                     {
                         float rt = rr * (1f - t * 0.2f);
-                        found = Spots.Find(occ, rt, t == 1 ? Spots.Preference.Open : Spots.Preference.NearBoundary, Hashing.Mix(ks, 2u + (uint)t), out c, taken, rt + 8f, 0.5f, 1200)
+                        // the first place (the knoll) stands out in the open lawn: against the outline its rocks hid under the belt of trees
+                        found = Spots.Find(occ, rt, t == 1 || places.Count == 0 ? Spots.Preference.Open : Spots.Preference.NearBoundary, Hashing.Mix(ks, 2u + (uint)t), out c, taken, rt + 8f, 0.5f, 1200)
                             && !s.InClearing(c, rt * 0.8f) && !s.InLake(c, rt + 2f);
                         if (found) rr = rt;
                     }
@@ -225,7 +232,10 @@ namespace Placemaker.Core.Layers.Park
                             case Mood.Glade: x *= r < 6f ? 0.4f : 1f; break;
                         }
                         // the user asked for rock first ("rock sections, barrancas"): the first place leans to rock where the style has it
-                        if (places.Count == 0 && ((Mood)m == Mood.Gully || (Mood)m == Mood.Outcrop)) x *= 2.5f;
+                        // and it must read from across the city: on flat land a gully is a soft dip (park natural showed nothing from
+                        // 45°, run show-23-builds-1030-033711-0b14), so there the knoll with its dark conifers goes first
+                        if (places.Count == 0 && (Mood)m == Mood.Outcrop) x *= 4f;
+                        if (places.Count == 0 && (Mood)m == Mood.Gully) x *= slope > 0.04f ? 3f : 0.4f;
                         // never twice the same mood while another of the palette is unused
                         if (used[m] > 0 && fresh > 0 && pass == 0) x = 0f;
                         else if (used[m] > 1) x *= 0.1f;
@@ -238,6 +248,9 @@ namespace Placemaker.Core.Layers.Park
                 float pick = U(ks, 7) * total;
                 int mood = 0;
                 for (int m = 0; m < w.Length; m++) { pick -= w[m]; if (pick <= 0f) { mood = m; break; } }
+                // the first place on level ground is always the knoll where the style has one (by chance alone, park natural drew
+                // a gully, a hollow and a meadow: nothing read from 45°, run show-10-builds-1030-035920-b213)
+                if (places.Count == 0 && pal.Length > (int)Mood.Outcrop && pal[(int)Mood.Outcrop] > 0f && slope <= 0.04f) mood = (int)Mood.Outcrop;
                 if (allot) mood = (int)Mood.Allotment;
                 // a knoll, a hollow or a stone ring has a size of its own: in a big lawn it takes a piece round the lawn's heart and
                 // the rest of the lawn stays the park's (whole big lawns spread 50 stones thin, run show-24-builds-1030-001417-7e24)
@@ -518,7 +531,7 @@ namespace Placemaker.Core.Layers.Park
         {
             if (places == null || places.Count == 0) return;
             var kit = new Placemaker.Core.Paint.PaintKit(ctx.Plan.Paint, ctx.H, Hashing.Mix(ctx.Seed, 0x300Eu)) { Outline = ctx.LayerRegion.Ring };
-            int rocks = 0, plants = 0;
+            int rocks = 0, plants = 0, stand = 0;
             foreach (var p in places)
             {
                 ctx.Check();
@@ -534,13 +547,14 @@ namespace Placemaker.Core.Layers.Park
                     case Mood.Allotment: e.Allotments(); break;
                 }
                 e.Paint(kit);
-                rocks += e.Rocks; plants += e.Plants;
+                rocks += e.Rocks; plants += e.Plants; stand += e.Stand;
                 ctx.AddRegion(p.Ring, RegionPrefix + Ids[(int)p.Mood] + ":" + places.IndexOf(p), RegionPrefix + Ids[(int)p.Mood]);
                 if (p.Mood == Mood.Gully) ctx.AddRegion(Channel(p.Line, p.Floor + 0.6f), FloorTag + ":" + places.IndexOf(p), FloorTag);
             }
             TerrainPaint.Warn(ctx);
             ctx.Plan.Facts["moodRocks"] = rocks;
             ctx.Plan.Facts["moodPlants"] = plants;
+            if (stand > 0) ctx.Plan.Facts["moodStand"] = stand;
         }
 
         private sealed class Emitter
@@ -551,8 +565,9 @@ namespace Placemaker.Core.Layers.Park
             private readonly bool _neglected;
             private readonly uint _v;
             private int _n;
-            public int Rocks, Plants;
+            public int Rocks, Plants, Stand;
             private readonly List<(float2 p, float r)> _mine = new List<(float2, float)>();
+            private readonly List<float2> _treePts = new List<float2>();
 
             private readonly string[] _trees, _bushes;
 
@@ -638,18 +653,24 @@ namespace Placemaker.Core.Layers.Park
                 Rocks++;
             }
 
-            private bool Tree(float2 q, string[] species, int age, float spacing = 5.5f)
+            private bool Tree(float2 q, string[] species, int age, float spacing = 5.5f, float margin = 0.5f)
             {
                 _n++;
                 if (_trees.Length == 0 && !AssetAvailability.Has(AssetCategories.Tree)) return false;   // a playset without trees
                 // the park's tree density speaks for the places too (26 a hectare = as designed)
                 if (U(11) > _density) return false;
-                if (!_s.LayerRegion.ContainsDisc(q, 3.5f) || !Mine(q, 0.5f) || _s.Occ.Corridors.Overlaps(q, 2.5f, 0.35f) || _s.GateDistanceSq(q) < 100f) return false;
-                foreach (var m in _mine) if (math.distancesq(m.p, q) < math.max(spacing, m.r + 2f) * math.max(spacing, m.r + 2f)) return false;
-                if (_s.Occ.Discs.Overlaps(q, 2.5f, 0f) && !InOwn(q) || Reserved(q, 2.5f)) return false;
+                if (!_s.LayerRegion.ContainsDisc(q, 3.5f) || !Mine(q, margin) || _s.Occ.Corridors.Overlaps(q, 2.5f, 0.35f) || _s.GateDistanceSq(q) < 100f) return false;
+                // trees keep their spacing from trees; a stone only keeps them off itself (every stone of a knoll held 4 m
+                // round it free and no tree of its stand found room, run show-7-builds-1030-045900-7bb2)
+                foreach (var m in _mine) if (math.distancesq(m.p, q) < (m.r + 1.4f) * (m.r + 1.4f)) return false;
+                foreach (var t in _treePts) if (math.distancesq(t, q) < spacing * spacing) return false;
+                // (off its own ground a tree keeps clear of what the park has there; 1.2 m, so the place's own trees, taken at 2.5 m,
+                // do not push each other 5 m apart: a knoll's stand came out as one tree)
+                if (_s.Occ.Discs.Overlaps(q, 1.2f, 0f) && !InOwn(q) || Reserved(q, 2.5f)) return false;
                 if (_trees.Length > 0) species = _trees;   // the player's own species win
                 _ctx.Object(q, R(0f, 6.283f, 1), ObjectRole.Tree, new AssetRef(Pick(species, 2), species), Var(), age);
                 _mine.Add((q, 2.6f));
+                _treePts.Add(q);
                 _s.Occ.Take(q, 2.5f, (int)ParkItemKind.Tree);
                 Plants++;
                 return true;
@@ -761,6 +782,8 @@ namespace Placemaker.Core.Layers.Park
                     float a = R(0f, 6.283f, 104 + i);
                     Boulder(crown + Dir(a) * R(1.6f, 4.2f, 110 + i) * k, R(0.6f, 1.35f, 116 + i) * k, R(0.3f, 0.55f, 122 + i), 0.9f, true);   // a massed crown, not lumps on a lawn
                 }
+                var down = math.normalizesafe(_p.C - crown, Dir(R(0f, 6.283f, 128)));
+                KnollStand(crown, down);
                 // a second, smaller group elsewhere on a long knoll, and stones breaking the turf over the whole of it
                 if (LongEnough(26f))
                 {
@@ -768,7 +791,6 @@ namespace Placemaker.Core.Layers.Park
                     if (math.distance(g2, crown) > 9f)
                         for (int i = 0; i < 4; i++) Boulder(g2 + Dir(R(0f, 6.283f, 140 + i)) * R(0f, 3.5f, 145 + i), R(0.45f, 0.95f, 150 + i) * k, R(0.35f, 0.55f, 155 + i), 0.7f);
                 }
-                var down = math.normalizesafe(_p.C - crown, Dir(R(0f, 6.283f, 128)));
                 int out_ = (int)(math.sqrt(math.abs(Poly.Area(_p.Lawn))) * R(0.5f, 0.8f, 129));
                 for (int i = 0; i < out_; i++)
                 {
@@ -778,10 +800,53 @@ namespace Placemaker.Core.Layers.Park
                 }
                 // scree spilling downhill from the crown
                 for (int i = 0; i < 12; i++) Stone(crown + down * R(3f, _p.R * 1.1f, 300 + i) + new float2(-down.y, down.x) * R(-4f, 4f, 310 + i), R(0.6f, 1.4f, 320 + i));
-                // a pine or a birch on the knoll, flowering scrub tucked between the stones
-                int nt = U(330) < 0.6f ? 1 : 2;
-                for (int i = 0; i < nt * 6 && nt > 0; i++) if (Tree(Pt(331 + i, 2.5f), KnollTrees, U(350 + i) < 0.3f ? PlannedAge.Old : PlannedAge.Adult, 6f)) nt--;
-                for (int i = 0; i < (int)(_p.R * 0.9f); i++) Bush(Pt(360 + i, 0.8f), U(440 + i) < 0.4f ? Wildflowers : Scrub, 1.8f);
+                // scrub tucked against the stones in drifts, flowering on the sunny side; open turf between
+                Drifts(360, (int)math.clamp(_p.R / 3.5f, 2f, 5f), 3, 7, i => crown + down * R(2f, _p.R * 0.8f, 370 + i) + new float2(-down.y, down.x) * R(-_p.R * 0.6f, _p.R * 0.6f, 380 + i), Wildflowers, Scrub, 0.45f);
+            }
+
+            /// <summary>The knoll's dark stand of spruce and pine behind its crown (planted before its loose stones, which give way).</summary>
+            private void KnollStand(float2 crown, float2 down)
+            {
+                // a dark stand of spruce and pine behind the crown: the knoll reads from across the city as rock under conifers
+                var back = -down;
+                // the stand sits inside the knoll's own ground, as far behind the crown as it goes (a point off the lawn planted nothing)
+                // (a small knoll is all crown: the stand may step up to 4 m past its edge onto the park's lawn, never onto a path;
+                // inside a 8 m knoll every spot was taken by the boulders and no tree stood, run show-10-builds-1030-044917-14d9)
+                var stand = crown; float bestBack = float.MinValue;
+                float ba = math.atan2(back.y, back.x);
+                for (int i = 0; i < 24; i++)
+                {
+                    var q = crown + Dir(ba + R(-2.4f, 2.4f, 500 + i)) * R(5.5f, 10f, 520 + i);
+                    float e = ParkMoods.Edge(_p, q);
+                    if (e < -3f || _s.Occ.Corridors.Overlaps(q, 3f, 0.3f) || !_s.LayerRegion.ContainsDisc(q, 4f)) continue;
+                    if (e < 0f && _s.Occ.Discs.Overlaps(q, 3f, 0f)) continue;   // off the knoll, the park's own trees and shrubs stand there
+                    float sc = math.dot(q - crown, back) * 0.3f + math.min(e, 2f) * 2f;
+                    if (sc > bestBack) { bestBack = sc; stand = q; }
+                }
+                int nt = (int)math.clamp(_p.R / 3f, 3f, 6f);
+                for (int i = 0; i < 48 && nt > 0; i++)
+                {
+                    var q = stand + Dir(R(0f, 6.283f, 331 + i)) * R(0f, 4.5f + i * 0.08f, 340 + i);
+                    if (Tree(q, KnollTrees, U(350 + i) < 0.3f ? PlannedAge.Old : U(355 + i) < 0.25f ? PlannedAge.Teen : PlannedAge.Adult, 4.2f, -4f)) { nt--; Stand++; }
+                }
+            }
+
+            /// <summary>Shrubs in drifts: <paramref name="count"/> centres, 3-7 shrubs each, two species mixed (a lead and a companion), 1.6-2.2 m apart.</summary>
+            private void Drifts(int salt, int count, int min, int max, Func<int, float2> centre, string[] lead, string[] companion, float companionShare)
+            {
+                for (int d = 0; d < count; d++)
+                {
+                    var c = centre(d);
+                    float ax = R(0f, 6.283f, salt + 40 + d);
+                    var axis = Dir(ax); var across = new float2(-axis.y, axis.x);
+                    int k = (int)R(min, max + 0.99f, salt + 60 + d);
+                    for (int b = 0; b < k; b++)
+                    {
+                        float along = (b - (k - 1) * 0.5f) * R(1.6f, 2.2f, salt + 100 + b * 13 + d);
+                        var q = c + axis * along + across * R(-1.3f, 1.3f, salt + 200 + b * 13 + d);
+                        Bush(q, U(salt + 300 + b * 13 + d) < companionShare ? companion : lead, 1.5f);
+                    }
+                }
             }
 
             private bool LongEnough(float len) => ParkMoodsLong(_p.Lawn) >= len;
@@ -847,12 +912,7 @@ namespace Placemaker.Core.Layers.Park
                 // logs where they fell, scrub under the trees
                 int logs = (int)R(1f, 3.9f, 1370);
                 for (int i = 0; i < logs; i++) Log(Pt(1371 + i, 3f), R(0f, 6.283f, 1390 + i));
-                for (int i = 0; i < (int)(_p.R * 1.2f); i++)
-                {
-                    var q = Pt(1400 + i, 0.5f, 5f);
-                    if (math.dot(math.normalizesafe(q - _p.C), Dir(thick)) < -0.3f) continue;
-                    Bush(q, Scrub, 2.2f);
-                }
+                Drifts(1400, (int)math.clamp(_p.R / 3f, 2f, 7f), 3, 7, i => { var q = Pt(1400 + i, 0.5f, 5f); return math.dot(math.normalizesafe(q - _p.C), Dir(thick)) < -0.3f ? Pt(1450 + i, 0.5f, 5f) : q; }, Scrub, Wildflowers, 0.2f);
                 if (U(1500) < 0.5f) Stone(Pt(1501, 2f), 2f);
             }
 

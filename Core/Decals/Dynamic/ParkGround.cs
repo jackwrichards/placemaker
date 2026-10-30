@@ -138,7 +138,8 @@ namespace Placemaker.Core.Decals.Dynamic
                             Brushes.Scatter(_b, BrushArea.Of(Shrink(ring, c, 0.35f)), "puddlePiece", 0.25f * _a, new ScatterOptions { Opacity = Op(0.55f, 0.9f), Clump = 1.6f, Loners = 0.1f, Cause = "mood:puddle" });
                             Brushes.Scatter(_b, area, "dampPatch", 0.3f * _a, new ScatterOptions { Weight = p => 1f - math.saturate(math.distance(p, c) / r), Opacity = Op(0.3f, 0.55f), Clump = 2.5f, Cause = "mood:damp" });
                             Brushes.Scatter(_b, area, "cloverPatch", 0.3f, new ScatterOptions { Weight = p => math.saturate(math.distance(p, c) / r), Opacity = Op(0.45f, 0.75f), Clump = 3f, Cause = "mood:lush" });
-                            Brushes.Scatter(_b, area, _sc.LeafKind("leafWet") ?? "leafWet", 0.12f * _a, new ScatterOptions { Opacity = Op(0.45f, 0.8f), Clump = 2f, Cause = "mood:wetLeaves" });
+                            // (round 3) the summer litter, not "leafWet" (it has no summer variant: orange autumn leaves under the poplars, run show-10-builds-1030-035920-b213)
+                            Brushes.Scatter(_b, area, "leafLitterSummer", 0.1f * _a, new ScatterOptions { Opacity = Op(0.35f, 0.65f), Clump = 2f, Cause = "mood:wetLeaves" });
                             break;
                         }
                         case "meadow":

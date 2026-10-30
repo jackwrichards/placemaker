@@ -633,6 +633,11 @@ namespace Placemaker.Core.Layers.Types.ZenGarden
 
         // ───────────────────────────── planting ─────────────────────────────
 
+        // (makeover) explicit greens when the player chose none: the automatic bush pool gave pale teal wild flower bushes
+        // along the edges (run show-23-builds-1030-033711-0b14); clipped city shrubs read as o-karikomi
+        private static readonly string[] ClippedShrubs = { "GreenBushCity01", "GreenBushCity02", "GreenBushCity03" };
+        private static readonly string[] ScreenShrubs = { "GreenBushWildAdult01", "GreenBushWild02", "GreenBushWildElderly01", "GreenBushWild01" };
+
         private static void Plant(LayerContext ctx, Garden g, string style, float ha)
         {
             var region = g.Region;
@@ -654,7 +659,7 @@ namespace Placemaker.Core.Layers.Types.ZenGarden
                         var p = b + inward * (row == 0 ? 1.4f : 3.1f) + math.normalizesafe(new float2(-inward.y, inward.x)) * (row * 0.85f);
                         if (!g.Occ.Free(p, 0.9f, 0.8f, 0.3f) || g.Blocked(p, 0.9f)) continue;
                         uint v = Hashing.Mix(ctx.Seed, 0xBA3Bu + (uint)n);
-                        ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Bush, AssetMix.One(""), v, -1, bambooCat == AssetCategories.Bush ? null : bambooCat);
+                        ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Bush, bambooCat == AssetCategories.Bush ? AssetMix.Pick(ScreenShrubs, v) : AssetMix.One(""), v, -1, bambooCat == AssetCategories.Bush ? null : bambooCat);
                         g.Occ.Take(p, 0.9f, 4);
                         n++;
                     }
@@ -667,7 +672,7 @@ namespace Placemaker.Core.Layers.Types.ZenGarden
                 if (g.Field == null && g.Water.Ponds.Count == 0)
                     ctx.Surface(g.Inner.Ring, SurfaceRole.Ground, AssetMix.One(""), SurfaceCategories.Bark);
                 int n = math.min(MaxGroveClumps, (int)(region.Area / 40f));   // 250 per ha
-                LeisureKit.Plant(ctx, g.Occ, region, n, ObjectRole.Bush, null, 0.9f, 22f, 0.3f, 0xBA3Cu, p => g.Blocked(p, 1.5f), 1, 3,
+                LeisureKit.Plant(ctx, g.Occ, region, n, ObjectRole.Bush, bambooCat == AssetCategories.Bush ? ScreenShrubs : null, 0.9f, 22f, 0.3f, 0xBA3Cu, p => g.Blocked(p, 1.5f), 1, 3,
                     bambooCat == AssetCategories.Bush ? null : bambooCat);
             }
 
@@ -712,7 +717,7 @@ namespace Placemaker.Core.Layers.Types.ZenGarden
                         var p = n == 5 && s == 0 ? c : c + new float2(math.cos(a), math.sin(a)) * (1.15f + 0.25f * (s & 1));
                         if (!g.Occ.Free(p, 0.9f, 0.8f, 0.2f)) continue;
                         uint v = Hashing.Mix(h, (uint)s + 3u);
-                        ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Bush, AssetMix.Pick(shrubIds, v), v);
+                        ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Bush, AssetMix.Pick(shrubIds.Length > 0 ? shrubIds : ClippedShrubs, v), v);
                         g.Occ.Take(p, 0.9f, 4);
                     }
                     made++;
