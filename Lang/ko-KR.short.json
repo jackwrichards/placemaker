@@ -224,5 +224,6 @@
   "Placemaker.Zen.Issue.PondPermanent.Short": "연못을 팜",
   "Placemaker.Commercial.Issue.NoRoom.Short": "상점에 너무 좁음",
   "Placemaker.Commercial.Issue.TooSteep.Short": "상점에 너무 가파름",
-  "Placemaker.Commercial.Issue.FootpathBehind.Short": "상점 뒤 보행로"
+  "Placemaker.Commercial.Issue.FootpathBehind.Short": "상점 뒤 보행로",
+  "Placemaker.Plaza.Issue.NotLevel.Short": "먼저 평탄화"
 }

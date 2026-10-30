@@ -224,5 +224,6 @@
   "Placemaker.Zen.Issue.PondPermanent.Short": "Wykopuje staw",
   "Placemaker.Commercial.Issue.NoRoom.Short": "Za wąsko na sklepy",
   "Placemaker.Commercial.Issue.TooSteep.Short": "Za stromo na sklepy",
-  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Ścieżka za sklepami"
+  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Ścieżka za sklepami",
+  "Placemaker.Plaza.Issue.NotLevel.Short": "Najpierw wyrównaj"
 }

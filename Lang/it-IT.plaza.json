@@ -100,5 +100,6 @@
   "Placemaker.Plaza.design.market": "Piazza del mercato",
   "Placemaker.Plaza.design.transit": "Piazzale di scambio",
   "Placemaker.Plaza.design.fair": "Fiera estiva",
-  "Placemaker.Plaza.design.winterFair": "Mercatino di Natale"
+  "Placemaker.Plaza.design.winterFair": "Mercatino di Natale",
+  "Placemaker.Plaza.Issue.NotLevel": "Qui il terreno sale di {0} m. Le piazze sono posate in piano: per il risultato migliore, livella prima del tutto l'area."
 }

@@ -100,5 +100,6 @@
   "Placemaker.Plaza.design.market": "Marktplatz",
   "Placemaker.Plaza.design.transit": "Bahnhofsvorplatz",
   "Placemaker.Plaza.design.fair": "Sommerfest",
-  "Placemaker.Plaza.design.winterFair": "Weihnachtsmarkt"
+  "Placemaker.Plaza.design.winterFair": "Weihnachtsmarkt",
+  "Placemaker.Plaza.Issue.NotLevel": "Der Boden steigt hier um {0} m an. Plätze werden eben angelegt: Für das beste Ergebnis die Fläche zuerst vollständig einebnen."
 }

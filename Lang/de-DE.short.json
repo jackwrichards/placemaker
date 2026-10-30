@@ -224,5 +224,6 @@
   "Placemaker.Zen.Issue.PondPermanent.Short": "Gräbt einen Teich",
   "Placemaker.Commercial.Issue.NoRoom.Short": "Zu schmal für Läden",
   "Placemaker.Commercial.Issue.TooSteep.Short": "Zu steil für Läden",
-  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Fußweg hinter Läden"
+  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Fußweg hinter Läden",
+  "Placemaker.Plaza.Issue.NotLevel.Short": "Erst einebnen"
 }

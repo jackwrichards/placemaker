@@ -224,5 +224,6 @@
   "Placemaker.Zen.Issue.PondPermanent.Short": "Creuse un étang",
   "Placemaker.Commercial.Issue.NoRoom.Short": "Trop étroit (boutiques)",
   "Placemaker.Commercial.Issue.TooSteep.Short": "Trop pentu (boutiques)",
-  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Chemin derrière boutiques"
+  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Chemin derrière boutiques",
+  "Placemaker.Plaza.Issue.NotLevel.Short": "Nivelez d'abord"
 }

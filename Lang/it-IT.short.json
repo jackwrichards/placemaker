@@ -224,5 +224,6 @@
   "Placemaker.Zen.Issue.PondPermanent.Short": "Scava un laghetto",
   "Placemaker.Commercial.Issue.NoRoom.Short": "Troppo stretto per negozi",
   "Placemaker.Commercial.Issue.TooSteep.Short": "Troppo ripido per negozi",
-  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Sentiero dietro i negozi"
+  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Sentiero dietro i negozi",
+  "Placemaker.Plaza.Issue.NotLevel.Short": "Livella prima"
 }

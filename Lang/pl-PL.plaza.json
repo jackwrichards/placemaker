@@ -100,5 +100,6 @@
   "Placemaker.Plaza.design.market": "Rynek",
   "Placemaker.Plaza.design.transit": "Plac przesiadkowy",
   "Placemaker.Plaza.design.fair": "Letni festyn",
-  "Placemaker.Plaza.design.winterFair": "Jarmark świąteczny"
+  "Placemaker.Plaza.design.winterFair": "Jarmark świąteczny",
+  "Placemaker.Plaza.Issue.NotLevel": "Teren wznosi się tu o {0} m. Place są układane płasko: dla najlepszego efektu najpierw całkowicie wyrównaj obszar."
 }

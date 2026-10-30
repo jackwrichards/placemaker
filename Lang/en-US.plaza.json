@@ -100,5 +100,6 @@
   "Placemaker.Plaza.design.market": "Market square",
   "Placemaker.Plaza.design.transit": "Transit forecourt",
   "Placemaker.Plaza.design.fair": "Summer fair",
-  "Placemaker.Plaza.design.winterFair": "Christmas market"
+  "Placemaker.Plaza.design.winterFair": "Christmas market",
+  "Placemaker.Plaza.Issue.NotLevel": "The ground here rises {0} m. Squares are laid flat: for the best result, fully level the area first."
 }

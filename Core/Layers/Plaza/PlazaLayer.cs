@@ -314,10 +314,34 @@ namespace Placemaker.Core.Layers.Plaza
             return false;
         }
 
+        /// <summary>The issue a plaza raises on uneven ground (the user, 2026-10-30: plazas look broken on a hill; level the area first).</summary>
+        public const string NotLevelKey = "Placemaker.Plaza.Issue.NotLevel";
+
+        /// <summary>
+        /// Warns once when the ground under a square rises more than 1.5 m from its lowest to its highest point: squares are laid
+        /// flat and look broken on a slope, so the player is told to level the area first (the game's Level tool).
+        /// </summary>
+        public static void WarnIfNotLevel(LayerContext ctx, LayerRegion region)
+        {
+            if (region?.Ring == null || ctx.Plan.Issues.Exists(i => i.Key == NotLevelKey)) return;
+            Placemaker.Core.Geometry.Poly.Bounds(region.Ring, out var lo, out var hi);
+            float min = float.MaxValue, max = float.MinValue;
+            for (int y = 0; y <= 8; y++)
+                for (int x = 0; x <= 8; x++)
+                {
+                    var q = math.lerp(lo, hi, new float2(x / 8f, y / 8f));
+                    if (!Placemaker.Core.Geometry.Poly.Contains(region.Ring, q)) continue;
+                    float h = ctx.H(q); min = math.min(min, h); max = math.max(max, h);
+                }
+            foreach (var q in region.Ring) { float h = ctx.H(q); min = math.min(min, h); max = math.max(max, h); }
+            if (max - min > 1.5f) ctx.Issue(IssueSeverity.Warning, NotLevelKey, Math.Round(max - min, 1));
+        }
+
         protected override void PlanCore(LayerContext ctx)
         {
             ShoreKit.CarveShore(ctx, 8f);   // g2: the wet part + a quay band go to the "Shore" feature
             var region = ctx.LayerRegion;
+            WarnIfNotLevel(ctx, region);
             var occ = new Occupancy(region, ctx.Input.Reserved, ctx.Site);
             // Inside a place (a park's plaza) people arrive along the parent's paths: access where they end.
             var gates = InPlace(ctx.Input) ? PathEnds(ctx.Input, region) : new List<Gate>();
@@ -595,6 +619,7 @@ namespace Placemaker.Core.Layers.Plaza
         /// </summary>
         internal static void PlanDesignedSquare(LayerContext ctx, Occupancy occ, LayerRegion region, List<Gate> gates, string design, PavingPalette palette)
         {
+            if (design != "theatre") WarnIfNotLevel(ctx, region);   // a theatre shapes its own bowl
             var axis = PlazaDressing.SquareAxis(region);
             var pave = new PavingPlan { Axis = axis };
             var r = PlazaDesigns.Plan(ctx, occ, region, gates, palette, pave, axis, false, design);

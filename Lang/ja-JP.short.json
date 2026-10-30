@@ -224,5 +224,6 @@
   "Placemaker.Zen.Issue.PondPermanent.Short": "池を掘る",
   "Placemaker.Commercial.Issue.NoRoom.Short": "店舗には狭すぎる",
   "Placemaker.Commercial.Issue.TooSteep.Short": "店舗には急すぎる",
-  "Placemaker.Commercial.Issue.FootpathBehind.Short": "店舗の裏に歩道"
+  "Placemaker.Commercial.Issue.FootpathBehind.Short": "店舗の裏に歩道",
+  "Placemaker.Plaza.Issue.NotLevel.Short": "先に整地を"
 }

@@ -100,5 +100,6 @@
   "Placemaker.Plaza.design.market": "集市广场",
   "Placemaker.Plaza.design.transit": "交通前广场",
   "Placemaker.Plaza.design.fair": "夏日集会",
-  "Placemaker.Plaza.design.winterFair": "圣诞市集"
+  "Placemaker.Plaza.design.winterFair": "圣诞市集",
+  "Placemaker.Plaza.Issue.NotLevel": "此处地面高差 {0} 米。广场按平地铺设：为获得最佳效果，请先将区域完全整平。"
 }

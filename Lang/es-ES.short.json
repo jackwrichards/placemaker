@@ -224,5 +224,6 @@
   "Placemaker.Zen.Issue.PondPermanent.Short": "Excava estanque",
   "Placemaker.Commercial.Issue.NoRoom.Short": "Estrecho para tiendas",
   "Placemaker.Commercial.Issue.TooSteep.Short": "Empinado para tiendas",
-  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Camino tras tiendas"
+  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Camino tras tiendas",
+  "Placemaker.Plaza.Issue.NotLevel.Short": "Nivela antes"
 }

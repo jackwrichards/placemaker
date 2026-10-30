@@ -221,8 +221,9 @@
   "Placemaker.Zen.Issue.NoField.Short": "No gravel field",
   "Placemaker.Zen.Issue.NoPond.Short": "No pond",
   "Placemaker.Zen.Issue.NoTeaHouse.Short": "No tea house",
-  "Placemaker.Zen.Issue.PondPermanent.Short": "Digs a pond",
+  "Placemaker.Zen.Issue.PondPermanent.Short": "Digs a pond",
   "Placemaker.Commercial.Issue.NoRoom.Short": "Too narrow for shops",
   "Placemaker.Commercial.Issue.TooSteep.Short": "Too steep for shops",
-  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Footpath behind shops"
+  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Footpath behind shops",
+  "Placemaker.Plaza.Issue.NotLevel.Short": "Level the area first"
 }

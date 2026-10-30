@@ -224,5 +224,6 @@
   "Placemaker.Zen.Issue.PondPermanent.Short": "Копает пруд",
   "Placemaker.Commercial.Issue.NoRoom.Short": "Узко для магазинов",
   "Placemaker.Commercial.Issue.TooSteep.Short": "Круто для магазинов",
-  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Дорожка за магазинами"
+  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Дорожка за магазинами",
+  "Placemaker.Plaza.Issue.NotLevel.Short": "Сначала выровняйте"
 }

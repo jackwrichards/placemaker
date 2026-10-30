@@ -224,5 +224,6 @@
   "Placemaker.Zen.Issue.PondPermanent.Short": "Escava um lago",
   "Placemaker.Commercial.Issue.NoRoom.Short": "Estreito p/ lojas",
   "Placemaker.Commercial.Issue.TooSteep.Short": "Íngreme p/ lojas",
-  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Caminho atrás"
+  "Placemaker.Commercial.Issue.FootpathBehind.Short": "Caminho atrás",
+  "Placemaker.Plaza.Issue.NotLevel.Short": "Nivele antes"
 }

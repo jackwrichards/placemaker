@@ -100,5 +100,6 @@
   "Placemaker.Plaza.design.market": "시장 광장",
   "Placemaker.Plaza.design.transit": "역 앞 광장",
   "Placemaker.Plaza.design.fair": "여름 축제",
-  "Placemaker.Plaza.design.winterFair": "크리스마스 마켓"
+  "Placemaker.Plaza.design.winterFair": "크리스마스 마켓",
+  "Placemaker.Plaza.Issue.NotLevel": "이곳은 지면 높이 차가 {0} m입니다. 광장은 평평하게 만들어지므로, 먼저 구역을 완전히 평탄화하면 가장 좋습니다."
 }

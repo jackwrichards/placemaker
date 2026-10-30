@@ -224,5 +224,6 @@
   "Placemaker.Zen.Issue.PondPermanent.Short": "会挖池塘",
   "Placemaker.Commercial.Issue.NoRoom.Short": "太窄放不下商店",
   "Placemaker.Commercial.Issue.TooSteep.Short": "太陡放不下商店",
-  "Placemaker.Commercial.Issue.FootpathBehind.Short": "步道在商店后"
+  "Placemaker.Commercial.Issue.FootpathBehind.Short": "步道在商店后",
+  "Placemaker.Plaza.Issue.NotLevel.Short": "请先整平"
 }

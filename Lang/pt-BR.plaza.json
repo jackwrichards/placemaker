@@ -100,5 +100,6 @@
   "Placemaker.Plaza.design.market": "Praça do mercado",
   "Placemaker.Plaza.design.transit": "Pátio de transporte",
   "Placemaker.Plaza.design.fair": "Feira de verão",
-  "Placemaker.Plaza.design.winterFair": "Feira de Natal"
+  "Placemaker.Plaza.design.winterFair": "Feira de Natal",
+  "Placemaker.Plaza.Issue.NotLevel": "O terreno sobe {0} m aqui. As praças são feitas planas: para o melhor resultado, nivele toda a área antes."
 }

@@ -100,5 +100,6 @@
   "Placemaker.Plaza.design.market": "市場広場",
   "Placemaker.Plaza.design.transit": "駅前広場",
   "Placemaker.Plaza.design.fair": "夏祭り",
-  "Placemaker.Plaza.design.winterFair": "クリスマスマーケット"
+  "Placemaker.Plaza.design.winterFair": "クリスマスマーケット",
+  "Placemaker.Plaza.Issue.NotLevel": "この場所は地面が {0} m 上下しています。広場は平らに造られるため、先に区域を完全に平らにすると最良の結果になります。"
 }
