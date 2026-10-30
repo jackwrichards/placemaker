@@ -128,3 +128,20 @@ lorries drive), so it lays its decals right there, from its own causes, through 
 | `show-2-builds-1030-020820-0241` | building ruins on a block and a 5 % slope: the basement with its walls and standing water |
 | `send-ground-rundown-1030-014837` | frame time after the textures were made; close-ups by kind |
 | `send-lab-rundown-machines-1030-012753` | which construction props exist (no `Prop_` vehicle does) |
+
+## Round 7 (2026-10-30): real machines, walls the right way round
+
+- **Machines.** `AutoAssets.IsOwn` (the narrowed version from makeover-industrial: only `VehicleProps.Prefix`, test
+  `OnlyOurVehiclePropsCountAsVanilla`) lets Placemaker's own vehicle props pass the vanilla rule. They are made at load from
+  the game's vehicles (`Game/Assets/VehiclePropSystem.cs`, slots in `IndustrialAssets.VehicleProps`): Loader 1 = FrontendLoader01,
+  Truck 1 = CoalTruck01 (a dump truck), Tractor 1 = OreMiningTractor01. No excavator: the mining excavator (25 m) is not made.
+  The construction site passes them as its machine list, as the industrial quarry does (lab `send-lab-rundown-vehicles-1030-024155`:
+  all five matched; game `show-4-builds-1030-031235-d988`: loaders, dump trucks and mining tractors on every site).
+- **Why the category path never worked:** the game's catalog has no `construction.machine` items, so `SiteKit.Cat(ctx, null,
+  ConstructionMachine)` returned nothing and no machine was planned at all, whatever the shared set named. The shared `GritAssets`
+  sets now name things that place (our vehicle props, real heaps; no `Prop_` names), but they only apply where a category has items.
+  The scrapyard's wreck and machine sets go the same way (`show-2-builds-1030-022802-a671`: no cars): the industrial agent's
+  car yards pass explicit lists and show cars (`show-carYard-salvage-1030-025923-1817`).
+- **Walls stood across their line.** The game's garden walls run along their local Z (lab: 0.2 x 0.9 x 3.0 m); the lot's wall
+  remnants (code older than the makeover) and the building ruins turned them 90 degrees, a comb of short pieces. Fixed; the
+  basement wall is two skins of the dark masonry at 1.5-1.85x height.
