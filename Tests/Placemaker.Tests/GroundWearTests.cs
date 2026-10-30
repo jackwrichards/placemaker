@@ -48,6 +48,7 @@ namespace Placemaker.Tests
         [Fact]
         public void BareLawnGetsFaintWearAndZeroPaintsNothing()
         {
+            GroundDesignTests.Lib();   // the shared decal library, for the weathered ground below
             var bare = Compose(Recipe("park", 7, Set(("groundSurface", false))));
             var none = Compose(Recipe("park", 7, Set(("groundSurface", false), (DressingControls.PaintWearId, 0.0))));
             int added = Paints(bare) - Paints(none);
@@ -71,6 +72,7 @@ namespace Placemaker.Tests
             // s33: the park's default lawn is painted terrain; "Grass surface" brings the surface back.
             var covered = Compose(Recipe("park", 7, Set((DressingControls.LawnId, Lawn.Surface))));
             var none = Compose(Recipe("park", 7, Set((DressingControls.LawnId, Lawn.Surface), (DressingControls.PaintWearId, 0.0))));
+            GroundDesignTests.Lib();   // the shared decal library, for the weathered ground below
             var bare = Compose(Recipe("park", 7, Set(("groundSurface", false))));
             var bareNone = Compose(Recipe("park", 7, Set(("groundSurface", false), (DressingControls.PaintWearId, 0.0))));
             int onSurface = Paints(covered) - Paints(none), onBare = Paints(bare) - Paints(bareNone);
