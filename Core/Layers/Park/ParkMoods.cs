@@ -225,7 +225,7 @@ namespace Placemaker.Core.Layers.Park
                     }
                 }
                 // the community garden option: the first lawn room big enough becomes the allotments
-                bool allot = allotment && used[(int)Mood.Allotment] == 0 && !cd.core && cd.area >= 380f;
+                bool allot = allotment && used[(int)Mood.Allotment] == 0 && !cd.core && cd.area >= 900f && cd.ins >= 9f;   // room for two rows of plots (a 380 m² lawn held one plot in the game)
                 if (total <= 0f && !allot) { if (pal.Length > 0 && Sum(pal) > 0f) break; continue; }
                 float pick = U(ks, 7) * total;
                 int mood = 0;
