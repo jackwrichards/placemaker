@@ -27,8 +27,8 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             if (whole != null)
             {
                 TerrainPaint.Patch(ctx, whole, 1, 0.85f, 6f);
-                var core = DecayKit.Inset(region, math.clamp(math.sqrt(region.Area) * 0.05f, 4f, 9f));
-                TerrainPaint.Patch(ctx, core ?? whole, 3, sub == "buildingRuins" ? 1f : 0.8f, 9f);   // bare trampled earth, green only at the edges
+                var core = DecayKit.Inset(region, 2f);
+                TerrainPaint.Patch(ctx, core ?? whole, 3, sub == "buildingRuins" ? 1f : 0.8f, 4f);   // bare trampled earth, green only at the edges
             }
             var seats = new List<(float2 c, float r)>();
             foreach (var (r, _) in fallen) seats.Add((r.Center, math.max(r.HalfLength, r.HalfWidth) * 1.3f));

@@ -99,7 +99,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
         {
             Preset("overgrown", ("subtype", "overgrown"), ("overgrowth", 90.0), ("rubble", 15.0), ("junk", 20.0), ("graffiti", 20.0),
                 ("foundations", 1.0), ("cracking", 85.0), ("youngTrees", 25.0), ("fenceGaps", 70.0), ("focus", "centre"), ("mounds", 0.0));
-            Preset("rubbleField", ("subtype", "rubbleField"), ("overgrowth", 20.0), ("rubble", 90.0), ("junk", 25.0), ("graffiti", 10.0),
+            Preset("rubbleField", ("subtype", "rubbleField"), ("overgrowth", 40.0), ("rubble", 90.0), ("junk", 25.0), ("graffiti", 10.0),
                 ("foundations", 0.0), ("mounds", 2.5), ("pileSize", "large"), ("youngTrees", 0.0), ("fenceGaps", 55.0), ("walls", false));
             Preset("demolished", ("subtype", "demolished"), ("overgrowth", 10.0), ("rubble", 45.0), ("junk", 10.0), ("graffiti", 15.0),
                 ("foundations", 3.0), ("cracking", 25.0), ("focus", "street"), ("youngTrees", 0.0), ("fenceGaps", 0.0), ("desirePaths", false));
@@ -554,15 +554,16 @@ namespace Placemaker.Core.Layers.Types.Ruins
             float2 g0 = gates.Count > 0 ? gates[0].Position : region.ClosestOnBoundary(focus, out _, out _);
             float2 inw = gates.Count > 0 ? region.InwardNormal(gates[0].Segment) : math.normalizesafe(focus - g0);
             var side = new float2(-inw.y, inw.x);
-            float reach = math.clamp(math.sqrt(region.Area) * 0.45f, 18f, 70f);
-            int mounds = math.clamp(3 + (int)(region.Area / 9000f), 3, 7);
+            // the tipping spread over years across most of the lot (round 9: one corner full, the rest empty)
+            float reach = math.clamp(math.sqrt(region.Area) * 0.8f, 25f, 160f);
+            int mounds = math.clamp(4 + (int)(region.Area / 4000f), 4, 12);
             int placed = 0;
             for (int m = 0; m < mounds; m++)
             {
                 uint h = Hashing.Mix(ctx.Seed, 0x7199u + (uint)m * 17u);
                 // a fan from the way in: each lorry tipped a little further in or to the side of the last
                 float d = math.lerp(12f, reach, (m + Hashing.Unit(h)) / mounds);
-                float s = (Hashing.Unit(Hashing.Mix(h, 1u)) - 0.5f) * reach * 1.1f;
+                float s = (Hashing.Unit(Hashing.Mix(h, 1u)) - 0.5f) * reach * 0.9f;
                 var c = g0 + inw * d + side * s;
                 if (!region.ContainsDisc(c, 7f)) continue;
                 int heaps = 2 + (int)(Hashing.Unit(Hashing.Mix(h, 2u)) * 3f);

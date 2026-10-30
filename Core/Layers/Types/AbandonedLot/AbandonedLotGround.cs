@@ -188,8 +188,9 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 TerrainPaint.Patch(ctx, whole, 1, 0.85f, 6f);
                 // and a thin film of earth through the grass everywhere (the first pictures: a rundown lot still read as a lawn)
                 // (the coordinator, round 7: "lawn everywhere") the whole lot is bare, trampled earth; green only survives at the fence and corners
-                var core = DecayKit.Inset(region, math.clamp(math.sqrt(region.Area) * 0.05f, 4f, 9f));
-                TerrainPaint.Patch(ctx, core ?? whole, dirtLayer, sub == "overgrown" ? 0.35f : sub == "emptyLot" ? 0.5f : sub == "brokenCarPark" ? 0.7f : 1f, 9f);
+                // (round 9: a 6-9 m inset left a mown-looking green frame) earth to within a couple of metres of the fence, a ragged edge
+                var core = DecayKit.Inset(region, 2f);
+                TerrainPaint.Patch(ctx, core ?? whole, dirtLayer, sub == "overgrown" ? 0.35f : sub == "emptyLot" ? 0.5f : sub == "brokenCarPark" ? 0.7f : 1f, 4f);
             }
             float share = sub switch
             {

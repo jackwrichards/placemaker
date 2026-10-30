@@ -810,7 +810,8 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
 
         // (rundown, the coordinator's round 7: "a big empty dirt field with cones and five machines") a site in work is dense:
         // spoil banked beside the dig with a loader and a dump truck at it, and laydown yards packed with materials.
-        private static readonly string[] SpoilIds = { "PileStoneSmall01", "PileSandSmall01", "PileStoneSmall01" };
+        // (the resource piles PileStone/PileSand draw empty without their storage building: the lorry loads and rubble heaps instead)
+        private static readonly string[] SpoilIds = { "OreMiningTruck01_OrePile01", "OreMiningTruck01_OrePile03", "RubblePileConcrete02", "OreMiningTruck01_OrePile02" };
         private static readonly string[] LaydownIds = { "Pallet01", "Pallet02", "Pallet03", "Pallet04", "OilPipe01", "CableReel01", "CableReel02", "GasBottlePallet01", "CratePile01", "CratePile02", "BarrelPile01", "Pallet02" };
 
         /// <summary>Big spoil heaps in a row along the works' longest side (outside it), the machines loading from them.</summary>
@@ -827,22 +828,21 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
                 int e = (best + pass * (ring.Length / 2)) % ring.Length;
                 var a = ring[e]; var b = ring[(e + 1) % ring.Length];
                 var t = math.normalizesafe(b - a); var outN = new float2(t.y, -t.x);
-                if (math.dot(math.lerp(a, b, 0.5f) - s.Gate, outN) < 0f && pass == 0) continue;
+                
                 float len = math.distance(a, b);
-                int n = math.clamp((int)(len / 17f), 1, 5);
+                int n = math.clamp((int)(len / 11f), 2, 7);
                 for (int k = 0; k < n; k++)
                 {
-                    var p = math.lerp(a, b, (k + 0.5f) / n) + outN * 10f;
+                    var p = math.lerp(a, b, (k + 0.5f) / n) + outN * 8f;
                     uint v = Hashing.Mix(ctx.Seed, 0x5B01u + (uint)k * 7u + (uint)pass);
-                    if (!s.Region.ContainsDisc(p, 7f) || !s.Occ.Free(p, 7f, 0.5f, 0f)) continue;
+                    if (!s.Region.ContainsDisc(p, 5f) || !s.Occ.Free(p, 4.5f, 0.3f, 0f)) continue;
                     var o = ctx.Object(p, math.atan2(t.x, t.y), ObjectRole.Furniture, AssetMix.Pick(SpoilIds, v), v, -1, AssetCategories.ConstructionPile);
-                    o.Scale = 0.85f + 0.3f * Hashing.Unit(Hashing.Mix(v, 1u));
-                    s.Occ.Take(p, 7.5f, 2);
+                    o.Scale = 1.5f + 0.5f * Hashing.Unit(Hashing.Mix(v, 1u));
+                    s.Occ.Take(p, 5f, 2);
                     s.PilesPlaced++;
                     w.Anchors.Insert(0, p - outN * 9f);   // the machines work between the heap and the dig
                     if (k % 2 == 0 && SiteKit.Put(ctx, s.Occ, p - outN * 9f + t * 4f, math.atan2(outN.x, outN.y), AssetCategories.ConstructionMachine, s.Machines, 5.5f, v + 3u)) s.MachinesPlaced++;
                 }
-                break;
             }
         }
 

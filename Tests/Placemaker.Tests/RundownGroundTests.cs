@@ -103,6 +103,13 @@ namespace Placemaker.Tests
             Assert.NotEmpty(machines);
             Assert.All(machines, m => Assert.DoesNotContain("Prop_", m.Asset.Id + string.Join("", m.Asset.Fallbacks ?? new string[0])));
             Assert.Contains(machines, m => (m.Asset.Id ?? "").StartsWith("Placemaker Vehicle ", StringComparison.Ordinal));
+            if (style == "foundation" || style == "earthworks")
+            {
+                // spoil banked beside the dig (the coordinator, round 7: "a big empty dirt field")
+                int spoil = plan.Layers.SelectMany(l => l.Objects).Count(o => o.Category == AssetCategories.ConstructionPile && o.Scale >= 1.4f);
+                _out.WriteLine($"{style}: {spoil} spoil heaps");
+                Assert.True(spoil >= 2, $"{style}: {spoil} spoil heaps");
+            }
         }
 
         /// <summary>The narrowed AutoAssets fix from makeover-industrial (4c97d9ff): only our vehicle props pass the vanilla rule.</summary>
