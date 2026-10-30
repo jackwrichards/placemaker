@@ -291,6 +291,7 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                     Summit = summit, SummitRadius = summitR, Seed = Hashing.Mix(ctx.Seed, (uint)gi + 0xC11u),
                 };
                 var pts = HillPaths.Climb(field, region, occ, g.Position, g.Position + inward * (hw + 2.5f), spec);
+                ctx.Plan.Facts["arrival" + gi] = HillPaths.LastArrival;
                 if (pts.Count < 3) continue;
                 if (!HillPaths.Reached(pts, spec)) ctx.Issue(IssueSeverity.Info, "Placemaker.LookoutHill.Issue.PathShort");
                 Relax(pts, region, hw);

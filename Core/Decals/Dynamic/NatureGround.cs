@@ -374,7 +374,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 // faint mottling over all the open ground: the big variation is the paint's, this is the grain
                 Brushes.Scatter(_b, _wild, "groundMottle", 0.14f, new ScatterOptions { Weight = p => 0.3f + 0.7f * ValueNoise.Clumps(p, 34f, H(1)), Opacity = new float2(0.18f, 0.35f), Clump = 2.5f, Spill = 2f, Level = ColourLevel.Quiet, Cause = "ground:mottle" });
                 // dry grass where the ground drains and the sun falls: knolls, the south-facing upper slopes, open ground away from shade
-                Brushes.Scatter(_b, _wild, "dryGrass", 0.12f, new ScatterOptions { Weight = Dry, Opacity = new float2(0.2f, 0.4f), Clump = 3f, Spill = 2f, Level = ColourLevel.Quiet, Cause = "ground:dry" });
+                Brushes.Scatter(_b, _wild, "dryGrass", 0.08f, new ScatterOptions { Weight = Dry, Opacity = new float2(0.15f, 0.3f), Clump = 3f, Spill = 2f, Level = ColourLevel.Quiet, Cause = "ground:dry" });
                 // damp lows: where water gathers but does not stand
                 Brushes.Scatter(_b, _wild, "dampPatch", 0.06f, new ScatterOptions { Weight = p => Damp(p) * (1f - Dry(p)), Opacity = new float2(0.25f, 0.45f), Clump = 2.5f, Loners = 0.2f, Cause = "ground:damp" });
                 if (_amount > 0f) Terracettes();
