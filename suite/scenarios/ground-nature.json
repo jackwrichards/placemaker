@@ -95,8 +95,8 @@
         {
           "do": "camera",
           "target": "build",
-          "view": "low",
-          "distance": 14,
+          "view": "closeup",
+          "distance": 16,
           "shot": "fire-ring-low",
           "shotMode": "render"
         },
@@ -110,7 +110,7 @@
         {
           "do": "camera",
           "target": "build",
-          "view": "low",
+          "view": "closeup",
           "distance": 16,
           "shot": "pitch-low",
           "shotMode": "render"
@@ -195,7 +195,7 @@
         {
           "do": "camera",
           "target": "build",
-          "view": "low",
+          "view": "closeup",
           "distance": 20,
           "shot": "rill-low",
           "shotMode": "render"
@@ -240,7 +240,7 @@
         {
           "do": "camera",
           "target": "build",
-          "view": "low",
+          "view": "closeup",
           "distance": 18,
           "shot": "scree-low",
           "shotMode": "render"
@@ -309,8 +309,8 @@
         {
           "do": "camera",
           "target": "build",
-          "view": "low",
-          "distance": 14,
+          "view": "closeup",
+          "distance": 16,
           "shot": "floor-low",
           "shotMode": "render"
         },
@@ -324,8 +324,8 @@
         {
           "do": "camera",
           "target": "build",
-          "view": "low",
-          "distance": 14,
+          "view": "closeup",
+          "distance": 16,
           "shot": "deadwood-low",
           "shotMode": "render"
         },
@@ -339,8 +339,8 @@
         {
           "do": "camera",
           "target": "build",
-          "view": "low",
-          "distance": 14,
+          "view": "closeup",
+          "distance": 16,
           "shot": "log-moss-low",
           "shotMode": "render"
         },
@@ -354,8 +354,8 @@
         {
           "do": "camera",
           "target": "build",
-          "view": "low",
-          "distance": 12,
+          "view": "closeup",
+          "distance": 16,
           "shot": "roots-low",
           "shotMode": "render"
         }
@@ -393,6 +393,10 @@
         },
         {
           "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 45
         },
         {
           "do": "lab",
@@ -438,7 +442,7 @@
         {
           "do": "camera",
           "target": "build",
-          "view": "low",
+          "view": "closeup",
           "distance": 18,
           "shot": "marsh-low",
           "shotMode": "render"
@@ -453,7 +457,7 @@
         {
           "do": "camera",
           "target": "build",
-          "view": "low",
+          "view": "closeup",
           "distance": 16,
           "shot": "bank-low",
           "shotMode": "render"
@@ -494,6 +498,10 @@
           "do": "build"
         },
         {
+          "do": "grow",
+          "seconds": 45
+        },
+        {
           "do": "lab",
           "op": "grime"
         },
@@ -522,7 +530,7 @@
         {
           "do": "camera",
           "target": "build",
-          "view": "low",
+          "view": "closeup",
           "distance": 18,
           "shot": "shore-low",
           "shotMode": "render"

@@ -6,23 +6,23 @@
     {
       "id": "runoffRill", "name": "Runoff rill", "tier": "macro",
       "about": "A small channel cut by rain running downhill: damp dark washed soil down the middle with wet pebbles left in it, pale silt either side. Lay pieces end to end down the flow line.",
-      "texel": 0.035, "layers": "terrain", "order": 2, "lod": 45, "maxTexels": 384, "opacity": 0.9,
+      "texel": 0.035, "layers": "terrain", "order": 2, "lod": 45, "maxTexels": 384, "opacity": 1,
       "edge": { "feather": 0.35, "warp": 0.45, "warpScale": 1.6, "round": 1, "widthNoise": 0.55 },
-      "variants": { "count": 6, "size": [9, 11], "width": [1.1, 1.9], "tile": "x", "strength": [0.75, 1] },
+      "variants": { "count": 6, "size": [9, 11], "width": [1.4, 2.4], "tile": "x", "strength": [0.75, 1] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 4, "stretch": [4, 1] },
         { "op": "fbm", "out": "g", "scale": 0.15, "octaves": 3 },
         { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
-        { "op": "remap", "in": "n", "out": "macro", "lo": -0.75, "hi": 0.35 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.95, "hi": 0.15 },
         { "op": "remap", "in": "radial", "out": "bankZone", "lo": 0.98, "hi": 0.45 },
         { "op": "mul", "a": "bankZone", "b": "macro", "c": "shape", "out": "bankC" },
         { "op": "erode", "cover": "bankC", "grain": "g01", "sharp": 2.2, "out": "silt" },
-        { "op": "layer", "alpha": "silt", "alphaK": 0.55, "color": [150, 140, 110], "color2": [130, 120, 94], "tone": "n", "smooth": 0.14 },
-        { "op": "remap", "in": "radial", "out": "chan", "lo": 0.7, "hi": 0.1 },
+        { "op": "layer", "alpha": "silt", "alphaK": 0.6, "color": [156, 142, 110], "color2": [130, 120, 94], "tone": "n", "smooth": 0.14 },
+        { "op": "remap", "in": "radial", "out": "chan", "lo": 0.75, "hi": 0.12 },
         { "op": "mul", "a": "chan", "b": "macro", "c": "shape", "out": "chanC" },
         { "op": "erode", "cover": "chanC", "grain": "g01", "sharp": 3.2, "out": "bed" },
-        { "op": "layer", "alpha": "bed", "alphaK": 0.95, "color": [84, 70, 54], "color2": [64, 54, 42], "tone": "n", "vary": 0.1, "smooth": 0.32, "height": -0.6 },
-        { "op": "scatter", "stamp": "pebble", "density": 26, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.3, 1.2], "edgeBias": -0.3, "noise": { "scale": 1.6, "lo": -0.9, "hi": 0.3 }, "size": [0.025, 0.07], "aspect": [0.6, 0.95], "palette": [[140, 136, 128], [118, 114, 108], [158, 150, 136], [104, 98, 90]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.42, "max": 20000 },
+        { "op": "layer", "alpha": "bed", "alphaK": 1, "color": [78, 64, 48], "color2": [58, 48, 38], "tone": "n", "vary": 0.1, "smooth": 0.4, "height": -0.6 },
+        { "op": "scatter", "stamp": "pebble", "density": 34, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.3, 1.2], "edgeBias": -0.3, "noise": { "scale": 1.6, "lo": -0.9, "hi": 0.3 }, "size": [0.025, 0.07], "aspect": [0.6, 0.95], "palette": [[140, 136, 128], [118, 114, 108], [158, 150, 136], [104, 98, 90]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.42, "max": 20000 },
         { "op": "scatter", "stamp": "rock", "density": 0.9, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.5, 1.5], "edgeBias": -0.25, "size": [0.08, 0.2], "aspect": [0.65, 0.95], "palette": [[146, 140, 130], [124, 118, 110], [160, 152, 138]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.3 }
       ]
     },
@@ -39,8 +39,8 @@
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.35 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
         { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.6, "out": "silt" },
-        { "op": "layer", "alpha": "silt", "alphaK": 0.55, "color": [154, 144, 116], "color2": [134, 124, 100], "tone": "n", "smooth": 0.16 },
-        { "op": "scatter", "stamp": "pebble", "density": 30, "clusters": 8, "cluster": 0.45, "clusterRadius": [0.4, 1.6], "noise": { "scale": 1.8, "lo": -0.8, "hi": 0.35 }, "size": [0.025, 0.08], "aspect": [0.6, 0.95], "palette": [[150, 146, 138], [128, 124, 116], [166, 156, 140], [112, 106, 98]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.25, "max": 24000 },
+        { "op": "layer", "alpha": "silt", "alphaK": 0.3, "color": [140, 130, 104], "color2": [122, 112, 90], "tone": "n", "smooth": 0.16 },
+        { "op": "scatter", "stamp": "pebble", "density": 30, "clusters": 8, "cluster": 0.45, "clusterRadius": [0.4, 1.6], "noise": { "scale": 1.8, "lo": -0.8, "hi": 0.35 }, "size": [0.025, 0.08], "aspect": [0.6, 0.95], "palette": [[136, 132, 124], [114, 110, 102], [150, 140, 124], [98, 92, 84]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.25, "max": 24000 },
         { "op": "scatter", "stamp": "rock", "density": 0.8, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.6, 2], "size": [0.08, 0.24], "aspect": [0.65, 0.95], "palette": [[146, 140, 130], [124, 118, 110], [160, 152, 138]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.2 }
       ]
     },

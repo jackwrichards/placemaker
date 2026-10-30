@@ -577,7 +577,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     }
                     if (pts.Count < 7) continue;
                     seeds.Add(p0);
-                    Brushes.EdgeStrip(_b, Smooth(pts, 1), "runoffRill", new StripOptions { Gaps = 0f, Run = new float2(60f, 90f), CornerDeg = 70f, Opacity = Op(0.65f, 0.9f), Width = new float2(0.85f, 1.15f), Cause = "water:rill" });
+                    Brushes.EdgeStrip(_b, Smooth(pts, 1), "runoffRill", new StripOptions { Gaps = 0f, Run = new float2(60f, 90f), CornerDeg = 70f, Opacity = Op(0.8f, 1f), Width = new float2(0.9f, 1.2f), Cause = "water:rill" });
                     At(p, out float endSlope, out var endDown, out _, out _);
                     if (endSlope < 0.06f && PathDistance(p) > 1f && !NearWet(p, 1) && math.lengthsq(endDown) > 0.1f)
                         Brushes.At(_b, p + endDown, endDown, "gravelFan", 4.5f, Op(0.5f, 0.8f), 0, ColourLevel.Any, "water:fan");
