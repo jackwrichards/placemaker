@@ -26,7 +26,7 @@
     },
     {
       "id": "dustDrift", "name": "Dust drift", "tier": "macro",
-      "about": "Fine dust and grit blown off a heap or a crusher: a pale fan settled on the ground downwind, speckled near the heap, thinning out.",
+      "about": "Fine grit and stone chips blown or spilled off a heap or a crusher: speckled earth-toned grains thick near the heap, thinning out downwind. No pale film (a soft film read as a white smudge in the game).",
       "texel": 0.06, "layers": "ground", "order": 3, "lod": 45, "maxTexels": 384, "opacity": 0.85,
       "edge": { "feather": 1.2, "warp": 0.9, "warpScale": 3, "round": 0.9 },
       "variants": { "count": 4, "size": [12, 22], "aspect": [0.35, 0.6], "strength": [0.6, 1], "fades": ["side", "linear", "islands", "soft"] },
@@ -34,8 +34,7 @@
         { "op": "fbm", "out": "n", "scale": 3, "octaves": 4, "stretch": [2.5, 1], "warp": 0.4, "warpScale": 2 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.9, "hi": 0.1 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "d" },
-        { "op": "layer", "alpha": "d", "alphaK": 0.5, "color": [206, 198, 182], "color2": [180, 172, 158], "tone": "n", "smooth": 0.1 },
-        { "op": "scatter", "stamp": "pebble", "density": 120, "clusters": 5, "cluster": 0.4, "clusterRadius": [0.6, 2], "noise": { "scale": 2.5, "lo": -1, "hi": 0.2 }, "size": [0.04, 0.12], "aspect": [0.6, 0.95], "palette": [[180, 172, 158], [150, 144, 134], [128, 122, 112]], "alpha": [0.7, 1], "value": 0.12, "height": 0.6, "smooth": 0.2, "max": 30000 }
+        { "op": "scatter", "stamp": "pebble", "density": 140, "clusters": 5, "cluster": 0.4, "clusterRadius": [0.6, 2], "noise": { "scale": 2.5, "lo": -1, "hi": 0.2 }, "size": [0.04, 0.12], "aspect": [0.6, 0.95], "palette": [[150, 132, 108], [122, 108, 90], [170, 156, 134], [98, 88, 74]], "alpha": [0.7, 1], "value": 0.12, "height": 0.6, "smooth": 0.2, "max": 30000 }
       ]
     },
     {
