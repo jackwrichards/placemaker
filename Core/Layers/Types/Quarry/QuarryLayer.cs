@@ -179,6 +179,22 @@ namespace Placemaker.Core.Layers.Types.Quarry
             GritAssets.CapDecals(ctx.Plan, ctx.LayerRegion.Area, 110f);
         }
 
+        // The game's own pieces when the player picked none (industrial makeover, 2026-10-30): the pack names in the sets above
+        // are refused by the vanilla rule, so a clean game's quarry had no machines, no plant and no heaps (empty grass pits).
+        private static readonly string[] OwnMachines = { Yards.VehicleProps.Loader(1), Yards.VehicleProps.Truck(1), Yards.VehicleProps.Tractor(1), Yards.VehicleProps.Truck(3), Yards.VehicleProps.Loader(2) };
+        private static readonly string[] OwnPlant = { "IndustrialManufacturingDecoration04_1x1 Ore", "OreConveyorBelt01", "IndustrialManufacturingDecoration04_1x3 Ore" };
+        private static string[] OwnPiles(string subtype)
+        {
+            switch (subtype)
+            {
+                case "sandPit": return new[] { "RubblePileConcrete03", "OreMiningTruck01_OrePile03", "RubblePileConcrete03" };
+                case "gravelPit": case "lakeDig": return new[] { "RubblePileConcrete02", "RubblePileConcrete04", "RubblePileConcrete03" };
+                case "abandoned": case "flooded": return new[] { "RubblePileMixed02", "RubblePileConcrete01", "RubblePileMixed04" };
+                default: return new[] { "RubblePileConcrete02", "OreMiningTruck01_OrePile01", "RubblePileConcrete01", "RubblePileConcrete04" };
+            }
+        }
+        private static string[] Or(string[] chosen, string[] own) { if (chosen != null) foreach (var c in chosen) if (!string.IsNullOrEmpty(c)) return chosen; return own; }
+
         private void PlanArt(LayerContext ctx)
         {
             var region = ctx.LayerRegion;
@@ -212,7 +228,15 @@ namespace Placemaker.Core.Layers.Types.Quarry
 
             // 5. Surfaces & paint: pit texture, haul road (dry parts), rim fence.
             int layer = math.clamp(ctx.I("paintLayer"), 1, 4);
-            if (q.Pit != null && ctx.B("pitPaint")) TerrainPaint.Patch(ctx, q.Pit.Ring, layer, 1f, 3f);
+            if (q.Pit != null && ctx.B("pitPaint"))
+            {
+                // The pit is worked ground, never lawn: earth over the benches and floor, the pit's own material (sand, gravel)
+                // over it in drifts (TerrainPaint.Field as the yards do; Patch with intent 1 or 2 painted grass).
+                int baseLayer = q.Subtype == "sandPit" || q.Subtype == "gravelPit" ? 4 : 3;
+                TerrainPaint.Field(ctx, q.Pit.Ring, 3, 1f, 3f, 2f, null, 0f, 0f, 0f, Hashing.Mix(ctx.Seed, 0x9A10u));
+                if (baseLayer == 4) TerrainPaint.Field(ctx, q.Pit.Ring, 4, 0.9f, 5f, 3f, null, 0f, 0f, 0f, Hashing.Mix(ctx.Seed, 0x9A11u));
+                if (q.Subtype == "abandoned" || q.Subtype == "flooded") TerrainPaint.Field(ctx, q.Pit.Ring, 1, 0.55f, 6f, 4f, null, 0f, 0f, 0f, Hashing.Mix(ctx.Seed, 0x9A12u));
+            }
             var mudZones = new List<float2[]>();
             if (q.RoadP.Count > 1) mudZones.AddRange(EmitRoad(q, ctx.B("pitPaint") ? layer : 0));
             if (ctx.B("fence"))
@@ -589,7 +613,7 @@ namespace Placemaker.Core.Layers.Types.Quarry
         private static void Plant(Q q, List<float2[]> mud)
         {
             var ctx = q.Ctx;
-            var ids = ctx.L("plantAssets");
+            var ids = Or(ctx.L("plantAssets"), OwnPlant);
             string plant = SiteKit.Cat(ctx, ids, AssetCategories.QuarryPlant, AssetCategories.ConstructionMachine);
             if (plant == null) return;
             var target = q.Pit != null ? q.Entry : q.Region.Centroid;
@@ -609,8 +633,9 @@ namespace Placemaker.Core.Layers.Types.Quarry
                 var edge = Poly.ClosestPointOnBoundary(q.WaterRing, c, out _, out _);
                 var outward = math.normalizesafe(c - edge);
                 var dredge = edge + outward * 4f;
-                string machine = SiteKit.Cat(ctx, ctx.L("machineAssets"), AssetCategories.ConstructionMachine);
-                if (SiteKit.Put(ctx, q.Occ, dredge, LeisureKit.Yaw(dredge, edge), machine, ctx.L("machineAssets"), 3f, 0xD8E0u)) q.Machines++;
+                var mids = Or(ctx.L("machineAssets"), OwnMachines);
+                string machine = SiteKit.Cat(ctx, mids, AssetCategories.ConstructionMachine);
+                if (SiteKit.Put(ctx, q.Occ, dredge, LeisureKit.Yaw(dredge, edge), machine, mids, 3f, 0xD8E0u)) q.Machines++;
                 if (AssetAvailability.Has(AssetCategories.QuarryPlant) || ids.Length > 0)
                     SiteKit.Row(ctx, q.Occ, dredge + outward * 6f, c - outward * 6f, 7f, AssetCategories.QuarryPlant, ids, 1.5f, 0xC0B0u);
             }
@@ -621,11 +646,12 @@ namespace Placemaker.Core.Layers.Types.Quarry
             var ctx = q.Ctx;
             int wanted = ctx.I("stockpiles");
             if (wanted <= 0) return;
-            var ids = ctx.L("pileAssets");
+            var chosen = ctx.L("pileAssets");
+            // Real bulk heaps (the game's rubble heaps, 9 m) when automatic; the player's own piles keep the old spacing.
+            bool bulk = Or(chosen, null) == null;
+            var ids = Or(chosen, OwnPiles(q.Subtype));
             string pile = SiteKit.Cat(ctx, ids, AssetCategories.ConstructionPile, AssetCategories.Rock);
             if (pile == null) return;
-            // Real bulk heaps (9 × 15 m) when automatic; the player's own piles keep the old spacing.
-            bool bulk = ids == null || ids.Length == 0;
             float r = bulk ? 7f : q.Subtype == "gravelPit" || q.Subtype == "lakeDig" ? 4f : 3f;
             // Each bulk heap holds what several truck-load cones did.
             if (bulk) wanted = math.max(2, (wanted + 1) / 2);
@@ -714,7 +740,7 @@ namespace Placemaker.Core.Layers.Types.Quarry
             var ctx = q.Ctx;
             int wanted = ctx.I("machines");
             if (wanted <= q.Machines) return;
-            var ids = ctx.L("machineAssets");
+            var ids = Or(ctx.L("machineAssets"), OwnMachines);
             string machine = SiteKit.Cat(ctx, ids, AssetCategories.ConstructionMachine);
             if (machine == null) return;
             var rng = Hashing.Rng(ctx.Seed, 0x3AC4u);

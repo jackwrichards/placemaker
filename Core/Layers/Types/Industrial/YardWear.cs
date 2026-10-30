@@ -138,6 +138,13 @@ namespace Placemaker.Core.Layers.Types.Yards
                     plan.DecalInstances.RemoveRange(start, made);
                     density *= cap / (float)made * 0.95f;
                 }
+                // still over after three thinner runs (strips thin slowly): drop every k-th mark, evenly over every cause
+                int over = plan.DecalInstances.Count - start - cap;
+                if (over > 0)
+                {
+                    float step = (plan.DecalInstances.Count - start) / (float)over;
+                    for (int i = over - 1; i >= 0; i--) plan.DecalInstances.RemoveAt(start + math.min(plan.DecalInstances.Count - start - 1, (int)(i * step)));
+                }
                 rep.Instances = plan.DecalInstances.Count - start;
                 rep.Density = density;
                 rep.Flaws.AddRange(d.Flaws);
@@ -671,7 +678,10 @@ namespace Placemaker.Core.Layers.Types.Yards
                     if (inset != null && Poly.IsCcw(inset) && Poly.Area(inset) > 40f)
                         Brushes.CracksAlong(B, Closed(inset), back && U(600, n) < 0.45f ? "crackWeeds" : "crackConcrete", new StripOptions { Gaps = 0.72f, Run = new float2(5f, 16f), Opacity = Op(0.65f, 0.95f), Width = new float2(0.8f, 1f), Cause = back ? "slabs:weedyCracks" : "slabs:cracks" });
                     // a slab that has carried boxes for years is not white: faint stains where they stood and drained
-                    Brushes.Tone(B, BrushArea.Of(s), "pavingTonePatch", Op(0.3f, 0.45f), 0.25f, ColourLevel.Quiet, "slabs:tone");
+                    Brushes.Tone(B, BrushArea.Of(s), "asphaltTonePatch", Op(0.35f, 0.55f), 0.3f, ColourLevel.Quiet, "slabs:tone");
+                    // grime gathers along the slab edge where the wheels step on and off it
+                    Brushes.EdgeStrip(B, Closed(s), "kerbGrimeStrip", new StripOptions { Side = -1, Offset = -0.4f, Gaps = 0.5f, Closed = true, Opacity = Op(0.6f, 0.95f), Cause = "slabs:edge" });
+                    Brushes.Scatter(B, BrushArea.Of(s), "oilDrips", 0.03f * _a, new ScatterOptions { Opacity = Op(0.5f, 0.85f), Clump = 2f, Loners = 0.4f, Cause = "slabs:drips" });
                     if (area > 500f) Brushes.Scatter(B, BrushArea.Of(s), "crackWeb", 0.02f * _a, new ScatterOptions { Opacity = Op(0.35f, 0.6f), Clump = 1.5f, Cause = "slabs:crackWeb" });
                 }
             }

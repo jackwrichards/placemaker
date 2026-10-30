@@ -5,19 +5,23 @@
   "kinds": [
     {
       "id": "rustRunoff", "name": "Rust run-off", "tier": "detail",
-      "about": "Orange-brown rust washed off steel by rain: streaks running away from a container, a skip or a scrap heap, strongest at the foot.",
-      "texel": 0.03, "layers": "ground", "order": 4, "lod": 32, "maxTexels": 256, "opacity": 0.8,
+      "about": "Rust washed off steel by rain and soaked into the ground: thin brown-orange streaks running away from a container, a skip or a scrap heap, grainy and broken, darkest at the foot. A stain, never a coat of paint.",
+      "texel": 0.03, "layers": "ground", "order": 4, "lod": 32, "maxTexels": 256, "opacity": 0.85,
       "edge": { "feather": 0.7, "warp": 0.5, "warpScale": 1.2, "round": 1 },
       "variants": { "count": 6, "size": [3.5, 7.5], "aspect": [0.3, 0.55], "strength": [0.6, 1], "fades": ["side", "linear", "soft", "islands"] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 0.45, "octaves": 4, "stretch": [6, 1], "warp": 0.2, "warpScale": 0.8 },
-        { "op": "remap", "in": "n", "out": "streak", "lo": -0.8, "hi": 0.1 },
+        { "op": "fbm", "out": "n", "scale": 0.4, "octaves": 4, "stretch": [7, 1], "warp": 0.25, "warpScale": 0.8 },
+        { "op": "remap", "in": "n", "out": "streak", "lo": -0.55, "hi": 0.25 },
         { "op": "fbm", "out": "m", "scale": 1.5, "octaves": 3 },
-        { "op": "remap", "in": "m", "out": "macro", "lo": -0.95, "hi": 0.05 },
-        { "op": "mul", "a": "shape", "b": "macro", "c": "streak", "out": "r" },
-        { "op": "layer", "alpha": "r", "alphaK": 0.65, "color": [112, 74, 50], "color2": [90, 62, 46], "tone": "n", "vary": 0.12, "varyScale": 0.1, "smooth": 0.2 },
-        { "op": "mul", "a": "shape", "b": "macro", "out": "stain" },
-        { "op": "layer", "alpha": "stain", "alphaK": 0.3, "color": [100, 80, 64], "smooth": 0.2 }
+        { "op": "remap", "in": "m", "out": "macro", "lo": -0.95, "hi": 0 },
+        { "op": "fbm", "out": "g", "scale": 0.04, "octaves": 2 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "soak" },
+        { "op": "erode", "cover": "soak", "grain": "g01", "sharp": 0.9, "out": "soakG" },
+        { "op": "layer", "alpha": "soakG", "alphaK": 0.6, "color": [96, 74, 58], "smooth": 0.15 },
+        { "op": "mul", "a": "soak", "b": "streak", "out": "r" },
+        { "op": "erode", "cover": "r", "grain": "g01", "sharp": 1.2, "out": "rG" },
+        { "op": "layer", "alpha": "rG", "alphaK": 1, "color": [118, 72, 44], "color2": [92, 60, 42], "tone": "n", "vary": 0.1, "varyScale": 0.08, "smooth": 0.15 }
       ]
     },
     {

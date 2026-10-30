@@ -17,6 +17,18 @@ const styles = [
   ['industrialWorks', 'salvage', ['rustRunoff', 'laneGrime', 'crackWeeds', 'oilSpot']],
   ['industrialWorks', 'works', ['dustDrift', 'crackConcrete', 'oilSpot', 'pebbles']],
   ['landfill', 'active', ['litterMix', 'leachateSeep', 'yardRut', 'weedStrip']],
+  ['quarry', 'openPit', ['yardRut', 'dustDrift', 'oilSpot', 'pebbles']],
+  ['quarry', 'gravelPit', ['yardRut', 'dustDrift', 'oilSpot', 'weedStrip']],
+  ['quarry', 'sandPit', ['yardRut', 'dustDrift', 'oilSpot', 'weedStrip']],
+  ['quarry', 'lakeDig', ['yardRut', 'dustDrift', 'oilSpot', 'puddlePiece']],
+  ['quarry', 'flooded', ['yardRut', 'weedStrip', 'dryGrass', 'oilSpot']],
+  ['quarry', 'abandoned', ['yardRut', 'weedStrip', 'dryGrass', 'oilSpot']],
+  ['logisticsYard', 'containerStacks', ['laneGrime', 'fadedLineYellow', 'oilSpot', 'rustRunoff']],
+  ['logisticsYard', 'palletYard', ['laneGrime', 'kerbGrimeStrip', 'oilSpot', 'crackWeeds']],
+  ['logisticsYard', 'lumberYard', ['yardRut', 'barkMulch', 'oilSpot', 'weedStrip']],
+  ['logisticsYard', 'storageYard', ['yardRut', 'dustDrift', 'oilSpot', 'pebbles']],
+  ['logisticsYard', 'loadingYard', ['laneGrime', 'fadedLineYellow', 'oilSpot', 'kerbGrimeStrip']],
+  ['logisticsYard', 'shipmentYard', ['laneGrime', 'fadedLineYellow', 'oilSpot', 'crackConcrete']],
 ];
 const land = { size, gap: 10 };
 if (ground === 'slope') { land.ground = 'slope'; land.grade = 0.05; }

@@ -334,7 +334,8 @@ namespace Placemaker.Tests.Types
                 var plan = B12Kit.Compose(B12Kit.With(Id, PresetValues("containerStacks")), B12Kit.FiveHa, B12Kit.Road(250));
                 Assert.True(string.IsNullOrEmpty(B12Kit.Errors(plan)), B12Kit.Errors(plan));
                 Assert.Contains(plan.AllIssues(), i => i.Key == Keys.NoAssetsIssue && i.Severity == IssueSeverity.Info);
-                Assert.DoesNotContain(plan.Layers[0].Objects, o => none.ContainsKey(o.Category ?? ""));
+                // lorries and machines are Placemaker's own vehicle props (made from the game's vehicles), not catalogue items (2026-10-30)
+                Assert.DoesNotContain(plan.Layers[0].Objects, o => none.ContainsKey(o.Category ?? "") && !(o.Asset.Id ?? "").StartsWith(Placemaker.Core.Layers.Types.Yards.VehicleProps.Prefix));
             }
         }
 
