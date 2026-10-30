@@ -323,6 +323,8 @@
   "Placemaker.Settings.EdgeMargin.Desc": "Jedna przerwa (w metrach przy skali układu 100%) zachowywana między obrysem a ścieżkami lub układem. Obiekty nadal trzymają swój obrys z dala od krawędzi.",
   "Placemaker.Settings.ZoneGridOpacity": "Siatka stref",
   "Placemaker.Settings.ZoneGridOpacity.Desc": "Jak wyraźnie widać siatkę stref przy wyznaczaniu stref lub budowie dróg: zarówno puste, jak i zajęte komórki. 100% to wygląd z gry; mniej ją rozjaśnia, 0% ją ukrywa.",
+  "Placemaker.Settings.GroundDetailStrength": "Siła detali podłoża",
+  "Placemaker.Settings.GroundDetailStrength.Desc": "Jak wyraźnie widać detale podłoża Placemakera: pęknięcia, brud, wydeptane ścieżki, liście i ziemię. 100% to wygląd zgodny z projektem; więcej sprawia, że są lepiej widoczne. Zmiany działają od razu.",
   "Placemaker.Settings.ToggleToolBinding": "Otwórz / zamknij Placemaker",
   "Placemaker.Settings.ToggleToolBinding.Desc": "Otwiera lub zamyka narzędzie Placemaker.",
   "Placemaker.Settings.PrimaryBinding": "Następny krok / zbuduj",

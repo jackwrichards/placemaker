@@ -323,6 +323,8 @@
   "Placemaker.Settings.EdgeMargin.Desc": "Der eine Abstand (in Metern bei 100% Layoutgröße) zwischen Umriss und Wegen oder Layout. Objekte halten trotzdem ihre eigene Grundfläche vom Rand frei.",
   "Placemaker.Settings.ZoneGridOpacity": "Zonenraster",
   "Placemaker.Settings.ZoneGridOpacity.Desc": "Wie deutlich das Zonenraster beim Zonieren oder Straßenbau erscheint: leere und zonierte Zellen gleichermaßen. 100% ist das eigene Aussehen des Spiels; weniger macht es schwächer, 0% blendet es aus.",
+  "Placemaker.Settings.GroundDetailStrength": "Stärke der Bodendetails",
+  "Placemaker.Settings.GroundDetailStrength.Desc": "Wie deutlich die Bodendetails von Placemaker erscheinen: Risse, Schmutz, ausgetretene Wege, Laub und Erde. 100% ist wie entworfen; höher macht sie besser sichtbar. Änderungen wirken sofort.",
   "Placemaker.Settings.ToggleToolBinding": "Placemaker öffnen / schließen",
   "Placemaker.Settings.ToggleToolBinding.Desc": "Öffnet oder schließt das Placemaker-Werkzeug.",
   "Placemaker.Settings.PrimaryBinding": "Nächster Schritt / bauen",

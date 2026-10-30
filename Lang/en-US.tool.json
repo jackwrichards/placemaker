@@ -327,6 +327,8 @@
   "Placemaker.Settings.EdgeMargin.Desc": "The one gap (in metres at 100% layout size) kept between the outline and paths or layout. Objects still keep their own footprint clear of the edge.",
   "Placemaker.Settings.ZoneGridOpacity": "Zone grid",
   "Placemaker.Settings.ZoneGridOpacity.Desc": "How strongly the zone grid shows while zoning or building roads: empty cells and zoned cells alike. 100% is the game's own look; lower makes it fainter, 0% hides it.",
+  "Placemaker.Settings.GroundDetailStrength": "Ground detail strength",
+  "Placemaker.Settings.GroundDetailStrength.Desc": "How strongly Placemaker's ground details show: cracks, grime, worn paths, leaves and dirt. 100% is as designed; higher makes them easier to see. Changes show at once.",
   "Placemaker.Settings.ToggleToolBinding": "Open / close Placemaker",
   "Placemaker.Settings.ToggleToolBinding.Desc": "Opens or closes the Placemaker tool.",
   "Placemaker.Settings.PrimaryBinding": "Next step / build",

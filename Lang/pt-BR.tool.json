@@ -323,6 +323,8 @@
   "Placemaker.Settings.EdgeMargin.Desc": "O único vão (em metros na escala de leiaute de 100%) mantido entre o contorno e os caminhos ou o leiaute. Os objetos ainda mantêm a própria área livre da borda.",
   "Placemaker.Settings.ZoneGridOpacity": "Grade de zonas",
   "Placemaker.Settings.ZoneGridOpacity.Desc": "Quão forte a grade de zonas aparece ao zonear ou construir vias: células vazias e zoneadas igualmente. 100% é o visual do próprio jogo; menos deixa mais fraca, 0% oculta.",
+  "Placemaker.Settings.GroundDetailStrength": "Intensidade dos detalhes do chão",
+  "Placemaker.Settings.GroundDetailStrength.Desc": "Quão fortes aparecem os detalhes do chão do Placemaker: rachaduras, sujeira, caminhos gastos, folhas e terra. 100% é como foi projetado; mais alto deixa-os mais visíveis. As mudanças aparecem na hora.",
   "Placemaker.Settings.ToggleToolBinding": "Abrir / fechar o Placemaker",
   "Placemaker.Settings.ToggleToolBinding.Desc": "Abre ou fecha a ferramenta Placemaker.",
   "Placemaker.Settings.PrimaryBinding": "Próxima etapa / construir",

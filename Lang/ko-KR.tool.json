@@ -323,6 +323,8 @@
   "Placemaker.Settings.EdgeMargin.Desc": "윤곽선과 길 또는 배치 사이에 두는 간격(배치 크기 100% 기준, m)입니다. 객체는 그와 별도로 자기 자리를 가장자리에서 떨어뜨립니다.",
   "Placemaker.Settings.ZoneGridOpacity": "구역 격자",
   "Placemaker.Settings.ZoneGridOpacity.Desc": "구역을 지정하거나 도로를 지을 때 구역 격자가 얼마나 진하게 보이는지입니다(빈 칸과 지정된 칸 모두). 100%가 게임 기본 모습이고, 낮추면 옅어지며 0%는 숨깁니다.",
+  "Placemaker.Settings.GroundDetailStrength": "지면 디테일 강도",
+  "Placemaker.Settings.GroundDetailStrength.Desc": "Placemaker의 지면 디테일(균열, 때, 닳은 길, 낙엽, 흙)이 얼마나 진하게 보이는지입니다. 100%가 설계된 그대로이며, 높일수록 더 잘 보입니다. 변경 사항은 바로 적용됩니다.",
   "Placemaker.Settings.ToggleToolBinding": "Placemaker 열기 / 닫기",
   "Placemaker.Settings.ToggleToolBinding.Desc": "Placemaker 도구를 열거나 닫습니다.",
   "Placemaker.Settings.PrimaryBinding": "다음 단계 / 건설",

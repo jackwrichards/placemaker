@@ -323,6 +323,8 @@
   "Placemaker.Settings.EdgeMargin.Desc": "Единый промежуток (в метрах при масштабе 100%) между контуром и дорожками или планировкой. Объекты все равно не выходят своим основанием за край.",
   "Placemaker.Settings.ZoneGridOpacity": "Сетка зон",
   "Placemaker.Settings.ZoneGridOpacity.Desc": "Насколько заметна сетка зон при зонировании или строительстве дорог: и пустые, и зонированные клетки. 100% — как в игре; меньше — бледнее, 0% скрывает ее.",
+  "Placemaker.Settings.GroundDetailStrength": "Яркость деталей земли",
+  "Placemaker.Settings.GroundDetailStrength.Desc": "Насколько заметны детали земли Placemaker: трещины, грязь, протоптанные дорожки, листья и земля. 100% — как задумано; выше — заметнее. Изменения видны сразу.",
   "Placemaker.Settings.ToggleToolBinding": "Открыть / закрыть Placemaker",
   "Placemaker.Settings.ToggleToolBinding.Desc": "Открывает или закрывает инструмент Placemaker.",
   "Placemaker.Settings.PrimaryBinding": "Следующий шаг / построить",

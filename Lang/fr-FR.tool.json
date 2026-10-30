@@ -323,6 +323,8 @@
   "Placemaker.Settings.EdgeMargin.Desc": "L'unique écart (en mètres à 100 % de taille de disposition) laissé entre le contour et les chemins ou la disposition. Les objets gardent quand même leur propre emprise à l'écart du bord.",
   "Placemaker.Settings.ZoneGridOpacity": "Grille de zone",
   "Placemaker.Settings.ZoneGridOpacity.Desc": "Intensité de la grille de zone pendant le zonage ou la construction de routes : cellules vides et zonées. 100 % est l'aspect du jeu ; plus bas la rend plus pâle, 0 % la cache.",
+  "Placemaker.Settings.GroundDetailStrength": "Intensité des détails au sol",
+  "Placemaker.Settings.GroundDetailStrength.Desc": "Intensité des détails au sol de Placemaker : fissures, saleté, chemins usés, feuilles et terre. 100 % correspond au rendu prévu ; plus haut les rend plus visibles. Les changements s'appliquent aussitôt.",
   "Placemaker.Settings.ToggleToolBinding": "Ouvrir / fermer Placemaker",
   "Placemaker.Settings.ToggleToolBinding.Desc": "Ouvre ou ferme l'outil Placemaker.",
   "Placemaker.Settings.PrimaryBinding": "Étape suivante / construire",

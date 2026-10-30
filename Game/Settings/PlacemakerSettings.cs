@@ -112,6 +112,11 @@ namespace Placemaker.Game.Settings
         [SettingsUISection(SectionMain, GroupGeneral)]
         public int ZoneGridOpacity { get; set; }
 
+        /// <summary>(2026-10-30) How strongly the ground details (cracks, grime, leaves, wear) draw, in percent: multiplies every decal's opacity (SharedDecals.Strength); applies at once.</summary>
+        [SettingsUISlider(min = 50, max = 300, step = 10, scalarMultiplier = 1, unit = global::Game.UI.Unit.kPercentage)]
+        [SettingsUISection(SectionMain, GroupGeneral)]
+        public int GroundDetailStrength { get; set; }
+
         // ───────────── Brush rules (Block paint; plain Paint ignores them) ─────────────
         // Mirrored in the panel's Block paint "Rules" row (Core/Geometry/BrushRules). Ids are save format.
 
@@ -557,6 +562,8 @@ namespace Placemaker.Game.Settings
                     ["paint"] = PolishGroundPaint ? 1f : 0f,
                 });
                 global::Placemaker.Game.Overlay.ZoneGridOpacitySystem.OpacityPercent = ZoneGridOpacity;
+                if (GroundDetailStrength <= 0) GroundDetailStrength = 150;   // a settings file from before this setting
+                global::Placemaker.Game.Decals.SharedDecals.Strength = System.Math.Max(50, System.Math.Min(300, GroundDetailStrength)) / 100f;
             }
             catch (Exception e) { Mod.Log.Warn("Placemaker: build options not applied: " + e.Message); }
         }
@@ -586,6 +593,7 @@ namespace Placemaker.Game.Settings
             LayoutSize = (int)System.Math.Round(global::Placemaker.Core.SiteContext.DefaultLayoutScale * 100f);
             EdgeMargin = global::Placemaker.Core.SiteContext.DefaultEdgeMargin;
             ZoneGridOpacity = 20;
+            GroundDetailStrength = 150;
             BrushSize = 150f;
             BrushSquare = false;
             LastAreaMode = 0;

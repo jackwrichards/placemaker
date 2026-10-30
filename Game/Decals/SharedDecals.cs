@@ -100,6 +100,13 @@ namespace Placemaker.Game.Decals
         public static int FromDisk { get { int n = 0; foreach (var v in _variants.Values) if (v.FromDisk && v.State == 2) n++; return n; } }
         public static double MakeMs { get { double n = 0; foreach (var v in _variants.Values) n += v.Ms; return n; } }
 
+        /// <summary>
+        /// How strongly every ground detail draws: multiplies each instance's opacity (the setting "Ground detail strength";
+        /// 1.5 by default since 2026-10-30: with the game's full lighting most decals read too faint). Read every frame by the
+        /// cull, so a change shows at once.
+        /// </summary>
+        public static float Strength = 1.5f;
+
         private static string CacheDir => Path.Combine(EnvPath.kUserDataPath, "ModsData", "Placemaker", "decal-cache");
 
         private static int _pruned;
@@ -463,7 +470,7 @@ namespace Placemaker.Game.Decals
             {
                 // a unit box scaled to the instance: the step materials say the box is 1 x 1 (colossal_MeshSize)
                 inst.M = Matrix4x4.TRS(new Vector3(inst.Centre.x, inst.Y, inst.Centre.y), Quaternion.Euler(0f, math.degrees(inst.Yaw), 0f), new Vector3(size.x, 1f, size.y));
-                inst.Step = math.clamp((int)math.round(inst.Opacity * Steps), 1, Steps);
+                inst.Step = math.clamp((int)math.round(inst.Opacity * Strength * Steps), 1, Steps);
                 _dirty = true;
                 return;
             }
@@ -477,7 +484,7 @@ namespace Placemaker.Game.Decals
             if (_unit == null) _unit = BoxMesh(new float2(1f, 1f));
             go.AddComponent<MeshFilter>().sharedMesh = _unit;
             var mr = go.AddComponent<MeshRenderer>();
-            inst.Step = math.clamp((int)math.round(inst.Opacity * Steps), 1, Steps);
+            inst.Step = math.clamp((int)math.round(inst.Opacity * Strength * Steps), 1, Steps);
             mr.sharedMaterial = StepMaterial(v, inst.Step);
             mr.shadowCastingMode = ShadowCastingMode.Off; mr.receiveShadows = false;
             mr.lightProbeUsage = LightProbeUsage.Off; mr.reflectionProbeUsage = ReflectionProbeUsage.Off;
@@ -529,7 +536,7 @@ namespace Placemaker.Game.Decals
                 float fade = math.saturate((i.Cull - d) / (i.Cull * 0.25f));
                 if (Instanced)
                 {
-                    int step = fade <= 0.01f ? 0 : math.clamp((int)math.round(i.Opacity * fade * Steps), 1, Steps);
+                    int step = fade <= 0.01f ? 0 : math.clamp((int)math.round(i.Opacity * Strength * fade * Steps), 1, Steps);
                     if (step != i.Step) { i.Step = step; _dirty = true; }
                     continue;
                 }
@@ -538,7 +545,7 @@ namespace Placemaker.Game.Decals
                 if (i.Renderer.enabled != on) i.Renderer.enabled = on;
                 if (!on) continue;
                 // the fade swaps the opacity step's shared material
-                int st = math.clamp((int)math.round(i.Opacity * fade * Steps), 1, Steps);
+                int st = math.clamp((int)math.round(i.Opacity * Strength * fade * Steps), 1, Steps);
                 if (st != i.Step) { i.Step = st; i.Renderer.sharedMaterial = StepMaterial(i.V, st); }
             }
         }

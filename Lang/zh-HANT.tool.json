@@ -323,6 +323,8 @@
   "Placemaker.Settings.EdgeMargin.Desc": "外框與小徑或配置之間保留的間隙（以 100% 配置大小時的公尺計）。物件仍會讓自己的佔地避開邊緣。",
   "Placemaker.Settings.ZoneGridOpacity": "功能區網格",
   "Placemaker.Settings.ZoneGridOpacity.Desc": "劃設功能區或建造道路時，功能區網格顯示的強度：空格和已劃設的格子都一樣。100% 是遊戲原本的外觀；越低越淡，0% 會隱藏。",
+  "Placemaker.Settings.GroundDetailStrength": "地面細節強度",
+  "Placemaker.Settings.GroundDetailStrength.Desc": "Placemaker 地面細節（裂縫、污漬、踩出的小路、落葉和泥土）顯示的強度。100% 為設計效果；越高越容易看到。變更會立即生效。",
   "Placemaker.Settings.ToggleToolBinding": "開啟／關閉 Placemaker",
   "Placemaker.Settings.ToggleToolBinding.Desc": "開啟或關閉 Placemaker 工具。",
   "Placemaker.Settings.PrimaryBinding": "下一步／建造",

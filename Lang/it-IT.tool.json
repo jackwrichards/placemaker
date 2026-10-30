@@ -323,6 +323,8 @@
   "Placemaker.Settings.EdgeMargin.Desc": "L'unico spazio (in metri con scala disposizione al 100%) lasciato tra il contorno e sentieri o disposizione. Gli oggetti mantengono comunque la propria impronta lontana dal bordo.",
   "Placemaker.Settings.ZoneGridOpacity": "Griglia di zona",
   "Placemaker.Settings.ZoneGridOpacity.Desc": "Quanto si vede la griglia di zona durante la zonizzazione o la costruzione di strade: celle vuote e celle zonizzate allo stesso modo. 100% è l'aspetto del gioco; più basso la rende più tenue, 0% la nasconde.",
+  "Placemaker.Settings.GroundDetailStrength": "Intensità dei dettagli del suolo",
+  "Placemaker.Settings.GroundDetailStrength.Desc": "Quanto si vedono i dettagli del suolo di Placemaker: crepe, sporco, sentieri consumati, foglie e terra. 100% è come progettato; più alto li rende più visibili. Le modifiche si vedono subito.",
   "Placemaker.Settings.ToggleToolBinding": "Apri / chiudi Placemaker",
   "Placemaker.Settings.ToggleToolBinding.Desc": "Apre o chiude lo strumento Placemaker.",
   "Placemaker.Settings.PrimaryBinding": "Passo successivo / costruisci",
