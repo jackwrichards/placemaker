@@ -97,7 +97,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
         protected override void DefinePresets()
         {
             Preset("overgrown", ("subtype", "overgrown"), ("overgrowth", 90.0), ("rubble", 15.0), ("junk", 20.0), ("graffiti", 20.0),
-                ("foundations", 1.0), ("cracking", 85.0), ("youngTrees", 45.0), ("fenceGaps", 70.0), ("focus", "centre"), ("mounds", 0.0));
+                ("foundations", 1.0), ("cracking", 85.0), ("youngTrees", 25.0), ("fenceGaps", 70.0), ("focus", "centre"), ("mounds", 0.0));
             Preset("rubbleField", ("subtype", "rubbleField"), ("overgrowth", 20.0), ("rubble", 90.0), ("junk", 25.0), ("graffiti", 10.0),
                 ("foundations", 0.0), ("mounds", 2.5), ("pileSize", "large"), ("youngTrees", 0.0), ("fenceGaps", 55.0), ("walls", false));
             Preset("demolished", ("subtype", "demolished"), ("overgrowth", 10.0), ("rubble", 45.0), ("junk", 10.0), ("graffiti", 15.0),
@@ -108,9 +108,9 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 ("foundations", 0.0), ("fenceGaps", 0.0), ("youngTrees", 5.0), ("desirePaths", false), ("walls", false));
             // (rundown, 2026-10-29) three more kinds of forgotten lot, each its own story and ground (AbandonedLotGround)
             Preset("brokenCarPark", ("subtype", "brokenCarPark"), ("overgrowth", 55.0), ("rubble", 10.0), ("junk", 25.0), ("graffiti", 20.0),
-                ("foundations", 0.0), ("cracking", 80.0), ("youngTrees", 12.0), ("fenceGaps", 50.0), ("walls", false), ("mounds", 0.0), ("shelters", 0.0));
-            Preset("burntOut", ("subtype", "burntOut"), ("overgrowth", 25.0), ("rubble", 60.0), ("junk", 20.0), ("graffiti", 30.0),
-                ("foundations", 1.0), ("cracking", 70.0), ("youngTrees", 0.0), ("fenceGaps", 45.0), ("focus", "centre"), ("mounds", 0.0), ("shelters", 0.0));
+                ("foundations", 0.0), ("cracking", 80.0), ("youngTrees", 12.0), ("fenceGaps", 50.0), ("walls", false), ("mounds", 0.0), ("shelters", 0.0), ("desirePaths", false));
+            Preset("burntOut", ("subtype", "burntOut"), ("overgrowth", 25.0), ("rubble", 35.0), ("junk", 20.0), ("graffiti", 30.0),
+                ("foundations", 1.0), ("cracking", 70.0), ("youngTrees", 0.0), ("fenceGaps", 45.0), ("focus", "centre"), ("mounds", 0.0), ("shelters", 0.0), ("pileSize", "small"));
             Preset("emptyLot", ("subtype", "emptyLot"), ("overgrowth", 40.0), ("rubble", 0.0), ("junk", 12.0), ("graffiti", 0.0),
                 ("foundations", 0.0), ("youngTrees", 6.0), ("fence", false), ("desirePaths", true), ("walls", false), ("mounds", 0.0), ("shelters", 0.0));
         }
@@ -127,8 +127,8 @@ namespace Placemaker.Core.Layers.Types.Ruins
             }
         }
 
-        /// <summary>Charred timber heaps for the burnt-out lot.</summary>
-        private static readonly string[] BurntRubble = { "RubblePileWood01", "RubblePileWood02", "RubblePileWood03", "RubblePileWood04", "RubblePileMixed02" };
+        /// <summary>The burnt-out lot's heaps: mixed brick, concrete and timber (char decals under them).</summary>
+        private static readonly string[] BurntRubble = { "RubblePileMixed01", "RubblePileMixed02", "RubblePileMixed03", "RubblePileMixed04", "RubblePileConcrete03" };   // (the wood heaps are fresh pale planks in the game, not charred)
 
         /// <summary>Type-specific curated defaults (over GritAssets' shared sets); null = shared only.</summary>
         private static readonly Dictionary<string, GritAssets.Set> ArtObjects = new Dictionary<string, GritAssets.Set>
@@ -144,7 +144,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
         private static readonly Dictionary<string, GritAssets.Set> ArtSurfaces = new Dictionary<string, GritAssets.Set>(System.StringComparer.Ordinal)
         {
             [AssetCategories.SurfacePaving] = new GritAssets.Set(true, "Pavement Surface 01|Concrete Surface 01"),
-            [AssetCategories.SurfaceAsphalt] = new GritAssets.Set(true, "Pavement Surface 02|Pavement Surface 01"),
+            [AssetCategories.SurfaceAsphalt] = new GritAssets.Set(true, "Pavement Surface 01|Concrete Surface 01"),
         };
 
         // Art pass: whatever the player left automatic gets the curated gritty defaults (GritAssets).
@@ -256,7 +256,9 @@ namespace Placemaker.Core.Layers.Types.Ruins
                         bool stands = wallCat != null && ValueNoise.Clumps(p, 9f, Hashing.Mix(ctx.Seed, 0xA11u)) > 1f - survive;
                         if (stands && occ.Free(p, 0.7f, 0.6f, 0.05f))
                         {
-                            ctx.Object(p, yaw, ObjectRole.Furniture, AssetMix.One(""), v, -1, wallCat);
+                            // (rundown) dark masonry only (the automatic wall pool gave white balustrades), low stubs and the odd taller piece
+                            var wo = ctx.Object(p, yaw, ObjectRole.Furniture, AssetMix.Pick(Hashing.Unit(Hashing.Mix(v, 5u)) < 0.3f ? UrbanRuins.BuildingRuins.Tall : UrbanRuins.BuildingRuins.Low, v), v, -1, wallCat);
+                            if (Hashing.Unit(Hashing.Mix(v, 5u)) < 0.12f) wo.Scale = 1.3f + 0.5f * Hashing.Unit(Hashing.Mix(v, 6u));
                             occ.Take(p, 0.9f, 2);
                             walls++;
                             if (Hashing.Unit(Hashing.Mix(v, 3u)) < graffiti && AssetAvailability.Has(AssetCategories.DecalGraffiti)
@@ -389,10 +391,10 @@ namespace Placemaker.Core.Layers.Types.Ruins
             int crackWeeds = 0;
             if (ctx.B("crackWeeds"))
                 foreach (var (r, slab) in slabs)
-                    crackWeeds += DecayKit.CrackWeeds(ctx, occ, slab.Cracks, math.saturate(over * 0.9f + 0.05f), weedIds, weedCat, 0xC3Au + (uint)(r.Center.x * 3f));
+                    crackWeeds += DecayKit.CrackWeeds(ctx, occ, slab.Cracks, math.saturate(over * 0.9f + 0.05f) * (sub == "brokenCarPark" ? 0.3f : 1f), weedIds, weedCat, 0xC3Au + (uint)(r.Center.x * 3f));
             float edgeReach = sub == "overgrown" ? 22f : 14f;
             var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, over, ctx.F("youngTrees"), weedIds, weedCat, ctx.L("treeSpecies"), 0x0F6u,
-                p => zones.Inside(p, 0.8f), edgeReach);
+                p => zones.Inside(p, 0.8f), edgeReach, sub == "overgrown" ? 1f : sub == "squatterCamp" || sub == "brokenCarPark" ? 0.5f : 0.3f);
             ctx.Check();
 
             // ── Ground decals: dirt and puddles across the open ground, graffiti on the fence line.

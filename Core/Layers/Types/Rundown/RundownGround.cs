@@ -186,7 +186,7 @@ namespace Placemaker.Core.Layers.Types.Rundown
         {
             if (!Ready || area == null || area.IsEmpty) return;
             float W(float2 p) => math.saturate(1.15f - math.distance(p, seat) / math.max(6f, radius)) * (0.45f + 0.55f * ValueNoise.Clumps(p, 9f, H(41)));
-            Brushes.Scatter(B, area, "burntPatch", 0.55f, new ScatterOptions { Weight = W, Opacity = new float2(0.6f, 0.95f), Clump = 3.5f, Loners = 0.25f, Cause = "fire:area" });
+            Brushes.Scatter(B, area, "burntPatch", 1.4f, new ScatterOptions { Weight = W, Opacity = new float2(0.8f, 1f), Clump = 3.5f, Loners = 0.25f, Cause = "fire:area" });
         }
 
         public void Junk(float2 p, float r)

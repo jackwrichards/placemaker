@@ -145,7 +145,14 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             [AssetCategories.FloodLight] = new GritAssets.Set(true, "LightpoleCommercial01|LightpoleCommercial02|LightpoleIndustrial01", "LightpoleCommercial02|LightpoleCommercial01|LightpoleIndustrial01"),
             // Welfare and office units are containers; a shed only when none are installed.
             [AssetCategories.ConstructionCabin] = new GritAssets.Set(false, "ShippingContainer01|ToolShed03", "ShippingContainer02|ToolShed03", "ShippingContainer03|ToolShed03"),
-        }, ArtSurfaces = null;
+        };
+
+        /// <summary>(rundown) Old slabs and road strips weathered grey, never the bright white Concrete Surface 02 (it read as fresh plaza paving).</summary>
+        private static readonly Dictionary<string, GritAssets.Set> ArtSurfaces = new Dictionary<string, GritAssets.Set>(StringComparer.Ordinal)
+        {
+            [AssetCategories.SurfacePaving] = new GritAssets.Set(true, "Pavement Surface 01|Concrete Surface 01"),
+            [AssetCategories.SurfaceAsphalt] = new GritAssets.Set(true, "Pavement Surface 01|Concrete Surface 01"),
+        };
 
         // Art pass: whatever the player left automatic gets the curated gritty defaults (GritAssets).
         protected override void PlanCore(LayerContext ctx) { PlanArt(ctx); GritAssets.Apply(ctx.Plan, ctx.Seed, ArtObjects, ArtSurfaces); GritAssets.CapDecals(ctx.Plan, ctx.LayerRegion.Area, 120f); }

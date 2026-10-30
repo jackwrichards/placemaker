@@ -105,7 +105,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 if (o == null) continue;
                 string cat = o.Category ?? "", id = o.Asset.Id ?? "";
                 var p = o.Position.xz;
-                if (cat == AssetCategories.RuinsRubble) { if (o.Scale >= 0.9f) gr.Rubble(p, 4.2f * o.Scale, st.Rubble + 0.4f); }
+                if (cat == AssetCategories.RuinsRubble) { if (sub == "burntOut") { gr.Fire(p, 4f * o.Scale); gr.Fire(p + new float2(1.5f, -1f), 3f); } else if (o.Scale >= 0.9f) gr.Rubble(p, 4.2f * o.Scale, st.Rubble + 0.4f); }
                 else if (cat == AssetCategories.RuinsJunk) gr.Junk(p, 1.4f);
                 else if (cat == AssetCategories.CampingFire || id.StartsWith("BarrelFire", System.StringComparison.Ordinal)) gr.Fire(p, 1.8f);
                 else if (cat == AssetCategories.RuinsShelter) Brushes.At(gr.B, p, new float2(0.3f, 1f), "litterMix", 4.5f, new float2(0.7f, 1f), 1, ColourLevel.Any, "camp:litter");
@@ -139,10 +139,10 @@ namespace Placemaker.Core.Layers.Types.Ruins
                     foreach (float sgn in new[] { -1f, 1f })
                     {
                         uint h = Hashing.Mix(seed, (int)(u * 10f), (int)((c + sgn * 4f) * 10f));
-                        if (Hashing.Unit(h) < 0.18f) continue;   // a line worn away completely
+                        if (Hashing.Unit(h) < 0.3f) continue;   // a line worn away completely
                         // one faded piece per bay line (a strip run per line cost five instances with its caps)
                         var a = r.Local(u, c + sgn * 3.1f); var b = r.Local(u, c + sgn * 8f);
-                        gr.Exact("fadedLine", (a + b) * 0.5f, b - a, 4.9f, 0.5f + 0.4f * Hashing.Unit(Hashing.Mix(h, 1u)), "paint:bay");
+                        gr.Exact("fadedLine", (a + b) * 0.5f, b - a, 4.9f, 0.28f + 0.3f * Hashing.Unit(Hashing.Mix(h, 1u)), "paint:bay");
                     }
         }
 
@@ -174,11 +174,16 @@ namespace Placemaker.Core.Layers.Types.Ruins
             string sub = st.Sub;
             // dry grass over the whole lot (layer 1), lighter where it is green and wild
             var whole = DecayKit.Inset(region, 1f);
-            if (whole != null) TerrainPaint.Patch(ctx, whole, 1, sub == "overgrown" ? 0.45f : 0.8f, 6f);
+            if (whole != null)
+            {
+                TerrainPaint.Patch(ctx, whole, 1, 0.85f, 6f);
+                // and a thin film of earth through the grass everywhere (the first pictures: a rundown lot still read as a lawn)
+                TerrainPaint.Patch(ctx, whole, dirtLayer, sub == "overgrown" ? 0.18f : sub == "emptyLot" ? 0.3f : 0.42f, 8f);
+            }
             float share = sub switch
             {
                 "demolished" => 0.85f, "rubbleField" => 0.7f, "burntOut" => 0.65f, "fencedWasteland" => 0.6f, "squatterCamp" => 0.4f,
-                "brokenCarPark" => 0.3f, "emptyLot" => 0.25f, _ => 0.12f,
+                "brokenCarPark" => 0.3f, "emptyLot" => 0.4f, _ => 0.15f,
             };
             // dirt in blobs of blobs, never one even film; heaviest round the focus
             float ha = region.Area / 10000f;
@@ -192,6 +197,24 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 float r = math.lerp(6f, 18f, Hashing.Unit(Hashing.Mix(h, 5u))) * math.sqrt(math.max(0.3f, share)) * 1.4f;
                 var piece = LeisureKit.Intersect(region, LeisureKit.Blob(c, r, Hashing.Mix(h, 6u), 12, 0.35f));
                 if (piece != null && piece.Area > 20f) TerrainPaint.Patch(ctx, piece.Ring, dirtLayer, 0.6f + 0.35f * Hashing.Unit(Hashing.Mix(h, 7u)), 4f);
+            }
+            // the dark leaf-litter floor of the scrub (layer 2) under every thicket: cells of 9 m holding two or more bushes or a tree
+            var cells = new Dictionary<int2, (float2 sum, int n)>();
+            foreach (var o in ctx.Plan.Objects)
+            {
+                if (o == null || (o.Role != ObjectRole.Bush && o.Role != ObjectRole.Tree)) continue;
+                var p = o.Position.xz;
+                var key = new int2((int)math.floor(p.x / 9f), (int)math.floor(p.y / 9f));
+                cells.TryGetValue(key, out var c);
+                cells[key] = (c.sum + p, c.n + (o.Role == ObjectRole.Tree ? 2 : 1));
+            }
+            int painted = 0;
+            foreach (var kv in cells)
+            {
+                if (kv.Value.n < 2 || painted > 120) continue;
+                var c = kv.Value.sum / math.max(1, kv.Value.n);
+                var piece = LeisureKit.Intersect(region, LeisureKit.Blob(c, 4f + math.min(4f, kv.Value.n), Hashing.Mix(ctx.Seed, (uint)(kv.Key.x * 73856093) ^ (uint)(kv.Key.y * 19349663)), 10, 0.35f));
+                if (piece != null && piece.Area > 10f) { TerrainPaint.Patch(ctx, piece.Ring, 2, sub == "overgrown" ? 0.85f : 0.6f, 3f); painted++; }
             }
             if (st.HasCamp)
             {

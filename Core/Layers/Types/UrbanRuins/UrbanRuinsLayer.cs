@@ -100,8 +100,8 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
         {
             Preset("diySpot", ("subtype", "diySpot"), ("deck", true), ("deckSide", "side"), ("collapse", 20.0), ("padShare", 55.0), ("skateItems", 12.0),
                 ("ledges", 6.0), ("bowl", 1.5), ("walls", 2.0), ("jumpLines", 0.0), ("blocks", 0.0), ("graffiti", 75.0), ("decay", 45.0), ("overgrowth", 30.0));
-            Preset("highwayRuins", ("subtype", "highwayRuins"), ("deck", true), ("deckSide", "centre"), ("deckWidth", 18.0), ("collapse", 65.0), ("padShare", 20.0),
-                ("skateItems", 4.0), ("ledges", 2.0), ("embankment", 3.0), ("walls", 0.0), ("graffiti", 40.0), ("decay", 90.0), ("overgrowth", 70.0), ("benches", 2.0));
+            Preset("highwayRuins", ("subtype", "highwayRuins"), ("deck", true), ("deckSide", "centre"), ("deckWidth", 18.0), ("collapse", 65.0), ("padShare", 0.0),
+                ("skateItems", 0.0), ("ledges", 0.0), ("bowl", 0.0), ("embankment", 3.0), ("walls", 0.0), ("graffiti", 40.0), ("decay", 90.0), ("overgrowth", 70.0), ("benches", 0.0), ("lamps", false));
             Preset("graffitiPark", ("subtype", "graffitiPark"), ("deck", true), ("deckSide", "side"), ("collapse", 0.0), ("padShare", 60.0), ("skateItems", 6.0),
                 ("ledges", 4.0), ("walls", 10.0), ("graffiti", 100.0), ("decay", 25.0), ("overgrowth", 20.0), ("benches", 10.0));
             Preset("parkour", ("subtype", "parkour"), ("deck", false), ("padShare", 20.0), ("skateItems", 2.0), ("ledges", 0.0), ("blocks", 30.0),
@@ -127,7 +127,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
         private static readonly Dictionary<string, GritAssets.Set> ArtSurfaces = new Dictionary<string, GritAssets.Set>(System.StringComparer.Ordinal)
         {
             [AssetCategories.SurfacePaving] = new GritAssets.Set(true, "EAI - Surface Pack Concrete Weathered Asphalt Surface|Pavement Surface 01|Concrete Surface 01"),
-            [AssetCategories.SurfaceAsphalt] = new GritAssets.Set(true, "EAI - Surface Pack Concrete Cracked Asphalt Surface|Oil Surface 01|Pavement Surface 01"),
+            [AssetCategories.SurfaceAsphalt] = new GritAssets.Set(true, "EAI - Surface Pack Concrete Cracked Asphalt Surface|Pavement Surface 01|Concrete Surface 01"),
         };
 
         /// <summary>(rf-sports) Road arrows and a speed number: the fallen carriageway reads as a highway (the marking pool's best were no-parking stripes).</summary>

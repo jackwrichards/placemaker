@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+f814286b-dirty",
+  "assembly": "0.3.6+5495af6d-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -22605,7 +22605,7 @@
             "gravel",
             "none"
           ],
-          "default": "dirt"
+          "default": "none"
         },
         {
           "id": "mudPaint",
@@ -22619,7 +22619,7 @@
           "max": 4.0,
           "step": 1.0,
           "unit": "count",
-          "default": 1.0
+          "default": 3.0
         },
         {
           "id": "mudDecals",
@@ -27560,7 +27560,8 @@
         "highwayRuins",
         "graffitiPark",
         "parkour",
-        "dirtJumps"
+        "dirtJumps",
+        "buildingRuins"
       ],
       "options": [
         {
@@ -27571,7 +27572,8 @@
             "highwayRuins",
             "graffitiPark",
             "parkour",
-            "dirtJumps"
+            "dirtJumps",
+            "buildingRuins"
           ],
           "default": "diySpot"
         },
@@ -27894,7 +27896,9 @@
         }
       ],
       "shelvedStyles": [
-        "graffitiPark"
+        "diySpot",
+        "graffitiPark",
+        "parkour"
       ]
     },
     {

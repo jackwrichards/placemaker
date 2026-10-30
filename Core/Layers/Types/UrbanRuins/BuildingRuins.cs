@@ -28,8 +28,9 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
         }
 
         // Vanilla walls: tall garden walls for the surviving taller stretches, low walls for the half walls.
-        private static readonly string[] Tall = { "EU_Wall01Long", "EU_Wall03Long", "EU_Wall05Long", "EU_Wall01", "EU_Wall03" };
-        private static readonly string[] Low = { "EU_WallLow01Long", "EU_WallLow03Long", "EU_WallLow05Long", "EU_WallLow01", "EU_WallLow03", "EU_WallLow05Short" };
+        // (lab-rundown-walls: of the game's garden walls only 01, 05 and 08 are dark plain masonry; 03 is a white balustrade)
+        public static readonly string[] Tall = { "EU_Wall01", "EU_Wall05", "EU_Wall08" };
+        public static readonly string[] Low = { "EU_WallLow01", "EU_WallLow05", "EU_WallLow08" };
         private static readonly string[] Stumps = { "RubblePylonLarge01", "RubblePylonLarge02", "RubblePylonLarge03", "RubblePylonLarge04" };
         private static readonly string[] Heaps = { "RubblePileConcrete01", "RubblePileConcrete02", "RubblePileConcrete03", "RubblePileMixed01", "RubblePileMixed03", "RubblePileMixed04" };
 
@@ -97,6 +98,8 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                     bool tall = outer && corner < 5f && Hashing.Unit(Hashing.Mix(v, 1u)) < 0.6f;
                     if (!occ.Free(p, 0.6f, 0.2f, 0f)) continue;
                     var o = ctx.Object(p, yaw, ObjectRole.Furniture, AssetMix.Pick(tall ? Tall : Low, v), v, -1, AssetCategories.RuinsWall);
+                    // the garden walls are 0.9 m: a ruin's surviving stretch near a corner stands up to twice that
+                    if (tall) o.Scale = 1.4f + 0.6f * Hashing.Unit(Hashing.Mix(v, 2u));
                     occ.Take(p, 0.8f, 2);
                     res.WallPieces++;
                     res.Walls.Add((p - t * 1.4f, p + t * 1.4f));

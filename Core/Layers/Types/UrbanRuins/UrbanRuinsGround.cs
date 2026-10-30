@@ -24,11 +24,11 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             // under the jumps and in blobs where nobody mows
             var region = ctx.LayerRegion;
             var whole = DecayKit.Inset(region, 1f);
-            if (whole != null) TerrainPaint.Patch(ctx, whole, 1, 0.7f, 6f);
+            if (whole != null) { TerrainPaint.Patch(ctx, whole, 1, 0.85f, 6f); TerrainPaint.Patch(ctx, whole, 3, 0.4f, 8f); }
             var seats = new List<(float2 c, float r)>();
             foreach (var (r, _) in fallen) seats.Add((r.Center, math.max(r.HalfLength, r.HalfWidth) * 1.3f));
             if (building != null) seats.Add((building.Footprint.Center, math.max(building.Footprint.HalfLength, building.Footprint.HalfWidth) * 1.25f));
-            int extra = math.clamp((int)(region.Area / 10000f * (sub == "dirtJumps" ? 7f : 4f)), 2, 30);
+            int extra = math.clamp((int)(region.Area / 10000f * (sub == "dirtJumps" ? 12f : 8f)), 3, 40);
             for (int i = 0; i < extra; i++)
             {
                 uint h = Hashing.Mix(ctx.Seed, 0xDB10u + (uint)i);

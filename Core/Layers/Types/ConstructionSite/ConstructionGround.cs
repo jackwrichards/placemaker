@@ -26,8 +26,8 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             // the whole yard: trodden soil and grit over the site's cover, darker and wetter where the wheels go
             var look = new RundownGround.GroundLook
             {
-                Bare = sub == "compound" ? 0.18f : 0.32f, Weeds = sub == "earthworks" ? 0.04f : 0.07f, Dry = 0.05f, Grit = sub == "compound" ? 0.3f : 0.2f,
-                Stones = 0.05f, Mottle = 0.18f, Litter = 0.03f, EdgeWeeds = 0.95f, EdgeReach = 4f, Soil = sub == "demolition" ? "dust" : "soil",
+                Bare = 0.06f, Weeds = sub == "earthworks" ? 0.04f : 0.08f, Dry = 0f, Grit = sub == "compound" ? 0.35f : 0.25f,
+                Stones = 0.12f, Mottle = 0.18f, Litter = 0.03f, EdgeWeeds = 0.95f, EdgeReach = 4f, Soil = sub == "demolition" ? "dust" : "soil",
             };
             var soil = gr.Soil();
             gr.Ground(soil, look);
@@ -49,7 +49,7 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             {
                 var ring = Poly.EnsureCcw((float2[])works.Clone());
                 // the rim: soil kicked over the edge by the buckets
-                Brushes.EdgeStrip(gr.B, ring, "wheelRut", new StripOptions { Side = -1, Offset = 1.2f, Closed = true, Gaps = 0.35f, Opacity = new float2(0.5f, 0.85f), Cause = "works:rim" });
+                Brushes.EdgeStrip(gr.B, ring, "soilSpill", new StripOptions { Side = -1, Offset = 1.5f, Closed = true, Gaps = 0.3f, Opacity = new float2(0.55f, 0.9f), Cause = "works:rim" });
                 if (sub == "foundation" || sub == "earthworks")
                 {
                     // water in the bottom of the dig: in its lowest corner (the far side from the ramp) and in the ruts
@@ -59,7 +59,8 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
                     gr.Puddle(lowAt, 9f, false);
                     gr.Puddle(math.lerp(lowAt, c, 0.45f), 6f, false);
                     var inside = BrushArea.Of(ring);
-                    Brushes.Scatter(gr.B, inside, "wheelRut", 0.08f, new ScatterOptions { Opacity = new float2(0.5f, 0.8f), Clump = 2f, Loners = 0.5f, Cause = "works:ruts" });
+                    Brushes.Scatter(gr.B, inside, "tyreTrack", 0.1f, new ScatterOptions { Opacity = new float2(0.6f, 0.9f), Scale = new float2(1f, 1.6f), Clump = 3f, Loners = 0.3f, Cause = "works:tracks" });
+                    Brushes.Scatter(gr.B, inside, "mudPatch", 0.18f, new ScatterOptions { Opacity = new float2(0.45f, 0.75f), Clump = 2f, Cause = "works:mud" });
                 }
             }
             if (sub == "demolition") gr.RubbleField(gr.Site, rubbleFocus, rubbleR, 0.9f);

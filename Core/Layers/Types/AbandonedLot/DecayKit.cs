@@ -343,7 +343,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
         /// (age 0–1) mostly near the outline. Returns (weeds, trees).
         /// </summary>
         public static (int weeds, int trees) Overgrowth(LayerContext ctx, Occupancy occ, LayerRegion region, float amount, float treesPerHa,
-            string[] weedIds, string weedCategory, string[] treeIds, uint salt, Func<float2, bool> reject, float edgeReach = 18f)
+            string[] weedIds, string weedCategory, string[] treeIds, uint salt, Func<float2, bool> reject, float edgeReach = 18f, float thicket = 0f)
         {
             if (amount <= 0f) return (0, 0);
             float ha = region.Area / 10000f;
@@ -355,8 +355,9 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 float keep = math.lerp(1f, floor, math.saturate(e / edgeReach));
                 return Hashing.Unit(Hashing.Mix(seed, (int)(p.x * 5f), (int)(p.y * 5f))) > keep;
             }
-            int weedsWanted = math.min(2500, (int)(region.Area / 100f * amount * 1.4f));
-            int weeds = LeisureKit.Plant(ctx, occ, region, weedsWanted, ObjectRole.Bush, weedIds, 0.8f, 7f, 0.25f, salt + 11u,
+            // (rundown) thicket 0..1: wild scrub grows in dense patches with open ground between (evenly spread bushes read as a park)
+            int weedsWanted = math.min(2500, (int)(region.Area / 100f * amount * 1.4f * (1f + 0.4f * thicket)));
+            int weeds = LeisureKit.Plant(ctx, occ, region, weedsWanted, ObjectRole.Bush, weedIds, 0.8f, 7f + 5f * thicket, 0.25f * (1f - 0.9f * thicket), salt + 11u,
                 p => Edgy(p, 0.05f + 0.25f * amount), 1, 3, weedCategory);
             int trees = 0;
             int treesWanted = math.min(600, (int)(ha * treesPerHa * math.saturate(amount * 1.2f)));
