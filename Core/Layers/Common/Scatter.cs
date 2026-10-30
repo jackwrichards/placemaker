@@ -21,7 +21,15 @@ namespace Placemaker.Core.Layers.Common
         /// Candidate points over the region on a jittered grid of pitch <paramref name="cell"/>, in a
         /// deterministic pseudo-random visiting order. At most <paramref name="maxCandidates"/>.
         /// </summary>
-        public static List<float2> Candidates(LayerRegion region, float cell, uint seed, int maxCandidates, CancellationToken cancel)
+        public static List<float2> Candidates(LayerRegion region, float cell, uint seed, int maxCandidates, CancellationToken cancel) =>
+            Candidates(region, cell, seed, maxCandidates, cancel, false);
+
+        /// <summary>
+        /// (nature makeover) <paramref name="shuffle"/>: visit the cells in a true seeded shuffle. The coprime stride walks the
+        /// row-major cell list as an arithmetic progression, so a caller that stops early (it has planted enough) keeps only
+        /// the first diagonal bands: the heath's bushes and the ridge hike's trees stood in parallel rows.
+        /// </summary>
+        public static List<float2> Candidates(LayerRegion region, float cell, uint seed, int maxCandidates, CancellationToken cancel, bool shuffle)
         {
             var result = new List<float2>();
             var size = region.Max - region.Min;
@@ -51,6 +59,22 @@ namespace Placemaker.Core.Layers.Common
             }
             long total = cells.Count;
             if (total == 0) return result;
+            if (shuffle)
+            {
+                for (int i = cells.Count - 1; i > 0; i--)
+                {
+                    int j = (int)(Hashing.Mix(seed, i, 0x5F1) % (uint)(i + 1));
+                    var tmp = cells[i]; cells[i] = cells[j]; cells[j] = tmp;
+                }
+                for (int s = 0; s < cells.Count && result.Count < maxCandidates; s++)
+                {
+                    var c = cells[s];
+                    uint h = Hashing.Mix(seed, c.x, c.y);
+                    var p = region.Min + (new float2(c.x, c.y) + new float2(Hashing.Unit(h), Hashing.Unit(Hashing.Mix(h)))) * cell;
+                    if (region.Contains(p)) result.Add(p);
+                }
+                return result;
+            }
             long stride = 65537;
             while (Gcd(stride, total) != 1) stride += 2;
             for (long s = 0; s < total && result.Count < maxCandidates; s++)

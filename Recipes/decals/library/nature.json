@@ -1,0 +1,245 @@
+{
+  "_about": "Shared decal library, family 'nature' (the nature makeover, docs/runbooks/nature.md): what water, rock, feet and animals leave on wild ground. Runoff rills and stream beds follow the real downhill flow of the built ground, marsh fills its real hollows, scree lies at the foot of slopes and boulders, heather on the heath, ash in a campfire ring. Laid by Core/Decals/Dynamic/NatureGround.cs; every kind may be used by any type.",
+  "family": "nature",
+  "saturations": [1, 0.8],
+  "kinds": [
+    {
+      "id": "runoffRill", "name": "Runoff rill", "tier": "macro",
+      "about": "A small channel cut by rain running downhill: damp dark washed soil down the middle with wet pebbles left in it, pale silt either side. Lay pieces end to end down the flow line.",
+      "texel": 0.035, "layers": "terrain", "order": 2, "lod": 45, "maxTexels": 384, "opacity": 0.8,
+      "edge": { "feather": 0.35, "warp": 0.45, "warpScale": 1.6, "round": 1, "widthNoise": 0.55 },
+      "variants": { "count": 8, "size": [9, 11], "width": [0.9, 1.7], "tile": "x", "strength": [0.75, 1] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 4, "stretch": [4, 1] },
+        { "op": "fbm", "out": "g", "scale": 0.15, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.75, "hi": 0.35 },
+        { "op": "remap", "in": "radial", "out": "bankZone", "lo": 0.98, "hi": 0.45 },
+        { "op": "mul", "a": "bankZone", "b": "macro", "c": "shape", "out": "bankC" },
+        { "op": "erode", "cover": "bankC", "grain": "g01", "sharp": 2.2, "out": "silt" },
+        { "op": "layer", "alpha": "silt", "alphaK": 0.42, "color": [150, 140, 110], "color2": [130, 120, 94], "tone": "n", "smooth": 0.14 },
+        { "op": "remap", "in": "radial", "out": "chan", "lo": 0.55, "hi": 0.08 },
+        { "op": "mul", "a": "chan", "b": "macro", "c": "shape", "out": "chanC" },
+        { "op": "erode", "cover": "chanC", "grain": "g01", "sharp": 3.2, "out": "bed" },
+        { "op": "layer", "alpha": "bed", "alphaK": 0.9, "color": [90, 76, 58], "color2": [70, 60, 46], "tone": "n", "vary": 0.1, "smooth": 0.32, "height": -0.6 },
+        { "op": "scatter", "stamp": "pebble", "density": 26, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.3, 1.2], "edgeBias": -0.3, "noise": { "scale": 1.6, "lo": -0.9, "hi": 0.3 }, "size": [0.025, 0.07], "aspect": [0.6, 0.95], "palette": [[140, 136, 128], [118, 114, 108], [158, 150, 136], [104, 98, 90]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.42, "max": 20000 },
+        { "op": "scatter", "stamp": "rock", "density": 0.9, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.5, 1.5], "edgeBias": -0.25, "size": [0.08, 0.2], "aspect": [0.65, 0.95], "palette": [[146, 140, 130], [124, 118, 110], [160, 152, 138]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.3 }
+      ]
+    },
+    {
+      "id": "gravelFan", "name": "Gravel fan", "tier": "macro",
+      "about": "Where a rill spreads out at the foot of a slope: a fan of washed silt and gravel, thick at the mouth (the patch's heavy side) and thinning into the grass in fingers.",
+      "texel": 0.035, "layers": "terrain", "order": 2, "lod": 45, "maxTexels": 384, "opacity": 0.72,
+      "edge": { "feather": 1.2, "warp": 1.1, "warpScale": 2.4, "round": 0.9 },
+      "variants": { "count": 8, "size": [5, 10], "aspect": [0.5, 0.85], "strength": [0.75, 1], "fades": ["side", "linear", "soft", "islands", "wide"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 4, "stretch": [2.5, 1], "warp": 0.8, "warpScale": 2 },
+        { "op": "fbm", "out": "g", "scale": 0.15, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.35 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.6, "out": "silt" },
+        { "op": "layer", "alpha": "silt", "alphaK": 0.55, "color": [154, 144, 116], "color2": [134, 124, 100], "tone": "n", "smooth": 0.16 },
+        { "op": "scatter", "stamp": "pebble", "density": 30, "clusters": 8, "cluster": 0.45, "clusterRadius": [0.4, 1.6], "noise": { "scale": 1.8, "lo": -0.8, "hi": 0.35 }, "size": [0.025, 0.08], "aspect": [0.6, 0.95], "palette": [[150, 146, 138], [128, 124, 116], [166, 156, 140], [112, 106, 98]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.25, "max": 24000 },
+        { "op": "scatter", "stamp": "rock", "density": 0.8, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.6, 2], "size": [0.08, 0.24], "aspect": [0.65, 0.95], "palette": [[146, 140, 130], [124, 118, 110], [160, 152, 138]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "marshMud", "name": "Marsh mud", "tier": "macro",
+      "about": "Wet peaty ground in a hollow: dark soft soil, mirror pools of standing water in the lowest bits, dead sedge lying in it. Fill the real hollows with it.",
+      "texel": 0.06, "layers": "terrain", "order": 2, "lod": 45, "maxTexels": 384, "opacity": 0.7,
+      "edge": { "feather": 1.1, "warp": 1.3, "warpScale": 3.2, "round": 1 },
+      "variants": { "count": 10, "size": [6, 14], "aspect": [0.5, 1], "strength": [0.8, 1], "wet": [0.3, 1], "fades": ["soft", "islands", "linear", "wide", "side"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.6, "octaves": 5, "warp": 1.2, "warpScale": 3.4 },
+        { "op": "fbm", "out": "g", "scale": 0.16, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.3 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 3, "out": "m" },
+        { "op": "remap", "in": "n", "out": "wetF", "lo": 0, "hi": 0.5, "k": { "wet": [0.2, 1] } },
+        { "op": "layer", "alpha": "m", "alphaK": 0.88, "color": [72, 62, 46], "color2": [56, 50, 38], "tone": "n", "vary": 0.1, "smooth": 0.3, "smooth2": 0.75, "smoothBy": "wetF", "height": -0.3 },
+        { "op": "remap", "in": "n", "out": "pool", "lo": { "wet": [0.75, 0.32] }, "hi": { "wet": [0.85, 0.48] } },
+        { "op": "mul", "a": "pool", "b": "shape", "out": "poolS" },
+        { "op": "fbm", "out": "r", "scale": 0.4, "octaves": 2 },
+        { "op": "layer", "alpha": "poolS", "alphaK": 0.55, "color": [62, 66, 62], "color2": [78, 84, 82], "tone": "r", "vary": 0, "smooth": 0.97 },
+        { "op": "scatter", "stamp": "twig", "density": 2.4, "clusters": 6, "cluster": 0.55, "clusterRadius": [0.5, 1.8], "noise": { "scale": 2.4, "lo": -0.8, "hi": 0.3 }, "size": [0.35, 0.9], "aspect": [0.018, 0.035], "palette": [[160, 146, 100], [138, 126, 84], [112, 110, 66], [96, 92, 58]], "alpha": [0.75, 1], "value": 0.12, "height": 0.5, "smooth": 0.3 }
+      ]
+    },
+    {
+      "id": "sedgeLitter", "name": "Sedge litter", "tier": "detail",
+      "about": "Dead sedge and reed blades flattened on the ground at a water's edge and under reed beds: straw and olive streaks crossing each other, a little dark mud between.",
+      "texel": 0.02, "layers": "terrain", "order": 4, "lod": 36, "maxTexels": 512, "opacity": 0.8,
+      "edge": { "feather": 1.4, "warp": 1.1, "warpScale": 3, "round": 0.9 },
+      "variants": { "count": 8, "size": [4, 8], "aspect": [0.5, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "linear", "wide", "side"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.4, "octaves": 3 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.4, "hi": 0.5 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "film" },
+        { "op": "layer", "alpha": "film", "alphaK": 0.18, "color": [78, 68, 50], "smooth": 0.3 },
+        { "op": "scatter", "stamp": "twig", "density": 9, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.4, 1.4], "angle": 0.6, "angleJitter": 40, "noise": { "scale": 1.8, "lo": -0.9, "hi": 0.3 }, "size": [0.3, 0.85], "aspect": [0.015, 0.03], "palette": [[178, 162, 112], [154, 140, 94], [126, 122, 74], [104, 102, 62], [190, 176, 128]], "alpha": [0.8, 1], "value": 0.14, "height": 0.4, "smooth": 0.25, "max": 20000 }
+      ]
+    },
+    {
+      "id": "shoreMud", "name": "Muddy bank", "tier": "macro",
+      "about": "The soft margin of a pond: wet glossy mud against the water (+z), drying lighter and cracking up the bank, sedge litter and a few prints where animals come to drink.",
+      "texel": 0.045, "layers": "terrain", "order": 2, "lod": 45, "maxTexels": 384, "opacity": 0.72,
+      "edge": { "feather": 0.45, "warp": 0.6, "warpScale": 2, "round": 1, "widthNoise": 0.45 },
+      "variants": { "count": 8, "size": [10, 12], "width": [1.8, 3.2], "tile": "x", "strength": [0.75, 1], "wet": [0.4, 1] },
+      "ops": [
+        { "op": "remap", "in": "across", "out": "side", "lo": -0.85, "hi": 0.55 },
+        { "op": "fbm", "out": "n", "scale": 2, "octaves": 4, "stretch": [2.5, 1] },
+        { "op": "fbm", "out": "g", "scale": 0.16, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.7, "hi": 0.3 },
+        { "op": "mul", "a": "side", "b": "macro", "c": "shape", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.6, "out": "dry" },
+        { "op": "layer", "alpha": "dry", "alphaK": 0.55, "color": [128, 114, 86], "color2": [110, 98, 74], "tone": "n", "smooth": 0.16 },
+        { "op": "remap", "in": "across", "out": "wetSide", "lo": 0, "hi": 0.8 },
+        { "op": "mul", "a": "wetSide", "b": "cover", "out": "wetC" },
+        { "op": "erode", "cover": "wetC", "grain": "g01", "sharp": 3.2, "out": "wetM" },
+        { "op": "layer", "alpha": "wetM", "alphaK": 0.85, "color": [74, 64, 48], "color2": [60, 52, 40], "tone": "n", "smooth": 0.45, "smooth2": 0.8, "smoothBy": "wetSide", "height": -0.25 },
+        { "op": "scatter", "stamp": "twig", "density": 2.2, "clusters": 6, "cluster": 0.5, "clusterRadius": [0.5, 1.6], "side": 0.6, "size": [0.3, 0.8], "aspect": [0.016, 0.03], "palette": [[170, 156, 106], [146, 134, 88], [118, 114, 70]], "alpha": [0.8, 1], "value": 0.12, "height": 0.4, "smooth": 0.3 },
+        { "op": "scatter", "stamp": "print", "density": 0.35, "clusters": 2, "cluster": 0.7, "clusterRadius": [0.6, 1.4], "side": 0.5, "size": [0.09, 0.13], "aspect": [0.5, 0.7], "palette": [[58, 50, 38]], "alpha": [0.45, 0.7], "height": -0.4, "smooth": 0.5 }
+      ]
+    },
+    {
+      "id": "screeApron", "name": "Scree", "tier": "macro",
+      "about": "Broken stone that has rolled down a slope or off a rock and gathered at its foot: angular stones packed thick at the heavy side, thinning out into the grass, grit between.",
+      "texel": 0.035, "layers": "terrain", "order": 5, "lod": 55, "maxTexels": 512, "opacity": 0.9,
+      "edge": { "feather": 1.3, "warp": 1.2, "warpScale": 3, "round": 0.85 },
+      "variants": { "count": 10, "size": [6, 13], "aspect": [0.45, 0.9], "strength": [0.8, 1], "fades": ["side", "linear", "islands", "soft", "wide"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 4, "warp": 1, "warpScale": 2.6 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.4 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "soil" },
+        { "op": "fbm", "out": "g", "scale": 0.2, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "erode", "cover": "soil", "grain": "g01", "sharp": 2.2, "out": "grit" },
+        { "op": "layer", "alpha": "grit", "alphaK": 0.5, "color": [140, 134, 120], "color2": [118, 112, 100], "tone": "n", "smooth": 0.15 },
+        { "op": "scatter", "stamp": "pebble", "density": 22, "clusters": 6, "cluster": 0.35, "clusterRadius": [0.6, 2], "noise": { "scale": 2.6, "lo": -0.9, "hi": 0.3 }, "size": [0.03, 0.08], "aspect": [0.6, 0.95], "palette": [[150, 146, 140], [130, 126, 120], [112, 108, 104]], "alpha": [0.85, 1], "height": 0.8, "smooth": 0.2, "max": 24000 },
+        { "op": "scatter", "stamp": "rock", "density": 4.2, "clusters": 5, "cluster": 0.4, "clusterRadius": [0.8, 2.4], "noise": { "scale": 3, "lo": -1, "hi": 0.3 }, "size": [0.12, 0.42], "aspect": [0.6, 1], "palette": [[152, 148, 140], [132, 126, 118], [168, 160, 148], [116, 112, 106], [142, 132, 118]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.18, "max": 12000 },
+        { "op": "scatter", "stamp": "rock", "density": 0.5, "clusters": 3, "cluster": 0.5, "clusterRadius": [0.8, 2.4], "noise": { "scale": 3, "lo": -1, "hi": 0.2 }, "size": [0.45, 0.9], "aspect": [0.55, 0.9], "palette": [[150, 146, 138], [130, 124, 116], [164, 156, 142]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.16 }
+      ]
+    },
+    {
+      "id": "dryStreamBed", "name": "Dry stream bed", "tier": "macro",
+      "about": "A stream that only runs after rain: a floor of rounded cobbles and pale sand down the middle, washed gravel and dry grass on the banks. Lay pieces end to end down the valley line.",
+      "texel": 0.04, "layers": "terrain", "order": 3, "lod": 55, "maxTexels": 512, "opacity": 0.85,
+      "edge": { "feather": 0.5, "warp": 0.6, "warpScale": 2.2, "round": 1, "widthNoise": 0.5 },
+      "variants": { "count": 8, "size": [11, 12], "width": [2.2, 3.6], "tile": "x", "strength": [0.75, 1] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.6, "octaves": 4, "stretch": [3.5, 1] },
+        { "op": "fbm", "out": "g", "scale": 0.18, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.7, "hi": 0.35 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.2, "out": "bank" },
+        { "op": "layer", "alpha": "bank", "alphaK": 0.45, "color": [150, 140, 96], "color2": [130, 122, 84], "tone": "n", "smooth": 0.14 },
+        { "op": "remap", "in": "radial", "out": "mid", "lo": 0.72, "hi": 0.2 },
+        { "op": "mul", "a": "mid", "b": "cover", "out": "floorC" },
+        { "op": "erode", "cover": "floorC", "grain": "g01", "sharp": 3, "out": "floor" },
+        { "op": "layer", "alpha": "floor", "alphaK": 0.8, "color": [164, 154, 132], "color2": [140, 132, 114], "tone": "g", "smooth": 0.16, "height": -0.4 },
+        { "op": "scatter", "stamp": "pebble", "density": 24, "clusters": 8, "cluster": 0.45, "clusterRadius": [0.4, 1.4], "edgeBias": -0.5, "size": [0.04, 0.12], "aspect": [0.65, 0.95], "palette": [[170, 164, 152], [146, 140, 130], [186, 176, 158], [124, 120, 112], [156, 146, 128]], "alpha": [0.9, 1], "value": 0.12, "height": 0.9, "smooth": 0.22, "max": 24000 },
+        { "op": "scatter", "stamp": "rock", "density": 1.6, "clusters": 5, "cluster": 0.45, "clusterRadius": [0.5, 1.8], "edgeBias": -0.6, "size": [0.12, 0.34], "aspect": [0.7, 1], "palette": [[160, 154, 142], [138, 132, 122], [176, 166, 150]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "heathPatch", "name": "Heather", "tier": "macro",
+      "about": "Low heath: heather in muted mauve and russet, bilberry olive and dry grass between, in clumps that run into each other. For open heath and moor.",
+      "texel": 0.035, "layers": "terrain", "order": 1, "lod": 50, "maxTexels": 384, "opacity": 0.75,
+      "edge": { "feather": 1.4, "warp": 1.4, "warpScale": 3.6, "round": 0.9 },
+      "variants": { "count": 10, "size": [6, 13], "aspect": [0.5, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "linear", "wide", "side"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 4, "warp": 1.2, "warpScale": 3 },
+        { "op": "fbm", "out": "g", "scale": 0.14, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.55, "hi": 0.35 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.4, "out": "base" },
+        { "op": "layer", "alpha": "base", "alphaK": 0.55, "color": [108, 96, 66], "color2": [94, 80, 64], "tone": "n", "vary": 0.14, "varyScale": 0.4, "smooth": 0.12, "height": 0.3 },
+        { "op": "scatter", "stamp": "blob", "density": 40, "clusters": 9, "cluster": 0.6, "clusterRadius": [0.4, 1.5], "noise": { "scale": 1.6, "lo": -0.7, "hi": 0.35 }, "size": [0.04, 0.1], "aspect": [0.6, 1], "palette": [[116, 84, 94], [100, 74, 82], [128, 98, 100], [92, 78, 66], [110, 100, 64]], "alpha": [0.75, 1], "value": 0.14, "height": 0.7, "smooth": 0.12, "max": 30000 }
+      ]
+    },
+    {
+      "id": "animalTrail", "name": "Animal trail", "tier": "macro",
+      "about": "A narrow line trodden by deer and foxes going to water or between woods: bare soil in bites down a thin middle, the grass either side barely flattened.",
+      "texel": 0.035, "layers": "terrain", "order": 1, "lod": 45, "maxTexels": 256, "opacity": 0.6,
+      "edge": { "feather": 0.4, "warp": 0.5, "warpScale": 1.8, "round": 1, "widthNoise": 0.6 },
+      "variants": { "count": 8, "size": [9, 11], "width": [0.6, 1.1], "tile": "x", "strength": [0.7, 1] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 4, "stretch": [3, 1] },
+        { "op": "fbm", "out": "g", "scale": 0.12, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.8, "hi": 0.25 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.2, "out": "flat" },
+        { "op": "layer", "alpha": "flat", "alphaK": 0.4, "color": [140, 132, 86], "color2": [122, 114, 74], "tone": "n", "smooth": 0.14 },
+        { "op": "remap", "in": "radial", "out": "mid", "lo": 0.6, "hi": 0.1 },
+        { "op": "mul", "a": "mid", "b": "cover", "out": "soilC" },
+        { "op": "erode", "cover": "soilC", "grain": "g01", "sharp": 3.4, "out": "soil" },
+        { "op": "layer", "alpha": "soil", "alphaK": 0.8, "color": [112, 94, 72], "color2": [94, 80, 60], "tone": "g", "smooth": 0.2, "height": -0.3 }
+      ]
+    },
+    {
+      "id": "ashScorch", "name": "Fire ring ash", "tier": "detail",
+      "about": "Where campfires burn: grey ash and black charcoal in the middle, scorched brown grass round it, a few half-burnt sticks.",
+      "texel": 0.02, "layers": "terrain", "order": 5, "lod": 30, "maxTexels": 256, "opacity": 0.9,
+      "edge": { "feather": 0.8, "warp": 0.5, "warpScale": 1.2, "round": 1 },
+      "variants": { "count": 6, "size": [2.4, 4], "aspect": [0.75, 1], "strength": [0.85, 1], "fades": ["soft", "islands", "wide"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 0.8, "octaves": 4 },
+        { "op": "fbm", "out": "g", "scale": 0.08, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "radial", "out": "outer", "lo": 1, "hi": 0.5 },
+        { "op": "mul", "a": "outer", "b": "shape", "out": "scC" },
+        { "op": "erode", "cover": "scC", "grain": "g01", "sharp": 2.4, "out": "scorch" },
+        { "op": "layer", "alpha": "scorch", "alphaK": 0.6, "color": [104, 84, 58], "color2": [86, 70, 50], "tone": "n", "smooth": 0.12 },
+        { "op": "remap", "in": "radial", "out": "inner", "lo": 0.55, "hi": 0.15 },
+        { "op": "mul", "a": "inner", "b": "shape", "out": "ashC" },
+        { "op": "erode", "cover": "ashC", "grain": "g01", "sharp": 3, "out": "ash" },
+        { "op": "layer", "alpha": "ash", "alphaK": 0.92, "color": [118, 116, 110], "color2": [58, 56, 54], "tone": "n", "vary": 0.18, "varyScale": 0.15, "smooth": 0.08, "height": 0.2 },
+        { "op": "scatter", "stamp": "chip", "density": 14, "clusters": 20, "cluster": 0.6, "clusterRadius": [0.2, 0.6], "edgeBias": -0.6, "size": [0.04, 0.12], "aspect": [0.35, 0.6], "palette": [[34, 32, 30], [46, 42, 38], [26, 24, 22]], "alpha": [0.9, 1], "height": 0.8, "smooth": 0.2 },
+        { "op": "scatter", "stamp": "twig", "density": 1.2, "clusters": 10, "cluster": 0.5, "clusterRadius": [0.3, 0.8], "edgeBias": -0.4, "size": [0.25, 0.6], "aspect": [0.04, 0.07], "palette": [[42, 36, 30], [70, 56, 42]], "alpha": [0.9, 1], "height": 1, "smooth": 0.18 }
+      ]
+    },
+    {
+      "id": "trampledGrass", "name": "Trampled grass", "tier": "macro",
+      "about": "Grass flattened pale where a tent stood or people sat for days: straw-coloured streaks lying one way, a little bare soil where feet turned.",
+      "texel": 0.04, "layers": "terrain", "order": 1, "lod": 40, "maxTexels": 256, "opacity": 0.55,
+      "edge": { "feather": 1.2, "warp": 1, "warpScale": 2.4, "round": 0.9 },
+      "variants": { "count": 8, "size": [4.5, 9], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["soft", "islands", "linear", "wide"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 4, "stretch": [3, 1] },
+        { "op": "fbm", "out": "g", "scale": 0.12, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.4 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2, "out": "flat" },
+        { "op": "layer", "alpha": "flat", "alphaK": 0.6, "color": [156, 148, 98], "color2": [138, 130, 84], "tone": "n", "smooth": 0.14 },
+        { "op": "remap", "in": "n", "out": "bare", "lo": 0.25, "hi": 0.6 },
+        { "op": "mul", "a": "bare", "b": "cover", "out": "bareC" },
+        { "op": "erode", "cover": "bareC", "grain": "g01", "sharp": 3.2, "out": "soil" },
+        { "op": "layer", "alpha": "soil", "alphaK": 0.65, "color": [118, 100, 76], "color2": [100, 86, 64], "tone": "g", "smooth": 0.18 }
+      ]
+    },
+    {
+      "id": "exposedRoots", "name": "Exposed roots", "tier": "detail",
+      "about": "Tree roots worn bare where a trail passes under trees: dark brown roots snaking over packed soil, grit in the hollows between.",
+      "texel": 0.025, "layers": "terrain", "order": 3, "lod": 32, "maxTexels": 384, "opacity": 0.8,
+      "edge": { "feather": 1, "warp": 0.9, "warpScale": 2, "round": 0.9 },
+      "variants": { "count": 6, "size": [3, 6], "aspect": [0.5, 1], "strength": [0.8, 1], "fades": ["soft", "islands", "linear", "side"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.2, "octaves": 4 },
+        { "op": "fbm", "out": "g", "scale": 0.1, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.4 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.6, "out": "soil" },
+        { "op": "layer", "alpha": "soil", "alphaK": 0.6, "color": [116, 98, 74], "color2": [98, 84, 64], "tone": "n", "smooth": 0.18 },
+        { "op": "scatter", "stamp": "twig", "density": 1.6, "clusters": 8, "cluster": 0.6, "clusterRadius": [0.4, 1.2], "size": [0.6, 1.8], "aspect": [0.04, 0.08], "palette": [[78, 60, 44], [96, 74, 52], [66, 52, 40]], "alpha": [0.9, 1], "value": 0.1, "height": 1, "smooth": 0.22 },
+        { "op": "scatter", "stamp": "pebble", "density": 6, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.3, 1], "size": [0.02, 0.05], "aspect": [0.6, 0.95], "palette": [[140, 134, 124], [120, 116, 108]], "alpha": [0.8, 1], "height": 0.7, "smooth": 0.2 }
+      ]
+    }
+  ]
+}

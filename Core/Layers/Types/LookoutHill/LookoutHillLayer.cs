@@ -179,11 +179,22 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
             var treeIds = ctx.L("treeSpecies");
             if (treeIds.Length == 0 && AssetAvailability.Has(AssetCategories.Tree)) treeIds = TreesFor(sub);
             int trees = math.min(10000, (int)(ha * ctx.F("treeDensity")));
+            // (nature makeover) groves with glades between, not an even scatter (the hilltop's wood stood on a lattice)
             if (trees > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Tree, treeIds, Keys.Category(AssetCategories.Tree)))
-                LeisureKit.Plant(ctx, occ, region, trees, ObjectRole.Tree, treeIds, 2.5f, 24f, 0.35f, 0x7F00u, reject, 1, 3);
+                NatureKit.Plant(ctx, occ, region, trees, ObjectRole.Tree, treeIds, 2.3f, 30f, 0x7F00u, reject, 0.08f);
             int bushes = math.min(10000, (int)(ha * ctx.F("bushDensity")));
             if (bushes > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Bush, null, Keys.Category(AssetCategories.Bush)))
-                LeisureKit.Plant(ctx, occ, region, bushes, ObjectRole.Bush, Bushes, 1.1f, 12f, 0.3f, 0xB600u, reject);
+                NatureKit.Plant(ctx, occ, region, bushes, ObjectRole.Bush, Bushes, 1.1f, 16f, 0xB600u, reject, 0.1f);
+            // rock coming through on the steep shoulders and round the crest; stones spill downhill
+            Func<float2, float> built = p => ctx.H(p) + field.OffsetAt(p);
+            float Steep(float2 p) { var gr = field.Gradient(p); return math.length(gr); }
+            int rockGroups = sub == "kiteHill" ? (int)math.round(ha * 0.8f) : (int)math.round(ha * 2.2f) + 1;
+            NatureKit.Rocks(ctx, occ, region, math.clamp(rockGroups, 1, 40), 0x40C0u, p =>
+            {
+                if (math.distance(p, summit) < summitR + 5f) return 0f;
+                float crest = math.saturate(1f - math.abs(math.distance(p, summit) - summitR - 14f) / 18f);
+                return math.saturate(Steep(p) * 2.2f + crest * 0.6f) * (run && math.distance(p, (runA + runB) * 0.5f) < math.distance(runA, runB) * 0.6f ? 0.1f : 1f);
+            }, built);
             ctx.Check();
 
             // ── Regions, heights, stats ──
@@ -237,20 +248,37 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                 // A second entrance joins the first path when it can; otherwise it climbs on its own.
                 if (gi > 0 && main.Count > 1)
                 {
-                    int best = -1; float bd = float.MaxValue;
+                    // (nature makeover) the spur joins the climb where it is a walk: the nearest point of the main path it can
+                    // reach at a walking grade (the climb starts low, so there is one near the foot of the hill), not the
+                    // nearest point, which on a big site was a straight line cut up the hillside
+                    float H(float2 p) => field.OffsetAt(p) + ctx.H(p);
+                    float maxGrade = math.max(0.08f, ctx.F("grade") / 100f * 1.4f);
+                    int best = -1, near = -1; float bd = float.MaxValue, nd = float.MaxValue;
                     for (int i = 0; i < main.Count; i++)
                     {
                         float d = math.distance(main[i], g.Position);
-                        if (d < bd && Clear(region, occ, g.Position, main[i], hw)) { bd = d; best = i; }
+                        if (d >= bd && d >= nd) continue;
+                        if (!Clear(region, occ, g.Position, main[i], hw)) continue;
+                        if (d < nd) { nd = d; near = i; }
+                        if (d < bd && math.abs(H(main[i]) - H(g.Position)) <= math.max(1.5f, d * maxGrade)) { bd = d; best = i; }
                     }
-                    if (best >= 0 && bd < 120f)
+                    if (best < 0 || bd > 160f) { best = near; bd = nd; }
+                    if (best >= 0 && bd < 160f)
                     {
                         if (bd >= 1f)
                         {
-                            var spur = ctx.StraightNet(g.Position, main[best], role, asset);
+                            var a = g.Position; var e = main[best];
+                            var cb = a + inward * bd * 0.35f; var cc = e + (a - e) * 0.3f;
+                            var spur = bd > 12f && CurveInside(region, a, cb, cc, e, hw) ? ctx.CurvedNet(a, cb, cc, e, role, asset) : ctx.StraightNet(a, e, role, asset);
                             AttachStart(spur, g);
-                            occ.TakeCorridor(g.Position, main[best], hw, 100);
-                            occ.Paths.Add(g.Position, main[best], hw, 100);
+                            var prev = a;
+                            for (int k = 1; k <= 8; k++)
+                            {
+                                var q = Composer.Bezier(spur.A, spur.B, spur.C, spur.D, k / 8f).xz;
+                                occ.TakeCorridor(prev, q, hw, 100);
+                                occ.Paths.Add(prev, q, hw, 100);
+                                prev = q;
+                            }
                         }
                         total += bd;
                         continue;

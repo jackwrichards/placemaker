@@ -139,12 +139,20 @@ namespace Placemaker.Core.Layers.Leisure
             float ha = region.Area / 10000f;
             int trees = math.min(12000, (int)(ha * ctx.F("treeDensity")));
             int bushes = math.min(12000, (int)(ha * ctx.F("bushDensity")));
+            // (nature makeover) groves and glades, saplings at the edges, standing deadwood in the old forest; rock outcrops
             if (trees > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Tree, treeIds, Keys.Category(AssetCategories.Tree)))
-                LeisureKit.Plant(ctx, occ, region, trees, ObjectRole.Tree, treeIds, 2.2f, 26f, 0.45f, 0xF0Eu, null, 0, 3);
+                NatureKit.Plant(ctx, occ, region, trees, ObjectRole.Tree, treeIds, 2.1f, character == "heath" ? 40f : 34f, 0xF0Eu, null,
+                    character == "heath" ? 0.03f : 0.18f, character == "heath" ? 0f : character == "wildwood" ? 0.07f : 0.035f);
             ctx.Check();
             if (bushes > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Bush, bushIds, Keys.Category(AssetCategories.Bush)))
-                LeisureKit.Plant(ctx, occ, region, bushes, ObjectRole.Bush, bushIds, 0.9f, 10f, 0.3f, 0xB05u);
+                NatureKit.Plant(ctx, occ, region, bushes, ObjectRole.Bush, bushIds, 0.9f, character == "heath" ? 18f : 12f, 0xB05u, null, character == "heath" ? 0.12f : 0.1f);
             ctx.Check();
+            NatureKit.Rocks(ctx, occ, region, math.clamp((int)math.round(ha * (character == "heath" ? 1.6f : 1f)), 1, 30), 0x40C1u, p =>
+            {
+                var e = new float2(3f, 0f); var f = new float2(0f, 3f);
+                float slope = math.length(new float2(ctx.H(p + e) - ctx.H(p - e), ctx.H(p + f) - ctx.H(p - f))) / 6f;
+                return 0.25f + math.saturate(slope * 3f);
+            });
 
             if (ctx.B("animals"))
             {
@@ -153,19 +161,8 @@ namespace Placemaker.Core.Layers.Leisure
                     ctx.Object(s, 0f, ObjectRole.AnimalSpawner, new AssetRef("", "Forest Animal Spawner"), Hashing.Mix(ctx.Seed, (uint)(s.x * 3f)));
             }
             // Deadwood: fallen trunks in the wood (not in clearings or on trails), more in the wildwood.
-            int logs = character == "wildwood" ? (int)(ha * 6f) : character == "forest" ? (int)(ha * 3f) : 0;
-            for (int i = 0, tries = 0; i < logs && tries < logs * 12; tries++)
-            {
-                uint v = Hashing.Mix(ctx.Seed, 0x1065u + (uint)tries);
-                var p = region.Min + new float2(Hashing.Unit(v), Hashing.Unit(Hashing.Mix(v, 1u))) * (region.Max - region.Min);
-                float yaw = Hashing.Unit(Hashing.Mix(v, 2u)) * 6.283f;
-                var along = new float2(math.sin(yaw), math.cos(yaw));
-                if (!region.ContainsDisc(p, 6f) || !occ.Free(p, 1.2f, 0f, 0.2f) || !occ.Free(p + along * 3.5f, 0.8f, 0f, 0.2f) || !occ.Free(p - along * 3.5f, 0.8f, 0f, 0.2f)) continue;
-                var o = ctx.Object(p, yaw, ObjectRole.Furniture, AssetMix.Pick(Logs, v), v, -1, AssetCategories.PlayNature);
-                o.Scale = 0.7f + 0.3f * Hashing.Unit(Hashing.Mix(v, 3u));
-                occ.TakeCorridor(p - along * 3.6f, p + along * 3.6f, 0.6f, 5);
-                i++;
-            }
+            int logs = character == "wildwood" ? (int)(ha * 6f) : character == "forest" ? (int)(ha * 4f) : (int)(ha * 0.5f);
+            NatureKit.Fallen(ctx, occ, region, logs, 0x1065u);
             if (ctx.B("forestFloor"))
             {
                 // Woodland floor painted in soft organic patches through the wood (one rectangle inset from the outline

@@ -642,7 +642,9 @@ namespace Placemaker.Core.Decals.Dynamic
                 float side = math.saturate(across / half * math.sign(op.Side) * 0.5f + 0.5f);
                 w *= math.lerp(1f, side * side * 2f, math.saturate(math.abs(op.Side)));
             }
-            if (op.EdgeBias != 0f) w *= math.lerp(1f, 1f - math.saturate(e / math.max(0.2f, math.abs(op.EdgeBias))), op.EdgeBias > 0f ? 0.85f : 0f);
+            if (op.EdgeBias > 0f) w *= math.lerp(1f, 1f - math.saturate(e / math.max(0.2f, op.EdgeBias)), 0.85f);
+            // (nature) a negative bias keeps stamps toward the middle: pebbles down a rill's channel, stones on a stream bed's floor
+            else if (op.EdgeBias < 0f) w *= math.saturate(e / math.max(0.2f, -op.EdgeBias));
             return math.saturate(w);
         }
 

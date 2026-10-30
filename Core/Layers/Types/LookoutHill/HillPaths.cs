@@ -112,7 +112,47 @@ namespace Placemaker.Core.Layers.Types.LookoutHill
                 var end = spec.Summit + math.normalizesafe(p - spec.Summit) * spec.SummitRadius;
                 pts.Add(end);
             }
+            Arrival(region, pts, spec);
             return pts;
+        }
+
+        /// <summary>
+        /// (nature makeover) The walker reaches the plaza going round it (along the contour), and the last step turned 90°
+        /// straight in: a hook at the top of every climb (the user: "some of the roads get a little weird"). The last stretch
+        /// is redrawn as one curve that leaves the walker's heading and meets the plaza head on, when the curve stays inside
+        /// the outline and clear of the legs below.
+        /// </summary>
+        private static void Arrival(LayerRegion region, List<float2> pts, ClimbSpec spec)
+        {
+            if (pts.Count < 5 || !Reached(pts, spec)) return;
+            float reach = spec.SummitRadius + math.max(24f, spec.SummitRadius * 2f);
+            int i = -1;
+            for (int k = 2; k < pts.Count - 1; k++)
+                if (math.distance(pts[k], spec.Summit) < reach && math.dot(math.normalizesafe(pts[k] - pts[k - 1]), math.normalizesafe(spec.Summit - pts[k])) > -0.3f) { i = k; break; }
+            if (i < 2) return;
+            var a = pts[i];
+            var t = math.normalizesafe(pts[i] - pts[i - 1]);
+            float l0 = math.distance(a, spec.Summit) - spec.SummitRadius;
+            if (l0 < 3f) return;
+            // the arrival point: where the heading, swung toward the summit, meets the plaza rim
+            var aim = math.normalizesafe(a + t * l0 * 0.9f - spec.Summit);
+            var e = spec.Summit + aim * spec.SummitRadius;
+            float len = math.distance(a, e);
+            var b = a + t * len * 0.4f;
+            var c = e + aim * len * 0.4f;
+            var curve = new List<float2>();
+            int n = math.clamp((int)(len / 3f), 4, 16);
+            for (int k = 1; k <= n; k++)
+            {
+                float u = k / (float)n, v = 1f - u;
+                var q = v * v * v * a + 3f * v * v * u * b + 3f * v * u * u * c + u * u * u * e;
+                if (!region.ContainsDisc(q, spec.HalfWidth + 1f)) return;
+                if (k < n && math.distance(q, spec.Summit) < spec.SummitRadius + 0.5f) return;
+                for (int j = 0; j < i - 3; j++) if (math.distancesq(pts[j], q) < spec.Spacing * spec.Spacing) return;
+                curve.Add(q);
+            }
+            pts.RemoveRange(i + 1, pts.Count - i - 1);
+            pts.AddRange(curve);
         }
 
         public static bool Reached(List<float2> pts, ClimbSpec spec) =>

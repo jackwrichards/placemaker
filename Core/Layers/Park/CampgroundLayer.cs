@@ -153,20 +153,29 @@ namespace Placemaker.Core.Layers.Park
             }
 
             // Pitch contents.
-            var campfire = AssetMix.One(ctx.S("campfireAsset"), CampArt.Fire);
+            // (nature makeover) A pitch is a worn clearing, not a square plot: an organic pad of forest floor, the tent turned
+            // the way its owner liked, a fire ring of stones with ash in it (no vanilla campfire prop: the stones and the ash
+            // decal are the fire; a picked campfire asset stands in the ring), two short logs to sit on, the table nearby.
+            string pickedFire = ctx.S("campfireAsset");
             var table = AssetMix.One(ctx.S("tableAsset"), CampArt.Tables);
             bool fires = ctx.B("campfires");
+            bool rockOk = AssetAvailability.Has(AssetCategories.Rock);
             bool tables = ctx.B("tables") && (ctx.S("tableAsset") != "" || AssetAvailability.Has(AssetCategories.Picnic));
             for (int i = 0; i < pitches.Count; i++)
             {
                 var (c, t, side) = pitches[i];
                 var toPath = new float2(t.y, -t.x) * side;   // unit vector from the pitch towards its path
-                if (ctx.B("pads")) ctx.Surface(LayerRegion.Rect(c, t, size * 0.5f, size * 0.5f), SurfaceRole.Ground, AssetMix.One(ctx.S("padSurface"), CampArt.Pad), AssetCategories.SurfaceNatural);
                 uint v = Hashing.Mix(ctx.Seed, (uint)i + 7u);
-                var tent = c - toPath * size * 0.15f;
-                ctx.Object(tent, math.atan2(toPath.x, toPath.y), ObjectRole.Furniture, AssetMix.Pick(pitchIds, v), v, -1, AssetCategories.CampingPitch);
-                if (fires) ctx.Object(c + toPath * size * 0.28f + t * size * 0.28f, 0f, ObjectRole.Furniture, campfire, Hashing.Mix(v, 1u), -1, AssetCategories.CampingFire);
-                if (tables) ctx.Object(c + toPath * size * 0.25f - t * size * 0.25f, math.atan2(t.x, t.y), ObjectRole.Furniture, table, Hashing.Mix(v, 2u), -1, AssetCategories.Picnic);
+                if (ctx.B("pads")) ctx.Surface(LeisureKit.Blob(c, size * 0.46f, Hashing.Mix(v, 9u), 12, 0.2f), SurfaceRole.Ground, AssetMix.One(ctx.S("padSurface"), CampArt.Pad), AssetCategories.SurfaceNatural);
+                float jitter = (Hashing.Unit(Hashing.Mix(v, 4u)) - 0.5f) * 0.9f;
+                var tent = c - toPath * size * 0.17f + t * size * 0.08f * (Hashing.Unit(Hashing.Mix(v, 5u)) - 0.5f);
+                ctx.Object(tent, math.atan2(toPath.x, toPath.y) + jitter, ObjectRole.Furniture, AssetMix.Pick(pitchIds, v), v, -1, AssetCategories.CampingPitch);
+                // a second small tent on the bigger pitches now and then (a family)
+                if (size >= 9f && Hashing.Unit(Hashing.Mix(v, 6u)) < 0.3f)
+                    ctx.Object(tent - t * size * 0.3f * (Hashing.Unit(Hashing.Mix(v, 7u)) < 0.5f ? 1f : -1f), math.atan2(toPath.x, toPath.y) + jitter + 0.5f, ObjectRole.Furniture, AssetMix.Pick(pitchIds, Hashing.Mix(v, 8u)), Hashing.Mix(v, 8u), -1, AssetCategories.CampingPitch);
+                var fireAt = c + toPath * size * 0.26f + t * size * 0.24f;
+                if (fires) FireRing(ctx, fireAt, 0.85f, 7, pickedFire, rockOk, Hashing.Mix(v, 1u), 2, math.atan2(t.x, t.y));
+                if (tables) ctx.Object(c + toPath * size * 0.25f - t * size * 0.25f, math.atan2(t.x, t.y) + jitter * 0.5f, ObjectRole.Furniture, table, Hashing.Mix(v, 2u), -1, AssetCategories.Picnic);
             }
             ctx.Check();
 
@@ -188,6 +197,13 @@ namespace Placemaker.Core.Layers.Park
                 {
                     ctx.Object(hut, math.atan2(tan.x, tan.y), ObjectRole.Furniture, AssetMix.One("", CampArt.Shelter), Hashing.Mix(ctx.Seed, 0x5161u), -1, AssetCategories.Shelter);
                     occ.Take(hut, 3.2f, 2);
+                    // (nature makeover) the woodstore beside it, where campers fetch their firewood
+                    var wood = hut + tan * 5.5f + inward * 1.5f;
+                    if (region.ContainsDisc(wood, 2.2f) && occ.Free(wood, 2f, 0.5f, 0.3f))
+                    {
+                        ctx.Object(wood, math.atan2(-inward.x, -inward.y), ObjectRole.Furniture, AssetMix.One("", CampArt.Woodstore), Hashing.Mix(ctx.Seed, 0x5162u), -1, AssetCategories.Shelter);
+                        occ.Take(wood, 2f, 2);
+                    }
                 }
             }
 
@@ -202,27 +218,31 @@ namespace Placemaker.Core.Layers.Park
                 clearingRadius = math.min(inscribed - 1f, 16f);
             }
 
-            // Woodland between the pitches.
+            // (nature makeover) The camp fire circle: the heart of the camp in its clearing, a big ring of stones with logs round
+            // it to sit on (when no playground has the clearing).
+            if (fires && clearingRadius >= 7f && !ctx.Input.HasChild("playground"))
+            {
+                FireRing(ctx, clearing, 1.5f, 11, pickedFire, rockOk, Hashing.Mix(ctx.Seed, 0xF1EEu), 0, 0f);
+                for (int k = 0; k < 5; k++)
+                {
+                    float a = k * 1.2566f + 0.3f;
+                    var dir = new float2(math.cos(a), math.sin(a));
+                    var lp = clearing + dir * 4.2f;
+                    var o = ctx.Object(lp, math.atan2(-dir.y, dir.x), ObjectRole.Bench, AssetMix.Pick(NatureKit.Logs, (uint)k), Hashing.Mix(ctx.Seed, 0xF1F0u + (uint)k), -1, AssetCategories.PlayNature);
+                    o.Scale = 0.38f;
+                }
+                occ.Take(clearing, 5.5f, 2);
+            }
+
+            // Woodland between the pitches: groves with sunlit gaps, young trees at the edges, a few boulders.
             var treeIds = ctx.L("treeSpecies");
             var plantIds = treeIds.Length > 0 ? treeIds : ctx.F("treeDensity") >= 80f ? CampArt.ForestTrees : CampArt.Trees;
             int trees = (int)math.round(region.Area / 10000f * ctx.F("treeDensity"));
             int placedTrees = 0;
             if (trees > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Tree, treeIds, Keys.Category(AssetCategories.Tree)))
-            {
-                uint clump = Hashing.Mix(ctx.Seed, 0x7EEu);
-                foreach (var p in Scatter.Candidates(region, 4f, Hashing.Mix(ctx.Seed, 0x7EFu), math.min(40000, trees * 25 + 200), ctx.Cancel))
-                {
-                    if (placedTrees >= trees) break;
-                    float chance = Scatter.Clustering(p, 20f, clump, 0.3f);
-                    if (Hashing.Unit(Hashing.Mix(clump, (uint)placedTrees * 131u + (uint)(p.x * 7f))) > chance) continue;
-                    if (clearingRadius >= 6f && math.distance(p, clearing) < clearingRadius + 2.5f) continue;
-                    if (!occ.Free(p, 2.5f, 3f, 1.5f)) continue;
-                    uint v = Hashing.Mix(ctx.Seed, 0x7000u + (uint)placedTrees);
-                    ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Tree, AssetMix.Pick(plantIds, v), v, 2 + (int)(v % 2u));
-                    occ.Take(p, 2.5f, 3);
-                    placedTrees++;
-                }
-            }
+                placedTrees = NatureKit.Plant(ctx, occ, region, trees, ObjectRole.Tree, plantIds, 2.4f, 26f, 0x7EEu,
+                    p => clearingRadius >= 6f && math.distance(p, clearing) < clearingRadius + 2.5f, 0.25f, 0.015f);
+            NatureKit.Rocks(ctx, occ, region, math.clamp((int)math.round(region.Area / 10000f * 0.8f), 1, 12), 0x40C3u, p => occ.Corridors.Overlaps(p, 4f) ? 0.05f : 0.5f, null, 0.8f);
 
             if (ctx.B("groundSurface")) ctx.Surface(region.Ring, SurfaceRole.Ground, AssetMix.One(ctx.S("surface")));
             float pathLength = ParkPaths.Emit(ctx, curves, gates, AssetMix.One(ctx.S("pathAsset")));
@@ -242,6 +262,36 @@ namespace Placemaker.Core.Layers.Park
             ctx.Stat(Keys.StatTrees, placedTrees, Keys.UnitCount);
             ctx.Stat(Keys.StatRestrooms, restrooms, Keys.UnitCount);
             if (pitches.Count == 0 && canPitch) ctx.Issue(IssueSeverity.Warning, "Placemaker.Campground.Issue.NoPitches");
+        }
+
+        /// <summary>The tag of a fire ring's little region: the designed ground lays its ash and the trodden ground round it.</summary>
+        public const string FireTag = "place:fire";
+
+        /// <summary>
+        /// (nature makeover) A fire ring: small stones (Rock01-30) set in a circle, half in the ground; a picked campfire asset
+        /// in the middle; <paramref name="logs"/> short logs to sit on facing it; its spot as a "place:fire" region for the ash.
+        /// </summary>
+        private static void FireRing(LayerContext ctx, float2 c, float r, int stones, string pickedFire, bool rockOk, uint v, int logs, float yaw)
+        {
+            if (!string.IsNullOrEmpty(pickedFire)) ctx.Object(c, 0f, ObjectRole.Furniture, AssetMix.One(pickedFire), v, -1, AssetCategories.CampingFire);
+            if (rockOk)
+                for (int k = 0; k < stones; k++)
+                {
+                    float a = k * 6.2832f / stones + Hashing.Unit(Hashing.Mix(v, (uint)k)) * 0.3f;
+                    var p = c + new float2(math.cos(a), math.sin(a)) * r;
+                    var o = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, (uint)k + 50u)) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(NatureKit.Stones, Hashing.Mix(v, (uint)k + 90u)), Hashing.Mix(v, (uint)k + 90u), -1, AssetCategories.Rock);
+                    o.Scale = r < 1f ? 0.42f : 0.55f;
+                    o.Elevation = -0.06f;
+                }
+            for (int k = 0; k < logs; k++)
+            {
+                float a = yaw + (k == 0 ? 0.6f : 2.4f) + Hashing.Unit(Hashing.Mix(v, (uint)k + 70u)) * 0.5f;
+                var dir = new float2(math.cos(a), math.sin(a));
+                var lp = c + dir * (r + 1.5f);
+                var o = ctx.Object(lp, math.atan2(-dir.y, dir.x), ObjectRole.Furniture, AssetMix.Pick(NatureKit.Logs, Hashing.Mix(v, (uint)k + 80u)), Hashing.Mix(v, (uint)k + 80u), -1, AssetCategories.PlayNature);
+                o.Scale = 0.24f;
+            }
+            ctx.AddRegion(LayerRegion.Circle(c, r + 0.4f, 10), "fire:" + (v & 0xFFFF), FireTag);
         }
 
         private static bool NearPitch(List<(float2 c, float2 t, float side)> pitches, float2 p, float size)
