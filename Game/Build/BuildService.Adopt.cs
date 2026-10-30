@@ -706,7 +706,8 @@ namespace Placemaker.Game.Build
             if (_record == Entity.Null || _request?.Plan?.Layers == null) return;
             var set = new Core.Decals.Dynamic.DecalSet();
             foreach (var l in _request.Plan.Layers) if (l?.Decals != null) set.Strokes.AddRange(l.Decals);
-            if (set.Strokes.Count == 0) return;
+            foreach (var l in _request.Plan.Layers) if (l?.DecalInstances != null) set.Instances.AddRange(l.DecalInstances);
+            if (set.Strokes.Count == 0 && set.Instances.Count == 0) return;
             // kinds the plan defined itself travel with it (a builder's own look); library kinds are named only
             var lib = Core.Decals.Dynamic.DecalLibrary.Current;
             foreach (var l in _request.Plan.Layers)
@@ -717,7 +718,7 @@ namespace Placemaker.Game.Build
             var buffer = EntityManager.AddBuffer<PlacemakerDecalBlob>(_record);
             buffer.ResizeUninitialized(bytes.Length);
             for (int i = 0; i < bytes.Length; i++) buffer[i] = new PlacemakerDecalBlob { Value = bytes[i] };
-            Mod.Log.Info($"Placemaker dynamic decals: group {_groupId}: {set.Strokes.Count} strokes ({bytes.Length} bytes) on the record; weathering {_request.Plan.Weathering}");
+            Mod.Log.Info($"Placemaker dynamic decals: group {_groupId}: {set.Strokes.Count} strokes and {set.Instances.Count} library instances ({bytes.Length} bytes) on the record; weathering {_request.Plan.Weathering}");
         }
 
         private void ClearCarrierSubNets()

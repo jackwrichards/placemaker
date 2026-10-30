@@ -16,6 +16,10 @@
 //
 // A variant is deterministic from the kind's id and its index (the seed is a hash of both), so the same library gives the
 // same pixels on every machine, and a disk cache can be checked by key.
+//
+// End caps (strips and crack chains): index 100 + i is variant i fading out toward its +x end, 200 + i fading out toward
+// its −x end. The same pixels as variant i times a ragged ramp, so a cap joins its strip seamlessly on the open side and a
+// run of strip pieces never stops in a hard cut (Brushes.EdgeStrip, CracksAlong).
 
 using System;
 using Unity.Mathematics;
@@ -119,6 +123,54 @@ namespace Placemaker.Core.Decals.Dynamic
     {
         /// <summary>Bump when the generator or baking changes pixels: disk caches key on it.</summary>
         public const int GeneratorVersion = 5;
+        /// <summary>Index offsets of a strip's end caps: CapEnd + i fades out toward +x, CapStart + i toward −x.</summary>
+        public const int CapEnd = 100, CapStart = 200;
+
+        /// <summary>True for an end-cap index of a strip or chain kind.</summary>
+        public static bool IsCap(DecalKind k, int index) => index >= CapEnd && index < CapStart + 100 && k != null && (k.Variants.Tile == VariantTiling.X || k.Variants.Tile == VariantTiling.Chain);
+
+        /// <summary>The plain variant a (cap) index is made from, within the kind's count.</summary>
+        public static int BaseIndex(DecalKind k, int index) => math.clamp(index >= CapEnd ? index % 100 : index, 0, math.max(0, k.Variants.Count - 1));
+
+        /// <summary>A valid index of the kind: caps kept for strips and chains, everything else clamped to the plain variants.</summary>
+        public static int Normalize(DecalKind k, int index) => IsCap(k, index) ? (index >= CapStart ? CapStart : CapEnd) + BaseIndex(k, index) : BaseIndex(k, index);
+
+        /// <summary>
+        /// Metres the variant's texture spans (x, z) without making it: the box an instance draws at scale 1. Patches: the
+        /// footprint plus its soft margin; strips and chains: one repeat by the width with its margin; sheets: one repeat.
+        /// The same numbers <see cref="Bake"/> gives.
+        /// </summary>
+        public static float2 SpanOf(DecalKind k, int index)
+        {
+            var v = Get(k, BaseIndex(k, index));
+            float pad = k.Warp * 1.3f + 0.3f;
+            float maxSide = math.min(DecalTiler.MaxTileMetres, k.MaxTexels * k.Texel);
+            switch (v.Tile)
+            {
+                case VariantTiling.None:
+                {
+                    var size = math.max(math.min(v.Size, new float2(maxSide - 2f * pad)), new float2(0.1f));
+                    return size + 2f * pad;
+                }
+                case VariantTiling.X:
+                case VariantTiling.Chain:
+                {
+                    bool chain = v.Tile == VariantTiling.Chain;
+                    float L = math.min(v.Size.x, maxSide * (chain ? 1f : 0.75f));
+                    return new float2(L, math.min(v.Size.y + 2f * pad, maxSide));
+                }
+                default:
+                    return new float2(math.min(v.Size.x, maxSide * 0.75f), math.min(v.Size.y, maxSide * 0.75f));
+            }
+        }
+
+        /// <summary>The variant's own footprint (x, z) in metres: patches without their soft margin, strips the drawn width.</summary>
+        public static float2 FootprintOf(DecalKind k, int index)
+        {
+            var v = Get(k, BaseIndex(k, index));
+            var span = SpanOf(k, index);
+            return v.Tile == VariantTiling.None ? math.max(span - 2f * (k.Warp * 1.3f + 0.3f), new float2(0.1f)) : new float2(span.x, math.min(span.y, v.Size.y));
+        }
 
         public static string Id(string kind, int index) => kind + "#" + index;
 
@@ -152,7 +204,7 @@ namespace Placemaker.Core.Decals.Dynamic
         {
             var sp = k.Variants;
             int n = sp.Count;
-            index = math.clamp(index, 0, n - 1);
+            index = BaseIndex(k, index);
             float len = Spread(sp.Size, index, n, 0f);
             float wid = !float.IsNaN(sp.Width.x) ? Spread(sp.Width, index, n, 0.31f) : len * Spread(sp.Aspect, index, n, 0.37f);
             return new DecalVariant
@@ -179,6 +231,13 @@ namespace Placemaker.Core.Decals.Dynamic
         /// <summary>Makes a variant's pixels (pure, deterministic; worker threads).</summary>
         public static BakedVariant Bake(DecalKind k, int index)
         {
+            if (IsCap(k, index))
+            {
+                var plain = Bake(k, BaseIndex(k, index));
+                Cap(plain, index >= CapStart ? -1 : 1);
+                plain.V.Index = Normalize(k, index);
+                return plain;
+            }
             var v = Get(k, index);
             var s = new DecalStroke { Kind = k.Id, Seed = v.Seed, Strength = v.Strength, Wetness = v.Wetness, Age = v.Age, Saturation = v.Saturation };
             float texel = k.Texel;
@@ -234,6 +293,32 @@ namespace Placemaker.Core.Decals.Dynamic
                     var img = DecalGenerator.Generate(f, t, wo, ho);
                     v.Size = new float2(Lx, Lz);
                     return new BakedVariant { V = v, Img = img, Span = new float2(Lx, Lz) };
+                }
+            }
+        }
+
+        /// <summary>
+        /// Fades a strip's pixels out toward one end (dir +1: +x, −1: −x): full for the first 20 % from the open end, gone
+        /// before the last 8 %, the line ragged across the strip (never a straight cut). Opacity lives in the albedo's alpha
+        /// and the mask map's blue (what the decal shader blends normals and smoothness by).
+        /// </summary>
+        private static void Cap(BakedVariant b, int dir)
+        {
+            var img = b.Img;
+            int W = img.W, H = img.H;
+            uint seed = DecalNoise.Hash(b.V.Seed, dir > 0 ? 0xCA9Eu : 0xCA9Fu);
+            for (int y = 0; y < H; y++)
+            {
+                float vy = (y + 0.5f) / H;
+                float wob = 0.10f * DecalNoise.Fbm(vy * 3f, 0.5f, 3, seed) + 0.05f * DecalNoise.Perlin(vy * 9f, 1.5f, seed + 1u);
+                for (int x = 0; x < W; x++)
+                {
+                    float u = (x + 0.5f) / W;                    // 0 at −x, 1 at +x
+                    float t = dir > 0 ? u : 1f - u;              // 0 at the open end, 1 at the faded end
+                    float r = 1f - math.smoothstep(0.2f + wob, 0.92f + wob * 0.5f, t);
+                    int q = (y * W + x) * 4;
+                    img.Albedo[q + 3] = (byte)math.clamp((int)(img.Albedo[q + 3] * r + 0.5f), 0, 255);
+                    img.Mask[q + 2] = (byte)math.clamp((int)(img.Mask[q + 2] * r + 0.5f), 0, 255);
                 }
             }
         }

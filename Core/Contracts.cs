@@ -968,6 +968,8 @@ namespace Placemaker.Core
         public List<Decals.Dynamic.DecalStroke> Decals = new List<Decals.Dynamic.DecalStroke>();
         /// <summary>(dynamic decals) Kinds this plan defines itself (a builder's own look, DecalLibrary.ParseKind): saved with the strokes.</summary>
         public List<Decals.Dynamic.DecalKind> DecalKinds = new List<Decals.Dynamic.DecalKind>();
+        /// <summary>(dynamic decals v2) Instances of the shared decal library (Brushes, GroundDesign): saved on the group record, drawn by SharedDecals.</summary>
+        public List<Decals.Dynamic.DecalInstance> DecalInstances = new List<Decals.Dynamic.DecalInstance>();
         public List<PlanStat> Stats = new List<PlanStat>();
         public List<PlanIssue> Issues = new List<PlanIssue>();
         /// <summary>Generator-specific facts the game layer needs (e.g. parking capacity for the economy companion).</summary>

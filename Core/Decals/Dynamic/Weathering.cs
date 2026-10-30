@@ -1,18 +1,24 @@
-// Placemaker — dynamic decals: weathering grows from causes, not one patch per object (docs/DYNAMIC-DECALS.md). GPL-3.0.
+// Placemaker — dynamic decals: the ground of a weathered type, designed top to bottom from its causes (docs/DECALS-PLAYBOOK.md,
+// docs/runbooks/sportsPark.md). GPL-3.0.
 //
-// After the whole plan is composed and graded, this pass reads what was built and asks why each place would get dirty:
-//   play       goalmouths, the centre spot, the spine down the middle, the linesmen's tracks (one each half, opposite
-//              touchlines), warm-up wear behind the busy end, the turf in front of dugouts and stands
-//   feet       mud where players come off the pitch onto a path, prints fading along it, shortcuts trodden into the grass
-//   water      puddles in the real low points of the built ground (paths and car park; 2-3 cm of micro-unevenness on hard
-//              ground), the deepest wet, the rest dry tidemarks
-//   wind       one prevailing wind: leaves blown from groups of trees pile against the first kerb, fence or stand
-//              downwind (never a disc under each tree); court corners downwind collect dust and leaves
-//   wheels     the car park's wheel paths and lane oil line, oil under the busy stalls, kerb grime in broken runs, a few
-//              cracks with tar seals, the low corner's puddle, the tone of the whole asphalt
-//   objects    rust at the foot of a few steel masts and lamps
-// Heavy-tailed on purpose: a few hot spots carry most of it, most of the ground stays clean (Budget), and one or two
-// "signature flaws" per site are exaggerated. Deterministic from the step's seed.
+// After the whole plan is composed and graded, this pass reads what was built and lays the shared library's pieces with
+// brushes (Brushes.cs), in the playbook's order:
+//   tone       faint big patches over every lawn, pitch, paving and asphalt (no swath untouched), the lawn mottled and
+//              drier toward the open edges
+//   trees      leaves of each tree's kind under and downwind of the crowns (carpets where crowns crowd), woodland floor
+//              under groups, drifts piled against the first kerb, fence or court edge downwind, a leaf pile or two
+//   seams      every boundary the plan knows: path edges worn, kerb grime on paving and car park edges, grime along court
+//              lines, wear under fences
+//   play       goalmouths worn bald, the crease muddy, the centre spot and the spine, the linesmen's tracks, the turf in
+//              front of stands and dugouts, leaves and grit in the downwind court corners, clay spilling off its courts
+//   feet       mud at the gates and prints fading along the path, shortcuts trodden across the grass, bare ground and
+//              litter at the busiest benches
+//   water      puddles filling the real low points of the built ground (paths and car park), the deepest wet, the rest
+//              tidemarks and damp
+//   wheels     the car park's tone, tyre tracks along the aisles, oil under the busy stalls, cracks along its edges
+//   objects    rust at the feet of masts and lamps
+// One or two "signature flaws" per site are exaggerated. The player's Grime amount scales every cause (not the tone).
+// Deterministic from the step's seed. v1 strokes (per-build textures) are no longer made here; old saves still draw theirs.
 
 using System;
 using System.Collections.Generic;
@@ -31,15 +37,11 @@ namespace Placemaker.Core.Decals.Dynamic
         public static readonly float2 Wind = math.normalize(new float2(0.62f, 0.78f));
         /// <summary>Weather of the last days for puddles and mud (0 dry .. 1 soaked). A later knob.</summary>
         public const float RecentRain = 0.6f;
-        public const int MaxStrokes = 400;
+        /// <summary>Most library instances one weathered build places.</summary>
+        public const int MaxInstances = 9000;
 
-        /// <summary>The types (and their styles) that get weathering. v1: the everyday sports park.</summary>
-        public static bool Wants(string layerId, SettingsBag values)
-        {
-            if (layerId != "sportsPark") return false;
-            string subtype = values?.S("subtype", "community") ?? "community";
-            return subtype == "community";
-        }
+        /// <summary>The types (and their styles) that get a designed ground: every sports park style.</summary>
+        public static bool Wants(string layerId, SettingsBag values) => layerId == "sportsPark";
 
         public static float Amount(SettingsBag values)
         {
@@ -51,8 +53,9 @@ namespace Placemaker.Core.Decals.Dynamic
         public sealed class Report
         {
             public readonly Dictionary<string, int> ByCause = new Dictionary<string, int>(StringComparer.Ordinal);
-            public int Strokes;
-            /// <summary>Share of the site any stroke touches, and where one is strong (≥ 0.6).</summary>
+            /// <summary>Library instances placed.</summary>
+            public int Instances;
+            /// <summary>Share of the site any cause (not the tone) touches, and where one is strong (opacity ≥ 0.6).</summary>
             public float Touched, Strong;
             public readonly List<string> Flaws = new List<string>();
             public double Ms;
@@ -61,21 +64,23 @@ namespace Placemaker.Core.Decals.Dynamic
             {
                 var parts = new List<string>();
                 foreach (var kv in ByCause) parts.Add(kv.Key + " " + kv.Value);
-                return $"{Strokes} strokes ({string.Join(", ", parts)}), {Touched * 100f:F0} % of the site touched, {Strong * 100f:F1} % strong, flaws [{string.Join(", ", Flaws)}], {Ms:F0} ms";
+                return $"{Instances} library instances ({string.Join(", ", parts)}), {Touched * 100f:F0} % of the site touched by causes, {Strong * 100f:F1} % strong, flaws [{string.Join(", ", Flaws)}], {Ms:F0} ms";
             }
         }
 
-        /// <summary>Runs over a composed, graded plan (after SiteHarmony and SiteSafety). Strokes go into the host layer's plan.</summary>
-        public static Report Apply(ComposedPlan plan, AreaShape area, SiteContext site, IReadOnlyDictionary<AreaPlan, DressSettings> dress)
+        /// <summary>Runs over a composed, graded plan (after SiteHarmony and SiteSafety). Instances go into the host layer's plan.</summary>
+        public static Report Apply(ComposedPlan plan, AreaShape area, SiteContext site, IReadOnlyDictionary<AreaPlan, DressSettings> dress, DecalLibrary library = null)
         {
             var total = new Report();
             if (plan?.Layers == null || dress == null) return total;
+            var lib = library ?? DecalLibrary.EnsureCurrent();
+            if (lib == null || lib.Count == 0) return total;
             var clock = System.Diagnostics.Stopwatch.StartNew();
             var groups = new Dictionary<DressSettings, List<AreaPlan>>();
             var order = new List<DressSettings>();
             foreach (var l in plan.Layers)
             {
-                if (l == null || !dress.TryGetValue(l, out var s) || s == null || !s.Weathering || s.Grime <= 0f) continue;
+                if (l == null || !dress.TryGetValue(l, out var s) || s == null || !s.Weathering) continue;
                 if (!groups.TryGetValue(s, out var list)) { groups[s] = list = new List<AreaPlan>(); order.Add(s); }
                 list.Add(l);
             }
@@ -89,15 +94,14 @@ namespace Placemaker.Core.Decals.Dynamic
                 AreaPlan host = layers.Find(l => l.GeneratorId == s.LayerId) ?? layers[0];
                 var ring = s.Ring != null && s.Ring.Length >= 3 ? s.Ring : area?.Ring2D();
                 if (ring == null || ring.Length < 3) continue;
-                var scene = new Scene(layers, ring, site, ground, Hashing.Mix(host.Seed == 0 ? 1u : host.Seed, 0xD1Au), s.Grime);
+                var scene = new Scene(layers, ring, site, ground, Hashing.Mix(host.Seed == 0 ? 1u : host.Seed, 0xD1Au), s.Grime, lib, host.DecalInstances);
                 var r = scene.Run();
-                host.Decals.AddRange(scene.Out);
-                total.Strokes += r.Strokes;
+                total.Instances += r.Instances;
                 foreach (var kv in r.ByCause) total.ByCause[kv.Key] = (total.ByCause.TryGetValue(kv.Key, out var n) ? n : 0) + kv.Value;
                 total.Flaws.AddRange(r.Flaws);
                 total.Touched = math.max(total.Touched, r.Touched);
                 total.Strong = math.max(total.Strong, r.Strong);
-                host.Facts["decalStrokes"] = r.Strokes;
+                host.Facts["decalInstances"] = r.Instances;
                 host.Facts["decalTouchedPct"] = Math.Round(r.Touched * 100f, 1);
                 host.Facts["decalStrongPct"] = Math.Round(r.Strong * 100f, 1);
             }
@@ -116,6 +120,8 @@ namespace Placemaker.Core.Decals.Dynamic
 
         internal struct Thing { public float2 P; public float Yaw; public string Id; }
 
+        internal struct TreeAt { public float2 P; public float Crown; public string Leaves; }
+
         internal sealed class Scene
         {
             private readonly List<AreaPlan> _layers;
@@ -125,24 +131,31 @@ namespace Placemaker.Core.Decals.Dynamic
             private readonly uint _seed;
             private readonly float _amount;
             private readonly Report _r = new Report();
-            public readonly List<DecalStroke> Out = new List<DecalStroke>();
+            private readonly BrushContext _b;
+            public List<DecalInstance> Out => _b.Out;
 
             public readonly List<PathLine> Paths = new List<PathLine>(), Aisles = new List<PathLine>(), Fences = new List<PathLine>();
-            public readonly List<float2> Trees = new List<float2>();
-            public readonly List<Thing> Goals = new List<Thing>(), Stands = new List<Thing>(), Benches = new List<Thing>(), Steel = new List<Thing>(), Bays = new List<Thing>();
-            public readonly List<float2[]> Asphalt = new List<float2[]>(), Courts = new List<float2[]>(), Hard = new List<float2[]>(), Pitches = new List<float2[]>();
+            public readonly List<TreeAt> Trees = new List<TreeAt>();
+            public readonly List<Thing> Goals = new List<Thing>(), Stands = new List<Thing>(), Benches = new List<Thing>(), Steel = new List<Thing>(), Bays = new List<Thing>(), Bins = new List<Thing>();
+            public readonly List<float2[]> Asphalt = new List<float2[]>(), Courts = new List<float2[]>(), Clay = new List<float2[]>(), Hard = new List<float2[]>(),
+                Pitches = new List<float2[]>(), Turf = new List<float2[]>(), Sand = new List<float2[]>(), All = new List<float2[]>();
             public readonly List<float2> Gates = new List<float2>();
-            private float _pitchWidth = 0f;
+            private float _pitchWidth;
+            private BrushArea _lawn;
 
-            public Scene(List<AreaPlan> layers, float2[] ring, SiteContext site, Func<float2, float> ground, uint seed, float amount)
+            public Scene(List<AreaPlan> layers, float2[] ring, SiteContext site, Func<float2, float> ground, uint seed, float amount, DecalLibrary lib, List<DecalInstance> into)
             {
-                _layers = layers; _ring = ring; _site = site; _ground = ground; _seed = seed; _amount = amount;
+                _layers = layers; _ring = Poly.EnsureCcw((float2[])ring.Clone()); _site = site; _ground = ground; _seed = seed; _amount = amount;
+                _b = new BrushContext(lib, seed, into) { Budget = (into?.Count ?? 0) + MaxInstances };
                 Read();
             }
 
             private uint H(int a, int b = 0) => Hashing.Mix(_seed, a, b);
             private float U(int a, int b = 0) => Hashing.Unit(H(a, b));
             private float Range(float lo, float hi, int a, int b = 0) => math.lerp(lo, hi, U(a, b));
+            /// <summary>Coverage and opacity of the causes follow the player's Grime amount; the tone does not.</summary>
+            private float A => math.min(2.2f, _amount);
+            private float2 Op(float lo, float hi) => new float2(math.saturate(lo * math.min(1.4f, 0.55f + 0.45f * _amount)), math.saturate(hi * math.min(1.3f, 0.6f + 0.4f * _amount)));
 
             private static float2[] Sample(PlannedNet n, float step)
             {
@@ -158,12 +171,25 @@ namespace Placemaker.Core.Decals.Dynamic
                 return pts;
             }
 
+            private static string LeavesOf(PlannedObject o)
+            {
+                string id = ((o.Asset.Id ?? "") + " " + (o.Asset.Fallbacks != null && o.Asset.Fallbacks.Length > 0 ? o.Asset.Fallbacks[0] : "") + " " + (o.Category ?? "")).ToLowerInvariant();
+                if (DressingWorld.IsConifer(o)) return "pineNeedles";
+                if (id.Contains("birch") || id.Contains("alder") || id.Contains("poplar")) return "leafBirch";
+                if (id.Contains("oak")) return "leafOak";
+                if (id.Contains("plane") || id.Contains("linden")) return "leafPlane";
+                if (id.Contains("chestnut") || id.Contains("hickory") || id.Contains("maple")) return "leafMaple";
+                if (id.Contains("apple") || id.Contains("cherry") || id.Contains("blossom")) return "blossomPetals";
+                if (id.Contains("palm")) return null;
+                return "leafMixed";
+            }
+
             private void Read()
             {
                 foreach (var l in _layers)
                 {
-                    bool court = l.GeneratorId == "tennisCourts" || l.GeneratorId == "basketballCourt" || l.GeneratorId == "skateBowl";
-                    bool pitch = l.GeneratorId == "pitch";
+                    bool court = l.GeneratorId == "tennisCourts" || l.GeneratorId == "basketballCourt" || l.GeneratorId == "basketball" || l.GeneratorId == "skateBowl" || l.GeneratorId == "volleyball";
+                    bool pitch = l.GeneratorId == "pitch" || l.GeneratorId == "runningTrack";
                     if (pitch && l.Facts.TryGetValue("fieldWidth", out var fw)) _pitchWidth = math.max(_pitchWidth, (float)fw);
                     foreach (var n in l.Nets)
                     {
@@ -178,22 +204,30 @@ namespace Placemaker.Core.Decals.Dynamic
                     foreach (var s in l.Surfaces)
                     {
                         if (s?.Ring == null || s.Ring.Length < 3) continue;
-                        var r2 = Poly.To2D(s.Ring);
+                        var r2 = Poly.EnsureCcw(Poly.To2D(s.Ring));
                         float a = Poly.Area(r2);
-                        if (court && a > 120f) Courts.Add(r2);
-                        else if (pitch && a > 800f) Pitches.Add(r2);
-                        if (s.Role == SurfaceRole.Asphalt) Asphalt.Add(r2);
-                        else if (s.Role == SurfaceRole.Paving || s.Role == SurfaceRole.Plaza) Hard.Add(r2);
+                        if (a < 3f) continue;
+                        All.Add(r2);
+                        string cat = (s.Category ?? "") + " " + (s.Asset.Id ?? "");
+                        bool clay = cat.IndexOf("dirt", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("natural", StringComparison.OrdinalIgnoreCase) >= 0 || cat.IndexOf("clay", StringComparison.OrdinalIgnoreCase) >= 0;
+                        bool sand = cat.IndexOf("sand", StringComparison.OrdinalIgnoreCase) >= 0;
+                        if (s.Role == SurfaceRole.Grass) { Turf.Add(r2); if (pitch && a > 800f) Pitches.Add(r2); }
+                        else if (court && a > 120f) { Courts.Add(r2); if (clay) Clay.Add(r2); }
+                        else if (sand) Sand.Add(r2);
+                        else if (s.Role == SurfaceRole.Asphalt) Asphalt.Add(r2);
+                        else if (s.Role == SurfaceRole.Paving || s.Role == SurfaceRole.Plaza || s.Role == SurfaceRole.Decorative) Hard.Add(r2);
+                        else if (s.Role == SurfaceRole.Ground && clay) Clay.Add(r2);
                     }
                     foreach (var o in l.Objects)
                     {
                         if (o == null) continue;
                         string id = o.Asset.Id ?? "";
                         var t = new Thing { P = o.Position.xz, Yaw = o.Yaw, Id = id };
-                        if (o.Role == ObjectRole.Tree) Trees.Add(o.Position.xz);
-                        else if (id.StartsWith("SportParkFootballGoal", StringComparison.Ordinal)) Goals.Add(t);
+                        if (o.Role == ObjectRole.Tree) Trees.Add(new TreeAt { P = o.Position.xz, Crown = DressingWorld.CrownOf(o, _site), Leaves = LeavesOf(o) });
+                        else if (id.StartsWith("SportParkFootballGoal", StringComparison.Ordinal) || id.StartsWith("FootballGoal", StringComparison.Ordinal)) Goals.Add(t);
                         else if (id.StartsWith("SportParkStand", StringComparison.Ordinal) || id.StartsWith("SportParkBench", StringComparison.Ordinal)) Stands.Add(t);
                         else if (o.Role == ObjectRole.Bench) Benches.Add(t);
+                        else if (o.Role == ObjectRole.Bin) Bins.Add(t);
                         else if (o.Role == ObjectRole.ParkingBay || o.Category == AssetCategories.ParkingDecal) Bays.Add(t);
                         if (o.Role == ObjectRole.Lamp || id.StartsWith("Lightpole", StringComparison.Ordinal)) Steel.Add(t);
                     }
@@ -202,18 +236,8 @@ namespace Placemaker.Core.Decals.Dynamic
                 foreach (var p in Paths)
                     foreach (var e in new[] { p.P[0], p.P[p.P.Length - 1] })
                         if (Poly.DistanceToBoundary(_ring, e) < 4f && !Gates.Exists(g => math.distancesq(g, e) < 36f)) Gates.Add(e);
-            }
-
-            private void Add(DecalStroke s, string cause)
-            {
-                if (Out.Count >= MaxStrokes) return;
-                s.Strength = math.saturate(s.Strength * math.min(2f, _amount));
-                if (s.Strength < 0.04f) return;
-                s.Cause = cause;
-                s.Age = math.saturate(s.Age);
-                try { s.Bounds(out var lo, out var hi); s.Y = _ground((lo + hi) * 0.5f); } catch (Exception) { }
-                Out.Add(s);
-                _r.ByCause[cause] = (_r.ByCause.TryGetValue(cause, out var n) ? n : 0) + 1;
+                // the lawn: the site minus every surface
+                _lawn = BrushArea.Of(_ring, All);
             }
 
             private bool Inside(float2 p, float inset = 0f) => Poly.Contains(_ring, p) && (inset <= 0f || Poly.DistanceToBoundary(_ring, p) >= inset);
@@ -221,16 +245,23 @@ namespace Placemaker.Core.Decals.Dynamic
             public Report Run()
             {
                 var clock = System.Diagnostics.Stopwatch.StartNew();
+                int before = Out.Count;
                 var flaws = PickFlaws();
-                Play(flaws);
-                Feet(flaws);
-                Water(flaws);
-                Leaves(flaws);
-                Wheels();
-                Objects();
-                Budget();
+                Tone();
+                if (_amount > 0f)
+                {
+                    Trees_(flaws);
+                    Seams();
+                    Play(flaws);
+                    Feet(flaws);
+                    Water(flaws);
+                    Wheels();
+                    Objects();
+                }
+                Measure(out _r.Touched, out _r.Strong);
+                foreach (var kv in _b.ByCause) _r.ByCause[kv.Key] = kv.Value;
                 _r.Flaws.AddRange(flaws);
-                _r.Strokes = Out.Count;
+                _r.Instances = Out.Count - before;
                 _r.Ms = clock.Elapsed.TotalMilliseconds;
                 return _r;
             }
@@ -246,7 +277,275 @@ namespace Placemaker.Core.Decals.Dynamic
                 return pick;
             }
 
-            // ───────────── play: the pitch ─────────────
+            // ───────────── tone: no swath untouched ─────────────
+
+            private void Tone()
+            {
+                // the lawn: big faint patches everywhere, mottled from above, drier toward the open edges and away from trees
+                Brushes.Tone(_b, _lawn, "lawnTonePatch", new float2(0.45f, 0.75f), 0.55f, ColourLevel.Any, "tone:lawn");
+                Brushes.Scatter(_b, _lawn, "groundMottle", 0.35f, new ScatterOptions { Weight = p => 0.35f + 0.65f * ValueNoise.Clumps(p, 30f, H(1)), Opacity = new float2(0.35f, 0.7f), Clump = 2.5f, Spill = 3f, Level = ColourLevel.Quiet, Cause = "tone:mottle" });
+                Brushes.Scatter(_b, _lawn, "dryGrass", 0.22f, new ScatterOptions { Weight = Dryness, Opacity = new float2(0.4f, 0.8f), Clump = 3f, Spill = 2f, Cause = "tone:dry" });
+                Brushes.Scatter(_b, _lawn, "cloverPatch", 0.05f, new ScatterOptions { Weight = p => 1f - Dryness(p), Opacity = new float2(0.4f, 0.7f), Clump = 3f, Loners = 0.2f, Cause = "tone:clover" });
+                // the pitches and turf: faint, so the stripes and wear sit on a living green
+                foreach (var t in Turf)
+                {
+                    var a = BrushArea.Of(t);
+                    Brushes.Tone(_b, a, "lawnTonePatch", new float2(0.3f, 0.55f), 0.5f, ColourLevel.Quiet, "tone:turf");
+                    if (Poly.Area(t) > 800f) Stripes(t);
+                }
+                foreach (var h in Hard) Brushes.Tone(_b, BrushArea.Of(h), "pavingTonePatch", new float2(0.4f, 0.75f), 0.5f, ColourLevel.Quiet, "tone:paving");
+                foreach (var h in Asphalt) Brushes.Tone(_b, BrushArea.Of(h), "asphaltTonePatch", new float2(0.5f, 0.85f), 0.5f, ColourLevel.Any, "tone:asphalt");
+                foreach (var c in Courts)
+                {
+                    bool clay = Clay.Contains(c);
+                    Brushes.Tone(_b, BrushArea.Of(c), clay ? "dirtTonePatch" : "asphaltTonePatch", new float2(0.25f, 0.5f), 0.45f, ColourLevel.Quiet, "tone:court");
+                }
+            }
+
+            /// <summary>Drier toward the site's open edges and far from trees, in big soft clumps (0..1).</summary>
+            private float Dryness(float2 p)
+            {
+                float edge = 1f - math.saturate(Poly.DistanceToBoundary(_ring, p) / 25f);
+                float shade = 0f;
+                foreach (var t in Trees) { float d = math.distance(t.P, p); if (d < t.Crown * 2.5f) { shade = math.max(shade, 1f - d / (t.Crown * 2.5f)); if (shade > 0.9f) break; } }
+                return math.saturate((0.25f + 0.5f * edge + 0.5f * ValueNoise.Clumps(p, 35f, H(2)) - 0.2f) * (1f - 0.8f * shade));
+            }
+
+            /// <summary>Mowing stripes along the pitch's long side: strips laid end to end across it.</summary>
+            private void Stripes(float2[] turf)
+            {
+                var k = _b.Lib.Get("mowingStripes");
+                if (k == null) return;
+                Poly.Bounds(turf, out var lo, out var hi);
+                // the long axis of the turf's best box
+                var axis = LongAxis(turf);
+                var side = new float2(-axis.y, axis.x);
+                var c = Poly.Centroid(turf);
+                float halfL = 0f, halfW = 0f;
+                foreach (var q in turf) { halfL = math.max(halfL, math.abs(math.dot(q - c, axis))); halfW = math.max(halfW, math.abs(math.dot(q - c, side))); }
+                float width = DecalVariants.SpanOf(k, 0).y;
+                int rows = math.max(1, (int)math.ceil(halfW * 2f / (width * 0.9f)));
+                for (int i = 0; i < rows; i++)
+                {
+                    float v = -halfW + (i + 0.5f) * halfW * 2f / rows;
+                    var a = c + side * v - axis * (halfL - 1f); var b = c + side * v + axis * (halfL - 1f);
+                    Brushes.EdgeStrip(_b, new[] { a, b }, "mowingStripes", new StripOptions { Gaps = 0f, Opacity = new float2(0.45f, 0.7f), Width = new float2(1f, 1f), Level = ColourLevel.Quiet, Cause = "tone:stripes" });
+                }
+            }
+
+            private static float2 LongAxis(float2[] ring)
+            {
+                float best = 0f; float2 axis = new float2(1f, 0f);
+                for (int i = 0; i < ring.Length; i++)
+                {
+                    var e = ring[(i + 1) % ring.Length] - ring[i];
+                    float l = math.length(e);
+                    if (l > best) { best = l; axis = e / l; }
+                }
+                return axis;
+            }
+
+            // ───────────── trees: leaves of each kind, downwind, piled against barriers ─────────────
+
+            private void Trees_(List<string> flaws)
+            {
+                if (Trees.Count == 0) return;
+                bool choked = flaws.Contains("leafChokedCorner");
+                // the ground leaves fall on: the lawn and the hard ground (they blow onto paths and courts too), never the pitch
+                var fall = BrushArea.Of(_ring, Pitches);
+                var bySpecies = new Dictionary<string, List<(float2, float)>>(StringComparer.Ordinal);
+                foreach (var t in Trees)
+                {
+                    if (t.Leaves == null) continue;
+                    if (!bySpecies.TryGetValue(t.Leaves, out var l)) bySpecies[t.Leaves] = l = new List<(float2, float)>();
+                    l.Add((t.P, t.Crown));
+                }
+                foreach (var kv in bySpecies)
+                {
+                    string kind = kv.Key;
+                    // smothered, never a blotch: overlapping patches over the whole fall zone, heaviest where crowns crowd
+                    float cov = (kind == "pineNeedles" ? 0.8f : kind == "blossomPetals" ? 0.55f : 1.1f) * A;
+                    Brushes.Under(_b, kv.Value, kind, cov, Wind, fall, new ScatterOptions { Opacity = Op(0.55f, 1f), Scale = new float2(0.9f, 1.45f), Clump = 5f, Spread = 0.55f, Loners = 0.25f, Spill = 2f, Cause = "leaves" });
+                    // mixed leaves blown further on, thinner
+                    if (kind != "pineNeedles")
+                        Brushes.Under(_b, Shift(kv.Value, Wind, 1.8f), "leafMixed", 0.35f * A, Wind, fall, new ScatterOptions { Opacity = Op(0.4f, 0.8f), Clump = 2.5f, Loners = 0.45f, Cause = "leaves:blown" });
+                }
+                // under groups of trees: woodland floor and a little bare earth, overlapping the leaves
+                var groups = TreeGroups(9f);
+                foreach (var g in groups)
+                {
+                    if (g.Count < 3) continue;
+                    var crowns = new List<(float2, float)>();
+                    foreach (var t in g) crowns.Add((t.P, t.Crown * 0.9f));
+                    Brushes.Under(_b, crowns, "woodlandFloor", 0.4f * A, Wind * 0.3f, _lawn, new ScatterOptions { Opacity = Op(0.45f, 0.85f), Clump = 3f, Cause = "woodland" });
+                    Brushes.Under(_b, crowns, "barePatch", 0.08f * A, Wind * 0.2f, _lawn, new ScatterOptions { Opacity = Op(0.3f, 0.6f), Clump = 2f, Loners = 0.5f, Cause = "woodland:bare" });
+                }
+                // drifts: leaves blown downwind pile against the first barrier
+                Drifts(choked);
+            }
+
+            private static List<(float2, float)> Shift(List<(float2 p, float r)> c, float2 wind, float k)
+            {
+                var o = new List<(float2, float)>(c.Count);
+                foreach (var x in c) o.Add((x.p + wind * x.r * k, x.r * 1.2f));
+                return o;
+            }
+
+            private List<List<TreeAt>> TreeGroups(float link)
+            {
+                var res = new List<List<TreeAt>>();
+                var done = new bool[Trees.Count];
+                for (int i = 0; i < Trees.Count; i++)
+                {
+                    if (done[i]) continue;
+                    done[i] = true;
+                    var g = new List<TreeAt> { Trees[i] };
+                    var q = new Queue<int>(); q.Enqueue(i);
+                    while (q.Count > 0)
+                    {
+                        int a = q.Dequeue();
+                        for (int j = 0; j < Trees.Count; j++)
+                            if (!done[j] && math.distancesq(Trees[a].P, Trees[j].P) < link * link) { done[j] = true; g.Add(Trees[j]); q.Enqueue(j); }
+                    }
+                    res.Add(g);
+                }
+                return res;
+            }
+
+            private struct Barrier { public float2 A, B; public int Group; }
+
+            private void Drifts(bool choked)
+            {
+                var bars = new List<Barrier>();
+                int gid = 0;
+                foreach (var l in Paths)
+                    for (int sideSign = -1; sideSign <= 1; sideSign += 2, gid++)
+                        for (int i = 0; i + 1 < l.P.Length; i++)
+                        {
+                            var d = math.normalizesafe(l.P[i + 1] - l.P[i]);
+                            var nrm = new float2(-d.y, d.x) * sideSign * l.Half;
+                            bars.Add(new Barrier { A = l.P[i] + nrm, B = l.P[i + 1] + nrm, Group = gid });
+                        }
+                foreach (var set in new[] { Asphalt, Courts, Hard })
+                    foreach (var r in set)
+                    {
+                        for (int i = 0; i < r.Length; i++) bars.Add(new Barrier { A = r[i], B = r[(i + 1) % r.Length], Group = gid });
+                        gid++;
+                    }
+                foreach (var f in Fences) { for (int i = 0; i + 1 < f.P.Length; i++) bars.Add(new Barrier { A = f.P[i], B = f.P[i + 1], Group = gid }); gid++; }
+                if (bars.Count == 0) return;
+                var hits = new List<(int bar, float2 p, float w)>();
+                var across = new float2(-Wind.y, Wind.x);
+                for (int t = 0; t < Trees.Count; t++)
+                {
+                    if (Trees[t].Leaves == null) continue;
+                    for (int ray = 0; ray < 3; ray++)
+                    {
+                        var start = Trees[t].P + across * (ray - 1) * 2.5f;
+                        var dir = math.normalizesafe(Wind + across * Range(-0.35f, 0.35f, 110 + ray, t));
+                        var end = start + dir * 26f;
+                        int best = -1; float bt = 2f; float2 bp = default;
+                        for (int b = 0; b < bars.Count; b++)
+                            if (Poly.SegmentIntersection(start, end, bars[b].A, bars[b].B, out var pt, out float ta, out _) && ta < bt && ta > 0.02f) { bt = ta; best = b; bp = pt; }
+                        if (best >= 0) hits.Add((best, bp, (1f - bt * 0.7f) / 3f));
+                    }
+                }
+                var used = new bool[hits.Count];
+                var drifts = new List<(float2[] pts, float w)>();
+                for (int i = 0; i < hits.Count; i++)
+                {
+                    if (used[i]) continue;
+                    used[i] = true;
+                    var members = new List<int> { i };
+                    int g = bars[hits[i].bar].Group;
+                    for (bool grew = true; grew;)
+                    {
+                        grew = false;
+                        for (int j = 0; j < hits.Count; j++)
+                        {
+                            if (used[j] || bars[hits[j].bar].Group != g) continue;
+                            foreach (int m in members)
+                                if (math.distancesq(hits[m].p, hits[j].p) < 8f * 8f) { used[j] = true; members.Add(j); grew = true; break; }
+                        }
+                    }
+                    float w = 0f;
+                    foreach (int m in members) w += hits[m].w;
+                    if (w < 0.3f) continue;
+                    var bar = bars[hits[i].bar];
+                    var tan = math.normalizesafe(bar.B - bar.A);
+                    float2 o = hits[i].p;
+                    members.Sort((x, y) => math.dot(hits[x].p - o, tan).CompareTo(math.dot(hits[y].p - o, tan)));
+                    var line = new List<float2>();
+                    foreach (int m in members)
+                        if (line.Count == 0 || math.distance(line[line.Count - 1], hits[m].p) > 1.8f) line.Add(hits[m].p);
+                    line.Insert(0, line[0] - tan * Range(3f, 6f, 118, drifts.Count));
+                    line.Add(line[line.Count - 1] + tan * Range(3f, 6f, 119, drifts.Count));
+                    var pts = new float2[line.Count];
+                    for (int k = 0; k < line.Count; k++)
+                    {
+                        var tk = math.normalizesafe(line[math.min(line.Count - 1, k + 1)] - line[math.max(0, k - 1)], tan);
+                        var nrm = new float2(-tk.y, tk.x);
+                        if (math.dot(nrm, Wind) > 0f) nrm = -nrm;   // the upwind side
+                        pts[k] = line[k] + nrm * 0.6f;
+                    }
+                    // the heavy side (left of travel) must face the barrier, which lies downwind
+                    var dir = math.normalizesafe(pts[pts.Length - 1] - pts[0]);
+                    if (math.dot(new float2(-dir.y, dir.x), Wind) < 0f) Array.Reverse(pts);
+                    drifts.Add((pts, w));
+                }
+                drifts.Sort((a, b) => b.w.CompareTo(a.w));
+                for (int i = 0; i < drifts.Count && i < 24; i++)
+                {
+                    var (pts, w) = drifts[i];
+                    bool hero = choked && i == 0;
+                    Brushes.EdgeStrip(_b, pts, "leafDriftStrip", new StripOptions { Gaps = 0.15f, Run = new float2(10f, 30f), Opacity = Op(0.55f + math.min(0.3f, w * 0.15f), 1f), Width = hero ? new float2(1.3f, 1.6f) : new float2(0.8f, 1.15f), Cause = "leaves:drift" });
+                    if (hero || (i < 3 && w > 1.2f))
+                    {
+                        var mid = pts[pts.Length / 2];
+                        Brushes.At(_b, mid - Wind * 1.5f, -Wind, "leafPile", hero ? 9f : 6f, Op(0.7f, 1f), hero ? 5 : 3, ColourLevel.Any, hero ? "flaw:leafChoked" : "leaves:pile");
+                    }
+                }
+            }
+
+            // ───────────── seams: every boundary the plan knows ─────────────
+
+            private void Seams()
+            {
+                // path edges: worn grass on the grass side (pathEdgeWear lies on terrain only: it never paints the path)
+                foreach (var l in Paths)
+                    for (int side = -1; side <= 1; side += 2)
+                        Brushes.EdgeStrip(_b, l.P, "pathEdgeWear", new StripOptions { Side = -side, Offset = -(l.Half + 0.8f), Gaps = 0.25f, Run = new float2(12f, 40f), Opacity = Op(0.7f, 1f), Cause = "seam:path" });
+                // kerb grime: inside paving and the car park, against their edges
+                foreach (var set in new[] { Hard, Asphalt })
+                    foreach (var r in set)
+                        Brushes.EdgeStrip(_b, Ring(r), "kerbGrimeStrip", new StripOptions { Side = -1, Offset = -0.3f, Gaps = 0.35f, Closed = true, Opacity = Op(0.55f, 0.9f), Cause = "seam:kerb" });
+                // courts: grime along the line where the court meets the grass, wear just outside it
+                foreach (var c in Courts)
+                {
+                    Brushes.EdgeStrip(_b, Ring(c), "seamGrime", new StripOptions { Side = -1, Offset = -0.15f, Gaps = 0.2f, Closed = true, Opacity = Op(0.6f, 0.95f), Cause = "seam:court" });
+                    Brushes.EdgeStrip(_b, Ring(c), "pathEdgeWear", new StripOptions { Side = 1, Offset = -1.1f, Gaps = 0.4f, Closed = true, Opacity = Op(0.45f, 0.8f), Cause = "seam:courtEdge" });
+                }
+                // turf against the lawn (a pitch's edge is mown differently and trodden by the subs)
+                foreach (var t in Turf)
+                    if (Poly.Area(t) > 800f)
+                        Brushes.EdgeStrip(_b, Ring(t), "pathEdgeWear", new StripOptions { Side = 1, Offset = -0.6f, Gaps = 0.55f, Closed = true, Opacity = Op(0.3f, 0.6f), Cause = "seam:turf" });
+                // fences: the strip of rough grass and grime the mower never reaches
+                foreach (var f in Fences)
+                    Brushes.EdgeStrip(_b, f.P, "fenceLine", new StripOptions { Side = U(300, f.P.Length) < 0.5f ? 1 : -1, Gaps = 0.2f, Run = new float2(16f, 45f), Opacity = Op(0.6f, 1f), Cause = "seam:fence" });
+            }
+
+            /// <summary>A CCW ring as a closed polyline (first point repeated).</summary>
+            private static float2[] Ring(float2[] r)
+            {
+                var o = new float2[r.Length + 1];
+                Array.Copy(r, o, r.Length);
+                o[r.Length] = r[0];
+                return o;
+            }
+
+            // ───────────── play: pitches, stands, courts ─────────────
+
+            private readonly List<float2> PitchCentres = new List<float2>();
 
             private void Play(List<string> flaws)
             {
@@ -266,29 +565,66 @@ namespace Placemaker.Core.Decals.Dynamic
                     used.Add(i); used.Add(best);
                     Pitch(Goals[i].P, Goals[best].P, pitchNo++, flaws);
                 }
-                // In front of the stands and dugouts: the turf (or paving) people stand on, broken, not a band. The busiest few:
-                // the ones nearest a pitch (a row of spectator benches is one place, not one patch per bench).
+                // in front of the stands and dugouts: the turf people stand on, the busiest few
                 var busy = new List<Thing>(Stands);
                 busy.Sort((a, b) => NearestPitch(a.P).CompareTo(NearestPitch(b.P)));
                 var taken = new List<float2>();
                 foreach (var st in busy)
                 {
-                    if (taken.Count >= 5 || taken.Exists(q => math.distancesq(q, st.P) < 12f * 12f)) continue;
+                    if (taken.Count >= 8 || taken.Exists(q => math.distancesq(q, st.P) < 12f * 12f)) continue;
                     taken.Add(st.P);
                     var front = Front(st);
-                    if (front.Equals(float2.zero)) continue;
                     bool dugout = st.Id.StartsWith("SportParkBench", StringComparison.Ordinal);
-                    float len = dugout ? 7f : 18f;
-                    var c = st.P + front * (dugout ? 2.2f : 8f);
+                    var c = st.P + front * (dugout ? 2.4f : 9f);
                     var along = new float2(front.y, -front.x);
-                    int k = Out.Count;
-                    var pts = new[] { c - along * len * 0.5f, c - along * len * 0.15f + front * Range(-0.6f, 0.6f, 31, k), c + along * len * 0.2f + front * Range(-0.6f, 0.6f, 32, k), c + along * len * 0.5f };
-                    var s = DecalStroke.Path("wornGrass", H(33, k), pts, dugout ? 3.2f : 4.5f, dugout ? 0.75f : 0.5f);
-                    Add(s, dugout ? "dugout" : "stand");
+                    Brushes.At(_b, c, along, dugout ? "mudPatch" : "barePatch", dugout ? 7f : 14f, Op(0.45f, 0.8f), dugout ? 2 : 4, ColourLevel.Any, dugout ? "play:dugout" : "play:stand");
+                }
+                // courts: grit and leaves in the downwind corners, clay spilling off its courts, a few cracks on hard courts
+                int n = 0;
+                foreach (var r in Courts)
+                {
+                    var c = Poly.Centroid(r);
+                    bool clay = Clay.Contains(r);
+                    var corners = new List<(float2 p, float score)>();
+                    for (int i = 0; i < r.Length; i++)
+                    {
+                        var prev = r[(i + r.Length - 1) % r.Length]; var next = r[(i + 1) % r.Length];
+                        var d0 = math.normalizesafe(r[i] - prev); var d1 = math.normalizesafe(next - r[i]);
+                        if (math.abs(math.dot(d0, d1)) > 0.5f) continue;
+                        corners.Add((r[i], math.dot(math.normalizesafe(r[i] - c), Wind)));
+                    }
+                    corners.Sort((a, b) => b.score.CompareTo(a.score));
+                    for (int k = 0; k < corners.Count && k < 2; k++)
+                    {
+                        if (corners[k].score < 0.05f) break;
+                        var p = corners[k].p; var inward = math.normalizesafe(c - p);
+                        Brushes.At(_b, p + inward * 2.2f, -inward, Trees.Count > 0 ? "leafPile" : "pebbles", k == 0 ? 6f : 4.5f, Op(0.55f, 0.95f), 2, ColourLevel.Any, "play:courtCorner");
+                    }
+                    if (clay)
+                    {
+                        // clay carried out onto the grass at the gates and kicked over the edges
+                        Brushes.EdgeStrip(_b, Ring(r), "claySpillStrip", new StripOptions { Side = 1, Offset = -0.9f, Gaps = 0.45f, Closed = true, Opacity = Op(0.5f, 0.9f), Cause = "play:claySpill" });
+                    }
+                    else
+                    {
+                        // a hard court: one or two long cracks across, sealed or open
+                        Poly.Bounds(r, out var lo, out var hi);
+                        var axis = LongAxis(r);
+                        var side = new float2(-axis.y, axis.x);
+                        float halfW = 0f; foreach (var q in r) halfW = math.max(halfW, math.abs(math.dot(q - c, side)));
+                        int cracks = U(320, n) < 0.6f ? 1 : 2;
+                        for (int i = 0; i < cracks; i++)
+                        {
+                            float u = Range(-0.35f, 0.35f, 321 + i, n) * math.length(hi - lo) * 0.5f;
+                            var a = c + axis * u - side * (halfW - 0.8f); var b = c + axis * (u + Range(-2f, 2f, 323 + i, n)) + side * (halfW - 0.8f);
+                            Brushes.CracksAlong(_b, new[] { a, b }, U(325 + i, n) < 0.5f ? "crackSealed" : "crackAsphalt", new StripOptions { Gaps = 0.2f, Run = new float2(8f, 30f), Opacity = Op(0.5f, 0.85f), Width = new float2(0.8f, 1f), Cause = "play:courtCrack" });
+                        }
+                    }
+                    n++;
                 }
             }
 
-            /// <summary>Where a stand or bench looks: toward the nearest pitch or court, else its own facing.</summary>
+            /// <summary>Where a stand or bench looks: toward the nearest pitch, else its own facing.</summary>
             private float2 Front(Thing t)
             {
                 float2 target = default; float bd = 80f * 80f; bool found = false;
@@ -300,8 +636,6 @@ namespace Placemaker.Core.Decals.Dynamic
                 if (found) return math.normalizesafe(target - t.P);
                 return new float2(math.sin(t.Yaw), math.cos(t.Yaw));
             }
-
-            private readonly List<float2> PitchCentres = new List<float2>();
 
             private float NearestPitch(float2 p)
             {
@@ -318,11 +652,6 @@ namespace Placemaker.Core.Decals.Dynamic
                 var axis = math.normalizesafe(g2 - g1);
                 var side = new float2(-axis.y, axis.x);
                 float halfW = (_pitchWidth > 10f ? _pitchWidth : len * 0.64f) * 0.5f;
-                float yawAxis = math.atan2(-axis.y, axis.x);         // local +x along the axis
-                float yawSide = math.atan2(-side.y, side.x);         // local +x across
-                // the busy end: nearer the stands / dugouts (warm-ups happen there)
-                float2 near = Stands.Count > 0 ? Stands[0].P : centre + side * 50f;
-                int busy = math.distancesq(near, g1) < math.distancesq(near, g2) ? 0 : 1;
                 bool bald = flaws.Contains("baldGoalmouth");
                 int baldEnd = (int)(U(41, no) * 2f);
                 for (int e = 0; e < 2; e++)
@@ -331,52 +660,36 @@ namespace Placemaker.Core.Decals.Dynamic
                     var inward = e == 0 ? axis : -axis;
                     bool worst = bald && e == baldEnd;
                     float k = worst ? 1.35f : 1f;
-                    // goalmouth: wide and shallow, skewed off-centre (keepers dive one way more than the other)
-                    var gm = g + inward * Range(4.5f, 6f, 42, e + no * 4) + side * Range(-1.2f, 1.2f, 43, e + no * 4);
-                    Add(DecalStroke.Box("wornGrass", H(44, e + no * 4), gm, yawSide, new float2(Range(13f, 17f, 45, e) * k, Range(8f, 11f, 46, e) * k), (worst ? 1f : Range(0.8f, 0.95f, 47, e))), "goalmouth");
-                    // the crease: worn through to the soil, damp after rain
-                    var cr = g + inward * Range(1.6f, 2.4f, 48, e) + side * Range(-0.5f, 0.5f, 49, e);
-                    var crease = DecalStroke.Box("bareEarth", H(50, e + no * 4), cr, yawSide, new float2(Range(5.5f, 7.5f, 51, e) * k, Range(2.6f, 3.6f, 52, e) * k), worst ? 0.95f : 0.78f);
-                    crease.Wetness = RecentRain * Range(0.6f, 1f, 53, e);
-                    Add(crease, "goalCrease");
-                    // warm-up wear behind the busy end
-                    if (e == busy)
-                    {
-                        var wu = g - inward * Range(4f, 6f, 54, e) + side * Range(-6f, 6f, 55, e);
-                        Add(DecalStroke.Box("wornGrass", H(56, e + no * 4), wu, yawSide + Range(-0.3f, 0.3f, 57, e), new float2(Range(11f, 15f, 58, e), Range(4.5f, 6.5f, 59, e)), 0.62f), "warmUp");
-                    }
+                    // the goalmouth: wide and shallow, skewed off-centre (keepers dive one way more than the other)
+                    var gm = g + inward * Range(4.5f, 6.5f, 42, e + no * 4) + side * Range(-1.5f, 1.5f, 43, e + no * 4);
+                    Brushes.At(_b, gm, side, "barePatch", Range(12f, 16f, 45, e) * k, Op(worst ? 0.85f : 0.65f, 1f), worst ? 5 : 3, ColourLevel.Any, worst ? "flaw:baldGoalmouth" : "play:goalmouth");
+                    // the crease: worn through to the soil, muddy after rain
+                    var cr = g + inward * Range(1.6f, 2.6f, 48, e) + side * Range(-0.6f, 0.6f, 49, e);
+                    Brushes.At(_b, cr, side, "mudPatch", Range(6f, 8f, 51, e) * k, Op(0.6f, 0.95f), 2, ColourLevel.Any, "play:crease");
+                    // the penalty spot and the arc a keeper's kicks churn
+                    Brushes.At(_b, g + inward * Range(10f, 12f, 52, e), side, "barePatch", Range(5f, 7f, 53, e), Op(0.35f, 0.6f), 1, ColourLevel.Any, "play:spot");
                 }
                 // centre spot and the spine: midfield takes the most running
-                Add(DecalStroke.Box("wornGrass", H(60, no), centre + side * Range(-2f, 2f, 61, no), yawAxis + Range(-0.4f, 0.4f, 62, no), new float2(Range(9f, 12f, 63, no), Range(8f, 11f, 64, no)), 0.7f), "centreSpot");
+                Brushes.At(_b, centre + side * Range(-2f, 2f, 61, no), axis, "barePatch", Range(10f, 13f, 63, no), Op(0.5f, 0.85f), 3, ColourLevel.Any, "play:centre");
+                var corridor = new[] { g1 + axis * 10f - side * 10f, g2 - axis * 10f - side * 10f, g2 - axis * 10f + side * 10f, g1 + axis * 10f + side * 10f };
+                float half = len * 0.5f;
+                Brushes.Scatter(_b, BrushArea.Of(corridor), "barePatch", 0.32f * A, new ScatterOptions
                 {
-                    var a = g1 + axis * 11f; var b = g2 - axis * 11f;
-                    var pts = new float2[7];
-                    for (int i = 0; i < pts.Length; i++)
-                    {
-                        float t = i / (float)(pts.Length - 1);
-                        pts[i] = math.lerp(a, b, t) + side * (Range(-2.5f, 2.5f, 65, i + no * 8) * math.sin(t * 3.14159f));
-                    }
-                    var spine = DecalStroke.Path("wornGrass", H(66, no), pts, 13f, 0.5f);
-                    for (int i = 0; i < pts.Length; i++)
-                    {
-                        float t = i / (float)(pts.Length - 1);
-                        spine.Widths[i] = math.lerp(7f, 15f, math.sin(t * 3.14159f));
-                    }
-                    Add(spine, "spine");
-                }
+                    Weight = p => { float u = math.abs(math.dot(p - centre, axis)) / half, v = math.abs(math.dot(p - centre, side)) / 10f; return math.saturate((1f - u * u) * (1f - v * 0.7f)); },
+                    Opacity = Op(0.3f, 0.65f), Clump = 3f, Scale = new float2(0.6f, 1f), Cause = "play:spine",
+                });
                 // the linesmen: each runs one half, on opposite touchlines, just outside the line
                 for (int e = 0; e < 2; e++)
                 {
                     float sd = e == 0 ? 1f : -1f;
-                    var from = centre + side * sd * (halfW + 1.3f) + axis * (e == 0 ? 1f : -1f) * 2f;
-                    var to = centre + side * sd * (halfW + 1.3f) + axis * (e == 0 ? 1f : -1f) * (len * 0.5f - 12f);
-                    var pts = new[] { from, math.lerp(from, to, 0.33f) + side * Range(-0.4f, 0.4f, 70, e), math.lerp(from, to, 0.66f) + side * Range(-0.4f, 0.4f, 71, e), to };
+                    var from = centre + side * sd * (halfW + 1.4f) + axis * sd * 2f;
+                    var to = centre + side * sd * (halfW + 1.4f) + axis * sd * (half - 12f);
                     if (!Inside(to) || !Inside(from)) continue;
-                    Add(DecalStroke.Path("desirePath", H(72, e + no * 4), pts, 1.5f, 0.75f), "linesman");
+                    Brushes.EdgeStrip(_b, new[] { from, math.lerp(from, to, 0.5f) + side * Range(-0.5f, 0.5f, 70, e), to }, "wornPath", new StripOptions { Gaps = 0.35f, Run = new float2(10f, 25f), Opacity = Op(0.45f, 0.8f), Width = new float2(0.6f, 0.8f), Cause = "play:linesman" });
                 }
             }
 
-            // ───────────── feet: mud off the pitch, prints, shortcuts ─────────────
+            // ───────────── feet: gates, prints, shortcuts, benches ─────────────
 
             private (PathLine line, int idx, float d) NearestPath(float2 p)
             {
@@ -392,46 +705,31 @@ namespace Placemaker.Core.Decals.Dynamic
 
             private void Feet(List<string> flaws)
             {
-                // Mud where players step off the pitch onto a path: the path points nearest each pitch corner on the busy side.
+                // mud and prints at every gate: people come in off the street here
                 int n = 0;
+                foreach (var g in Gates)
+                {
+                    var (line, idx, _) = NearestPath(g);
+                    if (line == null) continue;
+                    int dir = idx < line.P.Length / 2 ? 1 : -1;
+                    var inward = math.normalizesafe(line.P[math.clamp(idx + dir * 3, 0, line.P.Length - 1)] - line.P[idx]);
+                    var side = new float2(-inward.y, inward.x) * (U(400, n) < 0.5f ? 1f : -1f);
+                    Brushes.At(_b, g + inward * 3f + side * (line.Half + 1.2f), inward, "mudPatch", Range(5f, 8f, 401, n), Op(0.45f, 0.8f), 2, ColourLevel.Any, "feet:gate");
+                    Brushes.At(_b, g + inward * 6f, inward, "footprintsMud", Range(7f, 10f, 402, n), Op(0.5f, 0.85f), 1, ColourLevel.Any, "feet:prints");
+                    n++;
+                }
+                // mud where players step off the pitch onto a path
                 foreach (var c in PitchCentres)
                 {
-                    var targets = new List<float2>();
-                    foreach (var st in Stands) if (math.distance(st.P, c) < 90f) targets.Add(st.P);
-                    if (targets.Count == 0) targets.Add(c);
-                    var seen = new List<float2>();
-                    foreach (var t in targets)
-                    {
-                        var (line, idx, d) = NearestPath(math.lerp(c, t, 0.75f));
-                        if (line == null || d > 40f) continue;
-                        var at = line.P[idx];
-                        if (seen.Exists(q => math.distancesq(q, at) < 400f)) continue;
-                        seen.Add(at);
-                        var toPitch = math.normalizesafe(c - at);
-                        var mudC = at + toPitch * (line.Half + Range(0.8f, 1.8f, 80, n));
-                        var mud = DecalStroke.Box("mud", H(81, n), mudC, math.atan2(-toPitch.y, toPitch.x), new float2(Range(4.5f, 6.5f, 82, n), Range(3.5f, 5f, 83, n)), 0.85f);
-                        mud.Wetness = RecentRain; mud.Layers = DecalLayerBits.Ground;
-                        Add(mud, "gatewayMud");
-                        // prints fading along the path, toward the nearer end
-                        int dir = idx < line.P.Length / 2 ? 1 : -1;
-                        var pts = new List<float2>();
-                        float walked = 0f;
-                        for (int i = idx; i >= 0 && i < line.P.Length && walked < 14f; i += dir)
-                        {
-                            if (pts.Count > 0) walked += math.distance(pts[pts.Count - 1], line.P[i]);
-                            pts.Add(line.P[i]);
-                        }
-                        if (pts.Count >= 2)
-                        {
-                            var pr = DecalStroke.Path("muddyPrints", H(84, n), pts.ToArray(), math.max(1.2f, line.Half * 1.4f), 0.8f);
-                            pr.Layers = DecalLayerBits.Ground;
-                            Add(pr, "prints");
-                        }
-                        n++;
-                        if (n >= 3) break;
-                    }
+                    var (line, idx, d) = NearestPath(c);
+                    if (line == null || d > 60f) continue;
+                    var at = line.P[idx];
+                    var toPitch = math.normalizesafe(c - at);
+                    Brushes.At(_b, at + toPitch * (line.Half + 1.5f), toPitch, "mudPatch", Range(6f, 9f, 410, n), Op(0.55f, 0.9f), 3, ColourLevel.Any, "feet:offPitch");
+                    Brushes.At(_b, at, math.normalizesafe(line.P[math.min(line.P.Length - 1, idx + 1)] - line.P[math.max(0, idx - 1)]), "footprintsMud", 9f, Op(0.45f, 0.8f), 1, ColourLevel.Any, "feet:prints");
+                    n++;
                 }
-                // Shortcuts: from a gate to where people go, straight across the grass, when the paths take the long way round.
+                // shortcuts trodden from a gate to where people go, when the paths take the long way round
                 var dests = new List<float2>();
                 foreach (var st in Stands) dests.Add(st.P);
                 foreach (var cr in Courts) dests.Add(Poly.Centroid(cr));
@@ -440,11 +738,10 @@ namespace Placemaker.Core.Decals.Dynamic
                     foreach (var dst in dests)
                     {
                         float L = math.distance(g, dst);
-                        if (L < 25f || L > 110f) continue;
+                        if (L < 25f || L > 120f) continue;
                         var dir = math.normalizesafe(dst - g);
                         var a = g + dir * 3f; var b = dst - dir * 9f;
                         if (!Clear(a, b)) continue;
-                        // how far the paths are from the straight line in its middle: the bigger, the more tempting the shortcut
                         float off = NearestPath(math.lerp(a, b, 0.5f)).d;
                         if (off < 9f) continue;
                         cands.Add((a, b, off * L));
@@ -456,8 +753,22 @@ namespace Placemaker.Core.Decals.Dynamic
                     var (a, b, _) = cands[i];
                     var side = math.normalizesafe(new float2(-(b - a).y, (b - a).x));
                     var pts = new[] { a, math.lerp(a, b, 0.3f) + side * Range(-2f, 2f, 90, i), math.lerp(a, b, 0.65f) + side * Range(-2f, 2f, 91, i), b };
-                    Add(DecalStroke.Path("desirePath", H(92, i), pts, Range(1.1f, 1.5f, 93, i), flaws.Contains("shortcut") && i == 0 ? 0.75f : 0.5f), "shortcut");
+                    bool hero = flaws.Contains("shortcut") && i == 0;
+                    Brushes.EdgeStrip(_b, pts, "wornPath", new StripOptions { Gaps = hero ? 0f : 0.15f, Run = new float2(15f, 40f), Opacity = Op(hero ? 0.75f : 0.5f, hero ? 1f : 0.8f), Width = new float2(0.7f, 1f), Cause = hero ? "flaw:shortcut" : "feet:shortcut" });
                 }
+                // the busiest benches: bare ground in front, a little litter; bins: litter round their feet
+                int bn = 0;
+                for (int i = 0; i < Benches.Count; i++)
+                {
+                    if (U(210, i) > 0.45f) continue;
+                    var b = Benches[i];
+                    var front = new float2(math.sin(b.Yaw), math.cos(b.Yaw));
+                    Brushes.At(_b, b.P + front * 1.2f, new float2(front.y, -front.x), "barePatch", Range(3.5f, 5f, 211, i), Op(0.4f, 0.75f), 1, ColourLevel.Any, "feet:bench");
+                    if (U(212, i) < 0.4f) Brushes.At(_b, b.P + front * 0.8f, front, "litterMix", Range(2.5f, 4f, 213, i), Op(0.5f, 0.9f), 0, ColourLevel.Any, "feet:litter");
+                    bn++;
+                }
+                for (int i = 0; i < Bins.Count; i++)
+                    if (U(220, i) < 0.6f) Brushes.At(_b, Bins[i].P + new float2(Range(-0.6f, 0.6f, 221, i), Range(-0.6f, 0.6f, 222, i)), Wind, "litterMix", Range(2.5f, 4f, 223, i), Op(0.5f, 0.9f), 1, ColourLevel.Any, "feet:bin");
             }
 
             /// <summary>A straight walk from a to b crosses no field, court, hard surface or tree trunk and stays in the site.</summary>
@@ -467,12 +778,9 @@ namespace Placemaker.Core.Decals.Dynamic
                 {
                     var p = math.lerp(a, b, i / 12f);
                     if (!Inside(p, 1f)) return false;
-                    foreach (var r in Pitches) if (Poly.Contains(r, p)) return false;
-                    foreach (var r in Courts) if (Poly.Contains(r, p)) return false;
-                    foreach (var r in Hard) if (Poly.Contains(r, p)) return false;
-                    foreach (var r in Asphalt) if (Poly.Contains(r, p)) return false;
+                    foreach (var r in All) if (Poly.Contains(r, p)) return false;
                 }
-                foreach (var t in Trees) if (SegDist(t, a, b) < 1.5f) return false;
+                foreach (var t in Trees) if (SegDist(t.P, a, b) < 1.5f) return false;
                 return true;
             }
 
@@ -491,7 +799,6 @@ namespace Placemaker.Core.Decals.Dynamic
             private void Water(List<string> flaws)
             {
                 var pits = new List<(float2 p, float2 dir, float depth, float half, bool lot)>();
-                // along the paths: local minima of the level along each line
                 foreach (var l in Paths)
                 {
                     var hgt = new float[l.P.Length];
@@ -517,7 +824,6 @@ namespace Placemaker.Core.Decals.Dynamic
                         pits.Add((l.P[i], dir, rise, l.Half, false));
                     }
                 }
-                // the car park: minima of a 2 m grid over the asphalt
                 foreach (var r in Asphalt)
                 {
                     Poly.Bounds(r, out var lo, out var hi);
@@ -555,166 +861,29 @@ namespace Placemaker.Core.Decals.Dynamic
                 var placed = new List<float2>();
                 foreach (var (p, dir, depth, half, lot) in pits)
                 {
-                    if (placed.Exists(q => math.distancesq(q, p) < 15f * 15f)) continue;
-                    bool isWet = wet < 2;
-                    if (!isWet && dry >= 3) break;
-                    float scale = math.saturate(depth / 0.03f) * 0.6f + 0.6f;
-                    if (big && k2 == 0) scale *= 1.8f;
-                    float yaw = math.atan2(-dir.y, dir.x) + Range(-0.25f, 0.25f, 100, k2);
-                    var size = lot ? new float2(Range(3f, 5.5f, 101, k2), Range(2.2f, 4f, 102, k2)) * scale
-                                   : new float2(Range(2.4f, 4.4f, 103, k2) * scale, math.max(1.4f, half * 2f * Range(0.75f, 1.05f, 104, k2)));
-                    var s = DecalStroke.Box("puddle", H(105, k2), p + new float2(Range(-0.3f, 0.3f, 106, k2), Range(-0.3f, 0.3f, 107, k2)), yaw, size, 0.95f);
-                    s.Wetness = isWet ? (big && k2 == 0 ? 1f : RecentRain + 0.3f) : 0f;
-                    s.Layers = lot ? DecalLayerBits.Terrain : DecalLayerBits.Roads;
-                    Add(s, isWet ? "puddle" : "tidemark");
+                    if (placed.Exists(q => math.distancesq(q, p) < 14f * 14f)) continue;
+                    bool isWet = wet < 3;
+                    if (!isWet && dry >= 4) break;
+                    float scale = math.saturate(depth / 0.03f) * 0.6f + 0.7f;
+                    bool hero = big && k2 == 0;
+                    if (hero) scale *= 1.9f;
+                    // the hollow: an ellipse along the path (or loose on the lot), pieces fill it
+                    float L = (lot ? Range(4f, 7f, 101, k2) : Range(3.5f, 6f, 103, k2)) * scale, W = lot ? L * Range(0.55f, 0.8f, 102, k2) : math.max(1.6f, half * 2f * Range(0.8f, 1.1f, 104, k2));
+                    var ax = dir; var sd = new float2(-ax.y, ax.x);
+                    var hollow = new float2[10];
+                    for (int i = 0; i < hollow.Length; i++)
+                    {
+                        float t = i / (float)hollow.Length * 2f * math.PI;
+                        float wob = 1f + 0.18f * DecalNoise.Perlin(math.cos(t) * 1.3f + k2, math.sin(t) * 1.3f, _seed + 7u);
+                        hollow[i] = p + ax * math.cos(t) * L * 0.5f * wob + sd * math.sin(t) * W * 0.5f * wob;
+                    }
+                    if (isWet) Brushes.Fill(_b, hollow, "puddlePiece", Op(0.7f, 1f), ColourLevel.Any, hero ? "flaw:bigPuddle" : "water:puddle");
+                    else Brushes.Fill(_b, hollow, k2 % 2 == 0 ? "dryTidemark" : "dampPatch", Op(0.45f, 0.75f), ColourLevel.Any, "water:tidemark");
+                    if (isWet) Brushes.At(_b, p + ax * L * 0.3f, ax, "dampPatch", L * 1.4f, Op(0.3f, 0.55f), 1, ColourLevel.Any, "water:damp");
                     placed.Add(p);
                     if (isWet) wet++; else dry++;
                     k2++;
                 }
-            }
-
-            // ───────────── wind: leaves drift until something stops them ─────────────
-
-            private struct Barrier { public float2 A, B; public int Group; }
-
-            private void Leaves(List<string> flaws)
-            {
-                // the barriers leaves meet: path edges, asphalt and court edges, fences, the fronts and backs of stands
-                var bars = new List<Barrier>();
-                int gid = 0;
-                foreach (var l in Paths)
-                {
-                    for (int sideSign = -1; sideSign <= 1; sideSign += 2, gid++)
-                        for (int i = 0; i + 1 < l.P.Length; i++)
-                        {
-                            var d = math.normalizesafe(l.P[i + 1] - l.P[i]);
-                            var nrm = new float2(-d.y, d.x) * sideSign * l.Half;
-                            bars.Add(new Barrier { A = l.P[i] + nrm, B = l.P[i + 1] + nrm, Group = gid });
-                        }
-                }
-                foreach (var set in new[] { Asphalt, Courts, Hard })
-                    foreach (var r in set)
-                    {
-                        for (int i = 0; i < r.Length; i++) bars.Add(new Barrier { A = r[i], B = r[(i + 1) % r.Length], Group = gid });
-                        gid++;
-                    }
-                foreach (var f in Fences) { for (int i = 0; i + 1 < f.P.Length; i++) bars.Add(new Barrier { A = f.P[i], B = f.P[i + 1], Group = gid }); gid++; }
-                if (bars.Count == 0 || Trees.Count == 0) return;
-                // every tree sheds downwind; the first barrier on the way catches (with some spread across the wind)
-                var hits = new List<(int bar, float2 p, float w)>();
-                var across = new float2(-Wind.y, Wind.x);
-                for (int t = 0; t < Trees.Count; t++)
-                {
-                    for (int ray = 0; ray < 3; ray++)
-                    {
-                        var start = Trees[t] + across * (ray - 1) * 2.5f;
-                        var dir = math.normalizesafe(Wind + across * Range(-0.35f, 0.35f, 110 + ray, t));
-                        var end = start + dir * 24f;
-                        int best = -1; float bt = 2f; float2 bp = default;
-                        for (int b = 0; b < bars.Count; b++)
-                        {
-                            if (Poly.SegmentIntersection(start, end, bars[b].A, bars[b].B, out var pt, out float ta, out _) && ta < bt && ta > 0.02f) { bt = ta; best = b; bp = pt; }
-                        }
-                        if (best >= 0) hits.Add((best, bp, (1f - bt * 0.7f) / 3f));
-                    }
-                }
-                // cluster hits per barrier group along it: each cluster becomes one drift
-                var used = new bool[hits.Count];
-                var drifts = new List<(float2[] pts, float w)>();
-                for (int i = 0; i < hits.Count; i++)
-                {
-                    if (used[i]) continue;
-                    used[i] = true;
-                    var members = new List<int> { i };
-                    int g = bars[hits[i].bar].Group;
-                    for (bool grew = true; grew;)
-                    {
-                        grew = false;
-                        for (int j = 0; j < hits.Count; j++)
-                        {
-                            if (used[j] || bars[hits[j].bar].Group != g) continue;
-                            foreach (int m in members)
-                                if (math.distancesq(hits[m].p, hits[j].p) < 7f * 7f) { used[j] = true; members.Add(j); grew = true; break; }
-                        }
-                    }
-                    float w = 0f;
-                    foreach (int m in members) w += hits[m].w;
-                    if (w < 0.45f) continue;   // a single tree's leaves blow on
-                    // the drift follows the barrier through its hits (sorted along it), a little upwind of it, running on past the
-                    // outermost hits along the barrier's own direction there
-                    var bar = bars[hits[i].bar];
-                    var tan = math.normalizesafe(bar.B - bar.A);
-                    float2 o = hits[i].p;
-                    members.Sort((x, y) => math.dot(hits[x].p - o, tan).CompareTo(math.dot(hits[y].p - o, tan)));
-                    var line = new List<float2>();
-                    foreach (int m in members)
-                        if (line.Count == 0 || math.distance(line[line.Count - 1], hits[m].p) > 1.8f) line.Add(hits[m].p);
-                    float2 t0 = math.normalizesafe(bars[hits[members[0]].bar].B - bars[hits[members[0]].bar].A, tan);
-                    float2 t1 = math.normalizesafe(bars[hits[members[members.Count - 1]].bar].B - bars[hits[members[members.Count - 1]].bar].A, tan);
-                    if (math.dot(t0, tan) < 0f) t0 = -t0;
-                    if (math.dot(t1, tan) < 0f) t1 = -t1;
-                    line.Insert(0, line[0] - t0 * Range(2f, 3.5f, 118, drifts.Count));
-                    line.Add(line[line.Count - 1] + t1 * Range(2f, 3.5f, 119, drifts.Count));
-                    var pts = new float2[line.Count];
-                    for (int k = 0; k < line.Count; k++)
-                    {
-                        var tk = math.normalizesafe(line[math.min(line.Count - 1, k + 1)] - line[math.max(0, k - 1)], tan);
-                        var nrm = new float2(-tk.y, tk.x);
-                        if (math.dot(nrm, Wind) > 0f) nrm = -nrm;   // the upwind side
-                        pts[k] = line[k] + nrm * (0.55f + Range(-0.2f, 0.3f, 120 + k, drifts.Count));
-                    }
-                    drifts.Add((pts, w));
-                }
-                drifts.Sort((a, b) => b.w.CompareTo(a.w));
-                bool choked = flaws.Contains("leafChokedCorner");
-                for (int i = 0; i < drifts.Count && i < 10; i++)
-                {
-                    var (pts, w) = drifts[i];
-                    bool hero = choked && i == 0;
-                    float width = math.clamp(0.9f + w * 0.5f, 1f, 2.4f) * (hero ? 1.6f : 1f);
-                    // the drift's "across > 0" side must be the barrier: across is the left of the direction of travel
-                    var dir = math.normalizesafe(pts[pts.Length - 1] - pts[0]);
-                    var left = new float2(-dir.y, dir.x);
-                    if (math.dot(left, Wind) < 0f) Array.Reverse(pts);
-                    var s = DecalStroke.Path("leafDrift", H(130, i), pts, width, math.saturate(0.45f + w * 0.2f) * (hero ? 1.3f : 1f));
-                    s.Layers = DecalLayerBits.Ground;
-                    Add(s, "leafDrift");
-                }
-                // thin litter downwind of the bigger groups of trees (one sheet per group, never one per tree)
-                var groups = TreeGroups(9f);
-                groups.Sort((a, b) => b.Count.CompareTo(a.Count));
-                for (int i = 0; i < groups.Count && i < 4; i++)
-                {
-                    var gr = groups[i];
-                    if (gr.Count < 4) break;
-                    float2 c = default; foreach (var p in gr) c += p; c /= gr.Count;
-                    float ext = 0f; foreach (var p in gr) ext = math.max(ext, math.distance(p, c));
-                    var at = c + Wind * Range(3f, 6f, 140, i);
-                    var size = new float2(ext * 1.5f + 7f, ext + 5f);
-                    float yaw = math.atan2(-Wind.y, Wind.x);
-                    Add(DecalStroke.Box("leafLitter", H(141, i), at, yaw, size, Range(0.55f, 0.8f, 142, i)), "leafLitter");
-                }
-            }
-
-            private List<List<float2>> TreeGroups(float link)
-            {
-                var res = new List<List<float2>>();
-                var done = new bool[Trees.Count];
-                for (int i = 0; i < Trees.Count; i++)
-                {
-                    if (done[i]) continue;
-                    done[i] = true;
-                    var g = new List<float2> { Trees[i] };
-                    var q = new Queue<int>(); q.Enqueue(i);
-                    while (q.Count > 0)
-                    {
-                        int a = q.Dequeue();
-                        for (int j = 0; j < Trees.Count; j++)
-                            if (!done[j] && math.distancesq(Trees[a], Trees[j]) < link * link) { done[j] = true; g.Add(Trees[j]); q.Enqueue(j); }
-                    }
-                    res.Add(g);
-                }
-                return res;
             }
 
             // ───────────── wheels: the car park ─────────────
@@ -722,151 +891,62 @@ namespace Placemaker.Core.Decals.Dynamic
             private void Wheels()
             {
                 if (Asphalt.Count == 0 && Aisles.Count == 0) return;
-                // the busy end is the one nearest the park's paths (people park close to where they go)
                 float2 walk = Gates.Count > 0 ? Gates[0] : float2.zero;
                 foreach (var a in Asphalt)
                 {
                     var c = Poly.Centroid(a);
                     float best = float.MaxValue;
                     foreach (var l in Paths) foreach (var p in l.P) { float d = math.distancesq(p, c); if (d < best) { best = d; walk = p; } }
-                    Add(DecalStroke.Outline("asphaltTone", H(150, 0), a, 0.9f), "asphaltTone");
+                    // cracks along the lot, a step in from its edges, and the odd pothole
+                    var inset = Brushes.Inset(a, 3.5f);
+                    if (inset != null) Brushes.CracksAlong(_b, Ring(inset), "crackAsphalt", new StripOptions { Gaps = 0.6f, Run = new float2(10f, 26f), Closed = true, Opacity = Op(0.5f, 0.85f), Cause = "wheels:cracks" });
+                    Brushes.Scatter(_b, BrushArea.Of(a), "crackWeb", 0.05f * A, new ScatterOptions { Opacity = Op(0.45f, 0.8f), Clump = 2f, Cause = "wheels:crackWeb" });
+                    if (U(500) < 0.6f) Brushes.Scatter(_b, BrushArea.Of(a), "potholePatch", 0.01f * A, new ScatterOptions { Opacity = Op(0.6f, 0.9f), Clump = 1.5f, Cause = "wheels:pothole" });
                 }
                 int n = 0;
                 foreach (var l in Aisles)
                 {
                     if (l.P.Length < 2) continue;
-                    float L = 0f; for (int i = 1; i < l.P.Length; i++) L += math.distance(l.P[i - 1], l.P[i]);
-                    if (L < 8f) continue;
                     float near = math.saturate(1f - math.distance(l.P[l.P.Length / 2], walk) / 80f);
-                    var wp = DecalStroke.Path("wheelPath", H(151, n), l.P, math.min(3.4f, l.Half * 1.2f), 0.55f + near * 0.35f);
-                    wp.Layers = DecalLayerBits.Terrain;
-                    Add(wp, "wheelPath");
-                    var ol = DecalStroke.Path("oilLine", H(152, n), l.P, 0.8f, 0.45f + near * 0.35f);
-                    Add(ol, "oilLine");
+                    // tyre tracks in both lanes, faint, stronger near the walk-in
+                    for (int s = -1; s <= 1; s += 2)
+                        Brushes.EdgeStrip(_b, l.P, "tyreTrack", new StripOptions { Side = s, Offset = l.Half * 0.45f, Gaps = 0.3f, Run = new float2(10f, 30f), Opacity = Op(0.35f + near * 0.3f, 0.7f + near * 0.3f), Cause = "wheels:tyres" });
                     n++;
                 }
                 // oil under the busy stalls: the ones nearest the walk-in carry most of it
                 var bays = new List<(Thing t, float d)>();
                 foreach (var b in Bays) bays.Add((b, math.distance(b.P, walk)));
                 bays.Sort((x, y) => x.d.CompareTo(y.d));
-                int oil = 0;
-                for (int i = 0; i < bays.Count && oil < 18; i++)
+                for (int i = 0; i < bays.Count; i++)
                 {
-                    float p = math.lerp(0.75f, 0.12f, i / math.max(1f, bays.Count - 1f));
+                    float p = math.lerp(0.8f, 0.15f, i / math.max(1f, bays.Count - 1f)) * math.min(1.3f, A);
                     if (U(160, i) > p) continue;
                     var b = bays[i].t;
-                    // the engine end faces the aisle: toward the nearest aisle point
                     float2 toAisle = new float2(math.sin(b.Yaw), math.cos(b.Yaw));
                     float bd = float.MaxValue;
                     foreach (var l in Aisles) foreach (var q in l.P) { float d = math.distancesq(q, b.P); if (d < bd) { bd = d; toAisle = math.normalizesafe(q - b.P, toAisle); } }
-                    var at = b.P + toAisle * Range(0.6f, 1.4f, 161, i) + new float2(Range(-0.3f, 0.3f, 162, i), Range(-0.3f, 0.3f, 163, i));
-                    Add(DecalStroke.Box("oilStain", H(164, i), at, Range(0f, 6.28f, 165, i), new float2(Range(1.3f, 2.6f, 166, i), Range(1.0f, 1.9f, 167, i)), Range(0.5f, 0.95f, 168, i)), "stallOil");
-                    oil++;
-                }
-                // kerb grime in broken runs along the lot's edges, cracks near the edges and corners
-                int kg = 0, ck = 0;
-                foreach (var r in Asphalt)
-                {
-                    bool ccw = Poly.IsCcw(r);
-                    for (int i = 0; i < r.Length && kg < 14; i++)
-                    {
-                        var a = r[i]; var b = r[(i + 1) % r.Length];
-                        float L = math.distance(a, b);
-                        if (L < 6f) continue;
-                        var tan = (b - a) / L;
-                        var inward = ccw ? new float2(-tan.y, tan.x) : new float2(tan.y, -tan.x);
-                        int runs = L > 40f ? 2 : 1;
-                        for (int k = 0; k < runs; k++)
-                        {
-                            float t0 = Range(0f, 0.45f, 170 + k, i), t1 = math.min(1f, t0 + Range(0.25f, 0.55f, 172 + k, i));
-                            var p0 = math.lerp(a, b, t0) + inward * 0.45f; var p1 = math.lerp(a, b, t1) + inward * 0.45f;
-                            var pts = new[] { p0, math.lerp(p0, p1, 0.5f) + inward * Range(-0.15f, 0.2f, 174, i), p1 };
-                            // across > 0 is the left of p0→p1; the kerb must be there: left = outward
-                            var left = new float2(-tan.y, tan.x);
-                            if (math.dot(left, -inward) < 0f) Array.Reverse(pts);
-                            Add(DecalStroke.Path("kerbGrime", H(175 + k, i), pts, Range(0.8f, 1.2f, 176, i), Range(0.55f, 0.85f, 177, i)), "kerbGrime");
-                            kg++;
-                        }
-                        if (ck < 3 && U(180, i) < 0.35f)
-                        {
-                            var at = math.lerp(a, b, Range(0.2f, 0.8f, 181, i)) + inward * Range(2.5f, 5f, 182, i);
-                            Add(DecalStroke.Box("cracksTar", H(183, i), at, math.atan2(-tan.y, tan.x), new float2(Range(6f, 10f, 184, i), Range(4f, 7f, 185, i)), 0.85f), "cracks");
-                            ck++;
-                        }
-                    }
+                    var at = b.P + toAisle * Range(0.6f, 1.4f, 161, i);
+                    Brushes.At(_b, at, toAisle, U(162, i) < 0.7f ? "oilSpot" : "oilDrips", Range(1.6f, 3f, 163, i), Op(0.5f, 0.95f), U(164, i) < 0.3f ? 1 : 0, ColourLevel.Any, "wheels:oil");
                 }
             }
 
-            // ───────────── objects: corners, rust ─────────────
+            // ───────────── objects: rust at the feet of steel ─────────────
 
             private void Objects()
             {
-                // court corners downwind collect dust and leaves
-                int n = 0;
-                foreach (var r in Courts)
+                for (int i = 0; i < Steel.Count; i++)
                 {
-                    var c = Poly.Centroid(r);
-                    var corners = new List<(float2 p, float score)>();
-                    for (int i = 0; i < r.Length; i++)
-                    {
-                        var prev = r[(i + r.Length - 1) % r.Length]; var next = r[(i + 1) % r.Length];
-                        var d0 = math.normalizesafe(r[i] - prev); var d1 = math.normalizesafe(next - r[i]);
-                        if (math.abs(math.dot(d0, d1)) > 0.5f) continue;   // not a corner
-                        corners.Add((r[i], math.dot(math.normalizesafe(r[i] - c), Wind)));
-                    }
-                    corners.Sort((a, b) => b.score.CompareTo(a.score));
-                    for (int k = 0; k < corners.Count && k < 2; k++)
-                    {
-                        if (corners[k].score < 0.1f) break;
-                        var p = corners[k].p;
-                        var inward = math.normalizesafe(c - p);
-                        // u runs toward the corner: local +x points from the inside to the corner
-                        var toCorner = -inward;
-                        var at = p + inward * 1.6f;
-                        Add(DecalStroke.Box("cornerDebris", H(190, n), at, math.atan2(-toCorner.y, toCorner.x), new float2(4.2f, 3.4f), k == 0 ? 0.9f : 0.6f), "courtCorner");
-                        n++;
-                    }
-                }
-                // rust at the foot of a few steel masts and lamps (a third of them, the ones that would have rusted)
-                int r2 = 0;
-                for (int i = 0; i < Steel.Count && r2 < 8; i++)
-                {
-                    if (U(200, i) > 0.33f) continue;
+                    if (U(200, i) > 0.45f) continue;
                     var s = Steel[i];
                     bool mast = s.Id.StartsWith("LightpoleIndustrial", StringComparison.Ordinal);
-                    float sz = mast ? Range(1.6f, 2.4f, 201, i) : Range(0.9f, 1.4f, 202, i);
-                    Add(DecalStroke.Box("rustStain", H(203, i), s.P + Wind * sz * 0.2f, Range(0f, 6.28f, 204, i), new float2(sz, sz * 0.8f), Range(0.5f, 0.9f, 205, i)), "rust");
-                    r2++;
-                }
-                // grime under the most used benches (near the gates and the pitch): a few, not all
-                int b2 = 0;
-                for (int i = 0; i < Benches.Count && b2 < 4; i++)
-                {
-                    if (U(210, i) > 0.3f) continue;
-                    var b = Benches[i];
-                    var front = new float2(math.sin(b.Yaw), math.cos(b.Yaw));
-                    Add(DecalStroke.Box("stain", H(211, i), b.P + front * 0.8f, b.Yaw, new float2(2.2f, 1.4f), 0.7f), "benchStain");
-                    b2++;
+                    float sz = mast ? Range(2f, 3f, 201, i) : Range(1.2f, 1.8f, 202, i);
+                    Brushes.At(_b, s.P + Wind * sz * 0.15f, Wind, "rustBleed", sz, Op(0.55f, 0.9f), 0, ColourLevel.Any, "objects:rust");
                 }
             }
 
-            // ───────────── budget: most of the site stays clean ─────────────
+            // ───────────── measure: how much the causes touch ─────────────
 
-            private void Budget()
-            {
-                Measure(out float touched, out float strong);
-                // over budget (a small site crowded by its own pitch): soften the broad strokes until it fits
-                for (int pass = 0; pass < 4 && (touched > 0.4f || strong > 0.1f); pass++)
-                {
-                    foreach (var s in Out)
-                        if (s.Kind == "wornGrass" || s.Kind == "leafLitter" || s.Kind == "asphaltTone" || s.Kind == "bareEarth") s.Strength *= 0.8f;
-                    if (touched > 0.4f) Out.RemoveAll(s => s.Cause == "leafLitter" || s.Cause == "spine" || s.Cause == "warmUp");
-                    Measure(out touched, out strong);
-                }
-                _r.Touched = touched; _r.Strong = strong;
-            }
-
-            /// <summary>Share of the site any stroke touches (strength over 0.05), and where the strongest is 0.6 or more (1.5 m cells).</summary>
+            /// <summary>Share of the site any cause instance (not the tone) touches, and where one is strong (1.5 m cells).</summary>
             internal void Measure(out float touchedShare, out float strongShare)
             {
                 touchedShare = strongShare = 0f;
@@ -881,16 +961,23 @@ namespace Placemaker.Core.Decals.Dynamic
                     for (int i = 0; i < nx; i++)
                         if (Poly.Contains(_ring, lo + new float2(i + 0.5f, j + 0.5f) * cell)) { isIn[j * nx + i] = true; inside++; }
                 if (inside == 0) return;
-                foreach (var s in Out)
+                foreach (var d in Out)
                 {
-                    s.Bounds(out var a, out var b);
-                    int i0 = math.max(0, (int)((a.x - lo.x) / cell)), i1 = math.min(nx - 1, (int)((b.x - lo.x) / cell));
-                    int j0 = math.max(0, (int)((a.y - lo.y) / cell)), j1 = math.min(nz - 1, (int)((b.y - lo.y) / cell));
+                    if (d.Cause != null && d.Cause.StartsWith("tone", StringComparison.Ordinal)) continue;
+                    var k = _b.Lib.Get(d.Kind);
+                    if (k == null) continue;
+                    var foot = DecalVariants.FootprintOf(k, d.Variant) * d.Scale * 0.5f;
+                    float op = d.Opacity * k.Opacity;
+                    var he = d.HalfExtent(DecalVariants.FootprintOf(k, d.Variant));
+                    int i0 = math.max(0, (int)((d.P.x - he.x - lo.x) / cell)), i1 = math.min(nx - 1, (int)((d.P.x + he.x - lo.x) / cell));
+                    int j0 = math.max(0, (int)((d.P.y - he.y - lo.y) / cell)), j1 = math.min(nz - 1, (int)((d.P.y + he.y - lo.y) / cell));
+                    float c = math.cos(d.Yaw), s = math.sin(d.Yaw);
                     for (int j = j0; j <= j1; j++)
                         for (int i = i0; i <= i1; i++)
                         {
-                            var p = lo + new float2(i + 0.5f, j + 0.5f) * cell;
-                            if (Covers(s, p)) strength[j * nx + i] = math.max(strength[j * nx + i], s.Strength);
+                            var q = lo + new float2(i + 0.5f, j + 0.5f) * cell - d.P;
+                            var l = new float2(q.x * c - q.y * s, q.x * s + q.y * c) / math.max(new float2(0.05f), foot);
+                            if (math.lengthsq(l) <= 1f) strength[j * nx + i] = math.max(strength[j * nx + i], op);
                         }
                 }
                 int touched = 0, strong = 0;
@@ -902,30 +989,6 @@ namespace Placemaker.Core.Decals.Dynamic
                 }
                 touchedShare = touched / (float)inside;
                 strongShare = strong / (float)inside;
-            }
-
-            /// <summary>The stroke's plain footprint (no warp) covers p: for the budget.</summary>
-            internal static bool Covers(DecalStroke s, float2 p)
-            {
-                switch (s.Shape)
-                {
-                    case StrokeShape.Box:
-                    {
-                        float c = math.cos(s.Yaw), sn = math.sin(s.Yaw);
-                        var d = p - s.Center;
-                        var q = new float2(d.x * c - d.y * sn, d.x * sn + d.y * c) / math.max(new float2(0.05f), s.Size * 0.5f);
-                        return math.lengthsq(q) <= 1f;
-                    }
-                    case StrokeShape.Path:
-                        for (int i = 0; i + 1 < s.Points.Length; i++)
-                        {
-                            float w = 0.5f * (i < s.Widths.Length ? s.Widths[i] : 1f);
-                            if (SegDist(p, s.Points[i], s.Points[i + 1]) <= w) return true;
-                        }
-                        return false;
-                    default:
-                        return s.Points.Length >= 3 && Poly.Contains(s.Points, p);
-                }
             }
         }
     }

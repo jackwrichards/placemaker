@@ -58,7 +58,8 @@ namespace Placemaker.Game.Decals
             internal Variant V;
             public string Owner;
             public float2 Centre;
-            public float Yaw, Scale = 1f, Opacity = 1f;
+            public float Yaw, Opacity = 1f;
+            public float2 Scale = new float2(1f, 1f);
             public float Y = float.NaN;
             internal GameObject Go;
             internal MeshRenderer Renderer;
@@ -87,7 +88,11 @@ namespace Placemaker.Game.Decals
         private static string CacheDir => Path.Combine(EnvPath.kUserDataPath, "ModsData", "Placemaker", "decal-cache");
 
         /// <summary>Places one instance of a library variant ("kind#index", or a kind: its variant from the seed).</summary>
-        public static Instance Place(string variantId, string owner, float2 centre, float yaw, float scale = 1f, float opacity = 1f, uint seed = 0)
+        public static Instance Place(string variantId, string owner, float2 centre, float yaw, float scale = 1f, float opacity = 1f, uint seed = 0) =>
+            Place(variantId, owner, centre, yaw, new float2(scale, scale), opacity, seed);
+
+        /// <summary>Places one instance stretched by <paramref name="scale"/> along its own x and z (strips fit their run).</summary>
+        public static Instance Place(string variantId, string owner, float2 centre, float yaw, float2 scale, float opacity = 1f, uint seed = 0)
         {
             var lib = DecalLibrary.Current;
             if (lib.Count == 0) DynamicDecalSystem.LoadLibrary();
@@ -96,7 +101,7 @@ namespace Placemaker.Game.Decals
             var k = lib.Get(kind);
             if (k == null) return null;
             if (variantId.IndexOf('#') < 0) index = (int)(seed % (uint)math.max(1, k.Variants.Count));
-            index = math.clamp(index, 0, k.Variants.Count - 1);
+            index = DecalVariants.Normalize(k, index);   // plain variants, and the end caps of strips and chains
             string id = DecalVariants.Id(kind, index);
             if (!_variants.TryGetValue(id, out var v) || v.K != k)
             {
@@ -105,7 +110,7 @@ namespace Placemaker.Game.Decals
             }
             v.Refs++;
             v.LastUse = Time.frameCount;
-            var inst = new Instance { V = v, Owner = owner, Centre = centre, Yaw = yaw, Scale = math.max(0.05f, scale), Opacity = math.saturate(opacity) };
+            var inst = new Instance { V = v, Owner = owner, Centre = centre, Yaw = yaw, Scale = math.max(new float2(0.05f), scale), Opacity = math.saturate(opacity) };
             if (v.State == 0) { v.State = 1; Interlocked.Increment(ref _queued); _todo.Enqueue(v); Wake(); }
             _waiting.Add(inst);
             return inst;

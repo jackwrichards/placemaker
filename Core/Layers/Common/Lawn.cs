@@ -35,13 +35,15 @@ namespace Placemaker.Core.Layers.Common
             ["animalPark"] = Painted,
             ["communityGarden"] = Painted,
             ["orchardPark"] = Painted,
+            // (2026-10-29, the user) the sports park's ground between its pitches and courts is painted terrain with the
+            // shared decal library on it (Decals/Dynamic/Weathering); its turf, courts and paving stay surfaces.
+            ["sportsPark"] = Painted,
             // Manicured: the grass surface.
             ["formalGarden"] = Surface,
             ["botanicalGarden"] = Surface,
             ["cemeteryGrounds"] = Surface,
             ["memorialPark"] = Surface,
             ["fairground"] = Surface,
-            ["sportsPark"] = Surface,
             ["amphitheatre"] = Surface,
             ["skatePark"] = Surface,
             ["urbanFarm"] = Surface,

@@ -72,6 +72,8 @@ namespace Placemaker.Core.Decals
                     // (dynamic decals) The step is weathered by code-made decals grown from causes (Dynamic/Weathering): the paint
                     // keeps only the soft macro tone. Left out, as "organized dirt": a mulch disc per tree, bullseye patches per
                     // bench and play item, verge bands the full length of every path, edge discs at a fixed step, goalmouth ovals.
+                    // The lived-in mulch stays: a soft, ragged forest floor in the shadow of the crowns, the base the leaves lie on.
+                    if (s.Mulch && s.Style != DressStyle.Clean) g.Mulch();
                 }
                 else
                 {

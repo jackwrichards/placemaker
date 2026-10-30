@@ -161,6 +161,21 @@ namespace Placemaker.Core.Decals.Dynamic
 
         /// <summary>The library the game loaded (Recipes/decals/kinds.json); tests set their own.</summary>
         public static DecalLibrary Current = new DecalLibrary();
+        /// <summary>Reads the library when a plan needs it before anything else has (the game sets it; plans run on workers).</summary>
+        public static Func<DecalLibrary> Loader;
+        private static readonly object _loadLock = new object();
+
+        /// <summary>The current library, read through <see cref="Loader"/> on first use.</summary>
+        public static DecalLibrary EnsureCurrent()
+        {
+            if (Current.Count > 0 || Loader == null) return Current;
+            lock (_loadLock)
+            {
+                if (Current.Count == 0)
+                    try { var lib = Loader(); if (lib != null && lib.Count > 0) Current = lib; } catch (Exception) { }
+                return Current;
+            }
+        }
 
         private readonly Dictionary<string, DecalKind> _kinds = new Dictionary<string, DecalKind>(StringComparer.Ordinal);
         public readonly List<string> Warnings = new List<string>();

@@ -9,6 +9,9 @@
 // v1: [u8 version][u16 strokes] per stroke: [str kind][u32 seed][u8 shape][f32 strength][u8 wet][u8 age][u8 layers][i8 order][f32 y]
 //     box: [f32 cx][f32 cz][f32 yaw][f32 sx][f32 sz]; path: [u16 n] n x [f32 x][f32 z][f16-ish u16 width cm]; outline: [u16 n] n x [f32 x][f32 z]
 //     then [u16 kinds] per kind: [str json] (kinds a plan defined itself, not in the library)
+// v2: v1's body, then the shared library's instances (DecalInstance): [u16 names] n x [str kind id], then [u32 count] per
+//     instance: [u16 name][u8 variant][f32 x][f32 z][u16 yaw (0..2π)][u16 scale x ‰][u16 scale z ‰][u8 opacity].
+//     18 bytes an instance; v1 records still read (no instances).
 
 using System;
 using System.Collections.Generic;
@@ -23,12 +26,14 @@ namespace Placemaker.Core.Decals.Dynamic
         public readonly List<DecalStroke> Strokes = new List<DecalStroke>();
         /// <summary>Kinds the plan carries itself (JSON), for strokes whose kind is not in the library.</summary>
         public readonly List<string> Kinds = new List<string>();
+        /// <summary>(v2) Instances of the shared library's variants (Brushes), drawn by SharedDecals.</summary>
+        public readonly List<DecalInstance> Instances = new List<DecalInstance>();
     }
 
     public static class DecalCodec
     {
-        public const byte CurrentVersion = 1;
-        public const int MaxStrokes = 4000, MaxPoints = 4096, MaxKindBytes = 32768;
+        public const byte CurrentVersion = 2;
+        public const int MaxStrokes = 4000, MaxPoints = 4096, MaxKindBytes = 32768, MaxInstances = 40000, MaxNames = 1024;
 
         public static byte[] Encode(DecalSet set)
         {
@@ -79,6 +84,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 int nk = Math.Min(64, set?.Kinds.Count ?? 0);
                 w.Write((ushort)nk);
                 for (int i = 0; i < nk; i++) Str(w, set.Kinds[i], MaxKindBytes);
+                WriteInstances(w, set?.Instances);
                 w.Flush();
                 return ms.ToArray();
             }
@@ -139,11 +145,69 @@ namespace Placemaker.Core.Decals.Dynamic
                     int nk = r.ReadUInt16();
                     if (nk > 64) return null;
                     for (int i = 0; i < nk; i++) set.Kinds.Add(ReadStr(r));
+                    if (version >= 2 && !ReadInstances(r, set.Instances)) return null;
                     return ms.Position == ms.Length ? set : null;
                 }
             }
             catch (Exception) { return null; }
         }
+
+        private static void WriteInstances(BinaryWriter w, List<DecalInstance> list)
+        {
+            var names = new List<string>();
+            var index = new Dictionary<string, int>(StringComparer.Ordinal);
+            int n = 0;
+            if (list != null)
+                foreach (var d in list)
+                {
+                    if (n >= MaxInstances || string.IsNullOrEmpty(d.Kind) || !Finite(d)) continue;
+                    if (!index.ContainsKey(d.Kind)) { if (names.Count >= MaxNames) continue; index[d.Kind] = names.Count; names.Add(d.Kind); }
+                    n++;
+                }
+            w.Write((ushort)names.Count);
+            foreach (var k in names) Str(w, k);
+            w.Write((uint)n);
+            if (list == null) return;
+            int written = 0;
+            foreach (var d in list)
+            {
+                if (written >= n || string.IsNullOrEmpty(d.Kind) || !Finite(d) || !index.TryGetValue(d.Kind, out int k)) continue;
+                w.Write((ushort)k);
+                w.Write((byte)math.clamp(d.Variant, 0, 255));
+                w.Write(d.P.x); w.Write(d.P.y);
+                float yaw = d.Yaw % (2f * math.PI); if (yaw < 0f) yaw += 2f * math.PI;
+                w.Write((ushort)math.clamp((int)math.round(yaw / (2f * math.PI) * 65535f), 0, 65535));
+                w.Write((ushort)math.clamp((int)math.round(d.Scale.x * 1000f), 1, 65535));
+                w.Write((ushort)math.clamp((int)math.round(d.Scale.y * 1000f), 1, 65535));
+                w.Write((byte)math.clamp((int)math.round(d.Opacity * 255f), 0, 255));
+                written++;
+            }
+        }
+
+        private static bool ReadInstances(BinaryReader r, List<DecalInstance> into)
+        {
+            int nn = r.ReadUInt16();
+            if (nn > MaxNames) return false;
+            var names = new string[nn];
+            for (int i = 0; i < nn; i++) names[i] = ReadStr(r);
+            uint n = r.ReadUInt32();
+            if (n > MaxInstances) return false;
+            for (uint i = 0; i < n; i++)
+            {
+                int k = r.ReadUInt16();
+                if (k >= nn) return false;
+                var d = new DecalInstance { Kind = names[k], Variant = r.ReadByte() };
+                d.P = new float2(r.ReadSingle(), r.ReadSingle());
+                d.Yaw = r.ReadUInt16() / 65535f * 2f * math.PI;
+                d.Scale = new float2(r.ReadUInt16(), r.ReadUInt16()) / 1000f;
+                d.Opacity = r.ReadByte() / 255f;
+                if (!Finite(d)) return false;
+                into.Add(d);
+            }
+            return true;
+        }
+
+        private static bool Finite(DecalInstance d) => math.all(math.isfinite(d.P)) && math.isfinite(d.Yaw) && math.all(math.isfinite(d.Scale)) && math.isfinite(d.Opacity);
 
         private static bool Finite(DecalStroke s)
         {

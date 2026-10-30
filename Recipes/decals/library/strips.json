@@ -108,6 +108,26 @@
         { "op": "erode", "cover": "soilC", "grain": "g01", "sharp": 3.5, "out": "soil" },
         { "op": "layer", "alpha": "soil", "alphaK": 0.85, "color": [120, 100, 76], "color2": [98, 82, 62], "tone": "g", "smooth": 0.2, "height": -0.35 }
       ]
+    },
+    {
+      "id": "claySpillStrip", "name": "Clay spill strip", "tier": "macro",
+      "about": "Clay court dust kicked and carried over the edge onto the grass: orange-brown, thick against the court (+z), thinning into the grass in grains and bites.",
+      "texel": 0.053, "layers": "terrain", "order": 1, "lod": 35, "maxTexels": 384, "opacity": 0.6,
+      "edge": { "feather": 0.42, "warp": 0.49, "warpScale": 1.68, "round": 1, "widthNoise": 0.3 },
+      "variants": { "count": 8, "size": [10, 12], "width": [1.6, 3], "tile": "x", "strength": [0.7, 1] },
+      "ops": [
+        { "op": "remap", "in": "across", "out": "side", "lo": -0.77, "hi": 0.63 },
+        { "op": "fbm", "out": "n", "scale": 2.24, "octaves": 4, "stretch": [2, 1] },
+        { "op": "fbm", "out": "g", "scale": 0.168, "octaves": 3 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.8, "hi": 0.3 },
+        { "op": "mul", "a": "side", "b": "macro", "c": "shape", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.2, "out": "dry" },
+        { "op": "layer", "alpha": "dry", "alphaK": 0.7, "color": [176, 112, 74], "color2": [156, 100, 68], "tone": "n", "smooth": 0.14 },
+        { "op": "remap", "in": "cover", "out": "deep", "lo": 0.5, "hi": 0.95 },
+        { "op": "erode", "cover": "deep", "grain": "g01", "sharp": 4, "out": "soil" },
+        { "op": "layer", "alpha": "soil", "alphaK": 0.8, "color": [196, 120, 78], "color2": [170, 104, 70], "tone": "g", "smooth": 0.2 }
+      ]
     }
   ]
 }

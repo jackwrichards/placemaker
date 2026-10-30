@@ -8,6 +8,8 @@
 // ungroup, another city loaded) take their renderers, materials and textures with them. Renderers are culled by distance
 // and hidden while an infoview is open. Everything is HideAndDontSave: the save never sees any of it; the strokes on the
 // record are the only trace, and without Placemaker the game skips that component type.
+// v2 records also carry instances of the shared library (DecalInstance): they are placed with SharedDecals under the
+// owner "g<group id>" and cleared with the group.
 
 using System;
 using System.Collections.Concurrent;
@@ -63,7 +65,7 @@ namespace Placemaker.Game.Decals
             public Entity Record;
             public int Hash;
             public int Token;
-            public int Strokes, TilesPlanned, TilesEmpty;
+            public int Strokes, TilesPlanned, TilesEmpty, Instances, InstancesPlaced;
             public int Pending;
             public readonly List<Tile> Tiles = new List<Tile>();
             public double WorkerMs;
@@ -103,7 +105,7 @@ namespace Placemaker.Game.Decals
         private readonly HashSet<string> _warnedKinds = new HashSet<string>();
 
         /// <summary>Tiles waiting to be generated or put on the GPU (the game runner waits for 0 before a picture).</summary>
-        public int Pending => Volatile.Read(ref _queued) + _done.Count;
+        public int Pending => Volatile.Read(ref _queued) + _done.Count + SharedDecals.Pending;
         public int GroupCount => _groups.Count;
         public int TileCount { get { int n = 0; foreach (var g in _groups.Values) n += g.Tiles.Count; return n; } }
         public long GpuBytes { get { long n = 0; foreach (var g in _groups.Values) foreach (var t in g.Tiles) n += t.Bytes; return n; } }
@@ -134,7 +136,9 @@ namespace Placemaker.Game.Decals
             _tools = World.GetOrCreateSystemManaged<ToolSystem>();
             _terrain = World.GetOrCreateSystemManaged<TerrainSystem>();
             _maxWorkers = math.clamp(Environment.ProcessorCount / 4, 1, 3);
-            // the mod folder is known only once the mod has loaded: the library is read on first use (Start)
+            // the mod folder is known only once the mod has loaded: the library is read on first use (Start, or a plan that
+            // designs its ground: DecalLibrary.EnsureCurrent)
+            DecalLibrary.Loader = () => { LoadLibrary(); return DecalLibrary.Current; };
         }
 
         internal static void LoadLibrary()
@@ -251,15 +255,27 @@ namespace Placemaker.Game.Decals
                 foreach (var t in DecalTiler.Tiles(frame, i))
                     jobs.Add(new Job { Group = group, Token = group.Token, Frame = frame, Tile = t, Layers = s.Layers != 0 ? s.Layers : kind.Layers, Order = kind.Order + s.Order, Lod = kind.Lod });
             }
+            // v2: the shared library's instances (one texture set per variant for the whole city)
+            group.Instances = set.Instances.Count;
+            string owner = Owner(id);
+            foreach (var d in set.Instances)
+                if (SharedDecals.Place(d.Id, owner, d.P, d.Yaw, d.Scale, d.Opacity) != null) group.InstancesPlaced++;
+                else if (_warnedKinds.Add(d.Kind)) Mod.Log.Warn($"Placemaker dynamic decals: no library kind '{d.Kind}' (or variant {d.Variant}); its instances are not drawn.");
+            if (group.Instances > 0)
+                Mod.Log.Info($"Placemaker dynamic decals: group {id}: {group.InstancesPlaced} of {group.Instances} library instances placed; library now {SharedDecals.InstanceCount + SharedDecals.Pending} instances, {SharedDecals.VariantCount} variants made, {SharedDecals.GpuBytes / 1048576.0:F1} MiB on the GPU.");
             group.TilesPlanned = jobs.Count;
             group.Pending = jobs.Count;
             foreach (var j in jobs) { _todo.Enqueue(j); Interlocked.Increment(ref _queued); }
             Wake();
         }
 
+        internal static string Owner(int groupId) => "g" + groupId;
+
         private void Drop(Group g, string why)
         {
             g.Token = -1;   // results still in flight are thrown away
+            int inst = SharedDecals.Clear(Owner(g.Id));
+            if (inst > 0) Mod.Log.Info($"Placemaker dynamic decals: group {g.Id}: {inst} library instances removed ({why}).");
             long bytes = 0;
             foreach (var t in g.Tiles) { bytes += t.Bytes; Free(t); }
             int n = g.Tiles.Count;

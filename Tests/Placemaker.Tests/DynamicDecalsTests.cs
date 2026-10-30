@@ -230,72 +230,8 @@ namespace Placemaker.Tests
             _ => Community(146, 136),
         };
 
-        [Theory]
-        [MemberData(nameof(Sites))]
-        public void TheCommunityParkLooksUsedFromItsCauses(string site)
-        {
-            var sw = Stopwatch.StartNew();
-            var plan = Of(site);
-            sw.Stop();
-            Assert.False(plan.HasErrors);
-            var w = plan.Weathering;
-            Assert.NotNull(w);
-            _out.WriteLine($"{site}: compose {sw.ElapsedMilliseconds} ms; weathering {w}");
-            var strokes = Strokes(plan);
-            Assert.Equal(w.Strokes, strokes.Count);
-            Assert.InRange(strokes.Count, 15, Weathering.MaxStrokes);
-            // the play pattern is there: goalmouths, the spine, a linesman's track
-            foreach (var cause in new[] { "goalmouth", "goalCrease", "centreSpot" }) Assert.True(w.ByCause.ContainsKey(cause), cause);
-            Assert.True(w.ByCause.ContainsKey("puddle") || w.ByCause.ContainsKey("tidemark"), "no puddle or tidemark");
-            // budget: most of the site stays clean, few hot spots
-            Assert.True(w.Touched <= 0.42f, $"touched {w.Touched:P0}");
-            Assert.True(w.Strong <= 0.1f, $"strong {w.Strong:P1}");
-            // never one patch per object: far fewer leaf strokes than trees, no stroke centred on a tree
-            int trees = plan.Layers.Sum(l => l.Objects.Count(o => o.Role == ObjectRole.Tree));
-            int leafStrokes = strokes.Count(s => s.Kind.StartsWith("leaf"));
-            _out.WriteLine($"  {trees} trees, {leafStrokes} leaf strokes");
-            Assert.True(leafStrokes <= Math.Max(3, trees / 4), $"{leafStrokes} leaf strokes for {trees} trees");
-            var treePos = plan.Layers.SelectMany(l => l.Objects).Where(o => o.Role == ObjectRole.Tree).Select(o => o.Position.xz).ToList();
-            int centred = strokes.Count(s => s.Shape == StrokeShape.Box && treePos.Any(t => math.distance(t, s.Center) < 0.5f));
-            Assert.Equal(0, centred);
-            // every stroke names a kind the library has
-            var lib = Library();
-            foreach (var s in strokes) Assert.True(lib.Has(s.Kind), s.Kind);
-            // the organized paint wear is gone for this type (no mulch discs, verge bands, bullseyes): only the lawn's macro tone
-            var host = plan.Layers.First(l => l.GeneratorId == "sportsPark");
-            if (site == "big") Assert.True(w.ByCause.ContainsKey("wheelPath") || w.ByCause.ContainsKey("stallOil"), "the big park's car park has no wear");
-            Assert.True(sw.ElapsedMilliseconds < 20000);
-            if (Environment.GetEnvironmentVariable("PM_WRITE_DECALS") == "1") Pictures(plan, site);
-        }
-
-        [Fact]
-        public void WeatheringIsDeterministicAndFollowsTheGrimeAmount()
-        {
-            var a = Strokes(Community(146, 136));
-            var b = Strokes(Community(146, 136));
-            Assert.Equal(a.Count, b.Count);
-            for (int i = 0; i < a.Count; i++) { Assert.Equal(a[i].Kind, b[i].Kind); Assert.Equal(a[i].Seed, b[i].Seed); Assert.Equal(a[i].Center, b[i].Center); Assert.Equal(a[i].Strength, b[i].Strength); }
-            var none = Strokes(Community(146, 136, grime: 0));
-            Assert.Empty(none);
-            var lots = Strokes(Community(146, 136, grime: 200));
-            Assert.True(lots.Sum(s => s.Strength) > a.Sum(s => s.Strength) * 1.2f, "Grime 200 % is not grimier");
-            // other sports park styles are not weathered yet (v1: community only)
-            var plan = SportsDesignTests.Compose(SportsDesignTests.Site("block"), "stadium");
-            Assert.Empty(Strokes(plan));
-        }
-
-        [Fact]
-        public void ThePlanCarriesTheStrokesToTheRecord()
-        {
-            var plan = Community(146, 136);
-            var set = new DecalSet();
-            foreach (var l in plan.Layers) set.Strokes.AddRange(l.Decals);
-            var bytes = DecalCodec.Encode(set);
-            _out.WriteLine($"{set.Strokes.Count} strokes = {bytes.Length} bytes on the record");
-            Assert.True(bytes.Length < 64 * 1024, "record too big: " + bytes.Length);
-            var back = DecalCodec.Decode(bytes);
-            Assert.Equal(set.Strokes.Count, back.Strokes.Count);
-        }
+        // The sports park's designed ground (library instances from brushes) is tested in GroundDesignTests; v1 strokes are
+        // still read and drawn for old saves (the codec and generator tests above).
 
         // ───────────── pictures (PM_WRITE_DECALS=1) ─────────────
 

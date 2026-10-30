@@ -80,6 +80,72 @@
         { "op": "remap", "in": "an", "out": "a", "lo": 0.1, "hi": 0.7, "k": 0.32 },
         { "op": "layer", "alpha": "a", "color": [80, 64, 48], "color2": [176, 156, 124], "tone": "n", "vary": 0, "smooth": 0.18 }
       ]
+    },
+    {
+      "id": "lawnTonePatch", "name": "Lawn tone patch", "tier": "macro",
+      "about": "The lawn tone as a big soft patch (20-30 m) with a ragged fade on every side: laid overlapping over a whole lawn so it varies everywhere without the square edge of a sheet.",
+      "texel": 0.125, "layers": "terrain", "order": -2, "lod": 80, "maxTexels": 256, "opacity": 0.85,
+      "edge": { "feather": 5, "warp": 3, "warpScale": 10, "round": 1 },
+      "variants": { "count": 10, "size": [20, 30], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 5, "octaves": 5, "warp": 3, "warpScale": 6 },
+        { "op": "fbm", "out": "m", "scale": 1.2, "octaves": 3, "seed": 3 },
+        { "op": "abs", "in": "n", "out": "an" },
+        { "op": "remap", "in": "an", "out": "a", "lo": 0.05, "hi": 0.6, "k": 0.38 },
+        { "op": "mul", "a": "a", "b": "shape", "out": "shp0" },
+        { "op": "layer", "alpha": "shp0", "color": [54, 80, 28], "color2": [138, 134, 72], "tone": "n", "vary": 0, "smooth": 0.18 },
+        { "op": "remap", "in": "m", "out": "fine", "lo": 0.2, "hi": 0.8, "k": 0.12 },
+        { "op": "mul", "a": "fine", "b": "shape", "out": "shp1" },
+        { "op": "layer", "alpha": "shp1", "color": [44, 66, 24], "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "pavingTonePatch", "name": "Paving tone patch", "tier": "macro",
+      "about": "Paving tone as a big soft patch (14-22 m) that fades out raggedly: overlapping over plazas, terraces and path aprons.",
+      "texel": 0.09, "layers": "ground", "order": -2, "lod": 80, "maxTexels": 256, "opacity": 0.85,
+      "edge": { "feather": 5, "warp": 3, "warpScale": 10, "round": 1 },
+      "variants": { "count": 10, "size": [14, 22], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 4, "octaves": 4, "warp": 2, "warpScale": 5 },
+        { "op": "fbm", "out": "f", "scale": 0.6, "octaves": 3, "seed": 5 },
+        { "op": "abs", "in": "n", "out": "an" },
+        { "op": "remap", "in": "an", "out": "a", "lo": 0.1, "hi": 0.7, "k": 0.26 },
+        { "op": "mul", "a": "a", "b": "shape", "out": "shp0" },
+        { "op": "layer", "alpha": "shp0", "color": [96, 92, 84], "color2": [196, 190, 178], "tone": "n", "vary": 0, "smooth": 0.2 },
+        { "op": "remap", "in": "f", "out": "spots", "lo": 0.35, "hi": 0.8, "k": 0.12 },
+        { "op": "mul", "a": "spots", "b": "shape", "out": "shp1" },
+        { "op": "layer", "alpha": "shp1", "color": [80, 76, 70], "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "asphaltTonePatch", "name": "Asphalt tone patch", "tier": "macro",
+      "about": "Asphalt tone as a big soft patch (16-24 m): weathered, uneven tarmac over a car park or a hard court, no square edge.",
+      "texel": 0.1, "layers": "ground", "order": -2, "lod": 80, "maxTexels": 256, "opacity": 0.85,
+      "edge": { "feather": 5, "warp": 3, "warpScale": 10, "round": 1 },
+      "variants": { "count": 10, "size": [16, 24], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 6, "octaves": 4, "warp": 2.5, "warpScale": 6 },
+        { "op": "worley", "out": "cell", "scale": 5, "mode": "id", "warp": 1, "warpScale": 3 },
+        { "op": "mix", "a": "n", "b": "cell", "t": 0.4, "out": "t" },
+        { "op": "abs", "in": "t", "out": "at" },
+        { "op": "remap", "in": "at", "out": "a", "lo": 0.05, "hi": 0.6, "k": 0.32 },
+        { "op": "mul", "a": "a", "b": "shape", "out": "shp0" },
+        { "op": "layer", "alpha": "shp0", "color": [44, 44, 46], "color2": [112, 110, 106], "tone": "t", "vary": 0, "smooth": 0.25 }
+      ]
+    },
+    {
+      "id": "dirtTonePatch", "name": "Dirt tone patch", "tier": "macro",
+      "about": "Dirt and clay tone as a big soft patch (14-22 m): a clay court or a bare yard scuffed unevenly, fading out raggedly.",
+      "texel": 0.09, "layers": "ground", "order": -2, "lod": 80, "maxTexels": 256, "opacity": 0.85,
+      "edge": { "feather": 4, "warp": 2.5, "warpScale": 8, "round": 1 },
+      "variants": { "count": 8, "size": [14, 22], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["wide", "soft", "islands", "linear", "side", "wide"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 4, "octaves": 5, "warp": 2, "warpScale": 5 },
+        { "op": "abs", "in": "n", "out": "an" },
+        { "op": "remap", "in": "an", "out": "a", "lo": 0.1, "hi": 0.7, "k": 0.32 },
+        { "op": "mul", "a": "a", "b": "shape", "out": "shp0" },
+        { "op": "layer", "alpha": "shp0", "color": [80, 64, 48], "color2": [176, 156, 124], "tone": "n", "vary": 0, "smooth": 0.18 }
+      ]
     }
   ]
 }
