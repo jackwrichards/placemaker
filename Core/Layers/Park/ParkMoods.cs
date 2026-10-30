@@ -170,7 +170,7 @@ namespace Placemaker.Core.Layers.Park
             // the community garden, when asked, gets the first pick: the room that holds plots best goes first in line
             if (allotment)
             {
-                int bi = order.FindIndex(cd => !cd.core && cd.area >= 600f && cd.ins >= 5.5f);
+                int bi = order.FindIndex(cd => !cd.core && cd.area >= 300f && cd.ins >= 4.5f);
                 if (bi < 0) bi = order.FindIndex(cd => cd.core);
                 if (bi > 0) { var first = order[bi]; order.RemoveAt(bi); order.Insert(0, first); }
                 maxPlaces = math.max(maxPlaces, places.Count + 1 + (Sum(pal) > 0f ? 1 : 0));
@@ -233,7 +233,7 @@ namespace Placemaker.Core.Layers.Park
                     }
                 }
                 // the community garden option: the first lawn room big enough becomes the allotments
-                bool allot = allotment && used[(int)Mood.Allotment] == 0 && (cd.core ? r >= 9f : cd.area >= 600f && cd.ins >= 5.5f);   // a lawn room that holds a row of plots, or a disc at the side of the open lawn
+                bool allot = allotment && used[(int)Mood.Allotment] == 0 && (cd.core ? r >= 8f : cd.area >= 300f && cd.ins >= 4.5f);   // a lawn room that holds a row of plots, or a disc at the side of the open lawn
                 if (total <= 0f && !allot) { if (pal.Length > 0 && Sum(pal) > 0f) break; continue; }
                 float pick = U(ks, 7) * total;
                 int mood = 0;
@@ -903,10 +903,12 @@ namespace Placemaker.Core.Layers.Park
                 var ax = new float2(math.cos(ang), math.sin(ang)); var sd = new float2(-ax.y, ax.x);
                 float u0 = float.MaxValue, u1 = float.MinValue, v0 = float.MaxValue, v1 = float.MinValue;
                 foreach (var q in _p.Lawn) { float u = math.dot(q - c0, ax), v = math.dot(q - c0, sd); u0 = math.min(u0, u); u1 = math.max(u1, u); v0 = math.min(v0, v); v1 = math.max(v1, v); }
-                const float pw = 4.2f, pd = 7f, walk = 1.0f, spine = 2.6f;
+                const float pw = 4.2f, walk = 1.0f, spine = 2.6f;
                 int plots = 0, k = 0;
                 // double rows: plot | walk-side ... each pair of rows shares a spine walk
                 // double rows round a middle walk where the room is wide enough, else one row down its middle
+                // plots 7 m deep, shallower (down to 5 m) in a narrow room
+                float pd = math.clamp(v1 - v0 - 2f, 5f, 7f);
                 bool single = v1 - v0 - 2f < 2f * pd + spine;
                 for (float v = single ? (v0 + v1) * 0.5f - pd * 0.5f : v0 + 1f; single ? v <= (v0 + v1) * 0.5f : v + 2f * pd + spine <= v1 - 1f; v += single ? 1e6f : 2f * pd + spine + walk)
                 {
