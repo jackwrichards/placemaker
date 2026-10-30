@@ -102,5 +102,11 @@
   "Placemaker.Stat.RubblePiles": "Entulho",
   "Placemaker.Stat.JunkItems": "Itens de tralha",
   "Placemaker.Stat.Foundations": "Fundações",
-  "Placemaker.Stat.Shelters": "Abrigos"
+  "Placemaker.Stat.Shelters": "Abrigos",
+  "Placemaker.Abandoned.subtype.brokenCarPark": "Estacionamento velho",
+  "Placemaker.Abandoned.subtype.burntOut": "Terreno queimado",
+  "Placemaker.Abandoned.subtype.emptyLot": "Terreno vazio",
+  "Placemaker.Abandoned.Preset.brokenCarPark": "Estacionamento velho",
+  "Placemaker.Abandoned.Preset.burntOut": "Terreno queimado",
+  "Placemaker.Abandoned.Preset.emptyLot": "Terreno vazio"
 }

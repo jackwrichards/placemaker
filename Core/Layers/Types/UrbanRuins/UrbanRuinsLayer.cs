@@ -24,7 +24,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
     [AreaGenerator(311, Group = "sports")]
     public sealed class UrbanRuinsLayer : LeisureLayer
     {
-        public static readonly string[] Subtypes = { "diySpot", "highwayRuins", "graffitiPark", "parkour", "dirtJumps" };
+        public static readonly string[] Subtypes = { "diySpot", "highwayRuins", "graffitiPark", "parkour", "dirtJumps", "buildingRuins" };
 
         protected override string Area => "Ruins";
         public override string Id => "urbanRuins";
@@ -108,6 +108,10 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                 ("blockSpacing", 4.5), ("walls", 6.0), ("graffiti", 45.0), ("decay", 40.0), ("overgrowth", 25.0));
             Preset("dirtJumps", ("subtype", "dirtJumps"), ("deck", true), ("deckSide", "side"), ("deckWidth", 12.0), ("collapse", 80.0), ("padShare", 0.0),
                 ("skateItems", 0.0), ("ledges", 0.0), ("jumpLines", 3.0), ("jumpHeight", 1.75), ("walls", 0.0), ("graffiti", 30.0), ("decay", 60.0), ("overgrowth", 55.0));
+            // (rundown, 2026-10-29) the ruins of a building: floor slab, half walls, column stumps, a basement pit with old rainwater
+            Preset("buildingRuins", ("subtype", "buildingRuins"), ("deck", false), ("padShare", 0.0), ("skateItems", 0.0), ("ledges", 0.0), ("bowl", 0.0),
+                ("jumpLines", 0.0), ("blocks", 0.0), ("walls", 0.0), ("graffiti", 20.0), ("decay", 75.0), ("overgrowth", 50.0), ("benches", 0.0), ("lamps", false),
+                ("fence", true), ("fenceGaps", 55.0), ("embankment", 0.0));
         }
 
         private struct Span { public OrientedRect R; public bool Collapsed, Ramp; }
@@ -221,8 +225,13 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                 }
             }
 
+            // ── 2b. (rundown) The ruins of a building (Building ruins).
+            var building = sub == "buildingRuins" ? BuildingRuins.Plan(ctx, region, occ, all, keep, centre, axis, major, minor, decay) : null;
+            if (building != null) { var fr = building.Footprint.Ring; all.Add(fr); keep.Add(fr); }
+
             // ── 3. Spans on the ground: fallen deck pieces (broken asphalt), the ramp.
             var fallen = new List<DecayKit.Slab>();
+            var fallenR = new List<(OrientedRect r, DecayKit.Slab s)>();
             string slabCat = null;
             int markings = 0, fallenSlabs = 0;
             bool wantMarkings = ctx.B("markings") && AssetAvailability.Has(AssetCategories.DecalMarkings);
@@ -242,6 +251,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                     continue;
                 }
                 fallen.Add(slab);
+                fallenR.Add((shrunk, slab));
                 // Faded lane markings on the fallen carriageway (dashes on the centre and lane lines).
                 if (wantMarkings)
                 {
@@ -487,7 +497,24 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             string weedCat = over > 0f ? DecayKit.Cat(ctx, ctx.L("weedAssets"), AssetCategories.RuinsWeeds, AssetCategories.Bush) : null;
             int crackWeeds = 0;
             foreach (var slab in fallen) crackWeeds += DecayKit.CrackWeeds(ctx, occ, slab.Cracks, over, ctx.L("weedAssets"), weedCat, 0xC3Bu + (uint)crackWeeds);
-            var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, over, 15f + 40f * over, ctx.L("weedAssets"), weedCat, ctx.L("treeSpecies"), 0x0F7u,
+            if (building != null)
+            {
+                // weeds up through the floor and a few young trees inside the walls (birch and poplar seed into ruins first)
+                crackWeeds += DecayKit.CrackWeeds(ctx, occ, building.Floor.Cracks, math.saturate(over * 1.2f), ctx.L("weedAssets"), weedCat, 0xC3Cu);
+                int saplings = 1 + (int)(over * 4f);
+                for (int k = 0, tries = 0; k < saplings && tries < 40; tries++)
+                {
+                    uint v = Hashing.Mix(ctx.Seed, 0x5A91u + (uint)tries);
+                    var fp = building.Footprint;
+                    var p = fp.Local((Hashing.Unit(v) - 0.5f) * fp.HalfLength * 1.7f, (Hashing.Unit(Hashing.Mix(v, 1u)) - 0.5f) * fp.HalfWidth * 1.7f);
+                    if (building.Pit != null && Geometry.Poly.Contains(building.Pit, p)) continue;
+                    if (!occ.Free(p, 2f, 0.3f, 0.1f)) continue;
+                    var t = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 2u)) * 6.283f, ObjectRole.Tree, (ctx.L("treeSpecies") != null && ctx.L("treeSpecies").Length > 0 ? AssetMix.Pick(ctx.L("treeSpecies"), v) : AssetMix.Pick(new[] { "BirchTree01", "EU_PoplarTree01", "EU_AlderTree01" }, v)), v, 0, AssetCategories.Tree);
+                    occ.Take(p, 2f, 2);
+                    k++;
+                }
+            }
+            var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, over, 4f + 18f * over, ctx.L("weedAssets"), weedCat, ctx.L("treeSpecies"), 0x0F7u,
                 p => keep.Inside(p, 1.2f), 16f);
             ctx.Check();
 
@@ -509,6 +536,9 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                     }
                 }
             }
+
+            // ── 12. (rundown) The designed ground (library decals): old concrete, weedy cracks, lane lines, rubble, stagnant water.
+            UrbanRuinsGround.Dress(ctx, sub, decay, over, pads, fallenR, building);
 
             EmitGreenRegions(ctx, occ, 60f);
             CommonStats(ctx);

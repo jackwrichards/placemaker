@@ -219,6 +219,36 @@ namespace Placemaker.Core.Layers.Types.Ruins
             return slab;
         }
 
+        /// <summary>Cracks that wander across a slab from its edges (frost, roots): short legs that turn a little at each step and
+        /// stop inside, as segments (a, b). For an old car park or yard, where a grid of shards would read as paving slabs.</summary>
+        public static List<(float2 a, float2 b)> WanderingCracks(OrientedRect r, int count, uint seed)
+        {
+            var list = new List<(float2, float2)>();
+            for (int i = 0; i < count; i++)
+            {
+                uint h = Hashing.Mix(seed, (uint)i * 31u + 7u);
+                float side = Hashing.Unit(h), along = Hashing.Unit(Hashing.Mix(h, 1u)) * 2f - 1f;
+                float2 p, dir;
+                if (side < 0.25f) { p = r.Local(-r.HalfLength, along * r.HalfWidth); dir = r.Axis; }
+                else if (side < 0.5f) { p = r.Local(r.HalfLength, along * r.HalfWidth); dir = -r.Axis; }
+                else if (side < 0.75f) { p = r.Local(along * r.HalfLength, -r.HalfWidth); dir = r.Side; }
+                else { p = r.Local(along * r.HalfLength, r.HalfWidth); dir = -r.Side; }
+                float ang = math.atan2(dir.y, dir.x) + (Hashing.Unit(Hashing.Mix(h, 2u)) - 0.5f) * 1.2f;
+                float len = math.lerp(8f, math.max(10f, math.min(r.HalfLength, r.HalfWidth) * 1.6f), Hashing.Unit(Hashing.Mix(h, 3u)));
+                int legs = math.max(2, (int)(len / 4.5f));
+                for (int k = 0; k < legs; k++)
+                {
+                    ang += (Hashing.Unit(Hashing.Mix(h, 10u + (uint)k)) - 0.5f) * 0.9f;
+                    var q = p + new float2(math.cos(ang), math.sin(ang)) * (len / legs);
+                    var lq = q - r.Center;
+                    if (math.abs(math.dot(lq, r.Axis)) > r.HalfLength - 0.5f || math.abs(math.dot(lq, r.Side)) > r.HalfWidth - 0.5f) break;
+                    list.Add((p, q));
+                    p = q;
+                }
+            }
+            return list;
+        }
+
         /// <summary>Weeds coming up along cracks (spacing ~1.4 m, chance = <paramref name="amount"/>). Returns the count.</summary>
         public static int CrackWeeds(LayerContext ctx, Occupancy occ, List<(float2 a, float2 b)> cracks, float amount, string[] ids, string category, uint salt)
         {
@@ -230,7 +260,9 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 foreach (var p0 in LeisureKit.Along(a, b, 1.4f))
                 {
                     uint v = Hashing.Mix(ctx.Seed, salt + (uint)s * 131u + (uint)n * 7u + (uint)(p0.x * 3f));
-                    if (Hashing.Unit(v) > amount) continue;
+                    // (rundown) the slab's own rim (its last four segments) gets a third: a full row of bushes round a slab read robotic
+                    float along = s >= cracks.Count - 4 && cracks.Count > 4 ? amount * 0.33f : amount;
+                    if (Hashing.Unit(v) > along * (0.35f + 0.65f * ValueNoise.Clumps(p0, 6f, Hashing.Mix(ctx.Seed, salt)))) continue;
                     var p = p0 + (new float2(Hashing.Unit(Hashing.Mix(v, 1u)), Hashing.Unit(Hashing.Mix(v, 2u))) - 0.5f) * 0.6f;
                     if (!occ.Free(p, 0.5f, 0.6f, 0.05f)) continue;
                     var o = ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Bush, AssetMix.Pick(ids, v), v, -1, category);
@@ -251,8 +283,10 @@ namespace Placemaker.Core.Layers.Types.Ruins
         /// fringe. Density falls off as (1-t)^1.6 with value-noise clumping, scaled by <paramref name="intensity"/>.
         /// </summary>
         /// <summary>Small debris round rubble heaps: broken stone, flat gravel spills, rebar stumps.</summary>
-        public static readonly GritAssets.Set Chunks = new GritAssets.Set(false, "Rock01", "Rock03", "Rock06", "Rock08",
-            "Prop_CoalTruck01_StonePile01_Partial1|CoalTruck01_StonePile01", "CoalTruck01_StonePile01", "RubblePylonSmall04|Rock02", "Trashpile05|Rock05");
+        public static readonly GritAssets.Set Chunks = new GritAssets.Set(false,
+            // (rundown, 2026-10-29) only real low stone heaps: the small pylon stumps read as gravestones and the flat rocks as pale discs
+            // on the lawn in the game; the chunks and grit between the heaps are library decals now (RundownGround.Rubble)
+            "Prop_CoalTruck01_StonePile01_Partial1|CoalTruck01_StonePile01", "CoalTruck01_StonePile01", "Prop_CoalTruck01_StonePile01_Partial2|CoalTruck01_StonePile01");
 
         public static RubbleResult RubbleField(LayerContext ctx, Occupancy occ, Occupancy guard, LayerRegion region, float2 focus, float radius, float intensity,
             string[] ids, string pileCategory, float pileScale, uint salt, Func<float2, bool> reject, int maxItems = 500)
@@ -282,7 +316,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 float chance = intensity * math.pow(math.saturate(1f - t), 1.6f) * clump * 0.85f;
                 if (t < 1f && pileCategory != null && Hashing.Unit(v) < chance)
                 {
-                    bool pile = t < 0.4f && Hashing.Unit(Hashing.Mix(v, 9u)) < 0.6f;
+                    bool pile = t < 0.4f && Hashing.Unit(Hashing.Mix(v, 9u)) < 0.6f; if (!pile && Hashing.Unit(Hashing.Mix(v, 10u)) > 0.3f) continue;   // (rundown) fewer loose heaps: decals carry the chunks
                     float r = pile ? pileR : 0.8f;
                     if (!occ.Free(p, r, r * 0.5f + 0.3f, 0.15f)) continue;
                     var asset = !auto ? AssetMix.Pick(ids, v) : pile ? GritAssets.For(pileCategory, v, seed) : GritAssets.Ref(Chunks, v);
@@ -409,7 +443,10 @@ namespace Placemaker.Core.Layers.Types.Ruins
         }
 
         /// <summary>Paints a desire path between two points (inset from the outline) and keeps objects off it.</summary>
-        public static bool DesirePath(LayerContext ctx, Occupancy occ, LayerRegion region, float2 a, float2 b, int layer, uint salt)
+        public static bool DesirePath(LayerContext ctx, Occupancy occ, LayerRegion region, float2 a, float2 b, int layer, uint salt) => DesirePath(ctx, occ, region, a, b, layer, salt, null);
+
+        /// <summary>As above; the worn line (gate to gate, bent) is added to <paramref name="lines"/> for the ground design.</summary>
+        public static bool DesirePath(LayerContext ctx, Occupancy occ, LayerRegion region, float2 a, float2 b, int layer, uint salt, List<float2[]> lines)
         {
             var d = math.normalizesafe(b - a);
             a += d * 1.5f; b -= d * 1.5f;
@@ -420,6 +457,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
             var mid = math.lerp(a, b, 0.5f) + new float2(-d.y, d.x) * bend * 0.5f;
             if (!region.Contains(mid) || region.CrossesBoundary(a, mid, true) || region.CrossesBoundary(mid, b, true)) return false;
             TerrainPaint.Patch(ctx, strip, layer, 0.8f, 0f);
+            lines?.Add(new[] { a, math.lerp(a, mid, 0.5f) + new float2(-d.y, d.x) * bend * 0.12f, mid, math.lerp(mid, b, 0.5f) + new float2(-d.y, d.x) * bend * 0.12f, b });
             occ.TakeCorridor(a, mid, 0.9f, 60);
             occ.TakeCorridor(mid, b, 0.9f, 60);
             return true;

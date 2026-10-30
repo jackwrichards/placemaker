@@ -1,6 +1,6 @@
 {
   "Placemaker.Recipe.UrbanRuins": "Rovine urbane",
-  "Placemaker.Recipe.UrbanRuins.Description": "Uno spot da skate tra le rovine di una superstrada crollata: piloni, impalcato caduto, rampe fai-da-te, graffiti e salti in terra.",
+  "Placemaker.Recipe.UrbanRuins.Description": "Ciò che la città si è lasciata dietro: una superstrada in rovina, lo scheletro di un edificio con lo scantinato allagato e gli spot da skate e i salti di terra che la gente ci ricava.",
   "Placemaker.UI.Group.spot": "Spot",
   "Placemaker.UI.Group.deck": "Superstrada",
   "Placemaker.UI.Group.yard": "Piazzale",
@@ -95,5 +95,7 @@
   "Placemaker.AddOn.DirtJumps.Issue.NoPlace": "Nessun terreno libero era abbastanza grande per i salti in terra.",
   "Placemaker.Stat.SkateFeatures": "Elementi skate",
   "Placemaker.Stat.Pillars": "Piloni",
-  "Placemaker.Stat.Jumps": "Salti"
+  "Placemaker.Stat.Jumps": "Salti",
+  "Placemaker.Ruins.subtype.buildingRuins": "Rovine di edificio",
+  "Placemaker.Ruins.Preset.buildingRuins": "Rovine di edificio"
 }

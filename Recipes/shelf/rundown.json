@@ -1,0 +1,21 @@
+{
+  "_about": "Make-row category 'Rundown' (Core/Tool/Shelf.cs; one file per category). Hide, never delete: type ids in hiddenTypes, style (preset) ids per type in hiddenStyles ({\"park\": [\"pocket\"]}), types moved in from another group in types. Hidden things keep their code and the game runner still builds them by id. Rundown (2026-10-29, the user: 'Leftover city spaces, rundown areas, just empty areas'; 'neglect ... changes the entire vibe of everything ... its own entire version'): the city's in-between and forgotten places, each kind its own type or style with its own contents. Abandoned lot and construction site moved in from Industrial, urban ruins from Sports (docs/runbooks/rundown.md).",
+  "id": "rundown",
+  "name": "Rundown",
+  "order": 10,
+  "hidden": false,
+  "groups": [
+    "rundown"
+  ],
+  "types": [
+    "abandonedLot",
+    "constructionSite",
+    "urbanRuins"
+  ],
+  "hiddenTypes": [],
+  "hiddenStyles": {
+    "urbanRuins": [
+      "graffitiPark"
+    ]
+  }
+}

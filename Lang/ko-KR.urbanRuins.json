@@ -1,6 +1,6 @@
 {
   "Placemaker.Recipe.UrbanRuins": "도시 폐허",
-  "Placemaker.Recipe.UrbanRuins.Description": "무너진 고속도로 폐허 사이의 스케이트 장소: 기둥, 떨어진 상판, 직접 만든 램프, 낙서, 흙 점프대.",
+  "Placemaker.Recipe.UrbanRuins.Description": "도시가 남긴 것: 무너진 고가도로, 지하실이 물에 잠긴 건물의 잔해, 그리고 사람들이 그곳에 만든 스케이트 스폿과 흙 점프대.",
   "Placemaker.UI.Group.spot": "장소",
   "Placemaker.UI.Group.deck": "고속도로",
   "Placemaker.UI.Group.yard": "마당",
@@ -95,5 +95,7 @@
   "Placemaker.AddOn.DirtJumps.Issue.NoPlace": "흙 점프대를 놓을 만큼 넓은 빈 땅이 없습니다.",
   "Placemaker.Stat.SkateFeatures": "스케이트 시설",
   "Placemaker.Stat.Pillars": "기둥",
-  "Placemaker.Stat.Jumps": "장애물"
+  "Placemaker.Stat.Jumps": "장애물",
+  "Placemaker.Ruins.subtype.buildingRuins": "건물 폐허",
+  "Placemaker.Ruins.Preset.buildingRuins": "건물 폐허"
 }

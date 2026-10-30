@@ -1,6 +1,6 @@
 {
   "Placemaker.Recipe.UrbanRuins": "城市废墟",
-  "Placemaker.Recipe.UrbanRuins.Description": "破败高架公路废墟中的滑板场地：桥墩、坍塌的桥面、自制坡道、涂鸦和泥地跳台。",
+  "Placemaker.Recipe.UrbanRuins.Description": "城市遗留下来的东西：坍塌的高架路、地下室积水的建筑残骸，以及人们在那里搭起的滑板场和土坡跳台。",
   "Placemaker.UI.Group.spot": "场地",
   "Placemaker.UI.Group.deck": "高架",
   "Placemaker.UI.Group.yard": "空地",
@@ -95,5 +95,7 @@
   "Placemaker.AddOn.DirtJumps.Issue.NoPlace": "没有足够大的空地放泥地跳台。",
   "Placemaker.Stat.SkateFeatures": "滑板设施",
   "Placemaker.Stat.Pillars": "桥墩",
-  "Placemaker.Stat.Jumps": "跳台"
+  "Placemaker.Stat.Jumps": "跳台",
+  "Placemaker.Ruins.subtype.buildingRuins": "建筑废墟",
+  "Placemaker.Ruins.Preset.buildingRuins": "建筑废墟"
 }

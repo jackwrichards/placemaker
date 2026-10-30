@@ -102,5 +102,11 @@
   "Placemaker.Stat.RubblePiles": "Gruz",
   "Placemaker.Stat.JunkItems": "Rupiecie",
   "Placemaker.Stat.Foundations": "Fundamenty",
-  "Placemaker.Stat.Shelters": "Szałasy"
+  "Placemaker.Stat.Shelters": "Szałasy",
+  "Placemaker.Abandoned.subtype.brokenCarPark": "Stary parking",
+  "Placemaker.Abandoned.subtype.burntOut": "Pogorzelisko",
+  "Placemaker.Abandoned.subtype.emptyLot": "Pusta działka",
+  "Placemaker.Abandoned.Preset.brokenCarPark": "Stary parking",
+  "Placemaker.Abandoned.Preset.burntOut": "Pogorzelisko",
+  "Placemaker.Abandoned.Preset.emptyLot": "Pusta działka"
 }

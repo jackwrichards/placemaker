@@ -1,6 +1,6 @@
 {
   "Placemaker.Recipe.UrbanRuins": "Городские руины",
-  "Placemaker.Recipe.UrbanRuins.Description": "Скейт-спот среди руин разрушенного шоссе: опоры, рухнувший пролет, самодельные рампы, граффити и земляные трамплины.",
+  "Placemaker.Recipe.UrbanRuins.Description": "Что город оставил после себя: разрушенную эстакаду, остов здания с затопленным подвалом и скейт-споты и земляные трамплины, которые там устраивают люди.",
   "Placemaker.UI.Group.spot": "Спот",
   "Placemaker.UI.Group.deck": "Шоссе",
   "Placemaker.UI.Group.yard": "Двор",
@@ -95,5 +95,7 @@
   "Placemaker.AddOn.DirtJumps.Issue.NoPlace": "Не нашлось свободной земли, достаточной для земляных трамплинов.",
   "Placemaker.Stat.SkateFeatures": "Скейт-элементы",
   "Placemaker.Stat.Pillars": "Опоры",
-  "Placemaker.Stat.Jumps": "Трамплины"
+  "Placemaker.Stat.Jumps": "Трамплины",
+  "Placemaker.Ruins.subtype.buildingRuins": "Руины здания",
+  "Placemaker.Ruins.Preset.buildingRuins": "Руины здания"
 }

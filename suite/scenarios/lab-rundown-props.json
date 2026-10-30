@@ -1,0 +1,39 @@
+{
+  "_about": "Lab (rundown makeover, docs/runbooks/rundown.md): the game's own walls, stumps and junk side by side, to pick ruin walls (EU_Wall01Long is a white balustrade) and the rundown props. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-rundown-props.json -Who makeover-rundown",
+  "scenarios": [
+    {
+      "id": "rundown-walls",
+      "land": { "shape": "rect", "size": [120, 100], "ground": "flat", "roads": "none" },
+      "steps": [
+        {
+          "do": "lab", "op": "lineup",
+          "names": [
+            "EU_Wall01", "EU_Wall02", "EU_Wall03", "EU_Wall04", "EU_Wall05", "EU_Wall06", "EU_Wall07", "EU_Wall08", "EU_Wall09",
+            "EU_WallLow01", "EU_WallLow02", "EU_WallLow03", "EU_WallLow04", "EU_WallLow05", "EU_WallLow06", "EU_WallLow07", "EU_WallLow08", "EU_WallLow09",
+            "EU_WallPylon02", "EU_WallPylon05", "RubblePylonLarge01", "RubblePylonLarge03", "RubblePylonSmall01", "BuildingRubble Placeholder"
+          ],
+          "perRow": 9, "gap": 3
+        },
+        { "do": "shot", "name": "oblique", "camera": { "target": "area", "view": "oblique" }, "shotMode": "render" },
+        { "do": "shot", "name": "low", "camera": { "target": "area", "view": "low" }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "rundown-junk",
+      "land": { "shape": "rect", "size": [120, 100], "ground": "flat", "roads": "none" },
+      "steps": [
+        {
+          "do": "lab", "op": "lineup",
+          "names": [
+            "Trashpile01", "Trashpile02", "Trashpile03", "Trashpile04", "Trashpile05", "Trashpile06", "Trashpile07", "Trashpile08",
+            "OutdoorSofa01", "OutdoorCornerSofa02", "Trashbag01", "BarrelPile02", "Prop_CarTrailer01", "Prop_CamperTrailer01", "Prop_ParkMaintenanceVehicle01",
+            "LightpoleIndustrial01", "FlowerBushWildDead02", "GreenBushWildChild01", "FlowerBushWildChild02", "MakeshiftTent02", "CoalTruck01_StonePile01", "PileGarbageSmall01", "PileStoneSmall01", "Boulder03"
+          ],
+          "perRow": 8, "gap": 3
+        },
+        { "do": "shot", "name": "oblique", "camera": { "target": "area", "view": "oblique" }, "shotMode": "render" },
+        { "do": "shot", "name": "low", "camera": { "target": "area", "view": "low" }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

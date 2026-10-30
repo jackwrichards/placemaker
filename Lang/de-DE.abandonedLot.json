@@ -102,5 +102,11 @@
   "Placemaker.Stat.RubblePiles": "Schutt",
   "Placemaker.Stat.JunkItems": "Gerümpelteile",
   "Placemaker.Stat.Foundations": "Fundamente",
-  "Placemaker.Stat.Shelters": "Unterstände"
+  "Placemaker.Stat.Shelters": "Unterstände",
+  "Placemaker.Abandoned.subtype.brokenCarPark": "Alter Parkplatz",
+  "Placemaker.Abandoned.subtype.burntOut": "Abgebranntes Grundstück",
+  "Placemaker.Abandoned.subtype.emptyLot": "Leeres Grundstück",
+  "Placemaker.Abandoned.Preset.brokenCarPark": "Alter Parkplatz",
+  "Placemaker.Abandoned.Preset.burntOut": "Abgebranntes Grundstück",
+  "Placemaker.Abandoned.Preset.emptyLot": "Leeres Grundstück"
 }

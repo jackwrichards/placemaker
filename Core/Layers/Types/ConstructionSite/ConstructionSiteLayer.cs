@@ -72,9 +72,9 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             c.Slider("coneSpacing", 6, 2, 20, 1, "m", ControlTier.More, "safety").Layout(1.5).Tip();
             c.Toggle("signs", true, ControlTier.More, "safety");
 
-            c.Choice("groundCover", "dirt", ControlTier.More, "ground", "dirt", "gravel", "none").Tip();
+            c.Choice("groundCover", "none", ControlTier.More, "ground", "dirt", "gravel", "none").Tip();
             c.Toggle("mudPaint", true, ControlTier.More, "ground").Tip();
-            c.Slider("paintLayer", 1, 1, 4, 1, "count", ControlTier.More, "ground").When("mudPaint=true").Tip();
+            c.Slider("paintLayer", 3, 1, 4, 1, "count", ControlTier.More, "ground").When("mudPaint=true").Tip();
             c.Slider("mudDecals", 3, 0, 10, 0.5, "per100m2", ControlTier.More, "ground").Tip();
             c.Toggle("puddles", true, ControlTier.More, "ground");
 
@@ -230,6 +230,13 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             ctx.Check();
 
             // 7. Mud: paint and decals over the works, the road and the gate apron.
+            // (rundown) no ground cover by default: the whole site is painted earth (a grey surface over all of it read as a flat
+            // plastic sheet), the mud zones darker on top, and the designed ground (8b) lays the ruts, spills and water
+            if (paint > 0 && ctx.S("groundCover") == "none")
+            {
+                var site = SiteKit.Inset(region.Ring, 1f);
+                if (site != null && site.Length >= 3) TerrainPaint.Patch(ctx, site, paint, 0.85f, 5f);
+            }
             if (paint > 0) foreach (var m in w.Mud) TerrainPaint.Patch(ctx, m, paint, 0.9f, 2f);
             float mud = ctx.F("mudDecals");
             if (mud > 0f)
@@ -248,6 +255,11 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             // 8. Ground cover over everything not already surfaced.
             string cover = ctx.S("groundCover");
             if (cover != "none") GroundCover(ctx, region, w.Surfaces, SurfaceCategory(ctx, cover), AssetMix.One(ctx.S("groundSurface")));
+
+            // 8b. (rundown) The designed ground: ruts, mud out of the gate, spills at the heaps, water in the dig (library decals).
+            var worksC = w.Ring != null ? Poly.Centroid(w.Ring) : s.Centre;
+            float worksR = w.Ring != null ? math.sqrt(math.abs(Poly.SignedArea(w.Ring)) / math.PI) : math.sqrt(region.Area) * 0.3f;
+            ConstructionGround.Dress(ctx, s.Subtype, s.Gate, s.Inward, s.HasGate, s.Tracks, w.Ring, w.Mud, worksC, worksR * 1.2f);
 
             // 9. Regions for features: the works are a place (features keep out), the free ground is the yard.
             if (w.Ring != null) ctx.AddRegion(w.Ring, WorksPlace, WorksPlace);

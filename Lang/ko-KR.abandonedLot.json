@@ -102,5 +102,11 @@
   "Placemaker.Stat.RubblePiles": "잔해",
   "Placemaker.Stat.JunkItems": "폐품",
   "Placemaker.Stat.Foundations": "기초",
-  "Placemaker.Stat.Shelters": "쉼터"
+  "Placemaker.Stat.Shelters": "쉼터",
+  "Placemaker.Abandoned.subtype.brokenCarPark": "낡은 주차장",
+  "Placemaker.Abandoned.subtype.burntOut": "불탄 부지",
+  "Placemaker.Abandoned.subtype.emptyLot": "빈 땅",
+  "Placemaker.Abandoned.Preset.brokenCarPark": "낡은 주차장",
+  "Placemaker.Abandoned.Preset.burntOut": "불탄 부지",
+  "Placemaker.Abandoned.Preset.emptyLot": "빈 땅"
 }

@@ -107,5 +107,11 @@
   "Placemaker.Stat.RubblePiles": "Rubble",
   "Placemaker.Stat.JunkItems": "Junk items",
   "Placemaker.Stat.Foundations": "Foundations",
-  "Placemaker.Stat.Shelters": "Shelters"
+  "Placemaker.Stat.Shelters": "Shelters",
+  "Placemaker.Abandoned.subtype.brokenCarPark": "Old car park",
+  "Placemaker.Abandoned.subtype.burntOut": "Burnt-out lot",
+  "Placemaker.Abandoned.subtype.emptyLot": "Vacant lot",
+  "Placemaker.Abandoned.Preset.brokenCarPark": "Old car park",
+  "Placemaker.Abandoned.Preset.burntOut": "Burnt-out lot",
+  "Placemaker.Abandoned.Preset.emptyLot": "Vacant lot"
 }

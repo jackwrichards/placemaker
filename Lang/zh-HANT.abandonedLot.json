@@ -102,5 +102,11 @@
   "Placemaker.Stat.RubblePiles": "瓦礫",
   "Placemaker.Stat.JunkItems": "廢品數量",
   "Placemaker.Stat.Foundations": "地基",
-  "Placemaker.Stat.Shelters": "遮棚"
+  "Placemaker.Stat.Shelters": "遮棚",
+  "Placemaker.Abandoned.subtype.brokenCarPark": "廢棄停車場",
+  "Placemaker.Abandoned.subtype.burntOut": "火災廢墟",
+  "Placemaker.Abandoned.subtype.emptyLot": "空地",
+  "Placemaker.Abandoned.Preset.brokenCarPark": "廢棄停車場",
+  "Placemaker.Abandoned.Preset.burntOut": "火災廢墟",
+  "Placemaker.Abandoned.Preset.emptyLot": "空地"
 }

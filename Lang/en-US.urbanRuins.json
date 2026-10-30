@@ -1,6 +1,6 @@
 {
   "Placemaker.Recipe.UrbanRuins": "Urban ruins",
-  "Placemaker.Recipe.UrbanRuins.Description": "A skate spot among the ruins of a broken-down highway: pillars, fallen deck, DIY ramps, graffiti and dirt jumps.",
+  "Placemaker.Recipe.UrbanRuins.Description": "What the city left behind: a broken-down highway, the shell of a building with a flooded basement, and the skate spots and dirt jumps people make of them.",
 
   "Placemaker.UI.Group.spot": "Spot",
   "Placemaker.UI.Group.deck": "Highway",
@@ -99,5 +99,7 @@
 
   "Placemaker.Stat.SkateFeatures": "Skate features",
   "Placemaker.Stat.Pillars": "Pillars",
-  "Placemaker.Stat.Jumps": "Jumps"
+  "Placemaker.Stat.Jumps": "Jumps",
+  "Placemaker.Ruins.subtype.buildingRuins": "Building ruins",
+  "Placemaker.Ruins.Preset.buildingRuins": "Building ruins"
 }
