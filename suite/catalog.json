@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+1c580ee1-dirty",
+  "assembly": "0.3.6+0b61788b",
   "categories": [
     {
       "id": "zoning",
@@ -20752,6 +20752,10 @@
           "id": "entrances",
           "kind": "Markers"
         }
+      ],
+      "shelvedStyles": [
+        "reclaim",
+        "tip"
       ]
     },
     {
@@ -20896,6 +20900,9 @@
           "id": "entrances",
           "kind": "Markers"
         }
+      ],
+      "shelvedStyles": [
+        "recycling"
       ]
     },
     {
@@ -22986,7 +22993,8 @@
           "kind": "Toggle",
           "default": false
         }
-      ]
+      ],
+      "shelved": true
     },
     {
       "layer": "fairground",
@@ -26664,7 +26672,8 @@
           "kind": "Toggle",
           "default": false
         }
-      ]
+      ],
+      "shelved": true
     },
     {
       "layer": "hikingTrail",
@@ -27248,7 +27257,8 @@
           "kind": "Toggle",
           "default": false
         }
-      ]
+      ],
+      "shelved": true
     },
     {
       "layer": "abandonedLot",
@@ -28177,6 +28187,12 @@
           "kind": "Toggle",
           "default": false
         }
+      ],
+      "shelvedStyles": [
+        "capped",
+        "compost",
+        "recycling",
+        "flytip"
       ]
     },
     {

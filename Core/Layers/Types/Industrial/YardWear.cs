@@ -354,13 +354,13 @@ namespace Placemaker.Core.Layers.Types.Yards
                     foreach (int s in new[] { 1, -1 })
                     {
                         if (onHard)
-                            Brushes.EdgeStrip(B, pts, "tyreTrack", new StripOptions { Side = s, Offset = off, Gaps = 0.55f, Run = new float2(8f, 26f), Opacity = Op(0.25f, 0.5f), Width = new float2(0.8f, 1.05f), Cause = "wheels:tyres" });
+                            Brushes.EdgeStrip(B, pts, "laneGrime", new StripOptions { Side = s, Offset = off, Gaps = 0.35f, Run = new float2(10f, 34f), Opacity = Op(0.6f, 0.95f), Width = new float2(0.9f, 1.15f), Cause = "wheels:grime" });
                         else
-                            Brushes.EdgeStrip(B, pts, "yardRut", new StripOptions { Side = s, Offset = off, Gaps = 0.3f, Run = new float2(12f, 36f), Opacity = Op(0.5f, 0.85f), Width = new float2(0.85f, 1.15f), Cause = "wheels:ruts" });
+                            Brushes.EdgeStrip(B, pts, "yardRut", new StripOptions { Side = s, Offset = off, Gaps = 0.25f, Run = new float2(12f, 40f), Opacity = Op(0.7f, 1f), Width = new float2(0.9f, 1.15f), Cause = "wheels:ruts" });
                     }
                     if (onHard && _y.Markings && half >= 3f)
                         foreach (int s in new[] { 1, -1 })
-                            Brushes.EdgeStrip(B, pts, "fadedLineYellow", new StripOptions { Side = s, Offset = half - 0.35f, Gaps = 0.5f, Run = new float2(8f, 30f), Opacity = Op(0.45f, 0.8f), Width = new float2(1f, 1f), Cause = "slabs:lines" });
+                            Brushes.EdgeStrip(B, pts, "fadedLineYellow", new StripOptions { Side = s, Offset = half - 0.35f, Gaps = 0.5f, Run = new float2(8f, 30f), Opacity = Op(0.65f, 0.95f), Width = new float2(1f, 1f), Cause = "slabs:lines" });
                 }
                 // turning aprons: arcs swept by the lorries' rear wheels round the corners they take most
                 int n = 0;
@@ -384,7 +384,7 @@ namespace Placemaker.Core.Layers.Types.Yards
                             if (In(q, 1f)) arc.Add(q);
                         }
                         if (arc.Count < 4) continue;
-                        Brushes.EdgeStrip(B, arc, onHard ? "skidMark" : "yardRut", new StripOptions { Gaps = 0.15f, Run = new float2(6f, 20f), CornerDeg = 70f, Opacity = onHard ? Op(0.25f, 0.45f) : Op(0.45f, 0.8f), Width = new float2(0.8f, 1.1f), Cause = "wheels:arc" });
+                        Brushes.EdgeStrip(B, arc, onHard ? "laneGrime" : "yardRut", new StripOptions { Gaps = 0.15f, Run = new float2(6f, 20f), CornerDeg = 70f, Opacity = onHard ? Op(0.5f, 0.85f) : Op(0.65f, 1f), Width = new float2(0.8f, 1.1f), Cause = "wheels:arc" });
                     }
                     // water stands in the ruts at a crossing (on hard ground: by the drain, smaller and rarer)
                     float chance = onHard ? 0.25f : 0.55f;
@@ -430,14 +430,14 @@ namespace Placemaker.Core.Layers.Types.Yards
                             var q = ctr - inward * r * math.cos(ang) + side * s * r * math.sin(ang) * 1.2f;
                             if (In(q, 1f)) arc.Add(q);
                         }
-                        if (arc.Count >= 4) Brushes.EdgeStrip(B, arc, _y.Hard ? "tyreTrack" : "yardRut", new StripOptions { Gaps = 0.1f, Run = new float2(6f, 20f), CornerDeg = 70f, Opacity = Op(0.4f, 0.75f), Cause = "gate:arc" });
+                        if (arc.Count >= 4) Brushes.EdgeStrip(B, arc, _y.Hard ? "laneGrime" : "yardRut", new StripOptions { Gaps = 0.1f, Run = new float2(6f, 20f), CornerDeg = 70f, Opacity = Op(0.6f, 0.95f), Cause = "gate:arc" });
                     }
                     // mud carried out on the tyres: tracks fading toward the street
                     if (!_y.Hard)
                         foreach (int s in new[] { 1, -1 })
                         {
                             var a = g + inward * 6f + side * s * 1.4f; var b = g - inward * 1.5f + side * s * 1.4f;
-                            Brushes.EdgeStrip(B, new[] { a, b }, "tyreTrack", new StripOptions { Gaps = 0f, Run = new float2(6f, 9f), Opacity = Op(0.5f, 0.8f), Cause = "gate:trackout" });
+                            Brushes.EdgeStrip(B, new[] { a, b }, "tyreTrack", new StripOptions { Gaps = 0f, Run = new float2(6f, 9f), Opacity = Op(0.8f, 1f), Cause = "gate:trackout" });
                         }
                     Brushes.At(B, g + inward * 4f, inward, "oilDrips", R(3f, 4.5f, 150, n), Op(0.45f, 0.8f), 0, ColourLevel.Any, "gate:drips");
                     if (n == 1 && Flaws.Contains("bigPuddle")) Puddle(g + inward * R(9f, 13f, 151) + side * R(-2f, 2f, 152), side, R(8f, 11f, 153), 1f, "flaw:bigPuddle");
@@ -458,7 +458,7 @@ namespace Placemaker.Core.Layers.Types.Yards
                         case Kind.Machine:
                         case Kind.Vehicle:
                             if (t.Up || U(200, n) > 0.85f) break;
-                            Brushes.At(B, t.P + t.Fwd * t.L * R(0.12f, 0.3f, 201, n), t.Fwd, U(202, n) < 0.75f ? "oilSpot" : "oilDrips", R(2f, 3.4f, 203, n), Op(0.55f, 0.9f), U(204, n) < 0.4f ? 1 : 0, ColourLevel.Any, "machines:oil");
+                            Brushes.At(B, t.P + t.Fwd * t.L * R(0.12f, 0.3f, 201, n), t.Fwd, U(202, n) < 0.75f ? "oilSpot" : "oilDrips", R(3f, 4.6f, 203, n), Op(0.7f, 1f), U(204, n) < 0.4f ? 1 : 0, ColourLevel.Any, "machines:oil");
                             if (t.K == Kind.Machine && !_y.Hard) Brushes.At(B, t.P - t.Fwd * t.L * 0.4f, -t.Fwd, "scrapGrit", R(4f, 6f, 205, n), Op(0.3f, 0.55f), 0, ColourLevel.Quiet, "machines:grit");
                             break;
                         case Kind.Tank:
@@ -469,8 +469,8 @@ namespace Placemaker.Core.Layers.Types.Yards
                         case Kind.Wreck:
                             if (t.Up || !Room("wreck", t.P, 6f)) break;
                             float u = U(207, n);
-                            if (u < 0.22f) Brushes.At(B, t.P + t.Fwd * t.L * 0.25f, t.Fwd, "oilSpot", R(1.6f, 2.6f, 208, n), Op(0.45f, 0.8f), 0, ColourLevel.Any, "wrecks:oil");
-                            else if (u < 0.36f) Brushes.At(B, t.P + Right(t.Fwd) * (t.W * 0.5f + 0.4f), Right(t.Fwd), "rustRunoff", R(2f, 3.2f, 209, n), Op(0.45f, 0.8f), 0, ColourLevel.Any, "wrecks:rust");
+                            if (u < 0.22f) Brushes.At(B, t.P + t.Fwd * t.L * 0.25f, t.Fwd, "oilSpot", R(2.4f, 3.6f, 208, n), Op(0.65f, 0.95f), 0, ColourLevel.Any, "wrecks:oil");
+                            else if (u < 0.36f) Brushes.At(B, t.P + Right(t.Fwd) * (t.W * 0.5f + 0.4f), Right(t.Fwd), "rustRunoff", R(3f, 4.5f, 209, n), Op(0.65f, 0.95f), 0, ColourLevel.Any, "wrecks:rust");
                             break;
                         case Kind.Barrel:
                             if (Room("drums", t.P, 9f) && U(210, n) < 0.5f) Brushes.At(B, t.P + new float2(R(-1f, 1f, 211, n), R(-1f, 1f, 212, n)), t.Fwd, U(213, n) < 0.5f ? "oilDrips" : "oilSpot", R(1.6f, 2.8f, 214, n), Op(0.5f, 0.85f), 0, ColourLevel.Any, "machines:drums");
@@ -510,14 +510,14 @@ namespace Placemaker.Core.Layers.Types.Yards
                             if (Room("box", t.P, 5f) && U(300, n) < (t.K == Kind.Skip ? 0.5f : 0.4f) * math.min(1.3f, _a))
                             {
                                 float s = U(301, n) < 0.5f ? 1f : -1f;
-                                Brushes.At(B, t.P + right * s * (t.W * 0.5f + 0.9f) + t.Fwd * t.L * R(-0.35f, 0.35f, 302, n), right * s, "rustRunoff", R(2.4f, 4f, 303, n), Op(0.45f, 0.85f), 0, ColourLevel.Any, "steel:rust");
+                                Brushes.At(B, t.P + right * s * (t.W * 0.5f + 0.9f) + t.Fwd * t.L * R(-0.35f, 0.35f, 302, n), right * s, "rustRunoff", R(3.5f, 5.5f, 303, n), Op(0.65f, 1f), 0, ColourLevel.Any, "steel:rust");
                             }
                             break;
                         case Kind.Stack:
                             for (float u = -t.L * 0.5f + 4f; u < t.L * 0.5f - 3f; u += R(9f, 16f, 304, n + (int)u))
                                 foreach (float s in new[] { 1f, -1f })
                                     if (U(305, n * 31 + (int)(u * 3f) + (s > 0 ? 1 : 0)) < 0.45f)
-                                        Brushes.At(B, t.P + right * s * (t.W * 0.5f + 0.9f) + t.Fwd * u, right * s, "rustRunoff", R(2.6f, 4.2f, 306, n + (int)u), Op(0.4f, 0.8f), 0, ColourLevel.Any, "steel:rust");
+                                        Brushes.At(B, t.P + right * s * (t.W * 0.5f + 0.9f) + t.Fwd * u, right * s, "rustRunoff", R(3.5f, 5.5f, 306, n + (int)u), Op(0.6f, 0.95f), 0, ColourLevel.Any, "steel:rust");
                             break;
                         case Kind.MetalHeap:
                             if (Room("metal", t.P, 8f))
@@ -528,7 +528,7 @@ namespace Placemaker.Core.Layers.Types.Yards
                                 {
                                     float ang = (i + U(308 + i, n) * 0.6f) / k * 2f * math.PI;
                                     var dir = new float2(math.cos(ang), math.sin(ang));
-                                    Brushes.At(B, t.P + dir * (r0 * 0.75f + 1.2f), dir, "rustRunoff", R(3f, 4.6f, 309 + i, n), Op(0.45f, 0.85f), 0, ColourLevel.Any, "steel:heapRust");
+                                    Brushes.At(B, t.P + dir * (r0 * 0.75f + 1.2f), dir, "rustRunoff", R(4f, 6.5f, 309 + i, n), Op(0.65f, 1f), 0, ColourLevel.Any, "steel:heapRust");
                                 }
                                 if (r0 > riverSize) { riverSize = r0; riverAt = t.P; }
                             }
@@ -573,23 +573,23 @@ namespace Placemaker.Core.Layers.Types.Yards
                     {
                         case Kind.StoneHeap:
                             if (!Room("stone", t.P, 10f)) break;
-                            if (U(400, n) < 0.6f) Brushes.At(B, t.P + Wind * (r0 + R(3f, 6f, 401, n)), Wind, "dustDrift", R(10f, 16f, 402, n) * math.clamp(r0 / 4f, 0.7f, 1.4f), Op(0.3f, 0.55f), 1, ColourLevel.Quiet, "heaps:dust");
+                            if (U(400, n) < 0.6f) Brushes.At(B, t.P + Wind * (r0 + R(3f, 6f, 401, n)), Wind, "dustDrift", R(10f, 16f, 402, n) * math.clamp(r0 / 4f, 0.7f, 1.4f), Op(0.5f, 0.8f), 1, ColourLevel.Quiet, "heaps:dust");
                             if (U(403, n) < 0.7f) { float a = U(404, n) * 6.283f; var d = new float2(math.cos(a), math.sin(a)); Brushes.At(B, t.P + d * (r0 * 0.8f + 1f), d, "pebbles", R(5f, 8f, 405, n), Op(0.4f, 0.7f), 1, ColourLevel.Quiet, "heaps:spill"); }
                             break;
                         case Kind.Plant:
-                            Brushes.At(B, t.P + Wind * (r0 + R(4f, 8f, 406, n)), Wind, "dustDrift", R(13f, 18f, 407, n), Op(0.3f, 0.55f), 2, ColourLevel.Quiet, "plant:dust");
+                            Brushes.At(B, t.P + Wind * (r0 + R(4f, 8f, 406, n)), Wind, "dustDrift", R(13f, 18f, 407, n), Op(0.5f, 0.8f), 2, ColourLevel.Quiet, "plant:dust");
                             if (U(408, n) < 0.6f) Brushes.At(B, t.P + t.Fwd * (t.L * 0.5f + 0.8f), t.Fwd, "oilSpot", R(2.4f, 3.6f, 409, n), Op(0.5f, 0.85f), 1, ColourLevel.Any, "plant:oil");
                             break;
                         case Kind.Scrap:
                             if (!Room("scrap", t.P, 9f)) break;
-                            Brushes.At(B, t.P + new float2(R(-1.5f, 1.5f, 430, n), R(-1.5f, 1.5f, 431, n)), Wind, "scrapGrit", R(5f, 7.5f, 432, n), Op(0.4f, 0.75f), 1, ColourLevel.Any, "heaps:scrapGrit");
+                            Brushes.At(B, t.P + new float2(R(-1.5f, 1.5f, 430, n), R(-1.5f, 1.5f, 431, n)), Wind, "scrapGrit", R(6f, 9f, 432, n), Op(0.65f, 1f), 1, ColourLevel.Any, "heaps:scrapGrit");
                             if (U(433, n) < 0.3f) { float a2 = U(434, n) * 6.283f; var d2 = new float2(math.cos(a2), math.sin(a2)); Brushes.At(B, t.P + d2 * 2.5f, d2, "rustRunoff", R(2.4f, 3.6f, 435, n), Op(0.4f, 0.75f), 0, ColourLevel.Any, "steel:scrapRust"); }
                             break;
                         case Kind.MetalHeap:
                             if (!Room("metalGrit", t.P, 8f)) break;
                             {
                                 float a = U(410, n) * 6.283f; var d = new float2(math.cos(a), math.sin(a));
-                                Brushes.At(B, t.P + d * (r0 * 0.8f + 1.5f), d, "scrapGrit", R(6f, 9f, 411, n), Op(0.45f, 0.8f), 2, ColourLevel.Any, "heaps:scrapGrit");
+                                Brushes.At(B, t.P + d * (r0 * 0.8f + 1.5f), d, "scrapGrit", R(7f, 10f, 411, n), Op(0.7f, 1f), 2, ColourLevel.Any, "heaps:scrapGrit");
                             }
                             break;
                         case Kind.Garbage:
@@ -633,7 +633,7 @@ namespace Placemaker.Core.Layers.Types.Yards
                     bool insideLeft = isRing || Poly.Contains(_ring, mid + left * 1.5f);
                     // StripOptions.Side +1 puts the heavy (+z) side on the left: the fence must be the heavy side
                     int side = insideLeft ? -1 : 1;
-                    Brushes.EdgeStrip(B, pts, "weedStrip", new StripOptions { Side = side, Offset = -0.55f, Gaps = 0.4f, Run = new float2(8f, 30f), Opacity = Op(0.55f, 0.95f), Cause = "fence:weeds" });
+                    Brushes.EdgeStrip(B, pts, "weedStrip", new StripOptions { Side = side, Offset = -0.55f, Gaps = 0.4f, Run = new float2(8f, 30f), Opacity = Op(0.75f, 1f), Cause = "fence:weeds" });
                     foreach (var p in pts)
                     {
                         float d = math.distance(p, gate);
@@ -665,7 +665,7 @@ namespace Placemaker.Core.Layers.Types.Yards
                     bool back = far > 0f && math.distance(c, gate) > far * 0.55f;
                     var inset = Brushes.Inset(s, 1.6f);
                     if (inset != null && Poly.IsCcw(inset) && Poly.Area(inset) > 40f)
-                        Brushes.CracksAlong(B, Closed(inset), back && U(600, n) < 0.45f ? "crackWeeds" : "crackConcrete", new StripOptions { Gaps = 0.72f, Run = new float2(5f, 16f), Opacity = Op(0.45f, 0.8f), Width = new float2(0.8f, 1f), Cause = back ? "slabs:weedyCracks" : "slabs:cracks" });
+                        Brushes.CracksAlong(B, Closed(inset), back && U(600, n) < 0.45f ? "crackWeeds" : "crackConcrete", new StripOptions { Gaps = 0.72f, Run = new float2(5f, 16f), Opacity = Op(0.65f, 0.95f), Width = new float2(0.8f, 1f), Cause = back ? "slabs:weedyCracks" : "slabs:cracks" });
                     if (area > 500f) Brushes.Scatter(B, BrushArea.Of(s), "crackWeb", 0.02f * _a, new ScatterOptions { Opacity = Op(0.35f, 0.6f), Clump = 1.5f, Cause = "slabs:crackWeb" });
                 }
             }
