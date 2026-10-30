@@ -61,6 +61,8 @@ namespace Placemaker.Tests
             var all = plan.Layers.SelectMany(l => l.Objects).ToList();
             Assert.DoesNotContain(all, o => o.Role == ObjectRole.Centerpiece);
             var layer = Layer(plan, type);
+            // (the plazas makeover) the designed market square's cross is a fountain drum of wall fountains, never an empty disc
+            if (type == "marketSquare") { Assert.True(layer.Facts.ContainsKey("fountainDrum"), preset + ": no market cross"); return; }
             Assert.True(layer.Facts.ContainsKey("specimenCentre"), type + "/" + preset + ": no planted centre");
             var c = new float2(55, 55);
             Assert.Contains(layer.Objects, o => o.Role == ObjectRole.Tree && math.distance(o.Position.xz, c) < 12f);
@@ -113,7 +115,7 @@ namespace Placemaker.Tests
             Assert.Equal(0, MarketSquareLayer.ScaledStalls(0, 16000f));
             int Stalls(float side) => (int)Layer(Compose("marketSquare", Square(side), "weekly"), "marketSquare").Objects.Count(o => o.Category == AssetCategories.MarketStall);
             int small = Stalls(63f), block = Stalls(126f);
-            Assert.True(block >= small * 3, $"0.4 ha {small} stalls, 1.6 ha {block}");
+            Assert.True(block >= small * 2, $"0.4 ha {small} stalls, 1.6 ha {block}");   // (the plazas makeover) the designed market: rows of stalls round a market cross
         }
 
         [Fact]
@@ -142,16 +144,19 @@ namespace Placemaker.Tests
             Assert.True(Hidden("fairground", "events", "funfair"));
             // (2026-10-28) The designed plazas replace the classic compositions (PlazaDesignTests).
             Assert.True(Hidden("plaza", "squares", "fountain"));
-            foreach (var d in PlazaDesignTests.Designs) Assert.Equal(d == "waterSteps", Hidden("plaza", "squares", d));   // (2026-10-29) water steps hidden: no water surface
-            Assert.True(Hidden("marketSquare", "squares", "weekly"));
+            // (the plazas makeover, 2026-10-29) cut to the best: the weaker twins hidden, the grungy square shown
+            foreach (var d in PlazaDesignTests.Designs) Assert.Equal(d == "grand" || d == "waterSteps" || d == "piazza" || d == "railed" || d == "marketHall" || d == "modern", Hidden("plaza", "squares", d));
+            Assert.False(Hidden("plaza", "squares", "grungy"));
+            Assert.True(Hidden("marketSquare", "squares", "weekly"));   // (2026-10-30) the type's Standard is the designed market; grand is the plaza's Standard
             Assert.False(Hidden("marketSquare", "squares", "bigMarket"));
-            Assert.True(shelf.IsTypeShelved("fairground", "events"));
+            Assert.False(shelf.IsTypeShelved("fairground", "events"));   // back as the events side of Plazas
             // (2026-10-28) Plazas is its own category again, the plaza type shown in it
             Assert.False(shelf.IsTypeShelved("plaza", "squares"));
             Assert.Equal("plazas", shelf.CategoryOf("plaza", "squares"));
-            Assert.False(Hidden("amphitheatre", "events", "classic"));
+            Assert.True(Hidden("amphitheatre", "events", "classic"));   // the stone theatre replaces the old bowl
+            Assert.True(Hidden("amphitheatre", "events", "theatre"));   // the amphitheatre's Standard is the stone theatre
             Assert.False(shelf.IsTypeShelved("amphitheatre", "events"));
-            Assert.Equal("parks", shelf.CategoryOf("amphitheatre", "events"));
+            Assert.Equal("plazas", shelf.CategoryOf("amphitheatre", "events"));
         }
     }
 }

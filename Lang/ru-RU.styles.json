@@ -29,5 +29,8 @@
   "Placemaker.Standard.logisticsYard": "Грузовой двор",
   "Placemaker.Standard.scrapyard": "Крановый двор",
   "Placemaker.Standard.abandonedLot": "Пустырь",
-  "Placemaker.Standard.landfill": "Городская свалка"
+  "Placemaker.Standard.landfill": "Городская свалка",
+  "Placemaker.Standard.plaza": "Большая площадь",
+  "Placemaker.Standard.marketSquare": "Рыночная площадь",
+  "Placemaker.Standard.fairground": "Летняя ярмарка"
 }

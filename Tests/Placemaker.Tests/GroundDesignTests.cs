@@ -392,6 +392,31 @@ namespace Placemaker.Tests
             }
         }
 
+        /// <summary>(plazas makeover) The same pictures for any plan: from above and close looks at the first instance of each cause.</summary>
+        internal static void PictureOf(ComposedPlan plan, string name, IEnumerable<string> causes, string folder = "ground")
+        {
+            var lib = Lib();
+            var list = Instances(plan);
+            var ids = list.Select(d => d.Kind + "#" + d.Variant).Distinct().ToList();
+            Parallel.ForEach(ids, id =>
+            {
+                if (_baked.ContainsKey(id)) return;
+                DecalVariants.TryParseId(id, out var kind, out int v);
+                _baked[id] = DecalVariants.Bake(lib.Get(kind), v);
+            });
+            var dir = Path.Combine(TestKit.RepoRoot(), ".forensics", folder);
+            Directory.CreateDirectory(dir);
+            var ring = plan.Footprints.Count > 0 ? plan.Footprints[0] : null;
+            Poly.Bounds(ring, out var lo, out var hi);
+            Render(plan, list, lo - 4f, hi + 4f, 0.1f, Path.Combine(dir, name + "-top.png"));
+            foreach (var cause in causes)
+            {
+                var d = list.FirstOrDefault(x => x.Cause == cause);
+                if (d.Kind == null) continue;
+                Render(plan, list, d.P - 12f, d.P + 12f, 0.025f, Path.Combine(dir, name + "-" + cause.Replace(':', '-') + ".png"));
+            }
+        }
+
         internal static void Render(ComposedPlan plan, List<DecalInstance> list, float2 lo, float2 hi, float mpp, string file, bool things = false, float3? ground = null)
         {
             var lib = Lib();

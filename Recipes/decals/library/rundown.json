@@ -58,7 +58,7 @@
       ]
     },
     {
-      "id": "weedTufts", "name": "Weed tufts", "tier": "macro",
+      "id": "rankWeeds", "name": "Weed tufts", "tier": "macro",
       "about": "Clumps of rough grass and weeds on bare or broken ground: green and straw tufts with soil between, the way a lot looks two summers after anyone cared.",
       "texel": 0.036, "layers": "terrain", "order": 3, "lod": 34, "maxTexels": 512, "opacity": 0.8,
       "edge": { "feather": 1.3, "warp": 1.2, "warpScale": 3, "round": 1 },

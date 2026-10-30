@@ -135,7 +135,7 @@ namespace Placemaker.Core.Decals
             // Preset styles: the name promises a look.
             d["abandonedLot"].With(("demolished", L), ("fencedWasteland", L));
             d["park"].With(("formal", C), ("garden", C), ("victorian", C), ("modern", C), ("urban", G), ("pocket", L));
-            d["plaza"].With(("civic", C), ("podium", C), ("garden", C), ("market", L), ("cafe", L));
+            d["plaza"].With(("civic", C), ("podium", C), ("garden", C), ("market", L), ("cafe", L), ("grungy", G));   // grungy: the plazas makeover
             d["parking"].With(("green", C));
             d["constructionSite"].With(("compound", L));
             d["farmstead"].With(("hobby", C));

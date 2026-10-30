@@ -93,5 +93,12 @@
   "Placemaker.Plaza.design.dining": "Terrazza ristoranti",
   "Placemaker.Plaza.Preset.dining": "Terrazza ristoranti",
   "Placemaker.Plaza.design.grandSteps": "Scalinata",
-  "Placemaker.Plaza.Preset.grandSteps": "Scalinata"
+  "Placemaker.Plaza.Preset.grandSteps": "Scalinata",
+  "Placemaker.Plaza.design.grungy": "Degradata",
+  "Placemaker.Plaza.Preset.grungy": "Piazza degradata",
+  "Placemaker.Plaza.design.theatre": "Teatro all'aperto",
+  "Placemaker.Plaza.design.market": "Piazza del mercato",
+  "Placemaker.Plaza.design.transit": "Piazzale di scambio",
+  "Placemaker.Plaza.design.fair": "Fiera estiva",
+  "Placemaker.Plaza.design.winterFair": "Mercatino di Natale"
 }

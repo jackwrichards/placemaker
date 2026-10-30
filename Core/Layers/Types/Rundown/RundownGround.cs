@@ -106,7 +106,7 @@ namespace Placemaker.Core.Layers.Types.Rundown
                 Brushes.Scatter(B, soil, "dryGrass", g.Dry * 0.45f, new ScatterOptions { Weight = p => 0.3f + 0.7f * Mosaic(p, 14, 34f) * (1f - Worn(p)), Opacity = new float2(0.22f, 0.4f), Scale = new float2(0.5f, 0.85f), Clump = 3f, Spill = 2f, Cause = "ground:dry" });
             // weed tufts: thick on the edges, in clumps in the open, never where feet and wheels go
             if (g.Weeds > 0f)
-                Brushes.Scatter(B, soil, "weedTufts", g.Weeds, new ScatterOptions
+                Brushes.Scatter(B, soil, "rankWeeds", g.Weeds, new ScatterOptions
                 {
                     Weight = p => math.saturate((1f - g.EdgeWeeds) * (0.3f + 0.7f * Mosaic(p, 15, 18f)) + g.EdgeWeeds * Edge(p) * (0.6f + 0.4f * Mosaic(p, 16, 9f))) * (1f - 0.9f * Worn(p)),
                     Opacity = new float2(0.65f, 1f), Clump = 4f, Spread = 0.6f, Loners = 0.3f, Spill = 1f, Cause = "ground:weeds",

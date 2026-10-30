@@ -138,6 +138,19 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
 
 ## 7. Engine facts that cost hours (don't relearn them)
 
+- **The decal albedo is linear (fixed 2026-10-30, plazas makeover).** The library's albedo went up as an sRGB-flagged DXT5,
+  but the game's decal shader samples it without decoding, so every colour drew about a gamma too bright: a mid grey
+  (70) as about 140, olive-brown summer leaves as yellow-orange, dark grime as a pale haze (the user's "blurry white
+  stuff"). `SharedDecals.LinearAlbedo` now converts the albedo to linear values and uploads a linear texture
+  (`DecalVariants.GeneratorVersion` 7, so the disk cache refills). Found with the lab
+  (`suite/scenarios/lab-plazas.json`): a pure black and a dark brown blob drew right, every mid tone drew pale; after the fix
+  the colours drew as the bake shows. The sports park looks as it did, a touch richer, at the same frame time (runs
+  `send-ground-sports-1030-031347` against `-1029-214234`). Judge colours in the game, not only in the bake.
+- **The mask map's blue follows the coverage** (GeneratorVersion 6). It was 255 over the whole box, the opacity the shader
+  can blend a decal's normal, smoothness and AO by. That made no visible difference in the lab, but it is the right packing.
+- **Render order is not why a decal looks faint.** Moving kinds to orders 5-6 changed nothing. Small, thin film kinds on
+  bright paving (grime strips, gum) still read faintly from the player's height: make them wide and dark enough to read.
+
 - **Never a `MaterialPropertyBlock` per decal.** 0.7 µs per renderer: +1.6 ms for 2000. `SharedDecals` puts the size in
   the transform and the opacity in 8 shared step materials: 1500 instances cost ~0.03-0.2 ms. Measure with the scenario's
   "with / switched off" frames.
@@ -197,3 +210,19 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
 - 2026-10-30: A type that knows its story while it plans can lay its decals itself (`RundownGround`, from the layer) instead of reading the plan back in `Weathering`: no shared file touched, every cause exact.
 - 2026-10-30: **The game's vehicle props are not placeable** (`Prop_*` match nothing in a lab lineup): no wrecks, no diggers. **`EU_Wall01Long` is a white balustrade**; `EU_Wall01/05/08` are the dark plain walls. Check props with a lab lineup (`suite/scenarios/lab-rundown-props.json`) before choosing them.
 - 2026-10-30: Evenly spread bushes read as a park; scrub grows in thickets with open ground between.
+
+## Lessons from plazas (2026-10-29, docs/runbooks/plazas.md)
+
+- Paving is not a lawn: on the pale vanilla paving, stains and grime at sports-park strengths (about 0.2 effective alpha)
+  are invisible from 100 m and even close up; only the leaf stamps (0.75-1) read. Paving kinds need 0.85-0.95 alpha in
+  their layers; crisp stains read where soft tone does not. Make your own strong copy (`pavingGrimeStrip`) rather than
+  retuning a shared kind.
+- The park's summer leaves read as yellow-orange stains on grey paving: squares use a darker olive-brown set
+  (`leafSquareSummer`). Never `leafWet` under summer trees: it is the autumn palette.
+- The ground colour carries most of a vibe: a grungy square on pale concrete still reads clean; dark tiles and asphalt
+  bands made it grungy before any decal.
+- A square of many small paving pieces spends its whole budget on seams: give joints a metre budget of their own.
+- One pass reads every paving piece edge once (dedup by midpoint) and classifies it by what lies 0.6 m either side
+  (hard / green / outside): that turns "every edge" into joints, soil spills and lawn wear.
+- Frame time is not the limit: the grungy square on 220 x 200 with 2066 instances drew in 7.42 ms, 7.40 ms switched off.
+- Judge colours in the game: the library albedo drew a gamma too bright until 2026-10-30 (section 7). A lab run that lays a kind on open ground takes ten minutes and saves tuning a whole design on bakes.

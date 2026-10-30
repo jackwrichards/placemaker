@@ -29,5 +29,8 @@
   "Placemaker.Standard.logisticsYard": "卡车场站",
   "Placemaker.Standard.scrapyard": "吊车场",
   "Placemaker.Standard.abandonedLot": "空地",
-  "Placemaker.Standard.landfill": "城镇垃圾场"
+  "Placemaker.Standard.landfill": "城镇垃圾场",
+  "Placemaker.Standard.plaza": "大广场",
+  "Placemaker.Standard.marketSquare": "集市广场",
+  "Placemaker.Standard.fairground": "夏日集会"
 }

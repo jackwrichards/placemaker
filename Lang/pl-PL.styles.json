@@ -29,5 +29,8 @@
   "Placemaker.Standard.logisticsYard": "Baza ciężarówek",
   "Placemaker.Standard.scrapyard": "Plac z dźwigami",
   "Placemaker.Standard.abandonedLot": "Pusta działka",
-  "Placemaker.Standard.landfill": "Miejskie wysypisko"
+  "Placemaker.Standard.landfill": "Miejskie wysypisko",
+  "Placemaker.Standard.plaza": "Wielki plac",
+  "Placemaker.Standard.marketSquare": "Rynek",
+  "Placemaker.Standard.fairground": "Letni festyn"
 }

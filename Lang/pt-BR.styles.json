@@ -29,5 +29,8 @@
   "Placemaker.Standard.logisticsYard": "Pátio de caminhões",
   "Placemaker.Standard.scrapyard": "Pátio dos guindastes",
   "Placemaker.Standard.abandonedLot": "Terreno baldio",
-  "Placemaker.Standard.landfill": "Lixão da cidade"
+  "Placemaker.Standard.landfill": "Lixão da cidade",
+  "Placemaker.Standard.plaza": "Grande praça",
+  "Placemaker.Standard.marketSquare": "Praça do mercado",
+  "Placemaker.Standard.fairground": "Feira de verão"
 }

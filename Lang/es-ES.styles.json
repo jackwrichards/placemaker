@@ -29,5 +29,8 @@
   "Placemaker.Standard.logisticsYard": "Depósito de camiones",
   "Placemaker.Standard.scrapyard": "Patio de grúas",
   "Placemaker.Standard.abandonedLot": "Solar vacío",
-  "Placemaker.Standard.landfill": "Vertedero municipal"
+  "Placemaker.Standard.landfill": "Vertedero municipal",
+  "Placemaker.Standard.plaza": "Gran plaza",
+  "Placemaker.Standard.marketSquare": "Plaza del mercado",
+  "Placemaker.Standard.fairground": "Feria de verano"
 }

@@ -87,5 +87,7 @@
   "Placemaker.Amphitheatre.Issue.NoRoom": "Não há espaço nem para uma fileira de assentos — um palco num gramado no lugar.",
   "Placemaker.Amphitheatre.Issue.FewerRows": "Espaço para {0} de {1} fileiras.",
   "Placemaker.Stat.Rows": "Fileiras",
-  "Placemaker.Stat.Capacity": "Capacidade"
+  "Placemaker.Stat.Capacity": "Capacidade",
+  "Placemaker.Amphitheatre.style.theatre": "Teatro de pedra",
+  "Placemaker.Amphitheatre.Preset.theatre": "Teatro de pedra"
 }

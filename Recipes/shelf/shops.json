@@ -15,8 +15,7 @@
     "shopsPark",
     "outdoorMall",
     "highStreet",
-    "retailPark",
-    "fairground"
+    "retailPark"
   ],
   "hiddenStyles": {
     "mallDistrict": [
@@ -32,11 +31,6 @@
     ],
     "retailPark": [
       "trade"
-    ],
-    "fairground": [
-      "festival",
-      "funfair",
-      "foodTrucks"
     ]
   }
 }

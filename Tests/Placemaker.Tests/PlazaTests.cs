@@ -11,12 +11,15 @@ namespace Placemaker.Tests
 {
     public class PlazaTests
     {
+        /// <summary>(the plazas makeover) These tests are about the classic composition round the entrances; the type's default is now the grand square.</summary>
+        private static AreaPlan Classic(AreaInput input) { input.Settings.Values["design"] = "classic"; return TestKit.Plan("plaza", input); }
+
         private static readonly float3[] Square = TestKit.Rect(80, 60);
 
         [Fact]
         public void DefaultPlazaIsWalkablePavedAndFurnished()
         {
-            var plan = TestKit.Plan("plaza", TestKit.Input(Square, site: TestKit.RoadAlongBottom(80)));
+            var plan = Classic(TestKit.Input(Square, site: TestKit.RoadAlongBottom(80)));
             Assert.False(plan.HasErrors);
             Assert.Single(plan.Areas);
             Assert.Equal(AreaRole.PedestrianArea, plan.Areas[0].Role);
@@ -39,7 +42,7 @@ namespace Placemaker.Tests
         public void CenterModes(string mode, int expected)
         {
             var s = new SettingsBag(); s.Values["centerMode"] = mode; s.Values["centerSize"] = 3.0; s.Values["centerSpacing"] = 15.0;
-            var plan = TestKit.Plan("plaza", TestKit.Input(TestKit.Rect(100, 50), s));
+            var plan = Classic(TestKit.Input(TestKit.Rect(100, 50), s));
             Assert.Equal(expected, TestKit.Count(plan, ObjectRole.Centerpiece));
         }
 
@@ -47,7 +50,7 @@ namespace Placemaker.Tests
         public void OversizedCenterpieceIsDroppedWithInfo()
         {
             var s = new SettingsBag(); s.Values["centerSize"] = 20.0;
-            var plan = TestKit.Plan("plaza", TestKit.Input(TestKit.Rect(30, 25), s));
+            var plan = Classic(TestKit.Input(TestKit.Rect(30, 25), s));
             Assert.Equal(0, TestKit.Count(plan, ObjectRole.Centerpiece));
             Assert.Contains(plan.Issues, i => i.Key == "Placemaker.Plaza.Issue.CenterpieceDoesNotFit");
             Assert.False(plan.HasErrors);
@@ -65,7 +68,7 @@ namespace Placemaker.Tests
             s.Values["treeLayout"] = "none"; s.Values["beds"] = 0.0;   // the arrangement alone (no allée benches, no bed bushes)
             var input = TestKit.Input(Square, s);
             input.Reserved.AddDisc(new float2(10, 10), 4f, "Tree");
-            var plan = TestKit.Plan("plaza", input);
+            var plan = Classic(input);
             Assert.True(TestKit.Count(plan, ObjectRole.Bench) >= 4, "benches " + TestKit.Count(plan, ObjectRole.Bench));
             Assert.Equal(TestKit.Count(plan, ObjectRole.Bench), TestKit.Count(plan, ObjectRole.Bush));
             Assert.All(plan.Objects.Where(o => o.Role == ObjectRole.Lamp), o => Assert.Equal("MyLamp", o.Asset.Id));
@@ -81,8 +84,8 @@ namespace Placemaker.Tests
         [Fact]
         public void SameSeedSamePlan()
         {
-            var a = TestKit.Plan("plaza", TestKit.Input(TestKit.LShape(90), seed: 5));
-            var b = TestKit.Plan("plaza", TestKit.Input(TestKit.LShape(90), seed: 5));
+            var a = Classic(TestKit.Input(TestKit.LShape(90), seed: 5));
+            var b = Classic(TestKit.Input(TestKit.LShape(90), seed: 5));
             Assert.Equal(TestKit.Fingerprint(a), TestKit.Fingerprint(b));
         }
 
@@ -94,7 +97,7 @@ namespace Placemaker.Tests
                 new EdgeMarker { Kind = "access", Position = new float3(0, 0, 30) },
                 new EdgeMarker { Kind = "access", Position = new float3(80, 0, 30) },
             };
-            var plan = TestKit.Plan("plaza", TestKit.Input(Square, markers: markers));
+            var plan = Classic(TestKit.Input(Square, markers: markers));
             var access = plan.Objects.Where(o => o.Role == ObjectRole.AccessPoint).ToList();
             Assert.Equal(2, access.Count);
             Assert.Contains(access, o => math.distance(o.Position.xz, new float2(0, 30)) < 0.1f);
@@ -130,7 +133,7 @@ namespace Placemaker.Tests
         {
             using (AssetAvailability.Scope(new Dictionary<string, int> { [AssetCategories.Centerpiece] = 0 }))
             {
-                var plan = TestKit.Plan("plaza", TestKit.Input(Square));
+                var plan = Classic(TestKit.Input(Square));
                 Assert.Equal(0, TestKit.Count(plan, ObjectRole.Centerpiece));
                 Assert.Contains(plan.Issues, i => i.Key == Keys.NoAssetsIssue);
                 Assert.True(TestKit.Count(plan, ObjectRole.Bench) > 0);

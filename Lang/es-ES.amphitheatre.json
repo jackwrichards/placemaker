@@ -87,5 +87,7 @@
   "Placemaker.Amphitheatre.Issue.NoRoom": "No hay sitio ni para una fila de asientos: en su lugar, un escenario sobre césped.",
   "Placemaker.Amphitheatre.Issue.FewerRows": "Hay sitio para {0} de {1} filas.",
   "Placemaker.Stat.Rows": "Filas",
-  "Placemaker.Stat.Capacity": "Aforo"
+  "Placemaker.Stat.Capacity": "Aforo",
+  "Placemaker.Amphitheatre.style.theatre": "Teatro de piedra",
+  "Placemaker.Amphitheatre.Preset.theatre": "Teatro de piedra"
 }

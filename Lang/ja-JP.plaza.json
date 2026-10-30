@@ -93,5 +93,12 @@
   "Placemaker.Plaza.design.dining": "ダイニングテラス",
   "Placemaker.Plaza.Preset.dining": "ダイニングテラス",
   "Placemaker.Plaza.design.grandSteps": "大階段",
-  "Placemaker.Plaza.Preset.grandSteps": "大階段"
+  "Placemaker.Plaza.Preset.grandSteps": "大階段",
+  "Placemaker.Plaza.design.grungy": "荒れた広場",
+  "Placemaker.Plaza.Preset.grungy": "荒れた広場",
+  "Placemaker.Plaza.design.theatre": "野外劇場",
+  "Placemaker.Plaza.design.market": "市場広場",
+  "Placemaker.Plaza.design.transit": "駅前広場",
+  "Placemaker.Plaza.design.fair": "夏祭り",
+  "Placemaker.Plaza.design.winterFair": "クリスマスマーケット"
 }

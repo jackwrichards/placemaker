@@ -29,5 +29,8 @@
   "Placemaker.Standard.logisticsYard": "Truck depot",
   "Placemaker.Standard.scrapyard": "Crane yard",
   "Placemaker.Standard.abandonedLot": "Empty lot",
-  "Placemaker.Standard.landfill": "Town dump"
+  "Placemaker.Standard.landfill": "Town dump",
+  "Placemaker.Standard.plaza": "Grand square",
+  "Placemaker.Standard.marketSquare": "Market square",
+  "Placemaker.Standard.fairground": "Summer fair"
 }

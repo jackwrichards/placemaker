@@ -116,7 +116,7 @@
         {
           "do": "lab",
           "op": "grime",
-          "focus": "weedTufts",
+          "focus": "rankWeeds",
           "index": 5,
           "margin": 6
         },

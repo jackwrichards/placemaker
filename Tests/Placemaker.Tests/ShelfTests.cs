@@ -44,8 +44,11 @@ namespace Placemaker.Tests
             Assert.Equal("parks", shelf.CategoryOf("zenGarden", "gardens"));
             Assert.Equal("plazas", shelf.CategoryOf("plaza", "squares"));
             Assert.Equal("plazas", shelf.CategoryOf("mallPark", "commercial"));
-            Assert.Equal("shops", shelf.CategoryOf("fairground", "events"));
-            Assert.False(shelf.IsTypeShelved("quarry", "industrial"));   // the makeover (2026-10-30): rebuilt on vanilla pieces
+            Assert.Equal("plazas", shelf.CategoryOf("fairground", "events"));   // the plazas makeover: the events side of Plazas
+            Assert.Equal("plazas", shelf.CategoryOf("amphitheatre", "events"));
+            Assert.Equal("plazas", shelf.CategoryOf("transitPlaza", "transport"));
+            Assert.False(shelf.IsTypeShelved("transitPlaza", "transport"));
+            Assert.False(shelf.IsTypeShelved("quarry", "industrial"));
             Assert.Equal("industry", shelf.CategoryOf("containerYard", "industrial"));
             Assert.True(shelf.IsTypeShelved("restArea", "transport"));
             Assert.False(shelf.IsTypeShelved("park", "parks"));

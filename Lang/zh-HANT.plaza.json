@@ -93,5 +93,12 @@
   "Placemaker.Plaza.design.dining": "餐飲露台",
   "Placemaker.Plaza.Preset.dining": "餐飲露台",
   "Placemaker.Plaza.design.grandSteps": "大台階",
-  "Placemaker.Plaza.Preset.grandSteps": "大台階"
+  "Placemaker.Plaza.Preset.grandSteps": "大台階",
+  "Placemaker.Plaza.design.grungy": "破舊廣場",
+  "Placemaker.Plaza.Preset.grungy": "破舊廣場",
+  "Placemaker.Plaza.design.theatre": "露天劇場",
+  "Placemaker.Plaza.design.market": "市集廣場",
+  "Placemaker.Plaza.design.transit": "交通前廣場",
+  "Placemaker.Plaza.design.fair": "夏日市集",
+  "Placemaker.Plaza.design.winterFair": "聖誕市集"
 }

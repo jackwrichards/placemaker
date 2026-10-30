@@ -87,5 +87,7 @@
   "Placemaker.Amphitheatre.Issue.NoRoom": "Нет места даже для одного ряда — вместо этого сцена на газоне.",
   "Placemaker.Amphitheatre.Issue.FewerRows": "Место для {0} из {1} рядов.",
   "Placemaker.Stat.Rows": "Ряды",
-  "Placemaker.Stat.Capacity": "Вместимость"
+  "Placemaker.Stat.Capacity": "Вместимость",
+  "Placemaker.Amphitheatre.style.theatre": "Каменный театр",
+  "Placemaker.Amphitheatre.Preset.theatre": "Каменный театр"
 }

@@ -29,5 +29,8 @@
   "Placemaker.Standard.logisticsYard": "트럭 차고지",
   "Placemaker.Standard.scrapyard": "크레인 야적장",
   "Placemaker.Standard.abandonedLot": "빈 땅",
-  "Placemaker.Standard.landfill": "마을 쓰레기장"
+  "Placemaker.Standard.landfill": "마을 쓰레기장",
+  "Placemaker.Standard.plaza": "대광장",
+  "Placemaker.Standard.marketSquare": "시장 광장",
+  "Placemaker.Standard.fairground": "여름 축제"
 }

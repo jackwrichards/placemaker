@@ -8,9 +8,7 @@
     "parks",
     "gardens"
   ],
-  "types": [
-    "amphitheatre"
-  ],
+  "types": [],
   "hiddenTypes": [
     "dogPark",
     "picnicGrounds",
@@ -45,11 +43,6 @@
     "zenGarden": [
       "moss",
       "bamboo"
-    ],
-    "amphitheatre": [
-      "cinema",
-      "meadow",
-      "speakers"
     ]
   }
 }

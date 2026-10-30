@@ -42,7 +42,7 @@ namespace Placemaker.Core.Layers.Plaza
         public const string Control = "design";
         public const string Classic = "classic";
         public static readonly string[] Ids = { Classic, "grand", "rooms", "railed", "terraces", "modern", "piazza",
-            "sunkenPlaza", "waterSteps", "marketHall", "dining", "grandSteps" };
+            "sunkenPlaza", "waterSteps", "marketHall", "dining", "grandSteps", "grungy", "theatre", "market", "transit", "fair", "winterFair" };
 
         public static bool Handles(string id) => !string.IsNullOrEmpty(id) && id != Classic && Array.IndexOf(Ids, id) > 0;
 
@@ -60,6 +60,10 @@ namespace Placemaker.Core.Layers.Plaza
         {
             var k = new Kit(ctx, occ, region, gates, palette, pave, axis, fountainChild);
             ctx.Plan.Facts["plazaDesign"] = Array.IndexOf(Ids, design);
+            // (round 3) a real square's size in the middle of a big site, a surround in the design's manner round it (Surround.cs);
+            // the transit forecourt keeps its whole site (its platform runs along the street)
+            // the theatre grows with its site instead (a real Greek theatre is 60-80 m across) and lays out its own grounds
+            if (design != "theatre") k.CapBox(design == "transit");
             switch (design)
             {
                 case "grand": Grand(k); break;
@@ -72,15 +76,31 @@ namespace Placemaker.Core.Layers.Plaza
                 case "marketHall": MarketHall(k); break;
                 case "dining": Dining(k); break;
                 case "grandSteps": GrandSteps(k); break;
+                case "grungy": Grungy(k); break;
+                case "theatre": Theatre(k); break;
+                case "market": Market(k); break;
+                case "transit": Transit(k); break;
+                case "fair": Fair(k, false); break;
+                case "winterFair": Fair(k, true); break;
                 default: Piazza(k); break;
             }
             ctx.Check();
-            k.FillLeftover();
+            if (k.Capped) k.Surround(SurroundManner(design)); else k.FillLeftover();
             ctx.Check();
             // The square's edge lamps in one rhythm (designs light their own walks first; these fill the outline).
             PlazaDressing.Lighting(ctx, occ, region, gates, k.C, 0f, k.Lamp);
             PlazaDressing.Bollards(ctx, occ, region, gates);
             k.Flush();
+            // (the plazas makeover) the designs name vanilla props directly: in an install without a category (or a test
+            // scope without it) those props are left out and the plan says so, like every type's "no assets" info
+            var missing = new HashSet<string>(StringComparer.Ordinal);
+            ctx.Plan.Objects.RemoveAll(o =>
+            {
+                if (o == null || string.IsNullOrEmpty(o.Category) || AssetAvailability.Has(o.Category)) return false;
+                missing.Add(o.Category);
+                return true;
+            });
+            foreach (var cat in missing) AssetAvailability.Require(ctx.Plan, cat, null, Keys.Category(cat));
             ctx.Plan.Facts["designTrees"] = k.TreeCount;
             ctx.Plan.Facts["designBenches"] = k.BenchCount;
             ctx.Plan.Facts["designHedges"] = k.HedgeCount;
@@ -922,7 +942,7 @@ namespace Placemaker.Core.Layers.Plaza
             public readonly PavingPalette P;
             public readonly PavingPlan Pave;
             public float2 A, S;
-            public readonly float2 C;
+            public float2 C;   // (round 3) moved by the transit forecourt toward its street on a big site
             /// <summary>Half sizes of the box (on A and S) round C the composition is laid in.</summary>
             public float HA, HB;
             /// <summary>Half sizes of the box to its real edge on the outline (HA/HB reach the frame margin past it).</summary>
@@ -1051,6 +1071,29 @@ namespace Placemaker.Core.Layers.Plaza
                                 var q2 = p + new float2(6f, 6f);
                                 if ((gi & 1) == 0 && lr.ContainsDisc(q2, 3f) && math.distance(q2, deep) >= keepR) CafeSet(q2, Phase + 0.4f, false, true);
                             }
+                        made++;
+                        continue;
+                    }
+                    if (manner == "wild")
+                    {
+                        // (the grungy square) the corner nobody keeps: rough grass, wild and dead bushes, a self-sown tree or two
+                        foreach (var rough in Poly.Offset(piece, 1.5f))
+                        {
+                            if (rough == null || rough.Length < 3 || Poly.Area(rough) < 60f) continue;
+                            Lay(PGreen, rough, Grass, SurfaceRole.Grass, AssetCategories.SurfaceGrass);
+                            var rr = LayerRegion.From(rough);
+                            if (rr == null) continue;
+                            int wi = 0;
+                            for (float x = rr.Min.x + 2.5f; x < rr.Max.x; x += 4.5f)
+                                for (float y = rr.Min.y + 2.5f; y < rr.Max.y; y += 4.5f, wi++)
+                                {
+                                    var p = new float2(x, y) + (new float2(Hashing.Unit(V(0x3101u)), Hashing.Unit(V(0x3102u))) - 0.5f) * 3f;
+                                    if (!rr.ContainsDisc(p, 1.2f) || Hashing.Unit(V(0x3103u)) < 0.35f) continue;
+                                    if (wi % 7 == 3 && rr.ContainsDisc(p, 3f)) { Tree(p, false, PlazaArt.PlaneTrees); continue; }
+                                    bool dead = Hashing.Unit(V(0x3104u)) < 0.3f;
+                                    LeisureKit.Put(Ctx, Occ, p, Hashing.Unit(V(0x3105u)) * 6.28f, ObjectRole.Bush, AssetMix.Pick(dead ? DeadBushes : WildBushes, V(0x3106u)), AssetCategories.RuinsWeeds, 0.9f, V(0x3107u), 0.1f, 0.05f, 0);
+                                }
+                        }
                         made++;
                         continue;
                     }

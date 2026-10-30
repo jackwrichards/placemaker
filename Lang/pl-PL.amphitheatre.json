@@ -87,5 +87,7 @@
   "Placemaker.Amphitheatre.Issue.NoRoom": "Brak miejsca nawet na jeden rząd widowni — zamiast tego scena na trawniku.",
   "Placemaker.Amphitheatre.Issue.FewerRows": "Miejsce na {0} z {1} rzędów.",
   "Placemaker.Stat.Rows": "Rzędy",
-  "Placemaker.Stat.Capacity": "Pojemność"
+  "Placemaker.Stat.Capacity": "Pojemność",
+  "Placemaker.Amphitheatre.style.theatre": "Kamienny teatr",
+  "Placemaker.Amphitheatre.Preset.theatre": "Kamienny teatr"
 }

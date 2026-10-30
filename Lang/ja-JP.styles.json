@@ -29,5 +29,8 @@
   "Placemaker.Standard.logisticsYard": "トラック基地",
   "Placemaker.Standard.scrapyard": "クレーンヤード",
   "Placemaker.Standard.abandonedLot": "空き地",
-  "Placemaker.Standard.landfill": "町のごみ捨て場"
+  "Placemaker.Standard.landfill": "町のごみ捨て場",
+  "Placemaker.Standard.plaza": "大広場",
+  "Placemaker.Standard.marketSquare": "市場広場",
+  "Placemaker.Standard.fairground": "夏祭り"
 }

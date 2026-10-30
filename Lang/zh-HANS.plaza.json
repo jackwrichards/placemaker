@@ -93,5 +93,12 @@
   "Placemaker.Plaza.design.dining": "餐饮露台",
   "Placemaker.Plaza.Preset.dining": "餐饮露台",
   "Placemaker.Plaza.design.grandSteps": "大台阶",
-  "Placemaker.Plaza.Preset.grandSteps": "大台阶"
+  "Placemaker.Plaza.Preset.grandSteps": "大台阶",
+  "Placemaker.Plaza.design.grungy": "破旧广场",
+  "Placemaker.Plaza.Preset.grungy": "破旧广场",
+  "Placemaker.Plaza.design.theatre": "露天剧场",
+  "Placemaker.Plaza.design.market": "集市广场",
+  "Placemaker.Plaza.design.transit": "交通前广场",
+  "Placemaker.Plaza.design.fair": "夏日集会",
+  "Placemaker.Plaza.design.winterFair": "圣诞市集"
 }

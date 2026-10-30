@@ -93,5 +93,12 @@
   "Placemaker.Plaza.design.dining": "Taras restauracyjny",
   "Placemaker.Plaza.Preset.dining": "Taras restauracyjny",
   "Placemaker.Plaza.design.grandSteps": "Wielkie schody",
-  "Placemaker.Plaza.Preset.grandSteps": "Wielkie schody"
+  "Placemaker.Plaza.Preset.grandSteps": "Wielkie schody",
+  "Placemaker.Plaza.design.grungy": "Zaniedbany",
+  "Placemaker.Plaza.Preset.grungy": "Zaniedbany plac",
+  "Placemaker.Plaza.design.theatre": "Teatr plenerowy",
+  "Placemaker.Plaza.design.market": "Rynek",
+  "Placemaker.Plaza.design.transit": "Plac przesiadkowy",
+  "Placemaker.Plaza.design.fair": "Letni festyn",
+  "Placemaker.Plaza.design.winterFair": "Jarmark świąteczny"
 }

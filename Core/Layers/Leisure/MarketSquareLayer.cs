@@ -85,6 +85,9 @@ namespace Placemaker.Core.Layers.Leisure
             Preset("farmers", ("stalls", 10.0), ("aisle", 5.5), ("treeRing", true), ("cafe", 3.0), ("centerKind", "fountain"), ("pattern", "border"));
         }
 
+        /// <summary>(the plazas makeover) Every market square is the designed one; the old composition stays for reference.</summary>
+        public static bool DesignedMarket = true;
+
         /// <summary>Square the "stalls" count is for (m²): a bigger square gets proportionally more, up to 4x.</summary>
         public const float StallsReferenceArea = 4000f;
 
@@ -219,6 +222,15 @@ namespace Placemaker.Core.Layers.Leisure
             ctx.Plan.Facts["gates"] = doors.Count;
             var occ = new Occupancy(region, ctx.Input.Reserved, ctx.Site);
             ctx.NavigationArea(region.Ring, AreaRole.PedestrianArea, new AssetRef("", "Pedestrian Area", "Walking Area"));
+            // (the plazas makeover, 2026-10-29: the user graded the market square D) an old-town market square on the designed
+            // squares' kit (PlazaDesigns.Market): stalls in rows facing aisles round a market cross, a tree ring, cafes.
+            if (DesignedMarket)
+            {
+                foreach (var b in bays) occ.Take(b, 5f, 6);
+                PlazaLayer.PlanDesignedSquare(ctx, occ, region, gates, "market", GroundPalettes.Resolve(ctx.Settings, GroundPalettes.Cobble, "surface"));
+                ctx.Stat("Placemaker.Stat.Stalls", ctx.Plan.Facts.TryGetValue("marketStalls", out var ms) ? ms : 0, Keys.UnitCount);
+                return;
+            }
             if (ctx.B("fill"))
             {
                 PlanQuarter(ctx, region, occ, doors, bays, avoid);

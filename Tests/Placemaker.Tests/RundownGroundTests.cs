@@ -78,7 +78,7 @@ namespace Placemaker.Tests
         {
             var lib = GroundDesignTests.Lib();
             long bytes = 0; int n = 0;
-            foreach (var id in new[] { "rubbleSpread", "brickDust", "weedyCrack", "weedTufts", "burntPatch", "fadedLine", "soilSpill", "stagnantWater", "oilStainOld" })
+            foreach (var id in new[] { "rubbleSpread", "brickDust", "weedyCrack", "rankWeeds", "burntPatch", "fadedLine", "soilSpill", "stagnantWater", "oilStainOld" })
             {
                 var k = lib.Get(id);
                 Assert.NotNull(k);

@@ -1,0 +1,371 @@
+{
+  "_about": "The plazas makeover (docs/runbooks/plazas.md): a square built on a 220 x 200 site, frame times before the build, with the ground drawn and switched off, the whole square from 45 degrees with and without, then close looks by kind. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/ground-plazas.json -Who makeover-plazas",
+  "scenarios": [
+    {
+      "id": "ground-plazas-grungy",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "before the build"
+        },
+        {
+          "do": "type",
+          "layer": "plaza",
+          "preset": "grungy"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "with the ground"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": false
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "ground switched off"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45-off",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": true
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "skateScuffs",
+          "index": 0,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 22,
+          "shot": "skateScuffs",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "pavingGrimeStrip",
+          "index": 6,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 18,
+          "shot": "pavingGrimeStrip",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "jointWeeds",
+          "index": 2,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 18,
+          "shot": "jointWeeds",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "concreteStain",
+          "index": 3,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "concreteStain",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "puddlePiece",
+          "index": 0,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "low",
+          "distance": 22,
+          "shot": "puddlePiece",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "weedTufts",
+          "index": 1,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 16,
+          "shot": "weedTufts",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "ground-plazas-dining",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "before the build"
+        },
+        {
+          "do": "type",
+          "layer": "plaza",
+          "preset": "dining"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "with the ground"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": false
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "ground switched off"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45-off",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": true
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "leafSquareSummer",
+          "index": 2,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 28,
+          "shot": "leafSquareSummer",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "cafeStains",
+          "index": 3,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 18,
+          "shot": "cafeStains",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "bedSpillStrip",
+          "index": 2,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 20,
+          "shot": "bedSpillStrip",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "pavingGrimeStrip",
+          "index": 4,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 18,
+          "shot": "pavingGrimeStrip",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "pavingWearStrip",
+          "index": 1,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 30,
+          "shot": "pavingWearStrip",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "crackPaving",
+          "index": 2,
+          "margin": 8
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 18,
+          "shot": "crackPaving",
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

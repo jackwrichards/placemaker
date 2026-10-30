@@ -201,10 +201,12 @@ namespace Placemaker.Tests.Types
         public FairgroundTests(ITestOutputHelper output) { _out = output; }
 
         public static IEnumerable<object[]> PresetIds() => GeneratorRegistry.Get(Id).Presets.Select(p => new object[] { p.Id });
+        /// <summary>(the plazas makeover) The street-and-field presets; the summer fair and the Christmas market are designed squares (DesignedSquaresTests).</summary>
+        public static IEnumerable<object[]> FieldPresetIds() => GeneratorRegistry.Get(Id).Presets.Where(p => p.Id != "fairground" && p.Id != "christmas").Select(p => new object[] { p.Id });
         private static SettingsBag Preset(string id) => GeneratorRegistry.Get(Id).Presets.Single(p => p.Id == id).Values;
 
         [Theory]
-        [MemberData(nameof(PresetIds))]
+        [MemberData(nameof(FieldPresetIds))]
         public void PresetPlansOneHectareAndSixHectareL(string preset)
         {
             foreach (var ring in new[] { EventsKit.OneHa, EventsKit.SixHaL })
@@ -245,7 +247,7 @@ namespace Placemaker.Tests.Types
         }
 
         [Theory]
-        [MemberData(nameof(PresetIds))]
+        [MemberData(nameof(FieldPresetIds))]
         public void PresetKeepsClearOfReserved(string preset)
         {
             var res = EventsKit.SomeReserved(new float2(140, 120));
@@ -313,9 +315,10 @@ namespace Placemaker.Tests.Types
         [Fact]
         public void StallsLineTheStreetsFacingThem()
         {
-            var plan = EventsKit.Plan(Id, EventsKit.FiveHa, Preset("fairground"));
+            // (the plazas makeover) the fairground preset is the designed fair (its midway: DesignedSquaresTests); the funfair keeps the streets
+            var plan = EventsKit.Plan(Id, EventsKit.FiveHa, Preset("funfair"));
             var stalls = plan.Objects.Where(o => o.Category == AssetCategories.MarketStall).ToList();
-            Assert.True(stalls.Count >= 20);
+            Assert.True(stalls.Count >= 10);
             var paths = plan.Nets.Where(n => n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide).ToList();
             int facing = 0;
             foreach (var s in stalls)

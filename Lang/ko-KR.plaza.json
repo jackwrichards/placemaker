@@ -93,5 +93,12 @@
   "Placemaker.Plaza.design.dining": "다이닝 테라스",
   "Placemaker.Plaza.Preset.dining": "다이닝 테라스",
   "Placemaker.Plaza.design.grandSteps": "대계단",
-  "Placemaker.Plaza.Preset.grandSteps": "대계단"
+  "Placemaker.Plaza.Preset.grandSteps": "대계단",
+  "Placemaker.Plaza.design.grungy": "낡은 광장",
+  "Placemaker.Plaza.Preset.grungy": "낡은 광장",
+  "Placemaker.Plaza.design.theatre": "야외 극장",
+  "Placemaker.Plaza.design.market": "시장 광장",
+  "Placemaker.Plaza.design.transit": "역 앞 광장",
+  "Placemaker.Plaza.design.fair": "여름 축제",
+  "Placemaker.Plaza.design.winterFair": "크리스마스 마켓"
 }

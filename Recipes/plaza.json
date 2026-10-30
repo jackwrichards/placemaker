@@ -6,6 +6,12 @@
   "icon": "Media/Game/Icons/Pathways.svg",
   "root": {
     "layer": "plaza",
-    "settings": {}
+    "settings": {
+      "design": "grand",
+      "palette": "classic",
+      "centerKind": "statue",
+      "furniture": 0,
+      "lighting": "feature"
+    }
   }
 }
