@@ -1,18 +1,15 @@
 {
   "Placemaker.Recipe.AdventurePlayground": "Adventure playground",
   "Placemaker.Recipe.AdventurePlayground.Description": "Play zones by age round a shaded parents' hub: climbing, swings, splash pad, nature play on a mound.",
-
   "Placemaker.UI.Group.playZones": "Play zones",
   "Placemaker.UI.Group.nature": "Nature play",
   "Placemaker.UI.Group.parents": "Parents & shade",
   "Placemaker.UI.Group.kickabout": "Kickabout",
-
   "Placemaker.Category.play.climb": "climbing frames",
   "Placemaker.Category.play.swing": "swings",
   "Placemaker.Category.play.slide": "slides",
   "Placemaker.Category.play.toddler": "toddler play items",
   "Placemaker.Category.play.nature": "logs and stumps",
-
   "Placemaker.AdvPlay.Name": "Adventure playground",
   "Placemaker.AdvPlay.style": "Playground type",
   "Placemaker.AdvPlay.style.Tooltip": "The signature of the playground: which zone leads the layout.",
@@ -96,7 +93,6 @@
   "Placemaker.AdvPlay.Zone.Nature": "nature play area",
   "Placemaker.AdvPlay.Issue.ZoneSkipped": "No room left for the {0}.",
   "Placemaker.AdvPlay.Issue.NoZones": "No play zone fits in this area.",
-
   "Placemaker.AddOn.Kickabout.Name": "Kickabout lawn",
   "Placemaker.AddOn.Kickabout.length": "Lawn length",
   "Placemaker.AddOn.Kickabout.length.Tooltip": "Length of the open lawn; it is 60 % as wide.",
@@ -105,5 +101,9 @@
   "Placemaker.AddOn.Kickabout.goalAsset": "Goal",
   "Placemaker.AddOn.Kickabout.Preset.small": "Small",
   "Placemaker.AddOn.Kickabout.Preset.pitch": "Pitch",
-  "Placemaker.AddOn.Kickabout.Issue.Smaller": "The kickabout lawn was made smaller to fit the free space."
+  "Placemaker.AddOn.Kickabout.Issue.Smaller": "The kickabout lawn was made smaller to fit the free space.",
+  "Placemaker.AdvPlay.moods": "Wild places",
+  "Placemaker.AdvPlay.moods.Tooltip": "Wild ground between the play zones, read from the land: a knoll of boulders to scramble on, a rocky ravine, a copse with logs to balance on.",
+  "Placemaker.AdvPlay.moodGround": "Shape the ground",
+  "Placemaker.AdvPlay.moodGround.Tooltip": "Lets those places cut and raise the ground (the ravine, the knoll). Terrain changes are permanent."
 }

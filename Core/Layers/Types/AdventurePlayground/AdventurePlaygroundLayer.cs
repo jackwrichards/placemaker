@@ -60,6 +60,10 @@ namespace Placemaker.Core.Layers.Types.AdventurePlayground
             c.Slider("pools", 3, 0, 6, 1, "count", ControlTier.More, "water").When("waterPlay=true").Tip();
             // Nature play.
             c.Toggle("naturePlay", true, ControlTier.Essential, "nature").Tip();
+            // makeover (2026-10-29): wild places between the play zones (ParkMoods): a knoll of boulders to scramble, a ravine,
+            // a copse with logs to balance on.
+            c.Toggle("moods", true, ControlTier.Essential, "nature").Tip();
+            c.Toggle("moodGround", true, ControlTier.More, "nature").When("moods=true").Tip();
             c.Slider("logs", 8, 0, 24, 1, "count", ControlTier.More, "nature").When("naturePlay=true");
             c.Slider("boulders", 6, 0, 20, 1, "count", ControlTier.More, "nature").When("naturePlay=true");
             c.Toggle("mound", true, ControlTier.More, "nature").When("naturePlay=true").Tip();
@@ -195,6 +199,15 @@ namespace Placemaker.Core.Layers.Types.AdventurePlayground
             }
             ctx.Check();
 
+            // Wild places in the ground the zones left (makeover): they take it before the benches, hub dressing and shade trees.
+            var moodSite = new ParkSite { LayerRegion = region, Occ = occ, Seed = ctx.Seed, Cancel = ctx.Cancel, Gates = gates };
+            List<MoodPlace> moods = null;
+            if (ctx.B("moods"))
+            {
+                var open = FreeSpace.Pieces(region, p => occ.Corridors.Overlaps(p, 0.75f), 2f, 80f, ctx.Cancel);
+                moods = ParkMoods.Plan(ctx, moodSite, open, "playground", ctx.B("moodGround"), ctx.S("style") == "toddler" ? 0.5f : 1f);
+            }
+
             // Parent benches on every zone rim, on the side facing the hub (sightline back to the parents).
             var bench = AssetMix.One(ctx.S("benchAsset"), ParkArt.Benches);
             int wantedBenches = ctx.I("benches");
@@ -269,6 +282,7 @@ namespace Placemaker.Core.Layers.Types.AdventurePlayground
             ctx.Check();
 
             if (ctx.B("fence")) Fence(ctx, gates, AssetMix.One(ctx.S("fenceAsset"), PlayArt.Fence));
+            ParkMoods.Emit(ctx, moodSite, moods, false);
 
             // Regions: lawn left over for features; the hub is the core when there is one.
             EmitGreenRegions(ctx, occ, 100f);

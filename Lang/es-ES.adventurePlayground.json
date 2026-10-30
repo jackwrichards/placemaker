@@ -101,5 +101,9 @@
   "Placemaker.AddOn.Kickabout.goalAsset": "Portería",
   "Placemaker.AddOn.Kickabout.Preset.small": "Pequeño",
   "Placemaker.AddOn.Kickabout.Preset.pitch": "Campo",
-  "Placemaker.AddOn.Kickabout.Issue.Smaller": "El césped de pelota se hizo más pequeño para caber en el espacio libre."
+  "Placemaker.AddOn.Kickabout.Issue.Smaller": "El césped de pelota se hizo más pequeño para caber en el espacio libre.",
+  "Placemaker.AdvPlay.moods": "Rincones salvajes",
+  "Placemaker.AdvPlay.moods.Tooltip": "Terreno salvaje entre las zonas de juego, según el terreno: un otero de peñascos para trepar, un barranco rocoso, un bosquete con troncos para hacer equilibrio.",
+  "Placemaker.AdvPlay.moodGround": "Modelar el terreno",
+  "Placemaker.AdvPlay.moodGround.Tooltip": "Deja que esos rincones excaven y eleven el terreno (el barranco, el otero). Los cambios de terreno son permanentes."
 }

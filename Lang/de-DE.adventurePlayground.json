@@ -101,5 +101,9 @@
   "Placemaker.AddOn.Kickabout.goalAsset": "Tor",
   "Placemaker.AddOn.Kickabout.Preset.small": "Klein",
   "Placemaker.AddOn.Kickabout.Preset.pitch": "Spielfeld",
-  "Placemaker.AddOn.Kickabout.Issue.Smaller": "Die Bolzwiese wurde verkleinert, damit sie in den freien Platz passt."
+  "Placemaker.AddOn.Kickabout.Issue.Smaller": "Die Bolzwiese wurde verkleinert, damit sie in den freien Platz passt.",
+  "Placemaker.AdvPlay.moods": "Wilde Ecken",
+  "Placemaker.AdvPlay.moods.Tooltip": "Wildes Gelände zwischen den Spielbereichen, passend zum Gelände: ein Hügel mit Findlingen zum Klettern, eine felsige Schlucht, ein Wäldchen mit Balancierstämmen.",
+  "Placemaker.AdvPlay.moodGround": "Gelände formen",
+  "Placemaker.AdvPlay.moodGround.Tooltip": "Diese Orte dürfen das Gelände absenken und anheben (Schlucht, Hügel). Geländeänderungen sind dauerhaft."
 }
