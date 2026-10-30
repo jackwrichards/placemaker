@@ -66,11 +66,30 @@ metre budget of their own so a square of many small pieces (garden rooms) never 
 
 ## Look rules the pictures taught
 
-- On the pale vanilla paving everything reads fainter than on a lawn: the first run (decals at sports-park strengths) was
-  invisible from 100 m. Tone and grime go up on paving; leaves go full colour; crisp stains (concrete stains, gum fields)
-  read where soft tone does not.
-- A grungy square on pale concrete still reads clean: the ground colour carries most of the vibe. Dark weathered concrete.
-- A design's whole box should be used: the first theatre sat at one end with 80 m of empty lawn.
+- **The library's film layers render far fainter in the game than in the offline bake.** On the squares' paving (and on
+  open grass in the lab) the stains, grime strips, wear lanes, cafe stains and skate scuffs barely show even at 0.85-0.95
+  layer alpha, while stamp kinds with relief (leaves) read clearly. The sports park's kerb shot shows the same. Moving the
+  kinds to render orders 5-6 changed nothing (the queue was not the cause). This is the biggest open item: it needs a look
+  at how SharedDecals' material blends a decal's albedo against a surface (lab: `suite/scenarios/lab-plazas.json`, run
+  `send-lab-plazas-1030-015243`). Until then the squares' ground reads through leaves, the paving colours, the props.
+- The park's summer leaves read as yellow-orange stains on grey paving and even on grass: squares use their own darker
+  olive-brown set (`leafSquareSummer`). `leafWet` is the autumn palette: never under summer trees.
+- A grungy square on pale concrete still reads clean: the ground colour carries most of the vibe. Dark tiles, asphalt
+  joints every 8 m, a pale concrete skate floor.
+- A design's whole box should be used: the first theatre sat at one end with 80 m of empty lawn; the first big market
+  left three quarters of a 220 x 200 square empty (rows now fill the square, fewer stalls = wider aisles).
+- A Christmas market as a field of scattered tables read empty: it is the market square in winter (stall rows round a big
+  spruce, snowmen, lights).
+- On a slope the theatre turns so its seats climb the fall (it faced across the slope with a cliff at one end).
+
+## Numbers
+
+- Frame time (game runner, 220 x 200, camera on the whole square): grungy 2066 instances, 7.42 ms with the ground,
+  7.40 ms switched off; dining terrace 7.64 vs 7.41 ms (runs `send-ground-plazas-1030-002415`, `-020434`).
+- Instances: a city block 450-900, 220 x 200 about 2000 (budget 1.6 × 320 a hectare). Weathering on a worker: 40-370 ms
+  on a block (piazza with many paving pieces the slowest), 2 s on 420 x 380 m.
+- GPU: the plazas family 11 kinds, 56 variants, 17.9 MiB (whole library on this branch 186.3 MiB of 200; nature's family
+  is not on this branch).
 
 ## Runs that prove it
 
@@ -78,13 +97,26 @@ metre budget of their own so a square of many small pieces (garden rooms) never 
 |---|---|
 | `show-30-builds-1029-233044-f16f` | BEFORE: every style of every type on a block (45, close) |
 | `show-5-builds-1029-235643-9acc` | first grungy and first ground: too faint, pale concrete, skate props missing |
+| `show-6-builds-1030-000714-ccab` | first stone theatre (terrain map: a smooth 4.3 m cone), designed market, grungy on its first palette |
+| `show-5-builds-1030-001050-c135` | first transit forecourt (a forest: thinned), first fair |
+| `send-ground-plazas-1030-020434` | FINAL frame time with and without the ground, close looks by kind |
+| `show-20-builds-1030-020329-c08e` | FINAL: every shown style on a block, 45 / close / low / terrain, 20 of 20 built |
+| `show-6-builds-1030-020426-5939` | FINAL: market, big market, theatre, Christmas market, fair, grungy on 220 x 200 at 5 % |
+| `send-lab-plazas-1030-015243` | the plaza kinds on open ground: film layers faint, leaves strong |
 
 ## What failed and why
 
 - Paving joints of 0.24 m: the paving kit opens needles under 0.375 m, so the grungy square's slab grid vanished. 0.5 m.
 - Skate props placed after the pit was taken in the occupancy: none built. Placed before.
 - The Wear test (clean < lived-in < gritty) failed while the shared cap thinned every square: squares got their own budget.
+- Render-queue guess for the faint decals (orders 5-6 and five copied kinds): no change; the copies were removed again.
+- A transit grove on a 9 m grid with the bosque leftover read as a forest; 13 m grid, no leftover planting.
 
 ## Left to do
 
-- (filled in at the end)
+- The faint film layers (above): the one thing between the squares' ground and the user's bar.
+- The theatre's stage end is plain (the game's small stage, a wall, a colonnade, poplars): a raised stage and a bigger
+  backdrop would finish it.
+- The transit forecourt on a big site is a large paved grove; the mall park stays hidden (a shops type, needs growth).
+- The plaza type's default (classic) design is still the old slab when no style is picked.
+- `PM_ALL=1 node mock/run.js --test tests/i18n.spec.ts` not run for the new labels (they are as short as the English).

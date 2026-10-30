@@ -173,4 +173,5 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
 - A square of many small paving pieces spends its whole budget on seams: give joints a metre budget of their own.
 - One pass reads every paving piece edge once (dedup by midpoint) and classifies it by what lies 0.6 m either side
   (hard / green / outside): that turns "every edge" into joints, soil spills and lawn wear.
-- Frame time is not the limit: the grungy square on 220 x 200 with 2066 instances drew in 7.50 ms, 7.36 ms switched off.
+- Frame time is not the limit: the grungy square on 220 x 200 with 2066 instances drew in 7.42 ms, 7.40 ms switched off.
+- The library's film layers (stains, grime strips, wear) render far fainter in the game than in the offline bake, on paving and on grass alike; stamp kinds with relief (leaves) read. Moving them up the render queue changed nothing. Check a kind in the game early (suite/scenarios/lab-plazas.json) before tuning a whole design on bakes.
