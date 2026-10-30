@@ -1,5 +1,8 @@
 # Ground playbook: terrain paint, surfaces and decals
 
+**Start with `docs/GROUND-RUNDOWN.md`** (the short how-to for any type, written after the sports park). This page is the
+method and the user's art direction in full.
+
 For the agent who makes a Placemaker type's ground look real: the sports park first, then every park, nature type,
 plaza, car park and so on. It tells you how to plan the ground as one picture, which layer does what, how to grow the
 decal library yourself, how to judge your work with the user, and what is still to build. Read it all once before you

@@ -40,6 +40,8 @@ file.
 - `docs/ARCHITECTURE.md`, `docs/DESIGN.md`: how it is built and how it should feel.
 - `docs/RESEARCH-NOTES.md`, `docs/RESEARCH-NOTES-ADDENDUM.md`: game engine rules (decompiled). A mandatory checklist.
 - `docs/refactor/GRADES.md`: the user's grades per category and the current refactor brief.
+- `docs/GROUND-RUNDOWN.md`: how to give any type a designed ground (decals, paint, surfaces as one look; brushes,
+  making new decal kinds, budgets, the engine traps). Then `docs/DECALS-PLAYBOOK.md` and `docs/runbooks/sportsPark.md`.
 - `docs/AREA-TOOLS.md`: the area tools (Points, Paint bucket, Paint area) after the area overhaul: one set of stops,
   the fill engine (gaps, reach, exact road surfaces), how to test them (`suite/scenarios/area-tools.json`).
 - `suite/README.md`: the game runner (below).
