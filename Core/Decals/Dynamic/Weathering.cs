@@ -840,25 +840,25 @@ namespace Placemaker.Core.Decals.Dynamic
                     var gm = g + inward * Range(4.5f, 6.5f, 42, e + no * 4) + side * Range(-1.5f, 1.5f, 43, e + no * 4);
                     // one bald area hugging the six-yard box, in a halo of thinned grass (game runner: scattered satellites read as spots);
                     // smaller and fainter after the true-colour fix (2026-10-30: the old sizes read as big tan blobs, run show-6-builds-1030-050913-1d67)
-                    Brushes.At(_b, gm, side, "barePatch", Range(9f, 12f, 45, e) * k, Op(worst ? 0.4f : 0.28f, 0.46f), worst ? 2 : 1, ColourLevel.Any, worst ? "flaw:baldGoalmouth" : "play:goalmouth");
-                    Brushes.At(_b, gm + inward * 3f, side, "dryGrass", Range(14f, 18f, 46, e) * k, Op(0.16f, 0.28f), 1, ColourLevel.Quiet, "play:goalmouthHalo");
+                    Brushes.At(_b, gm, side, "barePatch", Range(9f, 12f, 45, e) * k, Op(worst ? 0.3f : 0.2f, 0.34f), worst ? 2 : 1, ColourLevel.Any, worst ? "flaw:baldGoalmouth" : "play:goalmouth");
+                    Brushes.At(_b, gm + inward * 3f, side, "dryGrass", Range(14f, 18f, 46, e) * k, Op(0.1f, 0.2f), 1, ColourLevel.Quiet, "play:goalmouthHalo");
                     Brushes.At(_b, gm, side, "pebbles", Range(7f, 9f, 47, e), Op(0.45f, 0.75f), 1, ColourLevel.Quiet, "play:goalmouthGrit");
                     // the crease: worn through to the soil, muddy after rain
                     var cr = g + inward * Range(1.6f, 2.6f, 48, e) + side * Range(-0.6f, 0.6f, 49, e);
-                    Brushes.At(_b, cr, side, "barePatch", Range(5f, 7f, 51, e) * k, Op(0.3f, 0.46f), 0, ColourLevel.Any, "play:crease");
+                    Brushes.At(_b, cr, side, "barePatch", Range(5f, 7f, 51, e) * k, Op(0.22f, 0.34f), 0, ColourLevel.Any, "play:crease");
                     Brushes.At(_b, cr, side, "pebbles", Range(5f, 7f, 50, e), Op(0.45f, 0.75f), 0, ColourLevel.Quiet, "play:crease");
                     // the penalty spot and the arc a keeper's kicks churn
-                    Brushes.At(_b, g + inward * Range(10f, 12f, 52, e), side, "barePatch", Range(4f, 6f, 53, e), Op(0.18f, 0.3f), 0, ColourLevel.Any, "play:spot");
+                    Brushes.At(_b, g + inward * Range(10f, 12f, 52, e), side, "barePatch", Range(4f, 6f, 53, e), Op(0.12f, 0.22f), 0, ColourLevel.Any, "play:spot");
                 }
                 // centre spot and the spine: midfield takes the most running
-                Brushes.At(_b, centre + side * Range(-2f, 2f, 61, no), axis, "barePatch", Range(7f, 9f, 63, no), Op(0.2f, 0.32f), 1, ColourLevel.Any, "play:centre");
+                Brushes.At(_b, centre + side * Range(-2f, 2f, 61, no), axis, "barePatch", Range(7f, 9f, 63, no), Op(0.14f, 0.24f), 1, ColourLevel.Any, "play:centre");
                 var corridor = new[] { g1 + axis * 10f - side * 10f, g2 - axis * 10f - side * 10f, g2 - axis * 10f + side * 10f, g1 + axis * 10f + side * 10f };
                 float half = len * 0.5f;
                 // the spine: a continuous band of thinned grass down the middle (many faint overlapping pieces), bare only
                 // here and there near midfield
                 Func<float2, float> spine = p => { float u = math.abs(math.dot(p - centre, axis)) / half, v = math.abs(math.dot(p - centre, side)) / 10f; return math.saturate((1f - u * u) * (1f - v * 0.7f)); };
                 Brushes.Scatter(_b, BrushArea.Of(corridor), "dryGrass", 0.8f * A, new ScatterOptions { Weight = spine, Opacity = Op(0.22f, 0.4f), Clump = 6f, Spread = 0.4f, Loners = 0.1f, Scale = new float2(0.8f, 1.2f), Level = ColourLevel.Quiet, Cause = "play:spine" });
-                Brushes.Scatter(_b, BrushArea.Of(corridor), "barePatch", 0.1f * A, new ScatterOptions { Weight = p => spine(p) * spine(p), Opacity = Op(0.2f, 0.38f), Clump = 3f, Spread = 0.35f, Loners = 0f, Scale = new float2(0.6f, 0.9f), Cause = "play:spine" });
+                Brushes.Scatter(_b, BrushArea.Of(corridor), "barePatch", 0.1f * A, new ScatterOptions { Weight = p => spine(p) * spine(p), Opacity = Op(0.14f, 0.26f), Clump = 3f, Spread = 0.35f, Loners = 0f, Scale = new float2(0.6f, 0.9f), Cause = "play:spine" });
                 // the linesmen: each runs one half, on opposite touchlines, just outside the line
                 for (int e = 0; e < 2; e++)
                 {
