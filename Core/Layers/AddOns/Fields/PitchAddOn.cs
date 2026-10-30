@@ -165,7 +165,8 @@ namespace Placemaker.Core.Layers.AddOns.Fields
                 // player chose a bench.
                 if (string.IsNullOrEmpty(ctx.S("benchAsset")))
                 {
-                    var inward = f.Dir(new float2(0f, side));
+                    // the dugout's seats look along its −Z (SportsProps.StandFacing): its +Z points away from the pitch
+                    var inward = -f.Dir(new float2(0f, side));
                     foreach (float u in new[] { -7f, 7f })
                         if (SportsProps.Prop(ctx, j.Occ, f.P(u, v), inward, SportsProps.Dugout, ObjectRole.Bench, 1.6f, j.V(0xD06Au + (uint)(u + 8f)), null, true, SportsProps.OpenBench))
                             j.Benches++;

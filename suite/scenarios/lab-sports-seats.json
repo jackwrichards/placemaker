@@ -1,0 +1,18 @@
+{
+  "_about": "Lab (2026-10-30): which way the sports park's seats look at yaw 0. The camera is south of the row looking north, so a seat whose front faces the camera looks along -Z. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-sports-seats.json -Who lead-seats",
+  "scenarios": [
+    {
+      "id": "sports-seats",
+      "land": { "shape": "rect", "size": [100, 60], "ground": "flat", "roads": "none" },
+      "steps": [
+        {
+          "do": "lab", "op": "lineup",
+          "names": [ "SportParkBench01", "SportParkBench02", "SportParkStandSmall02", "SportParkStandSmall01", "Bench01" ],
+          "perRow": 5, "gap": 4
+        },
+        { "do": "shot", "name": "low", "camera": { "target": "area", "view": "low" }, "shotMode": "render" },
+        { "do": "shot", "name": "closeup", "camera": { "target": "area", "view": "closeup" }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

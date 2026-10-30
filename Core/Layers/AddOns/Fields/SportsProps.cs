@@ -113,8 +113,9 @@ namespace Placemaker.Core.Layers.AddOns.Fields
                 t += s.Length + 0.4f;
                 if (checkFree && !RectFree(occ, foot)) continue;
                 bool bench = s.Id == BenchRow.Id;
-                // Benches look along +Z like every bench; the stands along −Z (StandFacing).
-                ctx.Object(origin, yaw + (bench ? 0f : StandFacing), bench ? ObjectRole.Bench : ObjectRole.Furniture, new AssetRef(s.Id, bench ? OpenBench : Small02.Id),
+                // The game's sports benches (SportParkBench01/02) look along −Z like the stands, unlike park benches (lab
+                // send-lab-sports-seats-1030-111839: turned like a park bench they sat backwards, the user 2026-10-30).
+                ctx.Object(origin, yaw + StandFacing, bench ? ObjectRole.Bench : ObjectRole.Furniture, new AssetRef(s.Id, bench ? OpenBench : Small02.Id),
                     Hashing.Mix(seed, (uint)i), -1, bench ? null : AssetCategories.SportsStand);
                 // A polygon, not a corridor: the next stand of the row stands right beside it.
                 occ.TakePolygon(foot.Ring);
