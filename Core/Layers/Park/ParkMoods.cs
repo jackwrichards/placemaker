@@ -225,7 +225,7 @@ namespace Placemaker.Core.Layers.Park
                     }
                 }
                 // the community garden option: the first lawn room big enough becomes the allotments
-                bool allot = allotment && used[(int)Mood.Allotment] == 0 && !cd.core && cd.area >= 900f && cd.ins >= 9f;   // room for two rows of plots (a 380 m² lawn held one plot in the game)
+                bool allot = allotment && used[(int)Mood.Allotment] == 0 && (cd.core ? r >= 9f : cd.area >= 600f && cd.ins >= 5.5f);   // a lawn room that holds a row of plots, or a disc at the side of the open lawn
                 if (total <= 0f && !allot) { if (pal.Length > 0 && Sum(pal) > 0f) break; continue; }
                 float pick = U(ks, 7) * total;
                 int mood = 0;
@@ -898,9 +898,11 @@ namespace Placemaker.Core.Layers.Park
                 const float pw = 4.2f, pd = 7f, walk = 1.0f, spine = 2.6f;
                 int plots = 0, k = 0;
                 // double rows: plot | walk-side ... each pair of rows shares a spine walk
-                for (float v = v0 + 1f; v + 2f * pd + spine <= v1 - 1f; v += 2f * pd + spine + walk)
+                // double rows round a middle walk where the room is wide enough, else one row down its middle
+                bool single = v1 - v0 - 2f < 2f * pd + spine;
+                for (float v = single ? (v0 + v1) * 0.5f - pd * 0.5f : v0 + 1f; single ? v <= (v0 + v1) * 0.5f : v + 2f * pd + spine <= v1 - 1f; v += single ? 1e6f : 2f * pd + spine + walk)
                 {
-                    for (int side = 0; side < 2; side++)
+                    for (int side = 0; side < (single ? 1 : 2); side++)
                     {
                         float vc = v + (side == 0 ? pd * 0.5f : pd * 1.5f + spine);
                         for (float u = u0 + 1f; u + pw <= u1 - 1f; u += pw + walk)
