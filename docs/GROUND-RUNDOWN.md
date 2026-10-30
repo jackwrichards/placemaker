@@ -159,3 +159,20 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
 - Frame time with and without the ground; instance counts; GPU memory; planning time on a tiny and a huge site.
 - Your runbook (what the user said, what failed and why, numbers, runs) and the playbook's log updated.
 - Say plainly: "on branch X, seen in the game runner, not in your game yet".
+
+## Lessons from nature (2026-10-30, docs/runbooks/nature.md)
+
+- 2026-10-30: read the built ground, not the plan: a grid of ~6000 cells over the final heightmap (slope, D8 flow,
+  drained area, priority-flood hollows) costs 5-30 ms on any size and gives runoff, marsh, scree and terracettes that sit
+  where water and gravity would put them.
+- 2026-10-30: one brush call per kind over all the causes, never one per group: a call per tree group re-sampled its area
+  for each of hundreds of groups (1.8 s on 42 ha; 0.13 s merged).
+- 2026-10-30: a decal laid over the game's own path (`layers: ground`) changes what the path is: `trailDirt` turns the
+  paved footpath into a packed-earth trail. Lay it along whole chains of pieces (no faded caps at every joint) and never
+  thin it on a big site (half a dirt trail reads broken).
+- 2026-10-30: a random acceptance over shuffled candidates saturates (every candidate gets its turn, the gaps fill up):
+  for groves, set the share of the ground the woods cover from the wanted count and accept above that quantile of the
+  clump field; vary each tree's spacing or the wood packs into a lattice.
+- 2026-10-30: the game draws its 10 m logs at full length whatever `Scale` says: use a bench as a seat by a fire.
+- 2026-10-30: macro patches that are not the ground's own colour read as smudges from the player's height (pink heather
+  blobs, orange dry grass): keep them quiet and few, and put the colour in crisp stamps.

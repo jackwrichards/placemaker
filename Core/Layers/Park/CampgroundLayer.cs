@@ -179,7 +179,7 @@ namespace Placemaker.Core.Layers.Park
                 if (size >= 9f && Hashing.Unit(Hashing.Mix(v, 6u)) < 0.3f)
                     ctx.Object(tent - t * size * 0.3f * (Hashing.Unit(Hashing.Mix(v, 7u)) < 0.5f ? 1f : -1f), math.atan2(toPath.x, toPath.y) + jitter + 0.5f, ObjectRole.Furniture, AssetMix.Pick(pitchIds, Hashing.Mix(v, 8u)), Hashing.Mix(v, 8u), -1, AssetCategories.CampingPitch);
                 var fireAt = c + toPath * size * 0.26f + t * size * 0.24f;
-                if (fires) FireRing(ctx, fireAt, 0.85f, 7, pickedFire, rockOk, Hashing.Mix(v, 1u), 2, math.atan2(t.x, t.y));
+                if (fires) FireRing(ctx, occ, fireAt, 0.85f, 7, pickedFire, rockOk, Hashing.Mix(v, 1u), 2, math.atan2(t.x, t.y));
                 if (tables) ctx.Object(c + toPath * size * 0.25f - t * size * 0.25f, math.atan2(t.x, t.y) + jitter * 0.5f, ObjectRole.Furniture, table, Hashing.Mix(v, 2u), -1, AssetCategories.Picnic);
             }
             ctx.Check();
@@ -227,12 +227,13 @@ namespace Placemaker.Core.Layers.Park
             // it to sit on (when no playground has the clearing).
             if (fires && clearingRadius >= 7f && !ctx.Input.HasChild("playground"))
             {
-                FireRing(ctx, clearing, 1.5f, 11, pickedFire, rockOk, Hashing.Mix(ctx.Seed, 0xF1EEu), 0, 0f);
+                FireRing(ctx, occ, clearing, 1.5f, 11, pickedFire, rockOk, Hashing.Mix(ctx.Seed, 0xF1EEu), 0, 0f);
                 for (int k = 0; k < 5; k++)
                 {
                     float a = k * 1.2566f + 0.3f;
                     var dir = new float2(math.cos(a), math.sin(a));
                     var lp = clearing + dir * 4.2f;
+                    if (occ.Corridors.Overlaps(lp, 1.3f, 0.3f) || !region.ContainsDisc(lp, 1f)) continue;
                     ctx.Object(lp, math.atan2(-dir.x, -dir.y), ObjectRole.Bench, AssetMix.Pick(CampArt.FireSeats, (uint)k), Hashing.Mix(ctx.Seed, 0xF1F0u + (uint)k), -1, AssetCategories.Bench);   // facing the fire
                 }
                 occ.Take(clearing, 5.5f, 2);
@@ -275,7 +276,7 @@ namespace Placemaker.Core.Layers.Park
         /// (nature makeover) A fire ring: small stones (Rock01-30) set in a circle, half in the ground; a picked campfire asset
         /// in the middle; <paramref name="logs"/> short logs to sit on facing it; its spot as a "place:fire" region for the ash.
         /// </summary>
-        private static void FireRing(LayerContext ctx, float2 c, float r, int stones, string pickedFire, bool rockOk, uint v, int logs, float yaw)
+        private static void FireRing(LayerContext ctx, Occupancy occ, float2 c, float r, int stones, string pickedFire, bool rockOk, uint v, int logs, float yaw)
         {
             if (!string.IsNullOrEmpty(pickedFire)) ctx.Object(c, 0f, ObjectRole.Furniture, AssetMix.One(pickedFire), v, -1, AssetCategories.CampingFire);
             if (rockOk)
@@ -293,7 +294,9 @@ namespace Placemaker.Core.Layers.Park
                 var dir = new float2(math.cos(a), math.sin(a));
                 var lp = c + dir * (r + 1.5f);
                 // (the game draws its 10 m logs at full length whatever the scale: a camp bench is the seat)
+                if (occ.Corridors.Overlaps(lp, 1.3f, 0.3f) || !occ.LayerRegion.ContainsDisc(lp, 1f)) continue;
                 ctx.Object(lp, math.atan2(-dir.x, -dir.y), ObjectRole.Bench, AssetMix.Pick(CampArt.FireSeats, Hashing.Mix(v, (uint)k + 80u)), Hashing.Mix(v, (uint)k + 80u), -1, AssetCategories.Bench);
+                occ.Take(lp, 1f, 2);
             }
             ctx.AddRegion(LayerRegion.Circle(c, r + 0.4f, 10), "fire:" + (v & 0xFFFF), FireTag);
         }
