@@ -23,9 +23,19 @@ Seen in the clean game first (run `show-42-builds-1029-232950-eebd`, every style
 | Junk yard | sorted | reclaim (sparse goods on bare slabs), tip (rows of identical skips: the "grid" the user gave an F) |
 | Industrial works | salvage, works | recycling (the same rows of skips) |
 | Landfill | active | capped (a lawn), compost (bare stripes), recycling (a white sheet of boxes), flytip (a wood) |
-| Logistics yard | - | the whole type: a white sheet with yellow hatching and sparse goods; the container yard does containers better |
+| Logistics yard | - | the whole type, still after round 5 (run `send-ground-industrial-all-1030-021016`): even with our own lorries and loaders and grey surfaces, its lattice spreads single small props over hectares under the game's bright hatched bay markings. It needs a new layout, not a dressing; the container yard does stacked goods better |
 | Scrapyard (the old one) | - | the whole type: empty dirt in the clean game; the car and junk yards replaced it |
-| Quarry | - | the whole type: every pit is grass with nothing in it without asset packs (no plant, machines or heaps) |
+| Quarry | openPit, abandoned | gravelPit, sandPit (flat empty floors: a lorry on a sheet of sand), lakeDig, flooded (no water surface in the clean game). Rebuilt on vanilla pieces in round 5: Placemaker's loaders, lorries and mining tractor on the benches and ramp (the pack names were refused), the ore plant and conveyor, rubble heaps with boulders on the working floor, the game's stones and boulders as scree, the pit painted worked earth instead of grass, dust only inside the pit |
+
+## Round 5 (the lead: re-run, slabs, rust, quarry and logistics, IsOwn)
+
+- Container slabs: worn grey pavement instead of bright concrete, grime along every slab edge, oil drips, a darker tone.
+- Rust: a grainy soaked stain (eroded streaks over a faint brown soak), dull brown-orange; before, it read as paint.
+- `AutoAssets.IsOwn` lets in only `VehicleProps.Prefix` ("Placemaker Vehicle "); `VehiclePropSystem` makes those from
+  built-in vehicles only (`p.isBuiltin`). Our other runtime copies ("Placemaker Overlay (", decal copies) can come from
+  asset packs and stay out (test `OnlyOurVehiclePropsCountAsVanilla`).
+- The logistics yard and the quarry use our vehicle props too (their pack sets were refused).
+- A hard cap after the three thinner runs (strips thin slowly; a big hard yard could stay a few percent over).
 
 Construction site and abandoned lot belong to the leftover & rundown agent (left alone here).
 
