@@ -96,8 +96,10 @@ namespace Placemaker.Core.Layers.AddOns.Fields
                 l.Seg(f, -sl, vc, sl, vc);
                 l.Spot(f, -a + 0.15f, vc); l.Spot(f, a - 0.15f, vc);
                 // (rf-sports) The game's tennis net by default: the automatic tennis pool starts with a bench, so
-                // every "net" came out as a red bench in the middle of the court.
-                FieldKit.Equip(j, f.P(0f, vc), f.Yaw + math.PI * 0.5f, netCat, ctx.S("netAsset"), 0.5f, 0x7E00u + (uint)i, "TennisNet01");
+                // every "net" came out as a red bench in the middle of the court. TennisNet01 is 13.2 m long along its own X:
+                // at the frame's yaw (+Z down the court) its X lies across the court, post to post; a quarter turn more laid
+                // it down the middle of the court (2026-10-29).
+                FieldKit.Equip(j, f.P(0f, vc), f.Yaw, netCat, ctx.S("netAsset"), 0.5f, 0x7E00u + (uint)i, "TennisNet01");
                 if (stamp) FieldKit.Stamp(ctx, f, new float2(0f, vc), j.V(0x7EC0u + (uint)i), AssetCategories.DecalMarkings, "TennisCourtDecal02", "TennisCourtDecal01");
                 if (ctx.B("benches"))
                 {

@@ -47,8 +47,10 @@ namespace Placemaker.Core.Layers.AddOns
                     SurfaceRole.Ground, ctx.S("sandAsset"), AssetCategories.SurfaceSand, AssetCategories.SurfaceNatural);
             int nets = 0;
             string netCat = LeisureKit.Category(ctx, ctx.S("net"), AssetCategories.SportsVolleyball, AssetCategories.SportsTennis);
-            // The net spans the court's width at the centre line: the asset faces along the court axis.
-            if (netCat != null && Put(ctx, occ, site.Center, site.Yaw, ObjectRole.Furniture, AssetMix.One(ctx.S("net")), netCat, 0.6f, Hashing.Mix(ctx.Seed, 1u))) nets++;
+            // The net spans the court's width at the centre line: the asset faces along the court axis (its long X across).
+            // The clean game has no volleyball net: the tennis category's automatic pool deals benches and umpire chairs as
+            // often as its net, so the game's tennis net is named (2026-10-29: a bench stood where the net should be).
+            if (netCat != null && Put(ctx, occ, site.Center, site.Yaw, ObjectRole.Furniture, AssetMix.One(ctx.S("net"), "TennisNet01"), netCat, 0.6f, Hashing.Mix(ctx.Seed, 1u))) nets++;
             if (ctx.B("lines"))
                 Markings(ctx, court, new[] { float2.zero }, ctx.Seed);
             float side = SideSign(site, toward);
