@@ -258,6 +258,8 @@ namespace Placemaker.Core.Layers.Types.Wetland
             ctx.Check();
 
             // 6. Shore planting: reeds (and flowers / garden margins), then wet woodland.
+            // (nature makeover) the marsh hollows first: their reeds and open wet middles are kept free of the woodland planted next
+            var hollow = style.Hollows > 0.05f && water.Ponds.Count > 0 ? MarshHollows(ctx, occ, water, style.Hollows) : null;
             int reeds = ShorePlanting(ctx, occ, water, style, shelf);
             ctx.Check();
             if (style.Lakeland) RockyShores(ctx, occ, water);
@@ -266,7 +268,6 @@ namespace Placemaker.Core.Layers.Types.Wetland
 
             // 7. Ground: marsh paint around the water, hummocks on dry land.
             if (ctx.B("marshPaint")) MarshPaint(ctx, water, ctx.F("reedBelt") + 3f, ctx.I("marshLayer"));
-            var hollow = style.Hollows > 0.05f && water.Ponds.Count > 0 ? MarshHollows(ctx, occ, water, style.Hollows) : null;
             float hum = ctx.F("hummocks");
             if (hum > 0.05f)
                 TerrainShaper.Shape(ctx, region, new TerrainSpec
@@ -673,6 +674,13 @@ namespace Placemaker.Core.Layers.Types.Wetland
         /// (nature makeover) What grows in a marsh hollow: the open wet middle left bare (the designed ground lays standing
         /// water and peat there), a dense ring of reeds round it, tussocks of low grassy bushes on the rim. Returns plants placed.
         /// </summary>
+        /// <summary>Within <paramref name="margin"/> m of something the player reserved (a planted reed must keep a wider berth than its own disc).</summary>
+        private static bool ReservedNear(LayerContext ctx, float2 p, float margin)
+        {
+            foreach (var d in ctx.Input.Reserved.Discs) if (math.distance(d.Center, p) < d.Radius + margin) return true;
+            return false;
+        }
+
         private static int MarshPlanting(LayerContext ctx, Occupancy occ, List<(float2 c, float r, float d)> centres, System.Func<float2, float> field)
         {
             if (!AssetAvailability.Has(AssetCategories.Bush)) return 0;
@@ -691,7 +699,7 @@ namespace Placemaker.Core.Layers.Types.Wetland
                         float t = math.distance(p, c) / r;
                         float chance = f > 0.55f ? 0.04f : f > 0.12f ? 0.6f : t < 1.3f ? 0.22f : 0f;
                         if (Hashing.Unit(Hashing.Mix(v, 2u)) > chance) continue;
-                        if (!region.ContainsDisc(p, 1f) || !occ.Free(p, 0.7f, 0.5f, 0.15f)) continue;
+                        if (!region.ContainsDisc(p, 1f) || !occ.Free(p, 0.7f, 0.5f, 0.15f) || ReservedNear(ctx, p, 1.5f)) continue;
                         bool tussock = f <= 0.12f;
                         var id = tussock ? AssetMix.Pick(WetlandArt.Tussocks, v) : AssetMix.Pick(reeds, v);
                         var o = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 3u)) * 6.283f, ObjectRole.Bush, id, v);
@@ -699,6 +707,7 @@ namespace Placemaker.Core.Layers.Types.Wetland
                         occ.Take(p, 0.7f, 4);
                         placed++;
                     }
+                occ.Take(c, r * 0.6f, 4);   // the open wet middle stays open
             }
             return placed;
         }
