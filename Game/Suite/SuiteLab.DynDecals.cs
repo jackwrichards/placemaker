@@ -438,7 +438,13 @@ namespace Placemaker.Game.Suite
             rec["groups"] = sys.GroupCount; rec["tiles"] = sys.TileCount; rec["gpuKiB"] = sys.GpuBytes / 1024; rec["pending"] = sys.Pending;
             int objs = Resources.FindObjectsOfTypeAll<GameObject>().Count(g => g.name.StartsWith(global::Placemaker.Game.Decals.DynamicDecalSystem.Prefix, StringComparison.Ordinal));
             rec["gameObjects"] = objs;
-            Mod.Log.Info($"Placemaker lab: grime: {sys.GroupCount} groups, {sys.TileCount} tiles, {sys.GpuBytes / 1024} KiB, {objs} game objects, pending {sys.Pending}, waited {clock.Elapsed.TotalSeconds:F1} s");
+            // the shared library (v2 grounds)
+            rec["instances"] = global::Placemaker.Game.Decals.SharedDecals.InstanceCount;
+            rec["variants"] = global::Placemaker.Game.Decals.SharedDecals.VariantCount;
+            rec["libraryMiB"] = Math.Round(global::Placemaker.Game.Decals.SharedDecals.GpuBytes / 1048576.0, 1);
+            rec["fromDisk"] = global::Placemaker.Game.Decals.SharedDecals.FromDisk;
+            rec["makeMs"] = Math.Round(global::Placemaker.Game.Decals.SharedDecals.MakeMs);
+            Mod.Log.Info($"Placemaker lab: grime: {sys.GroupCount} groups, {sys.TileCount} tiles, {sys.GpuBytes / 1024} KiB, {objs} game objects, pending {sys.Pending}, waited {clock.Elapsed.TotalSeconds:F1} s; library: {rec["instances"]} instances, {rec["variants"]} variants ({rec["fromDisk"]} from the disk cache, {rec["makeMs"]} ms of worker time), {rec["libraryMiB"]} MiB on the GPU");
             Event("build");
         }
 

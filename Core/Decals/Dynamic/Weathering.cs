@@ -756,12 +756,25 @@ namespace Placemaker.Core.Decals.Dynamic
                     bool hero = flaws.Contains("shortcut") && i == 0;
                     Brushes.EdgeStrip(_b, pts, "wornPath", new StripOptions { Gaps = hero ? 0f : 0.15f, Run = new float2(15f, 40f), Opacity = Op(hero ? 0.75f : 0.5f, hero ? 1f : 0.8f), Width = new float2(0.7f, 1f), Cause = hero ? "flaw:shortcut" : "feet:shortcut" });
                 }
-                // the busiest benches: bare ground in front, a little litter; bins: litter round their feet
-                int bn = 0;
+                // the busiest benches on the grass (never every seat of a terrace): bare ground in front, a little litter;
+                // bins: litter round their feet
+                var lawnBenches = new List<(Thing b, float score)>();
                 for (int i = 0; i < Benches.Count; i++)
                 {
-                    if (U(210, i) > 0.45f) continue;
                     var b = Benches[i];
+                    bool paved = false;
+                    foreach (var r in All) if (Poly.Contains(r, b.P)) { paved = true; break; }
+                    if (paved) continue;
+                    float near = float.MaxValue;
+                    foreach (var g in Gates) near = math.min(near, math.distance(g, b.P));
+                    lawnBenches.Add((b, U(214, i) * 40f - math.min(near, 120f) * 0.3f));
+                }
+                lawnBenches.Sort((x, y) => y.score.CompareTo(x.score));
+                int bn = 0;
+                for (int i = 0; i < lawnBenches.Count && bn < 14; i++)
+                {
+                    if (U(210, i) > 0.6f) continue;
+                    var b = lawnBenches[i].b;
                     var front = new float2(math.sin(b.Yaw), math.cos(b.Yaw));
                     Brushes.At(_b, b.P + front * 1.2f, new float2(front.y, -front.x), "barePatch", Range(3.5f, 5f, 211, i), Op(0.4f, 0.75f), 1, ColourLevel.Any, "feet:bench");
                     if (U(212, i) < 0.4f) Brushes.At(_b, b.P + front * 0.8f, front, "litterMix", Range(2.5f, 4f, 213, i), Op(0.5f, 0.9f), 0, ColourLevel.Any, "feet:litter");
@@ -964,6 +977,8 @@ namespace Placemaker.Core.Decals.Dynamic
                 foreach (var d in Out)
                 {
                     if (d.Cause != null && d.Cause.StartsWith("tone", StringComparison.Ordinal)) continue;
+                    // leaves are meant to smother the ground under trees: they count as touched, never as a strong blotch
+                    bool leaves = d.Cause != null && (d.Cause.StartsWith("leaves", StringComparison.Ordinal) || d.Cause.StartsWith("woodland", StringComparison.Ordinal));
                     var k = _b.Lib.Get(d.Kind);
                     if (k == null) continue;
                     var foot = DecalVariants.FootprintOf(k, d.Variant) * d.Scale * 0.5f;
@@ -977,7 +992,7 @@ namespace Placemaker.Core.Decals.Dynamic
                         {
                             var q = lo + new float2(i + 0.5f, j + 0.5f) * cell - d.P;
                             var l = new float2(q.x * c - q.y * s, q.x * s + q.y * c) / math.max(new float2(0.05f), foot);
-                            if (math.lengthsq(l) <= 1f) strength[j * nx + i] = math.max(strength[j * nx + i], op);
+                            if (math.lengthsq(l) <= 1f) strength[j * nx + i] = math.max(strength[j * nx + i], leaves ? math.min(op, 0.5f) : op);
                         }
                 }
                 int touched = 0, strong = 0;

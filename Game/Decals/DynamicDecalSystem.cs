@@ -73,6 +73,7 @@ namespace Placemaker.Game.Decals
             public double UploadMs, WorstUploadMs;
             public bool Logged;
             public List<DecalStroke> List;
+            public List<DecalInstance> Inst;
         }
 
         private sealed class Job
@@ -120,6 +121,16 @@ namespace Placemaker.Game.Decals
             int n = 0;
             foreach (var s in best.List)
                 if (s.Kind == kind && n++ == index) { s.Bounds(out lo, out hi); return true; }
+            // the shared library's instances: the n-th of that kind (its box)
+            var k = DecalLibrary.Current.Get(kind);
+            if (best.Inst == null || k == null) return false;
+            foreach (var d in best.Inst)
+                if (d.Kind == kind && n++ == index)
+                {
+                    var he = d.HalfExtent(DecalVariants.SpanOf(k, d.Variant));
+                    lo = d.P - he; hi = d.P + he;
+                    return true;
+                }
             return false;
         }
 
@@ -257,6 +268,7 @@ namespace Placemaker.Game.Decals
             }
             // v2: the shared library's instances (one texture set per variant for the whole city)
             group.Instances = set.Instances.Count;
+            group.Inst = set.Instances;
             string owner = Owner(id);
             foreach (var d in set.Instances)
                 if (SharedDecals.Place(d.Id, owner, d.P, d.Yaw, d.Scale, d.Opacity) != null) group.InstancesPlaced++;
