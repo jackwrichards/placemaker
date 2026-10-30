@@ -93,5 +93,12 @@
   "Placemaker.Plaza.design.dining": "Terrasse gourmande",
   "Placemaker.Plaza.Preset.dining": "Terrasse gourmande",
   "Placemaker.Plaza.design.grandSteps": "Grand escalier",
-  "Placemaker.Plaza.Preset.grandSteps": "Grand escalier"
+  "Placemaker.Plaza.Preset.grandSteps": "Grand escalier",
+  "Placemaker.Plaza.design.grungy": "Délabrée",
+  "Placemaker.Plaza.Preset.grungy": "Place délabrée",
+  "Placemaker.Plaza.design.theatre": "Théâtre de plein air",
+  "Placemaker.Plaza.design.market": "Place du marché",
+  "Placemaker.Plaza.design.transit": "Parvis de gare",
+  "Placemaker.Plaza.design.fair": "Fête d'été",
+  "Placemaker.Plaza.design.winterFair": "Marché de Noël"
 }

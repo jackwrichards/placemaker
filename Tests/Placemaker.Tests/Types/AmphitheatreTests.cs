@@ -25,12 +25,14 @@ namespace Placemaker.Tests.Types
         public AmphitheatreTests(ITestOutputHelper output) { _out = output; }
 
         public static IEnumerable<object[]> PresetIds() => GeneratorRegistry.Get(Id).Presets.Select(p => new object[] { p.Id });
+        /// <summary>(the plazas makeover) The old bowl's presets; the stone theatre is a designed square (DesignedSquaresTests).</summary>
+        public static IEnumerable<object[]> BowlPresetIds() => GeneratorRegistry.Get(Id).Presets.Where(p => p.Id != "theatre").Select(p => new object[] { p.Id });
         private static SettingsBag Preset(string id) => GeneratorRegistry.Get(Id).Presets.Single(p => p.Id == id).Values;
 
         private static SiteContext Sloped() { var s = TestKit.RoadAlongBottom(300); s.HeightAt = p => 0.03f * p.x + 0.01f * p.y; return s; }
 
         [Theory]
-        [MemberData(nameof(PresetIds))]
+        [MemberData(nameof(BowlPresetIds))]
         public void PresetPlansOneHectareAndSixHectareL(string preset)
         {
             foreach (var ring in new[] { EventsKit.OneHa, EventsKit.SixHaL })
@@ -74,7 +76,7 @@ namespace Placemaker.Tests.Types
         }
 
         [Theory]
-        [MemberData(nameof(PresetIds))]
+        [MemberData(nameof(BowlPresetIds))]
         public void PresetKeepsClearOfReserved(string preset)
         {
             var res = EventsKit.SomeReserved(new float2(170, 130));

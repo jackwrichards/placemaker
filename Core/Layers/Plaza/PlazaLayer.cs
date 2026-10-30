@@ -254,6 +254,8 @@ namespace Placemaker.Core.Layers.Plaza
             Preset("marketHall", ("palette", GroundPalettes.Cobble), (PlazaDesigns.Control, "marketHall"), ("centerKind", "fountain"), ("furniture", 0.0), ("lighting", "feature"));
             Preset("dining", ("palette", GroundPalettes.Modern), (PlazaDesigns.Control, "dining"), ("centerKind", "fountain"), ("furniture", 0.0));
             Preset("grandSteps", ("palette", GroundPalettes.Classic), (PlazaDesigns.Control, "grandSteps"), ("centerKind", "fountain"), ("furniture", 0.0), ("lighting", "feature"));
+            // 2026-10-29 (the plazas makeover): the grungy square, its own design and contents (PlazaDesigns.Grungy), worn by default.
+            Preset("grungy", (PlazaDesigns.Control, "grungy"), ("centerKind", "statue"), ("furniture", 0.0), ("lighting", "standard"), (Placemaker.Core.Decals.DressingControls.StyleId, "gritty"));
             Preset("modern", ("palette", GroundPalettes.Modern), (PlazaDesigns.Control, "modern"), ("centerKind", "statue"), ("furniture", 0.0), ("lighting", "standard"));
             Preset("green", ("palette", GroundPalettes.Garden), ("centerMode", "single"), ("centerSize", 4.0), ("centerKind", "statue"), ("furniture", 0.0), ("lawns", 40.0),
                 ("beds", 0.0), ("treeLayout", "edge"), ("border", "grass"), ("pattern", "none"));
@@ -270,7 +272,7 @@ namespace Placemaker.Core.Layers.Plaza
             PresetFeatures("market", "kiosk", "-fountain");
             PresetFeatures("cafe", "kiosk");
             PresetFeatures("piazza", "kiosk", "-fountain");
-            foreach (var id in new[] { "grand", "rooms", "railed", "terraces", "modern", "sunkenPlaza", "waterSteps", "marketHall", "dining", "grandSteps" }) PresetFeatures(id, "-fountain");
+            foreach (var id in new[] { "grand", "rooms", "railed", "terraces", "modern", "sunkenPlaza", "waterSteps", "marketHall", "dining", "grandSteps", "grungy" }) PresetFeatures(id, "-fountain");
         }
 
         public override List<EdgeMarker> SuggestMarkers(AreaInput input)
@@ -551,6 +553,8 @@ namespace Placemaker.Core.Layers.Plaza
         {
             PlaceAmenities(ctx, occ, region, gatePoints);
             ctx.Check();
+            // (the plazas makeover) the grungy square on Automatic: weathered dark concrete, not the pale modern slabs
+            if (ctx.S(PlazaDesigns.Control) == "grungy" && (string.IsNullOrEmpty(ctx.S(GroundPalettes.Control)) || ctx.S(GroundPalettes.Control) == GroundPalettes.Automatic)) palette = PlazaDesigns.GrungyPalette;
             var r = PlazaDesigns.Plan(ctx, occ, region, gates, palette, pave, axis, fountainChild, ctx.S(PlazaDesigns.Control));
             PlazaDressing.Shade(ctx, occ);
             if (ctx.S(PlazaDesigns.Control) != "piazza") PlazaDressing.Cafe(ctx, occ);
@@ -578,6 +582,33 @@ namespace Placemaker.Core.Layers.Plaza
 
             ctx.Stat(Keys.StatArea, Math.Round(region.Area), Keys.UnitM2);
             ctx.Stat(Keys.StatFountains, CountRole(ctx.Plan, ObjectRole.Centerpiece), Keys.UnitCount);
+            ctx.Stat(Keys.StatBenches, CountRole(ctx.Plan, ObjectRole.Bench), Keys.UnitCount);
+            ctx.Stat(Keys.StatLamps, CountRole(ctx.Plan, ObjectRole.Lamp), Keys.UnitCount);
+            ctx.Stat(Keys.StatTrees, CountRole(ctx.Plan, ObjectRole.Tree), Keys.UnitCount);
+            ctx.Plan.Facts["accessPoints"] = gates.Count;
+        }
+
+        /// <summary>
+        /// (the plazas makeover, 2026-10-29) A designed square for another type of the Plazas category (the market square's
+        /// "market", the amphitheatre's "theatre"): the design on the square's own axes, its paving tiling, access points,
+        /// regions and stats, exactly as the plaza lays its own designs. The caller has made the navigation area.
+        /// </summary>
+        internal static void PlanDesignedSquare(LayerContext ctx, Occupancy occ, LayerRegion region, List<Gate> gates, string design, PavingPalette palette)
+        {
+            var axis = PlazaDressing.SquareAxis(region);
+            var pave = new PavingPlan { Axis = axis };
+            var r = PlazaDesigns.Plan(ctx, occ, region, gates, palette, pave, axis, false, design);
+            ctx.Check();
+            pave.Emit(ctx, region.Ring, SurfaceRole.Plaza, palette.Field, AssetCategories.SurfacePaving);
+            ctx.Plan.Facts["pavingRepairLoss"] = (float)Math.Round(pave.RepairLoss, 1);
+            foreach (var g in gates)
+            {
+                var inward = region.InwardNormal(g.Segment);
+                ctx.Object(g.Position, math.atan2(inward.x, inward.y), ObjectRole.AccessPoint, new AssetRef("", "Pedestrian Access Location"), 0);
+            }
+            ctx.AddRegion(region.Ring, "paved", RegionTags.Paved);
+            if (r.CoreRadius >= 4f) ctx.AddRegion(LayerRegion.Circle(r.Centre, r.CoreRadius, 24), "core", RegionTags.Core, RegionTags.Paved);
+            ctx.Stat(Keys.StatArea, Math.Round(region.Area), Keys.UnitM2);
             ctx.Stat(Keys.StatBenches, CountRole(ctx.Plan, ObjectRole.Bench), Keys.UnitCount);
             ctx.Stat(Keys.StatLamps, CountRole(ctx.Plan, ObjectRole.Lamp), Keys.UnitCount);
             ctx.Stat(Keys.StatTrees, CountRole(ctx.Plan, ObjectRole.Tree), Keys.UnitCount);

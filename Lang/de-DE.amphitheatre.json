@@ -87,5 +87,7 @@
   "Placemaker.Amphitheatre.Issue.NoRoom": "Kein Platz für auch nur eine Sitzreihe – stattdessen eine Bühne auf einer Wiese.",
   "Placemaker.Amphitheatre.Issue.FewerRows": "Platz für {0} von {1} Reihen.",
   "Placemaker.Stat.Rows": "Reihen",
-  "Placemaker.Stat.Capacity": "Kapazität"
+  "Placemaker.Stat.Capacity": "Kapazität",
+  "Placemaker.Amphitheatre.style.theatre": "Steintheater",
+  "Placemaker.Amphitheatre.Preset.theatre": "Steintheater"
 }

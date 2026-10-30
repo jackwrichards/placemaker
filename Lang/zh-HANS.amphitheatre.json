@@ -87,5 +87,7 @@
   "Placemaker.Amphitheatre.Issue.NoRoom": "连一排座位都放不下——改为草坪上的舞台。",
   "Placemaker.Amphitheatre.Issue.FewerRows": "{1} 排中有空间放 {0} 排。",
   "Placemaker.Stat.Rows": "排数",
-  "Placemaker.Stat.Capacity": "容量"
+  "Placemaker.Stat.Capacity": "容量",
+  "Placemaker.Amphitheatre.style.theatre": "石砌剧场",
+  "Placemaker.Amphitheatre.Preset.theatre": "石砌剧场"
 }

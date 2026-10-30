@@ -93,5 +93,12 @@
   "Placemaker.Plaza.design.dining": "Speiseterrasse",
   "Placemaker.Plaza.Preset.dining": "Speiseterrasse",
   "Placemaker.Plaza.design.grandSteps": "Große Treppe",
-  "Placemaker.Plaza.Preset.grandSteps": "Große Treppe"
+  "Placemaker.Plaza.Preset.grandSteps": "Große Treppe",
+  "Placemaker.Plaza.design.grungy": "Heruntergekommen",
+  "Placemaker.Plaza.Preset.grungy": "Verwahrloster Platz",
+  "Placemaker.Plaza.design.theatre": "Freilichttheater",
+  "Placemaker.Plaza.design.market": "Marktplatz",
+  "Placemaker.Plaza.design.transit": "Bahnhofsvorplatz",
+  "Placemaker.Plaza.design.fair": "Sommerfest",
+  "Placemaker.Plaza.design.winterFair": "Weihnachtsmarkt"
 }

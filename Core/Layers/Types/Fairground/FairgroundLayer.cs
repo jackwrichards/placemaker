@@ -171,12 +171,25 @@ namespace Placemaker.Core.Layers.Types.Events
             return l != null && l.Length > 0 ? l : ShadeTrees;
         }
 
+        /// <summary>(the plazas makeover) The fairground and Christmas styles are the designed fair; the old composition stays for the others.</summary>
+        public static bool DesignedFair = true;
+
         protected override void PlanCore(LayerContext ctx)
         {
             var region = ctx.LayerRegion;
             var occ = new Occupancy(region, ctx.Input.Reserved, ctx.Site);
             var gates = Gates(ctx);
             string style = ctx.S("style"), layout = ctx.S("layout");
+            // (the plazas makeover, 2026-10-29: the fairground comes back as the events side of Plazas) the summer fair and the
+            // Christmas market on the designed squares' kit (PlazaDesigns.Fair): a midway of stalls, a stage end, a play corner.
+            if (DesignedFair && (style == "fairground" || style == "christmas"))
+            {
+                ctx.NavigationArea(region.Ring, AreaRole.PedestrianArea, new AssetRef("", "Pedestrian Area", "Walking Area"));
+                var pal = GroundPalettes.Resolve(ctx.Settings, style == "christmas" ? GroundPalettes.Cobble : GroundPalettes.Garden, "pavingSurface");
+                PlazaLayer.PlanDesignedSquare(ctx, occ, region, gates, style == "christmas" ? "winterFair" : "fair", pal);
+                CommonStats(ctx);
+                return;
+            }
             var pathAsset = AssetMix.One(ctx.S("pathAsset"));
             LeisureKit.Frame(region, out var centre, out _, out _, out _, out float minor);
             // The site's own edge axis (a square's principal axes are diagonal): streets run with the outline.

@@ -35,6 +35,9 @@ namespace Placemaker.Core.Layers.Types.Transport
         public override string[] Emits => new[] { RegionTags.Paved, RegionTags.Core };
         protected override bool HostsStreetShops => false;
 
+        /// <summary>(the plazas makeover) The forecourt is the designed one; the old composition stays for reference.</summary>
+        public static bool DesignedForecourt = true;
+
         public static readonly string[] Styles = { "parkRide", "busPlaza", "bikeHub", "taxiRank", "forecourt" };
         public const string StatBusBays = "Placemaker.TransitPlaza.Stat.BusBays";
         public const string StatTaxiSpaces = "Placemaker.TransitPlaza.Stat.TaxiSpaces";
@@ -184,6 +187,39 @@ namespace Placemaker.Core.Layers.Types.Transport
                 }
             }
             ctx.Check();
+
+            // (the plazas makeover, 2026-10-29: the transit plaza comes back) the forecourt on the designed squares' kit
+            // (PlazaDesigns.Transit): a canopy along the platform, a grove with benches and bike racks, a focal point.
+            if (DesignedForecourt)
+            {
+                var pal = GroundPalettes.Resolve(ctx.Settings, style == "forecourt" ? GroundPalettes.Classic : GroundPalettes.Modern, "pavingAsset");
+                ctx.NavigationArea(plazaRing, AreaRole.PedestrianArea, new AssetRef("", "Pedestrian Area", "Walking Area"));
+                var pr = LayerRegion.From(plazaRing) ?? region;
+                var inner = new List<Gate>();
+                foreach (var g in gates)
+                {
+                    var p = pr.ClosestOnBoundary(g.Position, out int seg, out _);
+                    if (math.distance(p, g.Position) < 12f) inner.Add(new Gate { Position = p, Segment = seg, AttachId = -1, Kind = g.Kind });
+                }
+                ctx.Plan.Facts["frontX"] = n.x;
+                ctx.Plan.Facts["frontY"] = n.y;
+                ctx.Plan.Facts["transitBikes"] = style == "bikeHub" ? 1 : 0;
+                ctx.Plan.Facts["transitFocal"] = style == "forecourt" || style == "bikeHub" || ctx.B("centrepiece") ? 1 : 0;
+                string tl = ctx.S("treeLayout");
+                ctx.Plan.Facts["transitTrees"] = tl == "none" ? 0 : tl == "rows" ? 2 : tl == "islands" ? 3 : 1;
+                PlazaLayer.PlanDesignedSquare(ctx, occ, pr, inner, "transit", pal);
+                ctx.Stat(StatBusBays, placedBus, Keys.UnitCount);
+                ctx.Stat(StatTaxiSpaces, placedTaxi, Keys.UnitCount);
+                ctx.Stat(StatDropOff, placedDrop, Keys.UnitCount);
+                int racksD = 0; foreach (var o in ctx.Plan.Objects) if (o.Category == "transport.bikeRack") racksD++;
+                ctx.Stat(StatBikeRacks, racksD, Keys.UnitCount);
+                ctx.Plan.Facts["bikeRacks"] = racksD;
+                ctx.Plan.Facts["busBays"] = placedBus;
+                ctx.Plan.Facts["taxiSpaces"] = placedTaxi;
+                ctx.Plan.Facts["dropOff"] = placedDrop;
+                ctx.Plan.Facts["lot"] = lot != null ? 1 : 0;
+                return;
+            }
 
             // ── Forecourt paving ──
             // Art pass a2: the forecourt is laid in concrete blocks, framed in dark slabs, with a light

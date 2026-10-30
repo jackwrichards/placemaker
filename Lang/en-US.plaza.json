@@ -93,5 +93,12 @@
   "Placemaker.Plaza.design.dining": "Dining terrace",
   "Placemaker.Plaza.Preset.dining": "Dining terrace",
   "Placemaker.Plaza.design.grandSteps": "Grand stairs",
-  "Placemaker.Plaza.Preset.grandSteps": "Grand stairs"
+  "Placemaker.Plaza.Preset.grandSteps": "Grand stairs",
+  "Placemaker.Plaza.design.grungy": "Grungy",
+  "Placemaker.Plaza.Preset.grungy": "Grungy square",
+  "Placemaker.Plaza.design.theatre": "Open-air theatre",
+  "Placemaker.Plaza.design.market": "Market square",
+  "Placemaker.Plaza.design.transit": "Transit forecourt",
+  "Placemaker.Plaza.design.fair": "Summer fair",
+  "Placemaker.Plaza.design.winterFair": "Christmas market"
 }

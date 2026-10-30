@@ -87,5 +87,7 @@
   "Placemaker.Amphitheatre.Issue.NoRoom": "좌석을 한 줄도 놓을 공간이 없어 잔디밭 위 무대로 대신합니다.",
   "Placemaker.Amphitheatre.Issue.FewerRows": "줄 {1}개 중 {0}개 공간이 있습니다.",
   "Placemaker.Stat.Rows": "줄",
-  "Placemaker.Stat.Capacity": "수용량"
+  "Placemaker.Stat.Capacity": "수용량",
+  "Placemaker.Amphitheatre.style.theatre": "석조 극장",
+  "Placemaker.Amphitheatre.Preset.theatre": "석조 극장"
 }

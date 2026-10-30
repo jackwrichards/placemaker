@@ -46,7 +46,7 @@ namespace Placemaker.Core.Decals.Dynamic
         public static string Season = "Summer";
 
         /// <summary>The types (and their styles) that get a designed ground: every sports park style.</summary>
-        public static bool Wants(string layerId, SettingsBag values) => layerId == "sportsPark";
+        public static bool Wants(string layerId, SettingsBag values) => layerId == "sportsPark" || PlazaGround.Handles(layerId);
 
         public static float Amount(SettingsBag values)
         {
@@ -107,17 +107,23 @@ namespace Placemaker.Core.Decals.Dynamic
                 // thinned evenly (every cause alike) from the start, and once more if it still came out over
                 float ha = Poly.Area(ring) / 10000f;
                 int cap = (int)math.clamp(ha * PerHectare, 150f, MaxInstances);
+                if (PlazaGround.Handles(s.LayerId)) cap = (int)math.min(MaxInstances, cap * PlazaGround.BudgetFactor);   // a square is all detail
                 float density = math.min(1f, cap / math.max(1f, ha * 300f));
                 int start = host.DecalInstances.Count;
                 Scene scene = null; Report r = null;
                 for (int pass = 0; pass < 3; pass++)
                 {
-                    scene = new Scene(layers, ring, site, ground, Hashing.Mix(host.Seed == 0 ? 1u : host.Seed, 0xD1Au), s.Grime, lib, host.DecalInstances, density, cap)
+                    // (plazas makeover) paved squares have their own design; the Wear choice is their setting
+                    if (PlazaGround.Handles(s.LayerId)) r = new PlazaGround(layers, ring, site, ground, Hashing.Mix(host.Seed == 0 ? 1u : host.Seed, 0xD1Au), s.Grime * PlazaGround.StyleFactor(s.Style), lib, host.DecalInstances, density, cap).Run();
+                    else
                     {
-                        // the painted lawn's moisture (GroundWear.LawnTint): dry-grass and clover decals land where the paint is dry or lush
-                        PaintSeed = s.LawnPainted ? GroundWear.PaintSeed(host.Seed) : 0u,
-                    };
-                    r = scene.Run();
+                        scene = new Scene(layers, ring, site, ground, Hashing.Mix(host.Seed == 0 ? 1u : host.Seed, 0xD1Au), s.Grime, lib, host.DecalInstances, density, cap)
+                        {
+                            // the painted lawn's moisture (GroundWear.LawnTint): dry-grass and clover decals land where the paint is dry or lush
+                            PaintSeed = s.LawnPainted ? GroundWear.PaintSeed(host.Seed) : 0u,
+                        };
+                        r = scene.Run();
+                    }
                     if (r.Instances <= cap || pass == 2) break;
                     host.DecalInstances.RemoveRange(start, host.DecalInstances.Count - start);
                     density *= cap / (float)r.Instances * 0.95f;

@@ -87,5 +87,7 @@
   "Placemaker.Amphitheatre.Issue.NoRoom": "座席を1列も置く余地がありません。代わりに芝生の上にステージを置きます。",
   "Placemaker.Amphitheatre.Issue.FewerRows": "{1}列中{0}列の余地があります。",
   "Placemaker.Stat.Rows": "列",
-  "Placemaker.Stat.Capacity": "収容人数"
+  "Placemaker.Stat.Capacity": "収容人数",
+  "Placemaker.Amphitheatre.style.theatre": "石の劇場",
+  "Placemaker.Amphitheatre.Preset.theatre": "石の劇場"
 }

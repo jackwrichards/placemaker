@@ -1,5 +1,5 @@
 {
-  "_about": "Make-row category 'Plazas' (Core/Tool/Shelf.cs; one file per category). New 2026-10-28 (the user: \"plazas is going to be its whole new category, because we're going to really outdo ourselves with that\"; photos of a lifestyle centre's promenade and a dining plaza by a department store). The squares group (plaza, market square) and the shopping types built round a square or a pedestrian street (mall park, outdoor mall, high street, shopping plaza) are shown here; hide, never delete. See docs/refactor/STRIP-MALLS-PLAZAS.md. Designed plazas (2026-10-28, the user: \"very intricate designed plazas ... think of Union Square\"): the plaza shows six designed squares (grand square, garden rooms, railed gardens, terraced garden, modern plaza, old-town piazza; Core/Layers/Plaza/PlazaDesigns.cs); the classic compositions round the entrances (civic, fountain, cafe, sunken court, green) are hidden: big, mostly empty slabs next to them (docs/refactor/squares.md, 'Designed plazas'). Round 2 (2026-10-29, the user: \"polish weak plazas ... I need more types also ... play a LOT more with terrain height\"): five designed squares on their own ground are shown too (sunken plaza, market hall, dining terrace, grand stairs; Core/Layers/Plaza/PlazaDesigns.Squares.cs); water steps is hidden: the clean game has no water surface, its pools read as grey slabs.",
+  "_about": "Make-row category 'Plazas' (Core/Tool/Shelf.cs; one file per category). New 2026-10-28 (the user: \"plazas is going to be its whole new category, because we're going to really outdo ourselves with that\"; photos of a lifestyle centre's promenade and a dining plaza by a department store). The squares group (plaza, market square) and the shopping types built round a square or a pedestrian street (mall park, outdoor mall, high street, shopping plaza) are shown here; hide, never delete. See docs/refactor/STRIP-MALLS-PLAZAS.md. Designed plazas (2026-10-28, the user: \"very intricate designed plazas ... think of Union Square\"): the plaza shows six designed squares (grand square, garden rooms, railed gardens, terraced garden, modern plaza, old-town piazza; Core/Layers/Plaza/PlazaDesigns.cs); the classic compositions round the entrances (civic, fountain, cafe, sunken court, green) are hidden: big, mostly empty slabs next to them (docs/refactor/squares.md, 'Designed plazas'). Round 2 (2026-10-29, the user: \"polish weak plazas ... I need more types also ... play a LOT more with terrain height\"): five designed squares on their own ground are shown too (sunken plaza, market hall, dining terrace, grand stairs; Core/Layers/Plaza/PlazaDesigns.Squares.cs); water steps is hidden: the clean game has no water surface, its pools read as grey slabs. The plazas makeover (2026-10-29, docs/runbooks/plazas.md): every square gets a designed ground (Core/Decals/Dynamic/PlazaGround.cs: joints, stains, gum, leaves, worn lanes, puddles; the Wear choice is the setting) and a grungy square of its own (PlazaDesigns.Grungy); the amphitheatre (from Parks), the transit plaza (from Transport) and the fairground (from Shops) moved in and were rebuilt on the designed squares' kit: stone theatre, transit forecourt, summer fair and Christmas market; the market square is the designed market. Cut to the best: plaza piazza, railed, market hall and modern hidden (weaker twins of grand, rooms and the market square); the old amphitheatre styles, farmers market, taxi rank and station forecourt hidden; mall park hidden (a shops type round a park: its look depends on growth, not a square).",
   "id": "plazas",
   "name": "Plazas",
   "order": 5,
@@ -11,19 +11,22 @@
     "mallPark",
     "outdoorMall",
     "highStreet",
-    "shoppingPlaza"
+    "shoppingPlaza",
+    "amphitheatre",
+    "transitPlaza",
+    "fairground"
   ],
   "hiddenTypes": [
     "outdoorMall",
     "highStreet",
-    "shoppingPlaza"
+    "shoppingPlaza",
+    "mallPark"
   ],
   "hiddenStyles": {
     "mallPark": [
       "promenade"
     ],
     "marketSquare": [
-      "weekly",
       "farmers"
     ],
     "outdoorMall": [
@@ -31,6 +34,18 @@
     ],
     "highStreet": [
       "shared"
+    ],
+    "amphitheatre": [
+      "classic",
+      "cinema",
+      "bandstand",
+      "meadow",
+      "speakers"
+    ],
+    "fairground": [
+      "festival",
+      "funfair",
+      "foodTrucks"
     ],
     "plaza": [
       "market",
@@ -46,7 +61,15 @@
       "cafe",
       "sunkenCourt",
       "green",
-      "waterSteps"
+      "waterSteps",
+      "piazza",
+      "railed",
+      "marketHall",
+      "modern"
+    ],
+    "transitPlaza": [
+      "taxiRank",
+      "forecourt"
     ]
   }
 }

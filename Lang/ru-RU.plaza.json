@@ -93,5 +93,12 @@
   "Placemaker.Plaza.design.dining": "Обеденная терраса",
   "Placemaker.Plaza.Preset.dining": "Обеденная терраса",
   "Placemaker.Plaza.design.grandSteps": "Парадная лестница",
-  "Placemaker.Plaza.Preset.grandSteps": "Парадная лестница"
+  "Placemaker.Plaza.Preset.grandSteps": "Парадная лестница",
+  "Placemaker.Plaza.design.grungy": "Запущенная",
+  "Placemaker.Plaza.Preset.grungy": "Запущенная площадь",
+  "Placemaker.Plaza.design.theatre": "Летний театр",
+  "Placemaker.Plaza.design.market": "Рыночная площадь",
+  "Placemaker.Plaza.design.transit": "Привокзальная площадь",
+  "Placemaker.Plaza.design.fair": "Летняя ярмарка",
+  "Placemaker.Plaza.design.winterFair": "Рождественская ярмарка"
 }

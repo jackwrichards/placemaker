@@ -1,19 +1,16 @@
 {
   "Placemaker.Recipe.Amphitheatre": "Amphitheatre",
   "Placemaker.Recipe.Amphitheatre.Description": "Open-air venue: seating stepped into the terrain in an arc facing a stage, aisles, a top promenade — or an open-air cinema, a bandstand lawn, a concert meadow, a speakers' corner.",
-
   "Placemaker.Amphitheatre.Name": "Amphitheatre",
   "Placemaker.Amphitheatre.Preset.classic": "Amphitheatre",
   "Placemaker.Amphitheatre.Preset.cinema": "Open-air cinema",
   "Placemaker.Amphitheatre.Preset.bandstand": "Bandstand lawn",
   "Placemaker.Amphitheatre.Preset.meadow": "Concert meadow",
   "Placemaker.Amphitheatre.Preset.speakers": "Speakers' corner",
-
   "Placemaker.UI.Group.amphiLayout": "Venue",
   "Placemaker.UI.Group.amphiSeating": "Seating",
   "Placemaker.UI.Group.amphiStage": "Stage",
   "Placemaker.UI.Group.amphiRim": "Rim & planting",
-
   "Placemaker.Amphitheatre.style": "Venue type",
   "Placemaker.Amphitheatre.style.Tooltip": "Changes the extras: statues by the stage, a projection booth, string lights round a bandstand, a crowd barrier and mixing tent at a concert.",
   "Placemaker.Amphitheatre.style.classic": "Amphitheatre",
@@ -31,7 +28,6 @@
   "Placemaker.Amphitheatre.terrain.build": "Build up",
   "Placemaker.Amphitheatre.terrain.slope": "Use slope",
   "Placemaker.Amphitheatre.terrain.none": "Flat",
-
   "Placemaker.Amphitheatre.rowDepth": "Row depth",
   "Placemaker.Amphitheatre.rowDepth.Tooltip": "Depth of one row (tread) from front to back.",
   "Placemaker.Amphitheatre.rise": "Row rise",
@@ -53,7 +49,6 @@
   "Placemaker.Amphitheatre.seatGround.grass": "Grass",
   "Placemaker.Amphitheatre.seatGround.paved": "Paved",
   "Placemaker.Amphitheatre.seatGround.gravel": "Gravel",
-
   "Placemaker.Amphitheatre.stageKind": "Stage type",
   "Placemaker.Amphitheatre.stageKind.stage": "Stage",
   "Placemaker.Amphitheatre.stageKind.screen": "Screen",
@@ -73,7 +68,6 @@
   "Placemaker.Amphitheatre.backdrop": "Tree backdrop",
   "Placemaker.Amphitheatre.backdrop.Tooltip": "An arc of trees behind the stage.",
   "Placemaker.Amphitheatre.stageAsset": "Stage asset",
-
   "Placemaker.Amphitheatre.promenade": "Promenade",
   "Placemaker.Amphitheatre.promenade.Tooltip": "A path along the top of the seating, with side paths down to the stage.",
   "Placemaker.Amphitheatre.lampSpacing": "Lamp spacing",
@@ -85,16 +79,15 @@
   "Placemaker.Amphitheatre.lightTowers.Tooltip": "Light towers at the front corners and behind the seating.",
   "Placemaker.Amphitheatre.treeDensity": "Tree density",
   "Placemaker.Amphitheatre.treeSpecies": "Tree species",
-
   "Placemaker.Amphitheatre.benchAsset": "Bench",
   "Placemaker.Amphitheatre.pathAsset": "Path type",
   "Placemaker.Amphitheatre.lampAsset": "Lamp",
   "Placemaker.Amphitheatre.seatSurface": "Row surface",
   "Placemaker.Amphitheatre.entrances": "Entrances",
-
   "Placemaker.Amphitheatre.Issue.NoRoom": "No room for even one row of seating — a stage on a lawn instead.",
   "Placemaker.Amphitheatre.Issue.FewerRows": "Room for {0} of {1} rows.",
-
   "Placemaker.Stat.Rows": "Rows",
-  "Placemaker.Stat.Capacity": "Capacity"
+  "Placemaker.Stat.Capacity": "Capacity",
+  "Placemaker.Amphitheatre.style.theatre": "Stone theatre",
+  "Placemaker.Amphitheatre.Preset.theatre": "Stone theatre"
 }

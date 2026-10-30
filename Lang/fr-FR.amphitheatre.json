@@ -87,5 +87,7 @@
   "Placemaker.Amphitheatre.Issue.NoRoom": "Pas de place pour une seule rangée de gradins : une scène sur une pelouse à la place.",
   "Placemaker.Amphitheatre.Issue.FewerRows": "Place pour {0} rangées sur {1}.",
   "Placemaker.Stat.Rows": "Rangées",
-  "Placemaker.Stat.Capacity": "Capacité"
+  "Placemaker.Stat.Capacity": "Capacité",
+  "Placemaker.Amphitheatre.style.theatre": "Théâtre de pierre",
+  "Placemaker.Amphitheatre.Preset.theatre": "Théâtre de pierre"
 }

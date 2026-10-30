@@ -87,5 +87,7 @@
   "Placemaker.Amphitheatre.Issue.NoRoom": "Non c'è spazio nemmeno per una fila di posti: al suo posto un palco su un prato.",
   "Placemaker.Amphitheatre.Issue.FewerRows": "C'è spazio per {0} file su {1}.",
   "Placemaker.Stat.Rows": "File",
-  "Placemaker.Stat.Capacity": "Capienza"
+  "Placemaker.Stat.Capacity": "Capienza",
+  "Placemaker.Amphitheatre.style.theatre": "Teatro in pietra",
+  "Placemaker.Amphitheatre.Preset.theatre": "Teatro in pietra"
 }

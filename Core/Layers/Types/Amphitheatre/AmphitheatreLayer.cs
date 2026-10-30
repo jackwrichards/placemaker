@@ -53,7 +53,7 @@ namespace Placemaker.Core.Layers.Types.Amphitheatre
 
         protected override void DefineControls(ControlSet c)
         {
-            c.Choice("style", "classic", ControlTier.Essential, "amphiLayout", "classic", "cinema", "bandstand", "meadow", "speakers").Tip();
+            c.Choice("style", "theatre", ControlTier.Essential, "amphiLayout", "classic", "cinema", "bandstand", "meadow", "speakers", "theatre").Tip();
             c.Slider("rows", 8, 1, 24, 1, "count", ControlTier.Essential, "amphiLayout").Tip();
             c.Slider("span", 160, 60, 360, 10, "deg", ControlTier.Essential, "amphiLayout").Tip();
             c.Choice("terrain", "dig", ControlTier.Essential, "amphiLayout", "dig", "build", "slope", "none").Tip();
@@ -98,6 +98,8 @@ namespace Placemaker.Core.Layers.Types.Amphitheatre
 
         protected override void DefinePresets()
         {
+            // (the plazas makeover) the stone theatre
+            Preset("theatre", ("style", "theatre"), ("palette", GroundPalettes.Classic));
             Preset("classic", ("style", "classic"), ("rows", 10.0), ("span", 160.0), ("terrain", "dig"), ("rowDepth", 1.8), ("rise", 0.45),
                 ("seats", "benches"), ("seatSpacing", 2.5), ("aisles", 3.0), ("rowShape", "arc"), ("seatGround", "paved"), ("stageKind", "stage"), ("stageSize", 7.0),
                 ("orchestra", true), ("backdrop", true), ("kiosks", 1.0));
@@ -225,6 +227,16 @@ namespace Placemaker.Core.Layers.Types.Amphitheatre
             var gates = Gates(ctx);
             var pathAsset = AssetMix.One(ctx.S("pathAsset"));
             string style = ctx.S("style");
+            if (style == "theatre")
+            {
+                // (the plazas makeover, 2026-10-29: the user graded the amphitheatre F, "it just looks horrible") a stone theatre on
+                // the designed squares' kit (PlazaDesigns.Theatre): a smooth bowl of seating steps, an orchestra, a stage.
+                ctx.NavigationArea(region.Ring, AreaRole.PedestrianArea, new AssetRef("", "Pedestrian Area", "Walking Area"));
+                PlazaLayer.PlanDesignedSquare(ctx, occ, region, gates, "theatre", GroundPalettes.Resolve(ctx.Settings, GroundPalettes.Classic, "seatSurface"));
+                CommonStats(ctx);
+                ctx.Plan.Facts["rows"] = ctx.Plan.Facts.TryGetValue("theatreRows", out var tr) ? tr : 0;
+                return;
+            }
             Lawn.Cover(ctx, region.Ring, AssetMix.One(""));
 
             var b = Fit(ctx, region, occ, gates);
