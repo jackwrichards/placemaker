@@ -657,5 +657,9 @@
   "Placemaker.Stat.Seats": "Sitzplätze",
   "Placemaker.Stat.Sheds": "Schuppen",
   "Placemaker.Stat.Stalls": "Stände",
-  "Placemaker.Stat.TerrainChange": "Terrainänderung"
+  "Placemaker.Stat.TerrainChange": "Terrainänderung",
+  "Placemaker.Botanical.moods": "Orte mit Charakter",
+  "Placemaker.Botanical.moods.Tooltip": "Ein paar Orte im Garten bekommen eine eigene Stimmung, passend zum Gelände: ein Steingarten auf einem Hügel mit Findlingen, eine Wildblumenwiese, ein Moorbeet in einer feuchten Senke, eine Lichtung.",
+  "Placemaker.Botanical.moodGround": "Gelände formen",
+  "Placemaker.Botanical.moodGround.Tooltip": "Diese Orte dürfen das Gelände absenken und anheben (Rinne, Hügel, Senke). Geländeänderungen sind dauerhaft."
 }

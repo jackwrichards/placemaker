@@ -365,7 +365,7 @@ namespace Placemaker.Tests
 
         private static readonly ConcurrentDictionary<string, BakedVariant> _baked = new ConcurrentDictionary<string, BakedVariant>();
 
-        private void Picture(ComposedPlan plan, string name)
+        internal void Picture(ComposedPlan plan, string name)
         {
             var lib = Lib();
             var list = Instances(plan);

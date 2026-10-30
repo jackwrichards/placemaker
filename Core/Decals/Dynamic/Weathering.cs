@@ -46,7 +46,13 @@ namespace Placemaker.Core.Decals.Dynamic
         public static string Season = "Summer";
 
         /// <summary>The types (and their styles) that get a designed ground: every sports park style.</summary>
-        public static bool Wants(string layerId, SettingsBag values) => layerId == "sportsPark";
+        public static bool Wants(string layerId, SettingsBag values) => layerId == "sportsPark" || layerId != null && Designs.ContainsKey(layerId);
+
+        /// <summary>
+        /// (makeover, 2026-10-29) Per-type ground designs run on top of the shared causes above (tone, trees, seams, feet,
+        /// water, objects): a type listed here gets the whole Scene and then its own pass (parks: ParkGround.cs).
+        /// </summary>
+        internal static readonly Dictionary<string, Action<Scene>> Designs = ParkGround.Register(new Dictionary<string, Action<Scene>>(StringComparer.Ordinal));
 
         public static float Amount(SettingsBag values)
         {
@@ -116,7 +122,10 @@ namespace Placemaker.Core.Decals.Dynamic
                     {
                         // the painted lawn's moisture (GroundWear.LawnTint): dry-grass and clover decals land where the paint is dry or lush
                         PaintSeed = s.LawnPainted ? GroundWear.PaintSeed(host.Seed) : 0u,
+                        Design = Designs.TryGetValue(s.LayerId ?? "", out var design) ? design : null,
+                        Host = host,
                     };
+                    if (scene.Design != null) ParkGround.Prepare(scene);
                     r = scene.Run();
                     if (r.Instances <= cap || pass == 2) break;
                     host.DecalInstances.RemoveRange(start, host.DecalInstances.Count - start);
@@ -175,6 +184,25 @@ namespace Placemaker.Core.Decals.Dynamic
             private PointGrid _treeGrid;
             /// <summary>The paint's seed when the lawn is painted (0: no painted moisture to follow).</summary>
             public uint PaintSeed;
+            /// <summary>(makeover) The type's own ground design, run after the shared causes (null: the sports park's alone).</summary>
+            public Action<Scene> Design;
+            /// <summary>The plan the instances go to (its Facts say what the design needs to know).</summary>
+            public AreaPlan Host;
+            /// <summary>(makeover) Leaf cover of the trees pass (1 = the sports park's) and a leaf kind laid under every broadleaf instead
+            /// of its species' own (null: the species' kind). Set by a design's Prepare (Designs.Prepare).</summary>
+            public float LeafScale = 1f;
+            public string LeafOverride;
+            // what a type's design (Designs) reads and lays with
+            internal BrushContext Brush => _b;
+            internal BrushArea Lawn => _lawn;
+            internal IReadOnlyList<AreaPlan> Layers => _layers;
+            internal float2[] Outline => _ring;
+            internal float GrimeAmount => _amount;
+            internal uint Seed => _seed;
+            internal float GroundAt(float2 p) => _ground(p);
+            internal float DrynessAt(float2 p) => Dryness(p);
+            internal string LeafKind(string kind) => Leaf(kind);
+            internal float2 Opacity(float lo, float hi) => Op(lo, hi);
 
             public Scene(List<AreaPlan> layers, float2[] ring, SiteContext site, Func<float2, float> ground, uint seed, float amount, DecalLibrary lib, List<DecalInstance> into, float density = 1f, int cap = MaxInstances)
             {
@@ -296,6 +324,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     Wheels(); Lap("wheels");
                     Objects(); Lap("objects");
                 }
+                if (Design != null) { Design(this); Lap("design"); }
                 Measure(out _r.Touched, out _r.Strong); Lap("measure");
                 foreach (var kv in _b.ByCause) _r.ByCause[kv.Key] = kv.Value;
                 _r.Flaws.AddRange(flaws);
@@ -308,6 +337,7 @@ namespace Placemaker.Core.Decals.Dynamic
             {
                 // one or two things this site is known for
                 var all = new List<string> { "baldGoalmouth", "bigPuddle", "leafChokedCorner", "shortcut" };
+                if (Design != null && Goals.Count == 0) all.Remove("baldGoalmouth");   // (makeover) a park without goals
                 var pick = new List<string>();
                 int first = (int)(U(901) * all.Count) % all.Count;
                 pick.Add(all[first]);
@@ -405,12 +435,15 @@ namespace Placemaker.Core.Decals.Dynamic
                 foreach (var kv in bySpecies)
                 {
                     string kind = Leaf(kv.Key);
+                    // (makeover) a design may lay its own summer litter for broadleaves (parks: darker, sparser) and fewer of them
+                    bool broad = kind != "pineNeedles" && kind != "blossomPetals";
+                    if (broad && LeafOverride != null && _b.Lib.Has(LeafOverride)) kind = LeafOverride;
                     // smothered, never a blotch: overlapping patches over the whole fall zone, heaviest where crowns crowd
-                    float cov = (kind == "pineNeedles" ? 0.55f : kind == "blossomPetals" ? 0.4f : 0.85f) * A;
+                    float cov = (kind == "pineNeedles" ? 0.55f : kind == "blossomPetals" ? 0.4f : 0.85f) * A * LeafScale;
                     Brushes.Under(_b, kv.Value, kind, cov, Wind, fall, new ScatterOptions { Opacity = Op(0.55f, 1f), Scale = new float2(0.9f, 1.45f), Clump = 5f, Spread = 0.55f, Loners = 0.25f, Spill = 2f, Cause = "leaves" });
                     // mixed leaves blown further on, thinner
                     if (kind != "pineNeedles")
-                        Brushes.Under(_b, Shift(kv.Value, Wind, 1.8f), Leaf("leafMixed"), 0.2f * A, Wind, fall, new ScatterOptions { Opacity = Op(0.4f, 0.8f), Clump = 2.5f, Loners = 0.45f, Level = ColourLevel.Quiet, Cause = "leaves:blown" });
+                        Brushes.Under(_b, Shift(kv.Value, Wind, 1.8f), broad && LeafOverride != null && _b.Lib.Has(LeafOverride) ? LeafOverride : Leaf("leafMixed"), 0.2f * A * LeafScale, Wind, fall, new ScatterOptions { Opacity = Op(0.4f, 0.8f), Clump = 2.5f, Loners = 0.45f, Level = ColourLevel.Quiet, Cause = "leaves:blown" });
                 }
                 // under groups of trees: woodland floor and a little bare earth, overlapping the leaves
                 var groups = TreeGroups(9f);

@@ -657,5 +657,9 @@
   "Placemaker.Stat.Seats": "Места",
   "Placemaker.Stat.Sheds": "Сараи",
   "Placemaker.Stat.Stalls": "Лотки",
-  "Placemaker.Stat.TerrainChange": "Изменение рельефа"
+  "Placemaker.Stat.TerrainChange": "Изменение рельефа",
+  "Placemaker.Botanical.moods": "Особые уголки",
+  "Placemaker.Botanical.moods.Tooltip": "Несколько мест в саду получают своё настроение по рельефу: альпийская горка на холме с валунами, луг полевых цветов, болотный сад в сырой низине, поляна.",
+  "Placemaker.Botanical.moodGround": "Менять рельеф",
+  "Placemaker.Botanical.moodGround.Tooltip": "Позволяет этим местам углублять и поднимать землю (овраг, холм, низина). Изменения рельефа необратимы."
 }

@@ -657,5 +657,9 @@
   "Placemaker.Stat.Seats": "Posti",
   "Placemaker.Stat.Sheds": "Casette",
   "Placemaker.Stat.Stalls": "Bancarelle",
-  "Placemaker.Stat.TerrainChange": "Modifica terreno"
+  "Placemaker.Stat.TerrainChange": "Modifica terreno",
+  "Placemaker.Botanical.moods": "Luoghi di carattere",
+  "Placemaker.Botanical.moods.Tooltip": "Alcuni luoghi del giardino hanno un'atmosfera propria, letta dal terreno: un giardino roccioso su un poggio di massi, un prato di fiori selvatici, un giardino di torbiera in una conca umida, una radura.",
+  "Placemaker.Botanical.moodGround": "Modellare il terreno",
+  "Placemaker.Botanical.moodGround.Tooltip": "Lascia che quei luoghi scavino e alzino il terreno (il fosso, il poggio, la conca). Le modifiche al terreno sono permanenti."
 }

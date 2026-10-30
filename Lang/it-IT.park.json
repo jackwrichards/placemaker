@@ -189,5 +189,15 @@
   "Placemaker.Group.assets": "Elementi",
   "Placemaker.Group.divider": "Divisore",
   "Placemaker.Group.seating": "Sedute",
-  "Placemaker.Group.extras": "Extra"
+  "Placemaker.Group.extras": "Extra",
+  "Placemaker.Park.style.wild": "Parco rurale",
+  "Placemaker.Park.Preset.wild": "Parco rurale",
+  "Placemaker.Park.style.neglected": "Abbandonato",
+  "Placemaker.Park.Preset.neglected": "Abbandonato",
+  "Placemaker.Park.moods": "Luoghi di carattere",
+  "Placemaker.Park.moods.Tooltip": "Alcuni luoghi del parco hanno un'atmosfera propria, letta dal terreno: un fosso roccioso, un poggio di massi, una conca umida, un angolo di prato, un boschetto con tronchi caduti.",
+  "Placemaker.Park.moodGround": "Modellare il terreno",
+  "Placemaker.Park.moodGround.Tooltip": "Lascia che quei luoghi scavino e alzino il terreno (il fosso, il poggio, la conca). Le modifiche al terreno sono permanenti.",
+  "Placemaker.Park.carPark": "Parcheggio",
+  "Placemaker.Park.carPark.Tooltip": "Un piccolo parcheggio sul lato della strada, accanto all'ingresso principale, con alberi lungo i bordi (parchi da 0,7 ha in su)."
 }

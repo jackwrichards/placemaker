@@ -462,6 +462,19 @@ namespace Placemaker.Core.Build
             report.Pads = PadFurniture(c, furniture, T, protect, pathW, owner, profile);
 
             Lap("pads");
+            // (parks makeover, 2026-10-29) a park's mood places (a gully, a rocky knoll, a wet hollow: Layers/Park/ParkMoods) are
+            // designed ground already blended to their rims: the smoothing below must not wash them out.
+            for (int li = 0; li < plan.Layers.Count; li++)
+            {
+                if (!c.Part[li] || plan.Layers[li] == null) continue;
+                foreach (var rg in plan.Layers[li].Regions)
+                {
+                    if (rg?.Tags == null || rg.Ring == null || rg.Ring.Length < 3) continue;
+                    bool mood = false;
+                    foreach (var t in rg.Tags) if (t != null && t.StartsWith("mood:", StringComparison.Ordinal)) { mood = true; break; }
+                    if (mood) StampRings(c, new[] { Poly.To2D(rg.Ring) }, 0f, (k, d) => protect[k] = 1f);
+                }
+            }
             // ── 5. one smooth change field ──
             var O = new float[n];
             for (int k = 0; k < n; k++) O[k] = c.Free[k] ? T[k] - c.K[k] : 0f;

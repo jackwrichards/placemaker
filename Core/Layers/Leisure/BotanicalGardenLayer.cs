@@ -38,6 +38,8 @@ namespace Placemaker.Core.Layers.Leisure
             c.Slider("pathBorders", 0, 0, 90, 10, "%", ControlTier.More, "collections").Tip();
             c.Slider("bedDensity", 90, 20, 250, 5, "perHa", ControlTier.Essential, "collections").Tip();
             c.Toggle("glasshouse", true, ControlTier.Essential, "collections").Tip();
+            c.Toggle("moods", true, ControlTier.Essential, "collections").Tip();
+            c.Toggle("moodGround", true, ControlTier.More, "collections").When("moods=true").Tip();
             c.Slider("benches", 3, 0, 12, 0.5, "per100m", ControlTier.Essential, "furniture");
             c.Asset("glasshouseAsset", AssetCategories.Glasshouse, ControlTier.More, "collections").When("glasshouse=true");
             c.AssetMulti("flowerAssets", AssetCategories.Flowerbed, ControlTier.More, "collections");
@@ -206,6 +208,10 @@ namespace Placemaker.Core.Layers.Leisure
 
             // Collections: one theme per lawn.
             var lawns = FreeSpace.Pieces(region, p => occ.Corridors.Overlaps(p, 0.75f), 2f, 80f, ctx.Cancel);
+            // makeover (2026-10-29): a botanical garden has places of its own too: a rock garden on a knoll of boulders, a
+            // wildflower meadow, a bog garden in a wet hollow, a fern glade (ParkMoods, the park's planner).
+            var moodSite = new ParkSite { LayerRegion = region, Occ = occ, Seed = ctx.Seed, Cancel = ctx.Cancel, Gates = gates };
+            var moods = ctx.B("moods") ? ParkMoods.Plan(ctx, moodSite, lawns, "botanical", ctx.B("moodGround"), 0.8f) : new List<MoodPlace>();
             string theme = ctx.S("theme");
             float density = ctx.F("bedDensity");
             var flowers = Or(ctx.L("flowerAssets"), AssetAvailability.Has(AssetCategories.Flowerbed) ? FlowerBeds : new string[0]);
@@ -261,6 +267,7 @@ namespace Placemaker.Core.Layers.Leisure
                 ctx.Check();
             }
             foreach (var kv in counts) ctx.Plan.Facts["collection." + kv.Key] = kv.Value;
+            ParkMoods.Emit(ctx, moodSite, moods, false);
 
             Lawn.Cover(ctx, region.Ring, OneOr(ctx.S("surface"), new[] { "Grass Surface 01" }));
             if (ctx.B("fence")) Fence(ctx, gates, OneOr(ctx.S("fenceAsset"), BoundaryHedge));

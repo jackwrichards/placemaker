@@ -657,5 +657,9 @@
   "Placemaker.Stat.Seats": "Seats",
   "Placemaker.Stat.Sheds": "Sheds",
   "Placemaker.Stat.Stalls": "Stalls",
-  "Placemaker.Stat.TerrainChange": "Terrain change"
+  "Placemaker.Stat.TerrainChange": "Terrain change",
+  "Placemaker.Botanical.moods": "Places with character",
+  "Placemaker.Botanical.moods.Tooltip": "A few places in the garden get a mood of their own, read from the land: a rock garden on a knoll of boulders, a wildflower meadow, a bog garden in a wet hollow, a glade.",
+  "Placemaker.Botanical.moodGround": "Shape the ground",
+  "Placemaker.Botanical.moodGround.Tooltip": "Lets those places cut and raise the ground (the gully, the knoll, the hollow). Terrain changes are permanent."
 }

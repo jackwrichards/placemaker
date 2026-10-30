@@ -189,5 +189,15 @@
   "Placemaker.Group.assets": "에셋",
   "Placemaker.Group.divider": "구분선",
   "Placemaker.Group.seating": "좌석",
-  "Placemaker.Group.extras": "추가 요소"
+  "Placemaker.Group.extras": "추가 요소",
+  "Placemaker.Park.style.wild": "전원 공원",
+  "Placemaker.Park.Preset.wild": "전원 공원",
+  "Placemaker.Park.style.neglected": "방치된 공원",
+  "Placemaker.Park.Preset.neglected": "방치된 공원",
+  "Placemaker.Park.moods": "개성 있는 장소",
+  "Placemaker.Park.moods.Tooltip": "공원의 몇몇 장소가 지형에 맞는 고유한 분위기를 갖습니다: 바위투성이 골짜기, 바위 언덕, 습한 웅덩이, 초원 한구석, 쓰러진 통나무가 있는 숲.",
+  "Placemaker.Park.moodGround": "지형 다듬기",
+  "Placemaker.Park.moodGround.Tooltip": "그 장소들이 땅을 파거나 돋웁니다(골짜기, 언덕, 웅덩이). 지형 변경은 영구적입니다.",
+  "Placemaker.Park.carPark": "주차장",
+  "Placemaker.Park.carPark.Tooltip": "정문 옆 길가에 가장자리를 나무로 두른 작은 주차장입니다(0.7ha 이상의 공원)."
 }

@@ -657,5 +657,9 @@
   "Placemaker.Stat.Seats": "Sièges",
   "Placemaker.Stat.Sheds": "Abris",
   "Placemaker.Stat.Stalls": "Étals",
-  "Placemaker.Stat.TerrainChange": "Terrain modifié"
+  "Placemaker.Stat.TerrainChange": "Terrain modifié",
+  "Placemaker.Botanical.moods": "Lieux de caractère",
+  "Placemaker.Botanical.moods.Tooltip": "Quelques lieux du jardin prennent une ambiance à eux, selon le terrain : une rocaille sur une butte de rochers, une prairie fleurie, un jardin de tourbière dans un creux humide, une clairière.",
+  "Placemaker.Botanical.moodGround": "Modeler le terrain",
+  "Placemaker.Botanical.moodGround.Tooltip": "Laisse ces lieux creuser et relever le terrain (la ravine, la butte, le creux). Les modifications du terrain sont permanentes."
 }

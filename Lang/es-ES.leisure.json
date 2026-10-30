@@ -657,5 +657,9 @@
   "Placemaker.Stat.Seats": "Asientos",
   "Placemaker.Stat.Sheds": "Casetas",
   "Placemaker.Stat.Stalls": "Puestos",
-  "Placemaker.Stat.TerrainChange": "Cambio de terreno"
+  "Placemaker.Stat.TerrainChange": "Cambio de terreno",
+  "Placemaker.Botanical.moods": "Rincones con carácter",
+  "Placemaker.Botanical.moods.Tooltip": "Algunos rincones del jardín tienen su propio ambiente, según el terreno: una rocalla sobre un otero de peñascos, una pradera de flores silvestres, un jardín de turbera en una hondonada húmeda, un claro.",
+  "Placemaker.Botanical.moodGround": "Modelar el terreno",
+  "Placemaker.Botanical.moodGround.Tooltip": "Deja que esos rincones excaven y eleven el terreno (la barranca, el otero, la hondonada). Los cambios de terreno son permanentes."
 }

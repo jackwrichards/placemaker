@@ -657,5 +657,9 @@
   "Placemaker.Stat.Seats": "좌석",
   "Placemaker.Stat.Sheds": "창고",
   "Placemaker.Stat.Stalls": "가판대",
-  "Placemaker.Stat.TerrainChange": "지형 변경"
+  "Placemaker.Stat.TerrainChange": "지형 변경",
+  "Placemaker.Botanical.moods": "개성 있는 장소",
+  "Placemaker.Botanical.moods.Tooltip": "정원의 몇몇 장소가 지형에 맞는 고유한 분위기를 갖습니다: 바위 언덕의 암석원, 야생화 초원, 습한 웅덩이의 습지 정원, 숲속 빈터.",
+  "Placemaker.Botanical.moodGround": "지형 다듬기",
+  "Placemaker.Botanical.moodGround.Tooltip": "그 장소들이 땅을 파거나 돋웁니다(골짜기, 언덕, 웅덩이). 지형 변경은 영구적입니다."
 }

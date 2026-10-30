@@ -151,6 +151,11 @@ namespace Placemaker.Core.Layers.Park
             legacyLawn.HideWhenOff = true;
             c.Toggle("naturalGround", false, ControlTier.More, "ground").Tip();
             c.Slider("naturalLayer", 1, 1, 4, 1, "count", ControlTier.More, "ground").When("naturalGround=true").Tip();
+            // Makeover (2026-10-29): places with their own mood (a rocky gully, a knoll of boulders, a wet hollow, a meadow
+            // corner, a copse with fallen logs, standing stones): ParkMoods.cs. "moodGround" lets them shape the ground.
+            c.Toggle("moods", true, ControlTier.Essential, "layout").Tip();
+            c.Toggle("moodGround", true, ControlTier.More, "layout").When("moods=true").Tip();
+            c.Toggle("carPark", false, ControlTier.More, "boundary").Tip();
             c.Toggle("fence", false, ControlTier.More, "boundary");
             c.Asset("fenceAsset", AssetCategories.Fence, ControlTier.More, "boundary").When("fence=true");
 
@@ -179,6 +184,7 @@ namespace Placemaker.Core.Layers.Park
             c.Chance("belt", 0.8f);
             c.Chance("curvedPaths", 0.8f);
             c.Fixed("groundSurface");
+            c.Fixed("carPark");
             c.RandomRange("bushDensity", 15, 90);
             c.Chance("bikePath", 0.15f);
             c.RandomRange("smallPaths", 0, 2);
@@ -240,6 +246,19 @@ namespace Placemaker.Core.Layers.Park
             // or loose flowerbeds (they found no room on a city block and said so on every build).
             PresetFeatures("urban", "plaza", "shops", StreetShopsLayer, "-picnic", "-flowerbeds", "-playground", "-bigtrees");
             PresetFeatures("picnic", "-flowerbeds");
+            // Makeover (2026-10-29), the user: "maybe some parks are more genuine ... rural, urban; fenced and unfenced". The country
+            // park: native groves and long grass, a fence of its own, dirt trails, rustic benches, no lamps or loose flowerbeds.
+            Preset("wild", ("style", "wild"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 30.0), ("bushDensity", 85.0),
+                ("furniture", 2.0), ("lamps", false), ("bins", false), ("belt", true), ("curvedPaths", true), ("naturalGround", true), ("naturalLayer", 1.0),
+                ("animals", true), ("trails", 2.0), ("trailStyle", "painted"), ("desireLines", "worn"), ("fence", true), ("benchAsset", "CampgroundBench01"), ("carPark", true));
+            PresetFeatures("wild", "-flowerbeds", "-playground", "-restrooms", "-bigtrees");
+            PresetFeatureValues("wild", "picnic", ("groups", 2.0), ("tables", 1.0));
+            // The neglected park is its own version (the user: neglect "changes the entire vibe of everything"), not a grime amount:
+            // thickets and old trees close in, the lawns go to seed, the paths crack and gather moss, litter, a tired playground.
+            Preset("neglected", ("style", "neglected"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 34.0), ("bushDensity", 150.0),
+                ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", true), ("curvedPaths", true), ("naturalGround", true), ("naturalLayer", 3.0),
+                ("desireLines", "worn"));
+            PresetFeatures("neglected", "-flowerbeds", "-bigtrees");
             // The urban pocket's plaza stays an open paved square (the park's own trees already ring it; with the plaza's edge trees
             // the canopy closed over it on a round site).
             PresetFeatureValues("urban", "plaza", ("treeLayout", "none"));
@@ -335,14 +354,20 @@ namespace Placemaker.Core.Layers.Park
         {
             var clock = new PlanClock(ctx.Plan.Timings);   // (perf) the park's own steps, shown in brackets after "park"
             ShoreKit.CarveShore(ctx);   // g2: the wet part + a shore band go to the "Shore" feature
+            // makeover: the park's own car park on its street side (the rest of the park keeps the remaining ground)
+            Gate lotGate = default;
+            bool hasLot = ctx.B("carPark") && ParkCarPark.Plan(ctx, out lotGate);
             var region = ctx.LayerRegion;
             var style = ParkStyle.Get(ctx.S("style"));
+            if (style.Id == "neglected") ctx.Plan.Facts[Placemaker.Core.Decals.Dynamic.ParkGround.NeglectedFact] = 1;
             string pathMode = ctx.S("paths");
             int wantedGates = Entrances.WantedByArea(region.Area);
             var tiers = PathHierarchyOptions.From(ctx.Settings);
             // Typed entrances (pedestrian, bike, main, service): walk gates first (the main walk's gate
             // indices), then service gates.
-            var gates = OrderGates(Entrances.ResolveTyped(ctx.Input, region, wantedGates, EntranceKinds.Park), out int walkCount);
+            var resolved = Entrances.ResolveTyped(ctx.Input, region, wantedGates, EntranceKinds.Park);
+            if (hasLot) resolved.Add(lotGate);
+            var gates = OrderGates(resolved, out int walkCount);
 
             // 0. Places carved out for features (only when a child will fill them).
             float2[] plaza = Array.Empty<float2>();
@@ -505,6 +530,11 @@ namespace Placemaker.Core.Layers.Park
             ctx.Check();
             clock.Lap("clearings");
 
+            // 3d. Places with a mood of their own (ParkMoods): they take their ground before the furniture and planting.
+            var moods = ctx.B("moods") ? ParkMoods.Plan(ctx, s, lawns, style.Id, ctx.B("moodGround")) : new List<MoodPlace>();
+            ctx.Check();
+            clock.Lap("moods");
+
             // 4. Furniture first so planting keeps clear of it (ParkManager ordering).
             GatewayProps(ctx, s);
             float per100 = ctx.F("furniture");
@@ -559,6 +589,7 @@ namespace Placemaker.Core.Layers.Park
             if (treeIds.Length == 0) treeIds = StyleTrees(style.Id);
             if (bushIds.Length == 0) bushIds = StyleBushes(style.Id);
             EmitItems(ctx, s, treeIds, bushIds);
+            ParkMoods.Emit(ctx, s, moods, style.Id == "neglected");
             foreach (var g in gates)
                 if (g.Suggested) ctx.Plan.Facts["suggestedEntrances"] = (ctx.Plan.Facts.TryGetValue("suggestedEntrances", out var n) ? n : 0) + 1;
             clock.Lap("emit");
@@ -912,6 +943,8 @@ namespace Placemaker.Core.Layers.Park
                 case "riverside": return new[] { "EU_AlderTree01", "EU_PoplarTree01", "BirchTree01", "OakTree01" };
                 case "pocket": return new[] { "NA_LindenTree01", "NA_LondonPlaneTree01", "BirchTree01" };
                 case "picnic": return new[] { "OakTree01", "EU_ChestnutTree01", "NA_LondonPlaneTree01", "NA_LindenTree01" };
+                case "wild": return new[] { "OakTree01", "BirchTree01", "EU_AlderTree01", "NA_HickoryTree01", "OakTree01", "PineTree01", "BirchTree01" };
+                case "neglected": return new[] { "BirchTree01", "OakTree01", "EU_PoplarTree01", "NA_HickoryTree01", "EU_AlderTree01", "NA_LindenTree01" };
                 default: return ParkArt.ParkTrees;
             }
         }
@@ -922,6 +955,8 @@ namespace Placemaker.Core.Layers.Park
             {
                 case "formal": case "modern": case "urban": case "woodland": return ParkArt.GreenShrubs;
                 case "meadow": case "wildflower": case "garden": return ParkArt.FlowerShrubs;
+                case "wild": return new[] { "GreenBushWild01", "GreenBushWildAdult01", "FlowerBushWild01", "GreenBushWild02", "GreenBushWildElderly01" };
+                case "neglected": return new[] { "GreenBushWildElderly01", "FlowerBushWildDead02", "GreenBushWildAdult01", "FlowerBushWildElderly01", "GreenBushWild02", "GreenBushWildElderly01" };
                 default: return ParkArt.MixedShrubs;
             }
         }
@@ -931,11 +966,19 @@ namespace Placemaker.Core.Layers.Park
             var bench = AssetMix.One(ctx.S("benchAsset"), ParkArt.Benches);
             var lamp = AssetMix.One(ctx.S("lampAsset"), ParkArt.ParkLamps);
             var bin = AssetMix.One(ctx.S("binAsset"), ParkArt.Bins);
+            bool neglected = ctx.S("style") == "neglected";
             foreach (var it in s.Items)
             {
                 switch (it.Kind)
                 {
-                    case ParkItemKind.Tree: ctx.Object(it.Position, it.Yaw, ObjectRole.Tree, AssetMix.Pick(treeIds, it.Variant), it.Variant, it.Age); break;
+                    case ParkItemKind.Tree:
+                    {
+                        // a neglected park: old trees, and the odd dead one nobody has taken down
+                        int age = it.Age;
+                        if (neglected) { float u = Hashing.Unit(Hashing.Mix(ctx.Seed, (int)math.floor(it.Position.x * 3f), (int)math.floor(it.Position.y * 3f))); age = u < 0.07f ? PlannedAge.Dead : u < 0.4f ? PlannedAge.Old : age; }
+                        ctx.Object(it.Position, it.Yaw, ObjectRole.Tree, AssetMix.Pick(treeIds, it.Variant), it.Variant, age);
+                        break;
+                    }
                     case ParkItemKind.Bush: ctx.Object(it.Position, it.Yaw, ObjectRole.Bush, AssetMix.Pick(bushIds, it.Variant), it.Variant); break;
                     case ParkItemKind.Bench: ctx.Object(it.Position, it.Yaw, ObjectRole.Bench, bench, it.Variant); break;
                     case ParkItemKind.Lamp: ctx.Object(it.Position, it.Yaw, ObjectRole.Lamp, lamp, it.Variant); break;

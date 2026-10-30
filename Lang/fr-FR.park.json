@@ -189,5 +189,15 @@
   "Placemaker.Group.assets": "Éléments",
   "Placemaker.Group.divider": "Séparateur",
   "Placemaker.Group.seating": "Assises",
-  "Placemaker.Group.extras": "Extras"
+  "Placemaker.Group.extras": "Extras",
+  "Placemaker.Park.style.wild": "Parc champêtre",
+  "Placemaker.Park.Preset.wild": "Parc champêtre",
+  "Placemaker.Park.style.neglected": "À l'abandon",
+  "Placemaker.Park.Preset.neglected": "À l'abandon",
+  "Placemaker.Park.moods": "Lieux de caractère",
+  "Placemaker.Park.moods.Tooltip": "Quelques lieux du parc prennent une ambiance à eux, selon le terrain : une ravine rocheuse, une butte de rochers, un creux humide, un coin de prairie, un bosquet aux troncs tombés.",
+  "Placemaker.Park.moodGround": "Modeler le terrain",
+  "Placemaker.Park.moodGround.Tooltip": "Laisse ces lieux creuser et relever le terrain (la ravine, la butte, le creux). Les modifications du terrain sont permanentes.",
+  "Placemaker.Park.carPark": "Parking",
+  "Placemaker.Park.carPark.Tooltip": "Un petit parking côté rue, à côté de l'entrée principale, bordé d'arbres (parcs de 0,7 ha ou plus)."
 }
