@@ -366,7 +366,7 @@ namespace Placemaker.Core.Decals.Dynamic
                         float gr = 1.5f; foreach (var m in members) gr = math.max(gr, math.distance(m, gc) + 1.6f);
                         groups.Add((gc, gr));
                     }
-                    var rows = new StripOptions { Gaps = 0f, Opacity = new float2(0.8f, 0.95f), Width = new float2(1f, 1f), Level = ColourLevel.Quiet, Cause = "zen:rows" };
+                    var rows = new StripOptions { Gaps = 0f, Opacity = new float2(0.6f, 0.75f), Width = new float2(1f, 1f), Level = ColourLevel.Quiet, Cause = "zen:rows" };
                     // straight rows, broken round the stone groups (their rings carry the lines there)
                     for (float v = w0 + width * 0.5f; v < w1; v += width)
                     {

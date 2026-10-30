@@ -82,7 +82,7 @@ namespace Placemaker.Core.Layers.Park
                 case "formal": case "modern": case "victorian": return new[] { 0f, 0f, 0f, 0f, 0f, 0f };
                 case "botanical": return new[] { 0.5f, 1.8f, 1.1f, 1.4f, 0.6f, 0f };
                 case "playground": return new[] { 0.9f, 1.6f, 0.4f, 0.6f, 1.4f, 0f };
-                case "memorial": return new[] { 0f, 0.6f, 0.3f, 1.4f, 1.0f, 1.3f };
+                case "memorial": return new[] { 0f, 0.2f, 0.3f, 1.4f, 1.0f, 1.3f };
                 default: return new[] { 1.2f, 1.1f, 1.0f, 1.0f, 1.0f, 0.15f };
             }
         }
