@@ -210,7 +210,10 @@ namespace Placemaker.Core.Layers.Types.Yards
         private static readonly AssetRef Dirt = new AssetRef("Oil Surface 01");
         /// <summary>Aisles: weathered asphalt from the surface packs, else the dark vanilla pavement (concrete would vanish on a concrete yard).</summary>
         private static readonly AssetRef AisleSurface = new AssetRef("Pavement Surface 01");
-        private static readonly AssetRef WornLane = new AssetRef("Oil Surface 01", "Pavement Surface 01");
+        // Oil Surface 01 renders as beige earth (seen in the game: lanes read as sand tracks); the darkest vanilla hard surface is
+        // Pavement Surface 01, so the wheel path is that and the shoulders the lighter Pavement Surface 02.
+        private static readonly AssetRef WornLane = new AssetRef("Pavement Surface 01");
+        private static readonly AssetRef LaneShoulder = new AssetRef("Pavement Surface 02", "Pavement Surface 01");
         private static readonly AssetRef Concrete = new AssetRef("Concrete Surface 01", "Pavement Surface 02", "Concrete Surface 02");
 
         /// <summary>The yard surface, then the aisles on top (asphalt, so the lanes read from above).</summary>
@@ -233,7 +236,7 @@ namespace Placemaker.Core.Layers.Types.Yards
             if (s.Organic) { OrganicYard.TrackSurfaces(s); OrganicYard.FieldGround(s, Hashing.Mix(ctx.Seed, 0x6F0Du)); return; }
             float hw = s.Spec.Aisle * 0.5f;
             // Container yards (the makeover, 2026-10-30: uniform light lanes read clean and new from 45 degrees): the middle of
-            // every lane, where the carriers and lorries run, is worn dark and oily; the shoulders stay pavement.
+            // every lane, where the carriers and lorries run, is the dark pavement; the shoulders the lighter one.
             bool worn = ctx.LayerRegion != null && s.Ctx.Plan.GeneratorId == "containerYard";
             foreach (var (a, b) in s.Aisles)
             {
@@ -241,8 +244,8 @@ namespace Placemaker.Core.Layers.Types.Yards
                 var d = math.normalizesafe(b - a); var n = new float2(-d.y, d.x);
                 float mid = hw * 0.45f, side = (hw - mid) * 0.5f;
                 YardKit.Strip(ctx, a, b, mid, SurfaceRole.Asphalt, WornLane, AssetCategories.SurfaceAsphalt);
-                YardKit.Strip(ctx, a + n * (mid + side), b + n * (mid + side), side, SurfaceRole.Asphalt, AisleSurface, AssetCategories.SurfaceAsphalt);
-                YardKit.Strip(ctx, a - n * (mid + side), b - n * (mid + side), side, SurfaceRole.Asphalt, AisleSurface, AssetCategories.SurfaceAsphalt);
+                YardKit.Strip(ctx, a + n * (mid + side), b + n * (mid + side), side, SurfaceRole.Asphalt, LaneShoulder, AssetCategories.SurfaceAsphalt);
+                YardKit.Strip(ctx, a - n * (mid + side), b - n * (mid + side), side, SurfaceRole.Asphalt, LaneShoulder, AssetCategories.SurfaceAsphalt);
             }
         }
 

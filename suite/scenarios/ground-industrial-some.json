@@ -2,6 +2,224 @@
   "_about": "Every surviving industrial style with its marks of work (made by tools/suite/make-industrial-scenarios.js; docs/runbooks/industrial.md). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/ground-industrial-all.json -Who makeover-industrial",
   "scenarios": [
     {
+      "id": "containerYard-terminal",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "containerYard",
+          "preset": "terminal"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 70,
+          "shot": "mid",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "rustRunoff",
+          "index": 2,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-rustRunoff",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "laneGrime",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-laneGrime",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "fadedLineYellow",
+          "index": 4,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-fadedLineYellow",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "oilSpot",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-oilSpot",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "containerYard-depot",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "containerYard",
+          "preset": "depot"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 70,
+          "shot": "mid",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "rustRunoff",
+          "index": 2,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-rustRunoff",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "crackConcrete",
+          "index": 3,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-crackConcrete",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "laneGrime",
+          "index": 4,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-laneGrime",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "focus": "puddlePiece",
+          "index": 5,
+          "margin": 6
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "distance": 24,
+          "shot": "close-puddlePiece",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
       "id": "containerYard-storage",
       "site": "flat",
       "pace": "settled",
@@ -106,115 +324,6 @@
           "view": "closeup",
           "distance": 24,
           "shot": "close-skidMark",
-          "shotMode": "render"
-        }
-      ]
-    },
-    {
-      "id": "carYard-crusher",
-      "site": "flat",
-      "pace": "settled",
-      "land": {
-        "size": [
-          220,
-          200
-        ],
-        "gap": 10
-      },
-      "steps": [
-        {
-          "do": "area",
-          "tool": "land"
-        },
-        {
-          "do": "type",
-          "layer": "carYard",
-          "preset": "crusher"
-        },
-        {
-          "do": "entrances"
-        },
-        {
-          "do": "build"
-        },
-        {
-          "do": "lab",
-          "op": "grime"
-        },
-        {
-          "do": "camera",
-          "target": "build",
-          "view": "oblique",
-          "pitch": 45,
-          "shot": "45",
-          "shotMode": "render"
-        },
-        {
-          "do": "camera",
-          "target": "build",
-          "view": "closeup",
-          "distance": 70,
-          "shot": "mid",
-          "shotMode": "render"
-        },
-        {
-          "do": "lab",
-          "op": "grime",
-          "focus": "scrapGrit",
-          "index": 2,
-          "margin": 6
-        },
-        {
-          "do": "camera",
-          "target": "build",
-          "view": "closeup",
-          "distance": 24,
-          "shot": "close-scrapGrit",
-          "shotMode": "render"
-        },
-        {
-          "do": "lab",
-          "op": "grime",
-          "focus": "yardRut",
-          "index": 3,
-          "margin": 6
-        },
-        {
-          "do": "camera",
-          "target": "build",
-          "view": "closeup",
-          "distance": 24,
-          "shot": "close-yardRut",
-          "shotMode": "render"
-        },
-        {
-          "do": "lab",
-          "op": "grime",
-          "focus": "dustDrift",
-          "index": 4,
-          "margin": 6
-        },
-        {
-          "do": "camera",
-          "target": "build",
-          "view": "closeup",
-          "distance": 24,
-          "shot": "close-dustDrift",
-          "shotMode": "render"
-        },
-        {
-          "do": "lab",
-          "op": "grime",
-          "focus": "puddlePiece",
-          "index": 5,
-          "margin": 6
-        },
-        {
-          "do": "camera",
-          "target": "build",
-          "view": "closeup",
-          "distance": 24,
-          "shot": "close-puddlePiece",
           "shotMode": "render"
         }
       ]
