@@ -170,7 +170,10 @@ namespace Placemaker.Core.Layers.Types.Yards
             public readonly List<string> Flaws = new List<string>();
             private readonly List<Thing> _things = new List<Thing>();
             private readonly List<(float2[] pts, float half, bool hard)> _fences = new List<(float2[], float, bool)>();
-            private readonly List<float2[]> _slabs = new List<float2[]>();
+            private readonly List<float2[]> _slabs = new List<float2[]>(), _hard = new List<float2[]>();
+
+            /// <summary>On concrete, paving or asphalt (dust and rust there read as paint: the game runner, 2026-10-30).</summary>
+            private bool OnHard(float2 p) { if (_y.Hard) return true; foreach (var r in _hard) if (Poly.Contains(r, p)) return true; return false; }
             private readonly List<(float2 p, float2 dir, float half, bool hard)> _crossings = new List<(float2, float2, float, bool)>();
             private static readonly float2 Wind = Weathering.Wind;
             private readonly Dictionary<string, (PointGrid g, List<float2> pts)> _spots = new Dictionary<string, (PointGrid, List<float2>)>(StringComparer.Ordinal);
@@ -268,6 +271,7 @@ namespace Placemaker.Core.Layers.Types.Yards
                     if (s?.Ring == null || s.Ring.Length < 3) continue;
                     if (s.Role != SurfaceRole.Paving && s.Role != SurfaceRole.Asphalt) continue;
                     var r = Poly.EnsureCcw(Poly.To2D(s.Ring));
+                    _hard.Add(r);
                     float area = Poly.Area(r), per = Perimeter(r);
                     // lanes are long thin strips: only the slabs crack and grow weeds
                     if (area < 140f || area / math.max(1f, per) < 3.2f) continue;
@@ -510,14 +514,14 @@ namespace Placemaker.Core.Layers.Types.Yards
                             if (Room("box", t.P, 5f) && U(300, n) < (t.K == Kind.Skip ? 0.5f : 0.4f) * math.min(1.3f, _a))
                             {
                                 float s = U(301, n) < 0.5f ? 1f : -1f;
-                                Brushes.At(B, t.P + right * s * (t.W * 0.5f + 0.9f) + t.Fwd * t.L * R(-0.35f, 0.35f, 302, n), right * s, "rustRunoff", R(3.5f, 5.5f, 303, n), Op(0.65f, 1f), 0, ColourLevel.Any, "steel:rust");
+                                Brushes.At(B, t.P + right * s * (t.W * 0.5f + 0.9f) + t.Fwd * t.L * R(-0.35f, 0.35f, 302, n), right * s, "rustRunoff", R(3.5f, 5.5f, 303, n), OnHard(t.P) ? Op(0.3f, 0.55f) : Op(0.55f, 0.9f), 0, ColourLevel.Any, "steel:rust");
                             }
                             break;
                         case Kind.Stack:
                             for (float u = -t.L * 0.5f + 4f; u < t.L * 0.5f - 3f; u += R(9f, 16f, 304, n + (int)u))
                                 foreach (float s in new[] { 1f, -1f })
                                     if (U(305, n * 31 + (int)(u * 3f) + (s > 0 ? 1 : 0)) < 0.45f)
-                                        Brushes.At(B, t.P + right * s * (t.W * 0.5f + 0.9f) + t.Fwd * u, right * s, "rustRunoff", R(3.5f, 5.5f, 306, n + (int)u), Op(0.6f, 0.95f), 0, ColourLevel.Any, "steel:rust");
+                                        Brushes.At(B, t.P + right * s * (t.W * 0.5f + 0.9f) + t.Fwd * u, right * s, "rustRunoff", R(3.5f, 5.5f, 306, n + (int)u), Op(0.3f, 0.55f), 0, ColourLevel.Any, "steel:rust");
                             break;
                         case Kind.MetalHeap:
                             if (Room("metal", t.P, 8f))
@@ -573,11 +577,11 @@ namespace Placemaker.Core.Layers.Types.Yards
                     {
                         case Kind.StoneHeap:
                             if (!Room("stone", t.P, 10f)) break;
-                            if (U(400, n) < 0.6f) Brushes.At(B, t.P + Wind * (r0 + R(3f, 6f, 401, n)), Wind, "dustDrift", R(10f, 16f, 402, n) * math.clamp(r0 / 4f, 0.7f, 1.4f), Op(0.5f, 0.8f), 1, ColourLevel.Quiet, "heaps:dust");
+                            if (U(400, n) < 0.6f && !OnHard(t.P + Wind * (r0 + 5f))) Brushes.At(B, t.P + Wind * (r0 + R(3f, 6f, 401, n)), Wind, "dustDrift", R(10f, 16f, 402, n) * math.clamp(r0 / 4f, 0.7f, 1.4f), Op(0.5f, 0.8f), 1, ColourLevel.Quiet, "heaps:dust");
                             if (U(403, n) < 0.7f) { float a = U(404, n) * 6.283f; var d = new float2(math.cos(a), math.sin(a)); Brushes.At(B, t.P + d * (r0 * 0.8f + 1f), d, "pebbles", R(5f, 8f, 405, n), Op(0.4f, 0.7f), 1, ColourLevel.Quiet, "heaps:spill"); }
                             break;
                         case Kind.Plant:
-                            Brushes.At(B, t.P + Wind * (r0 + R(4f, 8f, 406, n)), Wind, "dustDrift", R(13f, 18f, 407, n), Op(0.5f, 0.8f), 2, ColourLevel.Quiet, "plant:dust");
+                            if (!OnHard(t.P + Wind * (r0 + 6f))) Brushes.At(B, t.P + Wind * (r0 + R(4f, 8f, 406, n)), Wind, "dustDrift", R(13f, 18f, 407, n), Op(0.5f, 0.8f), 2, ColourLevel.Quiet, "plant:dust");
                             if (U(408, n) < 0.6f) Brushes.At(B, t.P + t.Fwd * (t.L * 0.5f + 0.8f), t.Fwd, "oilSpot", R(2.4f, 3.6f, 409, n), Op(0.5f, 0.85f), 1, ColourLevel.Any, "plant:oil");
                             break;
                         case Kind.Scrap:
@@ -666,6 +670,8 @@ namespace Placemaker.Core.Layers.Types.Yards
                     var inset = Brushes.Inset(s, 1.6f);
                     if (inset != null && Poly.IsCcw(inset) && Poly.Area(inset) > 40f)
                         Brushes.CracksAlong(B, Closed(inset), back && U(600, n) < 0.45f ? "crackWeeds" : "crackConcrete", new StripOptions { Gaps = 0.72f, Run = new float2(5f, 16f), Opacity = Op(0.65f, 0.95f), Width = new float2(0.8f, 1f), Cause = back ? "slabs:weedyCracks" : "slabs:cracks" });
+                    // a slab that has carried boxes for years is not white: faint stains where they stood and drained
+                    Brushes.Tone(B, BrushArea.Of(s), "pavingTonePatch", Op(0.3f, 0.45f), 0.25f, ColourLevel.Quiet, "slabs:tone");
                     if (area > 500f) Brushes.Scatter(B, BrushArea.Of(s), "crackWeb", 0.02f * _a, new ScatterOptions { Opacity = Op(0.35f, 0.6f), Clump = 1.5f, Cause = "slabs:crackWeb" });
                 }
             }
