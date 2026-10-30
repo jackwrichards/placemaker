@@ -6,9 +6,9 @@
     {
       "id": "rustRunoff", "name": "Rust run-off", "tier": "detail",
       "about": "Orange-brown rust washed off steel by rain: streaks running away from a container, a skip or a scrap heap, strongest at the foot.",
-      "texel": 0.028, "layers": "ground", "order": 4, "lod": 32, "maxTexels": 256, "opacity": 0.8,
+      "texel": 0.03, "layers": "ground", "order": 4, "lod": 32, "maxTexels": 256, "opacity": 0.8,
       "edge": { "feather": 0.7, "warp": 0.5, "warpScale": 1.2, "round": 1 },
-      "variants": { "count": 8, "size": [3.5, 7.5], "aspect": [0.3, 0.55], "strength": [0.6, 1], "fades": ["side", "linear", "soft", "islands"] },
+      "variants": { "count": 6, "size": [3.5, 7.5], "aspect": [0.3, 0.55], "strength": [0.6, 1], "fades": ["side", "linear", "soft", "islands"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 0.45, "octaves": 4, "stretch": [6, 1], "warp": 0.2, "warpScale": 0.8 },
         { "op": "remap", "in": "n", "out": "streak", "lo": -0.8, "hi": 0.1 },
@@ -23,9 +23,9 @@
     {
       "id": "dustDrift", "name": "Dust drift", "tier": "macro",
       "about": "Fine dust and grit blown off a heap or a crusher: a pale fan settled on the ground downwind, speckled near the heap, thinning out.",
-      "texel": 0.04, "layers": "ground", "order": 3, "lod": 45, "maxTexels": 384, "opacity": 0.85,
+      "texel": 0.06, "layers": "ground", "order": 3, "lod": 45, "maxTexels": 384, "opacity": 0.85,
       "edge": { "feather": 1.2, "warp": 0.9, "warpScale": 3, "round": 0.9 },
-      "variants": { "count": 8, "size": [12, 22], "aspect": [0.35, 0.6], "strength": [0.6, 1], "fades": ["side", "linear", "islands", "soft"] },
+      "variants": { "count": 4, "size": [12, 22], "aspect": [0.35, 0.6], "strength": [0.6, 1], "fades": ["side", "linear", "islands", "soft"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 3, "octaves": 4, "stretch": [2.5, 1], "warp": 0.4, "warpScale": 2 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.9, "hi": 0.1 },
@@ -37,9 +37,9 @@
     {
       "id": "yardRut", "name": "Yard rut", "tier": "macro",
       "about": "One wheel rut pressed into a dirt or gravel yard by loaded lorries: darker compacted soil, damp in the bottom, grit pushed up along its sides. Repeats along +x.",
-      "texel": 0.035, "layers": "terrain", "order": 2, "lod": 40, "maxTexels": 384, "opacity": 0.95,
+      "texel": 0.04, "layers": "terrain", "order": 2, "lod": 40, "maxTexels": 384, "opacity": 0.95,
       "edge": { "feather": 0.3, "warp": 0.25, "warpScale": 1.6, "round": 1, "widthNoise": 0.3 },
-      "variants": { "count": 6, "size": [9, 12.5], "width": [1, 1.4], "tile": "x", "strength": [0.6, 1] },
+      "variants": { "count": 5, "size": [9, 12.5], "width": [1, 1.4], "tile": "x", "strength": [0.6, 1] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 4, "stretch": [3, 1] },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.85, "hi": 0.1 },
@@ -56,9 +56,9 @@
     {
       "id": "weedStrip", "name": "Weeds at a fence", "tier": "macro",
       "about": "Weeds and dry grass that grow where no wheel reaches: along the foot of a yard fence or a wall, thick at the fence, thinning into the gravel (+z is the fence).",
-      "texel": 0.03, "layers": "terrain", "order": 3, "lod": 32, "maxTexels": 384, "opacity": 0.95,
+      "texel": 0.035, "layers": "terrain", "order": 3, "lod": 32, "maxTexels": 384, "opacity": 0.95,
       "edge": { "feather": 0.25, "warp": 0.35, "warpScale": 1.2, "round": 1, "widthNoise": 0.4 },
-      "variants": { "count": 8, "size": [8, 11], "width": [1.6, 2.6], "tile": "x", "strength": [0.7, 1] },
+      "variants": { "count": 5, "size": [8, 11], "width": [1.6, 2.6], "tile": "x", "strength": [0.7, 1] },
       "ops": [
         { "op": "remap", "in": "across", "out": "side", "lo": -0.3, "hi": 0.35 },
         { "op": "fbm", "out": "n", "scale": 1.2, "octaves": 4, "stretch": [2, 1] },
@@ -72,9 +72,9 @@
     {
       "id": "crackWeeds", "name": "Weedy crack (chain)", "tier": "macro",
       "about": "An old crack in a concrete slab with weeds and grass tufts growing out of it: the back of a yard where the slab is never swept. Pieces join end to end.",
-      "texel": 0.026, "layers": "ground", "order": 4, "lod": 26, "maxTexels": 512, "opacity": 0.92,
+      "texel": 0.028, "layers": "ground", "order": 4, "lod": 26, "maxTexels": 512, "opacity": 0.92,
       "edge": { "feather": 0.5, "warp": 0, "warpScale": 2.6, "round": 1 },
-      "variants": { "count": 8, "size": [10, 13], "width": [1.2, 1.6], "tile": "chain", "strength": [0.75, 1] },
+      "variants": { "count": 5, "size": [10, 13], "width": [1.2, 1.6], "tile": "chain", "strength": [0.75, 1] },
       "ops": [
         { "op": "cracks", "out": "c", "chain": true, "wander": 0.18, "seeds": 0.012, "step": 0.3, "turn": 0.2, "branch": 0.15, "len": [0.4, 1.2], "width": [0.025, 0.05], "warp": 0.01 },
         { "op": "mul", "a": "cHalo", "b": 0.3, "out": "halo" },
@@ -87,9 +87,9 @@
     {
       "id": "fadedLineYellow", "name": "Faded yellow line", "tier": "macro",
       "about": "An old yellow painted line on concrete or asphalt, worn by wheels to a broken, chalky trace: aisle edges, bay lines, the gate's stop line. Repeats along +x.",
-      "texel": 0.015, "layers": "ground", "order": 5, "lod": 32, "maxTexels": 512, "opacity": 0.92,
+      "texel": 0.016, "layers": "ground", "order": 5, "lod": 32, "maxTexels": 512, "opacity": 0.92,
       "edge": { "feather": 0.1, "warp": 0.02, "warpScale": 1.5, "round": 1 },
-      "variants": { "count": 6, "size": [6, 9], "width": [0.6, 0.6], "tile": "x", "strength": [0.6, 1] },
+      "variants": { "count": 4, "size": [6, 9], "width": [0.6, 0.6], "tile": "x", "strength": [0.6, 1] },
       "ops": [
         { "op": "band", "in": "across", "out": "line", "at": 0, "width": 0.2 },
         { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 4, "stretch": [3, 1] },
@@ -104,9 +104,9 @@
     {
       "id": "fadedLineWhite", "name": "Faded white line", "tier": "macro",
       "about": "An old white painted line, worn to a broken trace by tyres and forklift wheels: container slots, parking at the office, a walkway along the plant. Repeats along +x.",
-      "texel": 0.015, "layers": "ground", "order": 5, "lod": 32, "maxTexels": 512, "opacity": 0.92,
+      "texel": 0.016, "layers": "ground", "order": 5, "lod": 32, "maxTexels": 512, "opacity": 0.92,
       "edge": { "feather": 0.1, "warp": 0.02, "warpScale": 1.5, "round": 1 },
-      "variants": { "count": 6, "size": [6, 9], "width": [0.6, 0.6], "tile": "x", "strength": [0.6, 1] },
+      "variants": { "count": 4, "size": [6, 9], "width": [0.6, 0.6], "tile": "x", "strength": [0.6, 1] },
       "ops": [
         { "op": "band", "in": "across", "out": "line", "at": 0, "width": 0.2 },
         { "op": "fbm", "out": "n", "scale": 1.4, "octaves": 4, "stretch": [3, 1] },
@@ -121,9 +121,9 @@
     {
       "id": "leachateSeep", "name": "Seep stain", "tier": "macro",
       "about": "A dark, wet seep where water leaks from the foot of a tip, a compost row or a scrap heap: black-brown and glossy in the middle, an iron-orange stain round it.",
-      "texel": 0.035, "layers": "ground", "order": 3, "lod": 35, "maxTexels": 256, "opacity": 0.95,
+      "texel": 0.04, "layers": "ground", "order": 3, "lod": 35, "maxTexels": 256, "opacity": 0.95,
       "edge": { "feather": 0.8, "warp": 0.8, "warpScale": 1.5, "round": 1 },
-      "variants": { "count": 6, "size": [4, 9], "aspect": [0.4, 0.8], "strength": [0.6, 1], "fades": ["soft", "islands", "side"] },
+      "variants": { "count": 4, "size": [4, 9], "aspect": [0.4, 0.8], "strength": [0.6, 1], "fades": ["soft", "islands", "side"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 0.9, "octaves": 4, "warp": 0.35, "warpScale": 1 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.8, "hi": 0.4 },
@@ -137,9 +137,9 @@
     {
       "id": "scrapGrit", "name": "Scrap grit", "tier": "detail",
       "about": "Small bits of metal, glass and grit where scrap is tipped, crushed and loaded: rusty flakes, grey fragments and dark specks thick at the heap's foot, thinning out.",
-      "texel": 0.024, "layers": "ground", "order": 4, "lod": 30, "maxTexels": 512, "opacity": 0.95,
+      "texel": 0.026, "layers": "ground", "order": 4, "lod": 30, "maxTexels": 512, "opacity": 0.95,
       "edge": { "feather": 1.4, "warp": 1, "warpScale": 3, "round": 0.85 },
-      "variants": { "count": 6, "size": [6, 11], "aspect": [0.45, 1], "strength": [0.7, 1], "fades": ["linear", "soft", "islands", "side", "wide"] },
+      "variants": { "count": 5, "size": [6, 11], "aspect": [0.45, 1], "strength": [0.7, 1], "fades": ["linear", "soft", "islands", "side", "wide"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 3 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.4, "hi": 0.4 },
@@ -151,9 +151,9 @@
     {
       "id": "laneGrime", "name": "Lane grime", "tier": "macro",
       "about": "The dark band worn into a concrete or asphalt yard lane where every lorry runs: rubber streaks, oil drips and dirt along the wheel path. Repeats along +x.",
-      "texel": 0.03, "layers": "ground", "order": 3, "lod": 40, "maxTexels": 384, "opacity": 0.9,
+      "texel": 0.04, "layers": "ground", "order": 3, "lod": 40, "maxTexels": 384, "opacity": 0.9,
       "edge": { "feather": 0.35, "warp": 0.25, "warpScale": 2, "round": 1, "widthNoise": 0.3 },
-      "variants": { "count": 6, "size": [9, 13], "width": [1.1, 1.6], "tile": "x", "strength": [0.6, 1] },
+      "variants": { "count": 4, "size": [9, 13], "width": [1.1, 1.6], "tile": "x", "strength": [0.6, 1] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 2.5, "octaves": 4, "stretch": [6, 1] },
         { "op": "remap", "in": "n", "out": "streak", "lo": -0.75, "hi": 0.15 },
