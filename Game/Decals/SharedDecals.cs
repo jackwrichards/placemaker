@@ -377,8 +377,10 @@ namespace Placemaker.Game.Decals
                 mat.DisableKeyword("ENABLE_VT");
                 try { HDMaterial.ValidateMaterial(mat); } catch (Exception) { }
                 // a queue slot per kind order and variant (index mod 6): the instances of one variant draw together, so the
-                // renderer switches materials once per variant, not once per instance; the kinds' order still holds (orders -2..7)
-                mat.renderQueue = template.renderQueue + math.clamp(v.K.Order * 6 + v.Index % 6, -50, 50);
+                // renderer switches materials once per variant; the kinds' order still holds (orders -2..7). Always above the template:
+                // the game draws its own surfaces (turf, paving) as decals at the template's queue, and anything below went under them
+                // (game runner 2026-10-29: pitch stripes and turf tone, orders -1 and -2, never showed on the turf)
+                mat.renderQueue = template.renderQueue + math.clamp(1 + (v.K.Order + 2) * 5 + v.Index % 5, 1, 50);
                 v.Mat = mat;
                 v.State = 2;
                 return true;

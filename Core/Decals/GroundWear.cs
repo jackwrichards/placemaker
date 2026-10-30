@@ -44,6 +44,16 @@ namespace Placemaker.Core.Decals
             public int Total => Verges + Desire + Patches + Edges + Lawn + Mulch + Extras + Clears;
         }
 
+        /// <summary>The paint seed of a step from its host's seed (the decals of a designed ground read the same fields).</summary>
+        public static uint PaintSeed(uint hostSeed) => Hashing.Mix(hostSeed == 0 ? 1u : hostSeed, 0x6A0Bu);
+
+        /// <summary>
+        /// The lawn's moisture before drainage (0 dry .. 1 lush, big soft clumps): the painted lush and dry grass follow it, and
+        /// so do a designed ground's dry-grass and clover decals (Dynamic/Weathering), so paint and decals agree.
+        /// </summary>
+        public static float LawnMoisture(uint paintSeed, float2 p) =>
+            0.65f * ValueNoise.Clumps(p, 26f, Hashing.Mix(paintSeed, 0x1A3Bu)) + 0.35f * ValueNoise.Clumps(p, 9f, Hashing.Mix(paintSeed, 0x2C4Du));
+
         internal static float StyleK(DressStyle s) => s == DressStyle.Clean ? 0.6f : s == DressStyle.Gritty ? 1.4f : 1f;
 
         internal static Report Apply(ComposedPlan plan, DressingWorld w, SiteContext site, IReadOnlyDictionary<AreaPlan, DressSettings> dress)
@@ -64,7 +74,7 @@ namespace Placemaker.Core.Decals
                 var layers = groups[s];
                 AreaPlan host = layers.Find(l => l.GeneratorId == s.LayerId) ?? layers[0];
                 var region = (s.Ring != null && s.Ring.Length >= 3 ? LayerRegion.From(s.Ring) : null) ?? w.Root;
-                var g = new Group(w, site, host, region, s, Hashing.Mix(host.Seed == 0 ? 1u : host.Seed, 0x6A0Bu), report);
+                var g = new Group(w, site, host, region, s, PaintSeed(host.Seed), report);
                 g.Clear();
                 if (s.LawnPainted && s.LawnTint) g.LawnTint();
                 if (s.Weathering)
@@ -181,7 +191,6 @@ namespace Placemaker.Core.Decals
                 var origin = Region.Min - 1f;
                 var lush = new float[gw * gh];
                 var dry = new float[gw * gh];
-                uint n1 = Hashing.Mix(Seed, 0x1A3Bu), n2 = Hashing.Mix(Seed, 0x2C4Du);
                 // Flat sites skip the drainage term (it costs 7 height samples per cell).
                 bool flat = true;
                 float h0 = HeightAt((Region.Min + Region.Max) * 0.5f);
@@ -194,7 +203,7 @@ namespace Placemaker.Core.Decals
                     {
                         var p = origin + (new float2(x, y) + 0.5f) * cell;
                         if (m.At(p) <= 0f) continue;
-                        float moist = 0.65f * ValueNoise.Clumps(p, 26f, n1) + 0.35f * ValueNoise.Clumps(p, 9f, n2);
+                        float moist = LawnMoisture(Seed, p);
                         if (!flat)
                         {
                             // Drainage: below the local mean = wetter, above = drier (±1 m ≈ ±0.18).
