@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+9386dd1b",
+  "assembly": "0.3.6+c1f9b324",
   "categories": [
     {
       "id": "zoning",
@@ -22710,7 +22710,9 @@
         }
       ],
       "shelvedStyles": [
-        "roadworks"
+        "roadworks",
+        "compound",
+        "earthworks"
       ]
     },
     {

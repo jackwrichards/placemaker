@@ -145,3 +145,21 @@ lorries drive), so it lays its decals right there, from its own causes, through 
 - **Walls stood across their line.** The game's garden walls run along their local Z (lab: 0.2 x 0.9 x 3.0 m); the lot's wall
   remnants (code older than the makeover) and the building ruins turned them 90 degrees, a comb of short pieces. Fixed; the
   basement wall is two skins of the dark masonry at 1.5-1.85x height.
+
+## Rounds 8-12 (2026-10-30): the coordinator's 45-degree review
+
+- **Lawn everywhere was a bug:** `DecayKit.Inset` moved the vertices of the filled area in; a filled area has rounded corners of
+  many short edges, the moved ring folded over, the helper returned null and the whole-lot earth paint was silently skipped
+  (only the small blobs landed). It now falls back to a true polygon offset. Earth now covers the lot to within 2 m of the fence.
+- **No teal bushes:** `RundownPlants` (green wild bushes and the dead bush only; FlowerBushWild01/02/Elderly01/Child02 render
+  teal). Every rundown planting uses it; the automatic weed pool is never used.
+- **Rubble field:** tipped loads (runs of 4-6 big heaps, raised mounds under them) in a fan from the way in, a trail of spills,
+  dumped concrete blocks, scrub on the older mounds, muddy ruts along the tipping line.
+- **Building ruins own the site:** footprint 0.4 x the plot, broken concrete yards either side, rubble thrown wide from the
+  collapse, no laid paths, thickets.
+- **Construction:** spoil (rubble heaps; the PileStone/PileSand resource piles draw empty, the ore loads are orange) banked along
+  both long sides of the dig with machines at them, packed laydown yards (one material per row, a lane between), large compounds.
+- **Hidden after judging every style from 45 degrees:** demolished block, squatter camp, BMX dirt jumps, construction compound and
+  earthworks (with overgrown, vacant lot, broken highway, roadworks and the skate styles from earlier rounds).
+- Frame time after the master merge (true decal colours) and the retune (`send-ground-rundown-1030-042444`): rubble field 220 x 200
+  with the ground 6.75 ms, switched off 6.77 ms, before the build 6.61 ms: no measurable cost.

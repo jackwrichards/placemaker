@@ -18,7 +18,8 @@
       "graffitiPark",
       "diySpot",
       "parkour",
-      "highwayRuins"
+      "highwayRuins",
+      "dirtJumps"
     ],
     "constructionSite": [
       "roadworks",
@@ -27,8 +28,10 @@
     ],
     "abandonedLot": [
       "overgrown",
-      "emptyLot"
+      "emptyLot",
+      "demolished",
+      "squatterCamp"
     ]
   },
-  "_why": "Round 1 (2026-10-30, docs/runbooks/rundown.md): urban ruins' DIY skate spot and parkour yard are skate parks on a lawn (tan ramps, benches, lamps): sport, not a forgotten place, and they did not read as ruins in the game; hidden, still buildable by id. graffitiPark stays hidden (its point needs graffiti decal packs). constructionSite roadworks: a plus of road strips across a fenced lot reads as nothing real (a road is built along a street, not in a block); hidden. Round 2 (2026-10-30): urbanRuins highwayRuins hidden: without a deck the game can carry (no placeable elevated deck piece) it is rows of broken columns in a field, not a broken highway; BMX dirt jumps keeps the columns as a backdrop to a real use. abandonedLot overgrown and emptyLot hidden after four rounds: with the game's wild bushes on its green terrain the overgrown lot reads as a park from 45 degrees (thickets, forest-floor paint and a rank-grass carpet tried: the carpet read as yellow blotches), and the vacant lot reads as a lawn with a billboard; neither earns A+. Round 11 (2026-10-30, the coordinator: not dense or purposeful from 45 degrees): constructionSite compound (a grid of containers on an empty field) and earthworks (machines scattered on bare dirt) hidden; the foundation dig and the demolition site stay."
+  "_why": "Round 1 (2026-10-30, docs/runbooks/rundown.md): urban ruins' DIY skate spot and parkour yard are skate parks on a lawn (tan ramps, benches, lamps): sport, not a forgotten place, and they did not read as ruins in the game; hidden, still buildable by id. graffitiPark stays hidden (its point needs graffiti decal packs). constructionSite roadworks: a plus of road strips across a fenced lot reads as nothing real (a road is built along a street, not in a block); hidden. Round 2 (2026-10-30): urbanRuins highwayRuins hidden: without a deck the game can carry (no placeable elevated deck piece) it is rows of broken columns in a field, not a broken highway; BMX dirt jumps keeps the columns as a backdrop to a real use. abandonedLot overgrown and emptyLot hidden after four rounds: with the game's wild bushes on its green terrain the overgrown lot reads as a park from 45 degrees (thickets, forest-floor paint and a rank-grass carpet tried: the carpet read as yellow blotches), and the vacant lot reads as a lawn with a billboard; neither earns A+. Round 11 (2026-10-30, the coordinator: not dense or purposeful from 45 degrees): constructionSite compound (a grid of containers on an empty field) and earthworks (machines scattered on bare dirt) hidden; the foundation dig and the demolition site stay. Round 12 (2026-10-30, every shown style judged from 45 degrees): abandoned lot demolished block (beige field with three slabs) and squatter camp (tents too small to read, scrub dotted about), urban ruins BMX dirt jumps (the jump lines do not show; a field with columns) hidden. Shown: rubble field, fenced wasteland, old car park, burnt-out lot; foundation dig, demolition site; building ruins."
 }
