@@ -1257,13 +1257,25 @@ namespace Placemaker.Core.Layers.Leisure
             LeisureKit.Put(_ctx, _occ, p, 0f, ObjectRole.Bin, AssetMix.One(""), null, 0.6f, Hashing.Mix(_ctx.Seed, salt), 0.3f, 0.2f);
         }
 
+        /// <summary>The trees a sports park plants when the player chose none (the clean game's broadleaf trees).</summary>
+        public static readonly string[] DefaultTrees = { "OakTree01", "NA_LondonPlaneTree01", "NA_LindenTree01", "BirchTree01", "EU_ChestnutTree01" };
+
         private bool Tree(float2 p, uint salt, int age, float radius = 2.4f)
         {
             var ids = _ctx.L("treeSpecies");
             if (!AssetAvailability.Has(AssetCategories.Tree) && (ids == null || ids.Length == 0)) return false;
             uint v = Hashing.Mix(_ctx.Seed, salt * 31u + 7u);
             if (!_occ.Free(p, radius, 1.5f, 0.4f)) return false;
-            _ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Tree, AssetMix.Pick(ids, v), v, age);
+            // (2026-10-29, the user: "maybe the trees need more variety") No species chosen: the game's own broadleaf trees in
+            // clumps of one species (about 28 m), the odd one mixed in, instead of one automatic species for the whole park.
+            // The designed ground drops each tree's own leaves (Decals/Dynamic/Weathering).
+            uint pick = v;
+            if (ids == null || ids.Length == 0)
+            {
+                ids = DefaultTrees;
+                pick = Hashing.Unit(Hashing.Mix(v, 0x7EEu)) < 0.8f ? Hashing.Mix(_ctx.Seed, (int)math.floor(p.x / 28f), (int)math.floor(p.y / 28f)) : v;
+            }
+            _ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Tree, AssetMix.Pick(ids, pick), v, age);
             _occ.Take(p, radius, 3);
             return true;
         }
