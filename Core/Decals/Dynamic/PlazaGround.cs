@@ -175,7 +175,7 @@ namespace Placemaker.Core.Decals.Dynamic
             foreach (var l in _layers) foreach (var o in l.Objects) if (o != null && o.Role == ObjectRole.Centerpiece) { _centre = o.Position.xz; break; }
             if (!Poly.Contains(_ring, _centre)) _centre = _ring[0] * 0.5f + _ring[_ring.Length / 2] * 0.5f;
             // (planning time) only lawns big enough to matter are cut out of the paving tone
-            _hard = BrushArea.Of(_ring, _green.FindAll(g => Poly.Area(g) > 30f));
+            _hard = BrushArea.Of(_ring, _green.FindAll(g => Poly.Area(g) > 120f));
             _site2 = BrushArea.Of(_ring);
             _surfGrid = new PointGrid(12f);
             for (int i = 0; i < _surfs.Count; i++)
@@ -458,15 +458,16 @@ namespace Placemaker.Core.Decals.Dynamic
         private void Water(List<string> flaws)
         {
             Poly.Bounds(_ring, out var lo, out var hi);
-            const float step = 3f;
-            int nx = math.min(90, (int)((hi.x - lo.x) / step) + 1), nz = math.min(90, (int)((hi.y - lo.y) / step) + 1);
+            // (planning time) a coarser grid on big squares: about 45 samples a side whatever the size
+            float step = math.max(3f, math.sqrt(Poly.Area(_ring)) / 45f);
+            int nx = math.min(60, (int)((hi.x - lo.x) / step) + 1), nz = math.min(60, (int)((hi.y - lo.y) / step) + 1);
             var g = new float[nx * nz];
             var ok = new bool[nx * nz];
             for (int j = 0; j < nz; j++)
                 for (int i = 0; i < nx; i++)
                 {
                     var p = lo + new float2(i * (hi.x - lo.x) / math.max(1, nx - 1), j * (hi.y - lo.y) / math.max(1, nz - 1));
-                    ok[j * nx + i] = What(p) == 1 && Poly.DistanceToBoundary(_ring, p) > 2f;
+                    ok[j * nx + i] = What(p) == 1 && Poly.DistanceToBoundary(_ring, p) > 2f;   // What first: it rejects most points cheaply
                     // the built ground plus a few centimetres of settling (no square is perfectly flat)
                     g[j * nx + i] = _ground(p) + 0.025f * (ValueNoise.Sample(p / 9f, H(600)) - 0.5f);
                 }

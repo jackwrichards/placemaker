@@ -28,8 +28,8 @@ namespace Placemaker.Core.Layers.Plaza
     {
         private static readonly string[] SkateLedges = { "SkateParkBox02", "SkateParkBox01" };
         private static readonly string[] SkateRails = { "SkateParkRail01", "SkateParkRail02" };
-        private static readonly string[] WildBushes = { "GreenBushWildTeen01", "GreenBushWildAdult01", "FlowerBushWildElderly01", "GreenBushWildChild01", "FlowerBushWild02" };
-        private static readonly string[] DeadBushes = { "FlowerBushWildDead02", "FlowerBushWildChild02" };
+        private static readonly string[] WildBushes = { "GreenBushWildTeen01", "GreenBushWildAdult01", "GreenBushWildElderly01", "GreenBushWildChild01" };   // (2026-10-30) no FlowerBushWild01 / Elderly01 / Child02: they draw pale teal-blue in the game
+        private static readonly string[] DeadBushes = { "FlowerBushWildDead02" };
         private static readonly string[] Posters = { "PosterSmall01 - ShortMarket", "PosterSmall02 - ShortMarket", "BillboardWallSmall03 - ShortMarket", "BillboardWallSmall01 - ShortMarket", "PosterMedium02 - ShortMarket" };
         private static readonly string[] BinBags = { "Trashbag01", "Trashbag02", "Trashbag03", "Trashbag04" };
         private static readonly string[] Boxes = { "CardboardBoxPile01", "CardboardBoxPile03", "CardboardBox02", "CardboardBoxPile02" };
