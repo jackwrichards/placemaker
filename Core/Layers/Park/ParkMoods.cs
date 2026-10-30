@@ -106,6 +106,9 @@ namespace Placemaker.Core.Layers.Park
             var places = new List<MoodPlace>();
             var region = s.LayerRegion;
             if (amount <= 0f || region.Area < 1500f || lawns == null) return places;
+            // with the Terrain feature on, its landform shapes the ground: the places keep their planting and rocks, not their own
+            // terraform (the two fields together made 0.84 m steps on a hill, SiteHarmonyTests)
+            if (ctx.Input != null && ctx.Input.HasChild("terrain")) terrain = false;
             var pal = Palette(style);
             uint seed = Hashing.Mix(ctx.Seed, 0x300Du);
             // ground statistics for the land's own reading (low, high, fall)
@@ -135,7 +138,7 @@ namespace Placemaker.Core.Layers.Park
                 var lr = LayerRegion.From(inset);
                 if (lr == null) continue;
                 var c = lr.DeepestPoint(out float ins, null, 14);
-                if (ins < 5f) continue;
+                if (ins < 4f) continue;
                 bool core = s.ClearingRadius > 0f && Poly.Contains(l, s.ClearingCenter);
                 // a lawn that already holds something of the type (a playground clearing, a play zone, a hub: any taken disc of 3 m or
                 // more) keeps it: the lawn is the open one and offers only a disc place clear of it
@@ -148,11 +151,20 @@ namespace Placemaker.Core.Layers.Park
             // a park without lawn rooms (one big lawn, few paths) offers discs in its open lawn instead
             int lawnRooms = 0;
             foreach (var cd in cands) if (!cd.core) lawnRooms++;
-            int maxPlaces = (int)math.clamp(math.round((lawnRooms + 1.5f) * amount), 1f, 6f);
+            int maxPlaces = (int)math.clamp(math.round((lawnRooms + 2.5f) * amount), 1f, 6f);
             var taken = new List<float2>();
             foreach (var g in s.Gates) taken.Add(g.Position);
-            int k = 0;
+            // the open lawn keeps its heart, but a big one gives one or two places at its sides (a park with few paths has
+            // few lawn rooms: one entrance in the game made 1-2 places, run show-24-builds-1030-003548-0555)
+            var order = new List<(float2[] ring, float2 c, float ins, float area, bool core)>();
             foreach (var cd in cands)
+            {
+                if (!cd.core) { order.Add(cd); continue; }
+                int tries = cd.area >= 6000f ? 2 : cd.area >= 1800f ? 1 : 0;
+                for (int t = 0; t < tries; t++) order.Add(cd);
+            }
+            int k = 0;
+            foreach (var cd in order)
             {
                 if (places.Count >= maxPlaces) break;
                 ctx.Check();
@@ -160,13 +172,19 @@ namespace Placemaker.Core.Layers.Park
                 float2[] ring = cd.ring; float2 c = cd.c; float r = cd.ins;
                 if (cd.core)
                 {
-                    // the open lawn keeps its heart: a disc place at its far side, only when it is big
-                    if (cd.area < 2600f) continue;
-                    float rr = math.clamp(math.sqrt(cd.area) * 0.2f, 9f, 24f);
+                    float rr = math.clamp(math.sqrt(cd.area) * 0.17f, 8f, 18f);
                     var occ = new Occupancy(LayerRegion.From(ring), ctx.Site, s.Occ.Discs, s.Occ.Corridors);
-                    if (!Spots.Find(occ, rr, Spots.Preference.NearBoundary, Hashing.Mix(ks, 2u), out c, taken, rr + 10f, 0.5f, 1200)) continue;
-                    if (s.InClearing(c, rr * 0.8f) || s.InLake(c, rr + 2f)) continue;
-                    r = rr; ring = LeisureKit.Blob(c, rr * 0.95f, ks, 18, 0.25f);
+                    bool found = false;
+                    for (int t = 0; t < 3 && !found; t++)
+                    {
+                        float rt = rr * (1f - t * 0.2f);
+                        found = Spots.Find(occ, rt, t == 1 ? Spots.Preference.Open : Spots.Preference.NearBoundary, Hashing.Mix(ks, 2u + (uint)t), out c, taken, rt + 8f, 0.5f, 1200)
+                            && !s.InClearing(c, rt * 0.8f) && !s.InLake(c, rt + 2f);
+                        if (found) rr = rt;
+                    }
+                    if (!found) continue;
+                    r = rr; ring = Within(LeisureKit.Blob(c, rr * 0.95f, ks, 18, 0.25f), cd.ring, c);
+                    s.Occ.Take(c, rr, 205);   // a later disc in the same lawn keeps clear of it
                 }
                 // what the land says here
                 float h0 = ctx.H(c);
@@ -194,6 +212,8 @@ namespace Placemaker.Core.Layers.Park
                             case Mood.Stones: x *= r < 8f ? 0f : 0.6f + (1f - low); break;
                             case Mood.Glade: x *= r < 6f ? 0.4f : 1f; break;
                         }
+                        // the user asked for rock first ("rock sections, barrancas"): the first place leans to rock where the style has it
+                        if (places.Count == 0 && ((Mood)m == Mood.Gully || (Mood)m == Mood.Outcrop)) x *= 2.5f;
                         // never twice the same mood while another of the palette is unused
                         if (used[m] > 0 && fresh > 0 && pass == 0) x = 0f;
                         else if (used[m] > 1) x *= 0.1f;
@@ -459,6 +479,9 @@ namespace Placemaker.Core.Layers.Park
                             break;
                     }
                 }
+                // the paths keep their level band and shoulders: the change dies out from 4 m to 9 m off every path (a bank against a
+                // levelled path band read as a curtain to the harmony checks on a hill)
+                if (off != 0f) off *= Common.Sculpt.Smooth01((s.Occ.Corridors.Clearance(q, 10f) - 4f) / 5f);
                 return b + off;
             });
             sc.LimitGrade(0.28f, 14);                   // the change itself no steeper than 28 % (no step against the ground round it)
