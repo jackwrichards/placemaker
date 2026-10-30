@@ -124,10 +124,10 @@ namespace Placemaker.Core.Layers.Types.Ruins
         {
             switch (sub)
             {
-                case "burntOut": return new[] { "FlowerBushWildDead02", "FlowerBushWildDead02", "GreenBushWildChild01", "FlowerBushWildChild02" };
-                case "emptyLot": case "fencedWasteland": case "demolished": return new[] { "GreenBushWildChild01", "FlowerBushWildChild02", "GreenBushWildTeen01", "FlowerBushWildDead02", "FlowerBushWild01" };
-                case "brokenCarPark": return new[] { "GreenBushWildChild01", "GreenBushWildTeen01", "FlowerBushWildChild02", "FlowerBushWild02", "FlowerBushWildDead02" };
-                default: return new[] { "GreenBushWild01", "GreenBushWild02", "FlowerBushWild01", "FlowerBushWild02", "GreenBushWildAdult01", "GreenBushWildTeen01", "FlowerBushWildElderly01", "FlowerBushWildDead02" };
+                // (rundown) never the teal FlowerBushWild ones (RundownPlants)
+                case "burntOut": return Rundown.RundownPlants.Burnt;
+                case "emptyLot": case "fencedWasteland": case "demolished": case "rubbleField": case "brokenCarPark": return Rundown.RundownPlants.Sparse;
+                default: return Rundown.RundownPlants.Scrub;
             }
         }
 
@@ -344,7 +344,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
             // ── Rubble mounds (terraform) around the collapse point, blended to the ground at their rim.
             float rubbleR = math.clamp(math.sqrt(region.Area) * (0.22f + 0.35f * rubble), 10f, 110f) * (sub == "rubbleField" ? 1.4f : 1f);
             int moundCells = 0;
-            if (ctx.F("mounds") > 0f)
+            if (ctx.F("mounds") > 0f && sub != "rubbleField")
             {
                 var sub0 = LeisureKit.Intersect(region, LayerRegion.Circle(focus, rubbleR, 20));
                 if (sub0 != null && sub0.Area > 200f)
@@ -360,7 +360,21 @@ namespace Placemaker.Core.Layers.Types.Ruins
 
             // ── Rubble: piles near the collapse point thinning outwards (a second and third focus on a rubble field).
             var rubbleTotal = new DecayKit.RubbleResult();
-            if (rubbleCat != null)
+            if (rubbleCat != null && sub == "rubbleField")
+            {
+                // (rundown, the coordinator's round 7: "heaps in an even cluster at the centre") a fly-tipped field: big mounds where the
+                // lorries backed in from the street, a trail of spills, broken slabs, all half grown over
+                rubbleTotal.Piles += TippedRubble(ctx, region, occ, zones, gates, focus, axis, rubbleIds, rubbleCat, st);
+                // a raised mound of tipped earth under each (permanent terraform, blended to the ground)
+                for (int mi = 0; mi < st.Mounds.Count && ctx.F("mounds") > 0f; mi++)
+                {
+                    var (mc, mr) = st.Mounds[mi];
+                    var mreg = LeisureKit.Intersect(region, LayerRegion.Circle(mc, mr + 4f, 16));
+                    if (mreg == null || mreg.Area < 60f) continue;
+                    moundCells += TerrainShaper.Shape(ctx, mreg, new TerrainSpec { Mode = TerrainMode.Mounds, Height = ctx.F("mounds") * 0.6f, Scale = 10f, MaxSlopePct = 35f, Falloff = 4f, Seed = Hashing.Mix(ctx.Seed, 0x40DEu + (uint)mi), Skip = p => zones.Inside(p, 2f) }).Cells;
+                }
+            }
+            else if (rubbleCat != null)
             {
                 var foci = new List<float2> { focus };
                 if (sub == "rubbleField" && Spots.Find(occ, 6f, Spots.Preference.Open, Hashing.Mix(ctx.Seed, 0xF0C2u), out var f2, foci, rubbleR * 0.8f, 2f, 1500))
@@ -413,7 +427,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 foreach (var (r, slab) in slabs)
                     crackWeeds += DecayKit.CrackWeeds(ctx, occ, slab.Cracks, math.saturate(over * 0.9f + 0.05f) * (sub == "brokenCarPark" ? 0.3f : 1f), weedIds, weedCat, 0xC3Au + (uint)(r.Center.x * 3f));
             float edgeReach = sub == "overgrown" ? 22f : 14f;
-            var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, over, ctx.F("youngTrees"), weedIds, weedCat, ctx.L("treeSpecies"), 0x0F6u,
+            var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, over, ctx.F("youngTrees"), weedIds, weedCat, Rundown.RundownPlants.Or(ctx.L("treeSpecies"), Rundown.RundownPlants.Trees), 0x0F6u,
                 p => zones.Inside(p, 0.8f), edgeReach, sub == "overgrown" ? 1f : sub == "squatterCamp" || sub == "brokenCarPark" ? 0.5f : 0.3f);
             ctx.Check();
 
@@ -522,6 +536,86 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 ctx.Object(heap, Hashing.Unit(Hashing.Mix(ctx.Seed, 0x7A20u)) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(new[] { "Trashpile01", "Trashpile02", "Trashpile06" }, Hashing.Mix(ctx.Seed, 0x7A1Fu)), Hashing.Mix(ctx.Seed, 0x7A1Fu), -1, AssetCategories.RuinsJunk);
                 occ.Take(heap, 1.6f, 2);
             }
+        }
+
+        private static readonly string[] TipHeaps = { "RubblePileConcrete01", "RubblePileConcrete02", "RubblePileMixed01", "RubblePileMixed03", "RubblePileConcrete04", "RubblePileMixed04" };
+        private static readonly string[] SpillHeaps = { "RubblePileConcrete03", "RubblePileMixed02", "CoalTruck01_StonePile01", "RubblePileWood02" };
+
+        /// <summary>
+        /// A fly-tipped rubble field: 3-6 big tipped mounds (each 2-4 heaps run together, a raised mound under it) in a fan where
+        /// lorries backed in from the street, a trail of smaller spills from the way in, a few broken slabs lying about, scrub
+        /// growing into the older mounds. Returns heaps placed; the mounds and spills go to the ground story.
+        /// </summary>
+        private static int TippedRubble(LayerContext ctx, LayerRegion region, Occupancy occ, Zones zones, List<Gate> gates, float2 focus, float2 axis,
+            string[] chosen, string cat, AbandonedLotGround.Story st)
+        {
+            var ids = chosen != null && chosen.Length > 0 ? chosen : TipHeaps;
+            var spills = chosen != null && chosen.Length > 0 ? chosen : SpillHeaps;
+            float2 g0 = gates.Count > 0 ? gates[0].Position : region.ClosestOnBoundary(focus, out _, out _);
+            float2 inw = gates.Count > 0 ? region.InwardNormal(gates[0].Segment) : math.normalizesafe(focus - g0);
+            var side = new float2(-inw.y, inw.x);
+            float reach = math.clamp(math.sqrt(region.Area) * 0.45f, 18f, 70f);
+            int mounds = math.clamp(3 + (int)(region.Area / 9000f), 3, 7);
+            int placed = 0;
+            for (int m = 0; m < mounds; m++)
+            {
+                uint h = Hashing.Mix(ctx.Seed, 0x7199u + (uint)m * 17u);
+                // a fan from the way in: each lorry tipped a little further in or to the side of the last
+                float d = math.lerp(12f, reach, (m + Hashing.Unit(h)) / mounds);
+                float s = (Hashing.Unit(Hashing.Mix(h, 1u)) - 0.5f) * reach * 1.1f;
+                var c = g0 + inw * d + side * s;
+                if (!region.ContainsDisc(c, 7f)) continue;
+                int heaps = 2 + (int)(Hashing.Unit(Hashing.Mix(h, 2u)) * 3f);
+                float big = 1.25f + 0.55f * Hashing.Unit(Hashing.Mix(h, 3u));
+                var dir = math.normalizesafe(inw + side * (Hashing.Unit(Hashing.Mix(h, 4u)) - 0.5f));
+                int here = 0;
+                for (int k = 0; k < heaps; k++)
+                {
+                    var p = c + dir * ((k - heaps * 0.5f) * 3.6f * big) + new float2(-dir.y, dir.x) * ((Hashing.Unit(Hashing.Mix(h, 10u + (uint)k)) - 0.5f) * 3f);
+                    if (!region.ContainsDisc(p, 4f) || zones.Inside(p, 1f)) continue;
+                    uint v = Hashing.Mix(h, 20u + (uint)k);
+                    var o = ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(ids, v), v, -1, cat);
+                    o.Scale = big * (0.85f + 0.3f * Hashing.Unit(Hashing.Mix(v, 1u)));
+                    occ.Take(p, 4.5f * big, 2);
+                    here++; placed++;
+                }
+                if (here == 0) continue;
+                st.Mounds.Add((c, 5f * big + heaps * 1.5f));
+                // the oldest mounds are grown over: scrub on their flanks
+                if (m % 2 == 1)
+                    for (int k = 0; k < 4 + heaps; k++)
+                    {
+                        uint v = Hashing.Mix(h, 40u + (uint)k);
+                        float a = Hashing.Unit(v) * 6.283f, r = 4f * big + 2f * Hashing.Unit(Hashing.Mix(v, 1u)) + heaps;
+                        var p = c + new float2(math.cos(a), math.sin(a)) * r;
+                        LeisureKit.Put(ctx, occ, p, a, ObjectRole.Bush, AssetMix.Pick(Rundown.RundownPlants.Scrub, v), null, 0.9f, v, 0.2f, 0.1f);
+                    }
+            }
+            // the trail of spills: what fell off the backs of the lorries on the way in, thinning out
+            var trailEnd = g0 + inw * reach * 0.9f;
+            for (int k = 0; k < 10; k++)
+            {
+                uint v = Hashing.Mix(ctx.Seed, 0x7300u + (uint)k);
+                var p = math.lerp(g0 + inw * 5f, trailEnd, Hashing.Unit(v)) + side * ((Hashing.Unit(Hashing.Mix(v, 1u)) - 0.5f) * 9f);
+                if (!region.ContainsDisc(p, 2f) || zones.Inside(p, 1f)) continue;
+                if (LeisureKit.Put(ctx, occ, p, Hashing.Unit(Hashing.Mix(v, 2u)) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(spills, v), cat, 1.8f, v, 0.2f, 0.1f))
+                {
+                    st.Spills.Add(p);
+                    placed++;
+                }
+            }
+            st.TipLine = new[] { g0, g0 + inw * reach * 0.5f, trailEnd };
+            // broken slabs: concrete blocks and kerb pieces dumped with the rest, lying at angles
+            for (int k = 0; k < 8; k++)
+            {
+                uint v = Hashing.Mix(ctx.Seed, 0x7400u + (uint)k);
+                var p = g0 + inw * math.lerp(8f, reach, Hashing.Unit(v)) + side * ((Hashing.Unit(Hashing.Mix(v, 1u)) - 0.5f) * reach);
+                if (!region.ContainsDisc(p, 2f) || !occ.Free(p, 1.2f, 0.2f, 0f)) continue;
+                var o = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 2u)) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(new[] { "ConcreteBarrier01", "ConcreteBarrier02", "ConcreteBarrier03" }, v), v, -1, AssetCategories.RuinsSlab);
+                o.Scale = 0.9f + 0.4f * Hashing.Unit(Hashing.Mix(v, 3u));
+                occ.Take(p, 1.3f, 2);
+            }
+            return placed;
         }
 
         private static OrientedRect Grow(OrientedRect r, float d) =>

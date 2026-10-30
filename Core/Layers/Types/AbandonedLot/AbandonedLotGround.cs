@@ -33,6 +33,9 @@ namespace Placemaker.Core.Layers.Types.Ruins
             public float2 BurnSeat;
             public float BurnR;
             public bool HasBays;
+            public readonly List<(float2 c, float r)> Mounds = new List<(float2, float)>();
+            public readonly List<float2> Spills = new List<float2>();
+            public float2[] TipLine;
             public OrientedRect Bays;
         }
 
@@ -90,7 +93,13 @@ namespace Placemaker.Core.Layers.Types.Ruins
             gr.Ground(soil, LookOf(sub, st.Over), Worn);
 
             // the story's own causes
-            if (sub == "rubbleField" || sub == "demolished" || sub == "burntOut")
+            if (sub == "rubbleField")
+            {
+                foreach (var (c, r) in st.Mounds) { gr.Rubble(c, r * 0.8f, 1f); gr.RubbleField(BrushArea.Of(LayerRegion.Circle(c, r * 2.2f, 14)), c, r * 2.2f, 0.9f); }
+                foreach (var p in st.Spills) gr.Rubble(p, 2f, 0.6f);
+                if (st.TipLine != null) gr.Ruts(st.TipLine, 2.1f, true);
+            }
+            else if (sub == "demolished" || sub == "burntOut")
                 gr.RubbleField(soil, st.Focus, st.RubbleR, st.Rubble * (sub == "demolished" ? 0.6f : 1f));
             if (sub == "burntOut") gr.BurntArea(gr.Site, st.BurnSeat, st.BurnR);
             if (st.HasBays) FadedBays(gr, st.Bays, ctx.Seed);
@@ -178,7 +187,9 @@ namespace Placemaker.Core.Layers.Types.Ruins
             {
                 TerrainPaint.Patch(ctx, whole, 1, 0.85f, 6f);
                 // and a thin film of earth through the grass everywhere (the first pictures: a rundown lot still read as a lawn)
-                TerrainPaint.Patch(ctx, whole, dirtLayer, sub == "overgrown" ? 0.18f : sub == "emptyLot" ? 0.3f : 0.42f, 8f);
+                // (the coordinator, round 7: "lawn everywhere") the whole lot is bare, trampled earth; green only survives at the fence and corners
+                var core = DecayKit.Inset(region, math.clamp(math.sqrt(region.Area) * 0.05f, 4f, 9f));
+                TerrainPaint.Patch(ctx, core ?? whole, dirtLayer, sub == "overgrown" ? 0.35f : sub == "emptyLot" ? 0.5f : sub == "brokenCarPark" ? 0.7f : 1f, 9f);
             }
             float share = sub switch
             {

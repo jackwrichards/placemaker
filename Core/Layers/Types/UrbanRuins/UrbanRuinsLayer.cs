@@ -318,7 +318,8 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             ctx.Check();
 
             // ── 5. Paths from the entrances to the nearest pad (or the deck / the middle).
-            foreach (var g in gates)
+            // (rundown) no laid paths into a ruin: people climb in over the rubble (a path across the lawn read as a park)
+            foreach (var g in sub == "buildingRuins" ? new List<Gate>() : gates)
             {
                 float2 target = region.DeepestPoint(out _, null, 12);
                 float best = float.MaxValue;
@@ -496,12 +497,15 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
 
             // ── 10. Overgrowth reclaiming the edges and the fallen deck; weeds in its cracks.
             string weedCat = over > 0f ? DecayKit.Cat(ctx, ctx.L("weedAssets"), AssetCategories.RuinsWeeds, AssetCategories.Bush) : null;
+            var weedIds = Rundown.RundownPlants.Or(ctx.L("weedAssets"), Rundown.RundownPlants.Scrub);   // never the teal automatic bushes
+            var treeIds = Rundown.RundownPlants.Or(ctx.L("treeSpecies"), Rundown.RundownPlants.Trees);
             int crackWeeds = 0;
-            foreach (var slab in fallen) crackWeeds += DecayKit.CrackWeeds(ctx, occ, slab.Cracks, over, ctx.L("weedAssets"), weedCat, 0xC3Bu + (uint)crackWeeds);
+            foreach (var slab in fallen) crackWeeds += DecayKit.CrackWeeds(ctx, occ, slab.Cracks, over, weedIds, weedCat, 0xC3Bu + (uint)crackWeeds);
             if (building != null)
             {
                 // weeds up through the floor and a few young trees inside the walls (birch and poplar seed into ruins first)
-                crackWeeds += DecayKit.CrackWeeds(ctx, occ, building.Floor.Cracks, math.saturate(over * 1.2f), ctx.L("weedAssets"), weedCat, 0xC3Cu);
+                crackWeeds += DecayKit.CrackWeeds(ctx, occ, building.Floor.Cracks, math.saturate(over * 1.2f), weedIds, weedCat, 0xC3Cu);
+                foreach (var (_, ys) in building.Yards) crackWeeds += DecayKit.CrackWeeds(ctx, occ, ys.Cracks, math.saturate(over * 1.2f), weedIds, weedCat, 0xC3Du + (uint)crackWeeds);
                 int saplings = 1 + (int)(over * 4f);
                 for (int k = 0, tries = 0; k < saplings && tries < 40; tries++)
                 {
@@ -515,8 +519,8 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                     k++;
                 }
             }
-            var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, over, 4f + 18f * over, ctx.L("weedAssets"), weedCat, ctx.L("treeSpecies"), 0x0F7u,
-                p => keep.Inside(p, 1.2f), 16f);
+            var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, over, 4f + 18f * over, weedIds, weedCat, treeIds, 0x0F7u,
+                p => keep.Inside(p, 1.2f), 16f, sub == "buildingRuins" ? 0.85f : 0.4f);
             ctx.Check();
 
             // ── 11. Wear on the pads: cracks and graffiti along their edges.

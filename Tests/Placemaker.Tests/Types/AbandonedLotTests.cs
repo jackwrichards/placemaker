@@ -252,7 +252,8 @@ namespace Placemaker.Tests.Types
             double F(string preset, string fact) => RuinsChecks.Fact(p[preset], fact);
             // Overgrown: green. Rubble field: piles and mounds. Demolished: foundations in a row. Camp: shelters. Wasteland: intact fence + gravel.
             Assert.True(F("overgrown", "weeds") + F("overgrown", "youngTrees") > 2 * (F("rubbleField", "weeds") + F("rubbleField", "youngTrees")));
-            Assert.True(F("rubbleField", "rubblePiles") + F("rubbleField", "rubbleChunks") > 2 * (F("overgrown", "rubblePiles") + F("overgrown", "rubbleChunks")));
+            // (rundown) the rubble field is a few big tipped mounds now (each heap 1.3-1.8x), not a carpet of small chunks
+            Assert.True(F("rubbleField", "rubblePiles") + F("rubbleField", "rubbleChunks") > F("overgrown", "rubblePiles") + F("overgrown", "rubbleChunks"));
             Assert.True(F("rubbleField", "moundCells") > 0);
             Assert.True(F("demolished", "foundations") >= 2);
             Assert.True(F("squatterCamp", "shelters") >= 4);

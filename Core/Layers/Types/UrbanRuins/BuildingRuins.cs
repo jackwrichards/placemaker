@@ -24,7 +24,9 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             public float2[] Pit;
             public readonly List<(float2 a, float2 b)> Walls = new List<(float2, float2)>();
             public readonly List<float2> Rubble = new List<float2>();
-            public int WallPieces, Stumps;
+            public int WallPieces, Stumps, Spread;
+            public float2 Collapse;
+            public readonly List<(OrientedRect r, DecayKit.Slab s)> Yards = new List<(OrientedRect, DecayKit.Slab)>();
         }
 
         // Vanilla walls: tall garden walls for the surviving taller stretches, low walls for the half walls.
@@ -38,7 +40,8 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
         {
             var res = new Result();
             // the building: about 60 % of the plot's span, 12-60 m long, rooms of 6-9 m
-            float hl = math.clamp(major * 0.32f, 6f, 30f), hw = math.clamp(minor * 0.3f, 5f, 18f);
+            // (the coordinator, round 7: "a small ruin in a park") the ruin owns the site: a big footprint
+            float hl = math.clamp(major * 0.4f, 8f, 48f), hw = math.clamp(minor * 0.36f, 6f, 32f);
             if (!DecayKit.FitRect(region, occ, centre, axis, hl, hw, 3f, out var fp, 6f, 4.5f)) return null;
             res.Footprint = fp;
             all.Add(fp.Ring);
@@ -167,6 +170,23 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                 res.Rubble.Add(p);
                 k++;
             }
+            // the old yard round the building: broken concrete to the plot's edges, shards missing where the scrub got in
+            foreach (float sgn in new[] { -1f, 1f })
+            {
+                float depth = math.min(14f, minor * 0.5f - fp.HalfWidth - 3f);
+                if (depth < 5f) continue;
+                var yard = new OrientedRect { Center = fp.Local(0f, sgn * (fp.HalfWidth + 1f + depth * 0.5f)), Axis = fp.Axis, HalfLength = fp.HalfLength + 4f, HalfWidth = depth * 0.5f };
+                if (!DecayKit.FitRect(region, occ, yard.Center, fp.Axis, yard.HalfLength, yard.HalfWidth, 2f, out var yr, 6f, 2.5f)) continue;
+                var ys = DecayKit.BrokenSlab(ctx, yr, 0.95f, SurfaceRole.Paving, AssetMix.One(""), AssetCategories.SurfacePaving, Hashing.Mix(seed, 0x9A3Du + (uint)(sgn + 2f)));
+                res.Yards.Add((yr, ys));
+                all.Add(yr.Ring);
+            }
+            // rubble thrown wide from the collapse (the basement end), thinning across the yard
+            var collapse = res.Pit != null ? Poly.Centroid(res.Pit) : fp.Center;
+            var spread = DecayKit.RubbleField(ctx, occ, occ, region, collapse, math.max(fp.HalfLength, fp.HalfWidth) * 1.5f, math.saturate(0.6f + 0.4f * decay),
+                Heaps, AssetCategories.RuinsRubble, 1f, 0xB0DDu, p => res.Pit != null && Poly.Contains(res.Pit, p), 260);
+            res.Spread = spread.Piles + spread.Chunks;
+            res.Collapse = collapse;
             return res;
         }
     }

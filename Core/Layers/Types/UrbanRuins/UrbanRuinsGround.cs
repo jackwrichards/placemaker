@@ -24,7 +24,12 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
             // under the jumps and in blobs where nobody mows
             var region = ctx.LayerRegion;
             var whole = DecayKit.Inset(region, 1f);
-            if (whole != null) { TerrainPaint.Patch(ctx, whole, 1, 0.85f, 6f); TerrainPaint.Patch(ctx, whole, 3, 0.4f, 8f); }
+            if (whole != null)
+            {
+                TerrainPaint.Patch(ctx, whole, 1, 0.85f, 6f);
+                var core = DecayKit.Inset(region, math.clamp(math.sqrt(region.Area) * 0.05f, 4f, 9f));
+                TerrainPaint.Patch(ctx, core ?? whole, 3, sub == "buildingRuins" ? 1f : 0.8f, 9f);   // bare trampled earth, green only at the edges
+            }
             var seats = new List<(float2 c, float r)>();
             foreach (var (r, _) in fallen) seats.Add((r.Center, math.max(r.HalfLength, r.HalfWidth) * 1.3f));
             if (building != null) seats.Add((building.Footprint.Center, math.max(building.Footprint.HalfLength, building.Footprint.HalfWidth) * 1.25f));
@@ -74,6 +79,10 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                     Brushes.EdgeStrip(gr.B, pit, "soilSpill", new StripOptions { Side = 1, Closed = true, Gaps = 0.3f, Opacity = new float2(0.5f, 0.85f), Cause = "pit:rim" });
                 }
                 foreach (var p in building.Rubble) gr.Rubble(p, 3.5f, 1f);
+                foreach (var (yr, ys) in building.Yards) gr.Slab(ys.Shards, ys.Cracks, yr.Ring, false, weeds, 1f);
+                var fp = building.Footprint;
+                float rr = math.max(fp.HalfLength, fp.HalfWidth) * 1.6f;
+                gr.RubbleField(BrushArea.Of(LayerRegion.Circle(building.Collapse, rr, 20)), building.Collapse, rr, 1f);
             }
 
             // the yard
