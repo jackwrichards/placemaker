@@ -186,6 +186,7 @@ namespace Placemaker.Core.Layers.Types.Scrapyard
             ctx.Check();
             Grime(y, ctx.F("grime"), style);
             if (ctx.B("paint")) PaintGround(y);
+            if (ctx.B("paint")) Yards.YardWear.Lay(ctx, Yards.YardWear.Of(ctx, Id, style, ctx.S("ground"), y.Gates));
 
             var terrain = Shape(y);
             EmitGreenRegions(ctx, y.Occ, 150f);

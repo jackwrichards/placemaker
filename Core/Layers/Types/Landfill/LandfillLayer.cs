@@ -195,6 +195,16 @@ namespace Placemaker.Core.Layers.Types.Landfill
             YardKit.Weeds(ctx, s.Occ, ctx.F("weeds"), 5f + s.EdgeInset, s.Salt(0x3EEDu));
             Grime(s, ctx.F("grime"));
             if (ctx.B("paint")) Paint(s);
+            if (ctx.B("paint"))
+            {
+                // The marks of work (YardWear); water seeps out of the toe of a live tip
+                var brief = Yards.YardWear.Of(ctx, Id, style, style == "recycling" ? "concrete" : "dirt", s.Gates);
+                brief.Markings = style == "recycling";
+                if (s.HasMound && style == "active")
+                    for (int i = 0; i < 5; i++)
+                        brief.Seeps.Add(s.Mound.At(Dir(i * 1.256f + Hashing.Unit(s.Salt(0x5EE9u + (uint)i)) * 0.8f), 1.03f));
+                Yards.YardWear.Lay(ctx, brief);
+            }
             ctx.Check();
 
             var terrain = Shape(s);

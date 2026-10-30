@@ -215,6 +215,12 @@ namespace Placemaker.Core.Layers.Types.Logistics
 
             // Aisles become corridors so features (break area, restrooms, food truck) only take leftovers.
             AisleCorridors(y);
+            // The marks of work (YardWear): tyre tracks and old lines along the aisles, oil under trucks and forklifts, rust off the containers.
+            {
+                var brief = Yards.YardWear.Of(ctx, Id, ctx.S("style"), Hard(ctx) ? "concrete" : ctx.S("ground"), gates, inner.Ring);
+                brief.Markings = Hard(ctx);
+                Yards.YardWear.Lay(ctx, brief);
+            }
             EmitFreeRegions(ctx, occ, staff);
 
             ctx.Stat(Keys.StatArea, System.Math.Round(region.Area), Keys.UnitM2);
@@ -747,11 +753,11 @@ namespace Placemaker.Core.Layers.Types.Logistics
             LatticeRange(y, y.S, y.PitchS, 0f, out int k0, out int k1);
             for (int k = k0; k <= k1; k++)
                 if (LeisureKit.Chord(y.Inner, y.Centre + y.S * (k * y.PitchS), y.A, 0f, out var a, out var b))
-                    y.Occ.TakeCorridor(a, b, y.Aisle * 0.5f, 101);
+                    { y.Occ.TakeCorridor(a, b, y.Aisle * 0.5f, 101); Yards.YardWear.NoteLane(y.Ctx.Plan, new[] { a, b }, y.Aisle * 0.5f, Hard(y.Ctx)); }
             LatticeRange(y, y.A, y.PitchA, 0f, out int j0, out int j1);
             for (int j = j0; j <= j1; j++)
                 if (LeisureKit.Chord(y.Inner, y.Centre + y.A * (j * y.PitchA), y.S, 0f, out var a, out var b))
-                    y.Occ.TakeCorridor(a, b, y.Aisle * 0.5f, 101);
+                    { y.Occ.TakeCorridor(a, b, y.Aisle * 0.5f, 101); Yards.YardWear.NoteLane(y.Ctx.Plan, new[] { a, b }, y.Aisle * 0.5f, Hard(y.Ctx)); }
         }
 
         /// <summary>Leftover yard space (not storage, lanes or bays) for features; largest is "core".</summary>

@@ -328,6 +328,7 @@ namespace Placemaker.Core.Layers.Types.Scrapyard
                 Strip(ctx, line[i], line[i + 1], width * 0.5f, role, asset, category);
                 occ.TakeCorridor(line[i], line[i + 1], width * 0.5f, KindHaul);
             }
+            Yards.YardWear.NoteLane(ctx.Plan, line, width * 0.5f, role == SurfaceRole.Asphalt || role == SurfaceRole.Paving);
         }
 
         /// <summary>Clipped blob/polygon as a surface (dropped quietly when nothing of it survives).</summary>

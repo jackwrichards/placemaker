@@ -167,6 +167,8 @@ namespace Placemaker.Core.Layers.Types.Yards
             GritAssets.CapDecals(ctx.Plan, region.Area, 110f);
             var terrain = Shape(ctx, region, mounds);
             YardKit.Settle(ctx, terrain);
+            // The marks of work (YardWear): ruts, oil, rust, dust, weeds, cracks, puddles, each where the yard gives it a reason.
+            if (ctx.B("paint")) YardWear.Lay(ctx, YardWear.Of(s, Id, style, ctx.S("ground")));
             EmitGreenRegions(ctx, s.Occ, 200f);
 
             ctx.Stat(Keys.StatArea, System.Math.Round(region.Area), Keys.UnitM2);

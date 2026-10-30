@@ -256,6 +256,23 @@ namespace Placemaker.Core.Layers.Types.Quarry
                 }
             }
 
+            // 8b. The marks of work (YardWear): ruts on the haul road (its dry part), dust off the plant and the heaps, oil
+            // under the machines, weeds along the fence.
+            {
+                var brief = Yards.YardWear.Of(ctx, Id, q.Subtype, "dirt", gates);
+                var dry = new List<float2>();
+                foreach (var p in q.RoadP)
+                {
+                    bool wet = q.WaterRing != null && Poly.Contains(q.WaterRing, p);
+                    if (!wet) { dry.Add(p); continue; }
+                    if (dry.Count > 1) brief.Lanes.Add((dry.ToArray(), q.RoadHalf, false));
+                    dry.Clear();
+                }
+                if (dry.Count > 1) brief.Lanes.Add((dry.ToArray(), q.RoadHalf, false));
+                brief.Grime = q.Active ? 1f : 0.55f;
+                Yards.YardWear.Lay(ctx, brief);
+            }
+
             // 9. Regions: the pit is a place (features keep out of it), the rim yard is free for features.
             if (q.Pit != null) ctx.AddRegion(q.Pit.Ring, PitPlace, PitPlace);
             ConstructionSiteLayer.EmitYard(ctx, q.Occ, p => q.InPit(p, 3f));
