@@ -7,8 +7,8 @@
 // Unused variants are freed when the library is over its GPU budget. Nothing is an entity or a prefab: the save never
 // sees any of it, and removing the mod leaves nothing behind (the disk cache is in ModsData, like the build audits).
 // Driven by DynamicDecalSystem's update (Tick): uploads within a time budget, distance culling, hidden in infoviews.
-// Drawing: GPU instancing by default (one RenderMeshInstanced call per variant and opacity step, no GameObject per
-// instance: 2000 renderers cost about 1.6 ms a frame); Instanced = false draws one renderer per instance (the lab compares).
+// Drawing: one renderer per instance. Instanced = true (lab) tries RenderMeshInstanced per variant and opacity step: in
+// CS2 it draws nothing (the game feeds DefaultDecal through its own batching), kept for the lab only.
 
 using System;
 using System.Collections.Concurrent;
@@ -75,7 +75,7 @@ namespace Placemaker.Game.Decals
         }
 
         /// <summary>Draw with GPU instancing (default) or one renderer per instance (lab: compare).</summary>
-        public static bool Instanced { get; private set; } = true;
+        public static bool Instanced { get; private set; } = false;
         private const int Steps = 8;
         private sealed class Batch { public Material Mat; public readonly List<Matrix4x4> M = new List<Matrix4x4>(); public Bounds B; public bool Has; }
         private static readonly Dictionary<Material, Batch> _batches = new Dictionary<Material, Batch>();
@@ -376,7 +376,9 @@ namespace Placemaker.Game.Decals
                 mat.SetFloat("colossal_DecalLayerMask", math.asfloat((int)v.K.Layers));
                 mat.DisableKeyword("ENABLE_VT");
                 try { HDMaterial.ValidateMaterial(mat); } catch (Exception) { }
-                mat.renderQueue = template.renderQueue + math.clamp(v.K.Order, -50, 50);
+                // a queue slot per kind order and variant (index mod 6): the instances of one variant draw together, so the
+                // renderer switches materials once per variant, not once per instance; the kinds' order still holds (orders -2..7)
+                mat.renderQueue = template.renderQueue + math.clamp(v.K.Order * 6 + v.Index % 6, -50, 50);
                 v.Mat = mat;
                 v.State = 2;
                 return true;

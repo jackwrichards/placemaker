@@ -110,6 +110,8 @@ namespace Placemaker.Core.Decals.Dynamic
         public int Budget = 6000;
         /// <summary>Colour level for every call that doesn't choose one.</summary>
         public ColourLevel Level = ColourLevel.Any;
+        /// <summary>Fades never used (game runner: the hollow "ring" patches read as donuts, robotic from above).</summary>
+        public readonly HashSet<VariantFade> Avoid = new HashSet<VariantFade> { VariantFade.Ring };
         /// <summary>Instances per cause (logs, tests).</summary>
         public readonly Dictionary<string, int> ByCause = new Dictionary<string, int>(StringComparer.Ordinal);
         private int _calls;
@@ -132,10 +134,12 @@ namespace Placemaker.Core.Decals.Dynamic
             var list = new List<int>(n);
             for (int i = 0; i < n; i++)
             {
-                float sat = DecalVariants.Get(k, i).Saturation;
-                bool quiet = sat < 0.95f;
+                var dv = DecalVariants.Get(k, i);
+                bool quiet = dv.Saturation < 0.95f;
+                if (dv.Tile == VariantTiling.None && Avoid.Contains(dv.Fade)) continue;
                 if (level == ColourLevel.Any || (level == ColourLevel.Quiet) == quiet) list.Add(i);
             }
+            if (list.Count == 0) for (int i = 0; i < n; i++) if (DecalVariants.Get(k, i).Tile != VariantTiling.None || !Avoid.Contains(DecalVariants.Get(k, i).Fade)) list.Add(i);
             if (list.Count == 0) for (int i = 0; i < n; i++) list.Add(i);
             return list.ToArray();
         }

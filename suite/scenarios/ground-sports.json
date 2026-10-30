@@ -59,24 +59,24 @@
         {
           "do": "lab",
           "op": "library",
-          "instanced": false
-        },
-        {
-          "do": "lab",
-          "op": "dynFrames",
-          "frames": 240,
-          "label": "with the ground, one renderer each"
-        },
-        {
-          "do": "lab",
-          "op": "library",
           "instanced": true
         },
         {
           "do": "lab",
           "op": "dynFrames",
           "frames": 240,
-          "label": "with the ground, instanced again"
+          "label": "with the ground, instanced (draws nothing in CS2)"
+        },
+        {
+          "do": "lab",
+          "op": "library",
+          "instanced": false
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "with the ground, renderers again"
         },
         {
           "do": "camera",
