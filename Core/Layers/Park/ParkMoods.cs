@@ -895,7 +895,7 @@ namespace Placemaker.Core.Layers.Park
                 var ax = new float2(math.cos(ang), math.sin(ang)); var sd = new float2(-ax.y, ax.x);
                 float u0 = float.MaxValue, u1 = float.MinValue, v0 = float.MaxValue, v1 = float.MinValue;
                 foreach (var q in _p.Lawn) { float u = math.dot(q - c0, ax), v = math.dot(q - c0, sd); u0 = math.min(u0, u); u1 = math.max(u1, u); v0 = math.min(v0, v); v1 = math.max(v1, v); }
-                const float pw = 4.2f, pd = 7f, walk = 1.4f, spine = 2.6f;
+                const float pw = 4.2f, pd = 7f, walk = 1.0f, spine = 2.6f;
                 int plots = 0, k = 0;
                 // double rows: plot | walk-side ... each pair of rows shares a spine walk
                 for (float v = v0 + 1f; v + 2f * pd + spine <= v1 - 1f; v += 2f * pd + spine + walk)
@@ -914,10 +914,19 @@ namespace Placemaker.Core.Layers.Park
                             _n++;
                             if (U(2000 + k) < 0.08f) continue;   // an empty plot, gone to grass
                             GroundCover.Field(_ctx, ring, PlotKinds[(int)(Hashing.Mix(_v, (uint)k) % (uint)PlotKinds.Length)]);
+                            // worked soil under every plot (the crop surface alone read faint from above) and raised beds in half of them
+                            TerrainPaint.Patch(_ctx, ring, TerrainMaterials.Dirt, 0.95f, 0.6f);
+                            if (U(2500 + k) < 0.5f)
+                                for (int b = 0; b < 3; b++)
+                                {
+                                    var bp = cc + sd * ((b - 1) * 2.2f) + ax * (U(2600 + k * 3 + b) - 0.5f) * 0.8f;
+                                    _ctx.Object(bp, math.atan2(ax.x, ax.y), ObjectRole.Furniture, new AssetRef(Pick(Beds, 40 + b), Beds), Var(), -1, AssetCategories.GardenCrop);
+                                    Rocks++;
+                                }
                             _mine.Add((cc, math.min(pw, pd) * 0.5f));
                             plots++;
                             // a shed at the back of one plot in three (the back = away from the spine walk)
-                            if (U(2100 + k) < 0.34f)
+                            if (U(2100 + k) < 0.45f)
                             {
                                 var back = cc + sd * (side == 0 ? -1f : 1f) * (pd * 0.5f - 0.9f) + ax * (pw * 0.5f - 0.8f) * (U(2200 + k) < 0.5f ? -1f : 1f);
                                 var o = _ctx.Object(back, math.atan2(sd.x, sd.y) + (side == 0 ? 0f : math.PI), ObjectRole.Furniture, new AssetRef(Pick(Sheds, 3), Sheds), Var(), -1, AssetCategories.GardenShed);

@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+beecd8cf",
+  "assembly": "0.3.6+ed7db5db",
   "categories": [
     {
       "id": "zoning",
@@ -17561,6 +17561,11 @@
         },
         {
           "id": "carPark",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "communityGarden",
           "kind": "Toggle",
           "default": false
         },
