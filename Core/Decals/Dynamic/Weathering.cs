@@ -567,7 +567,7 @@ namespace Placemaker.Core.Decals.Dynamic
                     if (area > 300f) Brushes.Scatter(_b, BrushArea.Of(r), "crackWeb", 0.03f * A, new ScatterOptions { Opacity = Op(0.35f, 0.65f), Clump = 1.5f, Cause = "seam:pavingCrack" });
                 }
                 // grit and small stones kicked off the paths and paving onto the grass, thin and even (never one cluster)
-                Brushes.Scatter(_b, _lawn, "pebbles", 0.05f * A, new ScatterOptions { Weight = NearHard, Opacity = Op(0.4f, 0.75f), Clump = 2f, Loners = 0.5f, Level = ColourLevel.Quiet, Cause = "seam:grit" });
+                Brushes.Scatter(_b, _lawn, "pebbles", 0.03f * A, new ScatterOptions { Weight = NearHard, Opacity = Op(0.3f, 0.55f), Clump = 2f, Loners = 0.5f, Level = ColourLevel.Quiet, Cause = "seam:grit" });
                 // fences: the strip of rough grass and grime the mower never reaches
                 foreach (var f in Fences)
                     Brushes.EdgeStrip(_b, f.P, "fenceLine", new StripOptions { Side = U(300, f.P.Length) < 0.5f ? 1 : -1, Gaps = 0.2f, Run = new float2(16f, 45f), Opacity = Op(0.6f, 1f), Cause = "seam:fence" });

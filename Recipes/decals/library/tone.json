@@ -31,12 +31,12 @@
         { "op": "wave", "in": "across", "out": "w", "period": 11, "sharp": 1, "warp": 0.1, "warpScale": 4 },
         { "op": "fbm", "out": "n", "scale": 3, "octaves": 3, "stretch": [3, 1] },
         { "op": "remap", "in": "n", "out": "even", "lo": -1, "hi": 0.2 },
-        { "op": "remap", "in": "w", "out": "light", "lo": 0.55, "hi": 0.8, "k": 0.42 },
+        { "op": "remap", "in": "w", "out": "light", "lo": 0.55, "hi": 0.8, "k": 0.2 },
         { "op": "mul", "a": "light", "b": "even", "out": "l", "c": "inRow" },
-        { "op": "layer", "alpha": "l", "color": [150, 168, 86], "smooth": 0.22 },
-        { "op": "remap", "in": "w", "out": "dark", "lo": 0.45, "hi": 0.2, "k": 0.38 },
+        { "op": "layer", "alpha": "l", "color": [96, 138, 52], "smooth": 0.22 },
+        { "op": "remap", "in": "w", "out": "dark", "lo": 0.45, "hi": 0.2, "k": 0.2 },
         { "op": "mul", "a": "dark", "b": "even", "out": "dk", "c": "inRow" },
-        { "op": "layer", "alpha": "dk", "color": [40, 62, 22], "smooth": 0.18 }
+        { "op": "layer", "alpha": "dk", "color": [38, 70, 26], "smooth": 0.18 }
       ]
     },
     {
