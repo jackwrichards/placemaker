@@ -339,7 +339,8 @@ namespace Placemaker.Game.Decals
             inst.Block.SetVector("_BaseColor", new Vector4(1f, 1f, 1f, inst.Opacity));
             mr.SetPropertyBlock(inst.Block);
             inst.Go = go; inst.Renderer = mr;
-            inst.Cull = math.clamp(v.K.Lod * math.max(size.x, size.y), 600f, 2000f);   // parks are looked at from far away
+            // parks are looked at from far away: macro kinds stay to 600 m at least; small details (litter, prints, rust) go sooner
+            inst.Cull = v.K.Tier == "detail" ? math.clamp(v.K.Lod * math.max(size.x, size.y), 200f, 600f) : math.clamp(v.K.Lod * math.max(size.x, size.y), 600f, 2000f);
         }
 
         private static Mesh BoxMesh(float2 size)

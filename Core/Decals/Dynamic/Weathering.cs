@@ -282,7 +282,7 @@ namespace Placemaker.Core.Decals.Dynamic
             private void Tone()
             {
                 // the lawn: big faint patches everywhere, mottled from above, drier toward the open edges and away from trees
-                Brushes.Tone(_b, _lawn, "lawnTonePatch", new float2(0.45f, 0.75f), 0.55f, ColourLevel.Any, "tone:lawn");
+                Brushes.Tone(_b, _lawn, "lawnTonePatch", new float2(0.5f, 0.8f), 0.3f, ColourLevel.Any, "tone:lawn");
                 Brushes.Scatter(_b, _lawn, "groundMottle", 0.35f, new ScatterOptions { Weight = p => 0.35f + 0.65f * ValueNoise.Clumps(p, 30f, H(1)), Opacity = new float2(0.35f, 0.7f), Clump = 2.5f, Spill = 3f, Level = ColourLevel.Quiet, Cause = "tone:mottle" });
                 Brushes.Scatter(_b, _lawn, "dryGrass", 0.22f, new ScatterOptions { Weight = Dryness, Opacity = new float2(0.4f, 0.8f), Clump = 3f, Spill = 2f, Cause = "tone:dry" });
                 Brushes.Scatter(_b, _lawn, "cloverPatch", 0.05f, new ScatterOptions { Weight = p => 1f - Dryness(p), Opacity = new float2(0.4f, 0.7f), Clump = 3f, Loners = 0.2f, Cause = "tone:clover" });
@@ -291,7 +291,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 {
                     var a = BrushArea.Of(t);
                     // game runner 2026-10-29: at 0.3-0.55 a pitch stayed one flat plastic green; real turf varies a lot
-                    Brushes.Tone(_b, a, "lawnTonePatch", new float2(0.7f, 1f), 0.6f, ColourLevel.Full, "tone:turf");
+                    Brushes.Tone(_b, a, "lawnTonePatch", new float2(0.75f, 1f), 0.35f, ColourLevel.Full, "tone:turf");
                     Brushes.Scatter(_b, a, "groundMottle", 0.25f, new ScatterOptions { Weight = p => 0.3f + 0.7f * (1f - math.saturate(Poly.DistanceToBoundary(t, p) / 12f)), Opacity = new float2(0.35f, 0.65f), Clump = 2f, Level = ColourLevel.Quiet, Cause = "tone:turfMottle" });
                     if (Poly.Area(t) > 800f) Stripes(t);
                 }
@@ -325,12 +325,13 @@ namespace Placemaker.Core.Decals.Dynamic
                 var c = Poly.Centroid(turf);
                 float halfL = 0f, halfW = 0f;
                 foreach (var q in turf) { halfL = math.max(halfL, math.abs(math.dot(q - c, axis))); halfW = math.max(halfW, math.abs(math.dot(q - c, side))); }
-                float width = DecalVariants.SpanOf(k, 0).y;
-                int rows = math.max(1, (int)math.ceil(halfW * 2f / (width * 0.9f)));
+                // rows exactly one stripe pair wide, side by side (the bands carry on across the rows)
+                float width = DecalVariants.FootprintOf(k, 0).y;
+                int rows = math.max(1, (int)math.floor(halfW * 2f / width));
                 for (int i = 0; i < rows; i++)
                 {
-                    float v = -halfW + (i + 0.5f) * halfW * 2f / rows;
-                    var a = c + side * v - axis * (halfL - 1f); var b = c + side * v + axis * (halfL - 1f);
+                    float v = (i - (rows - 1) * 0.5f) * width;
+                    var a = c + side * v - axis * (halfL + 1.5f); var b = c + side * v + axis * (halfL + 1.5f);
                     Brushes.EdgeStrip(_b, new[] { a, b }, "mowingStripes", new StripOptions { Gaps = 0f, Opacity = new float2(0.85f, 1f), Width = new float2(1f, 1f), Level = ColourLevel.Quiet, Cause = "tone:stripes" });
                 }
             }

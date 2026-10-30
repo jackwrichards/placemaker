@@ -78,22 +78,33 @@ both), so one decal can bridge the seam. Paint dirt under a `barePatch` decal an
   old way (about 30 MB and 10 s per park); replace it, don't extend it.
 - **The browser and the offline baker** (sections 5, 8), the lab scenario `suite/scenarios/lab-library.json`.
 
-**Not built yet (the first agent builds these, for everyone):**
+**Built by the sports park agent (2026-10-29, `docs/runbooks/sportsPark.md` has the details and file list):**
 
-1. **Plan → record → game for library instances.** A plan can add v1 strokes (`ctx.Plan.Decals`) but not library
-   instances. Needed: a `DecalInstance` (variant id, x, z, yaw, scale, opacity) or, better, the brush calls themselves,
-   in the plan; written on the group record (extend `PlacemakerDecalBlob` with a new codec version, keep v1 readable);
-   `DynamicDecalSystem` places them with `SharedDecals.Place(…, owner: group id)` when a record appears or loads, and
-   `SharedDecals.Clear(group id)` when it goes (undo, bulldoze, Edit, ungroup). Keep it deterministic from the build seed.
-2. **Brushes** (Core, pure, tested): one call that places many instances organically. Interface sketch in
-   `docs/DYNAMIC-DECALS.md` ("Brushes"): `CracksAlong(line)`, `EdgeStrip(boundary, side)`, `Scatter(area, cause)`,
-   `Fill(hollow)`, `Under(canopy)`, `At(gate)`, `Tone(area)`. Section 7 has the placement rules they must follow.
-3. **Boundary passes**: find every seam the plan knows (surface edges, path edges, fences, canopies, object feet) and
-   run the strip brushes along them.
-4. **Port Weathering's causes** (play, feet, water, wind, wheels, objects) from v1 strokes to brushes; then switch the
-   community sports park over and drop its per-build textures. Every sports-park style gets it (today only `community`).
-5. **Player controls**: the Grime slider exists for one style; anything new the player reads goes into 12 languages
-   (`node tools/lang/check.js`, AGENTS.md).
+- **Instances in the plan**: `AreaPlan.DecalInstances` (`DecalInstance`: kind, variant, x, z, yaw, stretch x/z, opacity,
+  cause), record codec v2 (18 bytes an instance, v1 still read), placed by `DynamicDecalSystem` under owner `g<group>`
+  and cleared with the group. `DecalLibrary.EnsureCurrent()` reads the library for plans made before the game has.
+- **End caps** for strips and crack chains: variant `100 + i` fades out toward +x, `200 + i` toward −x (the same
+  pixels times a ragged ramp), so runs never stop in a hard cut. `DecalVariants.SpanOf/FootprintOf` size pieces
+  without baking.
+- **Brushes** (`Core/Decals/Dynamic/Brushes.cs`, tests in `GroundDesignTests`): `Scatter`, `Tone`, `EdgeStrip`,
+  `CracksAlong`, `Fill`, `Under`, `At`. Strip side rule: `Side` +1 = heavy side (+z) on the left of travel; a CCW ring
+  has its inside on the left; `Offset` moves toward the heavy side.
+- **Boundary passes and causes**: `Weathering.cs` is now the sports park's ground design on brushes (tone, trees by
+  species, wind drifts, seams, play, feet, water, wheels, objects). v1 strokes are no longer made; old saves still draw.
+  A type that wants its own ground copies the pattern: a Scene that reads its plan, then brush calls per cause.
+- **Soft tone patches**: `lawnTonePatch`, `pavingTonePatch`, `asphaltTonePatch`, `dirtTonePatch`. Sheets (`xy`) have a
+  hard square edge when laid alone: lay the patch kinds with `Tone`.
+- **Offline look**: `PM_WRITE_GROUND=1` with `GroundDesignTests` renders a plan's decals from above (seconds).
+
+**Still open:**
+
+1. **A shared scene reader.** Sports parks read their plan in `Weathering.Scene.Read` (paths, aisles, fences, surfaces
+   by role, trees by species, goals, stands, benches, bins, bays, steel). The next type should lift it into its own
+   class (`GroundScene`) rather than copy it, and give `Weathering.Wants` a per-type design.
+2. **Speed of the design.** 30-500 ms per plan on a worker, and it runs on every preview re-plan; most of it is the
+   cause fields of `Scatter` (each rejection sample tests the area's rings and holes). A grid mask per area would cut it.
+3. **Player controls**: the Grime slider (12 languages) now holds for every sports park style; anything new the player
+   reads goes into 12 languages (`node tools/lang/check.js`, AGENTS.md).
 
 Build these once, generally, with tests; every later type reuses them.
 
@@ -234,4 +245,4 @@ When you learn something that holds for every type, put it here in the playbook 
 | Type | Date | Agent's runbook | Grade | Notes |
 |---|---|---|---|---|
 | Library rounds 1-3 | 2026-10-29 | (this page, section 6) | B- after round 1 | 65 kinds, 484 variants, 131 MiB |
-| Sports park | next | `docs/runbooks/sportsPark.md` | | first type on the shared library; builds the pieces in section 3 |
+| Sports park | 2026-10-29 | `docs/runbooks/sportsPark.md` | not graded yet | first type on the shared library; built instances, codec v2, end caps, brushes, boundary passes; every style |
