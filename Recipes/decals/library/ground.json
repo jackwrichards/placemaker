@@ -58,7 +58,7 @@
         { "op": "layer", "alpha": "cover", "alphaK": 0.45, "color": [58, 86, 34], "color2": [70, 96, 40], "tone": "n", "smooth": 0.2 },
         { "op": "mul", "a": "leaf", "b": "cover", "out": "lf" },
         { "op": "layer", "alpha": "lf", "alphaK": 0.35, "color": [76, 112, 44], "smooth": 0.25, "height": 0.3 },
-        { "op": "scatter", "stamp": "blob", "density": { "age": [0, 2.667] }, "clusters": 13.333, "cluster": 0.8, "clusterRadius": [0.3, 0.9], "size": [0.03, 0.053], "palette": [[236, 236, 224], [224, 220, 230]], "alpha": [0.7, 0.95], "height": 0.4, "smooth": 0.2 }
+        { "op": "scatter", "stamp": "blob", "density": { "age": [0, 2.667] }, "clusters": 13.333, "cluster": 0.8, "clusterRadius": [0.3, 0.9], "size": [0.03, 0.053], "palette": [[214, 192, 84], [150, 172, 92]], "alpha": [0.7, 0.95], "height": 0.4, "smooth": 0.2 }
       ]
     },
     {
@@ -130,7 +130,7 @@
       "id": "groundMottle", "name": "Ground mottle", "tier": "macro",
       "about": "A big, loose mix of dry grass, darker lush grass and the odd bare scuff, 15-25 m across: breaks up a large lawn when seen from above, never one colour.",
       "texel": 0.07, "layers": "terrain", "order": -1, "lod": 80, "maxTexels": 384, "opacity": 0.75,
-      "edge": { "feather": 2.0, "warp": 2.4, "warpScale": 9, "round": 1 },
+      "edge": { "feather": 2, "warp": 2.4, "warpScale": 9, "round": 1 },
       "variants": { "count": 10, "size": [15, 25], "aspect": [0.5, 1], "strength": [0.6, 1], "fades": ["soft", "islands", "wide", "linear", "side", "ring"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 7, "octaves": 5, "warp": 3, "warpScale": 8 },

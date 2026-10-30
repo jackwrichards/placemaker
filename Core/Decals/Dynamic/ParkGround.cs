@@ -156,6 +156,10 @@ namespace Placemaker.Core.Decals.Dynamic
                             break;
                         case "stones":
                         {
+                            // feet walk round the ring
+                            var ringLine = new List<float2>();
+                            for (int k = 0; k <= 24; k++) { float a = k / 24f * 6.283f; ringLine.Add(c + new float2(math.cos(a), math.sin(a)) * r * 0.62f); }
+                            Brushes.EdgeStrip(_b, ringLine, "wornPath", new StripOptions { Gaps = 0.35f, Opacity = Op(0.4f, 0.7f), Width = new float2(0.6f, 0.85f), Cause = "mood:stoneRing" });
                             Brushes.Scatter(_b, area, "dryGrass", 0.4f, new ScatterOptions { Opacity = Op(0.35f, 0.6f), Clump = 3f, Level = ColourLevel.Quiet, Cause = "mood:longGrass" });
                             Rocky(area, c, r, i);
                             break;

@@ -440,6 +440,7 @@ namespace Placemaker.Core.Decals.Dynamic
                             else if (seg.Count > 1) pts.AddRange(seg.GetRange(1, seg.Count - 1));
                         }
                         if (pts.Count < 4) continue;
+                        Brushes.EdgeStrip(_b, Smooth(pts, 2), "animalTrail", new StripOptions { Gaps = 0.35f, Run = new float2(5f, 16f), Opacity = Op(0.28f, 0.5f), Width = new float2(0.6f, 0.85f), CornerDeg = 60f, Cause = "ground:terracette" });
                         any = true;
                     }
                     if (any) bands++;
@@ -1078,6 +1079,8 @@ namespace Placemaker.Core.Decals.Dynamic
                         pts.Add(p);
                     }
                     if (pts.Count < 6) continue;
+                    foreach (var piece in OffPaths(Smooth(pts, 1), 0.8f))
+                        Brushes.EdgeStrip(_b, piece, "animalTrail", new StripOptions { Gaps = 0.3f, Run = new float2(12f, 40f), Opacity = Op(0.45f, 0.75f), CornerDeg = 70f, Cause = "feet:animal" });
                     if (targets.Count > 0)
                         Brushes.At(_b, pts[pts.Count - 1], heading, "pawPrints", 3f, Op(0.5f, 0.8f), 1, ColourLevel.Any, "feet:prints");
                 }
@@ -1093,6 +1096,10 @@ namespace Placemaker.Core.Decals.Dynamic
                     var fwd = new float2(math.sin(yaw), math.cos(yaw));
                     // the tent's floor flattened the grass; the door side trodden more
                     Brushes.At(_b, p + fwd * 1.2f, fwd, "trampledGrass", 6.5f, Op(0.45f, 0.75f), 1, ColourLevel.Any, "camp:pitch");
+                    // a line trodden from the tent to the nearest path
+                    var near = NearestOnPath(p, 30f, out bool found);
+                    if (found && math.distance(near, p) > 4f)
+                        Brushes.EdgeStrip(_b, new[] { p + fwd * 1.8f, math.lerp(p, near, 0.55f) + new float2(-fwd.y, fwd.x) * 0.8f, near }, "wornPath", new StripOptions { Gaps = 0f, Opacity = Op(0.4f, 0.65f), Width = new float2(0.55f, 0.7f), CornerDeg = 80f, Cause = "camp:track" });
                 }
                 for (int i = 0; i < _fires.Count && !_b.Full; i++)
                 {

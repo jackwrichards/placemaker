@@ -34,7 +34,7 @@
         { "op": "fbm", "out": "n", "scale": 3, "octaves": 4, "stretch": [2.5, 1], "warp": 0.4, "warpScale": 2 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.9, "hi": 0.1 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "d" },
-        { "op": "scatter", "stamp": "pebble", "density": 140, "clusters": 5, "cluster": 0.4, "clusterRadius": [0.6, 2], "noise": { "scale": 2.5, "lo": -1, "hi": 0.2 }, "size": [0.04, 0.12], "aspect": [0.6, 0.95], "palette": [[150, 132, 108], [122, 108, 90], [170, 156, 134], [98, 88, 74]], "alpha": [0.7, 1], "value": 0.12, "height": 0.6, "smooth": 0.2, "max": 30000 }
+        { "op": "scatter", "stamp": "pebble", "density": 140, "clusters": 5, "cluster": 0.4, "clusterRadius": [0.6, 2], "noise": { "scale": 2.5, "lo": -1, "hi": 0.2 }, "size": [0.04, 0.12], "aspect": [0.6, 0.95], "palette": [[106, 94, 79], [88, 79, 68], [119, 110, 96], [98, 88, 74]], "alpha": [0.7, 1], "value": 0.12, "height": 0.6, "smooth": 0.2, "max": 30000 }
       ]
     },
     {
@@ -53,7 +53,7 @@
         { "op": "remap", "in": "n", "out": "damp", "lo": 0.05, "hi": 0.45 },
         { "op": "mul", "a": "bottom", "b": "damp", "c": "shape", "out": "wet" },
         { "op": "layer", "alpha": "wet", "alphaK": 0.8, "color": [62, 54, 46], "smooth": 0.6 },
-        { "op": "scatter", "stamp": "pebble", "density": 50, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.2, 0.8], "edgeBias": 0.6, "size": [0.03, 0.07], "aspect": [0.6, 0.95], "palette": [[160, 150, 134], [132, 124, 112], [110, 102, 92]], "alpha": [0.8, 1], "value": 0.12, "height": 0.7, "smooth": 0.2, "max": 20000 }
+        { "op": "scatter", "stamp": "pebble", "density": 50, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.2, 0.8], "edgeBias": 0.6, "size": [0.03, 0.07], "aspect": [0.6, 0.95], "palette": [[112, 106, 96], [94, 89, 82], [110, 102, 92]], "alpha": [0.8, 1], "value": 0.12, "height": 0.7, "smooth": 0.2, "max": 20000 }
       ]
     },
     {
@@ -148,7 +148,7 @@
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.4, "hi": 0.4 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "dust" },
         { "op": "layer", "alpha": "dust", "alphaK": 0.35, "color": [96, 84, 70], "smooth": 0.15 },
-        { "op": "scatter", "stamp": "pebble", "density": 120, "clusters": 7, "cluster": 0.5, "clusterRadius": [0.6, 2], "noise": { "scale": 2.2, "lo": -1, "hi": 0.3 }, "size": [0.05, 0.15], "aspect": [0.35, 0.9], "palette": [[138, 82, 46], [110, 66, 40], [120, 118, 114], [84, 82, 80], [52, 50, 48], [160, 156, 148]], "alpha": [0.85, 1], "value": 0.14, "height": 0.8, "smooth": 0.35, "max": 40000 }
+        { "op": "scatter", "stamp": "pebble", "density": 120, "clusters": 7, "cluster": 0.5, "clusterRadius": [0.6, 2], "noise": { "scale": 2.2, "lo": -1, "hi": 0.3 }, "size": [0.05, 0.15], "aspect": [0.35, 0.9], "palette": [[138, 82, 46], [110, 66, 40], [87, 86, 83], [84, 82, 80], [52, 50, 48], [112, 110, 105]], "alpha": [0.85, 1], "value": 0.14, "height": 0.8, "smooth": 0.35, "max": 40000 }
       ]
     },
     {

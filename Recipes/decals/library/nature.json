@@ -22,8 +22,8 @@
         { "op": "mul", "a": "chan", "b": "macro", "c": "shape", "out": "chanC" },
         { "op": "erode", "cover": "chanC", "grain": "g01", "sharp": 3.2, "out": "bed" },
         { "op": "layer", "alpha": "bed", "alphaK": 0.9, "color": [94, 80, 62], "color2": [74, 64, 50], "tone": "n", "vary": 0.1, "smooth": 0.4, "height": -0.6 },
-        { "op": "scatter", "stamp": "pebble", "density": 34, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.3, 1.2], "edgeBias": -0.3, "noise": { "scale": 1.6, "lo": -0.9, "hi": 0.3 }, "size": [0.025, 0.07], "aspect": [0.6, 0.95], "palette": [[140, 136, 128], [118, 114, 108], [158, 150, 136], [104, 98, 90]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.42, "max": 20000 },
-        { "op": "scatter", "stamp": "rock", "density": 0.9, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.5, 1.5], "edgeBias": -0.25, "size": [0.08, 0.2], "aspect": [0.65, 0.95], "palette": [[146, 140, 130], [124, 118, 110], [160, 152, 138]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.3 }
+        { "op": "scatter", "stamp": "pebble", "density": 34, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.3, 1.2], "edgeBias": -0.3, "noise": { "scale": 1.6, "lo": -0.9, "hi": 0.3 }, "size": [0.025, 0.07], "aspect": [0.6, 0.95], "palette": [[100, 97, 92], [86, 83, 79], [111, 106, 97], [104, 98, 90]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.42, "max": 20000 },
+        { "op": "scatter", "stamp": "rock", "density": 0.9, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.5, 1.5], "edgeBias": -0.25, "size": [0.08, 0.2], "aspect": [0.65, 0.95], "palette": [[103, 100, 93], [89, 86, 80], [112, 107, 98]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.3 }
       ]
     },
     {
@@ -40,8 +40,8 @@
         { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
         { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.6, "out": "silt" },
         { "op": "layer", "alpha": "silt", "alphaK": 0.3, "color": [140, 130, 104], "color2": [122, 112, 90], "tone": "n", "smooth": 0.16 },
-        { "op": "scatter", "stamp": "pebble", "density": 30, "clusters": 8, "cluster": 0.45, "clusterRadius": [0.4, 1.6], "noise": { "scale": 1.8, "lo": -0.8, "hi": 0.35 }, "size": [0.025, 0.08], "aspect": [0.6, 0.95], "palette": [[136, 132, 124], [114, 110, 102], [150, 140, 124], [98, 92, 84]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.25, "max": 24000 },
-        { "op": "scatter", "stamp": "rock", "density": 0.8, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.6, 2], "size": [0.08, 0.24], "aspect": [0.65, 0.95], "palette": [[146, 140, 130], [124, 118, 110], [160, 152, 138]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.2 }
+        { "op": "scatter", "stamp": "pebble", "density": 30, "clusters": 8, "cluster": 0.45, "clusterRadius": [0.4, 1.6], "noise": { "scale": 1.8, "lo": -0.8, "hi": 0.35 }, "size": [0.025, 0.08], "aspect": [0.6, 0.95], "palette": [[97, 94, 89], [83, 80, 75], [106, 100, 89], [98, 92, 84]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.25, "max": 24000 },
+        { "op": "scatter", "stamp": "rock", "density": 0.8, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.6, 2], "size": [0.08, 0.24], "aspect": [0.65, 0.95], "palette": [[103, 100, 93], [89, 86, 80], [112, 107, 98]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.2 }
       ]
     },
     {
@@ -117,9 +117,9 @@
         { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
         { "op": "erode", "cover": "soil", "grain": "g01", "sharp": 2.2, "out": "grit" },
         { "op": "layer", "alpha": "grit", "alphaK": 0.5, "color": [140, 134, 120], "color2": [118, 112, 100], "tone": "n", "smooth": 0.15 },
-        { "op": "scatter", "stamp": "pebble", "density": 22, "clusters": 6, "cluster": 0.35, "clusterRadius": [0.6, 2], "noise": { "scale": 2.6, "lo": -0.9, "hi": 0.3 }, "size": [0.03, 0.08], "aspect": [0.6, 0.95], "palette": [[150, 146, 140], [130, 126, 120], [112, 108, 104]], "alpha": [0.85, 1], "height": 0.8, "smooth": 0.2, "max": 24000 },
-        { "op": "scatter", "stamp": "rock", "density": 4.2, "clusters": 5, "cluster": 0.4, "clusterRadius": [0.8, 2.4], "noise": { "scale": 3, "lo": -1, "hi": 0.3 }, "size": [0.12, 0.42], "aspect": [0.6, 1], "palette": [[152, 148, 140], [132, 126, 118], [168, 160, 148], [116, 112, 106], [142, 132, 118]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.18, "max": 12000 },
-        { "op": "scatter", "stamp": "rock", "density": 0.5, "clusters": 3, "cluster": 0.5, "clusterRadius": [0.8, 2.4], "noise": { "scale": 3, "lo": -1, "hi": 0.2 }, "size": [0.45, 0.9], "aspect": [0.55, 0.9], "palette": [[150, 146, 138], [130, 124, 116], [164, 156, 142]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.16 }
+        { "op": "scatter", "stamp": "pebble", "density": 22, "clusters": 6, "cluster": 0.35, "clusterRadius": [0.6, 2], "noise": { "scale": 2.6, "lo": -0.9, "hi": 0.3 }, "size": [0.03, 0.08], "aspect": [0.6, 0.95], "palette": [[106, 103, 100], [93, 91, 87], [82, 79, 77]], "alpha": [0.85, 1], "height": 0.8, "smooth": 0.2, "max": 24000 },
+        { "op": "scatter", "stamp": "rock", "density": 4.2, "clusters": 5, "cluster": 0.4, "clusterRadius": [0.8, 2.4], "noise": { "scale": 3, "lo": -1, "hi": 0.3 }, "size": [0.12, 0.42], "aspect": [0.6, 1], "palette": [[107, 105, 100], [94, 91, 86], [118, 112, 105], [84, 82, 78], [101, 94, 86]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.18, "max": 12000 },
+        { "op": "scatter", "stamp": "rock", "density": 0.5, "clusters": 3, "cluster": 0.5, "clusterRadius": [0.8, 2.4], "noise": { "scale": 3, "lo": -1, "hi": 0.2 }, "size": [0.45, 0.9], "aspect": [0.55, 0.9], "palette": [[106, 103, 98], [93, 89, 84], [115, 110, 101]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.16 }
       ]
     },
     {
@@ -140,8 +140,8 @@
         { "op": "mul", "a": "mid", "b": "cover", "out": "floorC" },
         { "op": "erode", "cover": "floorC", "grain": "g01", "sharp": 3, "out": "floor" },
         { "op": "layer", "alpha": "floor", "alphaK": 0.8, "color": [164, 154, 132], "color2": [140, 132, 114], "tone": "g", "smooth": 0.16, "height": -0.4 },
-        { "op": "scatter", "stamp": "pebble", "density": 24, "clusters": 8, "cluster": 0.45, "clusterRadius": [0.4, 1.4], "edgeBias": -0.5, "size": [0.04, 0.12], "aspect": [0.65, 0.95], "palette": [[170, 164, 152], [146, 140, 130], [186, 176, 158], [124, 120, 112], [156, 146, 128]], "alpha": [0.9, 1], "value": 0.12, "height": 0.9, "smooth": 0.22, "max": 24000 },
-        { "op": "scatter", "stamp": "rock", "density": 1.6, "clusters": 5, "cluster": 0.45, "clusterRadius": [0.5, 1.8], "edgeBias": -0.6, "size": [0.12, 0.34], "aspect": [0.7, 1], "palette": [[160, 154, 142], [138, 132, 122], [176, 166, 150]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.2 }
+        { "op": "scatter", "stamp": "pebble", "density": 24, "clusters": 8, "cluster": 0.45, "clusterRadius": [0.4, 1.4], "edgeBias": -0.5, "size": [0.04, 0.12], "aspect": [0.65, 0.95], "palette": [[119, 115, 107], [103, 100, 93], [129, 123, 111], [89, 87, 82], [110, 103, 92]], "alpha": [0.9, 1], "value": 0.12, "height": 0.9, "smooth": 0.22, "max": 24000 },
+        { "op": "scatter", "stamp": "rock", "density": 1.6, "clusters": 5, "cluster": 0.45, "clusterRadius": [0.5, 1.8], "edgeBias": -0.6, "size": [0.12, 0.34], "aspect": [0.7, 1], "palette": [[112, 109, 101], [98, 94, 88], [123, 116, 106]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.2 }
       ]
     },
     {
@@ -238,7 +238,7 @@
         { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.6, "out": "soil" },
         { "op": "layer", "alpha": "soil", "alphaK": 0.6, "color": [116, 98, 74], "color2": [98, 84, 64], "tone": "n", "smooth": 0.18 },
         { "op": "scatter", "stamp": "twig", "density": 1.6, "clusters": 8, "cluster": 0.6, "clusterRadius": [0.4, 1.2], "size": [0.6, 1.8], "aspect": [0.04, 0.08], "palette": [[78, 60, 44], [96, 74, 52], [66, 52, 40]], "alpha": [0.9, 1], "value": 0.1, "height": 1, "smooth": 0.22 },
-        { "op": "scatter", "stamp": "pebble", "density": 6, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.3, 1], "size": [0.02, 0.05], "aspect": [0.6, 0.95], "palette": [[140, 134, 124], [120, 116, 108]], "alpha": [0.8, 1], "height": 0.7, "smooth": 0.2 }
+        { "op": "scatter", "stamp": "pebble", "density": 6, "clusters": 8, "cluster": 0.5, "clusterRadius": [0.3, 1], "size": [0.02, 0.05], "aspect": [0.6, 0.95], "palette": [[100, 96, 89], [87, 84, 79]], "alpha": [0.8, 1], "height": 0.7, "smooth": 0.2 }
       ]
     },
     {
@@ -263,8 +263,8 @@
         { "op": "mul", "a": "rim", "b": "shape", "out": "rimC" },
         { "op": "erode", "cover": "rimC", "grain": "g01", "sharp": 3, "out": "grass" },
         { "op": "layer", "alpha": "grass", "alphaK": 0.35, "color": [102, 108, 62], "color2": [86, 94, 52], "tone": "n", "smooth": 0.12 },
-        { "op": "scatter", "stamp": "pebble", "density": 22, "clusters": 8, "cluster": 0.4, "clusterRadius": [0.3, 1.2], "edgeBias": -0.3, "noise": { "scale": 1.6, "lo": -0.9, "hi": 0.3 }, "size": [0.02, 0.06], "aspect": [0.6, 0.95], "palette": [[150, 142, 128], [128, 122, 112], [166, 154, 134], [110, 104, 96]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.22, "max": 24000 },
-        { "op": "scatter", "stamp": "rock", "density": 0.5, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.4, 1.2], "edgeBias": -0.4, "size": [0.06, 0.16], "aspect": [0.65, 0.95], "palette": [[146, 140, 130], [124, 118, 110]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.2 }
+        { "op": "scatter", "stamp": "pebble", "density": 22, "clusters": 8, "cluster": 0.4, "clusterRadius": [0.3, 1.2], "edgeBias": -0.3, "noise": { "scale": 1.6, "lo": -0.9, "hi": 0.3 }, "size": [0.02, 0.06], "aspect": [0.6, 0.95], "palette": [[106, 101, 92], [92, 88, 82], [116, 109, 96], [110, 104, 96]], "alpha": [0.85, 1], "value": 0.12, "height": 0.8, "smooth": 0.22, "max": 24000 },
+        { "op": "scatter", "stamp": "rock", "density": 0.5, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.4, 1.2], "edgeBias": -0.4, "size": [0.06, 0.16], "aspect": [0.65, 0.95], "palette": [[103, 100, 93], [89, 86, 80]], "alpha": [1, 1], "value": 0.1, "height": 1, "smooth": 0.2 }
       ]
     },
     {

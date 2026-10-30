@@ -854,6 +854,15 @@ namespace Placemaker.Core.Decals.Dynamic
                 Func<float2, float> spine = p => { float u = math.abs(math.dot(p - centre, axis)) / half, v = math.abs(math.dot(p - centre, side)) / 10f; return math.saturate((1f - u * u) * (1f - v * 0.7f)); };
                 Brushes.Scatter(_b, BrushArea.Of(corridor), "dryGrass", 0.8f * A, new ScatterOptions { Weight = spine, Opacity = Op(0.22f, 0.4f), Clump = 6f, Spread = 0.4f, Loners = 0.1f, Scale = new float2(0.8f, 1.2f), Level = ColourLevel.Quiet, Cause = "play:spine" });
                 Brushes.Scatter(_b, BrushArea.Of(corridor), "barePatch", 0.1f * A, new ScatterOptions { Weight = p => spine(p) * spine(p), Opacity = Op(0.2f, 0.38f), Clump = 3f, Spread = 0.35f, Loners = 0f, Scale = new float2(0.6f, 0.9f), Cause = "play:spine" });
+                // the linesmen: each runs one half, on opposite touchlines, just outside the line
+                for (int e = 0; e < 2; e++)
+                {
+                    float sd = e == 0 ? 1f : -1f;
+                    var from = centre + side * sd * (halfW + 1.4f) + axis * sd * 2f;
+                    var to = centre + side * sd * (halfW + 1.4f) + axis * sd * (half - 12f);
+                    if (!Inside(to) || !Inside(from)) continue;
+                    Brushes.EdgeStrip(_b, new[] { from, math.lerp(from, to, 0.5f) + side * Range(-0.5f, 0.5f, 70, e), to }, "wornPath", new StripOptions { Gaps = 0.35f, Run = new float2(10f, 25f), Opacity = Op(0.45f, 0.8f), Width = new float2(0.6f, 0.8f), Cause = "play:linesman" });
+                }
             }
 
             // ───────────── feet: gates, prints, shortcuts, benches ─────────────
@@ -915,7 +924,7 @@ namespace Placemaker.Core.Decals.Dynamic
                         cands.Add((a, b, off * L));
                     }
                 cands.Sort((x, y) => y.score.CompareTo(x.score));
-                int take = 0;   // (2026-10-30) no trodden shortcut strips across the grass (the user: they read as rectangles)
+                int take = flaws.Contains("shortcut") ? 2 : 1;
                 for (int i = 0; i < cands.Count && i < take; i++)
                 {
                     var (a, b, _) = cands[i];
