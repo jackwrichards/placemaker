@@ -66,6 +66,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                 {
                     var pit = Poly.EnsureCcw((float2[])building.Pit.Clone());
                     gr.Pool(Brushes.Inset(pit, 0.8f) ?? pit, true);
+                    gr.Pool(Brushes.Inset(pit, 1.6f) ?? pit, true);
                     // what fell in: broken concrete and soil on the basement floor round the water
                     var floorA = BrushArea.Of(pit);
                     Brushes.Scatter(gr.B, floorA, "rubbleSpread", 0.35f, new ScatterOptions { Opacity = new float2(0.7f, 1f), Clump = 2f, Cause = "pit:rubble" });

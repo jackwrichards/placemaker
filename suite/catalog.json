@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+6f2ce3a2-dirty",
+  "assembly": "0.3.6+9386dd1b",
   "categories": [
     {
       "id": "zoning",
@@ -27294,7 +27294,7 @@
             "burntOut",
             "emptyLot"
           ],
-          "default": "overgrown"
+          "default": "rubbleField"
         },
         {
           "id": "overgrowth",
@@ -27552,6 +27552,10 @@
           "kind": "Toggle",
           "default": false
         }
+      ],
+      "shelvedStyles": [
+        "overgrown",
+        "emptyLot"
       ]
     },
     {

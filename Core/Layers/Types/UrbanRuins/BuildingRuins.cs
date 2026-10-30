@@ -114,6 +114,29 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                     res.Walls.Add((p - t * 1.4f, p + t * 1.4f));
                 }
             }
+            // the basement's own walls stand round the hole (dark masonry on every side, a gap where the stair went down): the pit reads
+            // as a room that fell in, not as a dip in the lawn
+            if (res.Pit != null)
+            {
+                var pr = res.Pit;
+                for (int e = 0; e < 4; e++)
+                {
+                    var a0 = pr[e]; var b0 = pr[(e + 1) % 4];
+                    var t0 = math.normalizesafe(b0 - a0);
+                    var outN = new float2(t0.y, -t0.x);
+                    float yaw0 = math.atan2(t0.x, t0.y) + math.PI * 0.5f;
+                    float len0 = math.distance(a0, b0);
+                    for (float s0 = 1.5f; s0 < len0 - 1f; s0 += 2.9f)
+                    {
+                        if (e == 0 && s0 > len0 * 0.4f && s0 < len0 * 0.6f) continue;
+                        var p = a0 + t0 * s0 + outN * 0.9f;
+                        uint v = Hashing.Mix(seed, 0xBA5Eu + (uint)e * 131u + (uint)(s0 * 10f));
+                        if (!occ.Free(p, 0.5f, 0.1f, 0f) && !region.Contains(p)) continue;
+                        var o = ctx.Object(p, yaw0, ObjectRole.Furniture, AssetMix.Pick(Low, v), v, -1, AssetCategories.RuinsWall);
+                        res.WallPieces++;
+                    }
+                }
+            }
             // column stumps where the frame was: at the room corners that are not in the pit
             for (int i = 0; i <= nu; i++)
                 for (int j = 0; j <= nv; j++)

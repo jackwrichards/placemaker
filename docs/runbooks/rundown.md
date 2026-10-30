@@ -17,13 +17,13 @@ own entire version, with a whole subsection of things inside of it. It's not jus
 rundown place is its own style with its own story, contents and ground; the Overgrowth/Rubble/Junk sliders only nudge
 the balance inside a style.
 
-## What is on the shelf
+## What is on the shelf (round 6, 2026-10-30)
 
 | Type | Styles shown | Hidden (code kept, buildable by id) |
 |---|---|---|
-| Abandoned lot | Overgrown lot, Rubble field, Demolished block, Squatter camp, Fenced wasteland, **Old car park** (new), **Burnt-out lot** (new), **Vacant lot** (new) | none |
-| Construction site | Earthworks (levelling), Foundation dig, Site compound, Demolition site | Road works (a plus of road strips across a fenced block reads as nothing real) |
-| Urban ruins | Broken highway (now without the skate park), BMX dirt jumps, **Building ruins** (new) | DIY skate spot, Parkour yard (skate parks on a lawn: sport, not a forgotten place), Graffiti park (needs decal packs) |
+| Abandoned lot | Rubble field (now the standard style), Demolished block, Squatter camp, Fenced wasteland, **Old car park** (new), **Burnt-out lot** (new) | Overgrown lot and **Vacant lot** (new): after four rounds the overgrown lot still read as a park from 45 degrees and the vacant lot as a lawn with a billboard (thickets, forest-floor paint, a rank-grass carpet all tried; the carpet read as yellow blotches and was removed) |
+| Construction site | Foundation dig, Site compound, Demolition site, Earthworks | Road works (a plus of road strips across a fenced block reads as nothing real) |
+| Urban ruins | **Building ruins** (new, now the standard style, "Ruined building"), BMX dirt jumps | Broken highway (no placeable deck: rows of broken columns in a field), DIY skate spot and Parkour yard (skate parks on a lawn), Graffiti park (needs decal packs) |
 
 ## How the ground is made (different from the sports park, on purpose)
 
@@ -93,18 +93,38 @@ lorries drive), so it lays its decals right there, from its own causes, through 
 
 - Planning (offline, `RundownGroundTests`): 20-350 ms a style on 146 x 136 and 216 x 196 m; every style lays 170-580
   instances a hectare; huge sites (700 x 600 m) stay under `Weathering.MaxInstances`.
-- Frame time (`send-ground-rundown-1030-005242`, rubble field on 220 x 200, 2610 instances): before the build 6.69 ms,
+- Frame time, re-measured after every texture was made (`send-ground-rundown-1030-014837`, rubble field 220 x 200, 2549
+  instances): with the ground 7.18 ms, switched off 7.14 ms (+0.04 ms; before the build 6.88 ms). First measure
+  (`send-ground-rundown-1030-005242`, rubble field on 220 x 200, 2610 instances): before the build 6.69 ms,
   with the ground 7.17 ms, ground switched off 7.05 ms (+0.12 ms). Caveat: the log shows the variants still being made
   when "with the ground" was measured; worth one re-measure.
-- GPU: the whole category's kinds 56 MiB after five builds (budget 200 MiB).
+- GPU: the rundown family is 9 kinds, 49 variants, 9.8 MiB if every variant is on the GPU (`RundownFamilyStaysLean`, cap 14 MiB).
+
+## Round 5-6 (the coordinator's list)
+
+- **Construction machines: a bug older than the makeover.** The shared machine set (`GritAssets` ConstructionMachine) and the
+  heap set name only vehicle props (`Prop_FrontendLoader01`, `Prop_CoalTruck01`, `Prop_CoalTruck01_StonePile01_*`); the lab
+  `suite/scenarios/lab-rundown-machines.json` (run `send-lab-rundown-machines-1030-012753`) matched none of them, so no
+  construction site ever had a machine. The game has no placeable plant vehicles. The construction site now overrides both sets
+  with things that exist (generators, skips, gas pallets; the real stone loads). The shared set is left for the lead.
+- No frame stage: the game has no scaffold or building-frame pieces that stand alone.
+- Mud out of the gate: tread tracks run from 18 m inside the gate 8 m out over the pavement, wider, with clods.
+- Building ruins: the floor slab stops at the basement (it covered the pit), half the building fell in, the basement has its own
+  low walls with a stair gap, two layers of stagnant water and fallen rubble on its floor.
+- Leftover strips (`show-3-builds-1030-014846-228c`, lots on a 220 x 26 m strip): the rubble field reads well as a dumped verge;
+  a separate strip type would be the same lot in another shape. Medians and roundabout islands need the road's own space, which
+  Placemaker does not draw in. Under-the-overpass needs an overpass the game draws above; there is no placeable deck, so it
+  cannot be faked. Not done, on purpose.
 
 ## Left to do (honest)
 
-- Overgrown lot still reads half like a park from 45 degrees (lawn green under the scrub; paint slot 2 under thickets is
-  subtle). Needs a meadow look: a straw-coloured weed kind laid densely, or fewer, bigger thickets.
-- Vacant lot is plausible but plain.
-- Construction sites have no machines (the game's vehicles are not placeable props); the mud tracked out of the gate does
-  not show in the close-up yet; "frame" stage (a building going up) has no vanilla pieces.
-- Building ruins: the basement pit is not obvious in the pictures (the floor slab covers it); the camera never found it.
-- Broken highway: pillars and fallen spans only (no vanilla deck to stand on the pillars).
-- Not done: under-the-overpass spaces and leftover strips (verges, medians, rail edges) as types.
+- Overgrown and vacant lot: hidden; they would need a tall-grass or meadow prop the game does not have.
+
+## Final runs (round 6)
+
+| Run | What it shows |
+|---|---|
+| `show-15-builds-1030-020140-8786` | every shown style, 45 / top / close |
+| `show-2-builds-1030-020820-0241` | building ruins on a block and a 5 % slope: the basement with its walls and standing water |
+| `send-ground-rundown-1030-014837` | frame time after the textures were made; close-ups by kind |
+| `send-lab-rundown-machines-1030-012753` | which construction props exist (no `Prop_` vehicle does) |
