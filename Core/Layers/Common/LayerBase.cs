@@ -309,6 +309,7 @@ namespace Placemaker.Core.Layers.Common
         private void AddDressingControls(ControlSet c)
         {
             if (Kind != LayerKind.Fill) return;
+            if (!c.List.Exists(x => x.Id == Decals.DressingControls.GroundDecalsId)) c.List.Add(Decals.DressingControls.GroundDecals());
             var groups = new HashSet<string>(StringComparer.Ordinal);
             foreach (var x in c.List) if (!string.IsNullOrEmpty(x.Group)) groups.Add(x.Group);
             foreach (var d in Decals.DressingControls.For(Id, groups.Contains))

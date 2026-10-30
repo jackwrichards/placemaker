@@ -28,7 +28,6 @@
   "Placemaker.Dress.dressLawnTint.Tooltip": "Lush patches in hollows, near water and in shade, dry patches on knolls (painted lawns only).",
   "Placemaker.Dress.dressPaintClear": "Clear old paint",
   "Placemaker.Dress.dressPaintClear.Tooltip": "Resets the ground texture inside the area to the plain terrain before painting — including any paint you made yourself there. Permanent.",
-
   "Placemaker.Dress.dressTrees": "Leaf litter",
   "Placemaker.Dress.dressTrees.Tooltip": "Leaves and needles under trees and shrubs.",
   "Placemaker.Dress.dressPaths": "Path wear",
@@ -66,5 +65,7 @@
   "Placemaker.Category.decal.tyre": "tyre mark decals",
   "Placemaker.Category.decal.glass": "broken glass decals",
   "Placemaker.Category.decal.beach": "beach wrack decals",
-  "Placemaker.Category.decal.footprints": "footprint decals"
+  "Placemaker.Category.decal.footprints": "footprint decals",
+  "Placemaker.Dress.dressGroundDecals": "Ground decals",
+  "Placemaker.Dress.dressGroundDecals.Tooltip": "Cracks, grime, leaves, puddles and wear drawn on the ground. Off: none at all."
 }

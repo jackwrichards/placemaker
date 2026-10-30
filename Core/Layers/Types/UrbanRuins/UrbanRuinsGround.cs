@@ -20,6 +20,7 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
         internal static void Dress(LayerContext ctx, string sub, float decay, float over, List<OrientedRect> pads,
             List<(OrientedRect r, DecayKit.Slab s)> fallen, BuildingRuins.Result building)
         {
+            if (!Placemaker.Core.Decals.DressingControls.GroundDecalsOn(ctx.Settings)) return;   // the player switched ground decals off
             // the big variation is paint (free, permanent): dry grass over the yard, dirt where spans fell, round the building,
             // under the jumps and in blobs where nobody mows
             var region = ctx.LayerRegion;

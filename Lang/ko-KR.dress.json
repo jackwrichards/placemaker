@@ -65,5 +65,7 @@
   "Placemaker.Category.decal.tyre": "타이어 자국 데칼",
   "Placemaker.Category.decal.glass": "깨진 유리 데칼",
   "Placemaker.Category.decal.beach": "해변 표착물 데칼",
-  "Placemaker.Category.decal.footprints": "발자국 데칼"
+  "Placemaker.Category.decal.footprints": "발자국 데칼",
+  "Placemaker.Dress.dressGroundDecals": "지면 데칼",
+  "Placemaker.Dress.dressGroundDecals.Tooltip": "지면에 그리는 균열, 때, 낙엽, 웅덩이, 마모입니다. 끄기: 전혀 그리지 않습니다."
 }

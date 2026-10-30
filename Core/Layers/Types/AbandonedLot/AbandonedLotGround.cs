@@ -70,6 +70,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
 
         internal static void Dress(LayerContext ctx, Story st)
         {
+            if (!Placemaker.Core.Decals.DressingControls.GroundDecalsOn(ctx.Settings)) return;   // the player switched ground decals off
             if (ctx.B("groundPaint")) Paint(ctx, st, math.clamp(ctx.I("paintLayer"), 1, 4));
             var gr = new RundownGround(ctx, 0x6A0Du);
             if (!gr.Ready) return;

@@ -65,5 +65,7 @@
   "Placemaker.Category.decal.tyre": "décalcomanies de traces de pneus",
   "Placemaker.Category.decal.glass": "décalcomanies de verre brisé",
   "Placemaker.Category.decal.beach": "décalcomanies de laisse de mer",
-  "Placemaker.Category.decal.footprints": "décalcomanies d'empreintes de pas"
+  "Placemaker.Category.decal.footprints": "décalcomanies d'empreintes de pas",
+  "Placemaker.Dress.dressGroundDecals": "Décalcomanies au sol",
+  "Placemaker.Dress.dressGroundDecals.Tooltip": "Fissures, saleté, feuilles, flaques et usure dessinées au sol. Désactivé : aucune."
 }

@@ -65,5 +65,7 @@
   "Placemaker.Category.decal.tyre": "декали следов шин",
   "Placemaker.Category.decal.glass": "декали битого стекла",
   "Placemaker.Category.decal.beach": "декали береговых выбросов",
-  "Placemaker.Category.decal.footprints": "декали следов ног"
+  "Placemaker.Category.decal.footprints": "декали следов ног",
+  "Placemaker.Dress.dressGroundDecals": "Декали на земле",
+  "Placemaker.Dress.dressGroundDecals.Tooltip": "Трещины, грязь, листья, лужи и износ на земле. Выкл.: никаких."
 }

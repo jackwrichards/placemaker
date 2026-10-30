@@ -173,6 +173,19 @@ namespace Placemaker.Core.Decals
         public const string PaintGroup = "groundPaint";
         public const string Group = "decals";
         public const string KeyPrefix = "Placemaker.Dress.";
+
+        /// <summary>(2026-10-30) The one switch for every ground decal a type lays (cracks, grime, leaves, wear): on by default.</summary>
+        public const string GroundDecalsId = "dressGroundDecals";
+
+        /// <summary>Ground decals are on unless the player switched them off (a bag without the switch: on).</summary>
+        public static bool GroundDecalsOn(SettingsBag values) => values == null || values.B(GroundDecalsId, true);
+
+        /// <summary>The switch itself, at the top of the Ground paint section of every place type.</summary>
+        public static ControlSchema GroundDecals() => new ControlSchema
+        {
+            Id = GroundDecalsId, Kind = ControlKind.Toggle, Tier = ControlTier.Essential, Group = PaintGroup, Default = true,
+            LabelKey = KeyPrefix + GroundDecalsId, TooltipKey = KeyPrefix + GroundDecalsId + ".Tooltip",
+        };
         public static readonly string[] Styles = { "clean", "livedIn", "gritty" };
 
         public static string FamilyId(DressFamily f) => "dress" + f;
@@ -280,7 +293,7 @@ namespace Placemaker.Core.Decals
             s.Mulch = values == null || values.B(MulchId, true);
             s.LawnTint = values == null || values.B(LawnTintId, true);
             s.ClearFirst = values != null && values.B(ClearPaintId, false);
-            s.Weathering = Dynamic.Weathering.Wants(gen.Id, values);
+            s.Weathering = Dynamic.Weathering.Wants(gen.Id, values) && GroundDecalsOn(values);
             s.Grime = Dynamic.Weathering.Amount(values);
             string lawn = Layers.Common.Lawn.DefaultFor(gen.Id, null);
             s.LawnPainted = lawn != null && (values?.S(LawnId, lawn) ?? lawn) == Layers.Common.Lawn.Painted;

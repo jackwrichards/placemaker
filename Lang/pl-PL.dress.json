@@ -65,5 +65,7 @@
   "Placemaker.Category.decal.tyre": "naklejki śladów opon",
   "Placemaker.Category.decal.glass": "naklejki potłuczonego szkła",
   "Placemaker.Category.decal.beach": "naklejki wyrzutów morskich",
-  "Placemaker.Category.decal.footprints": "naklejki śladów stóp"
+  "Placemaker.Category.decal.footprints": "naklejki śladów stóp",
+  "Placemaker.Dress.dressGroundDecals": "Kalkomanie podłoża",
+  "Placemaker.Dress.dressGroundDecals.Tooltip": "Pęknięcia, brud, liście, kałuże i zużycie rysowane na podłożu. Wyłączone: żadnych."
 }

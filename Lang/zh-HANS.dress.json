@@ -65,5 +65,7 @@
   "Placemaker.Category.decal.tyre": "轮胎印贴花",
   "Placemaker.Category.decal.glass": "碎玻璃贴花",
   "Placemaker.Category.decal.beach": "海滩漂积物贴花",
-  "Placemaker.Category.decal.footprints": "脚印贴花"
+  "Placemaker.Category.decal.footprints": "脚印贴花",
+  "Placemaker.Dress.dressGroundDecals": "地面贴花",
+  "Placemaker.Dress.dressGroundDecals.Tooltip": "在地面上绘制的裂缝、污渍、落叶、水坑和磨损。关闭：完全不绘制。"
 }

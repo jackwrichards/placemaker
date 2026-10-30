@@ -65,5 +65,7 @@
   "Placemaker.Category.decal.tyre": "decalques de marcas de pneu",
   "Placemaker.Category.decal.glass": "decalques de vidro quebrado",
   "Placemaker.Category.decal.beach": "decalques de restos de praia",
-  "Placemaker.Category.decal.footprints": "decalques de pegadas"
+  "Placemaker.Category.decal.footprints": "decalques de pegadas",
+  "Placemaker.Dress.dressGroundDecals": "Decalques do chão",
+  "Placemaker.Dress.dressGroundDecals.Tooltip": "Rachaduras, sujeira, folhas, poças e desgaste desenhados no chão. Desligado: nenhum."
 }

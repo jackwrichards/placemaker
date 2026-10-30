@@ -19,6 +19,7 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
         internal static void Dress(LayerContext ctx, string sub, float2 gate, float2 inward, bool hasGate, List<List<float2>> tracks,
             float2[] works, IReadOnlyList<float2[]> mud, float2 rubbleFocus, float rubbleR)
         {
+            if (!Placemaker.Core.Decals.DressingControls.GroundDecalsOn(ctx.Settings)) return;   // the player switched ground decals off
             var gr = new RundownGround(ctx, 0xC0A5u, 280f);
             if (!gr.Ready) return;
             var region = ctx.LayerRegion;

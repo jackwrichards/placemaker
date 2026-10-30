@@ -65,5 +65,7 @@
   "Placemaker.Category.decal.tyre": "calcomanías de marcas de ruedas",
   "Placemaker.Category.decal.glass": "calcomanías de cristales rotos",
   "Placemaker.Category.decal.beach": "calcomanías de restos de playa",
-  "Placemaker.Category.decal.footprints": "calcomanías de huellas"
+  "Placemaker.Category.decal.footprints": "calcomanías de huellas",
+  "Placemaker.Dress.dressGroundDecals": "Calcomanías del suelo",
+  "Placemaker.Dress.dressGroundDecals.Tooltip": "Grietas, suciedad, hojas, charcos y desgaste dibujados en el suelo. Desactivado: ninguno."
 }

@@ -138,6 +138,7 @@ namespace Placemaker.Core.Layers.Types.Yards
         /// <summary>Lays the marks into the plan's library instances. Never throws (a plan never fails over its grime).</summary>
         public static Report Lay(LayerContext ctx, YardBrief brief, DecalLibrary library = null)
         {
+            if (!Placemaker.Core.Decals.DressingControls.GroundDecalsOn(ctx.Settings)) return new Report();   // the player switched ground decals off
             var rep = new Report();
             var clock = System.Diagnostics.Stopwatch.StartNew();
             WildBushes(ctx.Plan, ctx.Seed);

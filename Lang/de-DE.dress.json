@@ -65,5 +65,7 @@
   "Placemaker.Category.decal.tyre": "Reifenspur-Markierungen",
   "Placemaker.Category.decal.glass": "Glasscherben-Markierungen",
   "Placemaker.Category.decal.beach": "Treibgut-Markierungen",
-  "Placemaker.Category.decal.footprints": "Fußspur-Markierungen"
+  "Placemaker.Category.decal.footprints": "Fußspur-Markierungen",
+  "Placemaker.Dress.dressGroundDecals": "Bodendecals",
+  "Placemaker.Dress.dressGroundDecals.Tooltip": "Risse, Schmutz, Laub, Pfützen und Abnutzung auf dem Boden. Aus: gar keine."
 }

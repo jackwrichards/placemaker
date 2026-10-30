@@ -65,5 +65,7 @@
   "Placemaker.Category.decal.tyre": "タイヤ跡のデカル",
   "Placemaker.Category.decal.glass": "割れたガラスのデカル",
   "Placemaker.Category.decal.beach": "浜の漂着物のデカル",
-  "Placemaker.Category.decal.footprints": "足跡のデカル"
+  "Placemaker.Category.decal.footprints": "足跡のデカル",
+  "Placemaker.Dress.dressGroundDecals": "地面デカール",
+  "Placemaker.Dress.dressGroundDecals.Tooltip": "地面に描くひび割れ、汚れ、落ち葉、水たまり、摩耗です。オフ: 一切描きません。"
 }

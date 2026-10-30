@@ -65,5 +65,7 @@
   "Placemaker.Category.decal.tyre": "decalcomanie di segni di pneumatici",
   "Placemaker.Category.decal.glass": "decalcomanie di vetri rotti",
   "Placemaker.Category.decal.beach": "decalcomanie di detriti da spiaggia",
-  "Placemaker.Category.decal.footprints": "decalcomanie di impronte"
+  "Placemaker.Category.decal.footprints": "decalcomanie di impronte",
+  "Placemaker.Dress.dressGroundDecals": "Decalcomanie del suolo",
+  "Placemaker.Dress.dressGroundDecals.Tooltip": "Crepe, sporco, foglie, pozzanghere e usura disegnati sul terreno. Disattivato: nessuna."
 }
