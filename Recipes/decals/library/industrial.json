@@ -6,18 +6,18 @@
     {
       "id": "rustRunoff", "name": "Rust run-off", "tier": "detail",
       "about": "Orange-brown rust washed off steel by rain: streaks running away from a container, a skip or a scrap heap, strongest at the foot.",
-      "texel": 0.028, "layers": "ground", "order": 4, "lod": 32, "maxTexels": 256, "opacity": 0.95,
+      "texel": 0.028, "layers": "ground", "order": 4, "lod": 32, "maxTexels": 256, "opacity": 0.8,
       "edge": { "feather": 0.7, "warp": 0.5, "warpScale": 1.2, "round": 1 },
       "variants": { "count": 8, "size": [3.5, 7.5], "aspect": [0.3, 0.55], "strength": [0.6, 1], "fades": ["side", "linear", "soft", "islands"] },
       "ops": [
-        { "op": "fbm", "out": "n", "scale": 0.6, "octaves": 4, "stretch": [4, 1], "warp": 0.2, "warpScale": 0.8 },
+        { "op": "fbm", "out": "n", "scale": 0.45, "octaves": 4, "stretch": [6, 1], "warp": 0.2, "warpScale": 0.8 },
         { "op": "remap", "in": "n", "out": "streak", "lo": -0.8, "hi": 0.1 },
         { "op": "fbm", "out": "m", "scale": 1.5, "octaves": 3 },
         { "op": "remap", "in": "m", "out": "macro", "lo": -0.95, "hi": 0.05 },
         { "op": "mul", "a": "shape", "b": "macro", "c": "streak", "out": "r" },
-        { "op": "layer", "alpha": "r", "alphaK": 1, "color": [156, 82, 36], "color2": [118, 58, 30], "tone": "n", "vary": 0.12, "varyScale": 0.1, "smooth": 0.2 },
+        { "op": "layer", "alpha": "r", "alphaK": 0.75, "color": [122, 76, 46], "color2": [96, 62, 42], "tone": "n", "vary": 0.12, "varyScale": 0.1, "smooth": 0.2 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "stain" },
-        { "op": "layer", "alpha": "stain", "alphaK": 0.5, "color": [120, 80, 52], "smooth": 0.2 }
+        { "op": "layer", "alpha": "stain", "alphaK": 0.35, "color": [108, 82, 62], "smooth": 0.2 }
       ]
     },
     {
@@ -25,12 +25,12 @@
       "about": "Fine dust and grit blown off a heap or a crusher: a pale fan settled on the ground downwind, speckled near the heap, thinning out.",
       "texel": 0.04, "layers": "ground", "order": 3, "lod": 45, "maxTexels": 384, "opacity": 0.85,
       "edge": { "feather": 1.2, "warp": 0.9, "warpScale": 3, "round": 0.9 },
-      "variants": { "count": 8, "size": [8, 16], "aspect": [0.35, 0.6], "strength": [0.6, 1], "fades": ["side", "linear", "islands", "soft"] },
+      "variants": { "count": 8, "size": [12, 22], "aspect": [0.35, 0.6], "strength": [0.6, 1], "fades": ["side", "linear", "islands", "soft"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 3, "octaves": 4, "stretch": [2.5, 1], "warp": 0.4, "warpScale": 2 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.9, "hi": 0.1 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "d" },
-        { "op": "layer", "alpha": "d", "alphaK": 0.6, "color": [192, 184, 168], "color2": [150, 142, 128], "tone": "n", "smooth": 0.1 },
+        { "op": "layer", "alpha": "d", "alphaK": 0.8, "color": [206, 198, 182], "color2": [180, 172, 158], "tone": "n", "smooth": 0.1 },
         { "op": "scatter", "stamp": "pebble", "density": 120, "clusters": 5, "cluster": 0.4, "clusterRadius": [0.6, 2], "noise": { "scale": 2.5, "lo": -1, "hi": 0.2 }, "size": [0.04, 0.12], "aspect": [0.6, 0.95], "palette": [[180, 172, 158], [150, 144, 134], [128, 122, 112]], "alpha": [0.7, 1], "value": 0.12, "height": 0.6, "smooth": 0.2, "max": 30000 }
       ]
     },
@@ -58,15 +58,15 @@
       "about": "Weeds and dry grass that grow where no wheel reaches: along the foot of a yard fence or a wall, thick at the fence, thinning into the gravel (+z is the fence).",
       "texel": 0.03, "layers": "terrain", "order": 3, "lod": 32, "maxTexels": 384, "opacity": 0.95,
       "edge": { "feather": 0.25, "warp": 0.35, "warpScale": 1.2, "round": 1, "widthNoise": 0.4 },
-      "variants": { "count": 8, "size": [8, 11], "width": [1, 1.8], "tile": "x", "strength": [0.7, 1] },
+      "variants": { "count": 8, "size": [8, 11], "width": [1.6, 2.6], "tile": "x", "strength": [0.7, 1] },
       "ops": [
         { "op": "remap", "in": "across", "out": "side", "lo": -0.3, "hi": 0.35 },
         { "op": "fbm", "out": "n", "scale": 1.2, "octaves": 4, "stretch": [2, 1] },
         { "op": "remap", "in": "n", "out": "clumps", "lo": -0.7, "hi": 0.2 },
         { "op": "mul", "a": "side", "b": "shape", "c": "clumps", "out": "cov" },
-        { "op": "layer", "alpha": "cov", "alphaK": 0.55, "color": [86, 84, 52], "color2": [70, 78, 40], "tone": "n", "smooth": 0.15 },
-        { "op": "scatter", "stamp": "twig", "density": 240, "clusters": 30, "cluster": 0.75, "clusterRadius": [0.2, 0.7], "side": 0.6, "noise": { "scale": 1.2, "lo": -0.9, "hi": 0.3 }, "size": [0.15, 0.32], "aspect": [0.05, 0.09], "palette": [[96, 120, 50], [120, 132, 62], [170, 160, 100], [150, 140, 84]], "alpha": [0.75, 1], "height": 0.5, "smooth": 0.2, "max": 30000 },
-        { "op": "scatter", "stamp": ["leaf", "oak"], "density": 70, "clusters": 30, "cluster": 0.8, "clusterRadius": [0.2, 0.5], "side": 0.6, "size": [0.1, 0.2], "aspect": [0.5, 0.8], "palette": [[78, 104, 44], [96, 118, 52], [66, 90, 40]], "alpha": [0.8, 1], "height": 0.5, "smooth": 0.25 }
+        { "op": "layer", "alpha": "cov", "alphaK": 0.7, "color": [74, 82, 44], "color2": [64, 76, 38], "tone": "n", "smooth": 0.15 },
+        { "op": "scatter", "stamp": "twig", "density": 320, "clusters": 30, "cluster": 0.75, "clusterRadius": [0.2, 0.7], "side": 0.6, "noise": { "scale": 1.2, "lo": -0.9, "hi": 0.3 }, "size": [0.2, 0.42], "aspect": [0.05, 0.09], "palette": [[86, 112, 44], [110, 126, 56], [150, 144, 86], [72, 96, 40]], "alpha": [0.75, 1], "height": 0.5, "smooth": 0.2, "max": 30000 },
+        { "op": "scatter", "stamp": ["leaf", "oak"], "density": 110, "clusters": 30, "cluster": 0.8, "clusterRadius": [0.2, 0.5], "side": 0.6, "size": [0.14, 0.28], "aspect": [0.5, 0.8], "palette": [[78, 104, 44], [96, 118, 52], [66, 90, 40]], "alpha": [0.8, 1], "height": 0.5, "smooth": 0.25 }
       ]
     },
     {
