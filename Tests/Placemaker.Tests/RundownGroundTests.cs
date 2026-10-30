@@ -88,6 +88,34 @@ namespace Placemaker.Tests
             Assert.True(bytes <= 14L * 1024 * 1024, $"rundown family {bytes / 1048576.0:F1} MiB");
         }
 
+        /// <summary>Construction sites plan real machines: Placemaker's own vehicle props (the old Prop_ names never placed).</summary>
+        [Theory]
+        [InlineData("foundation")]
+        [InlineData("demolition")]
+        [InlineData("earthworks")]
+        [InlineData("compound")]
+        public void ConstructionSitesPlanOurOwnMachines(string style)
+        {
+            var plan = Plan("constructionSite", style, 150f, 140f);
+            var machines = plan.Layers.SelectMany(l => l.Objects).Where(o => o.Category == AssetCategories.ConstructionMachine).ToList();
+            foreach (var m in machines) _out.WriteLine($"{style}: {m.Asset.Id} | {string.Join("|", m.Asset.Fallbacks ?? new string[0])}");
+            Assert.NotEmpty(machines);
+            Assert.All(machines, m => Assert.DoesNotContain("Prop_", m.Asset.Id + string.Join("", m.Asset.Fallbacks ?? new string[0])));
+            Assert.Contains(machines, m => (m.Asset.Id ?? "").StartsWith("Placemaker Vehicle ", StringComparison.Ordinal));
+        }
+
+        /// <summary>The narrowed AutoAssets fix from makeover-industrial (4c97d9ff): only our vehicle props pass the vanilla rule.</summary>
+        [Fact]
+        public void OnlyOurVehiclePropsCountAsVanilla()
+        {
+            Assert.True(Placemaker.Core.Build.AutoAssets.IsOwn("Placemaker Vehicle Car 3"));
+            Assert.True(Placemaker.Core.Build.AutoAssets.IsOwn(Placemaker.Core.Layers.Types.Yards.VehicleProps.Loader(1)));
+            Assert.False(Placemaker.Core.Build.AutoAssets.IsOwn("Placemaker Overlay (Some Pack Surface)"));
+            Assert.False(Placemaker.Core.Build.AutoAssets.IsOwn("Placemaker Decal Copy"));
+            Assert.False(Placemaker.Core.Build.AutoAssets.IsOwn("Prop_FrontendLoader01"));
+            Assert.False(Placemaker.Core.Build.AutoAssets.IsOwn(null));
+        }
+
         [Fact]
         public void RundownGroundIsDeterministic()
         {

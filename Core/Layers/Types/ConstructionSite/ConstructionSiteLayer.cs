@@ -138,6 +138,10 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             public readonly List<List<float2>> Tracks = new List<List<float2>>();
         }
 
+        /// <summary>(rundown, as the industrial quarry does) Placemaker's own vehicle props when the player picked no machines: the wheel loader,
+        /// the dump truck, the mining tractor (VehicleProps; the game's vehicles have no placeable props of their own).</summary>
+        private static readonly string[] OwnMachines = { Yards.VehicleProps.Loader(1), Yards.VehicleProps.Truck(1), Yards.VehicleProps.Tractor(1), Yards.VehicleProps.Loader(1), Yards.VehicleProps.Truck(1) };
+
         /// <summary>Type-specific curated defaults (over GritAssets' shared sets); null = shared only.</summary>
         private static readonly Dictionary<string, GritAssets.Set> ArtObjects = new Dictionary<string, GritAssets.Set>
         {
@@ -165,7 +169,7 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             {
                 Ctx = ctx, Region = region, Occ = new Occupancy(region, ctx.Input.Reserved, ctx.Site), Subtype = ctx.S("subtype"),
                 Depth = math.max(0.5f, ctx.F("depth")), Ha = region.Area / 10000f,
-                Machines = ctx.L("machineAssets"), Materials = ctx.L("materialAssets"), Piles = ctx.L("pileAssets"),
+                Machines = ctx.L("machineAssets") != null && ctx.L("machineAssets").Length > 0 ? ctx.L("machineAssets") : OwnMachines, Materials = ctx.L("materialAssets"), Piles = ctx.L("pileAssets"),
                 Barriers = ctx.L("barrierAssets"), Cabins = ctx.L("cabinAssets"),
             };
             // Works follow the plot's dominant edges (a square plot used to get diagonal road strips).

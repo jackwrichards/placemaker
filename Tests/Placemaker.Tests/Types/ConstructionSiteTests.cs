@@ -175,7 +175,8 @@ namespace Placemaker.Tests.Types
                     var plan = K.Compose(K.WithPreset(Id, Preset(preset)), ring, K.Road(ring));
                     Assert.True(string.IsNullOrEmpty(K.Errors(plan)), K.Errors(plan));
                     Assert.Contains(plan.AllIssues(), i => i.Key == Keys.NoAssetsIssue && i.Severity == IssueSeverity.Info);
-                    Assert.DoesNotContain(plan.Layers[0].Objects, o => none.ContainsKey(o.Category ?? ""));
+                    // (rundown) machines are Placemaker's own vehicle props (made by the game layer, never an installed asset): they stay
+                    Assert.DoesNotContain(plan.Layers[0].Objects, o => none.ContainsKey(o.Category ?? "") && !Placemaker.Core.Build.AutoAssets.IsOwn(o.Asset.Id));
                     Assert.NotEmpty(plan.Layers[0].Objects);
                 }
         }
