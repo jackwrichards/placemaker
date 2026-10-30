@@ -378,7 +378,7 @@ namespace Placemaker.Core.Decals.Dynamic
                 {
                     string kind = Leaf(kv.Key);
                     // smothered, never a blotch: overlapping patches over the whole fall zone, heaviest where crowns crowd
-                    float cov = (kind == "pineNeedles" ? 0.55f : kind == "blossomPetals" ? 0.4f : 0.7f) * A;
+                    float cov = (kind == "pineNeedles" ? 0.55f : kind == "blossomPetals" ? 0.4f : 0.85f) * A;
                     Brushes.Under(_b, kv.Value, kind, cov, Wind, fall, new ScatterOptions { Opacity = Op(0.55f, 1f), Scale = new float2(0.9f, 1.45f), Clump = 5f, Spread = 0.55f, Loners = 0.25f, Spill = 2f, Cause = "leaves" });
                     // mixed leaves blown further on, thinner
                     if (kind != "pineNeedles")
