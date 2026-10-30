@@ -64,9 +64,9 @@ namespace Placemaker.Core.Layers.Park
         private static readonly string[] KnollTrees = { "PineTree01", "BirchTree01", "PineTree01" };
         private static readonly string[] CopseTrees = { "OakTree01", "BirchTree01", "NA_HickoryTree01", "EU_ChestnutTree01", "SpruceTree01", "OakTree01" };
         private static readonly string[] MeadowTrees = { "OakTree01", "BirchTree01", "EU_ChestnutTree01" };
-        private static readonly string[] Scrub = { "GreenBushWild01", "GreenBushWildAdult01", "GreenBushWild02", "GreenBushWildElderly01", "FlowerBushWildElderly01" };
+        private static readonly string[] Scrub = { "GreenBushWild01", "GreenBushWildAdult01", "GreenBushWild02", "GreenBushWildElderly01", "FlowerBushWild02" };
         private static readonly string[] Rushes = { "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWildChild01", "GreenBushWild01" };
-        private static readonly string[] Wildflowers = { "FlowerBushWildElderly01", "FlowerBushWild02", "FlowerBushWildChild02", "FlowerBushWildElderly01" };
+        private static readonly string[] Wildflowers = { "FlowerBushWild02", "FlowerBushWild02", "FlowerBushWildChild02", "FlowerBushWild02" };
 
         /// <summary>The moods a style can have and how much it likes each (gully, outcrop, hollow, meadow, glade, stones).</summary>
         public static float[] Palette(string style)

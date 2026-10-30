@@ -32,9 +32,9 @@ namespace Placemaker.Core.Layers.Park
         public static readonly string[] WoodlandTrees = { "OakTree01", "BirchTree01", "EU_AlderTree01", "NA_HickoryTree01", "SpruceTree01", "PineTree01" };
         public static readonly string[] Conifers = { "PineTree01", "SpruceTree01", "EuropeanSpruce01" };
         public static readonly string[] WaterTrees = { "EU_AlderTree01", "EU_PoplarTree01", "BirchTree01" };
-        public static readonly string[] FlowerShrubs = { "FlowerBushWildElderly01", "FlowerBushWild02", "FlowerBushWildChild02" };   // (makeover) never FlowerBushWild01: its pale teal clashes with every lawn (run show-24-builds-1030-001417-7e24)
+        public static readonly string[] FlowerShrubs = { "FlowerBushWild02", "FlowerBushWild02", "FlowerBushWildChild02" };   // (makeover) never FlowerBushWild01 or FlowerBushWildElderly01: their pale teal clashes with every lawn (bush test run 20261030-003549-bushes) (run show-24-builds-1030-001417-7e24)
         public static readonly string[] GreenShrubs = { "GreenBushWild01", "GreenBushWildAdult01", "GreenBushWildTeen01", "GreenBushWild02" };
-        public static readonly string[] MixedShrubs = { "GreenBushWild01", "FlowerBushWildElderly01", "GreenBushWildAdult01", "FlowerBushWild02", "GreenBushWildTeen01" };
+        public static readonly string[] MixedShrubs = { "GreenBushWild01", "FlowerBushWild02", "GreenBushWildAdult01", "FlowerBushWild02", "GreenBushWildTeen01" };
         public static readonly string[] LowHedge = { "HedgePieceLow01", "HedgePieceLow02" };
         public static readonly string[] HighHedge = { "HedgePieceHigh01", "HedgePieceHigh02" };
         public static readonly string[] Flowerbeds = { "Flowerbed01", "Flowerbed02" };

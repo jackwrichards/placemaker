@@ -81,9 +81,9 @@ namespace Placemaker.Core.Layers.Leisure
         };
         private static readonly string[] AccentTrees = { "NA_LindenTree01", "AppleTree01", "BirchTree01" };
         private static readonly string[] FlowerBeds = { "Flowerbed01", "Flowerbed02" };
-        private static readonly string[] FlowerShrubs = { "FlowerBushCity01", "FlowerBushCity02", "FlowerBushCity03", "FlowerBushWildElderly01", "FlowerBushWild02" };
-        private static readonly string[] Shrubbery = { "GreenBushWild02", "GreenBushWildAdult01", "GreenBushWildElderly01", "FlowerBushWildElderly01", "GreenBushWild01" };
-        private static readonly string[] MeadowFlowers = { "FlowerBushWildElderly01", "FlowerBushWild02", "FlowerBushWildChild02", "GreenBushWildChild01" };
+        private static readonly string[] FlowerShrubs = { "FlowerBushCity01", "FlowerBushCity02", "FlowerBushCity03", "FlowerBushWild02", "FlowerBushWild02" };
+        private static readonly string[] Shrubbery = { "GreenBushWild02", "GreenBushWildAdult01", "GreenBushWildElderly01", "FlowerBushWild02", "GreenBushWild01" };
+        private static readonly string[] MeadowFlowers = { "FlowerBushWild02", "FlowerBushWild02", "FlowerBushWildChild02", "GreenBushWildChild01" };
         private static readonly string[] Glasshouses = { "Greenhouse02", "Greenhouse03", "Greenhouse01" };
         private static readonly string[] GardenBenches = { "GardenBench01", "GardenBench02", "GardenBench03" };
         private static readonly string[] GardenLamps = { "EU_LightpolePark03", "LightpolePark03" };

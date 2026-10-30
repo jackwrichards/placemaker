@@ -985,8 +985,8 @@ namespace Placemaker.Core.Layers.Park
             {
                 case "formal": case "modern": case "urban": case "woodland": return ParkArt.GreenShrubs;
                 case "meadow": case "wildflower": case "garden": return ParkArt.FlowerShrubs;
-                case "wild": return new[] { "GreenBushWild01", "GreenBushWildAdult01", "FlowerBushWildElderly01", "GreenBushWild02", "GreenBushWildElderly01" };
-                case "neglected": return new[] { "GreenBushWildElderly01", "FlowerBushWildDead02", "GreenBushWildAdult01", "FlowerBushWildElderly01", "GreenBushWild02", "GreenBushWildElderly01" };
+                case "wild": return new[] { "GreenBushWild01", "GreenBushWildAdult01", "FlowerBushWild02", "GreenBushWild02", "GreenBushWildElderly01" };
+                case "neglected": return new[] { "GreenBushWildElderly01", "FlowerBushWildDead02", "GreenBushWildAdult01", "FlowerBushWild02", "GreenBushWild02", "GreenBushWildElderly01" };
                 default: return ParkArt.MixedShrubs;
             }
         }
