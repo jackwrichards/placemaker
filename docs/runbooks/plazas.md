@@ -102,6 +102,19 @@ metre budget of their own so a square of many small pieces (garden rooms) never 
   fountain basins hold green shrubs (the flowerbeds drew teal-blue).
 - Runs: `show-15-builds-1030-041544-a4b7` (every shown style, 220 x 200), `show-15-builds-1030-041701-3540` (block).
 
+## Round 4 (2026-10-30)
+
+- **Grungy surround:** bare terrain (a hole in the paving field) painted dry grass with dirt speckle, a cracked asphalt lot
+  with a skip and cones, a fenced compound of containers, dirt desire paths from the gates, scrub on rubble and dead
+  trees, a poster wall. The pit is dark asphalt with dark banks: ramps and rails read from 45°.
+- **Theatre:** not capped: on a big site the bowl grows to 80 m across; a processional avenue (dark stone way, two tree
+  rows, benches, kiosks) in the entrance court, six radial allées across the lawns, picnic lawns; generic tree groups gone.
+- **Margin:** squares on big sites meet their surround at a dark kerb right on their frame.
+- **"default+" builds:** not a bug and not a saved override. "+" only de-duplicates scenario ids in the shared game; a type
+  picked with no style reopens the last design of that type used in the session (the previous request had built the big
+  market and the Christmas market), so name the style in runner requests.
+- Runs: `show-13-builds-1030-043154-56e4` (220 x 200), `show-plaza-grungy-1030-044652-451c`, `show-2-builds-1030-043307-3b90` (block).
+
 ## Numbers
 
 - Frame time (game runner, 220 x 200, camera on the whole square): grungy 2066 instances, 7.42 ms with the ground,
