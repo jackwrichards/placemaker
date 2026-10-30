@@ -76,6 +76,8 @@ namespace Placemaker.Tests
                 Assert.True(moods.Count >= 2, "a park has several distinct moods: " + string.Join(", ", moods));
                 Assert.True(w.ByCause.Keys.Any(c => c.StartsWith("mood:")), "no mood ground");
             }
+            // the country park has the community garden on: one lawn room of allotment plots
+            if (type == "park" && style == "wild") Assert.True(Fact(host, "allotmentPlots") >= 4, "allotments " + Fact(host, "allotmentPlots"));
             var lib = GroundDesignTests.Lib();
             foreach (var d in plan.Layers.SelectMany(l => l.DecalInstances)) Assert.True(lib.Get(d.Kind) != null, d.Kind);
             if (Environment.GetEnvironmentVariable("PM_WRITE_GROUND") == "1" && Wanted($"{type}-{style}") && site != "slope")

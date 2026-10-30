@@ -199,5 +199,7 @@
   "Placemaker.Park.moodGround": "Moldar o terreno",
   "Placemaker.Park.moodGround.Tooltip": "Deixa esses cantos cavar e elevar o terreno (a ravina, o outeiro, a baixada). As mudanças no terreno são permanentes.",
   "Placemaker.Park.carPark": "Estacionamento",
-  "Placemaker.Park.carPark.Tooltip": "Um pequeno estacionamento do lado da rua, ao lado da entrada principal, com árvores nas bordas (parques de 0,7 ha ou mais)."
+  "Placemaker.Park.carPark.Tooltip": "Um pequeno estacionamento do lado da rua, ao lado da entrada principal, com árvores nas bordas (parques de 0,7 ha ou mais).",
+  "Placemaker.Park.communityGarden": "Horta comunitária",
+  "Placemaker.Park.communityGarden.Tooltip": "Um gramado vira hortas: canteiros de terra trabalhada e fileiras de cultivo com caminhos de grama, galpões, caixas d'água, uma estufa e canteiros elevados."
 }

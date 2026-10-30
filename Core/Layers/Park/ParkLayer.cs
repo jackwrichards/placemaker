@@ -156,6 +156,7 @@ namespace Placemaker.Core.Layers.Park
             c.Toggle("moods", true, ControlTier.Essential, "layout").Tip();
             c.Toggle("moodGround", true, ControlTier.More, "layout").When("moods=true").Tip();
             c.Toggle("carPark", false, ControlTier.More, "boundary").Tip();
+            c.Toggle("communityGarden", false, ControlTier.More, "layout").Tip();
             c.Toggle("fence", false, ControlTier.More, "boundary");
             c.Asset("fenceAsset", AssetCategories.Fence, ControlTier.More, "boundary").When("fence=true");
 
@@ -185,6 +186,7 @@ namespace Placemaker.Core.Layers.Park
             c.Chance("curvedPaths", 0.8f);
             c.Fixed("groundSurface");
             c.Fixed("carPark");
+            c.Fixed("communityGarden");
             c.RandomRange("bushDensity", 15, 90);
             c.Chance("bikePath", 0.15f);
             c.RandomRange("smallPaths", 0, 2);
@@ -250,7 +252,7 @@ namespace Placemaker.Core.Layers.Park
             // park: native groves and long grass, a fence of its own, dirt trails, rustic benches, no lamps or loose flowerbeds.
             Preset("wild", ("style", "wild"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 22.0), ("bushDensity", 70.0),
                 ("furniture", 2.0), ("lamps", false), ("bins", false), ("belt", true), ("curvedPaths", true), ("naturalGround", true), ("naturalLayer", 1.0),
-                ("animals", true), ("trails", 2.0), ("trailStyle", "painted"), ("desireLines", "worn"), ("fence", true), ("benchAsset", "CampgroundBench01"), ("carPark", true));
+                ("animals", true), ("trails", 2.0), ("trailStyle", "painted"), ("desireLines", "worn"), ("fence", true), ("benchAsset", "CampgroundBench01"), ("carPark", true), ("communityGarden", true));
             PresetFeatures("wild", "-flowerbeds", "-playground", "-restrooms", "-bigtrees");
             PresetFeatureValues("wild", "picnic", ("groups", 2.0), ("tables", 1.0));
             // The neglected park is its own version (the user: neglect "changes the entire vibe of everything"), not a grime amount:
@@ -531,7 +533,9 @@ namespace Placemaker.Core.Layers.Park
             clock.Lap("clearings");
 
             // 3d. Places with a mood of their own (ParkMoods): they take their ground before the furniture and planting.
-            var moods = ctx.B("moods") ? ParkMoods.Plan(ctx, s, lawns, style.Id, ctx.B("moodGround")) : new List<MoodPlace>();
+            // the community garden folds in as a lawn room of allotments (ParkMoods.Allotments), with or without the other places
+            bool allotments = ctx.B("communityGarden");
+            var moods = ctx.B("moods") || allotments ? ParkMoods.Plan(ctx, s, lawns, ctx.B("moods") ? style.Id : "none", ctx.B("moodGround"), 1f, allotments) : new List<MoodPlace>();
             ctx.Check();
             clock.Lap("moods");
 
@@ -600,8 +604,12 @@ namespace Placemaker.Core.Layers.Park
             if (pondFeature && s.Lake.Length >= 3) ctx.AddRegion(s.Lake, PondPlace, PondPlace, "water");
             foreach (var (layer, rect) in amenities) ctx.AddRegion(rect.Ring, Amenities.Place(layer), Amenities.Place(layer));
             for (int i = 0; i < lawns.Count; i++)
+            {
+                // a lawn that became a place is the place's: the features (picnic, restrooms …) stay on the park's own lawns
+                if (i != coreIndex && moods.Exists(m => m.Lawn != null && Poly.Contains(m.Lawn, Poly.Centroid(lawns[i])) && Poly.Area(m.Lawn) > 0.5f * Poly.Area(lawns[i]))) continue;
                 if (i == coreIndex) ctx.AddRegion(lawns[i], "green:" + i, RegionTags.Green, RegionTags.Core);
                 else ctx.AddRegion(lawns[i], "green:" + i, RegionTags.Green);
+            }
             var strips = region.BoundaryStrips(ctx.M(BeltDepth, 4f), math.clamp((int)math.round(region.Perimeter / 250f), 2, 6));
             for (int i = 0; i < strips.Count; i++) ctx.AddRegion(strips[i], "edge:" + i, RegionTags.Edge);
             clock.Lap("regions");

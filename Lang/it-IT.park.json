@@ -199,5 +199,7 @@
   "Placemaker.Park.moodGround": "Modellare il terreno",
   "Placemaker.Park.moodGround.Tooltip": "Lascia che quei luoghi scavino e alzino il terreno (il fosso, il poggio, la conca). Le modifiche al terreno sono permanenti.",
   "Placemaker.Park.carPark": "Parcheggio",
-  "Placemaker.Park.carPark.Tooltip": "Un piccolo parcheggio sul lato della strada, accanto all'ingresso principale, con alberi lungo i bordi (parchi da 0,7 ha in su)."
+  "Placemaker.Park.carPark.Tooltip": "Un piccolo parcheggio sul lato della strada, accanto all'ingresso principale, con alberi lungo i bordi (parchi da 0,7 ha in su).",
+  "Placemaker.Park.communityGarden": "Orto comunitario",
+  "Placemaker.Park.communityGarden.Tooltip": "Un prato diventa orti: lotti di terra lavorata e filari con vialetti d'erba, capanni, cisterne d'acqua, una serra e aiuole rialzate."
 }

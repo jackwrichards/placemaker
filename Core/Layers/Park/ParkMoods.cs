@@ -29,7 +29,7 @@ using Unity.Mathematics;
 
 namespace Placemaker.Core.Layers.Park
 {
-    public enum Mood { Gully = 0, Outcrop = 1, Hollow = 2, Meadow = 3, Glade = 4, Stones = 5 }
+    public enum Mood { Gully = 0, Outcrop = 1, Hollow = 2, Meadow = 3, Glade = 4, Stones = 5, Allotment = 6 }
 
     public sealed class MoodPlace
     {
@@ -52,17 +52,18 @@ namespace Placemaker.Core.Layers.Park
     {
         public const string RegionPrefix = "mood:";
         public const string FloorTag = "mood:gullyFloor";
-        public static readonly string[] Ids = { "gully", "outcrop", "hollow", "meadow", "glade", "stones" };
+        public static readonly string[] Ids = { "gully", "outcrop", "hollow", "meadow", "glade", "stones", "allotment" };
 
         public static readonly string[] Boulders = { "Boulder01", "Boulder02", "Boulder03", "Boulder04", "Boulder05", "Boulder06", "Boulder07", "Boulder08" };
         public static readonly string[] Stones = { "Rock01", "Rock03", "Rock05", "Rock07", "Rock09", "Rock11", "Rock13", "Rock15", "Rock17", "Rock19", "Rock21", "Rock23", "Rock25", "Rock27", "Rock29",
             "Rock02", "Rock04", "Rock06", "Rock08", "Rock10", "Rock12", "Rock14", "Rock16", "Rock18", "Rock20", "Rock22", "Rock24", "Rock26", "Rock28", "Rock30" };
         public static readonly string[] Logs = { "Log02", "Log05", "Log01", "Log04", "Log08", "Log11", "Log07", "Log14" };
         public static readonly string[] StandingStones = { "StandingStone01", "StandingStone02", "StandingStone03", "StandingStone04", "StandingStone05", "StandingStone06", "StandingStone07", "StandingStone08" };
-        private static readonly string[] WetTrees = { "EU_AlderTree01", "EU_PoplarTree01", "BirchTree01", "EU_AlderTree01" };
+        private static readonly string[] WetTrees = { "EU_PoplarTree01", "EU_AlderTree01", "EU_PoplarTree01", "BirchTree01" };   // columnar poplars mark the hollow from afar
         private static readonly string[] RimTrees = { "EU_AlderTree01", "BirchTree01", "OakTree01" };
         private static readonly string[] KnollTrees = { "PineTree01", "BirchTree01", "PineTree01" };
-        private static readonly string[] CopseTrees = { "OakTree01", "BirchTree01", "NA_HickoryTree01", "EU_ChestnutTree01", "SpruceTree01", "OakTree01" };
+        // dark spires against pale meadow: the copse reads from 45° as a dark mass with a few broadleaves in it
+        private static readonly string[] CopseTrees = { "SpruceTree01", "PineTree01", "SpruceTree01", "OakTree01", "PineTree01", "BirchTree01", "SpruceTree01" };
         private static readonly string[] MeadowTrees = { "OakTree01", "BirchTree01", "EU_ChestnutTree01" };
         private static readonly string[] Scrub = { "GreenBushWild01", "GreenBushWildAdult01", "GreenBushWild02", "GreenBushWildElderly01", "FlowerBushWild02" };
         private static readonly string[] Rushes = { "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWildChild01", "GreenBushWild01" };
@@ -83,11 +84,13 @@ namespace Placemaker.Core.Layers.Park
                 case "botanical": return new[] { 0.5f, 1.8f, 1.1f, 1.4f, 0.6f, 0f };
                 case "playground": return new[] { 0.9f, 1.6f, 0.4f, 0.6f, 1.4f, 0f };
                 case "memorial": return new[] { 0f, 0.2f, 0.3f, 1.4f, 1.0f, 1.3f };
+                case "none": return new[] { 0f, 0f, 0f, 0f, 0f, 0f };   // places off: only the community garden, when asked
                 default: return new[] { 1.2f, 1.1f, 1.0f, 1.0f, 1.0f, 0.15f };
             }
         }
 
         private static float U(uint seed, int a, int b = 0) => Hashing.Unit(Hashing.Mix(seed, a, b));
+        private static float Sum(float[] a) { float s = 0f; foreach (var x in a) s += x; return s; }
         private static float Rg(uint seed, float lo, float hi, int a, int b = 0) => math.lerp(lo, hi, U(seed, a, b));
 
         // ───────────────────────── choosing the places ─────────────────────────
@@ -101,14 +104,14 @@ namespace Placemaker.Core.Layers.Park
         /// give one disc-shaped place at its far side. (First try, discs of 8-38 m anywhere: in the game they rarely fitted
         /// between the paths and read as nothing, run show-5-builds-1030-000121-ff10.)
         /// </summary>
-        public static List<MoodPlace> Plan(LayerContext ctx, ParkSite s, List<float2[]> lawns, string style, bool terrain, float amount = 1f)
+        public static List<MoodPlace> Plan(LayerContext ctx, ParkSite s, List<float2[]> lawns, string style, bool terrain, float amount = 1f, bool allotment = false)
         {
             var places = new List<MoodPlace>();
             var region = s.LayerRegion;
             if (amount <= 0f || region.Area < 1500f || lawns == null) return places;
-            // with the Terrain feature on, its landform shapes the ground: the places keep their planting and rocks, not their own
-            // terraform (the two fields together made 0.84 m steps on a hill, SiteHarmonyTests)
-            if (ctx.Input != null && ctx.Input.HasChild("terrain")) terrain = false;
+            // with the Terrain feature on, its landform is the park's character and the places step aside (only the community garden,
+            // when asked, which shapes nothing): the two together moved the picnic onto a 0.84 m step on a hill (SiteHarmonyTests)
+            if (ctx.Input != null && ctx.Input.HasChild("terrain")) { terrain = false; if (!allotment) return places; style = "none"; }
             var pal = Palette(style);
             uint seed = Hashing.Mix(ctx.Seed, 0x300Du);
             // ground statistics for the land's own reading (low, high, fall)
@@ -152,6 +155,7 @@ namespace Placemaker.Core.Layers.Park
             int lawnRooms = 0;
             foreach (var cd in cands) if (!cd.core) lawnRooms++;
             int maxPlaces = (int)math.clamp(math.round((lawnRooms + 2.5f) * amount), 1f, math.min(14f, 6f + region.Area / 40000f));   // a big park has more places
+            if (Sum(pal) <= 0f) maxPlaces = allotment ? 1 : 0;
             var taken = new List<float2>();
             foreach (var g in s.Gates) taken.Add(g.Position);
             // the open lawn keeps its heart, but a big one gives one or two places at its sides (a park with few paths has
@@ -201,7 +205,7 @@ namespace Placemaker.Core.Layers.Park
                     for (int q = 0; q < pal.Length; q++) if (pal[q] > 0f && used[q] == 0) fresh++;
                     for (int m = 0; m < w.Length; m++)
                     {
-                        float x = pal[m];
+                        float x = m < pal.Length ? pal[m] : 0f;
                         if (x <= 0f) { w[m] = 0f; continue; }
                         switch ((Mood)m)
                         {
@@ -220,10 +224,13 @@ namespace Placemaker.Core.Layers.Park
                         w[m] = x; total += x;
                     }
                 }
-                if (total <= 0f) break;
+                // the community garden option: the first lawn room big enough becomes the allotments
+                bool allot = allotment && used[(int)Mood.Allotment] == 0 && !cd.core && cd.area >= 380f;
+                if (total <= 0f && !allot) { if (pal.Length > 0 && Sum(pal) > 0f) break; continue; }
                 float pick = U(ks, 7) * total;
                 int mood = 0;
                 for (int m = 0; m < w.Length; m++) { pick -= w[m]; if (pick <= 0f) { mood = m; break; } }
+                if (allot) mood = (int)Mood.Allotment;
                 // a knoll, a hollow or a stone ring has a size of its own: in a big lawn it takes a piece round the lawn's heart and
                 // the rest of the lawn stays the park's (whole big lawns spread 50 stones thin, run show-24-builds-1030-001417-7e24)
                 float cap = Cap((Mood)mood);
@@ -516,6 +523,7 @@ namespace Placemaker.Core.Layers.Park
                     case Mood.Meadow: e.Meadow(); break;
                     case Mood.Glade: e.Glade(); break;
                     case Mood.Stones: e.StoneRing(); break;
+                    case Mood.Allotment: e.Allotments(); break;
                 }
                 e.Paint(kit);
                 rocks += e.Rocks; plants += e.Plants;
@@ -739,11 +747,11 @@ namespace Placemaker.Core.Layers.Park
                 // the crown: a clump of big stones off-centre, the biggest tilted against its neighbours
                 var crown = _p.C + Dir(R(0f, 6.283f, 100)) * _p.R * R(0.05f, 0.3f, 101);
                 int big = (int)R(5f, 9f, 102);
-                Boulder(crown, R(1.1f, 1.6f, 103) * k, 0.4f, 0.5f, true);
+                Boulder(crown, R(1.4f, 1.9f, 103) * k, 0.4f, 0.5f, true);
                 for (int i = 0; i < big; i++)
                 {
                     float a = R(0f, 6.283f, 104 + i);
-                    Boulder(crown + Dir(a) * R(1.6f, 4.2f, 110 + i) * k, R(0.45f, 1.15f, 116 + i) * k, R(0.3f, 0.55f, 122 + i), 0.9f, true);   // a massed crown, not lumps on a lawn
+                    Boulder(crown + Dir(a) * R(1.6f, 4.2f, 110 + i) * k, R(0.6f, 1.35f, 116 + i) * k, R(0.3f, 0.55f, 122 + i), 0.9f, true);   // a massed crown, not lumps on a lawn
                 }
                 // a second, smaller group elsewhere on a long knoll, and stones breaking the turf over the whole of it
                 if (LongEnough(26f))
@@ -864,6 +872,82 @@ namespace Placemaker.Core.Layers.Park
                 for (int i = 0; i < 5; i++) Bush(_p.C + Dir(R(0f, 6.283f, 1660 + i)) * _p.R * R(0.7f, 0.95f, 1670 + i), Scrub, 2.5f);
             }
 
+            // ── allotments (the community garden folded into the park) ──
+            private static readonly string[] PlotKinds = { GroundCover.Rows, GroundCover.Soil, GroundCover.Rows, GroundCover.Green, GroundCover.Plowed, GroundCover.Rows };
+            private static readonly string[] Sheds = { "ToolShed02", "ToolShed01", "ToolShed03" };
+            private static readonly string[] Tanks = { "WaterTank01", "WaterTank02" };
+            private static readonly string[] Glass = { "Greenhouse01", "Greenhouse02", "Greenhouse03" };
+            private static readonly string[] Beds = { "GardenBed01CornerHigh", "GardenBed02CornerHigh", "GardenBed03CornerHigh", "GardenBed01CornerLow" };
+
+            /// <summary>
+            /// A lawn room laid out as allotments: double rows of plots (worked soil, crop rows, greens) along the room's length with
+            /// grass walks between, a shed at the back of some plots, water tanks and a greenhouse along the middle walk, raised beds
+            /// at its head. Tidy, small and human: the community garden as a corner of the park, not a farm.
+            /// </summary>
+            public void Allotments()
+            {
+                float len = ParkMoodsLong(_p.Lawn);
+                var c0 = Poly.Centroid(_p.Lawn);
+                // the room's long axis
+                float sxx = 0f, syy = 0f, sxy = 0f;
+                foreach (var q in _p.Lawn) { var d = q - c0; sxx += d.x * d.x; syy += d.y * d.y; sxy += d.x * d.y; }
+                float ang = 0.5f * math.atan2(2f * sxy, sxx - syy);
+                var ax = new float2(math.cos(ang), math.sin(ang)); var sd = new float2(-ax.y, ax.x);
+                float u0 = float.MaxValue, u1 = float.MinValue, v0 = float.MaxValue, v1 = float.MinValue;
+                foreach (var q in _p.Lawn) { float u = math.dot(q - c0, ax), v = math.dot(q - c0, sd); u0 = math.min(u0, u); u1 = math.max(u1, u); v0 = math.min(v0, v); v1 = math.max(v1, v); }
+                const float pw = 4.2f, pd = 7f, walk = 1.4f, spine = 2.6f;
+                int plots = 0, k = 0;
+                // double rows: plot | walk-side ... each pair of rows shares a spine walk
+                for (float v = v0 + 1f; v + 2f * pd + spine <= v1 - 1f; v += 2f * pd + spine + walk)
+                {
+                    for (int side = 0; side < 2; side++)
+                    {
+                        float vc = v + (side == 0 ? pd * 0.5f : pd * 1.5f + spine);
+                        for (float u = u0 + 1f; u + pw <= u1 - 1f; u += pw + walk)
+                        {
+                            k++;
+                            var cc = c0 + ax * (u + pw * 0.5f) + sd * vc;
+                            var ring = new[] { cc - ax * pw * 0.5f - sd * pd * 0.5f, cc + ax * pw * 0.5f - sd * pd * 0.5f, cc + ax * pw * 0.5f + sd * pd * 0.5f, cc - ax * pw * 0.5f + sd * pd * 0.5f };
+                            bool ok = true;
+                            foreach (var q in ring) if (ParkMoods.Edge(_p, q) < 0.8f || _s.Occ.Corridors.Overlaps(q, 0.8f, 0.3f) || Reserved(q, 0.6f)) { ok = false; break; }
+                            if (!ok) continue;
+                            _n++;
+                            if (U(2000 + k) < 0.08f) continue;   // an empty plot, gone to grass
+                            GroundCover.Field(_ctx, ring, PlotKinds[(int)(Hashing.Mix(_v, (uint)k) % (uint)PlotKinds.Length)]);
+                            _mine.Add((cc, math.min(pw, pd) * 0.5f));
+                            plots++;
+                            // a shed at the back of one plot in three (the back = away from the spine walk)
+                            if (U(2100 + k) < 0.34f)
+                            {
+                                var back = cc + sd * (side == 0 ? -1f : 1f) * (pd * 0.5f - 0.9f) + ax * (pw * 0.5f - 0.8f) * (U(2200 + k) < 0.5f ? -1f : 1f);
+                                var o = _ctx.Object(back, math.atan2(sd.x, sd.y) + (side == 0 ? 0f : math.PI), ObjectRole.Furniture, new AssetRef(Pick(Sheds, 3), Sheds), Var(), -1, AssetCategories.GardenShed);
+                                Rocks++;
+                            }
+                        }
+                    }
+                    // along the spine walk: a water tank and, once, a greenhouse
+                    var mid = c0 + sd * (v + pd + spine * 0.5f);
+                    for (int t = 0; t < 2; t++)
+                    {
+                        var q = mid + ax * math.lerp(u0 + 3f, u1 - 3f, U(2300 + t + (int)v));
+                        if (ParkMoods.Edge(_p, q) < 1.5f || _s.Occ.Corridors.Overlaps(q, 1.2f, 0.3f)) continue;
+                        bool glass = t == 1 && U(2400 + (int)v) < 0.6f;
+                        _ctx.Object(q, math.atan2(ax.x, ax.y), ObjectRole.Furniture, glass ? new AssetRef(Pick(Glass, 4), Glass) : new AssetRef(Pick(Tanks, 5), Tanks), Var(), -1, glass ? AssetCategories.Glasshouse : AssetCategories.GardenShed);
+                        Rocks++;
+                    }
+                }
+                // raised beds at the room's head, by the nearest path
+                var head = c0 + ax * (u0 + 2f);
+                for (int i = 0; i < 4; i++)
+                {
+                    var q = head + sd * ((i - 1.5f) * 2.6f);
+                    if (ParkMoods.Edge(_p, q) < 1f || _s.Occ.Corridors.Overlaps(q, 1.2f, 0.3f)) continue;
+                    _ctx.Object(q, math.atan2(ax.x, ax.y), ObjectRole.Furniture, new AssetRef(Pick(Beds, 6 + i), Beds), Var(), -1, AssetCategories.GardenCrop);
+                    Rocks++;
+                }
+                _ctx.Plan.Facts["allotmentPlots"] = plots;
+            }
+
             // ── paint ──
             public void Paint(Placemaker.Core.Paint.PaintKit kit)
             {
@@ -871,22 +955,22 @@ namespace Placemaker.Core.Layers.Park
                 switch (_p.Mood)
                 {
                     case Mood.Gully:
-                        TerrainPaint.Patch(_ctx, Channel(_p.Line, _p.Half * 0.95f), TerrainMaterials.Dry, 0.55f, 3f);
-                        TerrainPaint.Patch(_ctx, Channel(_p.Line, _p.Floor + 1.2f), TerrainMaterials.Dirt, 0.8f, 1.5f);
+                        TerrainPaint.Patch(_ctx, Channel(_p.Line, _p.Half * 0.95f), TerrainMaterials.Dry, 0.8f, 3f);
+                        TerrainPaint.Patch(_ctx, Channel(_p.Line, _p.Floor + 1.2f), TerrainMaterials.Dirt, 1f, 1.5f);
                         break;
                     case Mood.Outcrop:
-                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Dry, 0.7f, 3f);
-                        TerrainPaint.Patch(_ctx, LeisureKit.Blob(_p.C, _p.R * 0.5f, v + 1u, 14, 0.35f), TerrainMaterials.Dirt, 0.6f, 2.5f);
+                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Dry, 0.9f, 3f);
+                        TerrainPaint.Patch(_ctx, LeisureKit.Blob(_p.C, _p.R * 0.65f, v + 1u, 14, 0.35f), TerrainMaterials.Dirt, 0.9f, 2.5f);
                         break;
                     case Mood.Hollow:
-                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Lush, 0.75f, 3f);
-                        TerrainPaint.Patch(_ctx, LeisureKit.Blob(_p.C, _p.R * 0.35f, v + 1u, 14, 0.3f), TerrainMaterials.Dirt, 0.55f, 2f);
+                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Lush, 1f, 3f);
+                        TerrainPaint.Patch(_ctx, LeisureKit.Blob(_p.C, _p.R * 0.35f, v + 1u, 14, 0.3f), TerrainMaterials.Dirt, 0.7f, 2f);
                         break;
                     case Mood.Meadow:
-                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Dry, 0.85f, 4f);
+                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Dry, 1f, 4f);
                         break;
                     case Mood.Glade:
-                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Dirt, 0.45f, 4f);
+                        TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Dirt, 0.65f, 4f);
                         break;
                     case Mood.Stones:
                         TerrainPaint.Patch(_ctx, _p.Lawn, TerrainMaterials.Dry, 0.75f, 3f);

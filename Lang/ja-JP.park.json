@@ -199,5 +199,7 @@
   "Placemaker.Park.moodGround": "地形を造る",
   "Placemaker.Park.moodGround.Tooltip": "それらの場所が地面を掘り下げたり盛り上げたりします（涸れ沢、小丘、窪地）。地形の変更は元に戻りません。",
   "Placemaker.Park.carPark": "駐車場",
-  "Placemaker.Park.carPark.Tooltip": "通り側、正面入口の隣にある木に縁取られた小さな駐車場です（0.7 ha 以上の公園）。"
+  "Placemaker.Park.carPark.Tooltip": "通り側、正面入口の隣にある木に縁取られた小さな駐車場です（0.7 ha 以上の公園）。",
+  "Placemaker.Park.communityGarden": "コミュニティガーデン",
+  "Placemaker.Park.communityGarden.Tooltip": "芝生の一区画が市民農園になります：耕した土と作物の畝の区画、その間の芝の通路、物置、貯水タンク、温室、レイズドベッド。"
 }

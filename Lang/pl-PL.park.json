@@ -199,5 +199,7 @@
   "Placemaker.Park.moodGround": "Kształtuj teren",
   "Placemaker.Park.moodGround.Tooltip": "Pozwala tym miejscom obniżać i podnosić teren (jar, pagórek, zagłębienie). Zmiany terenu są trwałe.",
   "Placemaker.Park.carPark": "Parking",
-  "Placemaker.Park.carPark.Tooltip": "Mały parking od strony ulicy, obok głównego wejścia, z drzewami wzdłuż krawędzi (parki od 0,7 ha)."
+  "Placemaker.Park.carPark.Tooltip": "Mały parking od strony ulicy, obok głównego wejścia, z drzewami wzdłuż krawędzi (parki od 0,7 ha).",
+  "Placemaker.Park.communityGarden": "Ogród społeczny",
+  "Placemaker.Park.communityGarden.Tooltip": "Jeden trawnik staje się działkami: poletka uprawnej ziemi i grządek z trawiastymi ścieżkami, szopy, zbiorniki na wodę, szklarnia i podwyższone grządki."
 }

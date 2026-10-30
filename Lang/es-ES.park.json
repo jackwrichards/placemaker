@@ -199,5 +199,7 @@
   "Placemaker.Park.moodGround": "Modelar el terreno",
   "Placemaker.Park.moodGround.Tooltip": "Deja que esos rincones excaven y eleven el terreno (la barranca, el otero, la hondonada). Los cambios de terreno son permanentes.",
   "Placemaker.Park.carPark": "Aparcamiento",
-  "Placemaker.Park.carPark.Tooltip": "Un pequeño aparcamiento junto a la calle, al lado de la entrada principal, con árboles en sus bordes (parques de 0,7 ha o más)."
+  "Placemaker.Park.carPark.Tooltip": "Un pequeño aparcamiento junto a la calle, al lado de la entrada principal, con árboles en sus bordes (parques de 0,7 ha o más).",
+  "Placemaker.Park.communityGarden": "Huerto comunitario",
+  "Placemaker.Park.communityGarden.Tooltip": "Un prado se convierte en huertos: parcelas de tierra trabajada e hileras de cultivo con caminos de hierba, casetas, depósitos de agua, un invernadero y bancales elevados."
 }
