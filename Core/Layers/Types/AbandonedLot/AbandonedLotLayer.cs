@@ -566,18 +566,18 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 float s = (Hashing.Unit(Hashing.Mix(h, 1u)) - 0.5f) * reach * 0.9f;
                 var c = g0 + inw * d + side * s;
                 if (!region.ContainsDisc(c, 7f)) continue;
-                int heaps = 2 + (int)(Hashing.Unit(Hashing.Mix(h, 2u)) * 3f);
-                float big = 1.25f + 0.55f * Hashing.Unit(Hashing.Mix(h, 3u));
+                int heaps = 4 + (int)(Hashing.Unit(Hashing.Mix(h, 2u)) * 3f);   // one load = a run of heaps tipped together
+                float big = 1.6f + 0.6f * Hashing.Unit(Hashing.Mix(h, 3u));
                 var dir = math.normalizesafe(inw + side * (Hashing.Unit(Hashing.Mix(h, 4u)) - 0.5f));
                 int here = 0;
                 for (int k = 0; k < heaps; k++)
                 {
-                    var p = c + dir * ((k - heaps * 0.5f) * 3.6f * big) + new float2(-dir.y, dir.x) * ((Hashing.Unit(Hashing.Mix(h, 10u + (uint)k)) - 0.5f) * 3f);
-                    if (!region.ContainsDisc(p, 4f) || zones.Inside(p, 1f) || !occ.Free(p, 3.5f * big, 0.3f, 0f)) continue;
+                    var p = c + dir * ((k - heaps * 0.5f) * 2.4f * big) + new float2(-dir.y, dir.x) * ((Hashing.Unit(Hashing.Mix(h, 10u + (uint)k)) - 0.5f) * 4f);
+                    if (!region.ContainsDisc(p, 4f) || zones.Inside(p, 1f) || !occ.Free(p, 2f, 0.2f, 0f)) continue;
                     uint v = Hashing.Mix(h, 20u + (uint)k);
                     var o = ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(ids, v), v, -1, cat);
                     o.Scale = big * (0.85f + 0.3f * Hashing.Unit(Hashing.Mix(v, 1u)));
-                    occ.Take(p, 4.5f * big, 2);
+                    occ.Take(p, 2.2f * big, 2);
                     here++; placed++;
                 }
                 if (here == 0) continue;
