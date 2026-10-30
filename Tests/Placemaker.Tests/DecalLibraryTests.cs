@@ -103,14 +103,18 @@ namespace Placemaker.Tests
         public void TheWholeLibraryFitsTheBudget()
         {
             long bytes = 0; int n = 0;
+            var byFamily = new SortedDictionary<string, long>();
             foreach (var k in Shared(Library()))
                 for (int i = 0; i < k.Variants.Count; i++)
                 {
                     var v = DecalVariants.Get(k, i);
                     var (w, h) = Pixels(k, v);
-                    bytes += DecalVariants.GpuBytes(w, h); n++;
+                    long b = DecalVariants.GpuBytes(w, h);
+                    bytes += b; n++;
+                    byFamily[k.Family] = (byFamily.TryGetValue(k.Family, out var f) ? f : 0) + b;
                 }
             _out.WriteLine($"{n} variants, {bytes / 1048576.0:F1} MiB on the GPU");
+            foreach (var kv in byFamily) _out.WriteLine($"  {kv.Key}: {kv.Value / 1048576.0:F1} MiB");
             Assert.True(bytes <= BudgetBytes, $"library {bytes / 1048576.0:F1} MiB over the {BudgetBytes / 1048576} MiB budget");
         }
 

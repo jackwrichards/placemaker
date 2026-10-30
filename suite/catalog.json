@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+04e129f0-dirty",
+  "assembly": "0.3.6+beecd8cf",
   "categories": [
     {
       "id": "zoning",
@@ -29595,6 +29595,7 @@
         }
       ],
       "shelvedStyles": [
+        "tea",
         "moss",
         "bamboo"
       ]

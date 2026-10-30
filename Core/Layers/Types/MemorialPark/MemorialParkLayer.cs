@@ -183,7 +183,7 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
             if (st.Moods != null || !ctx.B("moods")) return;
             st.MoodSite = new ParkSite { LayerRegion = st.Region, Occ = st.Occ, Seed = ctx.Seed, Cancel = ctx.Cancel, Gates = st.Gates };
             if (st.Vista > 0f) st.Occ.TakeCorridor(st.VistaA, st.VistaB, st.Vista + 2f, 7);   // the vista stays open
-            var open = FreeSpace.Pieces(st.Region, p => st.Occ.Corridors.Overlaps(p, 0.75f), 2f, 80f, ctx.Cancel);
+            var open = FreeSpace.Pieces(st.Region, p => st.Occ.Corridors.Overlaps(p, 0.75f) || st.Occ.Discs.Overlaps(p, 2f) || st.Occ.HitsPolygon(p, 1f), 2f, 80f, ctx.Cancel);   // the ground the groves, rooms and monument left
             st.Moods = ParkMoods.Plan(ctx, st.MoodSite, open, "memorial", true, 0.8f);
         }
 
@@ -470,12 +470,14 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
             if (ctx.B("allees")) Allees(st, spans, alleeOff);
             if (ctx.B("borders")) Borders(st, spans, inner + 1.5f);
             st.VistaA = start; st.VistaB = centreFocus ? far : mon; st.Vista = alleeOff + 2f;
-            PlanMoods(st);
             if (ctx.B("bosque"))
             {
                 float roomsOut = ctx.B("rooms") ? roomsFrom + ctx.F("roomSize") * 0.84f + 4f : (ctx.B("allees") ? alleeOff + 5f : inner + 6f);
                 Bosques(st, start, dir, math.distance(start, centreFocus ? far : mon), roomsOut);
             }
+            // the groves first (they give the memorial its structure: without them its side lawns read empty, run
+            // show-23-builds-1030-012225-3eac); the places take the ground the groves leave
+            PlanMoods(st);
             vistaA = start; vistaB = centreFocus ? far : mon; vista = alleeOff + 2f;
             ctx.Plan.Facts["axisLength"] = math.distance(start, mon);
             return true;

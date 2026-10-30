@@ -137,3 +137,27 @@ overflowing. It logs when it grows the list and warns if it ever finds the list 
 - Planning (`ParkGroundTests.TinyAndHugeParksStayQuick`, natural, rolling ground): 24 x 24 m 0.2 s; 600 x 600 m 1.5-1.6 s
   compose with 4660 instances at 83 % density, 8 places, weathering 0.7 s (most of it the shared trees pass).
 - A city block: 600-1000 instances (budget 700 a hectare).
+
+## Final runs (branch head)
+
+| Run id | What it shows |
+|---|---|
+| `show-23-builds-1030-012225-3eac` | every shown Parks style on a city block, 45 / close / low / terrain: 23 of 23 built |
+| `show-4-builds-1030-012225-9daf` | park natural, wild, picnic, urban on 220 x 200 hills: 4 of 4 built |
+| `show-4-builds-1030-004839-bb67` | park styles on a 6 % slope, 220 x 200 (knolls and gullies read in the terrain maps) |
+| `send-ground-parks-1030-004853` | frame time (above) |
+
+GPU: the `parks` family is 47 variants, 9.7 MiB (whole shared library 178.1 MiB in this branch; `DecalLibraryTests`
+now prints MiB per family).
+
+## Left to do
+
+- The user has not graded it. From the pictures: the places read clearly in the close and low views and in the rooms of
+  a park with many paths; from 45° over a whole city block they are still quieter than the trees (the knolls rise 1-2.5 m,
+  the gullies cut 1-2 m; deeper would need steeper banks than the harmony checks allow).
+- Community garden is still its own hidden type (the user said it "can" come into parks): an amenity would need a park
+  place for the allotments' layer; not done.
+- `SiteHarmonyTests` park on a bumpy hill with the Terrain feature: 0.84 m step (limit 0.8) at a picnic shelter's pad
+  whose spot moved because the places took lawns; the places do not terraform with the Terrain feature on.
+- Last commits after `show-23-builds-1030-012225-3eac` (memorial groves before places, creamier meadow flowers, leaner
+  decal family, botanical bed edging, massed boulder crowns) passed the tests but were not seen in the game.
