@@ -143,8 +143,8 @@ namespace Placemaker.Core.Layers.Types.Landfill
         private static AssetRef HaulGround => new AssetRef("Terrain Surfaces Pack Rock gaga TTP - Smaller Pebbles grey M Surface", "Ore Surface 01");
         /// <summary>Tipped waste: the game's own landfill ground.</summary>
         private static AssetRef WasteGround => new AssetRef("Landfill Surface 01", "Placemaker Overlay (Landfill Surface 01)", "Oil Surface 01");
-        /// <summary>Daily cover on the tip: brown soil.</summary>
-        private static AssetRef CoverGround => new AssetRef("Terrain Surfaces Pack Ground gaga TTP - Soil M Surface", "EAI - Surface Pack Ground Mud Surface", "Oil Surface 01");
+        /// <summary>Daily cover on the tip: brown soil (P2-4: the vanilla fallback was the oil field's pale sand, a bleached disc from 45°).</summary>
+        private static AssetRef CoverGround => new AssetRef("Terrain Surfaces Pack Ground gaga TTP - Soil M Surface", "EAI - Surface Pack Ground Mud Surface", "Forestry Surface 01");
         /// <summary>Compost windrows: dark ploughed soil.</summary>
         private static AssetRef CompostGround => new AssetRef("Farming Surfaces & Decals Ground Haristess - 1-2 - MudPlowed1 Surface", "Farming Surfaces & Decals Ground Haristess - 1-1 - MudSoil1 Brown Surface", "Forestry Surface 01");
         private static readonly GritAssets.Set CompostPiles = new GritAssets.Set(false, "CoalTruck01_OrePile01", "Prop_CoalTruck01_CoalPile01_Partial2|CoalTruck01_CoalPile01", "CoalTruck01_OrePile01", "Prop_CoalTruck01_OrePile01_Full|CoalTruck01_OrePile01");
@@ -298,10 +298,19 @@ namespace Placemaker.Core.Layers.Types.Landfill
             YardKit.Haul(ctx, s.Occ, line, 8f, SurfaceRole.Ground, HaulGround, haulCat);
             foreach (var p in line) s.Wet.Add(p);
 
-            // Daily-cover soil over the whole tip (the mound read as bare grass before); the face goes on top.
+            // Daily-cover soil on the top and down the working side; the far flanks are older cells, capped and grassed (P2-4: soil
+            // over the whole tip read as one pale disc). A ragged edge, as the cover is pushed out load by load.
             {
-                var ring = new float2[28];
-                for (int i = 0; i < ring.Length; i++) ring[i] = m.At(Dir(i * math.PI * 2f / ring.Length), 0.97f);
+                var ring = new float2[48];
+                uint ws = s.Salt(0xC0AEu);
+                for (int i = 0; i < ring.Length; i++)
+                {
+                    float ang = i * math.PI * 2f / ring.Length;
+                    float off = face ? math.abs(AngleTo(m.At(Dir(ang), 1f), m.Center, a0)) : math.PI;
+                    float work = 1f - math.smoothstep(half + 0.7f, half + 1.3f, off);
+                    float r = math.lerp(0.58f, 0.97f, work) * (1f + 0.07f * (ValueNoise.Sample(new float2(ang * 2.2f, 0.5f), ws) - 0.5f) * 2f);
+                    ring[i] = m.At(Dir(ang), math.min(0.98f, r));
+                }
                 YardKit.Patch(ctx, Poly.EnsureCcw(ring), SurfaceRole.Ground, CoverGround, haulCat);
             }
             if (face)

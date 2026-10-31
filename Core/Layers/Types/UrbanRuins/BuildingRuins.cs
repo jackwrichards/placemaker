@@ -117,8 +117,9 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                     res.Walls.Add((p - t * 1.4f, p + t * 1.4f));
                 }
             }
-            // the basement's own walls stand round the hole (dark masonry on every side, a gap where the stair went down): the pit reads
-            // as a room that fell in, not as a dip in the lawn
+            // the basement's own walls: what is left of them stands in broken stretches at the hole's edge, a third or so of the rim,
+            // low and clumped (a corner here, a run there), a gap where the stair went down. P2-4: a continuous double wall all round
+            // the hole read from the street as a border fence round a pit (the user: "the border around the hole").
             if (res.Pit != null)
             {
                 var pr = res.Pit;
@@ -134,13 +135,12 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                         if (e == 0 && s0 > len0 * 0.4f && s0 < len0 * 0.6f) continue;
                         var p = a0 + t0 * s0 + outN * 0.9f;
                         uint v = Hashing.Mix(seed, 0xBA5Eu + (uint)e * 131u + (uint)(s0 * 10f));
+                        float corner = math.min(s0, len0 - s0);
+                        float keepOdds = corner < 4f ? 0.75f : 0.3f;
+                        if (ValueNoise.Clumps(p, 6f, Hashing.Mix(seed, 0xBA5Fu)) < 1f - keepOdds) continue;
                         if (!occ.Free(p, 0.5f, 0.1f, 0f) && !region.Contains(p)) continue;
-                        // a masonry retaining wall: two skins side by side, standing a metre and a half over the hole
-                        foreach (float skin in new[] { 0f, 0.22f })
-                        {
-                            var o = ctx.Object(p + outN * skin, yaw0, ObjectRole.Furniture, AssetMix.Pick(Tall, v + (uint)(skin * 10f)), v, -1, AssetCategories.RuinsWall);
-                            o.Scale = 1.5f + 0.35f * Hashing.Unit(Hashing.Mix(v, 7u));
-                        }
+                        var o = ctx.Object(p, yaw0, ObjectRole.Furniture, AssetMix.Pick(corner < 4f ? Tall : Low, v), v, -1, AssetCategories.RuinsWall);
+                        o.Scale = corner < 4f ? 1.1f + 0.4f * Hashing.Unit(Hashing.Mix(v, 7u)) : 1f;
                         res.WallPieces++;
                     }
                 }
