@@ -578,3 +578,55 @@
     flex: 1 1 auto;
     min-width: 0;
 }
+
+// (P2-1) Manage with nothing picked: the car park list
+.carParks {
+    margin-top: 6rem;
+}
+
+.carParksHead {
+    @include row;
+    min-width: 0;
+    margin-bottom: 4rem;
+}
+
+.carParksTotal {
+    margin-left: auto;
+    font-size: $fs;
+    color: $c-text-dim;
+    white-space: nowrap;
+}
+
+.carParkRow {
+    @include row;
+    min-width: 0;
+    padding: 4rem 6rem;
+    margin-bottom: 2rem;
+    border-radius: 4rem;
+    background-color: rgba(255, 255, 255, 0.04);
+    cursor: pointer;
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+.carParkName {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: $fs;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.carParkTaken,
+.carParkFee {
+    margin-left: 10rem;
+    font-size: $fs;
+    white-space: nowrap;
+}
+
+.carParkFee {
+    min-width: 40rem;
+    text-align: right;
+}

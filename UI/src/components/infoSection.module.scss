@@ -76,6 +76,11 @@
 }
 
 // (P2-1) the parking fee row
+.occupancy {
+    margin: 4rem 0 0 0;
+    font-size: 13rem;
+}
+
 .fee {
     display: flex;
     flex-direction: column;

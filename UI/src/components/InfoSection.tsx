@@ -13,8 +13,8 @@ import { formatValue, money } from "../lib/format";
 import { ErrorBoundary } from "../lib/errorBoundary";
 import { VC } from "../lib/vanilla";
 import { RenameField } from "../stages/ManageStage";
-import { Btn, Icon, Switch } from "./common";
-import { Slider } from "../controls/Slider";
+import { Btn, Icon } from "./common";
+import { CarParkRows } from "./FeeRow";
 import s from "./infoSection.module.scss";
 
 export const INFO_SECTION_TYPE = "Placemaker.Game.Groups.PlacemakerGroupSection";
@@ -37,40 +37,9 @@ type Props = {
     /** (P2-1) The car park's fee per park (-1 or absent = not a car park), and whether it is charged. */
     fee?: number;
     feeOn?: boolean;
-};
-
-/**
- * (P2-1) The parking fee of a placed car park, as Parking Lot Tool has it: a switch (off keeps the amount) and the amount per park.
- * Applies at once, no rebuild (C# ParkingEconomySystem writes it on every stall's parking lane).
- */
-const FeeRow = ({ id, fee, on }: { id: number; fee: number; on: boolean }) => {
-    const { t } = useT();
-    const [shown, setShown] = useState(fee > 0 ? fee : 10);
-    return (
-        <div className={s.fee} data-testid="info-fee">
-            <div className={s.feeHead}>
-                <div className={s.feeLabel}>{t("Placemaker.UI.Info.Fee", "Parking fee")}</div>
-                <Switch testId="info-fee-on" on={on} onChange={(v) => act.setGroupFeeOn(id, v)} />
-            </div>
-            {on ? (
-                <Slider
-                    value={shown}
-                    min={1}
-                    max={50}
-                    step={1}
-                    unit="money"
-                    testId="info-fee-amount"
-                    onPreview={(v) => setShown(v)}
-                    onCommit={(v) => {
-                        setShown(v);
-                        act.setGroupFee(id, v);
-                    }}
-                />
-            ) : (
-                <div className={s.facts}>{t("Placemaker.UI.Info.FeeOff", "Free: drivers park here without paying.")}</div>
-            )}
-        </div>
-    );
+    /** (P2-1) Its stalls and the parked cars on them (-1 = not counted / not a car park). */
+    spaces?: number;
+    taken?: number;
 };
 
 const Inner = (p: Props) => {
@@ -103,7 +72,7 @@ const Inner = (p: Props) => {
                     {typeof p.upkeep === "number" ? (stats.length ? " · " : "") + money(p.upkeep) + t("Placemaker.UI.PerMonth", "/mo") : ""}
                 </div>
             ) : null}
-            {typeof p.fee === "number" && p.fee >= 0 && id >= 0 ? <FeeRow id={id} fee={p.fee} on={!!p.feeOn} /> : null}
+            {typeof p.fee === "number" && p.fee >= 0 && id >= 0 ? <CarParkRows id={id} fee={p.fee} on={!!p.feeOn} spaces={p.spaces} taken={p.taken} /> : null}
             {p.missingAssets ? (
                 <div className={s.note} data-testid="info-missing">
                     <Icon name="warning" size={14} color="#ffb547" />

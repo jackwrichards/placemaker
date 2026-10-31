@@ -2,9 +2,10 @@
 // Edit / Rename / Remove (with confirmation). The same actions appear in the vanilla selected-info
 // panel via PlacemakerInfoSection.
 import React, { useState } from "react";
-import { ManagedGroup } from "../contract";
-import { act } from "../lib/bindings";
-import { Money } from "../lib/format";
+import { CarParkRow, ManagedGroup } from "../contract";
+import { act, useCarParks } from "../lib/bindings";
+import { Money, money } from "../lib/format";
+import { CarParkRows } from "../components/FeeRow";
 import { useT } from "../lib/l10n";
 import { Btn, Icon } from "../components/common";
 import { Confirm } from "../components/dialog";
@@ -87,6 +88,42 @@ export const RenameField = ({ id, name, onDone }: { id: number; name: string; on
     );
 };
 
+/** (P2-1) Nothing picked: every car park with how full it is and its fee (Parking Lot Tool's lot list); a click shows it. */
+const CarParkList = () => {
+    const { t, tl } = useT();
+    const rows = useCarParks();
+    if (!rows.length) return null;
+    const spaces = rows.reduce((n, r) => n + r.spaces, 0);
+    const taken = rows.reduce((n, r) => n + r.taken, 0);
+    const open = (r: CarParkRow) => {
+        if (r.at) act.locate(r.at);
+        act.manageGroup(r.id);
+    };
+    return (
+        <div className={s.carParks} data-testid="manage-car-parks">
+            <div className={s.carParksHead}>
+                <div className={s.bigLabel}>{t("Placemaker.UI.Manage.CarParks", "Your car parks")}</div>
+                <div className={s.carParksTotal}>{t("Placemaker.UI.Info.Taken", "{0} of {1} spaces taken", [String(taken), String(spaces)])}</div>
+            </div>
+            {rows.map((r) => (
+                <div
+                    key={r.id}
+                    className={s.carParkRow}
+                    data-testid="manage-car-park"
+                    onClick={() => open(r)}
+                    title={t("Placemaker.UI.Manage.CarParkTip", "Show it and manage it")}
+                >
+                    <div className={s.carParkName}>{r.customName || tl(r.recipeName)}</div>
+                    <div className={s.carParkTaken}>
+                        {r.taken}/{r.spaces}
+                    </div>
+                    <div className={s.carParkFee}>{r.feeOn ? money(r.fee) : t("Placemaker.UI.Manage.Free", "Free")}</div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
 export const ManageStage = ({ group }: { group: ManagedGroup | null }) => {
     const { t, tl } = useT();
     const [renaming, setRenaming] = useState(false);
@@ -96,6 +133,7 @@ export const ManageStage = ({ group }: { group: ManagedGroup | null }) => {
         return (
             <div className={s.stage} data-testid="stage-manage">
                 <div className={s.emptyNote}>{t("Placemaker.UI.Manage.Hover", "Click something you built to edit it")}</div>
+                <CarParkList />
             </div>
         );
     }
@@ -120,6 +158,9 @@ export const ManageStage = ({ group }: { group: ManagedGroup | null }) => {
                         <StatChip key={st.key + st.unit} k={st.key} value={st.value} unit={st.unit} />
                     ))}
                 </div>
+            ) : null}
+            {group.parking ? (
+                <CarParkRows id={group.id} fee={group.parking.fee} on={group.parking.feeOn} spaces={group.parking.spaces} taken={group.parking.taken} />
             ) : null}
             <div className={s.manageUpkeep}>
                 <div className={s.bigLabel}>{t("Placemaker.UI.Review.Upkeep", "Upkeep")}</div>

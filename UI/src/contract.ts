@@ -705,6 +705,20 @@ export interface ManagedGroup {
   stats: Stat[];
   upkeep: number;
   canEdit: boolean;
+  /** (P2-1) a car park: its fee (money per park; feeOn false = free, amount kept) and how full it is (spaces = stalls). */
+  parking?: { fee: number; feeOn: boolean; spaces?: number; taken?: number };
+}
+
+/** carParks — (P2-1) every car park for Manage's list (Parking Lot Tool's lot list); pushed while Manage is open. */
+export interface CarParkRow {
+  id: number;
+  recipeName: LocText;
+  customName?: string;
+  spaces: number;
+  taken: number;
+  fee: number;
+  feeOn: boolean;
+  at?: [number, number, number];   // the outline's centre, for the camera
 }
 
 export const Values = {
@@ -714,6 +728,7 @@ export const Values = {
   summary: "summary",       // Summary
   assets: "assets",         // AssetLists
   managed: "managed",       // ManagedGroup | null
+  carParks: "carParks",     // CarParkRow[] (P2-1)
   ai: "ai",                 // AiView | null (null while the AI builder option is off; docs/AI-BUILDER.md)
   sitePlan: "sitePlan",     // SitePlanView | null (additive, sketch study)
 } as const;

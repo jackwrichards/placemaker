@@ -35,6 +35,8 @@ namespace Placemaker.Game.Groups
         /// <summary>(P2-1) The parking fee (Game.Net.ParkingLane.m_ParkingFee on every stall): -1 = not a car park.</summary>
         private int _fee = -1;
         private bool _feeOn;
+        /// <summary>(P2-1) Spaces and parked cars ("x of y taken", as PLT): -1 = not a car park.</summary>
+        private int _spaces = -1, _taken;
         private global::Placemaker.Game.Economy.ParkingEconomySystem _economy;
 
         protected override string group => nameof(PlacemakerGroupSection);
@@ -81,6 +83,8 @@ namespace Placemaker.Game.Groups
         {
             _fee = -1;
             _feeOn = false;
+            _spaces = -1;
+            _taken = 0;
             _groupId = 0;
             _name = "";
             _recipeNameKey = "";
@@ -130,6 +134,7 @@ namespace Placemaker.Game.Groups
             _modified = rec != null && (rec.Flags & Core.Build.GroupFlags.Modified) != 0;
             _removing = _registry.IsRemoving(_groupId);
             if (_economy != null && _economy.TryFee(_groupId, out int amount, out bool on)) { _fee = amount; _feeOn = on; }
+            if (_economy != null && _economy.TryOccupancy(_groupId, out int spaces, out int taken)) { _spaces = spaces; _taken = taken; }
         }
 
         public override void OnWriteProperties(IJsonWriter writer)
@@ -166,6 +171,10 @@ namespace Placemaker.Game.Groups
             writer.Write(_fee);
             writer.PropertyName("feeOn");
             writer.Write(_feeOn);
+            writer.PropertyName("spaces");
+            writer.Write(_spaces);
+            writer.PropertyName("taken");
+            writer.Write(_taken);
         }
 
         [Preserve]

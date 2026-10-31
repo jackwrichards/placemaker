@@ -119,6 +119,49 @@ namespace Placemaker.Game.Economy
             _refreshGroups.Add(groupId);
         }
 
+        private readonly Dictionary<int, (int Spaces, int Taken)> _occupancy = new Dictionary<int, (int, int)>();
+        private int _occupancyFrame = -1000;
+
+        /// <summary>
+        /// (P2-1) Spaces and parked cars per car park (PLT's "x of y taken"): every parking lane of a group and the parked cars
+        /// on it (Game.Net.LaneObject). Counted at most once a second, on demand (the panel asks).
+        /// </summary>
+        public bool TryOccupancy(int groupId, out int spaces, out int taken)
+        {
+            RefreshOccupancy();
+            spaces = taken = 0;
+            if (!_occupancy.TryGetValue(groupId, out var o)) return false;
+            spaces = o.Spaces; taken = o.Taken;
+            return true;
+        }
+
+        /// <summary>Every car park with its occupancy (ids in build order).</summary>
+        public IEnumerable<KeyValuePair<int, (int Spaces, int Taken)>> AllOccupancy()
+        {
+            RefreshOccupancy();
+            return _occupancy;
+        }
+
+        private void RefreshOccupancy()
+        {
+            int frame = UnityEngine.Time.frameCount;
+            if (frame - _occupancyFrame < 60 && frame >= _occupancyFrame) return;
+            _occupancyFrame = frame;
+            _occupancy.Clear();
+            using var lanes = _allLanes.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < lanes.Length; i++)
+            {
+                int group = GroupOfLane(lanes[i]);
+                if (group == 0 || !AppliesTo(group)) continue;
+                int cars = 0;
+                if (EntityManager.HasBuffer<global::Game.Net.LaneObject>(lanes[i]))
+                    foreach (var o in EntityManager.GetBuffer<global::Game.Net.LaneObject>(lanes[i], true))
+                        if (EntityManager.HasComponent<global::Game.Vehicles.ParkedCar>(o.m_LaneObject)) cars++;
+                _occupancy.TryGetValue(group, out var n);
+                _occupancy[group] = (n.Spaces + 1, n.Taken + cars);
+            }
+        }
+
         /// <summary>Real stall count from the lanes (0 until counted).</summary>
         public int CapacityOf(int groupId) => _capacity.TryGetValue(groupId, out var c) ? c : 0;
 

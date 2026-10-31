@@ -9,7 +9,7 @@ import { useMemo } from "react";
 import { guardAiLeave } from "./aiLeave";
 import { bindValue, trigger, useValue, ValueBinding } from "cs2/api";
 import {
-    AssetLists, Catalog, DesignState, FeatureFit, GROUP, ManagedGroup, Stage, StepView, Summary, ToolState, Triggers, Values,
+    AssetLists, CarParkRow, Catalog, DesignState, FeatureFit, GROUP, ManagedGroup, Stage, StepView, Summary, ToolState, Triggers, Values,
     AreaMode, BrushShape, SettingValue, BrushRules, BucketWalls, LocText, NetLegendEntry, ResolvedAsset, LegendEntry, SitePlanView, AiView,
 } from "../contract";
 
@@ -31,6 +31,7 @@ export const bindings = {
     summary: bindRaw(Values.summary),
     assets: bindRaw(Values.assets),
     managed: bindRaw(Values.managed),
+    carParks: bindRaw(Values.carParks),
     sitePlan: bindRaw(Values.sitePlan),
     ai: bindRaw(Values.ai),
 };
@@ -302,6 +303,15 @@ export const useDesign = () => useBound(bindings.design, normalizeDesign);
 export const useSummary = () => useBound(bindings.summary, normalizeSummary);
 export const useAssets = () => useBound(bindings.assets, normalizeAssets);
 export const useManaged = () => useBound(bindings.managed, normalizeManaged);
+
+export function normalizeCarParks(raw: unknown): CarParkRow[] {
+    const v = parseJson(raw);
+    return arr<any>(v)
+        .filter((r) => isObj(r) && typeof r.id === "number")
+        .map((r) => ({ ...r, recipeName: isObj(r.recipeName) ? r.recipeName : { key: String(r.recipeName ?? "") } })) as CarParkRow[];
+}
+
+export const useCarParks = () => useBound(bindings.carParks, normalizeCarParks);
 
 /** (sketch study) The site plan of the current plan, or null (no plan, older DLL, malformed payload). */
 export function normalizeSitePlan(raw: unknown): SitePlanView | null {
