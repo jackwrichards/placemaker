@@ -32,6 +32,8 @@ namespace Placemaker.Core.Decals.Dynamic
         {
             var outers = new Dictionary<string, List<float2[]>>(StringComparer.Ordinal);
             var holes = new Dictionary<string, List<float2[]>>(StringComparer.Ordinal);
+            var beds = new Dictionary<string, List<float2[]>>(StringComparer.Ordinal);
+            var water = new List<float2[]>();
             var things = new List<float2>();
             foreach (var l in sc.Layers)
             {
@@ -43,10 +45,13 @@ namespace Placemaker.Core.Decals.Dynamic
                         if (t == null) continue;
                         if (t.StartsWith(BiomeBuilder.RegionPrefix, StringComparison.Ordinal)) { Add(outers, t.Substring(BiomeBuilder.RegionPrefix.Length), Poly.EnsureCcw(Poly.To2D(r.Ring))); break; }
                         if (t.StartsWith(BiomeBuilder.HolePrefix, StringComparison.Ordinal)) { Add(holes, t.Substring(BiomeBuilder.HolePrefix.Length), Poly.EnsureCcw(Poly.To2D(r.Ring))); break; }
+                        if (t.StartsWith(BiomeBuilder.BedPrefix, StringComparison.Ordinal)) { Add(beds, t.Substring(BiomeBuilder.BedPrefix.Length), Poly.EnsureCcw(Poly.To2D(r.Ring))); break; }
                     }
                 }
                 foreach (var o in l.Objects)
                     if (o != null && (o.Category == AssetCategories.Rock || o.Category == AssetCategories.PlayNature) && o.Scale >= 0.45f) things.Add(o.Position.xz);
+                foreach (var s in l.Surfaces)
+                    if (s != null && s.Role == SurfaceRole.Water && s.Ring != null && s.Ring.Length >= 3) water.Add(Poly.EnsureCcw(Poly.To2D(s.Ring)));
             }
             if (outers.Count == 0) return;
             var thingGrid = new PointGrid(8f);
@@ -58,7 +63,8 @@ namespace Placemaker.Core.Decals.Dynamic
                 var d = BiomeLibrary.Get(kv.Key);
                 if (d == null || d.Decals.Length == 0) continue;
                 holes.TryGetValue(kv.Key, out var hl);
-                new Area(sc, d, kv.Value, hl ?? new List<float2[]>(), things, thingGrid, quiet, bi).Lay();
+                beds.TryGetValue(kv.Key, out var bl);
+                new Area(sc, d, kv.Value, hl ?? new List<float2[]>(), things, thingGrid, quiet, bi) { Beds = bl, Water = water }.Lay();
             }
         }
 
@@ -79,6 +85,8 @@ namespace Placemaker.Core.Decals.Dynamic
             private readonly PointGrid _thingGrid;
             private readonly bool _quiet;
             private readonly int _salt;
+            /// <summary>The area's planted beds (mulch) and every pond and pool of the plan.</summary>
+            public List<float2[]> Beds, Water;
             // (perf) the area as a raster: the brushes test every candidate, and dozens of rings of hundreds of points made a 36 ha
             // park's weathering take 8.8 s; a lookup in a 1.5 m mask is constant
             private readonly float2 _lo;
@@ -138,6 +146,96 @@ namespace Placemaker.Core.Decals.Dynamic
 
             private float Edge(float2 p) => _edge.Clearance(p, 30f);
 
+            private SegmentIndex _waterEdges;
+            private SegmentIndex WaterEdges()
+            {
+                if (_waterEdges != null) return _waterEdges;
+                _waterEdges = new SegmentIndex(10f);
+                if (Water != null)
+                    foreach (var r in Water)
+                    {
+                        Poly.Bounds(r, out var a, out var b);
+                        if (b.x < _boxLo.x - 8f || b.y < _boxLo.y - 8f || a.x > _boxHi.x + 8f || a.y > _boxHi.y + 8f) continue;
+                        for (int i = 0; i < r.Length; i++) _waterEdges.Add(r[i], r[(i + 1) % r.Length], 0f);
+                    }
+                return _waterEdges;
+            }
+
+            /// <summary>The lines a strip pass runs along (closed rings repeat their first point).</summary>
+            private IEnumerable<float2[]> Lines(BiomeWhere where, int pass)
+            {
+                switch (where)
+                {
+                    case BiomeWhere.Water:
+                        if (Water != null)
+                            foreach (var r in Water)
+                            {
+                                Poly.Bounds(r, out var a, out var b);
+                                if (b.x < _boxLo.x - 6f || b.y < _boxLo.y - 6f || a.x > _boxHi.x + 6f || a.y > _boxHi.y + 6f) continue;
+                                var c = Poly.Centroid(r);
+                                if (!Inside(c) && !Inside(r[0])) continue;
+                                yield return Closed(r);
+                            }
+                        break;
+                    case BiomeWhere.Beds:
+                    case BiomeWhere.Rim when Beds != null && Beds.Count > 0:
+                        if (Beds != null) foreach (var r in Beds) yield return Closed(r);
+                        break;
+                    case BiomeWhere.Trails:
+                        foreach (var t in Trails(pass)) yield return t;
+                        break;
+                    default:
+                        foreach (var r in _outer) yield return Closed(r);
+                        break;
+                }
+            }
+
+            private static float2[] Closed(float2[] r)
+            {
+                var o = new float2[r.Length + 1];
+                Array.Copy(r, o, r.Length);
+                o[r.Length] = r[0];
+                return o;
+            }
+
+            /// <summary>
+            /// Trodden lines across the area: for each piece of it, one to four wandering walks from one side to the other (a
+            /// heath's sandy paths), cut where they leave it.
+            /// </summary>
+            private IEnumerable<float2[]> Trails(int pass)
+            {
+                int ri = 0;
+                foreach (var r in _outer)
+                {
+                    ri++;
+                    float a = math.abs(Poly.SignedArea(r));
+                    if (a < 600f) continue;
+                    int n = math.clamp((int)(a / 4500f) + 1, 1, 4);
+                    for (int t = 0; t < n; t++)
+                    {
+                        uint h = Hashing.Mix((uint)_salt * 131u, ri * 17 + t, pass);
+                        var p0 = r[(int)(Hashing.Unit(h) * r.Length) % r.Length];
+                        var p1 = r[(int)((Hashing.Unit(h) + 0.4f + 0.2f * Hashing.Unit(Hashing.Mix(h, 1u))) * r.Length) % r.Length];
+                        float len = math.distance(p0, p1);
+                        if (len < 15f) continue;
+                        var dir = (p1 - p0) / len;
+                        var nrm = new float2(-dir.y, dir.x);
+                        var pts = new List<float2>();
+                        int steps = (int)(len / 4f);
+                        for (int k = 0; k <= steps; k++)
+                        {
+                            float u = k / (float)steps;
+                            float wob = (ValueNoise.Sample(new float2(u * len / 18f, t * 7.3f), h) - 0.5f) * 2f * math.min(12f, len * 0.15f) * math.sin(u * math.PI);
+                            var q = math.lerp(p0, p1, u) + nrm * wob;
+                            if (Inside(q)) pts.Add(q);
+                            else if (pts.Count >= 3) { yield return pts.ToArray(); pts = new List<float2>(); }
+                            else pts.Clear();
+                        }
+                        if (pts.Count >= 3) yield return pts.ToArray();
+                    }
+                }
+            }
+
             private float2 Gradient(float2 p, float e = 2f) => new float2(
                 _sc.GroundAt(p + new float2(e, 0)) - _sc.GroundAt(p - new float2(e, 0)),
                 _sc.GroundAt(p + new float2(0, e)) - _sc.GroundAt(p - new float2(0, e))) / (2f * e);
@@ -163,10 +261,39 @@ namespace Placemaker.Core.Decals.Dynamic
                         }
                         continue;
                     }
+                    var kd = _sc.Brush.Lib.Get(pass.Kind);
+                    bool strip = kd != null && (kd.Variants.Tile == VariantTiling.X || kd.Variants.Tile == VariantTiling.Chain);
+                    if (strip)
+                    {
+                        // a strip goes along lines: the water's edge, the beds' edges, trodden trails, the area's own edge
+                        foreach (var line in Lines(pass.Where, n))
+                            Brushes.EdgeStrip(_sc.Brush, line, pass.Kind, new StripOptions { Side = 1, Offset = pass.Where == BiomeWhere.Water ? 0.4f : 0f, Gaps = 0.2f, Opacity = op, Level = lv, Closed = line.Length > 2 && math.distance(line[0], line[line.Length - 1]) < 0.01f, Cause = cause });
+                        continue;
+                    }
                     BrushArea area = _area;
                     Func<float2, float> w;
                     switch (pass.Where)
                     {
+                        case BiomeWhere.Drift:
+                        {
+                            uint ds = Hashing.Mix((uint)_salt * 7919u, Seeds.Hash(pass.Kind));
+                            w = p => BiomeField.Smooth01((BiomeField.Fbm(p / 9f, ds) - 0.5f) / 0.1f);
+                            break;
+                        }
+                        case BiomeWhere.Water:
+                        {
+                            var edges = WaterEdges();
+                            w = p => 1f - BiomeField.Smooth01(edges.Clearance(p, 6f) / 5f);
+                            break;
+                        }
+                        case BiomeWhere.Beds:
+                        {
+                            if (Beds == null || Beds.Count == 0) { w = null; area = new BrushArea(); break; }
+                            area = new BrushArea();
+                            area.Outer.AddRange(Beds);
+                            w = null;
+                            break;
+                        }
                         case BiomeWhere.Core: w = p => 0.15f + 0.85f * BiomeField.Smooth01(Edge(p) / 10f); break;
                         case BiomeWhere.Rim: w = p => 1f - BiomeField.Smooth01((Edge(p) - 1f) / 8f); break;
                         case BiomeWhere.Downhill:

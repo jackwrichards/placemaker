@@ -20,5 +20,6 @@
   "Placemaker.Biome.water": "Stawy",
   "Placemaker.Biome.water.Tooltip": "Naturalne stawy w obniżeniach ze skarpami brzegów, trzciną i drzewami nad wodą. Trwałe: zmienia teren.",
   "Placemaker.Biome.scale": "Wielkość płatów",
-  "Placemaker.Biome.scale.Tooltip": "Nisko: wiele małych płatów wymieszanych. Wysoko: kilka dużych obszarów, każdy z własnym charakterem."
+  "Placemaker.Biome.scale.Tooltip": "Nisko: wiele małych płatów wymieszanych. Wysoko: kilka dużych obszarów, każdy z własnym charakterem.",
+  "Placemaker.UI.Group.biomes": "Krajobraz"
 }

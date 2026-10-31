@@ -20,5 +20,6 @@
   "Placemaker.Biome.water": "Étangs",
   "Placemaker.Biome.water.Tooltip": "Des étangs naturels dans les creux, aux berges en pente, avec roseaux et arbres de rive. Permanent : modifie le terrain.",
   "Placemaker.Biome.scale": "Taille des taches",
-  "Placemaker.Biome.scale.Tooltip": "Bas : beaucoup de petites taches mélangées. Haut : quelques grandes zones, chacune avec son caractère."
+  "Placemaker.Biome.scale.Tooltip": "Bas : beaucoup de petites taches mélangées. Haut : quelques grandes zones, chacune avec son caractère.",
+  "Placemaker.UI.Group.biomes": "Paysage"
 }

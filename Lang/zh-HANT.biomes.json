@@ -20,5 +20,6 @@
   "Placemaker.Biome.water": "池塘",
   "Placemaker.Biome.water.Tooltip": "低窪處的天然池塘，帶斜坡岸、蘆葦和水邊樹木。永久：改變地形。",
   "Placemaker.Biome.scale": "斑塊大小",
-  "Placemaker.Biome.scale.Tooltip": "低：許多小斑塊混在一起。高：少數大區域，各有特色。"
+  "Placemaker.Biome.scale.Tooltip": "低：許多小斑塊混在一起。高：少數大區域，各有特色。",
+  "Placemaker.UI.Group.biomes": "景觀"
 }

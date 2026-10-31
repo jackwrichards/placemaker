@@ -46,6 +46,23 @@ namespace Placemaker.Core.Layers.Common.Biomes
     public sealed class BiomeField
     {
         public const float MinPatchArea = 250f;
+        /// <summary>Score a cell gets for the biome the split before the paths gave it.</summary>
+        public const float PriorBonus = 1.6f;
+
+        /// <summary>
+        /// (paths) How much a walk would rather go round the ground at p: a pond 25, a marsh's heart 3 (rock fields are crossed: avoiding them pushed the walks onto the fall line on mountains),
+        /// a wood 1.15, open ground 1. The park plans this split before its paths and gives it to the path planner.
+        /// </summary>
+        public float AvoidAt(float2 p)
+        {
+            var b = BiomeAt(p);
+            if (b == null || b.Host || b.Open) return 1f;
+            float deep = InteriorAt(p);
+            if (b.Water) return deep > 0.5f ? 25f : 4f;
+            if (b.Pools > 0f || b.Dip > 0f) return deep > 2f ? 3f : 1.5f;
+            if (b.TreesPerHa >= 150f) return 1.15f;
+            return 1f;
+        }
         /// <summary>Soft weights fade across an edge over ±this (m).</summary>
         public const float Fade = 6f;
 
@@ -101,7 +118,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
         // ───────────────────────── building ─────────────────────────
 
         /// <summary>Splits the site's natural ground between the biomes by their shares.</summary>
-        public static BiomeField Build(BiomeSite site, List<(BiomeDef biome, float share)> shares, float scale, uint seed)
+        public static BiomeField Build(BiomeSite site, List<(BiomeDef biome, float share)> shares, float scale, uint seed, BiomeField prior = null)
         {
             var f = new BiomeField();
             var region = site.Region;
@@ -203,6 +220,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
                     v += d.Flat * (1f - math.saturate(g / 0.05f));
                     v += d.NearPath * (1f - math.saturate((f.PathDist[k] - site.Verge) / 22f));
                     v += d.NearEdge * (1f - math.saturate(edge[k] / 28f));
+                    // the split planned before the paths (the walks went round its water, marsh and rock): its areas stay put
+                    if (prior != null && prior.BiomeAt(p) == d) v += PriorBonus;
                     s[k] = v;
                 }
             }
@@ -219,8 +238,9 @@ namespace Placemaker.Core.Layers.Common.Biomes
             Assign(f, natural, score, bias, count);
 
             // 4. round the patches: a majority filter, then specks join their neighbour
-            int minCells = math.max(3, (int)math.ceil(MinPatchArea / f.CellArea));
-            for (int pass = 0; pass < 2; pass++) Majority(f, natural, score);
+            // specks: at least 250 m², and on a big site a share of it (a 10 ha park keeps no patch under ~1200 m²: confetti otherwise)
+            int minCells = math.max(3, (int)math.ceil(math.max(MinPatchArea, nat * f.CellArea * 0.012f) / f.CellArea));
+            for (int pass = 0; pass < 3; pass++) Majority(f, natural, score);
             Specks(f, natural, minCells, score);
 
             // 5. depth inside each area, soft weights

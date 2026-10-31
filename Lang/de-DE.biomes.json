@@ -20,5 +20,6 @@
   "Placemaker.Biome.water": "Teiche",
   "Placemaker.Biome.water.Tooltip": "Natürliche Teiche in den Senken mit geböschten Ufern, Schilf und Uferbäumen. Dauerhaft: verändert das Gelände.",
   "Placemaker.Biome.scale": "Fleckengröße",
-  "Placemaker.Biome.scale.Tooltip": "Niedrig: viele kleine Flecken gemischt. Hoch: wenige große Bereiche, jeder mit eigenem Charakter."
+  "Placemaker.Biome.scale.Tooltip": "Niedrig: viele kleine Flecken gemischt. Hoch: wenige große Bereiche, jeder mit eigenem Charakter.",
+  "Placemaker.UI.Group.biomes": "Landschaft"
 }

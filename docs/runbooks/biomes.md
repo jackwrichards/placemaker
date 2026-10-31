@@ -101,3 +101,35 @@ mix of percentages. Parks first; Phase 2 agents (farms, beaches, golf, nature) o
 - Paths are planned before the split: the areas adapt to the paths (verges, water keeps off), the paths do not route
   round the areas yet.
 - Zen garden and amphitheatre have no mix (their grounds are designed: raked gravel, terraces).
+
+## Round 2 (the lead's review and the user's colour notes, 2026-10-30)
+
+The lead: wetland read as beige sand blobs; meadow, flowers and mulch as paint noise; the mixed park as confetti; ponds as
+canals between paths; heath and glade not A. The user: B+; the yellow ground "like someone peed on it", the orange like rust.
+
+- **Wetland**: the pools' beds were sand (the water role's default surface pool starts with sand): ponds and pools now lie on
+  the dark forest-floor surface; pools dug 1.3 m (deeper reads as dark water); 2200 reeds/ha massed 0.3-5 m round the water,
+  tussocks, alder carr at the rim; shore mud strips along the water.
+- **Plant mass**: biomes have plant layers (`BiomePlants`: ids, per ha, scale range, where: all, core, rim, water, beds,
+  drift). Vanilla has no tall-grass or wildflower props (lab `send-lab-biome-plants-1030-223356`): tussocks and heather are
+  wild bushes at 0.45-0.9 scale, flower clumps the city flowering bushes in drifts.
+- **Flowers**: five single-colour drift kinds (`flowerDriftYellow/Purple/Red/Blue/Cream`, cream never white), each laid in
+  its own noise drifts (`BiomeWhere.Drift`).
+- **Mulch**: real beds (`BiomeDef.Beds`: half the area in organic beds, lawn between) on a crisp mulch surface (the modded
+  mulch, else the vanilla forest floor), shrubs only inside them.
+- **Glade**: trees only in a ring (at most 45 % of the area's depth) round an open heart.
+- **Heath**: heather mounds, gorse drifts (the light city shrub), birch and pine, sandy trails (`BiomeWhere.Trails`).
+- **Bigger areas**: default patch size 72-78 for the natural styles, fewer small shares per style, specks under 1.2 % of
+  the natural ground merged.
+- **Paths**: the park plans a first split before its paths; the path planner pays 25× to cross a pond and 3× a marsh's
+  heart (`ParkPathPlanner.Options.Avoid`), so walks loop round the water; the final split keeps those areas
+  (`BiomeField.PriorBonus`). Rock fields are crossed (avoiding them pushed walks onto the fall line on mountains:
+  `ParkPathSlopeTests` wild 228 -> 266 steep pieces, 125 without it).
+- **Colours (shared kinds, every type)**: 17 ground kinds recoloured: yellows toward a leafy olive green, oranges toward a
+  real brown, all less saturated (leaf litters, woodland floor, bark mulch, dry grass, mottle, lawn tone, meadow flowers,
+  heath, long grass); flower hues kept, yellow quieter.
+- Runs: `send-biomes-r6-1030-224523`, `send-biomes-r7-1030-225604` (lake with islands, marsh pools), `send-biomes-r8-1030-230147`
+  (after the colours), perf `send-biomes-perf-1030-225959` (10 parks city-wide, 27 000 decals: +0.6 ms a frame, 93 MiB GPU;
+  removal: 1 leftover, the street-joint node).
+- Still open: no boardwalk or bridge where a walk must cross water (at 100 % water a few walks keep a lawn causeway); heath's
+  trails are faint at 45°; glade on narrow rooms is more woodland than clearing.

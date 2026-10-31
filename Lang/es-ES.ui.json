@@ -520,6 +520,5 @@
   "Placemaker.UI.BiomeMix.Add": "Añadir",
   "Placemaker.UI.BiomeMix.Small": "muchas pequeñas",
   "Placemaker.UI.BiomeMix.Big": "pocas grandes",
-  "Placemaker.UI.BiomeMix.DragTip": "Arrastra para repartir el terreno",
-  "Placemaker.UI.Group.biomes": "Paisaje"
+  "Placemaker.UI.BiomeMix.DragTip": "Arrastra para repartir el terreno"
 }

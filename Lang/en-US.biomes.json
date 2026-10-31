@@ -20,5 +20,6 @@
   "Placemaker.Biome.water": "Ponds",
   "Placemaker.Biome.water.Tooltip": "Natural ponds in the low ground with banked shores, reeds and wet trees. Permanent: changes the terrain.",
   "Placemaker.Biome.scale": "Patch size",
-  "Placemaker.Biome.scale.Tooltip": "Low: many small patches mixed together. High: a few big areas, each with its own character."
+  "Placemaker.Biome.scale.Tooltip": "Low: many small patches mixed together. High: a few big areas, each with its own character.",
+  "Placemaker.UI.Group.biomes": "Landscape"
 }

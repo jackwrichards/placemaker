@@ -520,6 +520,5 @@
   "Placemaker.UI.BiomeMix.Add": "加入",
   "Placemaker.UI.BiomeMix.Small": "小而多",
   "Placemaker.UI.BiomeMix.Big": "大而少",
-  "Placemaker.UI.BiomeMix.DragTip": "拖动以划分地面",
-  "Placemaker.UI.Group.biomes": "景观"
+  "Placemaker.UI.BiomeMix.DragTip": "拖动以划分地面"
 }

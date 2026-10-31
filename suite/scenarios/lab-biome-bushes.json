@@ -1,0 +1,46 @@
+{
+ "_about": "Lab (Biome mix): the city and wild bushes in one row, left to right in this order, to tell their colours apart",
+ "scenarios": [
+  {
+   "id": "lab-biome-bushes",
+   "land": {
+    "shape": "rect",
+    "size": [
+     60,
+     40
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "names": [
+      "FlowerBushCity01",
+      "FlowerBushCity02",
+      "FlowerBushCity03",
+      "GreenBushCity01",
+      "GreenBushCity02",
+      "GreenBushCity03",
+      "FlowerBushWild02",
+      "GreenBushWildChild01"
+     ],
+     "perRow": 8,
+     "gap": 3
+    },
+    {
+     "do": "shot",
+     "name": "close",
+     "camera": {
+      "target": "area",
+      "view": "oblique",
+      "pitch": 35,
+      "distance": 30
+     },
+     "shotMode": "render"
+    }
+   ]
+  }
+ ]
+}

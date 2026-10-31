@@ -20,5 +20,6 @@
   "Placemaker.Biome.water": "연못",
   "Placemaker.Biome.water.Tooltip": "낮은 땅의 자연 연못: 비탈진 기슭, 갈대, 물가 나무. 영구적: 지형을 바꿉니다.",
   "Placemaker.Biome.scale": "구역 크기",
-  "Placemaker.Biome.scale.Tooltip": "낮음: 작은 구역 여럿이 섞임. 높음: 개성 있는 큰 구역 몇 개."
+  "Placemaker.Biome.scale.Tooltip": "낮음: 작은 구역 여럿이 섞임. 높음: 개성 있는 큰 구역 몇 개.",
+  "Placemaker.UI.Group.biomes": "경관"
 }

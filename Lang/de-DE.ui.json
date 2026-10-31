@@ -520,6 +520,5 @@
   "Placemaker.UI.BiomeMix.Add": "Hinzumischen",
   "Placemaker.UI.BiomeMix.Small": "viele kleine",
   "Placemaker.UI.BiomeMix.Big": "wenige große",
-  "Placemaker.UI.BiomeMix.DragTip": "Ziehen, um den Boden aufzuteilen",
-  "Placemaker.UI.Group.biomes": "Landschaft"
+  "Placemaker.UI.BiomeMix.DragTip": "Ziehen, um den Boden aufzuteilen"
 }

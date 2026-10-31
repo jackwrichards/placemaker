@@ -82,6 +82,11 @@ namespace Placemaker.Core.Layers.Park
             public Func<float2, float> Height;
             /// <summary>Along-grade a walk takes without strain (rise/run); 0 = TerrainSurvey.WalkGrade (8 %).</summary>
             public float MaxGrade;
+            /// <summary>
+            /// (Biome mix) Ground a walk would rather go round: a cost multiplier per point (1 = any ground; a pond 25, a marsh 6,
+            /// a rock field 3). Null = none.
+            /// </summary>
+            public Func<float2, float> Avoid;
         }
 
         /// <summary>
@@ -93,6 +98,7 @@ namespace Placemaker.Core.Layers.Park
         [ThreadStatic] public static bool SlopeCostOff;
         [ThreadStatic] private static Func<float2, float> _height;
         [ThreadStatic] private static float _grade;
+        [ThreadStatic] private static Func<float2, float> _avoid;
 
         /// <summary>Best of <see cref="CandidateCount"/> seeded candidates by naturalness score.</summary>
         public static ParkPathGraph PlanBest(LayerRegion region, IReadOnlyList<float2> gates, Options options, uint seed,
@@ -106,7 +112,8 @@ namespace Placemaker.Core.Layers.Park
             // One triangulation for all candidates (its seeded start vertex still varies per park seed);
             // ear clipping a 100+ vertex painted outline six times was a third of the planning time.
             var triangles = Triangulate(region, (int)(seed % (uint)region.Ring.Length));
-            var keepH = _height; var keepG = _grade;
+            var keepH = _height; var keepG = _grade; var keepA = _avoid;
+            _avoid = options.Avoid;
             _height = SlopeCostOff ? null : options.Height ?? AmbientHeight;
             _grade = options.MaxGrade > 0.005f ? options.MaxGrade : TerrainSurvey.WalkGrade;
             if (_height != null && IsLevel(region, _height)) _height = null;   // flat land: exactly the old roadmap
@@ -117,11 +124,11 @@ namespace Placemaker.Core.Layers.Park
                     cancel.ThrowIfCancellationRequested();
                     uint candidateSeed = Hashing.Mix(seed, (uint)(i * 104729 + 1));
                     var candidate = Generate(region, gates, hub, candidateSeed, wantedLoops, options.StretchLoop, triangles, cancel);
-                    double score = candidate.NaturalnessScore(region, wantedLoops) + SteepScore(candidate);
+                    double score = candidate.NaturalnessScore(region, wantedLoops) + SteepScore(candidate) + AvoidScore(candidate);
                     if (score < bestScore) { best = candidate; bestScore = score; }
                 }
             }
-            finally { _height = keepH; _grade = keepG; }
+            finally { _height = keepH; _grade = keepG; _avoid = keepA; }
             return best ?? ParkPathGraph.Empty();
         }
 
@@ -178,6 +185,30 @@ namespace Placemaker.Core.Layers.Park
                 sum += r <= 1.0 ? 1.0 : 1.0 + 6.0 * (r - 1.0);
             }
             return sum / n;
+        }
+
+        /// <summary>(Biome mix) Mean avoid multiplier along a straight link, sampled every 5 m (1 = no ground to go round).</summary>
+        private static double AvoidFactor(float2 a, float2 b, double d)
+        {
+            if (_avoid == null || d < 0.5) return 1.0;
+            int n = Math.Max(1, (int)Math.Ceiling(d / 5.0));
+            double sum = 0.0;
+            for (int k = 0; k <= n; k++) sum += Math.Max(1f, _avoid(math.lerp(a, b, k / (float)n)));
+            return sum / (n + 1);
+        }
+
+        /// <summary>(Biome mix) Candidate penalty for walks through ground they should go round (metres times the extra cost).</summary>
+        private static double AvoidScore(ParkPathGraph g)
+        {
+            if (_avoid == null) return 0.0;
+            double s = 0.0;
+            foreach (var e in g.Edges)
+            {
+                var a = g.Nodes[e.A].Position; var b = g.Nodes[e.B].Position;
+                double d = math.distance(a, b);
+                if (d >= 1.0) s += d * (AvoidFactor(a, b, d) - 1.0) * 1.5;
+            }
+            return s;
         }
 
         /// <summary>Candidate penalty for walks steeper than the walk grade (metres of path times how far over it they are).</summary>
@@ -460,6 +491,7 @@ namespace Placemaker.Core.Layers.Park
                 cost *= 1.0 + 2.0 * penalty * penalty;
             }
             cost *= SlopeFactor(nodes[a].Position, nodes[b].Position, d);
+            cost *= AvoidFactor(nodes[a].Position, nodes[b].Position, d);
             cost *= EdgeVariation(seed, a, b, gateConnector ? 0.025 : 0.08);
             graph.Set(a, b, cost);
         }

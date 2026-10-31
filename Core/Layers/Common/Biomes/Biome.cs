@@ -12,6 +12,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 
 namespace Placemaker.Core.Layers.Common.Biomes
 {
@@ -32,6 +33,31 @@ namespace Placemaker.Core.Layers.Common.Biomes
         Things = 5,
         /// <summary>Just outside the area, on its neighbour's side of the edge (scree spilling onto grass, reeds' litter on the bank).</summary>
         Spill = 6,
+        /// <summary>In drifts of its own: a noise field per pass picks where (flower colours each in their own clumps).</summary>
+        Drift = 7,
+        /// <summary>Along the water of the area's ponds and pools (0.3-5 m from it): reed beds, mud.</summary>
+        Water = 8,
+        /// <summary>Inside the area's beds (mulch beds round the shrubs).</summary>
+        Beds = 9,
+        /// <summary>Along a few trodden lines wandering through the area (sandy paths over a heath).</summary>
+        Trails = 10,
+    }
+
+    /// <summary>A layer of low plants of a biome: tussocks, reeds, heather, flowering drifts (vanilla bushes, scaled).</summary>
+    public sealed class BiomePlants
+    {
+        public string[] Ids = Array.Empty<string>();
+        public float PerHa;
+        public float ScaleLo = 0.5f, ScaleHi = 1f;
+        /// <summary>Clump field scale (m): small = tight drifts with open ground between.</summary>
+        public float Drift = 8f;
+        /// <summary>All, Core, Rim, Water (0.3-5 m from the area's water), Beds, Drift (its own noise drifts).</summary>
+        public BiomeWhere Where;
+        /// <summary>Spacing radius (m).</summary>
+        public float Radius = 0.8f;
+
+        public BiomePlants(float perHa, float lo, float hi, BiomeWhere where, float drift, params string[] ids)
+        { PerHa = perHa; ScaleLo = lo; ScaleHi = hi; Where = where; Drift = drift; Ids = ids; Radius = math.max(0.35f, 0.9f * hi); }
     }
 
     /// <summary>One decal pass of a biome (shared library kinds, Recipes/decals/library).</summary>
@@ -95,6 +121,12 @@ namespace Placemaker.Core.Layers.Common.Biomes
         public bool Water;
         /// <summary>Share of its heart that stands in shallow water pools (marsh).</summary>
         public float Pools;
+        /// <summary>Share of the area laid out as planted beds (mulch beds with lawn between); 0 = none.</summary>
+        public float Beds;
+        /// <summary>Trees stand only in the rim band this wide (m): a glade's ring of trees round its open heart. 0 = anywhere.</summary>
+        public float TreeRim;
+        /// <summary>Low plant layers (tussocks, reeds, heather, flower drifts).</summary>
+        public BiomePlants[] Plants = Array.Empty<BiomePlants>();
 
         // ── terrain paint (TerrainMaterials 1 dry, 2 forest floor, 3 earth, 4 sand) ──
         public int PaintLayer;
@@ -151,7 +183,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
         private static readonly string[] Reeds = { "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWildChild01", "GreenBushWild01", "GreenBushWildTeen01" };
         // the flower field's flowers are its ground (decals); a few low shrubs, mostly green (massed lilac read as pale clumps from 45°)
         private static readonly string[] Flowers = { "GreenBushWildChild01", "FlowerBushWildChild02", "GreenBushWildTeen01", "GreenBushWildChild01", "FlowerBushWildChild02", "GreenBushWild02" };
-        private static readonly string[] Beds = { "FlowerBushWild02", "GreenBushWildAdult01", "FlowerBushWildChild02", "GreenBushWildTeen01", "GreenBushWild02", "FlowerBushWild02", "GreenBushWildElderly01" };
+        private static readonly string[] Beds_ = { "FlowerBushWild02", "GreenBushWildAdult01", "FlowerBushWildChild02", "GreenBushWildTeen01", "GreenBushWild02", "FlowerBushWild02", "GreenBushWildElderly01" };
         private static readonly string[] Heather = { "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWildChild01", "GreenBushWildElderly01", "FlowerBushWildChild02" };
 
         public static readonly BiomeDef Lawn = new BiomeDef
@@ -202,85 +234,122 @@ namespace Placemaker.Core.Layers.Common.Biomes
 
         public static readonly BiomeDef Glade = new BiomeDef
         {
+            // an open, sunny heart ringed by trees: the trees keep to a 12 m rim band, flowers and long grass in the middle
             Id = "glade", Color = "#5f9a4b",
             Slope = 0.4f, Flat = 0.3f, NearEdge = 0.2f,
-            PaintLayer = 2, PaintStrength = 0.45f,
-            TreesPerHa = 55f, Trees = GladeTrees, GroveScale = 30f, Dead = 0.04f,
-            BushesPerHa = 55f, Bushes = Scrub, RimScrub = 1.8f,
+            PaintLayer = 2, PaintStrength = 0.35f,
+            TreesPerHa = 70f, Trees = GladeTrees, GroveScale = 14f, Dead = 0.04f, TreeRim = 12f,
+            BushesPerHa = 40f, Bushes = Scrub, RimScrub = 2.4f,
             LogsPerHa = 3f,
+            Plants = new[]
+            {
+                new BiomePlants(220f, 0.45f, 0.7f, BiomeWhere.Core, 7f, "GreenBushWildChild01", "GreenBushWildTeen01"),
+                new BiomePlants(60f, 0.45f, 0.7f, BiomeWhere.Drift, 9f, "FlowerBushCity01", "FlowerBushCity03", "FlowerBushWildChild02"),
+            },
             Decals = new[]
             {
-                new BiomeDecal("dryGrass", 0.16f, BiomeWhere.Core, 0.25f, 0.5f, 3f, quiet: true),
-                new BiomeDecal("meadowFlowers", 0.12f, BiomeWhere.Core, 0.45f, 0.8f, 3f),
-                new BiomeDecal("leafLitterWild", 0.18f, BiomeWhere.Rim, 0.45f, 0.8f, 3f, quiet: true),
+                new BiomeDecal("longGrass", 0.55f, BiomeWhere.Core, 0.55f, 0.85f, 5f),
+                new BiomeDecal("flowerDriftCream", 0.25f, BiomeWhere.Drift, 0.7f, 1f, 4f),
+                new BiomeDecal("flowerDriftPurple", 0.2f, BiomeWhere.Drift, 0.7f, 1f, 4f),
+                new BiomeDecal("leafLitterWild", 0.3f, BiomeWhere.Rim, 0.45f, 0.8f, 3f, quiet: true),
                 new BiomeDecal("mossPatch", 0.06f, BiomeWhere.Things, 0.35f, 0.6f, 2f),
             },
         };
 
         public static readonly BiomeDef Meadow = new BiomeDef
         {
+            // long unmown grass: tussocks (small wild bushes) massed in drifts, a few flowering clumps, old solitary trees
             Id = "meadow", Color = "#c9b45a", Open = true,
             Flat = 0.9f, Slope = 0.2f, Hollow = 0.1f, NearPath = -0.1f, Steep = -0.3f,
-            PaintLayer = 3, PaintStrength = 0.22f, CorePaint = 0, CoreStrength = 0f,
             TreesPerHa = 6f, Trees = Solitary, GroveScale = 60f,
-            BushesPerHa = 28f, Bushes = Scrub, RimScrub = 2.2f,
+            BushesPerHa = 18f, Bushes = Scrub, RimScrub = 3f,
+            Plants = new[]
+            {
+                new BiomePlants(520f, 0.5f, 0.85f, BiomeWhere.All, 6f, "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWildChild01", "GreenBushWild02"),
+                new BiomePlants(70f, 0.4f, 0.65f, BiomeWhere.Drift, 10f, "FlowerBushCity01", "FlowerBushWildChild02", "FlowerBushCity03"),
+            },
             Decals = new[]
             {
-                new BiomeDecal("longGrass", 0.85f, BiomeWhere.All, 0.7f, 1f, 5f),
-                new BiomeDecal("dryGrass", 0.3f, BiomeWhere.All, 0.3f, 0.55f, 4f, quiet: true),
-                new BiomeDecal("meadowFlowers", 0.22f, BiomeWhere.Core, 0.55f, 0.9f, 3f),
+                new BiomeDecal("longGrass", 0.8f, BiomeWhere.All, 0.6f, 0.9f, 5f),
+                new BiomeDecal("flowerDriftYellow", 0.16f, BiomeWhere.Drift, 0.7f, 1f, 4f),
+                new BiomeDecal("flowerDriftCream", 0.14f, BiomeWhere.Drift, 0.7f, 1f, 4f),
+                new BiomeDecal("flowerDriftPurple", 0.1f, BiomeWhere.Drift, 0.7f, 1f, 4f),
                 new BiomeDecal("molehills", 0.02f, BiomeWhere.All, 0.6f, 0.9f, 2f),
             },
         };
 
         public static readonly BiomeDef FlowerField = new BiomeDef
         {
+            // a sown wildflower field: drifts of single colours the size real drifts are (purple, red, blue, yellow, cream), the
+            // flowering shrubs and low green clumps massed in them
             Id = "flowers", Color = "#c86fb4", Open = true,
             Flat = 1f, Slope = 0.3f, Steep = -0.6f, Hollow = -0.1f, NearPath = 0.2f,
-            PaintLayer = 2, PaintStrength = 0.4f, CorePaint = 1, CoreStrength = 0.8f,
+            PaintLayer = 2, PaintStrength = 0.3f,
             TreesPerHa = 2f, Trees = Solitary, GroveScale = 60f,
-            BushesPerHa = 45f, Bushes = Flowers, RimScrub = 1.6f,
+            BushesPerHa = 0f, Bushes = Flowers,
+            Plants = new[]
+            {
+                new BiomePlants(420f, 0.4f, 0.75f, BiomeWhere.Drift, 8f, "FlowerBushCity01", "FlowerBushCity03", "FlowerBushCity02", "FlowerBushWildChild02"),
+                new BiomePlants(320f, 0.45f, 0.7f, BiomeWhere.All, 6f, "GreenBushWildChild01", "GreenBushWildTeen01"),
+            },
             Decals = new[]
             {
-                new BiomeDecal("wildflowerDrift", 0.95f, BiomeWhere.Core, 0.8f, 1f, 5f),
-                new BiomeDecal("meadowFlowers", 0.6f, BiomeWhere.All, 0.7f, 1f, 3f),
-                new BiomeDecal("dryGrass", 0.12f, BiomeWhere.Rim, 0.25f, 0.45f, 3f, quiet: true),
+                new BiomeDecal("longGrass", 0.5f, BiomeWhere.All, 0.5f, 0.8f, 5f),
+                new BiomeDecal("flowerDriftPurple", 0.45f, BiomeWhere.Drift, 0.8f, 1f, 5f),
+                new BiomeDecal("flowerDriftRed", 0.35f, BiomeWhere.Drift, 0.8f, 1f, 5f),
+                new BiomeDecal("flowerDriftBlue", 0.3f, BiomeWhere.Drift, 0.8f, 1f, 5f),
+                new BiomeDecal("flowerDriftYellow", 0.35f, BiomeWhere.Drift, 0.8f, 1f, 5f),
+                new BiomeDecal("flowerDriftCream", 0.3f, BiomeWhere.Drift, 0.8f, 1f, 5f),
             },
         };
 
         public static readonly BiomeDef Mulch = new BiomeDef
         {
+            // planted beds on bark mulch with mown lawn between: each bed an organic shape round its shrubs and small trees,
+            // the mulch dark and closed inside it, a clean edge
             Id = "mulch", Color = "#7b5236",
             NearPath = 0.8f, Flat = 0.4f, Slope = 0.1f, Steep = -0.4f,
-            Lift = 0.25f,
-            PaintLayer = 2, PaintStrength = 1f, CorePaint = 2, CoreStrength = 1f,
+            Beds = 0.5f,
+            PaintLayer = 2, PaintStrength = 1f,
             TreesPerHa = 30f, Trees = Ornamental, GroveScale = 18f,
-            BushesPerHa = 230f, Bushes = Beds, RimScrub = 1.2f,
+            BushesPerHa = 0f, Bushes = Beds_,
+            Plants = new[]
+            {
+                new BiomePlants(700f, 0.6f, 1.1f, BiomeWhere.Beds, 6f, Beds_),
+                new BiomePlants(240f, 0.4f, 0.7f, BiomeWhere.Beds, 5f, "FlowerBushCity01", "FlowerBushCity03", "GreenBushCity01", "GreenBushCity03"),
+            },
             Decals = new[]
             {
-                new BiomeDecal("mulchBed", 0.6f, BiomeWhere.Core, 0.75f, 1f, 5f),
-                new BiomeDecal("barkMulch", 0.4f, BiomeWhere.All, 0.6f, 0.95f, 3f),
-                new BiomeDecal("woodlandFloor", 0.15f, BiomeWhere.Rim, 0.4f, 0.7f, 3f, quiet: true),
+                new BiomeDecal("mulchBed", 0.9f, BiomeWhere.Beds, 0.85f, 1f, 5f),
+                new BiomeDecal("bedSpillStrip", 0.2f, BiomeWhere.Rim, 0.6f, 0.9f, 3f),
             },
         };
 
         public static readonly BiomeDef Wetland = new BiomeDef
         {
+            // a marsh: pools of standing water in its heart, reed beds massed along them, tussocks on the dark wet ground, mud,
+            // alder carr in groups
             Id = "wetland", Color = "#4f8f86",
             Hollow = 1.6f, Flat = 0.3f, Steep = -1.4f, Ridge = -1.1f, Slope = -0.3f, NearPath = -0.4f,
             PathKeep = 3.5f, MaxGrade = 0.14f,
-            Dip = 0.55f, Break = 0.12f, Pools = 0.22f,
+            Dip = 0.55f, Break = 0.12f, Pools = 0.3f,
             PaintLayer = 2, PaintStrength = 1f, CorePaint = 2, CoreStrength = 1f,
-            TreesPerHa = 22f, Trees = Wet, GroveScale = 22f, Dead = 0.08f,
-            BushesPerHa = 300f, Bushes = Reeds, RimScrub = 0.8f,
-            LogsPerHa = 2f, StonesPerHa = 6f,
+            TreesPerHa = 30f, Trees = Wet, GroveScale = 16f, Dead = 0.1f,
+            BushesPerHa = 0f, Bushes = Reeds,
+            LogsPerHa = 2f, StonesPerHa = 4f,
+            Plants = new[]
+            {
+                new BiomePlants(2200f, 0.6f, 1.15f, BiomeWhere.Water, 4f, "GreenBushWildTeen01", "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWild01"),
+                new BiomePlants(400f, 0.45f, 0.7f, BiomeWhere.All, 5f, "GreenBushWildChild01", "GreenBushWildTeen01"),
+                new BiomePlants(60f, 0.8f, 1.2f, BiomeWhere.Rim, 8f, "GreenBushWild01", "GreenBushWildAdult01"),
+            },
             Decals = new[]
             {
-                new BiomeDecal("marshMud", 0.5f, BiomeWhere.Core, 0.55f, 0.9f, 3f) { Fill = true },
-                new BiomeDecal("sedgeLitter", 0.4f, BiomeWhere.All, 0.5f, 0.85f, 3f),
+                new BiomeDecal("marshMud", 0.5f, BiomeWhere.Core, 0.6f, 0.95f, 3f) { Fill = true },
+                new BiomeDecal("shoreMud", 0.6f, BiomeWhere.Water, 0.65f, 0.95f, 3f),
+                new BiomeDecal("sedgeLitter", 0.45f, BiomeWhere.All, 0.55f, 0.9f, 3f),
                 new BiomeDecal("dampPatch", 0.3f, BiomeWhere.Rim, 0.3f, 0.55f, 3f),
-                new BiomeDecal("puddlePiece", 0.16f, BiomeWhere.Core, 0.55f, 0.9f, 1.8f),
-                new BiomeDecal("cloverPatch", 0.2f, BiomeWhere.Spill, 0.4f, 0.7f, 3f),
+                new BiomeDecal("puddlePiece", 0.2f, BiomeWhere.Core, 0.6f, 0.95f, 1.8f),
             },
         };
 
@@ -303,18 +372,24 @@ namespace Placemaker.Core.Layers.Common.Biomes
 
         public static readonly BiomeDef SandHeath = new BiomeDef
         {
+            // heather in mounds, gorse in drifts, birch and pine, sandy paths worn through it
             Id = "heath", Color = "#c7a46b",
             Ridge = 0.6f, Slope = 0.4f, Flat = 0.2f, Hollow = -0.5f,
             Lift = 0.6f, Break = 0.25f,
-            PaintLayer = 2, PaintStrength = 0.6f, CorePaint = 4, CoreStrength = 0.35f,
-            TreesPerHa = 12f, Trees = Heath, GroveScale = 26f, Dead = 0.1f,
-            BushesPerHa = 230f, Bushes = Heather, RimScrub = 0.8f,
+            PaintLayer = 2, PaintStrength = 0.55f, CorePaint = 4, CoreStrength = 0.25f,
+            TreesPerHa = 18f, Trees = Heath, GroveScale = 22f, Dead = 0.08f,
+            BushesPerHa = 0f, Bushes = Heather,
             BouldersPerHa = 3f, StonesPerHa = 25f, RockSize = 0.7f,
+            Plants = new[]
+            {
+                new BiomePlants(700f, 0.55f, 0.9f, BiomeWhere.All, 5f, "GreenBushWildChild01", "GreenBushWildElderly01", "GreenBushWildChild01", "FlowerBushWildChild02", "GreenBushWildTeen01"),
+                new BiomePlants(110f, 0.6f, 1f, BiomeWhere.Drift, 10f, "GreenBushCity01", "GreenBushCity01", "GreenBushCity02"),
+            },
             Decals = new[]
             {
-                new BiomeDecal("heathPatch", 0.42f, BiomeWhere.All, 0.5f, 0.85f, 4f),
-                new BiomeDecal("sandSpill", 0.28f, BiomeWhere.Core, 0.45f, 0.8f, 3f),
-                new BiomeDecal("dryGrass", 0.14f, BiomeWhere.Rim, 0.25f, 0.45f, 3f, quiet: true),
+                new BiomeDecal("heathPatch", 0.45f, BiomeWhere.All, 0.55f, 0.9f, 4f),
+                new BiomeDecal("animalTrail", 0.5f, BiomeWhere.Trails, 0.6f, 0.9f, 3f),
+                new BiomeDecal("sandSpill", 0.15f, BiomeWhere.Core, 0.4f, 0.7f, 3f),
                 new BiomeDecal("pebbles", 0.08f, BiomeWhere.Core, 0.5f, 0.85f, 2f),
             },
         };

@@ -64,10 +64,10 @@
         { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 4, "warp": 1.2, "warpScale": 3 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.3 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
-        { "op": "layer", "alpha": "cover", "alphaK": 0.32, "color": [122, 126, 64], "color2": [104, 116, 56], "tone": "n", "smooth": 0.2 },
-        { "op": "scatter", "stamp": "blob", "density": 10, "clusters": 14, "cluster": 0.75, "clusterRadius": [0.4, 1.4], "size": [0.06, 0.1], "palette": [[232, 206, 72], [240, 220, 100], [214, 192, 84]], "alpha": [0.8, 1], "height": 0.4, "smooth": 0.2, "max": 20000 },
-        { "op": "scatter", "stamp": "blob", "density": { "age": [10, 22] }, "clusters": 12, "cluster": 0.8, "clusterRadius": [0.3, 1.1], "size": [0.05, 0.09], "palette": [[214, 192, 84], [214, 192, 84]], "alpha": [0.8, 1], "height": 0.4, "smooth": 0.2, "max": 20000 },
-        { "op": "scatter", "stamp": "blob", "density": 3, "clusters": 8, "cluster": 0.85, "clusterRadius": [0.3, 0.9], "size": [0.06, 0.1], "palette": [[176, 140, 196], [196, 170, 210], [160, 130, 190]], "alpha": [0.75, 1], "height": 0.4, "smooth": 0.2, "max": 8000 }
+        { "op": "layer", "alpha": "cover", "alphaK": 0.32, "color": [104, 117, 76], "color2": [93, 108, 68], "tone": "n", "smooth": 0.2 },
+        { "op": "scatter", "stamp": "blob", "density": 10, "clusters": 14, "cluster": 0.75, "clusterRadius": [0.4, 1.4], "size": [0.06, 0.1], "palette": [[193, 216, 109], [202, 223, 129], [181, 199, 112]], "alpha": [0.8, 1], "height": 0.4, "smooth": 0.2, "max": 20000 },
+        { "op": "scatter", "stamp": "blob", "density": { "age": [10, 22] }, "clusters": 12, "cluster": 0.8, "clusterRadius": [0.3, 1.1], "size": [0.05, 0.09], "palette": [[181, 199, 112], [181, 199, 112]], "alpha": [0.8, 1], "height": 0.4, "smooth": 0.2, "max": 20000 },
+        { "op": "scatter", "stamp": "blob", "density": 3, "clusters": 8, "cluster": 0.85, "clusterRadius": [0.3, 0.9], "size": [0.06, 0.1], "palette": [[179, 148, 196], [198, 176, 210], [165, 139, 190]], "alpha": [0.75, 1], "height": 0.4, "smooth": 0.2, "max": 8000 }
       ]
     },
     {
@@ -93,9 +93,9 @@
       "edge": { "feather": 1.65, "warp": 1.2, "warpScale": 3.9, "round": 0.85 },
       "variants": { "count": 6, "size": [7.5, 12], "aspect": [0.55, 1], "strength": [0.7, 1], "fades": ["soft", "linear", "islands", "wide", "side"] },
       "ops": [
-        { "op": "scatter", "stamp": "oak", "density": 2.4, "clusters": 8, "cluster": 0.45, "clusterRadius": [1.2, 3.4], "noise": { "scale": 3.3, "lo": -1, "hi": 0.25 }, "size": [0.3, 0.46], "aspect": [0.55, 0.7], "palette": [[112, 94, 58], [96, 82, 52], [124, 106, 66], [92, 94, 56], [104, 104, 60], [84, 72, 46], [118, 98, 60]], "alpha": [0.7, 0.95], "value": 0.12, "height": 0.5, "smooth": 0.3, "max": 30000 },
-        { "op": "scatter", "stamp": "leaf", "density": 1.4, "clusters": 8, "cluster": 0.45, "clusterRadius": [1.2, 3.4], "noise": { "scale": 3.3, "lo": -1, "hi": 0.25 }, "size": [0.24, 0.36], "aspect": [0.45, 0.6], "palette": [[104, 88, 56], [86, 80, 50], [116, 102, 64], [80, 86, 50]], "alpha": [0.7, 0.95], "value": 0.12, "height": 0.5, "smooth": 0.3, "max": 20000 },
-        { "op": "scatter", "stamp": "twig", "density": 0.25, "clusters": 6, "cluster": 0.4, "clusterRadius": [1, 3], "size": [0.3, 0.7], "aspect": [0.06, 0.12], "palette": [[74, 60, 44], [62, 50, 38], [86, 70, 52]], "alpha": [0.8, 1], "value": 0.1, "height": 0.6, "smooth": 0.25, "max": 4000 }
+        { "op": "scatter", "stamp": "oak", "density": 2.4, "clusters": 8, "cluster": 0.45, "clusterRadius": [1.2, 3.4], "noise": { "scale": 3.3, "lo": -1, "hi": 0.25 }, "size": [0.3, 0.46], "aspect": [0.55, 0.7], "palette": [[99, 104, 68], [85, 89, 60], [109, 115, 76], [80, 87, 62], [88, 97, 67], [74, 78, 53], [104, 110, 71]], "alpha": [0.7, 0.95], "value": 0.12, "height": 0.5, "smooth": 0.3, "max": 30000 },
+        { "op": "scatter", "stamp": "leaf", "density": 1.4, "clusters": 8, "cluster": 0.45, "clusterRadius": [1.2, 3.4], "noise": { "scale": 3.3, "lo": -1, "hi": 0.25 }, "size": [0.24, 0.36], "aspect": [0.45, 0.6], "palette": [[92, 97, 65], [75, 80, 56], [102, 108, 73], [72, 80, 56]], "alpha": [0.7, 0.95], "value": 0.12, "height": 0.5, "smooth": 0.3, "max": 20000 },
+        { "op": "scatter", "stamp": "twig", "density": 0.25, "clusters": 6, "cluster": 0.4, "clusterRadius": [1, 3], "size": [0.3, 0.7], "aspect": [0.06, 0.12], "palette": [[64, 56, 48], [53, 47, 41], [74, 65, 56]], "alpha": [0.8, 1], "value": 0.1, "height": 0.6, "smooth": 0.25, "max": 4000 }
       ]
     },
     {

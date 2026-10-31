@@ -520,6 +520,5 @@
   "Placemaker.UI.BiomeMix.Add": "추가",
   "Placemaker.UI.BiomeMix.Small": "작게 많이",
   "Placemaker.UI.BiomeMix.Big": "크게 적게",
-  "Placemaker.UI.BiomeMix.DragTip": "끌어서 땅을 나누기",
-  "Placemaker.UI.Group.biomes": "경관"
+  "Placemaker.UI.BiomeMix.DragTip": "끌어서 땅을 나누기"
 }

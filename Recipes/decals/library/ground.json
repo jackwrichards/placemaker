@@ -40,7 +40,7 @@
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.4 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
         { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 1.6, "out": "dry" },
-        { "op": "layer", "alpha": "dry", "alphaK": 0.55, "color": [158, 150, 92], "color2": [136, 128, 76], "tone": "g", "vary": 0.08, "smooth": 0.14 }
+        { "op": "layer", "alpha": "dry", "alphaK": 0.55, "color": [137, 147, 103], "color2": [117, 126, 86], "tone": "g", "vary": 0.08, "smooth": 0.14 }
       ]
     },
     {
@@ -140,14 +140,14 @@
         { "op": "remap", "in": "n", "out": "dryM", "lo": -0.6, "hi": 0.2 },
         { "op": "mul", "a": "shape", "b": "dryM", "out": "dryC" },
         { "op": "erode", "cover": "dryC", "grain": "g01", "sharp": 1.2, "out": "dry" },
-        { "op": "layer", "alpha": "dry", "alphaK": 0.7, "color": [156, 148, 92], "color2": [136, 128, 80], "tone": "m", "smooth": 0.14 },
+        { "op": "layer", "alpha": "dry", "alphaK": 0.7, "color": [135, 145, 102], "color2": [118, 126, 89], "tone": "m", "smooth": 0.14 },
         { "op": "remap", "in": "n", "out": "lushM", "lo": -0.1, "hi": -0.6 },
         { "op": "mul", "a": "shape", "b": "lushM", "out": "lush" },
-        { "op": "layer", "alpha": "lush", "alphaK": 0.5, "color": [50, 74, 28], "color2": [62, 86, 34], "tone": "m", "smooth": 0.2 },
+        { "op": "layer", "alpha": "lush", "alphaK": 0.5, "color": [54, 74, 35], "color2": [66, 86, 42], "tone": "m", "smooth": 0.2 },
         { "op": "remap", "in": "m", "out": "scuffM", "lo": 0.45, "hi": 0.8 },
         { "op": "mul", "a": "scuffM", "b": "dry", "out": "scuffC" },
         { "op": "erode", "cover": "scuffC", "grain": "g01", "sharp": 3, "out": "scuff" },
-        { "op": "layer", "alpha": "scuff", "alphaK": 0.6, "color": [122, 102, 78], "smooth": 0.2, "height": -0.3 }
+        { "op": "layer", "alpha": "scuff", "alphaK": 0.6, "color": [105, 94, 81], "smooth": 0.2, "height": -0.3 }
       ]
     }
   ]

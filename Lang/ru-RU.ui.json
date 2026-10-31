@@ -520,6 +520,5 @@
   "Placemaker.UI.BiomeMix.Add": "Добавить",
   "Placemaker.UI.BiomeMix.Small": "много мелких",
   "Placemaker.UI.BiomeMix.Big": "мало крупных",
-  "Placemaker.UI.BiomeMix.DragTip": "Перетащите, чтобы поделить землю",
-  "Placemaker.UI.Group.biomes": "Ландшафт"
+  "Placemaker.UI.BiomeMix.DragTip": "Перетащите, чтобы поделить землю"
 }

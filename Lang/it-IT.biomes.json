@@ -20,5 +20,6 @@
   "Placemaker.Biome.water": "Stagni",
   "Placemaker.Biome.water.Tooltip": "Stagni naturali nelle zone basse con sponde in pendio, canne e alberi ripariali. Permanente: modifica il terreno.",
   "Placemaker.Biome.scale": "Scala",
-  "Placemaker.Biome.scale.Tooltip": "Bassa: tante piccole macchie mescolate. Alta: poche grandi zone, ognuna con il suo carattere."
+  "Placemaker.Biome.scale.Tooltip": "Bassa: tante piccole macchie mescolate. Alta: poche grandi zone, ognuna con il suo carattere.",
+  "Placemaker.UI.Group.biomes": "Paesaggio"
 }

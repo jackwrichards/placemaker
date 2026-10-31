@@ -20,5 +20,6 @@
   "Placemaker.Biome.water": "Estanques",
   "Placemaker.Biome.water.Tooltip": "Estanques naturales en las zonas bajas con orillas en talud, juncos y árboles de ribera. Permanente: cambia el terreno.",
   "Placemaker.Biome.scale": "Escala",
-  "Placemaker.Biome.scale.Tooltip": "Bajo: muchas manchas pequeñas mezcladas. Alto: pocas zonas grandes, cada una con su propio carácter."
+  "Placemaker.Biome.scale.Tooltip": "Bajo: muchas manchas pequeñas mezcladas. Alto: pocas zonas grandes, cada una con su propio carácter.",
+  "Placemaker.UI.Group.biomes": "Paisaje"
 }

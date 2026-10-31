@@ -8,11 +8,14 @@ const ids = ["lawn", "meadow", "flowers", "mulch", "glade", "forest", "rocky", "
 const cap = (s) => "biome" + s[0].toUpperCase() + s.slice(1);
 const [, , out, ...specs] = process.argv;
 const scenarios = specs.map((spec) => {
-  const [name, styleSpec, mix, land = "flat", size = "220x200"] = spec.split(":");
+  let [name, styleSpec, mix, land = "flat", size = "220x200"] = spec.split(":");
   const [layer, style] = styleSpec.includes("/") ? styleSpec.split("/") : ["park", styleSpec];
   const wet = /water|wetland|riverside/.test(spec) || layer !== "park";
   const [w, d] = size.split("x").map(Number);
   const values = [];
+  // the panel keeps edits on a style (like a file): a natural build after a custom mix on natural would inherit it, so the
+  // natural style gets its own mix written out (ParkLayer natural preset)
+  if ((!mix || mix === "-") && layer === "park" && style === "natural") mix = "lawn=40,meadow=16,glade=10,forest=18,rocky=10,wetland=6,scale=74";
   if (mix && mix !== "-") {
     const m = Object.fromEntries(mix.split(",").map((x) => x.split("=")).map(([k, v]) => [k, Number(v)]));
     for (const id of ids) if (id !== "scale") values.push({ do: "value", id: cap(id), json: String(m[id] ?? 0) });

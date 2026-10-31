@@ -36,12 +36,24 @@ namespace Placemaker.Core.Layers.Common.Biomes
         public readonly List<float2[]> Areas = new List<float2[]>();
         /// <summary>The ponds dug.</summary>
         public readonly List<float2[]> Water = new List<float2[]>();
+        /// <summary>The water's edges (quick distance to the nearest water).</summary>
+        public readonly SegmentIndex WaterEdges = new SegmentIndex(10f);
+        /// <summary>Per biome index: its planted beds' cells (mulch), or null.</summary>
+        public bool[][] Beds;
+        public int Plants;
+
+        internal void AddWater(float2[] ring)
+        {
+            Water.Add(ring);
+            for (int i = 0; i < ring.Length; i++) WaterEdges.Add(ring[i], ring[(i + 1) % ring.Length], 0f);
+        }
     }
 
     public static class BiomeBuilder
     {
         public const string RegionPrefix = "biome:";
         public const string HolePrefix = "biomeHole:";
+        public const string BedPrefix = "biomeBed:";
         /// <summary>The most objects the biomes place on one site (thinned evenly past it).</summary>
         public const int MaxObjects = 9000;
 
@@ -54,12 +66,12 @@ namespace Placemaker.Core.Layers.Common.Biomes
         }
 
         /// <summary>Splits the site and builds every biome's ground (see the file's header). Nothing natural: null.</summary>
-        public static BiomeResult Plan(BiomeSite site, List<(BiomeDef biome, float share)> shares, float scale, uint seed)
+        public static BiomeResult Plan(BiomeSite site, List<(BiomeDef biome, float share)> shares, float scale, uint seed, BiomeField prior = null)
         {
             var ctx = site.Ctx;
             if (shares == null || !BiomeMix.AnyNatural(shares)) return null;
             var clock = System.Diagnostics.Stopwatch.StartNew();
-            var field = BiomeField.Build(site, shares, scale, seed);
+            var field = BiomeField.Build(site, shares, scale, seed, prior);
             var res = new BiomeResult { Field = field };
             if (field.NaturalCells == 0) return res;
             int wi = -1;
@@ -94,8 +106,11 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 if (d.Host) continue;
                 float ha = field.Got[b] * naturalArea / 10000f;
                 wanted += ha * (d.TreesPerHa * site.TreeAmount + d.BushesPerHa * math.max(1f, d.RimScrub * 0.7f) * site.BushAmount + d.CrownsPerHa * 7f + d.BouldersPerHa * 3.5f + d.StonesPerHa + d.LogsPerHa);
+                foreach (var pl in d.Plants) wanted += ha * pl.PerHa * site.BushAmount * (pl.Where == BiomeWhere.Water ? 0.3f : pl.Where == BiomeWhere.Beds ? d.Beds : 1f);
             }
             float thin = wanted > MaxObjects ? MaxObjects / wanted : 1f;
+            res.Beds = new bool[field.Biomes.Count][];
+            for (int b = 0; b < field.Biomes.Count; b++) if (field.Biomes[b].Beds > 0f && field.Got[b] > 0f) res.Beds[b] = BedCells(field, b, seed);
             for (int b = 0; b < field.Biomes.Count; b++)
             {
                 var d = field.Biomes[b];
@@ -106,11 +121,28 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 bb.Planting(trees: true, bushes: false);
                 bb.Rocks();
                 bb.Planting(trees: false, bushes: true);
+                bb.PlantLayers();
                 if (d.LogsPerHa > 0f) bb.Logs();
             }
             long tObjects = clock.ElapsedMilliseconds;
 
-            Paint(site, field, seed);
+            Paint(site, field, seed, res);
+            // the beds as regions of their own (their decals fill them)
+            for (int b = 0; b < field.Biomes.Count; b++)
+            {
+                if (res.Beds[b] == null) continue;
+                var bedRings = new List<float2[]>();
+                var bm = res.Beds[b];
+                field.Outlines(k => bm[k], bedRings, new List<float2[]>(), 3, 0.4f);
+                int n = 0;
+                foreach (var r0 in bedRings)
+                {
+                    var r = Simple(Inside(site.Region, r0));
+                    ctx.AddRegion(r, BedPrefix + field.Biomes[b].Id + ":" + n++, BedPrefix + field.Biomes[b].Id);
+                    // a bed is a real material: a crisp-edged mulch surface (the modded mulch, else the vanilla forest floor) under its plants
+                    if (r.Length >= 3 && Poly.IsSimple(r) && math.abs(Poly.SignedArea(r)) > 12f) ctx.Surface(r, SurfaceRole.Decorative, new AssetRef(MulchSurfaces[0], MulchSurfaces), AssetCategories.SurfaceNatural);
+                }
+            }
             for (int b = 0; b < field.Biomes.Count; b++)
             {
                 var d = field.Biomes[b];
@@ -134,6 +166,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
             ctx.Plan.Facts["biomeNaturalArea"] = math.round(naturalArea);
             ctx.Plan.Facts["biomeTrees"] = res.Trees;
             ctx.Plan.Facts["biomeBushes"] = res.Bushes;
+            ctx.Plan.Facts["biomePlants"] = res.Plants;
             ctx.Plan.Facts["biomeBoulders"] = res.Boulders;
             ctx.Plan.Facts["biomeCrowns"] = res.Crowns;
             ctx.Plan.Facts["biomeStones"] = res.Stones;
@@ -148,6 +181,24 @@ namespace Placemaker.Core.Layers.Common.Biomes
             return res;
         }
 
+        /// <summary>The bed under a pond or a marsh pool: dark forest floor (the water role's default pool starts with sand: beige basins until they fill).</summary>
+        private static readonly string[] MulchSurfaces = { "EAI - Surface Pack Ground Mulch Surface", "Forestry Surface 01" };
+
+        private static AssetRef MudBed => new AssetRef("Forestry Surface 01", new[] { "Forestry Surface 01" });
+
+        /// <summary>A ring that crosses itself cleaned until it does not (coarser each try); null when it never does.</summary>
+        private static float2[] Simple(float2[] r)
+        {
+            if (r == null || r.Length < 3) return r;
+            if (Poly.IsSimple(r)) return r;
+            for (float eps = 0.6f; eps <= 3f; eps *= 1.6f)
+            {
+                var c = Poly.Clean(r, eps);
+                if (c.Length >= 3 && Poly.IsSimple(c)) return c;
+            }
+            return r;
+        }
+
         /// <summary>An outline traced along the cells kept inside the site: points past the outline go onto it, 0.3 m in.</summary>
         internal static float2[] Inside(LayerRegion region, float2[] ring)
         {
@@ -159,6 +210,30 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 o[i] = c + region.InwardNormal(seg) * 0.3f;
             }
             return o;
+        }
+
+        /// <summary>
+        /// A mulch area's beds: the share BiomeDef.Beds of its cells where a 9 m noise is highest, 2 m or more inside it (each bed
+        /// an organic shape, lawn between them).
+        /// </summary>
+        private static bool[] BedCells(BiomeField f, int b, uint seed)
+        {
+            var d = f.Biomes[b];
+            uint s = Hashing.Mix(seed, Seeds.Hash("beds:" + d.Id));
+            var v = new float[f.Count];
+            var vals = new List<float>();
+            for (int k = 0; k < f.Count; k++)
+            {
+                if (f.Label[k] != b || f.Interior[k] < 2f) { v[k] = -1f; continue; }
+                v[k] = BiomeField.Fbm(f.Pos(k) / 9f, s);
+                vals.Add(v[k]);
+            }
+            var bed = new bool[f.Count];
+            if (vals.Count == 0) return bed;
+            vals.Sort();
+            float cut = vals[math.clamp((int)((1f - d.Beds) * vals.Count), 0, vals.Count - 1)];
+            for (int k = 0; k < f.Count; k++) bed[k] = v[k] >= cut;
+            return bed;
         }
 
         /// <summary>Cells of other biomes the water encloses become water (an island in a pond would be dug out anyway).</summary>
@@ -262,11 +337,11 @@ namespace Placemaker.Core.Layers.Common.Biomes
             int made = 0;
             // the water itself: the area's cells 1.5 m or more inside it (its rim stays dry ground for the reeds), biggest first
             var rings = new List<float2[]>();
-            f.Outlines(k => f.Label[k] == wi && f.Interior[k] >= 1.5f, rings, new List<float2[]>(), 3, 0.4f);
+            f.Outlines(k => f.Label[k] == wi && f.Interior[k] >= 1.5f + f.Cell * 0.6f, rings, new List<float2[]>(), 3, 0.4f);   // a cell further in: the outline stays inside the site (pulling it in made big ponds cross themselves)
             rings.Sort((a, b) => Poly.SignedArea(b).CompareTo(Poly.SignedArea(a)));
             foreach (var r0 in rings)
             {
-                var pond = Inside(site.Region, r0);
+                var pond = Simple(r0);
                 if (made >= 8) break;
                 if (pond.Length < 3 || !Poly.IsSimple(pond) || Poly.SignedArea(pond) < 120f) continue;
                 float shore = float.MaxValue;
@@ -282,9 +357,9 @@ namespace Placemaker.Core.Layers.Common.Biomes
                     Permanent = true, WaterLevel = level, WaterAnchor = new float3(anchor.x, level, anchor.y),
                 });
                 BasinBank.Add(ctx, pond, level);
-                ctx.Surface(pond, SurfaceRole.Water, new AssetRef("", Array.Empty<string>()));
+                ctx.Surface(pond, SurfaceRole.Water, MudBed);
                 site.Occ?.TakePolygon(pond);
-                res.Water.Add(pond);
+                res.AddWater(pond);
                 made++;
             }
             if (made > 0)
@@ -296,7 +371,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
 
         /// <summary>
         /// Shallow pools of standing water in a marsh's heart (the share BiomeDef.Pools of its cells, where its noise is highest,
-        /// 3.5 m or more inside it): dug 0.9 m below their lowest bank, water just under it (shallower pools stayed dry in the game).
+        /// 3.5 m or more inside it): dug 1.3 m below their lowest bank (deep enough to read as dark water), water just under it (shallower pools stayed dry in the game).
         /// </summary>
         private static void Pools(BiomeSite site, BiomeField f, int b, BiomeResult res, uint seed)
         {
@@ -319,11 +394,11 @@ namespace Placemaker.Core.Layers.Common.Biomes
             int want = math.min(vals.Count - 1, (int)(cells * d.Pools));
             float cut = vals[math.max(0, vals.Count - 1 - want)];
             var rings = new List<float2[]>();
-            f.Outlines(k => f.Label[k] == b && f.Interior[k] >= 3.5f && noise[k] >= cut, rings, new List<float2[]>(), 2, 0.6f);
+            f.Outlines(k => f.Label[k] == b && f.Interior[k] >= 3.5f + f.Cell * 0.6f && noise[k] >= cut, rings, new List<float2[]>(), 2, 0.6f);
             int made = 0;
             foreach (var r0 in rings)
             {
-                var pool = Inside(site.Region, r0);
+                var pool = Simple(r0);
                 if (made >= 24) break;
                 if (pool.Length < 3 || !Poly.IsSimple(pool) || Poly.SignedArea(pool) < 40f) continue;
                 float shore = float.MaxValue;
@@ -333,12 +408,12 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 var anchor = LayerRegion.From(pool)?.DeepestPoint(out _, null, 10) ?? Poly.Centroid(pool);
                 ctx.Plan.Terraform.Add(new PlannedTerraform
                 {
-                    Ring = Poly.To3D(pool, ctx.H), Kind = TerraformKind.Lower, TargetHeight = level - 0.9f,
+                    Ring = Poly.To3D(pool, ctx.H), Kind = TerraformKind.Lower, TargetHeight = level - 1.3f,
                     Permanent = true, WaterLevel = level, WaterAnchor = new float3(anchor.x, level, anchor.y),
                 });
-                ctx.Surface(pool, SurfaceRole.Water, new AssetRef("", Array.Empty<string>()));
+                ctx.Surface(pool, SurfaceRole.Water, MudBed);
                 site.Occ?.TakePolygon(pool);
-                res.Water.Add(pool);
+                res.AddWater(pool);
                 made++;
             }
             if (made > 0)
@@ -350,7 +425,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
 
         // ───────────────────────── paint ─────────────────────────
 
-        private static void Paint(BiomeSite site, BiomeField f, uint seed)
+        private static void Paint(BiomeSite site, BiomeField f, uint seed, BiomeResult res)
         {
             var ctx = site.Ctx;
             var kit = new PaintKit(ctx.Plan.Paint, ctx.H, Hashing.Mix(seed, 0x9A17u)) { Outline = site.Region.Ring };
@@ -364,7 +439,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 {
                     var v = new float[f.Count];
                     var w = f.Weight[b];
-                    for (int k = 0; k < f.Count; k++) v[k] = w[k];
+                    var bm = res.Beds?[b];
+                    for (int k = 0; k < f.Count; k++) v[k] = bm != null ? (bm[k] ? 1f : 0f) : w[k];
                     var shape = PaintShape.Grid(origin, f.Cell, f.Nx, f.Ny, v).Mul(PaintShape.Noise(10f, 0.9f, 0.45f, Hashing.Mix(seed, (uint)b * 7u + 1u)));
                     if (kit.Shape(shape, d.PaintLayer, d.PaintStrength) != null) any = true;
                 }
@@ -420,7 +496,9 @@ namespace Placemaker.Core.Layers.Common.Biomes
             private bool PathClear(float2 q, float r) => _s.Paths == null || _s.Paths.Count == 0 || !_s.Paths.Overlaps(q, r, 0.6f);
             private bool InWater(float2 q, float r)
             {
-                foreach (var w in _res.Water) if (Poly.Contains(w, q) || ParkDist(w, q) < r) return true;
+                if (_res.Water.Count == 0) return false;
+                if (_res.WaterEdges.Clearance(q, r + 0.01f) < r) return true;
+                foreach (var w in _res.Water) if (Poly.Contains(w, q)) return true;
                 return false;
             }
             private static float ParkDist(float2[] ring, float2 p)
@@ -601,7 +679,9 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 }
                 else
                 {
-                    rejectTree = p => !Mine(p) || !PathClear(p, 2.6f) || InWater(p, 2f);
+                    // a ring round an open heart: at most 45 % of how deep the area gets (narrow rooms keep a clearing too)
+                    float rim = _d.TreeRim > 0f ? math.min(_d.TreeRim, DeepQuantile(0.9f) * 0.45f) : 0f;
+                    rejectTree = p => !Mine(p) || rim > 0f && Deep(p) > rim || !PathClear(p, 2.6f) || InWater(p, 2f);
                     rejectBush = p => !Mine(p) || !PathClear(p, 1.3f) || InWater(p, 0.8f);
                     rejectRim = p => !Mine(p) || Deep(p) > 9f || !PathClear(p, 1.3f) || InWater(p, 0.8f);
                 }
@@ -624,6 +704,15 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 }
             }
 
+            private float DeepQuantile(float q)
+            {
+                var v = new List<float>();
+                for (int k = 0; k < _f.Count; k++) if (_f.Label[k] == _b) v.Add(_f.Interior[k]);
+                if (v.Count == 0) return 0f;
+                v.Sort();
+                return v[math.clamp((int)(q * v.Count), 0, v.Count - 1)];
+            }
+
             private float RimShare()
             {
                 int all = 0, rim = 0;
@@ -633,20 +722,76 @@ namespace Placemaker.Core.Layers.Common.Biomes
 
             private bool Rim(float2 p, float lo, float hi)
             {
-                if (!PathClear(p, 1.2f)) return false;
-                foreach (var w in _res.Water)
+                if (_res.Water.Count == 0 || !PathClear(p, 1.2f)) return false;
+                float d = _res.WaterEdges.Clearance(p, hi + 0.5f);
+                if (d < lo || d > hi) return false;
+                foreach (var w in _res.Water) if (Poly.Contains(w, p)) return false;
+                return true;
+            }
+
+            private bool InBed(float2 p)
+            {
+                var bm = _res.Beds?[_b];
+                if (bm == null) return false;
+                int i = (int)math.round((p.x - _f.Origin.x) / _f.Cell), j = (int)math.round((p.y - _f.Origin.y) / _f.Cell);
+                return i >= 0 && j >= 0 && i < _f.Nx && j < _f.Ny && bm[j * _f.Nx + i];
+            }
+
+            /// <summary>The biome's low plant layers (tussocks, reeds, heather, flower drifts), each a vanilla bush scaled down.</summary>
+            public void PlantLayers()
+            {
+                if (_d.Plants.Length == 0) return;
+                if (!AssetAvailability.Has(AssetCategories.Bush) && (_s.Bushes == null || _s.Bushes.Length == 0)) return;
+                int li = 0;
+                foreach (var pl in _d.Plants)
                 {
-                    if (Poly.Contains(w, p)) return false;
-                    float d = ParkDist(w, p);
-                    if (d >= lo && d <= hi) return true;
+                    li++;
+                    float share = pl.Where == BiomeWhere.Water ? WaterShare() : pl.Where == BiomeWhere.Beds ? _d.Beds : 1f;
+                    int n = Count(pl.PerHa * _s.BushAmount * share);
+                    if (n <= 0 || pl.Ids.Length == 0) continue;
+                    uint ds = Hashing.Mix(_seed, (uint)(li * 977));
+                    Func<float2, bool> reject;
+                    switch (pl.Where)
+                    {
+                        case BiomeWhere.Water: reject = p => !Rim(p, 0.3f, 5f); break;
+                        case BiomeWhere.Beds: reject = p => !InBed(p) || !PathClear(p, 1.2f); break;
+                        case BiomeWhere.Core: reject = p => !Mine(p) || Deep(p) < 4f || !PathClear(p, 1f) || InWater(p, 0.6f); break;
+                        case BiomeWhere.Rim: reject = p => !Mine(p) || Deep(p) > 8f || !PathClear(p, 1f) || InWater(p, 0.6f); break;
+                        case BiomeWhere.Drift: reject = p => !Mine(p) || BiomeField.Fbm(p / pl.Drift, ds) < 0.56f || !PathClear(p, 1f) || InWater(p, 0.6f); break;
+                        default: reject = p => !Mine(p) || !PathClear(p, 1f) || InWater(p, 0.6f); break;
+                    }
+                    int before = _ctx.Plan.Objects.Count;
+                    var ids = _s.Bushes != null && _s.Bushes.Length > 0 ? _s.Bushes : pl.Ids;
+                    int placed = NatureKit.Plant(_ctx, _occ, _box, n, ObjectRole.Bush, ids, pl.Radius, pl.Drift, V(60 + li), reject, 0.15f);
+                    // their own size: tussocks small, reeds tall
+                    for (int i = before; i < _ctx.Plan.Objects.Count; i++)
+                    {
+                        var o = _ctx.Plan.Objects[i];
+                        if (o.Role != ObjectRole.Bush) continue;
+                        o.Scale = math.lerp(pl.ScaleLo, pl.ScaleHi, Hashing.Unit(Hashing.Mix(o.Variation, 0x5CA1u)));
+                    }
+                    _res.Plants += placed;
                 }
-                return false;
+            }
+
+            /// <summary>Share of the area's cells within 5 m of water (the reed band's room).</summary>
+            private float WaterShare()
+            {
+                if (_res.Water.Count == 0) return 0f;
+                int all = 0, near = 0;
+                for (int k = 0; k < _f.Count; k++)
+                {
+                    if (_f.Label[k] != _b) continue;
+                    all++;
+                    if (_res.WaterEdges.Clearance(_f.Pos(k), 5.5f) <= 5f) near++;
+                }
+                return all == 0 ? 0f : near / (float)all;
             }
 
             public void Logs()
             {
                 int n = Count(_d.LogsPerHa);
-                if (n <= 0) return;
+                if (n <= 0 || !AssetAvailability.Has(AssetCategories.PlayNature)) return;   // the logs are of that category (NatureKit.Fallen)
                 _res.Logs += NatureKit.Fallen(_ctx, _occ, _box, n, V(50), p => Mine(p) && Deep(p) > 3f && PathClear(p, 6f) && !InWater(p, 6f));
             }
         }

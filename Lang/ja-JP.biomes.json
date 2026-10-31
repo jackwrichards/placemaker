@@ -20,5 +20,6 @@
   "Placemaker.Biome.water": "池",
   "Placemaker.Biome.water.Tooltip": "低地の自然な池：斜面の岸、葦、水辺の木。永続的：地形を変えます。",
   "Placemaker.Biome.scale": "区画の大きさ",
-  "Placemaker.Biome.scale.Tooltip": "小：小さな区画がたくさん混ざる。大：少数の大きな区画、それぞれに個性。"
+  "Placemaker.Biome.scale.Tooltip": "小：小さな区画がたくさん混ざる。大：少数の大きな区画、それぞれに個性。",
+  "Placemaker.UI.Group.biomes": "景観"
 }

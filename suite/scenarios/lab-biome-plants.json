@@ -1,0 +1,72 @@
+{
+ "_about": "Lab (Biome mix): the game bushes and beds side by side, to pick meadow tussocks, flower drifts, reeds and heather (docs/runbooks/biomes.md)",
+ "scenarios": [
+  {
+   "id": "lab-biome-plants",
+   "land": {
+    "shape": "rect",
+    "size": [
+     90,
+     70
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "names": [
+      "FlowerBushCity01",
+      "FlowerBushCity02",
+      "FlowerBushCity03",
+      "GreenBushCity01",
+      "GreenBushCity02",
+      "GreenBushCity03",
+      "FlowerBushWild02",
+      "FlowerBushWildChild02",
+      "FlowerBushWildDead02",
+      "GreenBushWild01",
+      "GreenBushWild02",
+      "GreenBushWildAdult01",
+      "GreenBushWildChild01",
+      "GreenBushWildTeen01",
+      "GreenBushWildElderly01",
+      "Flowerbed01",
+      "Flowerbed02",
+      "FlowerBushWild01"
+     ],
+     "perRow": 6,
+     "gap": 2
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "low",
+     "camera": {
+      "target": "area",
+      "view": "low"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "top",
+     "camera": {
+      "target": "area",
+      "view": "top"
+     },
+     "shotMode": "render"
+    }
+   ]
+  }
+ ]
+}
