@@ -151,7 +151,7 @@ done yet, why), **declined** (deliberately not, why).
 | 17 | Seven kinds + bus stop, max 15, build needs two-way or in + out | same seven kinds, max 15, same rule; bus stop hidden (the user's call) | have |
 | 18 | Snap to the lot's own aisles within 5 m along the edge, oblique ≥ 30°, nearest line wins, Shift = freehand | **same rule** on the step's planned drive aisles (footpaths snap to paths), a dashed guide shows the aisle it joins, Shift = freehand | new |
 | 19 | Drag a placed entrance; right-click the one under the cursor | **drag** (white ring on the one under the cursor); right-click removes the one under the cursor, else the last | new |
-| 20 | Corner clearance, 13 m spacing, red when blocked | the planner merges or drops entrances that do not fit and says so | partial (open: red hover when too close) |
+| 20 | Corner clearance, 13 m spacing, red when blocked | **same spacing rule** (aisle + two stall widths): the hover turns red, a click says why and places nothing; corners: the planner moves an entrance off a corner itself | new |
 | 21 | LocalConnect paths, alleys split the road | same, plus a crosswalk option | have (more) |
 | **Preview** ||||
 | 22 | See-through fills at ~22 % alpha, outlines by role | site-plan fills at **50 % of their tone by default** (asphalt about 0.44), lines, stalls and entrances full strength; options slider **Plan preview fill** 10–100 %; plus the Real preview (the game's ghost) | new (adjustable) |
