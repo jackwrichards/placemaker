@@ -303,7 +303,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                     float chance = bank ? 1.1f * clump : pan ? 0.8f * clump : 0.16f * ValueNoise.Clumps(p, 9f, seed);
                     if (Hashing.Unit(Hashing.Mix(v, 2u)) > chance) continue;
                     if (dc < hw * 0.9f) continue;
-                    if (!b.Occ.Free(p, 0.5f, 0.2f, 0.05f) || ctx.Input.Reserved != null && ctx.Input.Reserved.Blocks(p, 0.8f)) continue;
+                    if (!b.Occ.Free(p, 0.5f, 0.2f, 0.05f) || ctx.Input.Reserved != null && ctx.Input.Reserved.Blocks(p, 1.1f)) continue;   // a bush keeps 1.1 m from reserved space, like every planting
                     var ids = bank || pan ? reeds : tussocks;
                     var o = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 3u)) * 6.283f, ObjectRole.Bush, new AssetRef(ids[(int)(Hashing.Mix(v, 4u) % (uint)ids.Length)]), v);
                     o.Scale = bank ? 0.7f + 0.45f * Hashing.Unit(Hashing.Mix(v, 5u)) : 0.45f + 0.3f * Hashing.Unit(Hashing.Mix(v, 5u));

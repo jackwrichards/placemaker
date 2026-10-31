@@ -357,7 +357,9 @@ namespace Placemaker.Tests.Types
             Assert.Equal(0, peaks);
             // s30: the waterfront walk stays low near the water and cuts the hillside behind (graded or walled): up to 6.5 m on the 6.5 m bank.
             Assert.True(plan.Facts.GetValueOrDefault("earthMaxCut") <= (layer == "waterfront" ? 6.6 : 6.0), $"{tag}: cut {plan.Facts["earthMaxCut"]:0.00} m");
-            Assert.True(plan.Facts.GetValueOrDefault("earthMaxFill") <= 2.51, $"{tag}: fill {plan.Facts["earthMaxFill"]:0.00} m");
+            // p2-beaches: landforms (dunes, islands, knolls, a bluff) declare their own fill limit (formsFill); the 2.5 m cap holds without them
+            double fillCap = math.max(2.51, plan.Facts.GetValueOrDefault("formsFill") + 0.01);
+            Assert.True(plan.Facts.GetValueOrDefault("earthMaxFill") <= fillCap, $"{tag}: fill {plan.Facts["earthMaxFill"]:0.00} m (cap {fillCap:0.00})");
             Assert.All(plan.Terraform, t => Assert.True(t.Sloped || t.Kind == TerraformKind.Level, $"{tag}: a flat {t.Kind} patch"));
         }
 
