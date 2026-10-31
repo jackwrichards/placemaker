@@ -64,8 +64,10 @@ namespace Placemaker.Core.Layers.Types.Beach
             f.BermAt = wet + 2.5f;
             int storms = ctx.I("storms");
             for (int i = 0; i < storms; i++) f.Ridges.Add(wet + 3f + i * math.max(5f, (depth - wet - 6f) / math.max(1, storms)));
-            f.RidgeH = 0.7f;
+            // storm ridges stand 1-1.6 m (at 0.5-1 m on a 5 m base the game runner's shingle read flat)
+            f.RidgeH = 1.1f;
             f.Cusps = storms > 0;
+            if (storms > 0) f.MaxFill = math.max(f.MaxFill, 2.2f);
             // headlands: one at each end of the shore (a cove between them), or one in the middle; inset from the outline's ends so
             // the sculpt's border cap does not flatten them
             float hl = ctx.F("headlands");   // how far they reach out (0 = none); two, one at each end of the cove
@@ -206,11 +208,11 @@ namespace Placemaker.Core.Layers.Types.Beach
             if (Ridges.Count > 0 && dw > -1f)
                 for (int i = 0; i < Ridges.Count; i++)
                 {
-                    float x = (dw - Ridges[i]) / 2.6f;
+                    float x = (dw - Ridges[i]) / 3.2f;
                     t += RidgeH * (0.75f + 0.35f * i) * (x < 0f ? Bump(x * 1.3f) : Bump(x * 0.7f));
                 }
             if (Cusps && dw > -4f && dw < Ridges[0] + 2f)
-                t += 0.32f * math.cos(s / 17f * 6.283f) * Bump((dw - Ridges[0] * 0.5f) / math.max(2f, Ridges[0] * 0.6f));
+                t += 0.5f * math.cos(s / 17f * 6.283f) * Bump((dw - Ridges[0] * 0.5f) / math.max(2f, Ridges[0] * 0.6f));
             // dunes: blowouts take the crest down to near the beach, their sand forms a lobe landward; hummocks break the back dunes
             if (DuneH > 0f && dw > DuneStart && dw < DuneEnd + 14f)
             {
