@@ -24,7 +24,7 @@ namespace Placemaker.Core.Tool
             // (Biome mix) the places with moods and the rocky areas fold into the mix (saved designs still build them)
             ["park"] = new[] { "animals", "moods", "moodGround", "lookRockyAreas" },
             ["wetland"] = new[] { "animals" },
-            ["farmstead"] = new[] { "animals" },
+            ["farmstead"] = new[] { "animals", "stripeLayer" },   // (P2-3) the season paints the rows
             ["natureReserve"] = new[] { "animals" },
             ["hikingTrail"] = new[] { "animals" },
             ["animalPark"] = new[] { "spawnerAsset", "animals", "animalsPerPen" },
