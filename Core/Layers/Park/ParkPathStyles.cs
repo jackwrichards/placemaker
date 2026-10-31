@@ -26,14 +26,92 @@ namespace Placemaker.Core.Layers.Park
         public static ParkPathGraph Meander(ParkPathGraph g, IReadOnlyList<float2> gates, float amplitude, float wavelength, uint seed, Func<float2, bool> ok)
         {
             if (g == null || g.IsEmpty) return g;
+            // P2-4 (the user, on hills: paths that "double back on each other and snap"): bends used to go on every roadmap link, and
+            // on a hill the router's walk is many short links, so each got its own kink: a sawtooth. Now each run between junctions
+            // is straightened first (keeping the grade the router won: a leg never gets steeper than the walk it replaces), and
+            // only legs long enough for a bend get one, gentler the steeper the leg already is.
+            var h = ParkPathPlanner.AmbientHeight;
             var segs = new List<float2>();
-            foreach (var e in g.Edges)
+            int ci = 0;
+            foreach (var chain in Chains(g))
             {
-                var a = g.Nodes[e.A].Position; var b = g.Nodes[e.B].Position;
-                AddMeander(segs, a, b, amplitude, wavelength, Hashing.Mix(seed, (uint)e.Id), ok);
+                var legs = Straighten(chain, h, ok);
+                for (int i = 1; i < legs.Count; i++)
+                {
+                    var a = legs[i - 1]; var b = legs[i];
+                    float len = math.distance(a, b), amp = amplitude;
+                    if (h != null && len > 1f)
+                        amp *= math.saturate(1f - math.abs(h(b) - h(a)) / len / TerrainSurvey.WalkGrade);
+                    if (len < wavelength * 1.4f || amp < 0.6f) { segs.Add(a); segs.Add(b); continue; }
+                    AddMeander(segs, a, b, amp, wavelength, Hashing.Mix(seed, (uint)(ci * 131 + i)), ok);
+                }
+                ci++;
             }
             var r = ParkPathGraph.FromSegments(segs, gates);
             return r.IsEmpty ? g : r;
+        }
+
+        /// <summary>The graph's runs between junctions, gates and dead ends, each as its points in order.</summary>
+        internal static List<List<float2>> Chains(ParkPathGraph g)
+        {
+            var adj = g.Adjacency();
+            var used = new bool[g.Edges.Count];
+            var chains = new List<List<float2>>();
+            bool Stop(int n) => adj[n].Count != 2 || g.Nodes[n].Kind == PathNodeKind.Gate;
+            void Walk(int start, int edge)
+            {
+                var pts = new List<float2> { g.Nodes[start].Position };
+                int at = start, e = edge;
+                while (true)
+                {
+                    used[e] = true;
+                    int next = g.Edges[e].A == at ? g.Edges[e].B : g.Edges[e].A;
+                    pts.Add(g.Nodes[next].Position);
+                    at = next;
+                    if (Stop(at)) break;
+                    int other = adj[at][0] == e ? adj[at][1] : adj[at][0];
+                    if (used[other]) break;
+                    e = other;
+                }
+                chains.Add(pts);
+            }
+            for (int n = 0; n < g.Nodes.Count; n++)
+                if (Stop(n)) foreach (int e in adj[n]) if (!used[e]) Walk(n, e);
+            for (int e = 0; e < g.Edges.Count; e++) if (!used[e]) Walk(g.Edges[e].A, e);   // closed loops with no junction
+            return chains;
+        }
+
+        /// <summary>
+        /// Douglas-Peucker with a grade rule: a run's kinks under 3.5 m go, but a straight leg never climbs faster than the walk
+        /// grade or the steepest piece of the run it replaces (switchbacks the router made to gain height stay, as long legs).
+        /// </summary>
+        private static List<float2> Straighten(List<float2> pts, Func<float2, float> h, Func<float2, bool> ok)
+        {
+            var keep = new bool[pts.Count];
+            keep[0] = keep[pts.Count - 1] = true;
+            float Grade(float2 a, float2 b) { float d = math.distance(a, b); return h == null || d < 1f ? 0f : math.abs(h(b) - h(a)) / d; }
+            void Split(int lo, int hi)
+            {
+                if (hi - lo < 2) return;
+                int worst = -1; float dev = 0f, steepest = 0f;
+                for (int k = lo + 1; k < hi; k++)
+                {
+                    float d = math.sqrt(SegmentIndex.DistSq(pts[k], pts[lo], pts[hi]));
+                    if (d > dev) { dev = d; worst = k; }
+                }
+                for (int k = lo + 1; k <= hi; k++) steepest = math.max(steepest, Grade(pts[k - 1], pts[k]));
+                bool fine = dev <= 3.5f && Grade(pts[lo], pts[hi]) <= math.max(TerrainSurvey.WalkGrade, steepest) * 1.05f;
+                if (fine && ok != null)
+                    for (int s = 1; s < 8 && fine; s++) fine = ok(math.lerp(pts[lo], pts[hi], s / 8f));
+                if (fine) return;
+                keep[worst] = true;
+                Split(lo, worst);
+                Split(worst, hi);
+            }
+            Split(0, pts.Count - 1);
+            var o = new List<float2>();
+            for (int i = 0; i < pts.Count; i++) if (keep[i]) o.Add(pts[i]);
+            return o;
         }
 
         private static void AddMeander(List<float2> segs, float2 a, float2 b, float amplitude, float wavelength, uint seed, Func<float2, bool> ok)
