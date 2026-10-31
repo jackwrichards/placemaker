@@ -176,6 +176,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "Não há espaço para carregadores: eles precisam de plantio atrás das vagas.",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "Não há espaço para vagas acessíveis: elas precisam de uma fileira de vagas retas (90°).",
   "Placemaker.Parking.Issue.AroundBuildings": "O estacionamento contorna edifícios existentes: {0} vagas ao lado deles ficaram de fora.",
+  "Placemaker.Parking.Reason.EntranceTooClose": "Muito perto de outra entrada: deixe cerca de um corredor e duas vagas de distância.",
   "Placemaker.Parking.Issue.LotOwnerRejected": "O jogo não consegue usar este contorno como um só lote. Suavize os cantos muito agudos.",
   "Placemaker.Parking.Issue.TooManyEntrances": "No máximo {0} entradas por estacionamento - {1} foram deixadas de fora.",
   "Placemaker.Parking.Issue.BusStopNoRoad": "O ponto de ônibus {0} não tem rua na frente. Mova-o para junto de uma rua.",

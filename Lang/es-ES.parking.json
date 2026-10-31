@@ -176,6 +176,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "No hay sitio para cargadores: necesitan zona plantada detrás de las plazas.",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "No hay sitio para plazas accesibles: necesitan una fila de plazas rectas (90°).",
   "Placemaker.Parking.Issue.AroundBuildings": "El aparcamiento rodea edificios existentes: se han omitido {0} plazas junto a ellos.",
+  "Placemaker.Parking.Reason.EntranceTooClose": "Demasiado cerca de otra entrada: deja una calle y dos plazas de distancia.",
   "Placemaker.Parking.Issue.LotOwnerRejected": "El juego no puede usar este contorno como un solo solar. Suaviza las esquinas muy agudas.",
   "Placemaker.Parking.Issue.TooManyEntrances": "Como máximo {0} entradas por aparcamiento; se omitieron {1}.",
   "Placemaker.Parking.Issue.BusStopNoRoad": "La parada de autobús {0} no tiene calle delante. Muévela junto a una calle.",

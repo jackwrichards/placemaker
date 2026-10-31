@@ -176,6 +176,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "충전기를 놓을 공간이 없습니다. 칸 뒤에 식재 띠가 필요합니다.",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "장애인 칸을 놓을 공간이 없습니다. 직각(90°) 칸 줄이 필요합니다.",
   "Placemaker.Parking.Issue.AroundBuildings": "주차장이 기존 건물을 피해 지어집니다. 그 옆의 칸 {0}개를 뺐습니다.",
+  "Placemaker.Parking.Reason.EntranceTooClose": "다른 입구와 너무 가깝습니다. 통로 하나와 주차 공간 두 칸 정도 떨어뜨리세요.",
   "Placemaker.Parking.Issue.LotOwnerRejected": "게임이 이 윤곽선을 하나의 부지로 쓸 수 없습니다. 아주 뾰족한 모서리를 다듬으세요.",
   "Placemaker.Parking.Issue.TooManyEntrances": "주차장 하나에 입구는 최대 {0}개입니다 - {1}개를 뺐습니다.",
   "Placemaker.Parking.Issue.BusStopNoRoad": "{0}번 버스 정류장 앞에 거리가 없습니다. 거리 옆으로 옮기세요.",

@@ -176,6 +176,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "Brak miejsca na ładowarki: potrzebują zieleni za miejscami.",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "Brak miejsca na miejsca dla niepełnosprawnych: potrzebują rzędu prostych miejsc (90°).",
   "Placemaker.Parking.Issue.AroundBuildings": "Parking omija istniejące budynki: pominięto miejsca obok nich ({0}).",
+  "Placemaker.Parking.Reason.EntranceTooClose": "Za blisko innego wjazdu: zachowaj odstęp około alejki i dwóch miejsc.",
   "Placemaker.Parking.Issue.LotOwnerRejected": "Gra nie może użyć tego obrysu jako jednej działki. Wygładź bardzo ostre narożniki.",
   "Placemaker.Parking.Issue.TooManyEntrances": "Najwyżej {0} wejść na parking – pominięto {1}.",
   "Placemaker.Parking.Issue.BusStopNoRoad": "Przystanek autobusowy {0} nie ma przed sobą ulicy. Przesuń go obok ulicy.",

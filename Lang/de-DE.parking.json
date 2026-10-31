@@ -176,6 +176,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "Kein Platz für Ladesäulen: Sie brauchen Bepflanzung hinter den Plätzen.",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "Kein Platz für barrierefreie Plätze: Sie brauchen eine Reihe gerader (90°) Plätze.",
   "Placemaker.Parking.Issue.AroundBuildings": "Der Parkplatz weicht bestehenden Gebäuden aus: {0} Plätze daneben wurden weggelassen.",
+  "Placemaker.Parking.Reason.EntranceTooClose": "Zu nah an einer anderen Zufahrt: etwa eine Fahrgasse und zwei Parkplätze Abstand halten.",
   "Placemaker.Parking.Issue.LotOwnerRejected": "Das Spiel kann diesen Umriss nicht als eine Fläche verwenden. Sehr spitze Ecken glätten.",
   "Placemaker.Parking.Issue.TooManyEntrances": "Höchstens {0} Zufahrten pro Parkplatz – {1} wurden weggelassen.",
   "Placemaker.Parking.Issue.BusStopNoRoad": "Vor Bushaltestelle {0} liegt keine Straße. Sie neben eine Straße verschieben.",

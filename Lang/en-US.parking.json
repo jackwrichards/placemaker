@@ -188,6 +188,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "No room for chargers: they need planting behind the spaces.",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "No room for accessible spaces: they need a row of straight (90°) spaces.",
   "Placemaker.Parking.Issue.AroundBuildings": "The lot works round existing buildings: {0} spaces next to them were left out.",
+  "Placemaker.Parking.Reason.EntranceTooClose": "Too close to another entrance: keep about an aisle and two spaces apart.",
   "Placemaker.Parking.Issue.LotOwnerRejected": "The game cannot use this outline as one lot. Smooth out very sharp corners.",
   "Placemaker.Parking.Issue.TooManyEntrances": "At most {0} entrances per lot - {1} were left out.",
   "Placemaker.Parking.Issue.BusStopNoRoad": "Bus stop {0} has no street in front of it. Move it next to a street.",

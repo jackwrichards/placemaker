@@ -176,6 +176,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "沒有空間放充電樁：它們需要停車格後方有植栽。",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "沒有空間設無障礙停車格：需要一排垂直（90°）停車格。",
   "Placemaker.Parking.Issue.AroundBuildings": "停車場繞開了現有建築：旁邊的 {0} 個停車格已省略。",
+  "Placemaker.Parking.Reason.EntranceTooClose": "離另一個入口太近：請隔開約一條車道和兩個車位。",
   "Placemaker.Parking.Issue.LotOwnerRejected": "遊戲無法把這個外框當作一塊用地。請把非常尖的角修圓。",
   "Placemaker.Parking.Issue.TooManyEntrances": "每座停車場最多 {0} 個入口——已省略 {1} 個。",
   "Placemaker.Parking.Issue.BusStopNoRoad": "公車站 {0} 前方沒有街道。請把它移到街道旁。",

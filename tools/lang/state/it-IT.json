@@ -4837,6 +4837,7 @@
  "parking/Placemaker.Parking.Preset.compact": "1df39aa58ad4",
  "parking/Placemaker.Parking.Preset.green": "933bf21afdd5",
  "parking/Placemaker.Parking.Preset.standard": "5474cf66e9fd",
+ "parking/Placemaker.Parking.Reason.EntranceTooClose": "ca929b483106",
  "parking/Placemaker.Parking.Reason.EntryWithoutExit": "69f0d11018dd",
  "parking/Placemaker.Parking.Reason.ExitWithoutEntry": "291297460a16",
  "parking/Placemaker.Parking.Reason.NeedsEntrance": "0c4a2ec255cb",

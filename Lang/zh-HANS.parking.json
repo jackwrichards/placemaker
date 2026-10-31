@@ -176,6 +176,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "没有放充电器的空间：它们需要车位后面有种植带。",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "没有放无障碍车位的空间：它们需要一排垂直（90°）车位。",
   "Placemaker.Parking.Issue.AroundBuildings": "停车场绕开了现有建筑：旁边的 {0} 个车位已省去。",
+  "Placemaker.Parking.Reason.EntranceTooClose": "离另一个入口太近：请隔开约一条车道和两个车位。",
   "Placemaker.Parking.Issue.LotOwnerRejected": "游戏无法把此轮廓线作为一块用地。请把非常尖锐的转角改得圆滑些。",
   "Placemaker.Parking.Issue.TooManyEntrances": "每个停车场最多 {0} 个出入口——略去了 {1} 个。",
   "Placemaker.Parking.Issue.BusStopNoRoad": "公交站 {0} 前面没有街道。请把它移到街道旁。",

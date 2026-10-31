@@ -176,6 +176,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "Non c'è spazio per le colonnine: serve del verde dietro i posti.",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "Non c'è spazio per i posti disabili: serve una fila di posti dritti (90°).",
   "Placemaker.Parking.Issue.AroundBuildings": "Il parcheggio aggira gli edifici esistenti: {0} posti accanto a essi sono stati omessi.",
+  "Placemaker.Parking.Reason.EntranceTooClose": "Troppo vicino a un altro ingresso: lascia circa una corsia e due posti di distanza.",
   "Placemaker.Parking.Issue.LotOwnerRejected": "Il gioco non può usare questo contorno come un unico lotto. Smussa gli angoli molto acuti.",
   "Placemaker.Parking.Issue.TooManyEntrances": "Al massimo {0} ingressi per parcheggio: {1} sono stati omessi.",
   "Placemaker.Parking.Issue.BusStopNoRoad": "La fermata dell'autobus {0} non ha una strada davanti. Spostala accanto a una strada.",

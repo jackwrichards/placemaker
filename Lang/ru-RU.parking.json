@@ -176,6 +176,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "Нет места для зарядок: им нужна зелень за местами.",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "Нет места для мест для инвалидов: им нужен ряд прямых (90°) мест.",
   "Placemaker.Parking.Issue.AroundBuildings": "Парковка обходит существующие здания: пропущено мест рядом с ними: {0}.",
+  "Placemaker.Parking.Reason.EntranceTooClose": "Слишком близко к другому въезду: оставьте примерно проезд и два места.",
   "Placemaker.Parking.Issue.LotOwnerRejected": "Игра не может использовать этот контур как один участок. Сгладьте очень острые углы.",
   "Placemaker.Parking.Issue.TooManyEntrances": "Не больше {0} въездов на стоянку — пропущено {1}.",
   "Placemaker.Parking.Issue.BusStopNoRoad": "Перед остановкой {0} нет улицы. Перенесите ее к улице.",

@@ -176,6 +176,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "Pas de place pour les bornes : il leur faut des plantations derrière les places.",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "Pas de place pour les places PMR : il leur faut une rangée de places droites (90°).",
   "Placemaker.Parking.Issue.AroundBuildings": "Le parking contourne des bâtiments existants : {0} places voisines ont été omises.",
+  "Placemaker.Parking.Reason.EntranceTooClose": "Trop près d'une autre entrée : gardez environ une allée et deux places d'écart.",
   "Placemaker.Parking.Issue.LotOwnerRejected": "Le jeu ne peut pas utiliser ce contour comme un seul lot. Adoucissez les angles très aigus.",
   "Placemaker.Parking.Issue.TooManyEntrances": "Au plus {0} accès par parking : {1} ont été omis.",
   "Placemaker.Parking.Issue.BusStopNoRoad": "L'arrêt de bus {0} n'a pas de rue devant lui. Déplacez-le près d'une rue.",

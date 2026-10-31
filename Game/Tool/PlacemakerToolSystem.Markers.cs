@@ -22,6 +22,8 @@ namespace Placemaker.Game.Tool
         private float3 _markerSnapTo;
 
         public bool MarkerSnapped => _markerSnapped;
+        /// <summary>(P2-1) The hover spot is too close to another car entrance of the step (drawn red, a click does not place).</summary>
+        public bool MarkerBlocked { get; private set; }
         public float3 MarkerSnapTo => _markerSnapTo;
         /// <summary>(P2-1) A placed marker under the cursor (it can be dragged, right-click removes it), -1 = none.</summary>
         public int MarkerHot { get; private set; } = -1;
@@ -174,6 +176,23 @@ namespace Placemaker.Game.Tool
             _markerHover = math.lerp(ring[_markerHoverSegment], ring[(_markerHoverSegment + 1) % ring.Length], bestT);
         }
 
+        /// <summary>
+        /// (P2-1, PLT HasEntranceSpacingAgainst) Car entrances of a car park keep aisle + two stall widths apart (13 m with the defaults),
+        /// so two connectors never share an aisle end. Footpaths and other types are free.
+        /// </summary>
+        private bool TooCloseToAnother(RecipeStep step, float2 at, int skip)
+        {
+            if (step == null || step.Layer != "parking" || _markerKind == "footpath") return false;
+            double aisle = step.Settings.Num("aisleWidth", 7), stall = step.Settings.Num("stallWidth", 3);
+            float min = (float)(aisle + 2 * stall);
+            for (int i = 0; i < step.Markers.Count; i++)
+            {
+                if (i == skip || MarkerVariants.BaseKind(step.Markers[i].Kind) == "footpath") continue;
+                if (math.distance(step.Markers[i].Position.xz, at) < min) return true;
+            }
+            return false;
+        }
+
         private static float DistToSeg(float2 p, float2 a, float2 b)
         {
             var ab = b - a; float l = math.lengthsq(ab);
@@ -199,6 +218,7 @@ namespace Placemaker.Game.Tool
             }
             var step = RecipePaths.Resolve(_recipe, _markerPath);
             if (step == null) return;
+            MarkerBlocked = _markerHoverValid && TooCloseToAnother(step, _markerHover.xz, _markerDrag);
             // (P2-1) a placed marker of this step under the cursor: drag it along the outline, right-click removes it
             if (_markerDrag < 0)
             {
@@ -213,7 +233,7 @@ namespace Placemaker.Game.Tool
             if (_markerDrag >= 0)
             {
                 if (_markerDrag >= step.Markers.Count) { _markerDrag = -1; return; }
-                if (_in.LeftHeld && _markerHoverValid)
+                if (_in.LeftHeld && _markerHoverValid && !MarkerBlocked)
                 {
                     var m = step.Markers[_markerDrag];
                     if (m.RingSegment != _markerHoverSegment || math.abs(m.RingT - _markerHoverT) > 1e-4f)
@@ -243,6 +263,11 @@ namespace Placemaker.Game.Tool
                 MarkMarkersEdited(_markerPath);
                 DesignChanged();
                 Commit("Placemaker.Undo.RemoveMarker");
+                return;
+            }
+            if (_in.LeftPressed && _markerHoverValid && MarkerBlocked)
+            {
+                Flash(new LocText("Placemaker.Parking.Reason.EntranceTooClose"));
                 return;
             }
             if (_in.LeftPressed && _markerHoverValid)

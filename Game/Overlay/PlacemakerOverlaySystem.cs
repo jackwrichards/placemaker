@@ -504,7 +504,8 @@ namespace Placemaker.Game.Overlay
             }
             if (_tool.MarkerKind != null && _tool.MarkerHoverValid)
             {
-                buffer.DrawCircle(HandleHot, KindColor(_tool.MarkerKind, 0.4f), w * 0.6f, 0, new float2(0, 1), _tool.MarkerHover, d * 1.3f);
+                // (P2-1) red when too close to another entrance (PLT's spacing rule)
+                buffer.DrawCircle(_tool.MarkerBlocked ? new Color(1f, 0.25f, 0.2f, 0.95f) : HandleHot, _tool.MarkerBlocked ? new Color(1f, 0.25f, 0.2f, 0.4f) : KindColor(_tool.MarkerKind, 0.4f), w * 0.6f, 0, new float2(0, 1), _tool.MarkerHover, d * 1.3f);
                 // (P2-1) snapped to a drive aisle: a dashed guide down the aisle it will join
                 if (_tool.MarkerSnapped)
                     buffer.DrawDashedLine(KindColor(_tool.MarkerKind, 0.8f), new Line3.Segment(_tool.MarkerHover, _tool.MarkerSnapTo), w * 0.5f, w * 3f, w * 2f);

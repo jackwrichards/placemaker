@@ -176,6 +176,7 @@
   "Placemaker.Parking.Issue.NoRoomForChargers": "充電器を置く余地がありません: 駐車枠の後ろに植栽が必要です。",
   "Placemaker.Parking.Issue.NoRoomForAccessible": "障害者用スペースを置く余地がありません: 直角（90°）の駐車枠の列が必要です。",
   "Placemaker.Parking.Issue.AroundBuildings": "駐車場は既存の建物を避けています: その隣の駐車枠 {0} 台分を省きました。",
+  "Placemaker.Parking.Reason.EntranceTooClose": "別の入口に近すぎます。通路1本と駐車スペース2台分ほど離してください。",
   "Placemaker.Parking.Issue.LotOwnerRejected": "ゲームはこの輪郭を1つの用地として使えません。とても鋭い角をなめらかにしてください。",
   "Placemaker.Parking.Issue.TooManyEntrances": "1つの駐車場の出入口は最大{0}個です - {1}個を省きました。",
   "Placemaker.Parking.Issue.BusStopNoRoad": "バス停 {0} の前に通りがありません。通りの隣に動かしてください。",
