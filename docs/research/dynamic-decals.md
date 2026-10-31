@@ -243,6 +243,11 @@ shows, so a dirt decal on painted dirt reads as one ground.
 | See-through decal copies (builds up to 0.1.1) | white boxes (issue #2), old saves only |
 | Terrain paint, terraforming, vanilla nets/objects/surfaces | ordinary game data: clean |
 
+  **p1-bulldoze (2026-10-30):** Settings → "Get this city ready to remove Placemaker" ungroups every build, switches the
+  surface copies to the game's own surfaces and deletes the pieces on our runtime prefabs (companions, vehicle props); zone
+  blocks stay (they keep blocking without the mod). Seen in the game runner (bulldoze-stress.json, st-uninstall-*).
+  Hidden is indeed not saved: companions are hidden again after every load (GroupRegistrySystem.PostLoadRepair).
+
   Also to check: `Game.Tools.Hidden` is not saved, and `ParkCompanionSystem` adds it only when it creates a companion, so
   the Tiny Park companion may show after a reload even with the mod present.
 
