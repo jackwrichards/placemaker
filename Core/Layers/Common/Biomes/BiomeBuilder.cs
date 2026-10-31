@@ -693,7 +693,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
                         uint v = V(70);
                         if (Hashing.Unit(v) < _d.RowGaps) continue;
                         if (!_occ.Free(p, 1.6f, 1f, 0.3f)) continue;
-                        int age = Hashing.Unit(Hashing.Mix(v, 3u)) < 0.12f ? 2 : 3;
+                        // (P2-3) mostly teen trees: adult apple crowns met across the rows (run 20261031-105249-farm-close)
+                        int age = Hashing.Unit(Hashing.Mix(v, 3u)) < 0.8f ? 2 : 3;
                         var po = _ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 5u)) * 6.283f, ObjectRole.Tree, AssetMix.Pick(treeIds, v), v, age);
                         po.Scale = math.lerp(_d.RowScaleLo, _d.RowScaleHi, Hashing.Unit(Hashing.Mix(v, 9u)));
                         _occ.Take(p, 1.6f, 3);

@@ -446,7 +446,10 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             // them; the fields take the rest (every area held out of the field lattice, so a field's edge follows a wood's).
             var gatePts = new List<float2>();
             foreach (var g in gates) gatePts.Add(g.Position);
-            var biomes = BiomeHost.Plan(ctx, occ, Biomes, gatePts, p => hard.Hits(p, 3f) || drive.Hits(p, 1f), rowAxis: axis);
+            // the woods keep 10 m off the farmhouse plot (their crowns hid the house, run 20261031-105249-farm-close)
+            var housePrint = new Footprints();
+            if (hasHouse) housePrint.Add(housePlot.Ring);
+            var biomes = BiomeHost.Plan(ctx, occ, Biomes, gatePts, p => hard.Hits(p, 3f) || drive.Hits(p, 1f) || housePrint.Hits(p, 10f), rowAxis: axis);
             if (biomes != null) foreach (var a in biomes.Areas) hard.Add(a);
             ctx.Check();
 
