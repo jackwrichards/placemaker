@@ -28,6 +28,8 @@ namespace Placemaker.Game.Economy
     public sealed partial class ParkingEconomySystem : GameSystemBase, IEffectProvider
     {
         public const string FeeFact = "parking.fee";
+        /// <summary>(P2-1) 1 = the fee is switched off on the click panel; the amount is kept for when it is switched on again (as PLT).</summary>
+        public const string FeeOffFact = "parking.feeOff";
         public const string CapacityFact = "parking.capacity.real";
         /// <summary>Comfort of our stalls (PLT used 0.5: between street parking and a garage).</summary>
         public const float ComfortFactor = 0.5f;
@@ -94,6 +96,29 @@ namespace Placemaker.Game.Economy
 
         public int FeeOf(int groupId) { EnsureFees(); return _fees.TryGetValue(groupId, out var f) ? f : 0; }
 
+        /// <summary>(P2-1) The fee amount the group keeps (also while switched off), and whether it is on.</summary>
+        public bool TryFee(int groupId, out int amount, out bool on)
+        {
+            amount = 0; on = false;
+            if (!FeatureEnabled || !AppliesTo(groupId)) return false;
+            var rec = _registry.GetRecord(groupId);
+            amount = rec.Facts.TryGetValue(FeeFact, out var f) ? (int)math.clamp(f, 0, 1000) : DefaultFee;
+            on = !(rec.Facts.TryGetValue(FeeOffFact, out var off) && off > 0) && amount > 0;
+            return true;
+        }
+
+        /// <summary>(P2-1) Click panel: switch the fee on or off, keeping the amount.</summary>
+        public void SetFeeOn(int groupId, bool on)
+        {
+            var rec = _registry.GetRecord(groupId);
+            if (rec == null || !_registry.TryGetRecordEntity(groupId, out var entity)) return;
+            if (on) { rec.Facts.Remove(FeeOffFact); if (!rec.Facts.TryGetValue(FeeFact, out var f) || f <= 0) rec.Facts[FeeFact] = DefaultFee > 0 ? DefaultFee : 10; }
+            else rec.Facts[FeeOffFact] = 1;
+            _registry.WriteRecord(entity, rec);
+            _feesVersion = -1;
+            _refreshGroups.Add(groupId);
+        }
+
         /// <summary>Real stall count from the lanes (0 until counted).</summary>
         public int CapacityOf(int groupId) => _capacity.TryGetValue(groupId, out var c) ? c : 0;
 
@@ -103,6 +128,7 @@ namespace Placemaker.Game.Economy
             var rec = _registry.GetRecord(groupId);
             if (rec == null || !_registry.TryGetRecordEntity(groupId, out var entity)) return;
             rec.Facts[FeeFact] = fee;
+            if (fee > 0) rec.Facts.Remove(FeeOffFact);
             _registry.WriteRecord(entity, rec);
             _feesVersion = -1;
             _refreshGroups.Add(groupId);
@@ -151,7 +177,8 @@ namespace Placemaker.Game.Economy
             {
                 var rec = _registry.GetRecord(id);
                 if (rec == null || (rec.Flags & GroupFlags.ParkingEconomy) == 0) continue;
-                _fees[id] = rec.Facts.TryGetValue(FeeFact, out var f) ? (int)math.clamp(f, 0, 1000) : DefaultFee;
+                bool off = rec.Facts.TryGetValue(FeeOffFact, out var o) && o > 0;
+                _fees[id] = off ? 0 : rec.Facts.TryGetValue(FeeFact, out var f) ? (int)math.clamp(f, 0, 1000) : DefaultFee;
             }
         }
 

@@ -107,17 +107,17 @@ namespace Placemaker.Core.Layers.Parking
             }
         }
 
-        /// <summary>Vanilla icons where the game has one (Media/Game/Icons), bundled UI glyphs otherwise (UI/src/lib/icons.ts).</summary>
+        /// <summary>Bundled UI glyphs (UI/src/assets/icons).</summary>
         internal static string TouchIcon(string kind)
         {
             switch (kind)
             {
-                case ParkingIds.TouchAccessible: return "accessible";
-                case ParkingIds.TouchCharger: return "charger";
-                case ParkingIds.TouchPlain: return "stall";
-                case ParkingIds.TouchBlank: return "blank";
-                case ParkingIds.TouchIsland: return "tree";
-                case ParkingIds.TouchEdge: return "align";
+                case ParkingIds.TouchAccessible: return "people";
+                case ParkingIds.TouchCharger: return "sparkle";
+                case ParkingIds.TouchPlain: return "car";
+                case ParkingIds.TouchBlank: return "zoneEmpty";
+                case ParkingIds.TouchIsland: return "shrub";
+                case ParkingIds.TouchEdge: return "angle";
                 default: return "";
             }
         }
@@ -174,7 +174,7 @@ namespace Placemaker.Core.Layers.Parking
             l.Add(Slider(ParkingIds.EvShare, ControlTier.More, "spaces", 4, 0, 30, 1, "%"));
             // (P2-1) hand edits on the stalls and the edge the rows line up with (Core/Touches.cs)
             var edits = C(ParkingIds.HandEdits, ControlKind.Touches, ControlTier.Essential, "spaces", null);
-            edits.Icon = "hand";
+            edits.Icon = "edit";
             foreach (var k in ParkingIds.TouchKinds)
             {
                 string name = TouchName(k);
@@ -233,7 +233,8 @@ namespace Placemaker.Core.Layers.Parking
             // (ZoningPatchWidth has no slider: the building plot marker it sizes is not offered any more, ParkingIds.MarkerKinds.)
 
             // ── Fee ──
-            l.Add(Slider(ParkingIds.Fee, ControlTier.More, "fee", 10, 0, 50, 1, "money", cheap: true));
+            // (P2-1) up front: the fee was hard to find (a creator turned fees off elsewhere); 0 = free. Changeable later on the click panel.
+            l.Add(Slider(ParkingIds.Fee, ControlTier.Essential, "fee", 10, 0, 50, 1, "money", cheap: true));
 
             // ── Decals (s21): oil in the bays, tyre marks, litter under lot trees — Core/Decals/Dressing ──
             var groups = new HashSet<string>(StringComparer.Ordinal);

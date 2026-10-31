@@ -183,7 +183,7 @@ namespace Placemaker.Game.Tool
 
         public override void GetAvailableSnapMask(out Snap onMask, out Snap offMask)
         {
-            if (_mode == SelectionMode.Draw && _stage != ToolStage.Manage && _stage != ToolStage.Building && _markerKind == null)
+            if (_mode == SelectionMode.Draw && _stage != ToolStage.Manage && _stage != ToolStage.Building && _markerKind == null && _touchKind == null)
             {
                 onMask = SupportedSnaps;
                 offMask = SupportedSnaps;
@@ -267,7 +267,7 @@ namespace Placemaker.Game.Tool
             {
                 IProxyAction apply = null, secondary = null;
                 // Never swap mid-gesture: the new state would not see the press that started it.
-                if (_gesture == Gesture.None && _markerKind == null && _mode == SelectionMode.Draw
+                if (_gesture == Gesture.None && _markerKind == null && _touchKind == null && _mode == SelectionMode.Draw
                     && (_stage == ToolStage.Area || _stage == ToolStage.Design || _stage == ToolStage.Review))
                 {
                     // (Right-click starts over while choosing the area: no vanilla words for that, so no secondary hint then.)

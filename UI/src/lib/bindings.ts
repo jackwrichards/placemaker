@@ -415,6 +415,10 @@ export const act = {
     /** Move the camera to a world position (issue, marker). */
     locate: (at: [number, number, number]) => fire(Triggers.locate, Number(at[0]) || 0, Number(at[1]) || 0, Number(at[2]) || 0),
     setMarkerKind: (path: string, kind: string) => fire(Triggers.setMarkerKind, path, kind),
+    setTouchKind: (path: string, kind: string) => fire(Triggers.setTouchKind, path, kind),
+    setGroupFee: (id: number, fee: number) => fire(Triggers.setGroupFee, id, fee),
+    setGroupFeeOn: (id: number, on: boolean) => fire(Triggers.setGroupFeeOn, id, on),
+    clearTouches: (path: string, kind: string) => fire(Triggers.clearTouches, path, kind),
     removeMarker: (path: string, index: number) => fire(Triggers.removeMarker, path, index),
     /** Crosswalk or not: index -1 = the entrances placed next, else that placed marker. */
     setMarkerCrosswalk: (path: string, index: number, on: boolean) => fire(Triggers.setMarkerCrosswalk, path, index, on),

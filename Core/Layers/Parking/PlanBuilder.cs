@@ -110,6 +110,13 @@ namespace Placemaker.Core.Layers.Parking
                 rq.Blocked = (p, r) => reserved.Blocks(new float2((float)p.x, (float)p.y), (float)r);
             rq.Entrances.AddRange(entrances);
             rq.Roads = roads;
+            // (P2-1) existing buildings inside or at the outline: the layout works round their lots
+            foreach (var b in Placemaker.Core.Build.SiteSafety.Protected(site))
+            {
+                var poly = new double2[b.Length];
+                for (int i = 0; i < b.Length; i++) poly[i] = new double2(b[i].x, b[i].y);
+                rq.Buildings.Add(poly);
+            }
             // (P2-1) hand edits: the picked edge (the last one placed wins) and the stall touches
             int edgeDropped = 0;
             if (input.Touches != null)

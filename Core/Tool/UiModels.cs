@@ -46,6 +46,8 @@ namespace Placemaker.Core.Tool
         public bool CanUndo, CanRedo;
         public LocText UndoLabel, RedoLabel;
         public string MarkerStepPath, MarkerKind;
+        /// <summary>(P2-1) The hand-edit kind the next click makes, and its step (null = not editing by hand).</summary>
+        public string TouchStepPath, TouchKind;
         public LocText MarkerLabel;
         /// <summary>The entrances placed next come with a crosswalk (walking kinds only).</summary>
         public bool MarkerCrosswalk;
@@ -236,6 +238,8 @@ namespace Placemaker.Core.Tool
                 o.Set("markerMode", JsonValue.Obj().Set("stepPath", s.MarkerStepPath ?? "").Set("kind", s.MarkerKind)
                     .Set("label", (s.MarkerLabel ?? new LocText("Placemaker.Marker." + s.MarkerKind)).ToJson())
                     .Set("crosswalk", s.MarkerCrosswalk));
+            if (!string.IsNullOrEmpty(s.TouchKind))
+                o.Set("touchMode", JsonValue.Obj().Set("stepPath", s.TouchStepPath ?? "").Set("kind", s.TouchKind));
             var hints = JsonValue.Arr();
             foreach (var h in s.Hints)
             {
@@ -476,6 +480,7 @@ namespace Placemaker.Core.Tool
                 case ControlKind.AssetMulti: return "assetMulti";
                 case ControlKind.Markers: return "markers";
                 case ControlKind.Arrangement: return "arrangement";
+                case ControlKind.Touches: return "touches";
                 default: return "slider";
             }
         }
@@ -531,7 +536,7 @@ namespace Placemaker.Core.Tool
             if (!string.IsNullOrEmpty(c.EnabledWhen)) o.Set("enabledWhen", c.EnabledWhen);
             if (!string.IsNullOrEmpty(c.DisabledReasonKey)) o.Set("disabledReason", c.DisabledReasonKey);
             if (c.Cheap) o.Set("cheap", true);
-            if (c.Default != null && c.Kind != ControlKind.Markers) o.Set("default", DesignEditor.ToJson(c.Default));
+            if (c.Default != null && c.Kind != ControlKind.Markers && c.Kind != ControlKind.Touches) o.Set("default", DesignEditor.ToJson(c.Default));
             return o;
         }
 
@@ -607,6 +612,12 @@ namespace Placemaker.Core.Tool
                 markerList.Add(mo);
             }
             o.Set("markerList", markerList);
+            // (P2-1) hand edits by kind
+            var tcounts = new SortedDictionary<string, int>(StringComparer.Ordinal);
+            foreach (var t in s.Touches) { tcounts.TryGetValue(t.Kind ?? "", out int c); tcounts[t.Kind ?? ""] = c + 1; }
+            var touches = JsonValue.Arr();
+            foreach (var kv in tcounts) touches.Add(JsonValue.Obj().Set("kind", kv.Key).Set("count", kv.Value));
+            o.Set("touches", touches);
             IAreaGenerator gen = null;
             try { gen = generators?.Invoke(s.Layer); } catch (Exception) { gen = null; }
             var kinds = JsonValue.Arr();

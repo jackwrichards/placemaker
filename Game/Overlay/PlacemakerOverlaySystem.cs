@@ -39,6 +39,8 @@ namespace Placemaker.Game.Overlay
         private static readonly Color FillUnderGhost = new Color(0.30f, 0.62f, 1f, 0.05f);   // barely tint the real surfaces
         private static readonly Color Handle = new Color(0.30f, 0.62f, 1f, 0.95f);
         private static readonly Color HandleHot = new Color(1f, 1f, 1f, 0.95f);
+        /// <summary>(P2-1) Options: how solid the plan's ground fills draw (0.1..1), PlacemakerSettings.PreviewFillStrength.</summary>
+        public static float FillStrength = 0.5f;
         private static readonly Color Ghost = new Color(1f, 1f, 1f, 0.55f);
         private static readonly Color Brush = new Color(0.30f, 0.62f, 1f, 0.35f);
         private static readonly Color Erase = new Color(1f, 0.45f, 0.35f, 0.35f);
@@ -107,7 +109,7 @@ namespace Placemaker.Game.Overlay
                     if ((_tool.Stage == ToolStage.Design || _tool.Stage == ToolStage.Review || _tool.Stage == ToolStage.Building) && !_tool.OutgrowMode)
                         DrawPlan(buffer, w, detail);
                     if (!_tool.OutgrowBrushOn && !_tool.OutgrowMode) DrawSelection(buffer, w);   // Outgrow: no area tool's cursor or hover
-                    if (!_tool.OutgrowMode) { DrawMarkers(buffer, w); DrawErrors(buffer, w); }
+                    if (!_tool.OutgrowMode) { DrawMarkers(buffer, w); DrawTouches(buffer, w); DrawErrors(buffer, w); }
                 }
                 if (_tool.OutgrowBrushOn) DrawOutgrowBrush(buffer, w);
                 _fill.EndFrame();
@@ -501,7 +503,67 @@ namespace Placemaker.Game.Overlay
                 }
             }
             if (_tool.MarkerKind != null && _tool.MarkerHoverValid)
+            {
                 buffer.DrawCircle(HandleHot, KindColor(_tool.MarkerKind, 0.4f), w * 0.6f, 0, new float2(0, 1), _tool.MarkerHover, d * 1.3f);
+                // (P2-1) snapped to a drive aisle: a dashed guide down the aisle it will join
+                if (_tool.MarkerSnapped)
+                    buffer.DrawDashedLine(KindColor(_tool.MarkerKind, 0.8f), new Line3.Segment(_tool.MarkerHover, _tool.MarkerSnapTo), w * 0.5f, w * 3f, w * 2f);
+            }
+            // (P2-1) the placed marker under the cursor can be dragged: a white ring round it
+            if (_tool.MarkerKind != null && _tool.MarkerHot >= 0)
+            {
+                var st = RecipePaths.Resolve(recipe, _tool.MarkerPath);
+                if (st != null && _tool.MarkerHot < st.Markers.Count)
+                    buffer.DrawCircle(HandleHot, new Color(0, 0, 0, 0), w * 0.6f, 0, new float2(0, 1), st.Markers[_tool.MarkerHot].Position, d * 1.9f);
+            }
+        }
+
+        // ───────────── hand edits (P2-1, Core/Touches.cs) ─────────────
+
+        /// <summary>The colour of a touch target's state: what the stall is now.</summary>
+        private static Color TouchColor(string state, float a)
+        {
+            switch (state)
+            {
+                case "accessible": return new Color(0.25f, 0.55f, 1f, a);
+                case "ev": return new Color(0.3f, 0.9f, 0.45f, a);
+                case "island": return new Color(0.35f, 0.75f, 0.25f, a);
+                case "blank": return new Color(0.6f, 0.6f, 0.6f, a);
+                case "picked": return new Color(1f, 0.82f, 0.2f, a);
+                default: return new Color(1f, 1f, 1f, a);
+            }
+        }
+
+        /// <summary>
+        /// While a hand-edit kind is picked: every target of its group in a thin outline (hand-edited ones brighter, in their
+        /// state's colour) and the one under the cursor filled, so the player sees what a click will change.
+        /// </summary>
+        private void DrawTouches(OverlayRenderSystem.Buffer buffer, float w)
+        {
+            var kind = _tool.TouchKind;
+            var plan = _tool.Plan;
+            if (kind == null || plan == null) return;
+            string group = Touches.GroupOf(kind);
+            var hover = _tool.TouchHover;
+            foreach (var layer in plan.Layers)
+            {
+                if (layer?.TouchTargets == null || layer.StepPath != _tool.TouchPath) continue;
+                foreach (var t in layer.TouchTargets)
+                {
+                    if (t == null || t.Group != group || t.Outline == null || t.Outline.Length < 2) continue;
+                    bool hot = ReferenceEquals(t, hover);
+                    bool touched = !string.IsNullOrEmpty(t.Touched);
+                    var c = TouchColor(t.State, hot ? 1f : touched ? 0.85f : 0.35f);
+                    float width = math.max(0.15f, w * (hot ? 0.9f : touched ? 0.6f : 0.3f));
+                    for (int i = 0; i < t.Outline.Length; i++)
+                    {
+                        var a = t.Outline[i]; var b = t.Outline[(i + 1) % t.Outline.Length];
+                        buffer.DrawLine(c, c, 0f, OverlayRenderSystem.StyleFlags.Projected,
+                            new Line3.Segment(new float3(a.x, t.Center.y, a.y), new float3(b.x, t.Center.y, b.y)), width, new float2(1, 1));
+                    }
+                    if (hot) buffer.DrawCircle(HandleHot, TouchColor(t.State, 0.35f), w * 0.5f, 0, new float2(0, 1), t.Center, w * 6f);
+                }
+            }
         }
 
         // ───────────── plan ─────────────

@@ -38,6 +38,12 @@ namespace Placemaker.Core.Layers.Parking
         public List<RoadLine> Roads = new List<RoadLine>();
         /// <summary>(P2-1) An edge the player picked (hand edit "grid.edge"): the rows run along it and start at it. Null = none.</summary>
         public double2[] ChosenEdge;
+        /// <summary>
+        /// (P2-1) Existing building lots (world, CCW) the lot must keep clear of. The layout drops the stalls and drive lines that
+        /// would touch one, then what is cut off, so the lot works round the building (Build/SiteSafety would otherwise drop the
+        /// pieces after planning and leave stalls without an aisle).
+        /// </summary>
+        public List<double2[]> Buildings = new List<double2[]>();
         /// <summary>(P2-1) The stall hand edits (StallTouches).</summary>
         public List<HandTouch> Touches = new List<HandTouch>();
     }
@@ -145,6 +151,7 @@ namespace Placemaker.Core.Layers.Parking
             if (_ring) PlacePerimeterRow();
             ClearCorridors();
             RemoveReserved();
+            AvoidBuildings();
             CheckReachability();
             _cancel.ThrowIfCancellationRequested();
 
@@ -1192,6 +1199,44 @@ namespace Placemaker.Core.Layers.Parking
                     }
                     if (!e.Connected || e.ConnectorLine < 0 || _out.Lines[e.ConnectorLine].Removed) l.Removed = true;
                 }
+        }
+
+        /// <summary>(P2-1) Stalls and drive lines touching an existing building lot (0.5 m clearance, SiteSafety.Margin) go.</summary>
+        private void AvoidBuildings()
+        {
+            if (_rq.Buildings == null || _rq.Buildings.Count == 0) return;
+            var f = _out.Frame;
+            var local = new List<double2[]>();
+            foreach (var poly in _rq.Buildings)
+            {
+                if (poly == null || poly.Length < 3) continue;
+                var l = new double2[poly.Length];
+                for (int i = 0; i < poly.Length; i++) l[i] = f.ToLocal(poly[i]);
+                local.Add(l);
+            }
+            if (local.Count == 0) return;
+            const double margin = 0.5;
+            bool Touches(IReadOnlyList<double2> shape)
+            {
+                foreach (var b in local)
+                {
+                    foreach (var p in shape) if (PGeo.Contains(b, p)) return true;
+                    foreach (var p in b) if (PGeo.Contains(shape, p)) return true;
+                    for (int i = 0; i < b.Length; i++)
+                        for (int k = 0; k < shape.Count; k++)
+                            if (PGeo.SegSegDist(b[i], b[(i + 1) % b.Length], shape[k], shape[(k + 1) % shape.Count]) < margin) return true;
+                }
+                return false;
+            }
+            int stalls = 0, lines = 0;
+            foreach (var b in _out.Bays)
+                if (!b.Removed && b.Quad != null && Touches(b.Quad)) { b.Removed = true; stalls++; }
+            foreach (var l in _out.Lines)
+            {
+                if (l.Removed || l.Kind == LineKind.Footpath || l.Length < 1e-3) continue;
+                if (Touches(PGeo.Corridor(l.A, l.B, l.Width / 2))) { l.Removed = true; lines++; }
+            }
+            if (stalls + lines > 0) Issue(IssueSeverity.Info, "Placemaker.Parking.Issue.AroundBuildings", null, stalls);
         }
 
         // ───────────────────────────── chargers ─────────────────────────────

@@ -143,6 +143,23 @@ namespace Placemaker.Tests
         }
 
         [Fact]
+        public void TheLotWorksRoundAnExistingBuilding()
+        {
+            // a 20 x 16 m building in the middle of the lot: no stall or aisle touches it, the rest still parks
+            var site = new SiteContext();
+            site.Obstacles.Add(new Obstacle { A = new float2(70, 45), B = new float2(90, 45), C = new float2(90, 61), D = new float2(70, 61), Kind = ObstacleKind.Building });
+            var free = Run();
+            var r = ParkingKit.Run(Rect, site: site, markers: Entrance());
+            var lot = new[] { new double2(70, 45), new double2(90, 45), new double2(90, 61), new double2(70, 61) };
+            foreach (var b in r.Layout.LiveBays)
+                foreach (var q in b.Quad) Assert.False(PGeo.Contains(lot, r.Layout.Frame.ToWorld(q)), "a stall corner on the building");
+            foreach (var n in r.Plan.Nets.Where(n => n.Role == NetRole.DriveAisle))
+                Assert.True(PGeo.DistPointSeg(new double2(80, 53), new double2(n.A.x, n.A.z), new double2(n.D.x, n.D.z)) > 8, "an aisle through the building");
+            Assert.True(r.Stalls > free.Stalls / 2, r.Stalls + " of " + free.Stalls);
+            Assert.Contains(r.Plan.Issues, i => i.Key == "Placemaker.Parking.Issue.AroundBuildings");
+        }
+
+        [Fact]
         public void ToggleAddsReplacesAndRemoves()
         {
             var list = new List<HandTouch>();

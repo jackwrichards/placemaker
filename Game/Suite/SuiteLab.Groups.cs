@@ -55,8 +55,12 @@ namespace Placemaker.Game.Suite
                 total += kv.Value.Count;
                 if (kv.Value.Count > 1) duplicated++;
                 if (m == 0) memberless++;
-                groups.Add(new JObject { ["id"] = kv.Key, ["records"] = kv.Value.Count, ["withLiveRefs"] = live, ["removing"] = removing, ["members"] = m });
-                parts.Add($"group {kv.Key}: {kv.Value.Count} record(s), {live} with a live owner/carrier/companion, {m} members" + (removing > 0 ? $", {removing} being removed" : ""));
+                // (P2-1) the hand edits its receipt keeps (Core/Touches.cs): they must come back after a load
+                int touches = 0;
+                var gr = Services.Groups is GroupRegistrySystem reg ? reg.GetRecord(kv.Key) : null;
+                if (gr?.Recipe != null) foreach (var w in Placemaker.Core.Tool.RecipePaths.Walk(gr.Recipe)) touches += w.Value.Touches.Count;
+                groups.Add(new JObject { ["id"] = kv.Key, ["records"] = kv.Value.Count, ["withLiveRefs"] = live, ["removing"] = removing, ["members"] = m, ["handEdits"] = touches });
+                parts.Add($"group {kv.Key}: {kv.Value.Count} record(s), {live} with a live owner/carrier/companion, {m} members, {touches} hand edits" + (removing > 0 ? $", {removing} being removed" : ""));
             }
             int strays = 0;
             foreach (var kv in members) if (!byId.ContainsKey(kv.Key)) strays += kv.Value;

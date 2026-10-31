@@ -432,7 +432,7 @@ namespace Placemaker.Game.Tool
                 PermanentPending = PermanentPending(),
                 BuildServiceAvailable = Services.Build != null,
                 BuildRunning = _building,
-                MarkerModeActive = _markerKind != null,
+                MarkerModeActive = _markerKind != null || _touchKind != null,
                 Editing = _editingGroup > 0,
                 GestureActive = _gesture != Gesture.None || _previewBase != null,
                 Painter = _painter,

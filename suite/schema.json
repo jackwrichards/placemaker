@@ -23,6 +23,7 @@
     "value": { "keys": ["path", "id", "value", "json"] },
     "entrance": { "keys": ["side", "t", "at", "abs", "path", "kind", "crosswalk"], "enums": { "side": ["south", "east", "north", "west"] } },
     "entrances": { "keys": [] },
+    "touch": { "keys": ["kind", "pick", "index", "side", "path", "state"], "enums": { "pick": ["far", "near", "middle", "touched"], "side": ["south", "east", "north", "west"] } },
     "moveEntrance": { "keys": ["index", "side", "t", "at", "abs"], "enums": { "side": ["south", "east", "north", "west"] } },
     "removeEntrance": { "keys": ["index"] },
     "preview": { "keys": [] },

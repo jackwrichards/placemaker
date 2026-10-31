@@ -1,0 +1,14 @@
+{
+  "_about": "P2-1 manual touches, part 2 of 2: run with Send-Suite -Fresh after parking-touches-save.json. Loads the city with the hand-edited car park in a fresh game and lists every group record with the hand edits its receipt kept (they must be the same as after the rebuild), then a picture of the lot. The save is deleted at the end. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/parking-touches-load.json -Fresh -Who p2-parking-tools",
+  "scenarios": [
+    {
+      "id": "parking-touches-load",
+      "site": "flat",
+      "steps": [
+        { "do": "lab", "op": "loadCity", "name": "PlacemakerTouches", "delete": true },
+        { "do": "lab", "op": "groupRecords", "label": "after the load" },
+        { "do": "camera", "target": "build", "view": "top", "shot": "loaded-top", "shotMode": "render" }
+      ]
+    }
+  ]
+}

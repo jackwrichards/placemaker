@@ -113,6 +113,15 @@ namespace Placemaker.Game.Settings
         [SettingsUISection(SectionMain, GroupGeneral)]
         public int ZoneGridOpacity { get; set; }
 
+        /// <summary>
+        /// (P2-1) How solid the plan's map preview fills (surfaces, asphalt, grass) draw, in percent of their full tone: lower lets the
+        /// land and what is under the area show through (Parking Lot Tool draws its fills at about 22 %). Lines, stalls and markers keep
+        /// their strength. Applies at once.
+        /// </summary>
+        [SettingsUISlider(min = 10, max = 100, step = 5, scalarMultiplier = 1, unit = global::Game.UI.Unit.kPercentage)]
+        [SettingsUISection(SectionMain, GroupGeneral)]
+        public int PreviewFillStrength { get; set; }
+
         /// <summary>(2026-10-30) How strongly the ground details (cracks, grime, leaves, wear) draw, in percent: multiplies every decal's opacity (SharedDecals.Strength); applies at once.</summary>
         [SettingsUISlider(min = 50, max = 300, step = 10, scalarMultiplier = 1, unit = global::Game.UI.Unit.kPercentage)]
         [SettingsUISection(SectionMain, GroupGeneral)]
@@ -576,6 +585,8 @@ namespace Placemaker.Game.Settings
                     ["paint"] = PolishGroundPaint ? 1f : 0f,
                 });
                 global::Placemaker.Game.Overlay.ZoneGridOpacitySystem.OpacityPercent = ZoneGridOpacity;
+                if (PreviewFillStrength <= 0) PreviewFillStrength = 50;   // a settings file from before this setting
+                global::Placemaker.Game.Overlay.PlacemakerOverlaySystem.FillStrength = System.Math.Max(10, System.Math.Min(100, PreviewFillStrength)) / 100f;
                 if (GroundDetailStrength <= 0) GroundDetailStrength = 150;   // a settings file from before this setting
                 global::Placemaker.Game.Decals.SharedDecals.Strength = System.Math.Max(50, System.Math.Min(300, GroundDetailStrength)) / 100f;
             }
@@ -607,6 +618,7 @@ namespace Placemaker.Game.Settings
             LayoutSize = (int)System.Math.Round(global::Placemaker.Core.SiteContext.DefaultLayoutScale * 100f);
             EdgeMargin = global::Placemaker.Core.SiteContext.DefaultEdgeMargin;
             ZoneGridOpacity = 20;
+            PreviewFillStrength = 50;
             GroundDetailStrength = 150;
             BrushSize = 150f;
             BrushSquare = false;

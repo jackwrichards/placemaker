@@ -83,6 +83,10 @@ namespace Placemaker.Core.Layers.Parking
             return inside;
         }
 
+        /// <summary>(P2-1) Distance between two segments (0 when they cross).</summary>
+        public static double SegSegDist(double2 a, double2 b, double2 c, double2 d) =>
+            SegmentsIntersect(a, b, c, d) ? 0 : Math.Min(Math.Min(DistPointSeg(a, c, d), DistPointSeg(b, c, d)), Math.Min(DistPointSeg(c, a, b), DistPointSeg(d, a, b)));
+
         public static double DistPointSeg(double2 p, double2 a, double2 b)
         {
             var ab = b - a;

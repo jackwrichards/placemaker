@@ -29,7 +29,7 @@ namespace Placemaker.Game.Tool
         /// (s15) The brush takes input and its cursor / Block paint shading are drawn: Area stage, brush mode, tool
         /// active, not placing markers, mouse over the world — or a stroke still running (Core/Tool/BrushCursor).
         /// </summary>
-        public bool BrushLive => BrushCursor.Live(IsActive, _stage, _mode, _markerKind != null, _in.OverWorld, Painting);
+        public bool BrushLive => BrushCursor.Live(IsActive, _stage, _mode, _markerKind != null || _touchKind != null, _in.OverWorld, Painting);
 
         /// <summary>
         /// (s27) Plain Paint honours the shared brush rules: it cuts what the polygon stops name (buildings, other

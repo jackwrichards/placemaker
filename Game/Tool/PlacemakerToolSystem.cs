@@ -234,7 +234,7 @@ namespace Placemaker.Game.Tool
                 m_ToolRaycastSystem.collisionMask = CollisionMask.OnGround | CollisionMask.Overground;
                 return;
             }
-            if (_mode == SelectionMode.Perimeter && _markerKind == null && _stage != ToolStage.Building)
+            if (_mode == SelectionMode.Perimeter && _markerKind == null && _touchKind == null && _stage != ToolStage.Building)
             {
                 m_ToolRaycastSystem.typeMask = TypeMask.Net;
                 m_ToolRaycastSystem.netLayerMask = global::Game.Net.Layer.Road;
@@ -273,6 +273,7 @@ namespace Placemaker.Game.Tool
                 else if (_brush != 0) UpdateOutgrowBrushInput();   // Outgrow's brush: the mouse is its own
                 else if (_outgrowMode) _cursorValid = false;       // Outgrow mode: the area tools rest
                 else if (_markerKind != null) UpdateMarkers();
+                else if (_touchKind != null) UpdateTouches();
                 else if (_stage == ToolStage.Manage) UpdateManage();
                 else
                 {
@@ -321,6 +322,7 @@ namespace Placemaker.Game.Tool
             ResolveAssets();
             FramePart("ResolveAssets");
             if (_markerKind != null && (_shape == null || RecipePaths.Resolve(_recipe, _markerPath) == null)) ExitMarkerMode();
+            if (_touchKind != null && (_shape == null || RecipePaths.Resolve(_recipe, _touchPath) == null)) ExitTouchMode();
             UpdateHintActions();
             UpdateGhostOutline(PreviewModeEffective == PreviewMode.Ghost && !_outgrowMode);
             FramePart("Hints, ghost outline");
@@ -386,7 +388,7 @@ namespace Placemaker.Game.Tool
         {
             switch (StageMachine.Escape(_stage, Facts()))
             {
-                case EscapeAction.ExitMarkers: ExitMarkerMode(); break;
+                case EscapeAction.ExitMarkers: ExitMarkerMode(); ExitTouchMode(); break;
                 case EscapeAction.CancelGesture: CancelGesture(); break;
                 case EscapeAction.ToDesign: SetStage(ToolStage.Design); break;
                 case EscapeAction.ToArea: SetStage(ToolStage.Area); break;

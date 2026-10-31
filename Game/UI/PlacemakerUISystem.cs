@@ -114,6 +114,9 @@ namespace Placemaker.Game.UI
             Trigger<double, double, double>("locate", (x, y, z) => _tool.Locate((float)x, (float)y, (float)z));
             Trigger<bool>("acknowledgePermanent", ack => _tool.AcknowledgePermanent(ack));
             Trigger<string, string>("setMarkerKind", (p, kind) => _tool.SetMarkerKind(p, kind));
+            // (P2-1) hand edits (Core/Touches.cs): pick the kind the next world click makes ("" = done), take them off
+            Trigger<string, string>("setTouchKind", (p, kind) => _tool.SetTouchKind(p, kind));
+            Trigger<string, string>("clearTouches", (p, kind) => _tool.ClearTouches(p, kind));
             Trigger<string, double>("removeMarker", (p, i) => _tool.RemoveMarker(p, (int)Math.Round(i)));
             Trigger<string, double, bool>("setMarkerCrosswalk", (p, i, on) => _tool.SetMarkerCrosswalk(p, (int)Math.Round(i), on));   // i < 0: the entrances placed next
             Trigger<double>("ungroupGroup", id => _tool.UngroupGroup((int)id));
