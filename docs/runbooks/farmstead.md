@@ -6,6 +6,9 @@ woods and rough grazing where the land is poor, ditches or a ravine, heaps, bale
 ## Status
 
 - Grade from the user: not yet. Lead review: pending.
+- Own grades (2026-10-31, runs `20261031-110042-farm-close`, `show-2-builds-1031-110919-8517`): mixed A-, fruit farm A-,
+  hill farm A-, dairy A-, arable B+, ranch B+. Short of A+: no animals in the runner's pictures (the spawners need the
+  simulation), the yard is still one flat earth square, arable and ranch are sparse between their fields and fences.
 - Branch: `claude/p2-farms-9b48f2`. In the user's game: no.
 
 ## What the user asked (GRIPES.md, 2026-10-30)
@@ -78,6 +81,8 @@ strawLitter, dungPats, hoofChurn, tramline, manureHeap, mudTyreTrack, orchardStr
 | `20261031-101259-farm-close` | close-ups (house, yard): the level-1 house read as a mobile home, bushes stood in the ponds |
 | `20261031-102933-farm-close` | level 3-5 cottage; big site on hills (contour rows); autumn paint blotched, ranch fences doubled, orchard crowns merged |
 | `20261031-105249-farm-close` | ploughed rows surface, terraces read as terraced arable; hill-farm woods hid the house |
+| `20261031-110042-farm-close` | the grading set: every style flat (45°, house, yard, close), a 400 × 300 mixed farm on hills, the hill farm on 12 % |
+| `show-2-builds-1031-110919-8517` | orchard rows with 9 m alleys (young trees had the wider crowns) |
 
 ## Lessons
 
