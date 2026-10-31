@@ -161,7 +161,7 @@ done yet, why), **declined** (deliberately not, why).
 | 25 | Buildings: no check at all | always kept, the panel says how many; **the car park now plans round them** (no stall or aisle on a building lot, the rest reachable, a note with how many spaces were left out) instead of the safety pass cutting aisles after planning | new (beats PLT) |
 | **Editing after placement** ||||
 | 26 | Click selects the whole lot; Edit in the info panel and the list | click panel "Part of …": Edit, Rename, Ungroup, Remove; Manage list | have |
-| 27 | Edit restores everything, rebuilds, keeps the fee | Edit restores outline, design, entrances **and hand edits**; rebuild replaces; fee and name kept | have + new |
+| 27 | Edit restores everything, rebuilds, keeps the fee | Edit restores outline, design, entrances **and hand edits**; rebuild replaces; fee and name kept | have + new (open: while editing, the old lot still shows under the new preview; PLT hides it until Apply: core request 3) |
 | 28 | Unchanged road pieces keep their entities on edit | full rebuild | open (matters for grown buildings on PLT's zoning roads, which Placemaker does not build) |
 | 29 | Lost receipt restore from a build journal | receipts live on the group record in the save | declined |
 | **Management** ||||

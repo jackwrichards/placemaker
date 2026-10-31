@@ -17,3 +17,10 @@ What a content agent needs from shared code that is bigger than a small general 
    - How it would fit: prefab clones registered before saves load (like the parking companion prefab), `RoadData`/speed and
      `PathfindCostInfo` set on the clone, `ParkingAssets.DrivePath` choosing the clone. Needs an in-game traffic check.
    - Types: parking, the malls' and shops' car parks, anything with drive aisles.
+3. **Hide the old build while editing it** (PLT hides the visible parts of the lot being edited; nets stay live; Cancel
+   shows them again).
+   - Why: during Edit the old car park shows under the new preview (game-runner run `send-parking-touches-save-1031-001049`,
+     picture edit-plan-touched): two layouts on top of each other, hard to read.
+   - How it would fit: `GroupRegistrySystem` marks the group's objects and areas `Hidden` on Edit (not nets: traffic keeps
+     flowing) and un-hides them on Cancel; the rebuild deletes them anyway.
+   - Types: every type (Edit is shared).
