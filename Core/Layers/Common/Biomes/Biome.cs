@@ -354,7 +354,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
             // with the subtle terrain paint, it looks great"): the field's character is terrain paint only, soft and wide: a faint
             // lush tone in big drifts, a worn heart (Wear) where people play; a long-grass band along its edge (a strip, not spots);
             // no stamped spots on the open grass. Leaves only under edge trees.
-            PaintLayer = 2, PaintStrength = 0.22f, CorePaint = 3, CoreStrength = 0.14f,
+            PaintLayer = 2, PaintStrength = 0.3f, CorePaint = 3, CoreStrength = 0.18f,   // round 4: 0.22 / 0.14 barely showed (show-2-builds-1031-135837)
             Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Wear, 100, 200), BiomeKnob.Slider(BiomeKnobs.Edges, 100, 200), BiomeKnob.Slider(BiomeKnobs.Trees, 0, 20, "perHa").Named("edgeTrees") },
             Decals = new[]
             {
