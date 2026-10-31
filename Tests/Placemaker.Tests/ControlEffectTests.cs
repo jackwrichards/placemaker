@@ -61,6 +61,8 @@ namespace Placemaker.Tests
             // street shops snap their depth to the city's zone cells; the test land has no zone grid
             ["park.shopDepth"] = "zone grid", ["sportsPark.shopDepth"] = "zone grid", ["greenwayPark.shopDepth"] = "zone grid",
             ["amphitheatre.shopDepth"] = "zone grid", ["urbanRuins.shopDepth"] = "zone grid", ["parking.zoningDepth"] = "zone grid",
+            // (P2-4) multiplies the facility counts only on a site bigger than a 4.5 ha block; the test land is smaller
+            ["sportsPark.growWithSite"] = "big sites only",
             // the bike route starts at a bike entrance the player places (the suggested entrances have none)
             ["park.bikePath"] = "needs a bike entrance",
             // the fee is charged by the game on the built lot's parking lanes (ParkingEconomySystem), not drawn

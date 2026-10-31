@@ -465,6 +465,15 @@ namespace Placemaker.Core.Layers.Park
                 // Formal parks are axial by definition; every other style follows the toggle.
                 bool curved = ctx.B("curvedPaths") && !style.Formal;
                 ParkPathGraph graph = null;
+                // P2-4 (the hill matrix: the urban spokes made 408 steep path pieces on mountains, the picnic circuit 120 on a 10 %
+                // slope): the drawn figures (axes, spokes, rings, figure eights, avenues) ignore the slope, so on a steep site the
+                // walks follow it instead, gently curved, and the panel says why.
+                if (Array.IndexOf(DrawnPathStyles, pathStyle) >= 0 && SteepSite(region, ctx.H))
+                {
+                    pathStyle = "curvy";
+                    ctx.Issue(IssueSeverity.Info, "Placemaker.Park.Issue.PathStyleSteep");
+                    ctx.Plan.Facts["pathStyleSteep"] = 1;
+                }
                 switch (pathStyle)
                 {
                     case "formal": graph = ParkPathStyles.Formal(region, gatePoints, okPoint); curved = false; break;
@@ -498,8 +507,15 @@ namespace Placemaker.Core.Layers.Park
                     avenueA = avenueB = float2.zero;
                 }
                 if (style.Grid) curved = false;
-                if (pathStyle == "garden") { graph = ParkPathStyles.Meander(graph, gatePoints, ctx.M(6.5f), ctx.M(18f), pathSeed, okPoint); curved = true; }
+                // (P2-4 round 4) on steep land the walks already wind along the contours (the contour roadmap): no bends on top of
+                // them, which would only make them wave up and down the slope
+                bool windAlready = SteepSite(region, ctx.H);
+                if (windAlready && (pathStyle == "garden" || pathStyle == "curvy")) curved = true;
+                else if (pathStyle == "garden") { graph = ParkPathStyles.Meander(graph, gatePoints, ctx.M(6.5f), ctx.M(18f), pathSeed, okPoint); curved = true; }
                 else if (pathStyle == "curvy") { graph = ParkPathStyles.Meander(graph, gatePoints, ctx.M(5f), ctx.M(34f), pathSeed, okPoint); curved = true; }
+                // P2-4 round 3: runs that climb faster than a walk may are traced as switchbacks along the contour
+                graph = ParkPathStyles.Switchbacks(graph, gatePoints, ParkPathPlanner.AmbientHeight, okPoint, out int switchbacks, out int hairpins);
+                if (switchbacks > 0) { ctx.Plan.Facts["switchbacks"] = switchbacks; ctx.Plan.Facts["hairpins"] = hairpins; }
                 s.Graph = graph;
                 ctx.Plan.Facts["graphLength"] = graph?.TotalLength ?? 0;
                 s.Curves = ParkPaths.Build(s.Graph, region, curved, widthMode);
@@ -1006,6 +1022,32 @@ namespace Placemaker.Core.Layers.Park
                     default: return main;
                 }
             };
+        }
+
+        /// <summary>Path styles drawn as figures (axes, spokes, rings, avenues) that do not follow the ground.</summary>
+        internal static readonly string[] DrawnPathStyles = { "formal", "spokeRing", "circuit", "figureEight", "promenade" };
+
+        /// <summary>
+        /// A site too steep for walks drawn as figures: over a third of it climbs faster than 12 % (measured over 20 m), where a
+        /// straight walk becomes a ramp the game's paths and the site harmony cannot tame. A 10 % slope keeps its figure.
+        /// </summary>
+        internal static bool SteepSite(LayerRegion region, Func<float2, float> h)
+        {
+            if (h == null) return false;
+            const int n = 10;
+            var size = region.Max - region.Min;
+            int inside = 0, steep = 0;
+            for (int j = 0; j < n; j++)
+                for (int i = 0; i < n; i++)
+                {
+                    var p = region.Min + size * new float2((i + 0.5f) / n, (j + 0.5f) / n);
+                    if (!region.Contains(p)) continue;
+                    inside++;
+                    float gx = (h(p + new float2(10f, 0f)) - h(p - new float2(10f, 0f))) / 20f;
+                    float gz = (h(p + new float2(0f, 10f)) - h(p - new float2(0f, 10f))) / 20f;
+                    if (math.sqrt(gx * gx + gz * gz) > 0.12f) steep++;
+                }
+            return inside > 0 && steep > inside / 3;
         }
 
         private static int LoopsFor(string mode, float area)

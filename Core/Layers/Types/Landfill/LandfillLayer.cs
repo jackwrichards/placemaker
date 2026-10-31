@@ -140,11 +140,12 @@ namespace Placemaker.Core.Layers.Types.Landfill
         private static readonly Dictionary<string, GritAssets.Set> ArtObjects = null, ArtSurfaces = null;
 
         /// <summary>Haul roads: compacted grey gravel (vanilla ore ground as the fallback), not mud.</summary>
+        private static readonly string[] OwnMachines = { Yards.VehicleProps.Loader(1), Yards.VehicleProps.Garbage(1), Yards.VehicleProps.Loader(2), Yards.VehicleProps.Garbage(2), Yards.VehicleProps.Tractor(1) };
         private static AssetRef HaulGround => new AssetRef("Terrain Surfaces Pack Rock gaga TTP - Smaller Pebbles grey M Surface", "Ore Surface 01");
         /// <summary>Tipped waste: the game's own landfill ground.</summary>
         private static AssetRef WasteGround => new AssetRef("Landfill Surface 01", "Placemaker Overlay (Landfill Surface 01)", "Oil Surface 01");
-        /// <summary>Daily cover on the tip: brown soil.</summary>
-        private static AssetRef CoverGround => new AssetRef("Terrain Surfaces Pack Ground gaga TTP - Soil M Surface", "EAI - Surface Pack Ground Mud Surface", "Oil Surface 01");
+        /// <summary>Daily cover on the tip: brown soil (P2-4: the vanilla fallback was the oil field's pale sand, a bleached disc from 45°).</summary>
+        private static AssetRef CoverGround => new AssetRef("Terrain Surfaces Pack Ground gaga TTP - Soil M Surface", "EAI - Surface Pack Ground Mud Surface", "Forestry Surface 01");
         /// <summary>Compost windrows: dark ploughed soil.</summary>
         private static AssetRef CompostGround => new AssetRef("Farming Surfaces & Decals Ground Haristess - 1-2 - MudPlowed1 Surface", "Farming Surfaces & Decals Ground Haristess - 1-1 - MudSoil1 Brown Surface", "Forestry Surface 01");
         private static readonly GritAssets.Set CompostPiles = new GritAssets.Set(false, "CoalTruck01_OrePile01", "Prop_CoalTruck01_CoalPile01_Partial2|CoalTruck01_CoalPile01", "CoalTruck01_OrePile01", "Prop_CoalTruck01_OrePile01_Full|CoalTruck01_OrePile01");
@@ -272,9 +273,11 @@ namespace Placemaker.Core.Layers.Types.Landfill
         /// <summary>Points of a fan sector of the mound (angles a0±half, radii f0..f1 of the footprint).</summary>
         private static float2[] Fan(Mound m, float a0, float half, float f0, float f1, int steps = 8)
         {
+            // P2-4: a ragged edge (the face is pushed out load by load), not a pie slice; the sides wander a little too
             var pts = new List<float2>();
-            for (int i = 0; i <= steps; i++) pts.Add(m.At(Dir(a0 - half + 2f * half * i / steps), f1));
-            for (int i = steps; i >= 0; i--) pts.Add(m.At(Dir(a0 - half + 2f * half * i / steps), f0));
+            float Wob(int i, float amt) => 1f + amt * (Hashing.Unit(Hashing.Mix(0xFA5Eu, (uint)i)) - 0.5f) * 2f;
+            for (int i = 0; i <= steps; i++) pts.Add(m.At(Dir(a0 - half * Wob(900, 0.08f) + 2f * half * i / steps), f1 * Wob(i, 0.07f)));
+            for (int i = steps; i >= 0; i--) pts.Add(m.At(Dir(a0 - half * Wob(901, 0.08f) + 2f * half * i / steps), f0 * Wob(i + 50, 0.15f)));
             return Poly.EnsureCcw(pts.ToArray());
         }
 
@@ -298,24 +301,48 @@ namespace Placemaker.Core.Layers.Types.Landfill
             YardKit.Haul(ctx, s.Occ, line, 8f, SurfaceRole.Ground, HaulGround, haulCat);
             foreach (var p in line) s.Wet.Add(p);
 
-            // Daily-cover soil over the whole tip (the mound read as bare grass before); the face goes on top.
+            // Daily-cover soil on the top and down the working side; the far flanks are older cells, capped and grassed (P2-4: soil
+            // over the whole tip read as one pale disc). A ragged edge, as the cover is pushed out load by load.
             {
-                var ring = new float2[28];
-                for (int i = 0; i < ring.Length; i++) ring[i] = m.At(Dir(i * math.PI * 2f / ring.Length), 0.97f);
+                var ring = new float2[48];
+                uint ws = s.Salt(0xC0AEu);
+                for (int i = 0; i < ring.Length; i++)
+                {
+                    float ang = i * math.PI * 2f / ring.Length;
+                    float off = face ? math.abs(AngleTo(m.At(Dir(ang), 1f), m.Center, a0)) : math.PI;
+                    float work = 1f - math.smoothstep(half + 0.7f, half + 1.3f, off);
+                    float r = math.lerp(0.58f, 0.97f, work) * (1f + 0.07f * (ValueNoise.Sample(new float2(ang * 2.2f, 0.5f), ws) - 0.5f) * 2f);
+                    ring[i] = m.At(Dir(ang), math.min(0.98f, r));
+                }
                 YardKit.Patch(ctx, Poly.EnsureCcw(ring), SurfaceRole.Ground, CoverGround, haulCat);
             }
             if (face)
             {
                 // Machines on the face.
                 int machines = ctx.I("machines");
-                string mc = machines > 0 ? YardKit.Cat(ctx, ctx.L("machineAssets"), AssetCategories.ScrapMachine) : null;
+                // P2-4: the clean game has no machine category to pick from (the face stood empty but for one truck): Placemaker's own
+                // vehicle props, as the quarry does: loaders working the face, refuse lorries tipping
+                bool picked = ctx.L("machineAssets") != null && ctx.L("machineAssets").Length > 0;
+                var mids = picked ? ctx.L("machineAssets") : OwnMachines;
+                // our vehicle props are not the scrap-machine pool: filed as construction machines, like the quarry's
+                string mc = machines <= 0 ? null : picked ? AssetCategories.ScrapMachine : AssetCategories.ConstructionMachine;
                 for (int k = 0; k < machines * 6 && s.Machines < machines && mc != null; k++)
                 {
                     uint v = s.Salt(0x3AC0u + (uint)k);
                     var p = m.At(Dir(a0 + (Hashing.Unit(v) - 0.5f) * 2f * half * 0.8f), 0.4f + 0.5f * Hashing.Unit(Hashing.Mix(v, 1u)));
-                    if (LeisureKit.Put(ctx, s.Occ, p, Hashing.Unit(Hashing.Mix(v, 2u)) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(ctx.L("machineAssets"), v), mc, 2.6f, v, 1f, 0.3f))
+                    if (LeisureKit.Put(ctx, s.Occ, p, Hashing.Unit(Hashing.Mix(v, 2u)) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(mids, v), mc, 2.6f, v, 1f, 0.3f))
                         s.Machines++;
                 }
+                // lorries queuing on the haul road to the face
+                if (machines > 0)
+                    foreach (float at in new[] { 0.45f, 0.72f })
+                    {
+                        int i = math.clamp((int)(at * (line.Count - 1)), 0, line.Count - 2);
+                        var p = math.lerp(line[i], line[i + 1], 0.5f);
+                        var dir = math.normalizesafe(line[i + 1] - line[i]);
+                        LeisureKit.Put(ctx, s.Occ, p + new float2(dir.y, -dir.x) * 1.8f, math.atan2(dir.x, dir.y), ObjectRole.Furniture,
+                            new AssetRef(Yards.VehicleProps.Garbage(i % 2 + 1), "Prop_EU_GarbageTruck01"), AssetCategories.ConstructionMachine, 3f, s.Salt(0x7178u + (uint)i), 0.5f, 0.1f);
+                    }
                 // Raw garbage on the face, compactors working it.
                 var fan = Fan(m, a0, half, 0.3f, 0.95f);
                 YardKit.Patch(ctx, fan, SurfaceRole.Ground, WasteGround, haulCat);

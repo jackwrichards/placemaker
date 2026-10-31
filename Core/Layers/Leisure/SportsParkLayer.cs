@@ -123,6 +123,8 @@ namespace Placemaker.Core.Layers.Leisure
             c.Slider("volleyballCount", 1, 1, 4, 1, "count", ControlTier.More, "facilities");
             c.Slider("tableTennisCount", 2, 1, 6, 1, "count", ControlTier.More, "facilities");
             c.Slider("fitnessCount", 1, 1, 3, 1, "count", ControlTier.More, "facilities");
+            // P2-4 (the lead: a 15 ha park was a few pitches in a wood): on a big site the counts above multiply
+            c.Toggle("growWithSite", true, ControlTier.More, "facilities").Tip();
 
             // Clubhouse: changing pavilion with a spectator terrace beside the main field.
             c.Toggle("changingHut", true, ControlTier.More, "clubhouse").Tip();

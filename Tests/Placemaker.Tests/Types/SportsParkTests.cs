@@ -106,15 +106,18 @@ namespace Placemaker.Tests.Types
             Assert.False(pitch.Facts.ContainsKey("fieldSpur"));
             Assert.Equal(1, host.Facts["terrace"]);
             Assert.Equal(1, host.Facts["clubhouse"]);
-            // Stands are on the terrace side of the pitch.
-            var stands = pitch.Objects.Where(o => o.Category == AssetCategories.SportsStand || o.Role == ObjectRole.Bench).ToList();
-            Assert.NotEmpty(stands);
+            // Stands are on the terrace side of the pitch. Since 2026-10-29 the terrace seats the spectators itself (the pitch
+            // place carries FieldAddOn.HostStandsTag and the field lays only its dugouts, on the far touchline).
             var terrace = new float2((float)host.Facts["terraceX"], (float)host.Facts["terraceZ"]);
             float side(float2 p) => math.dot(p - pitchPlace.Center, pitchPlace.Side);
-            // Stands (bleachers, or benches when none are installed) on the terrace side; team benches face them.
-            var standSide = math.sign(stands.Where(o => o.Category == AssetCategories.SportsStand || o.Category == AssetCategories.Bench || o.Category == null)
-                .Select(o => side(o.Position.xz)).OrderBy(x => -math.abs(x)).Take(3).Average());
-            Assert.Equal(math.sign(side(terrace)), standSide);
+            bool hosted = host.Facts.TryGetValue("terraceStands", out var ts) && ts > 0;
+            var stands = (hosted ? host.Objects : pitch.Objects).Where(o => o.Category == AssetCategories.SportsStand).ToList();
+            Assert.NotEmpty(stands);
+            float tSide = math.sign(side(terrace));
+            Assert.Equal(tSide, math.sign(stands.Select(o => side(o.Position.xz)).OrderBy(x => -math.abs(x)).Take(3).Average()));
+            // The team benches (dugouts) sit on the far touchline, facing the stands across the field.
+            var dugouts = pitch.Objects.Where(o => o.Role == ObjectRole.Bench).ToList();
+            Assert.All(dugouts, d => Assert.Equal(-tSide, math.sign(side(d.Position.xz))));
             // Every place is inside the area and the places never overlap.
             var places = Places(host);
             for (int i = 0; i < places.Count; i++)
@@ -199,7 +202,9 @@ namespace Placemaker.Tests.Types
                 var kinds = host.Regions.Where(r => r.Tags.Contains(SportsParkLayer.SizedTag))
                     .Select(r => r.Tags.First(t => t.StartsWith(Composer.PlacePrefix, StringComparison.Ordinal))).GroupBy(t => t).OrderBy(g => g.Key)
                     .Select(g => g.Key + "×" + g.Count());
-                sig[p.Id] = string.Join(",", kinds) + "|hero=" + host.Facts["hero"] + "|loop=" + host.Facts["loop"];
+                // The designed grounds (SportsDesigns) have no hero or loop: their design id tells them apart.
+                string fact(string key) => host.Facts.TryGetValue(key, out var v) ? v.ToString() : "-";
+                sig[p.Id] = string.Join(",", kinds) + "|hero=" + fact("hero") + "|loop=" + fact("loop") + "|design=" + fact("sportsDesign");
                 _out.WriteLine(p.Id + ": " + sig[p.Id]);
             }
             Assert.Equal(sig.Count, sig.Values.Distinct().Count());
@@ -228,6 +233,87 @@ namespace Placemaker.Tests.Types
                     Assert.True(host.Facts["facilities"] >= 1, p.Id + "/" + name + " has no facility");
                     _out.WriteLine($"{p.Id}/{name}: {host.Facts["facilities"]} facilities, {host.Objects.Count} objects, {plan.Layers.Count} layers");
                 }
+        }
+
+        [Fact]
+        public void DesignedGroundsHaveWalksToEveryFacility()
+        {
+            // P2-4 (the user: sports parks "lack paths to the different facilities"): the designs were paving surfaces only
+            foreach (var id in SportsDesigns.Ids)
+            {
+                var host = Host(Compose(Preset(id), FiveHa, TestKit.RoadAlongBottom(250)));
+                if (!host.Facts.ContainsKey("sportsDesign")) { _out.WriteLine(id + ": classic park on this site"); continue; }
+                int walks = host.Nets.Count(n => n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide);
+                _out.WriteLine($"{id}: {host.Facts["facilities"]} facilities, {walks} walk pieces, {host.Facts["designWalkSpurs"]} spurs");
+                Assert.True(walks >= 6, id + " has no walks");
+                Assert.True(host.Facts["designWalkSpurs"] >= 1, id + " has no walk to a facility");
+                T04TypeTestBase.AssertNothingOnPaths(host);
+            }
+        }
+
+        [Fact]
+        public void TheArenaOnAHillCutsItsSeatingIntoTheSlope()
+        {
+            // P2-4 (the lead: on a hill the arena stood on one big green plinth): the banks the hill rises behind become seating
+            var ring = TestKit.Rect(240, 200);
+            var site = TestKit.RoadAlongBottom(240);
+            site.HeightAt = q => 0.12f * q.y;
+            var host = Host(Compose(Preset("arena"), ring, site));
+            Assert.True(host.Facts.ContainsKey("sportsDesign"), "the arena falls back to the classic park on this site");
+            _out.WriteLine($"bank {host.Facts["bowlBank"]} m, terraced banks {host.Facts["bowlTerracedBanks"]}");
+            Assert.True(host.Facts["bowlTerracedBanks"] >= 1);
+        }
+
+        [Theory]
+        [InlineData(0.22f, 0f)]
+        [InlineData(0f, 0.22f)]
+        [InlineData(0.15f, 0.15f)]
+        public void TheArenaOnAMountainIsAHillsideStadium(float gx, float gy)
+        {
+            // P2-4 round 3 (the lead: "step it into the hill like a real stadium, with stands on the slope"): the pitch lies along
+            // the contour, the uphill long side is seating on the hill, and the pitch is not raised on a plinth over the hill below
+            var ring = TestKit.Rect(220, 200);
+            var site = TestKit.RoadAlongBottom(220);
+            site.HeightAt = q => gx * q.x + gy * q.y;
+            var host = Host(Compose(Preset("arena"), ring, site));
+            Assert.True(host.Facts.ContainsKey("sportsDesign"), "the arena falls back to the classic park on this site");
+            string f(string key) => host.Facts.TryGetValue(key, out var v) ? v.ToString("0.#") : "-";
+            _out.WriteLine($"hillside {f("bowlHillside")}, seating rows {f("bowlSeatingRows")}, rise {f("designRise")} m, drop {f("designDrop")} m, " +
+                $"pitch {f("pitchLength")}, stands {f("stands")}, banks {f("bowlBank")} m");
+            Assert.Equal(1, host.Facts["bowlHillside"]);
+            Assert.True(host.Facts["bowlSeatingRows"] >= 10, "the hill stand has " + host.Facts["bowlSeatingRows"] + " rows");
+            // the floor sits in the hill: it is cut in deeper than it is raised over the hill's own plane
+            Assert.True(host.Facts["designDrop"] > host.Facts["designRise"], $"rise {host.Facts["designRise"]} m, drop {host.Facts["designDrop"]} m");
+            T04TypeTestBase.AssertNothingOnPaths(host);
+        }
+
+        [Fact]
+        public void ABigSiteFillsAsASportsComplex()
+        {
+            // P2-4 (the lead: a 15 ha park was "a few pitches in a wood"): "Grow with the site" multiplies the counts on a big site
+            var big = TestKit.Rect(420, 360);
+            var on = Host(Compose(Preset("community"), big, TestKit.RoadAlongBottom(420)));
+            var offPreset = Preset("community");
+            offPreset.Root.Settings.Values["growWithSite"] = false;
+            var off = Host(Compose(offPreset, big, TestKit.RoadAlongBottom(420)));
+            var block = Host(Compose(Preset("community"), FiveHa, TestKit.RoadAlongBottom(250)));
+            _out.WriteLine($"15 ha: {on.Facts["facilities"]} facilities growing, {off.Facts["facilities"]} as set; 5 ha: {block.Facts["facilities"]}");
+            Assert.True(on.Facts["facilities"] >= off.Facts["facilities"] + 3, $"{on.Facts["facilities"]} vs {off.Facts["facilities"]}");
+            T04TypeTestBase.AssertNothingOnPaths(on);
+        }
+
+        [Fact]
+        public void EntrancePlazaGrowsWithThePark()
+        {
+            // P2-4 (the user: the plaza doesn't grow when the park is drawn very big)
+            var small = Host(Compose(Preset("community"), FiveHa, TestKit.RoadAlongBottom(250)));
+            var big = Host(Compose(Preset("community"), TestKit.Rect(420, 360), TestKit.RoadAlongBottom(420)));
+            _out.WriteLine($"5 ha: {small.Facts["plazaWidth"]} x {small.Facts["plazaDepth"]}; 15 ha: {big.Facts["plazaWidth"]} x {big.Facts["plazaDepth"]}, " +
+                $"{big.Facts["plazaTrees"]} trees, {big.Facts["plazaBenches"]} benches");
+            Assert.True(big.Facts["plazaWidth"] > small.Facts["plazaWidth"] * 1.6f);
+            Assert.True(big.Facts["plazaDepth"] > small.Facts["plazaDepth"] * 1.3f);
+            Assert.True(big.Facts["plazaTrees"] >= 8);
+            T04TypeTestBase.AssertNothingOnPaths(big);
         }
 
         [Fact]
@@ -269,7 +355,7 @@ namespace Placemaker.Tests.Types
                 input.Reserved.AddDisc(new float2(110, 90), 14f, "monument");
                 var plan = Gen.Plan(input, CancellationToken.None);
                 Assert.False(plan.HasErrors, p.Id);
-                TestKit.AssertClearOfReserved(plan, input.Reserved);
+                try { TestKit.AssertClearOfReserved(plan, input.Reserved); } catch (Exception e) { throw new Exception(p.Id + ": " + e.Message); }
                 foreach (var n in plan.Nets.Where(n => n.Role != NetRole.Fence))
                     for (int k = 0; k <= 8; k++)
                     {

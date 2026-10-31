@@ -99,6 +99,15 @@ namespace Placemaker.Core.Layers.Park
         [ThreadStatic] private static Func<float2, float> _height;
         [ThreadStatic] private static float _grade;
         [ThreadStatic] private static Func<float2, float> _avoid;
+        /// <summary>
+        /// (P2-4 round 4) A site steep enough that walks must wind: the roadmap is a fine lattice (a link every few metres in
+        /// every direction) and a link steeper than the walk grade costs many times its length, so the cheapest routes run along
+        /// the contours and turn back where they must climb: switchbacks laid by the planner itself.
+        /// </summary>
+        [ThreadStatic] private static bool _steep;
+        /// <summary>Tests: the coarse roadmap on steep land too, to compare.</summary>
+        [ThreadStatic] public static bool ContourRoadmapOff;
+        private const int MaximumSteepRoadmapNodes = 1500;
 
         /// <summary>Best of <see cref="CandidateCount"/> seeded candidates by naturalness score.</summary>
         public static ParkPathGraph PlanBest(LayerRegion region, IReadOnlyList<float2> gates, Options options, uint seed,
@@ -117,6 +126,8 @@ namespace Placemaker.Core.Layers.Park
             _height = SlopeCostOff ? null : options.Height ?? AmbientHeight;
             _grade = options.MaxGrade > 0.005f ? options.MaxGrade : TerrainSurvey.WalkGrade;
             if (_height != null && IsLevel(region, _height)) _height = null;   // flat land: exactly the old roadmap
+            var keepS = _steep;
+            _steep = _height != null && !ContourRoadmapOff && SteepShare(region, _height) > 0.3f;
             try
             {
                 for (int i = 0; i < CandidateCount; i++)
@@ -128,7 +139,7 @@ namespace Placemaker.Core.Layers.Park
                     if (score < bestScore) { best = candidate; bestScore = score; }
                 }
             }
-            finally { _height = keepH; _grade = keepG; _avoid = keepA; }
+            finally { _height = keepH; _grade = keepG; _avoid = keepA; _steep = keepS; }
             return best ?? ParkPathGraph.Empty();
         }
 
@@ -170,11 +181,31 @@ namespace Placemaker.Core.Layers.Park
             return steep <= _grade;
         }
 
+        /// <summary>Share of the region (a 12 x 12 grid) where the ground climbs faster than 12 %.</summary>
+        private static float SteepShare(LayerRegion region, Func<float2, float> h)
+        {
+            const int n = 12;
+            var size = region.Max - region.Min;
+            int steep = 0, all = 0;
+            for (int j = 0; j < n; j++)
+                for (int i = 0; i < n; i++)
+                {
+                    var p = region.Min + size * new float2((i + 0.5f) / n, (j + 0.5f) / n);
+                    if (!region.Contains(p)) continue;
+                    all++;
+                    const float e = 3f;
+                    float gx = (h(p + new float2(e, 0f)) - h(p - new float2(e, 0f))) / (2f * e);
+                    float gy = (h(p + new float2(0f, e)) - h(p - new float2(0f, e))) / (2f * e);
+                    if (math.sqrt(gx * gx + gy * gy) > 0.12f) steep++;
+                }
+            return all > 0 ? steep / (float)all : 0f;
+        }
+
         /// <summary>Mean cost multiplier of walking a straight link: 1 up to the walk grade (gentle and bumpy land plan as before), steeply more beyond.</summary>
         private static double SlopeFactor(float2 a, float2 b, double d)
         {
             if (_height == null || d < 0.5) return 1.0;
-            int n = Math.Max(1, (int)Math.Ceiling(d / 20.0));   // over 20 m stretches: the hill, not every bump
+            int n = Math.Max(1, (int)Math.Ceiling(d / (_steep ? 4.0 : 20.0)));   // over 20 m stretches: the hill, not every bump (steep: every 4 m)
             double seg = d / n, sum = 0.0;
             float prev = _height(a);
             for (int k = 1; k <= n; k++)
@@ -182,7 +213,7 @@ namespace Placemaker.Core.Layers.Park
                 float h = _height(math.lerp(a, b, k / (float)n));
                 double r = Math.Abs(h - prev) / seg / _grade;
                 prev = h;
-                sum += r <= 1.0 ? 1.0 : 1.0 + 6.0 * (r - 1.0);
+                sum += r <= 1.0 ? 1.0 : 1.0 + (_steep ? 30.0 : 6.0) * (r - 1.0);
             }
             return sum / n;
         }
@@ -358,9 +389,10 @@ namespace Placemaker.Core.Layers.Park
         private static double SamplingSpacing(LayerRegion region)
         {
             var size = region.Max - region.Min;
-            double spacing = Math.Max(Layout.M(16f), Math.Min(Layout.M(38f), Math.Sqrt(region.Area) / 5.0));
+            double spacing = _steep ? 7.0 : Math.Max(Layout.M(16f), Math.Min(Layout.M(38f), Math.Sqrt(region.Area) / 5.0));
+            int max = _steep ? MaximumSteepRoadmapNodes : MaximumRoadmapNodes;
             double estimated = (double)size.x * size.y / (spacing * spacing);
-            if (estimated > MaximumRoadmapNodes) spacing *= Math.Sqrt(estimated / MaximumRoadmapNodes);
+            if (estimated > max) spacing *= Math.Sqrt(estimated / max);
             return spacing;
         }
 
@@ -376,7 +408,7 @@ namespace Placemaker.Core.Layers.Park
                 double offset = (row++ & 1) == 0 ? 0.0 : spacing * 0.5;
                 for (double x = region.Min.x + phaseX + offset; x < region.Max.x; x += spacing)
                 {
-                    if (nodes.Count - terminals >= MaximumRoadmapNodes) return;
+                    if (nodes.Count - terminals >= (_steep ? MaximumSteepRoadmapNodes : MaximumRoadmapNodes)) return;
                     double jx = (rng.NextDouble() * 2.0 - 1.0) * spacing * 0.16;
                     double jy = (rng.NextDouble() * 2.0 - 1.0) * spacing * 0.16;
                     var p = new float2((float)(x + jx), (float)(y + jy));
@@ -444,7 +476,8 @@ namespace Placemaker.Core.Layers.Park
                 }
                 candidates.Sort((x, y) => x.d != y.d ? x.d.CompareTo(y.d) : x.i.CompareTo(y.i));
                 int connected = 0;
-                for (int k = 0; k < candidates.Count && connected < 6; k++)
+                // (steep: links in every direction, so one of them runs at the walk grade)
+                for (int k = 0; k < candidates.Count && connected < (_steep ? 16 : 6); k++)
                 {
                     int target = candidates[k].i;
                     if (!SegmentInside(nodes[source].Position, nodes[target].Position, region, false)) continue;

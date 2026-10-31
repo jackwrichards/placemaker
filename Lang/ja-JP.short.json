@@ -137,6 +137,8 @@
   "Placemaker.Park.Issue.NoRoomForPlaza.Short": "広場なし",
   "Placemaker.Park.Issue.NoRoomForTrails.Short": "散策路なし",
   "Placemaker.Park.Issue.PathStyleFallback.Short": "自動の小道を使用",
+  "Placemaker.Park.Issue.PathStyleSteep.Short": "小道は斜面に沿う",
+  "Placemaker.Park.Issue.LotTooSteep.Short": "駐車場なし：急すぎる",
   "Placemaker.Park.Issue.PlazaSmaller.Short": "広場を縮小",
   "Placemaker.Parking.Issue.BadShape.Short": "辺が交差",
   "Placemaker.Parking.Issue.BusStopNoRoad.Short": "バス停が通り外",

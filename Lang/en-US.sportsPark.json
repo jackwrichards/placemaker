@@ -68,6 +68,8 @@
   "Placemaker.Sports.volleyballCount": "How many",
   "Placemaker.Sports.tableTennisCount": "How many",
   "Placemaker.Sports.fitnessCount": "How many",
+  "Placemaker.Sports.growWithSite": "Grow with the site",
+  "Placemaker.Sports.growWithSite.Tooltip": "On a big site the counts above multiply, so the park fills as a sports complex.",
   "Placemaker.Sports.changingHut": "Clubhouse",
   "Placemaker.Sports.changingHut.Tooltip": "A changing pavilion with toilets behind the spectator terrace, next to the main field.",
   "Placemaker.Sports.terrace": "Spectator terrace",

@@ -252,7 +252,11 @@ namespace Placemaker.Core.Decals.Dynamic
         }
 
         /// <summary>GPU bytes of one variant: three BC3 maps with mips.</summary>
-        public static long GpuBytes(int w, int h) => 3L * DecalTexture.Bc3Size(w, h);
+        public static long GpuBytes(int w, int h)
+        {
+            var d = DecalTexture.DetailSize(w, h);
+            return DecalTexture.Bc3Size(w, h) + 2L * DecalTexture.Bc3Size(d.x, d.y);   // colour, then normal and mask at half size
+        }
 
         private static int Round4(float v, int lo, int hi) => math.clamp((int)math.round(v / 4f) * 4, lo, hi);
 

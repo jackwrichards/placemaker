@@ -140,7 +140,8 @@ namespace Placemaker.Tests
             int Pieces(double scale) => Host(Park("natural", 216f, 196f, "flat", new[] { ("forest", 50.0), ("meadow", 50.0) }, scale)).Regions.Count(r => r.Tags.Any(t => t.StartsWith(BiomeBuilder.RegionPrefix)));
             int small = Pieces(0), big = Pieces(100);
             _out.WriteLine($"pieces: small patches {small}, big areas {big}");
-            Assert.True(small > big * 1.5, $"small {small} vs big {big}");
+            // walks cut areas into pieces too: master's sawtooth walks (30 vs 16) cut more slivers than the straightened ones (P2-4: 24 vs 18)
+            Assert.True(small > big * 1.25, $"small {small} vs big {big}");
         }
 
         [Fact]

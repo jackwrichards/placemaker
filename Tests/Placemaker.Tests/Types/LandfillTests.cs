@@ -128,7 +128,8 @@ namespace Placemaker.Tests.Types
             var active = P("active");
             Assert.True(active.Facts["terrainMaxRaise"] > 6, "active: a real mound");
             Assert.True(YardTestKit.Count(active, AssetCategories.LandfillGarbage) > 60, "active: garbage on the working face");
-            Assert.True(YardTestKit.Count(active, AssetCategories.ScrapMachine) >= 2, "active: compactors");
+            // (P2-4) Placemaker's own loaders and lorries, filed as construction machines (the clean game has no scrap-machine pool)
+            Assert.True(YardTestKit.Count(active, AssetCategories.ScrapMachine) + YardTestKit.Count(active, AssetCategories.ConstructionMachine) >= 2, "active: compactors");
             Assert.True(YardTestKit.Count(active, AssetCategories.LandfillVent) >= 5, "active: gas wells on the cap");
             Assert.True(active.Nets.Count(n => n.Role == NetRole.Fence) > 4, "active: fence and litter screens");
             Assert.Equal(1.0, active.Facts["lagoon"]);

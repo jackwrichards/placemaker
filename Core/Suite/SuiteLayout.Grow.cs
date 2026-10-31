@@ -27,6 +27,21 @@ namespace Placemaker.Core.Suite
             var hi = FixtureMax + Blend;
             int px0 = math.max(0, (int)math.floor((lo.x - MapOffset.x) / cell.x)), px1 = math.min(n - 1, (int)math.ceil((hi.x - MapOffset.x) / cell.x));
             int py0 = math.max(0, (int)math.floor((lo.y - MapOffset.y) / cell.y)), py1 = math.min(n - 1, (int)math.ceil((hi.y - MapOffset.y) / cell.y));
+            // (P2-4) What is laid out already: the grid and each earlier plot's own rectangle. The old fixture's bounding box
+            // was kept whole, so once a second row of plots began inside it every later plot was left flat (0 texels).
+            var kept = new System.Collections.Generic.List<(float2 lo, float2 hi)> { (GridMin, GridMax) };
+            for (int k = 0; k < Plots.Count - 1; k++) kept.Add((Plots[k].OuterMin, Plots[k].OuterMax));
+            bool Kept(float x, float z) { foreach (var r in kept) if (x >= r.lo.x && x <= r.hi.x && z >= r.lo.y && z <= r.hi.y) return true; return false; }
+            float DistKept(float x, float z)
+            {
+                float best = float.MaxValue;
+                foreach (var r in kept)
+                {
+                    float ex = math.max(math.max(r.lo.x - x, x - r.hi.x), 0f), ez = math.max(math.max(r.lo.y - z, z - r.hi.y), 0f);
+                    best = math.min(best, math.sqrt(ex * ex + ez * ez));
+                }
+                return best;
+            }
             int changed = 0;
             for (int py = py0; py <= py1; py++)
             {
@@ -34,11 +49,10 @@ namespace Placemaker.Core.Suite
                 for (int px = px0; px <= px1; px++)
                 {
                     float x = MapOffset.x + (px + 0.5f) * cell.x;
-                    if (x >= keepMin.x && x <= keepMax.x && z >= keepMin.y && z <= keepMax.y) continue;   // laid out already
+                    if (Kept(x, z)) continue;   // laid out already
                     float d = OutsideFixture(x, z);
                     if (d >= Blend) continue;   // the map's own ground, as before
-                    float dx = math.max(math.max(keepMin.x - x, x - keepMax.x), 0f), dz = math.max(math.max(keepMin.y - z, z - keepMax.y), 0f);
-                    float dOld = math.sqrt(dx * dx + dz * dz);
+                    float dOld = DistKept(x, z);
                     if (d >= dOld) continue;     // the grown fixture is no nearer: its ease is what it was
                     int i = py * n + px;
                     float map = Decode(original != null ? original[i] : current[i]);

@@ -137,6 +137,8 @@
   "Placemaker.Park.Issue.NoRoomForPlaza.Short": "Platz entfällt",
   "Placemaker.Park.Issue.NoRoomForTrails.Short": "Keine Trampelpfade",
   "Placemaker.Park.Issue.PathStyleFallback.Short": "Auto-Wege genutzt",
+  "Placemaker.Park.Issue.PathStyleSteep.Short": "Wege folgen dem Hang",
+  "Placemaker.Park.Issue.LotTooSteep.Short": "Kein Parkplatz: zu steil",
   "Placemaker.Park.Issue.PlazaSmaller.Short": "Kleinerer Platz",
   "Placemaker.Parking.Issue.BadShape.Short": "Kanten kreuzen sich",
   "Placemaker.Parking.Issue.BusStopNoRoad.Short": "Haltestelle ohne Straße",

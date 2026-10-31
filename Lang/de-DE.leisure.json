@@ -182,6 +182,8 @@
   "Placemaker.Park.fountainPath.Tooltip": "Legt einen kurzen Weg vom nächsten Weg zum Brunnen an.",
   "Placemaker.Park.Preset.garden": "Gartenspaziergang",
   "Placemaker.Park.Issue.PathStyleFallback": "Dieser Wegstil passt nicht in diese Fläche (oder braucht einen Teich oder Elemente); stattdessen wurden automatische Wege verwendet.",
+  "Placemaker.Park.Issue.PathStyleSteep": "Dieses Gelände ist für die Anlage dieses Wegstils zu steil; die Wege folgen stattdessen dem Hang.",
+  "Placemaker.Park.Issue.LotTooSteep": "Die Straßenseite dieses Geländes ist für einen Parkplatz zu steil; der Park hat keinen.",
   "Placemaker.Plaza.centerKind": "Art der Mitte",
   "Placemaker.Plaza.centerKind.Tooltip": "Welche Art Blickfang die automatische Wahl verwendet.",
   "Placemaker.Plaza.centerKind.any": "Beliebig",

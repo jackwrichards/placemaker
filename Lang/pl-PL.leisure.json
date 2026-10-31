@@ -182,6 +182,8 @@
   "Placemaker.Park.fountainPath.Tooltip": "Dodaje krótką ścieżkę od najbliższej ścieżki do fontanny.",
   "Placemaker.Park.Preset.garden": "Spacer ogrodowy",
   "Placemaker.Park.Issue.PathStyleFallback": "Ten styl ścieżek nie pasuje do tego obszaru (lub wymaga stawu albo elementów); użyto automatycznych ścieżek.",
+  "Placemaker.Park.Issue.PathStyleSteep": "Ten teren jest zbyt stromy na układ tego stylu ścieżek; ścieżki biegną zamiast tego wzdłuż zbocza.",
+  "Placemaker.Park.Issue.LotTooSteep": "Strona tego terenu przy ulicy jest zbyt stroma na parking; park go nie ma.",
   "Placemaker.Plaza.centerKind": "Rodzaj centrum",
   "Placemaker.Plaza.centerKind.Tooltip": "Jakiego rodzaju centralnego elementu używa wybór automatyczny.",
   "Placemaker.Plaza.centerKind.any": "Dowolny",

@@ -121,7 +121,8 @@ namespace Placemaker.Tests.Types
             var earthworks = P("earthworks");
             // Foundation: a lowered dig ringed by barriers, a crane.
             Assert.Contains(foundation.Terraform, t => t.Kind == TerraformKind.Lower);
-            Assert.True(foundation.Objects.Count(o => o.Category == AssetCategories.ConstructionBarrier) >= 20);
+            // (P2-4: a few barriers by the ramp mouth, never a ring round the hole)
+            Assert.InRange(foundation.Objects.Count(o => o.Category == AssetCategories.ConstructionBarrier), 2, 8);
             Assert.Contains(foundation.Objects, o => o.Category == AssetCategories.ConstructionCrane);
             // Road works: long coned strips with asphalt/gravel sections and signs.
             Assert.True(roadworks.Objects.Count(o => o.Category == AssetCategories.ConstructionCone) >= 40);

@@ -182,6 +182,8 @@
   "Placemaker.Park.fountainPath.Tooltip": "Добавляет короткую дорожку от ближайшей дорожки к фонтану.",
   "Placemaker.Park.Preset.garden": "Садовая прогулка",
   "Placemaker.Park.Issue.PathStyleFallback": "Этот стиль дорожек не подходит для этой области (или ему нужен пруд либо элементы); вместо него использованы автоматические дорожки.",
+  "Placemaker.Park.Issue.PathStyleSteep": "Этот участок слишком крутой для планировки этого стиля дорожек; вместо неё дорожки идут по склону.",
+  "Placemaker.Park.Issue.LotTooSteep": "Сторона участка у улицы слишком крутая для парковки; у парка её не будет.",
   "Placemaker.Plaza.centerKind": "Вид центра",
   "Placemaker.Plaza.centerKind.Tooltip": "Какой вид центрального элемента использует автоматический выбор.",
   "Placemaker.Plaza.centerKind.any": "Любой",

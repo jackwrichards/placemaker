@@ -182,7 +182,7 @@ namespace Placemaker.Core.Decals.Dynamic
                         if (Beds != null) foreach (var r in Beds) yield return Closed(r);
                         break;
                     case BiomeWhere.Trails:
-                        foreach (var t in Trails(pass)) yield return t;
+                        foreach (var t in Trails(0)) yield return t;   // every trail pass on the same lines (sand under the trodden soil)
                         break;
                     case BiomeWhere.Rows:
                     case BiomeWhere.Alleys:

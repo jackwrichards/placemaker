@@ -182,6 +182,8 @@
   "Placemaker.Park.fountainPath.Tooltip": "Ajoute un court chemin depuis le chemin le plus proche jusqu'à la fontaine.",
   "Placemaker.Park.Preset.garden": "Promenade jardin",
   "Placemaker.Park.Issue.PathStyleFallback": "Ce style de chemin ne convient pas à cette zone (ou demande un étang ou des éléments) ; des chemins automatiques ont été utilisés à la place.",
+  "Placemaker.Park.Issue.PathStyleSteep": "Ce terrain est trop pentu pour le tracé de ce style de chemin ; les chemins suivent la pente à la place.",
+  "Placemaker.Park.Issue.LotTooSteep": "Le côté rue de ce terrain est trop pentu pour un parking ; le parc n'en a pas.",
   "Placemaker.Plaza.centerKind": "Type de centre",
   "Placemaker.Plaza.centerKind.Tooltip": "Le type de pièce maîtresse que le choix automatique utilise.",
   "Placemaker.Plaza.centerKind.any": "Au choix",

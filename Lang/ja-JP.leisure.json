@@ -182,6 +182,8 @@
   "Placemaker.Park.fountainPath.Tooltip": "一番近い小道から噴水へ短い小道を追加します。",
   "Placemaker.Park.Preset.garden": "庭園の散歩道",
   "Placemaker.Park.Issue.PathStyleFallback": "この小道のスタイルはこの範囲に合わない（または池や見どころが必要な）ため、代わりに自動の小道を使いました。",
+  "Placemaker.Park.Issue.PathStyleSteep": "この土地はこの小道のスタイルの配置には急すぎるため、小道は斜面に沿わせました。",
+  "Placemaker.Park.Issue.LotTooSteep": "この土地の道路側は駐車場には急すぎるため、公園に駐車場は作りません。",
   "Placemaker.Plaza.centerKind": "中心の種類",
   "Placemaker.Plaza.centerKind.Tooltip": "自動で選ぶときに使う中心の見どころの種類です。",
   "Placemaker.Plaza.centerKind.any": "どれでも",

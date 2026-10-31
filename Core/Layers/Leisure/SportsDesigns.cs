@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Placemaker.Core.Geometry;
 using Placemaker.Core.Layers.AddOns;
 using Placemaker.Core.Layers.AddOns.Fields;
@@ -44,6 +45,7 @@ namespace Placemaker.Core.Layers.Leisure
         private static readonly AssetRef Asphalt = new AssetRef("", "Asphalt Surface 01", "Pavement Surface 01");
         private static readonly AssetRef Concrete = new AssetRef("", "Concrete Surface 01", "Pavement Surface 01");
         private static readonly AssetRef Sand = new AssetRef("", "Sand Surface 01", "Sand Surface 02");
+        private static readonly string[] HillTrees = { "OakTree01", "BirchTree01", "EU_ChestnutTree01", "EU_AlderTree01" };
 
         /// <summary>The design's working frame: the kit, the ground, the box inside the perimeter promenade.</summary>
         private sealed class Site
@@ -55,6 +57,8 @@ namespace Placemaker.Core.Layers.Leisure
             public PlazaDesigns.Levels Lv;
             public float2 Entry;           // where most people arrive (the main gate, else the box's −B side)
             public int Places;
+            /// <summary>Every facility's place (the walks join each one).</summary>
+            public readonly List<OrientedRect> PlaceRects = new List<OrientedRect>();
             public float2 A => K.A;
             public float2 S => K.S;
             public float2 W(float u, float v) => K.W(u, v);
@@ -77,6 +81,9 @@ namespace Placemaker.Core.Layers.Leisure
             float edge = math.max(treeRow + 1.8f, math.clamp(span * 0.04f, 7f, 9f));
             var s = new Site { K = k, Ctx = ctx, IA = k.EA - edge, IB = k.EB - edge, Edge = edge };
             if (s.IA < 30f || s.IB < 24f) return false;
+            // A design is one composed piece: space reserved inside it (a monument, a kept path) sends the site to the classic park,
+            // which plans round it.
+            if (Reserved(s, -s.IA, s.IA, -s.IB, s.IB)) return false;
             s.Entry = MainGate(k, gates);
             ctx.Plan.Facts["sportsDesign"] = Array.IndexOf(Ids, design);
             ctx.Plan.Facts["designBoxA"] = Math.Round(s.IA * 2f);
@@ -122,7 +129,10 @@ namespace Placemaker.Core.Layers.Leisure
                 return false;
             }
             ctx.Check();
-            k.RingTrees(treeRow, 9.5f, false, 1, true);
+            Walks(s, gates, kerb + prom * 0.5f);
+            // (the tree row clear of the promenade walk: a crown 2.2 m round, the walk half its width beyond; at the promenade's
+            // edge every tree was refused and the ring stood empty on a city block)
+            k.RingTrees(math.max(treeRow, kerb + prom * 0.5f + Composer.DefaultHalfWidth(NetRole.Pathway) + 0.4f + 2.2f + 0.6f), 9.5f, false, 1, true);
             k.Leftover(treeRow + 2f, "fence");
             k.FillLeftover();
             ctx.Check();
@@ -146,6 +156,98 @@ namespace Placemaker.Core.Layers.Leisure
             return true;
         }
 
+        /// <summary>
+        /// The walks (P2-4; the user: sports parks "lack paths to the different facilities"): the designs were paving surfaces only,
+        /// with no path a citizen or the eye could follow. A loop along the perimeter promenade, a spur in from every gate, and from
+        /// the loop the shortest clear spur to each facility (never across another one). Whatever the design stood in their way
+        /// (a tree, a bench, a flag) goes, and the tree rows planted after keep off them.
+        /// </summary>
+        private static void Walks(Site s, List<Gate> gates, float loopInset)
+        {
+            var ctx = s.Ctx; var region = ctx.LayerRegion;
+            var asset = AssetMix.One(ctx.S("pathAsset"));
+            float hw = Composer.DefaultHalfWidth(NetRole.Pathway);
+            var loop = region.InsetVertices(loopInset);
+            if (loop == null || loop.Length < 3) return;
+            var segs = new List<(float2 a, float2 b)>();
+            void Lay(float2 a, float2 b)
+            {
+                if (math.distance(a, b) < 1f) return;
+                ctx.StraightNet(a, b, NetRole.Pathway, asset);
+                s.K.Occ.TakeCorridor(a, b, hw + 0.4f, 100);
+                s.K.Occ.Paths.Add(a, b, hw, 100);
+                segs.Add((a, b));
+            }
+            // the loop, its corners broken where it cuts across them (a gate or a spur lands on the nearest straight)
+            for (int i = 0; i < loop.Length; i++) Lay(loop[i], loop[(i + 1) % loop.Length]);
+            float2 OnLoop(float2 p)
+            {
+                float2 best = loop[0]; float bd = float.MaxValue;
+                for (int i = 0; i < loop.Length; i++)
+                {
+                    var q = SegmentIndex.ClosestPoint(p, loop[i], loop[(i + 1) % loop.Length]);
+                    float d = math.distancesq(p, q);
+                    if (d < bd) { bd = d; best = q; }
+                }
+                return best;
+            }
+            foreach (var g in gates)
+                if (EntranceKinds.Walks(g.Kind)) Lay(g.Position, OnLoop(g.Position));
+            int spurs = 0;
+            foreach (var r in s.PlaceRects)
+            {
+                float best = float.MaxValue; float2 ba = default, bb = default;
+                var ring = r.Ring;
+                for (int e = 0; e < 4; e++)
+                {
+                    var mid = math.lerp(ring[e], ring[(e + 1) % 4], 0.5f);
+                    var outN = math.normalizesafe(mid - r.Center);
+                    var a = mid + outN * 0.8f;
+                    var hit = OnLoop(a);
+                    float len = math.distance(a, hit);
+                    if (len < 1.5f) { best = 0f; break; }   // the facility sits on the loop already
+                    // the spur leaves square to the facility's side and turns onto the loop at most once
+                    var bend = a + outN * math.max(0f, math.dot(hit - a, outN));
+                    if (len >= best || region.CrossesBoundary(a, bend, false) || region.CrossesBoundary(bend, hit, false)) continue;
+                    bool clear = true;
+                    foreach (var o in s.PlaceRects)
+                    {
+                        if (o.Center.Equals(r.Center)) continue;
+                        if (Crosses(o, a, bend, hw + 0.6f) || Crosses(o, bend, hit, hw + 0.6f)) { clear = false; break; }
+                    }
+                    if (!clear) continue;
+                    best = len; ba = a; bb = bend;
+                    if (math.distance(bend, hit) < 0.5f) bb = hit;
+                }
+                if (best <= 0f || best == float.MaxValue) continue;
+                Lay(ba, bb);
+                var end = OnLoop(bb);
+                if (math.distance(bb, end) > 0.5f) Lay(bb, end);
+                spurs++;
+            }
+            // clear what stands on the walks
+            ctx.Plan.Objects.RemoveAll(o =>
+            {
+                if (o.Role == ObjectRole.Decal || o.Role == ObjectRole.AccessPoint) return false;
+                float keep = hw + (o.Role == ObjectRole.Tree ? 2f : 0.7f);
+                foreach (var (a, b) in segs) if (SegmentIndex.DistSq(o.Position.xz, a, b) < keep * keep) return true;
+                return false;
+            });
+            ctx.Plan.Facts["designWalkSpurs"] = spurs;
+        }
+
+        /// <summary>The segment a-b passes within <paramref name="pad"/> of the rectangle.</summary>
+        private static bool Crosses(OrientedRect r, float2 a, float2 b, float pad)
+        {
+            int n = math.max(2, (int)(math.distance(a, b) / 1.5f));
+            for (int i = 0; i <= n; i++)
+            {
+                var p = math.lerp(a, b, i / (float)n) - r.Center;
+                if (math.abs(math.dot(p, r.Axis)) < r.HalfLength + pad && math.abs(math.dot(p, r.Side)) < r.HalfWidth + pad) return true;
+            }
+            return false;
+        }
+
         private static float2 MainGate(PlazaDesigns.Kit k, List<Gate> gates)
         {
             foreach (var g in gates) if (EntranceKinds.Normalize(g.Kind) == EntranceKinds.Main) return g.Position;
@@ -161,6 +263,20 @@ namespace Placemaker.Core.Layers.Leisure
         /// </summary>
         private static float SBank(float h) => math.max(2f, math.abs(h) / 0.40f);
 
+        /// <summary>True when space the recipe reserved (a disc, a corridor, a polygon) reaches into the box u0..u1 × v0..v1.</summary>
+        private static bool Reserved(Site s, float u0, float u1, float v0, float v1)
+        {
+            var occ = s.K.Occ;
+            int nu = math.max(1, (int)math.ceil((u1 - u0) / 2.5f)), nv = math.max(1, (int)math.ceil((v1 - v0) / 2.5f));
+            for (int i = 0; i <= nu; i++)
+                for (int j = 0; j <= nv; j++)
+                {
+                    var p = s.W(math.lerp(u0, u1, i / (float)nu), math.lerp(v0, v1, j / (float)nv));
+                    if (occ.Discs.Overlaps(p, 1.3f, 0f) || occ.Corridors.Overlaps(p, 1.3f, 0f) || occ.HitsPolygon(p, 1.3f)) return true;
+                }
+            return false;
+        }
+
         private static bool Wants(Site s, string layer) => s.Ctx.Input.HasChildTarget(Amenities.Place(layer));
 
         /// <summary>A sized place for a field add-on (it lays the field inside), seated and lit by the design.</summary>
@@ -172,6 +288,7 @@ namespace Placemaker.Core.Layers.Leisure
             if (!string.IsNullOrEmpty(extra)) tags.Add(extra);
             s.Ctx.AddRegion(r.Ring, Amenities.Place(layer) + ":" + s.Places, tags.ToArray());
             s.K.Occ.TakePolygon(r.Ring);
+            s.PlaceRects.Add(r);
             s.Places++;
         }
 
@@ -199,7 +316,7 @@ namespace Placemaker.Core.Layers.Leisure
         }
 
         /// <summary>Seating steps down a bank from its top (<paramref name="top"/> line) to its foot: a stone lip every tread, rows of benches.</summary>
-        private static void SeatingSteps(Site s, float2 topA, float2 topB, float2 down, float width, float pitch = 1.1f)
+        private static void SeatingSteps(Site s, float2 topA, float2 topB, float2 down, float width, float pitch = 1.1f, float benchPitch = 3.4f)
         {
             var k = s.K;
             var d = math.normalizesafe(topB - topA);
@@ -211,7 +328,7 @@ namespace Placemaker.Core.Layers.Leisure
             }
             int row = 0;
             for (float t = pitch * 1.7f; t < width - 0.8f; t += pitch * 2f, row++)
-                foreach (var p in LeisureKit.Along(topA + down * t + d * 2f, topB + down * t - d * 2f, 3.4f))
+                foreach (var p in LeisureKit.Along(topA + down * t + d * 2f, topB + down * t - d * 2f, benchPitch))
                     k.Seat(p + d * ((row & 1) * 1.7f), down, PlazaArt.ModernBenches);
         }
 
@@ -239,9 +356,11 @@ namespace Placemaker.Core.Layers.Leisure
         }
 
         /// <summary>A walled bank line: the stone plinth at its foot, a railing on its top edge.</summary>
-        private static void BankEdge(Site s, float2 footA, float2 footB, float2 topA, float2 topB, IEnumerable<(float at, float half)> gaps = null)
+        private static void BankEdge(Site s, float2 footA, float2 footB, float2 topA, float2 topB, IEnumerable<(float at, float half)> gaps = null,
+            IEnumerable<(float at, float half)> topGaps = null)
         {
             s.K.WallWithGaps(footA, footB, gaps, 1);
+            gaps = topGaps ?? gaps;
             if (gaps == null) { s.K.Railing(topA, topB); return; }
             float len = math.distance(topA, topB);
             var d = (topB - topA) / math.max(1e-3f, len);
@@ -315,14 +434,21 @@ namespace Placemaker.Core.Layers.Leisure
             return st.Id == SportsProps.BenchRow.Id ? (SportsProps.Stand?)null : st;
         }
 
-        private static bool Arena(Site s)
+        /// <summary>The cross slope (m/m) from which the arena is laid as a hillside stadium.</summary>
+        private const float HillGrade = 0.06f;
+
+        /// <summary>
+        /// The largest pitch and stands the box takes. On a hillside (<paramref name="gv"/>: the slope across the pitch) only the
+        /// downhill long side has a grandstand (the uphill side is seating on the hill), and a format fits only when the banks
+        /// the hill leaves can stay near the seating rake; the smallest format that fits the box is the last resort.
+        /// </summary>
+        private static bool ArenaFit(Site s, float2 g, out float hu, out float hv, out float D, out SportsProps.Stand side, out SportsProps.Stand? end, out bool hillOk)
         {
-            if (!Wants(s, "pitch")) return false;
-            var k = s.K;
             const float concV = 5f;
             float slack = math.max(0f, s.Edge - s.Lv.Skirt - 0.5f);     // the ends' banks may climb into the perimeter band (no concourse there)
-            float hu = 0f, hv = 0f, D = 0f;
-            SportsProps.Stand side = default; SportsProps.Stand? end = null;
+            float gv = g.y;
+            bool hill = math.abs(gv) >= HillGrade;
+            hu = hv = D = 0f; side = default; end = null; hillOk = false;
             bool found = false;
             foreach (var f in FieldSpecs.Pitch)
             {
@@ -339,74 +465,304 @@ namespace Placemaker.Core.Layers.Leisure
                     SportsProps.Stand? ed = grand && roomU >= SportsProps.Large03.Depth ? SportsProps.Large03 : SmallStand(roomU);
                     if (ed == null && roomU < 3f) continue;
                     hu = fh; hv = fw; D = d; side = sd.Value; end = ed; found = true;
-                    break;
+                    if (!hill) { hillOk = true; return true; }
+                    if (HillFloor(s, gv > 0f ? 1 : 0, fw, sd.Value.Depth + 0.8f, fh + (ed.HasValue ? ed.Value.Depth + 0.8f : 3f), d).Ok) { hillOk = true; return true; }
                 }
-                if (found) break;
             }
-            if (!found) return false;
+            return found;
+        }
+
+        /// <summary>Width of the level concourse terrace along a hill stand's top.</summary>
+        private const float HillTerrace = 5f;
+
+        /// <summary>
+        /// A hillside stadium's ground: the floor's height, the bank widths (uphill: the whole slope from the pitch apron to the top
+        /// concourse), and up the hill the stand: <see cref="SeatW"/> of seating rake at <see cref="G"/>, a level terrace, a wooded
+        /// bank up to the hill (<see cref="BankUp"/>).
+        /// </summary>
+        private struct HillCut { public float FloorH, BUp, BDn, BU, SeatW, BankUp, G; public bool Ok; }
+
+        /// <summary>The ground of a hill stand's core at a local point: level on the floor, the seating rake from the floor's edge
+        /// (<paramref name="foot"/>) to its top, the terrace level above it.</summary>
+        private static float Rake(float floorH, float g, float su, float foot, float top, float v) =>
+            floorH + g * (math.clamp(v * su, foot, top) - foot);
+
+        /// <summary>
+        /// The hillside stadium's ground for a pitch hv wide with a stand <paramref name="sdep"/> deep on the downhill side and a floor
+        /// fu long. The stand up the hill is sized to the pitch (rows for about half its width, 12-26 m), with a level terrace on top
+        /// and the rest of the slope a wooded bank up to the hill; the downhill bank and the ends run out to the perimeter band. The
+        /// floor goes as deep into the hill as the rake and the bank above it allow, sunk under the downhill edge where the hill is
+        /// gentle, never so high the downhill bank passes the bank grade. Ok: every bank within it.
+        /// </summary>
+        private static HillCut HillFloor(Site s, int up, float hv, float sdep, float fu, float D)
+        {
+            const float concV = 5f;
+            var lv = s.Lv;
+            float slack = math.max(0f, s.Edge - lv.Skirt - 0.5f), su = up == 1 ? 1f : -1f;
+            float fvUp = hv + 3f, fvDn = hv + sdep;
+            var c = new HillCut { BUp = math.max(HillTerrace + 15f, s.IB - concV - fvUp), BDn = math.max(2f, s.IB - concV - fvDn), BU = math.max(2f, s.IA + slack - fu) };
+            c.SeatW = math.clamp(hv * 0.55f, 12f, math.min(26f, c.BUp - HillTerrace - 3f));
+            c.BankUp = c.BUp - c.SeatW - HillTerrace;
+            float hiUp = float.MinValue, loDn = float.MaxValue, loOut = float.MaxValue;
+            for (int i = 0; i <= 12; i++)
+            {
+                float u = math.lerp(-fu, fu, i / 12f);
+                hiUp = math.max(hiUp, lv.H(u, su * (fvUp + c.BUp)));
+                loDn = math.min(loDn, lv.H(u, -su * fvDn));
+                // the downhill bank's outer foot to its corners: the floor's corner falls to the lowest of the hill there
+                loOut = math.min(loOut, lv.H(u * (fu + c.BU) / fu, -su * (fvDn + c.BDn)));
+            }
+            // (the seating at its rake, the plain banks at the plaza kit's steepest: they are planted)
+            float climb = c.SeatW * 0.40f + c.BankUp * 0.42f;   // (the bank under the kit's steepest: its corners meet the end banks)
+            float lo = hiUp - climb, hi = loOut + c.BDn * PlazaDesigns.BankGrade;
+            c.FloorH = lo <= hi ? math.clamp(math.max(lo, loDn - D), lo, hi) : (hiUp * c.BDn + loOut * climb / PlazaDesigns.BankGrade) / (c.BDn + climb / PlazaDesigns.BankGrade);
+            // the rake climbs as the hill does, at 40 % at most, never down
+            float rise = hiUp - c.FloorH;
+            c.G = math.clamp(rise / (c.SeatW + c.BankUp), 0f, 0.40f);
+            if (rise > climb) c.G = math.min(0.55f, c.G + (rise - climb) / c.SeatW);   // a hill too steep for the box: the seating takes it
+            // the ends: from the core's own height (the floor, the seating, the terrace; the floor's corners on the downhill bank) out
+            float worst = 0f, top = fvUp + c.SeatW, terrace = top + HillTerrace;
+            for (int i = 0; i <= 16; i++)
+            {
+                float v = su * math.lerp(-fvDn - c.BDn * 0.5f, terrace, i / 16f);   // into the downhill corners (a slope corner to corner)
+                foreach (float e in new[] { -1f, 1f })
+                    worst = math.max(worst, math.abs(lv.H(e * (fu + c.BU), v) - Rake(c.FloorH, c.G, su, fvUp, top, v)));
+            }
+            c.Ok = lo <= hi + 0.3f && worst <= 0.45f * c.BU;
+            return c;
+        }
+
+        /// <summary>Turns the design a quarter (or back: three more quarters) with its ground frame.</summary>
+        private static void Turn(Site s, bool back = false)
+        {
+            for (int i = back ? 3 : 1; i > 0; i--) s.K.TurnQuarter();
+            float ia = s.IA; s.IA = s.IB; s.IB = ia;
+            var k = s.K;
+            s.Lv = new PlazaDesigns.Levels(k, k.EA - 0.3f, k.EB - 0.3f) { Skirt = s.Lv.Skirt, FineCorners = s.Lv.FineCorners };
+            s.Ctx.Plan.Facts["designBoxA"] = Math.Round(s.IA * 2f);
+            s.Ctx.Plan.Facts["designBoxB"] = Math.Round(s.IB * 2f);
+        }
+
+        private static bool Arena(Site s)
+        {
+            if (!Wants(s, "pitch")) return false;
+            // P2-4 round 3 (the lead: "step it into the hill like a real stadium, with stands on the slope"): on a hillside the pitch
+            // lies along the contour, so one long side faces up the hill; that side's stand is seating cut into the hill.
+            // A slope corner to corner: whichever way round lets every bank stay near the rake.
+            var g = s.Lv.Grad;
+            if (math.abs(g.x) >= HillGrade && math.abs(g.x) > math.abs(g.y) * 1.25f)
+            {
+                Turn(s);
+                if (!ArenaFit(s, s.Lv.Grad, out _, out _, out _, out _, out _, out _)) Turn(s, true);
+            }
+            else if (math.abs(g.x) >= HillGrade && ArenaFit(s, g, out _, out _, out _, out _, out _, out bool asIs) && !asIs)
+            {
+                Turn(s);
+                if (!ArenaFit(s, s.Lv.Grad, out _, out _, out _, out _, out _, out bool turned) || !turned) Turn(s, true);
+            }
+            float gv = s.Lv.Grad.y;
+            if (!ArenaFit(s, s.Lv.Grad, out float hu, out float hv, out float D, out var side, out var end, out _)) return false;
+            var k = s.K;
+            const float concV = 5f;
+            float slack = math.max(0f, s.Edge - s.Lv.Skirt - 0.5f);
+            bool hill = math.abs(gv) >= HillGrade;
             bool grandSides = side.Height > 10f;
             float sdep = side.Depth + 0.8f, edep = end.HasValue ? end.Value.Depth + 0.8f : 3f;
-            float fu = hu + edep, fv = hv + sdep;
-            float maxBank = math.min(s.IA + slack - fu, s.IB - concV - fv);
-            float floorH = Dig(s, 0f, fu, fv, D, maxBank, out float bank);
-            float ru = fu + bank, rv = fv + bank;
+            float fu = hu + edep;
+            // Per long side (0: −S, 1: +S): the floor's edge, the bank's width, a grandstand or seating on the hill.
+            int up = gv > 0f ? 1 : 0, dn = 1 - up;
+            float[] fv = { hv + sdep, hv + sdep }, bv = new float[2];
+            float floorH, bu;
+            HillCut cut = default;
             var lv = s.Lv;
-            lv.AddFloor(-ru, ru, -rv, rv, floorH, new float4(bank));
+            if (!hill)
+            {
+                float maxBank = math.min(s.IA + slack - fu, s.IB - concV - fv[0]);
+                floorH = Dig(s, 0f, fu, fv[0], D, maxBank, out float bank);
+                bv[0] = bv[1] = bu = bank;
+            }
+            else
+            {
+                cut = HillFloor(s, up, hv, sdep, fu, D);
+                fv[up] = hv + 3f;
+                bv[up] = cut.BUp; bv[dn] = cut.BDn; bu = cut.BU; floorH = cut.FloorH;
+                s.Ctx.Plan.Facts["bowlHillFits"] = cut.Ok ? 1 : 0;
+            }
+            float[] rv = { fv[0] + bv[0], fv[1] + bv[1] };
+            float ru = fu + bu;
+            if (!hill) lv.AddFloor(-ru, ru, -rv[0], rv[1], floorH, new float4(bu, bu, bv[0], bv[1]));
+            else
+            {
+                // The core: the level floor, up the hill from its edge the seating rake, the level terrace on top; every bank runs
+                // at one grade from the core out to the hill (the ends from the stand's own height, so its corners are no cliffs,
+                // the wooded bank above the terrace up to the hill).
+                float su = up == 1 ? 1f : -1f, foot = fv[up], top = foot + cut.SeatW, t0 = floorH, rake = cut.G;
+                lv.AddCore(-ru, ru, -rv[0], rv[1], new float4(bu, bu, up == 0 ? cut.BankUp : bv[0], up == 1 ? cut.BankUp : bv[1]),
+                    (u, v) => Rake(t0, rake, su, foot, top, v));
+                lv.AddBreak(false, su * foot); lv.AddBreak(false, su * top); lv.AddBreak(false, su * (top + HillTerrace));
+                s.Ctx.Plan.Facts["bowlRake"] = Math.Round(rake * 100f);
+            }
             lv.Emit();
             s.Ctx.Plan.Facts["bowlDepth"] = Math.Round(D, 2);
-            s.Ctx.Plan.Facts["bowlBank"] = Math.Round(bank, 2);
+            s.Ctx.Plan.Facts["bowlBank"] = Math.Round(math.max(bv[0], bv[1]), 2);
             s.Ctx.Plan.Facts["bowlStands"] = grandSides ? 2 : 1;
+            s.Ctx.Plan.Facts["bowlHillside"] = hill ? 1 : 0;
+            float SV(int i) => i == 1 ? 1f : -1f;
 
-            // The pitch (its place is the field add-on's own format), the stand ring floor in concrete, the bank in grass.
+            // The pitch (its place is the field add-on's own format), the stand ring floor in concrete, the banks in grass.
             Place(s, "pitch", k.Box(-hu, hu, -hv, hv));
             var pitchCut = new List<float2[]> { k.Box(-hu - 0.2f, hu + 0.2f, -hv - 0.2f, hv + 0.2f).Ring };
-            k.Lay(PFeature + 4, k.Pieces(k.Box(-fu, fu, -fv, fv).Ring, pitchCut, 4f), Concrete, SurfaceRole.Paving);
-            k.Lay(PGreen - 5, k.Pieces(k.Box(-ru, ru, -rv, rv).Ring, new List<float2[]> { k.Box(-fu - 0.1f, fu + 0.1f, -fv - 0.1f, fv + 0.1f).Ring }, 4f),
+            k.Lay(PFeature + 4, k.Pieces(k.Box(-fu, fu, -fv[0], fv[1]).Ring, pitchCut, 4f), Concrete, SurfaceRole.Paving);
+            k.Lay(PGreen - 5, k.Pieces(k.Box(-ru, ru, -rv[0], rv[1]).Ring, new List<float2[]> { k.Box(-fu - 0.1f, fu + 0.1f, -fv[0] - 0.1f, fv[1] + 0.1f).Ring }, 4f),
                 k.Grass, SurfaceRole.Grass, AssetCategories.SurfaceGrass);
-            // Grandstands: the long sides, then the ends.
+            float cu = hu + edep * 0.5f;
+            int terraced = 0, seatRows = 0;
+            if (hill)
+            {
+                // The hill stand: seating steps from the top concourse down to the pitch apron, cut by aisles (stairs) at the corners
+                // and the quarter points, a plinth at its foot and a railing along its top.
+                float sv = SV(up);
+                float top = fv[up] + cut.SeatW, terrace = top + HillTerrace;
+                float pitch = math.max(1.1f, cut.SeatW / 22f);
+                var aisles = new[] { -cu, -hu * 0.5f, hu * 0.5f, cu };
+                // the stand's two ends are stairs too: a finished edge (stepped cheek walls) where the seating meets the end banks
+                float flank = fu - 1.9f;
+                float a0 = -flank + 2.2f;
+                foreach (float au in aisles.Concat(new[] { flank }))
+                {
+                    float a1 = au - 2.2f;
+                    if (a1 - a0 > 6f) SeatingSteps(s, s.W(a0, sv * top), s.W(a1, sv * top), -s.S * sv, cut.SeatW, pitch, 2.6f);
+                    a0 = au + 2.2f;
+                }
+                foreach (float au in aisles) k.Flight(s.W(au, sv * (fv[up] + 0.2f)), s.W(au, sv * (top + 0.4f)), 3.2f);
+                foreach (float e in new[] { -flank, flank }) k.Flight(s.W(e, sv * (fv[up] + 0.2f)), s.W(e, sv * (top + 0.4f)), 2.6f);
+                var footGaps = aisles.Concat(new[] { -flank, flank }).Select(au => (au + fu, 2.2f)).ToList();
+                BankEdge(s, s.W(-fu, sv * (fv[up] + 0.15f)), s.W(fu, sv * (fv[up] + 0.15f)), s.W(-fu, sv * (top + 0.3f)), s.W(fu, sv * (top + 0.3f)), footGaps);
+                // the stand reads as one: concrete terraces from the apron to its top
+                k.Lay(PFeature + 4, k.Box(-fu, fu, sv > 0 ? fv[up] : -top, sv > 0 ? top : -fv[up]).Ring, Concrete, SurfaceRole.Paving);
+                // the terrace along its top: the stand's own concourse (stalls, kiosks), two wide stairs up the wooded bank to the top
+                k.Lay(PWalk, k.Box(-fu, fu, sv > 0 ? top + 0.2f : -terrace, sv > 0 ? terrace : -top - 0.2f).Ring, k.P.Path);
+                Concourse(s, s.W(-fu + 6f, sv * (terrace - 1.4f)), s.W(fu - 6f, sv * (terrace - 1.4f)), -s.S * sv, 9f);
+                if (cut.BankUp > 3f)
+                    foreach (float au in new[] { -hu * 0.5f, hu * 0.5f }) k.Flight(s.W(au, sv * (terrace + 0.2f)), s.W(au, sv * (rv[up] + 0.4f)), 3.6f);
+                terraced = 1;
+                seatRows = (int)(cut.SeatW / pitch);
+            }
+            else
+            {
+                // P2-4 (the lead: on a hill the arena stood on one big green plinth): where the hill rises behind a bank, the bank is
+                // seating cut into the slope (terrace steps and benches looking down at the pitch), not a plain grass bank
+                foreach (float sv in new[] { -1f, 1f })
+                    if (s.Ctx.H(s.W(0f, sv * (rv[0] + 2f))) - floorH > 1.5f && bv[0] > 3f)
+                    { SeatingSteps(s, s.W(-fu + 2f, sv * rv[0]), s.W(fu - 2f, sv * rv[0]), -s.S * sv, bv[0]); terraced++; }
+                foreach (float su in new[] { -1f, 1f })
+                    if (s.Ctx.H(s.W(su * (ru + 2f), 0f)) - floorH > 1.5f && bu > 3f)
+                    { SeatingSteps(s, s.W(su * ru, -fv[0] + 2f), s.W(su * ru, fv[0] - 2f), -s.A * su, bu); terraced++; }
+            }
+            s.Ctx.Plan.Facts["bowlTerracedBanks"] = terraced;
+            s.Ctx.Plan.Facts["bowlSeatingRows"] = seatRows;
+            // Grandstands: the long sides (the downhill one only on a hillside), then the ends.
             int stands = 0;
             float2 centre = k.C;
-            foreach (float sv in new[] { -1f, 1f })
-                stands += Stands(s, s.W(-hu + 0.5f, sv * (hv + 0.6f)), s.W(hu - 0.5f, sv * (hv + 0.6f)), centre, sdep - 0.6f, grandSides);
+            for (int i = 0; i < 2; i++)
+                if (!hill || i == dn)
+                    stands += Stands(s, s.W(-hu + 0.5f, SV(i) * (hv + 0.6f)), s.W(hu - 0.5f, SV(i) * (hv + 0.6f)), centre, sdep - 0.6f, grandSides);
             if (end.HasValue)
                 foreach (float su in new[] { -1f, 1f })
                     stands += Stands(s, s.W(su * (hu + 0.6f), -hv + 0.5f), s.W(su * (hu + 0.6f), hv - 0.5f), centre, edep - 0.6f, end.Value.Height > 10f);
             s.Ctx.Plan.Facts["stands"] = stands;
-            // The corners: a light mast each, a stair from the floor up the side bank to the concourse.
-            float cu = hu + edep * 0.5f;
-            foreach (float su in new[] { -1f, 1f })
-                foreach (float sv in new[] { -1f, 1f })
+            // The corners: a light mast each (on the apron below the hill stand), a stair up (down) the stand side's bank.
+            for (int i = 0; i < 2; i++)
+                foreach (float su in new[] { -1f, 1f })
                 {
-                    Mast(s, s.W(su * cu, sv * (hv + sdep * 0.35f)), centre, true);
-                    k.Flight(s.W(su * cu, sv * (fv - 0.3f)), s.W(su * cu, sv * (rv + 0.4f)), 3.2f);
+                    bool seats = hill && i == up;
+                    Mast(s, s.W(su * cu, SV(i) * (seats ? hv + 1.5f : hv + sdep * 0.35f)), centre, true);
+                    if (seats) continue;
+                    var inner = s.W(su * cu, SV(i) * (fv[i] - 0.3f)); var outer = s.W(su * cu, SV(i) * (rv[i] + 0.4f));
+                    // a bank down from a floor above the ground (a stand on fill) is climbed from its outer foot
+                    if (floorH > s.Ctx.H(outer) + 0.5f) k.Flight(outer, inner, 3.2f); else k.Flight(inner, outer, 3.2f);
                 }
-            // Scoreboards on the end banks' tops, looking down the pitch.
-            foreach (float su in new[] { -1f, 1f })
-                SportsProps.Prop(s.Ctx, k.Occ, s.W(su * (ru + 1.2f), 0f), -s.A * su, SportsProps.Scoreboard, ObjectRole.Furniture, 1.3f, s.V(0x5C0Bu), AssetCategories.SportsStand, true);
-            // The bank: a plinth at its foot, a railing on the rim (open at the stairs).
-            foreach (float sv in new[] { -1f, 1f })
+            // Scoreboards on the end banks' tops looking down the pitch (on a hillside one over the hill stand).
+            if (hill)
+                SportsProps.Prop(s.Ctx, k.Occ, s.W(0f, SV(up) * (rv[up] + 2.6f)), -s.S * SV(up), SportsProps.Scoreboard, ObjectRole.Furniture, 1.3f, s.V(0x5C0Bu), AssetCategories.SportsStand, true);
+            else
+                foreach (float su in new[] { -1f, 1f })
+                    SportsProps.Prop(s.Ctx, k.Occ, s.W(su * (ru + 1.2f), 0f), -s.A * su, SportsProps.Scoreboard, ObjectRole.Furniture, 1.3f, s.V(0x5C0Bu), AssetCategories.SportsStand, true);
+            // The banks: a plinth at the foot, a railing on the top (open at the stairs). Over a floor on fill the railing runs along
+            // the floor's edge and the plinth along the bank's outer foot.
+            for (int i = 0; i < 2; i++)
             {
+                if (hill && i == up) continue;
+                float sv = SV(i);
                 var gaps = new List<(float, float)> { (ru - cu, 2.2f), (ru + cu, 2.2f) };
-                BankEdge(s, s.W(-fu, sv * (fv + 0.15f)), s.W(fu, sv * (fv + 0.15f)), s.W(-ru, sv * (rv + 0.3f)), s.W(ru, sv * (rv + 0.3f)), gaps);
+                bool fill = floorH > s.Ctx.H(s.W(0f, sv * (rv[i] + 1f))) + 0.5f;
+                if (fill) BankEdge(s, s.W(-ru, sv * (rv[i] + 0.3f)), s.W(ru, sv * (rv[i] + 0.3f)), s.W(-fu, sv * (fv[i] + 0.15f)), s.W(fu, sv * (fv[i] + 0.15f)), gaps,
+                    new List<(float, float)> { (fu - cu, 2.2f), (fu + cu, 2.2f) });
+                else BankEdge(s, s.W(-fu, sv * (fv[i] + 0.15f)), s.W(fu, sv * (fv[i] + 0.15f)), s.W(-ru, sv * (rv[i] + 0.3f)), s.W(ru, sv * (rv[i] + 0.3f)), gaps);
             }
             foreach (float su in new[] { -1f, 1f })
-                BankEdge(s, s.W(su * (fu + 0.15f), -fv), s.W(su * (fu + 0.15f), fv), s.W(su * (ru + 0.3f), -rv), s.W(su * (ru + 0.3f), rv));
+                BankEdge(s, s.W(su * (fu + 0.15f), -fv[0]), s.W(su * (fu + 0.15f), fv[1]), s.W(su * (ru + 0.3f), -rv[0]), s.W(su * (ru + 0.3f), rv[1]));
             // The concourses along the long sides: paved, food stalls, kiosks and vending machines facing the rim; flags.
             float es = EntrySide(s);
-            float cv = rv + concV;
-            foreach (float sv in new[] { -1f, 1f })
+            float[] cv = { rv[0] + concV, rv[1] + concV };
+            for (int i = 0; i < 2; i++)
             {
-                k.Lay(PWalk, k.Box(-ru, ru, sv > 0 ? rv + 0.2f : -cv, sv > 0 ? cv : -rv - 0.2f).Ring, k.P.Path);
-                if (sv == es) Flags(s, s.W(-ru + 4f, sv * (cv - 1.1f)), s.W(ru - 4f, sv * (cv - 1.1f)), 6f, true);
-                else Concourse(s, s.W(-ru + 5f, sv * (cv - 1.6f)), s.W(ru - 5f, sv * (cv - 1.6f)), -s.S * sv, 8f);
+                float sv = SV(i);
+                k.Lay(PWalk, k.Box(-ru, ru, sv > 0 ? rv[i] + 0.2f : -cv[i], sv > 0 ? cv[i] : -rv[i] - 0.2f).Ring, k.P.Path);
+                if (sv == es) Flags(s, s.W(-ru + 4f, sv * (cv[i] - 1.1f)), s.W(ru - 4f, sv * (cv[i] - 1.1f)), 6f, true);
+                else Concourse(s, s.W(-ru + 5f, sv * (cv[i] - 1.6f)), s.W(ru - 5f, sv * (cv[i] - 1.6f)), -s.S * sv, 8f);
             }
-            if (end.HasValue == false || s.IB - cv > 6f)
-                Concourse(s, s.W(-ru * 0.4f, es * (cv - 3.6f)), s.W(ru * 0.4f, es * (cv - 3.6f)), -s.S * es, 9f);
+            int ei = es > 0 ? 1 : 0;
+            if (end.HasValue == false || s.IB - cv[ei] > 6f)
+                Concourse(s, s.W(-ru * 0.4f, es * (cv[ei] - 3.6f)), s.W(ru * 0.4f, es * (cv[ei] - 3.6f)), -s.S * es, 9f);
+            EntrancePlaza(s, SV(ei), rv[ei], cv[ei], ru);
+            // On a hillside the plain banks (downhill, the ends) are wooded slopes round the bowl.
+            if (hill)
+            {
+                float sd = SV(dn);
+                float d0 = fv[dn] + 4f, d1 = rv[dn] - 1f;
+                if (d1 - d0 > 6f) Grove(s, -ru + 2f, ru - 2f, sd > 0 ? d0 : -d1, sd > 0 ? d1 : -d0, 8f, HillTrees);
+                float stTop = fv[up] + cut.SeatW + HillTerrace;
+                float vLo = sd > 0 ? -stTop : -fv[dn], vHi = sd > 0 ? fv[dn] : stTop;
+                Grove(s, fu + 4f, ru - 1f, vLo, vHi, 8f, HillTrees);
+                Grove(s, -ru + 1f, -fu - 4f, vLo, vHi, 8f, HillTrees);
+                // the bank above the stand's terrace, up to the top concourse
+                float b0 = stTop + 3f, b1 = rv[up] - 1.5f;
+                if (b1 - b0 > 5f) Grove(s, -ru + 2f, ru - 2f, sd > 0 ? -b1 : b0, sd > 0 ? -b0 : b1, 8f, HillTrees);
+            }
             // Trees beyond the concourses and the ends.
-            foreach (float sv in new[] { -1f, 1f }) Grove(s, -s.IA, s.IA, sv > 0 ? cv + 2f : -s.IB, sv > 0 ? s.IB : -cv - 2f, 9f);
-            Grove(s, -s.IA, -ru - 2.5f, -cv, cv, 9f);
-            Grove(s, ru + 2.5f, s.IA, -cv, cv, 9f);
+            Grove(s, -s.IA, s.IA, cv[1] + 2f, s.IB, 9f);
+            Grove(s, -s.IA, s.IA, -s.IB, -cv[0] - 2f, 9f);
+            Grove(s, -s.IA, -ru - 2.5f, -cv[0], cv[1], 9f);
+            Grove(s, ru + 2.5f, s.IA, -cv[0], cv[1], 9f);
             return true;
+        }
+
+        /// <summary>
+        /// (P2-4 round 4) The stadium's front door: on the side people arrive from, a paved forecourt off the concourse in front of
+        /// the main stand (as deep as the box allows, up to 18 m), lined with trees in pits, ticket kiosks either side of the middle,
+        /// a pair of tall flags at its front corners and benches facing in. Taken, so the groves keep off it.
+        /// </summary>
+        private static void EntrancePlaza(Site s, float sv, float rv, float cv, float ru)
+        {
+            var k = s.K;
+            float depth = math.min(18f, s.IB - rv - 0.5f);
+            if (depth < 8f) return;
+            float half = math.min(22f, ru - 2f);
+            float v0 = rv + 0.2f, v1 = rv + depth;
+            var box = k.Box(-half, half, sv > 0 ? v0 : -v1, sv > 0 ? v1 : -v0);
+            k.Lay(PWalk - 1, box.Ring, k.P.Field);
+            k.Lay(PFeature, PavingShapes.Frame(box.Ring, 0.6f), k.P.Band);
+            float vf = v1 - 1.6f;   // the plaza's front edge (away from the stand)
+            foreach (float su in new[] { -1f, 1f })
+            {
+                k.BigFlag(s.W(su * (half - 1.5f), sv * vf), true);
+                for (float v = cv + 2.5f; v < vf - 2f; v += 7f) k.Tree(s.W(su * (half - 2f), sv * v), true, PlazaArt.PlaneTrees);
+                k.Stall(s.W(su * 5f, sv * (cv + 1.8f)), -s.S * sv, su > 0);
+                k.Seat(s.W(su * (half - 4.5f), sv * (vf - 3f)), s.A * -su);
+            }
+            k.Occ.TakePolygon(box.Ring);
+            s.Ctx.Plan.Facts["entrancePlaza"] = Math.Round(half * 2f * depth);
         }
 
         // ───────────── centre court (amphitheatre) ─────────────
@@ -475,9 +831,9 @@ namespace Placemaker.Core.Layers.Leisure
             if (u1 - u0 >= 40f)
             {
                 float bu = 38.6f, bv = 35.5f;
-                int nu = (int)math.floor((u1 - u0 + 2f) / (bu + 2f));
+                int nu = math.min(2, (int)math.floor((u1 - u0 + 2f) / (bu + 2f)));   // P2-4: at most 2 x 2 blocks of practice courts
                 for (int i = 0; i < nu; i++)
-                    for (float v = -s.IB + 1f; v + bv <= s.IB - 1f; v += bv + 2f)
+                    for (float v = -s.IB + 1f; v + bv <= s.IB - 1f && courts < 4; v += bv + 2f)
                     {
                         float a0 = u0 + i * (bu + 2f);
                         if (hill && a0 < hillU1 + 2f && v < hv1 + 2f) continue;
@@ -701,17 +1057,22 @@ namespace Placemaker.Core.Layers.Leisure
             float u = -s.IA;
             int col = 0;
             float alley = 0f;
-            while (col < 8)
+            // P2-4: a big site filled edge to edge with 80 cages read as a car park of courts; a cage park is a block of up to
+            // 16 (four rows), the rest of the site its gardens
+            const int MaxCages = 16, MaxRows = 4;
+            float gv0 = float.MaxValue, gv1 = float.MinValue;
+            while (col < 8 && cages.Count < MaxCages)
             {
                 bool pitchCol = five && col == 0 && v1 - v0 >= 39f;
                 float cl = pitchCol ? 47f : 34f, cw = pitchCol ? 39f : 25f;
                 if (u + cl > s.IA) break;
-                int rows = (int)math.floor((v1 - v0 + gap) / (cw + gap));
-                if (rows < 1) break;
+                int rows = math.min(MaxRows, (int)math.floor((v1 - v0 + gap) / (cw + gap)));
+                if (rows < 1 || cages.Count + rows > MaxCages && cages.Count >= 8) break;
                 float span = rows * cw + (rows - 1) * gap;
                 float vs = (v0 + v1) * 0.5f - span * 0.5f;
                 for (int r = 0; r < rows; r++)
                     cages.Add((pitchCol ? "pitch" : "basketballCourt", k.Box(u, u + cl, vs + r * (cw + gap), vs + r * (cw + gap) + cw)));
+                gv0 = math.min(gv0, vs); gv1 = math.max(gv1, vs + span);
                 float wide = col == 0 ? SportsProps.Small02.Depth + 2.4f : gap;   // a wide alley after the first column for stands
                 if (col == 0) alley = u + cl;
                 u += cl + wide;
@@ -735,7 +1096,7 @@ namespace Placemaker.Core.Layers.Leisure
             var turf = new List<float2[]>();
             foreach (var (layer, r0) in cages)
                 if (layer == "pitch") turf.Add(new OrientedRect { Center = r0.Center + s.A * shift, Axis = r0.Axis, HalfLength = r0.HalfLength - 1f, HalfWidth = r0.HalfWidth - 1f }.Ring);
-            k.Lay(PFeature + 8, k.Pieces(k.Box(-s.IA, s.IA, v0, v1).Ring, turf, 20f), Asphalt, SurfaceRole.Asphalt, AssetCategories.SurfaceAsphalt);
+            k.Lay(PFeature + 8, k.Pieces(k.Box(math.max(-s.IA, -used * 0.5f - 3f), math.min(s.IA, used * 0.5f + 3f), math.max(v0, gv0 - 3f), math.min(v1, gv1 + 3f)).Ring, turf, 20f), Asphalt, SurfaceRole.Asphalt, AssetCategories.SurfaceAsphalt);
             var masts = new HashSet<(int, int)>();
             foreach (var (layer, r0) in cages)
             {
@@ -782,7 +1143,8 @@ namespace Placemaker.Core.Layers.Leisure
         {
             if (!Wants(s, "runningTrack")) return false;
             var k = s.K;
-            var ladder = new List<FieldFormat>(FieldSpecs.Track) { new FieldFormat("compact", 84f, 50f) };
+            // compact and training (a 150 m loop with a sprint straight) keep a hectare-sized block an athletics ground
+            var ladder = new List<FieldFormat>(FieldSpecs.Track) { new FieldFormat("compact", 84f, 50f), new FieldFormat("training", 70f, 40f) };
             float es = EntrySide(s);
             FieldFormat f = null; float sdMain = 0f, sdBack = 0f; bool grand = false;
             foreach (var t in ladder)

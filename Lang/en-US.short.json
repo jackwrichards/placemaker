@@ -137,6 +137,8 @@
   "Placemaker.Park.Issue.NoRoomForPlaza.Short": "No plaza",
   "Placemaker.Park.Issue.NoRoomForTrails.Short": "No dirt trails",
   "Placemaker.Park.Issue.PathStyleFallback.Short": "Auto paths used",
+  "Placemaker.Park.Issue.PathStyleSteep.Short": "Paths follow the slope",
+  "Placemaker.Park.Issue.LotTooSteep.Short": "No car park: too steep",
   "Placemaker.Park.Issue.PlazaSmaller.Short": "Smaller plaza",
   "Placemaker.Parking.Issue.BadShape.Short": "Edges cross",
   "Placemaker.Parking.Issue.BusStopNoRoad.Short": "Bus stop off street",

@@ -182,6 +182,8 @@
   "Placemaker.Park.fountainPath.Tooltip": "Adiciona um caminho curto do caminho mais próximo até a fonte.",
   "Placemaker.Park.Preset.garden": "Passeio de jardim",
   "Placemaker.Park.Issue.PathStyleFallback": "Este estilo de caminho não cabe nesta área (ou precisa de um lago ou de atrações); foram usados caminhos automáticos.",
+  "Placemaker.Park.Issue.PathStyleSteep": "Este terreno é íngreme demais para o traçado deste estilo de caminho; os caminhos seguem a encosta.",
+  "Placemaker.Park.Issue.LotTooSteep": "O lado da rua deste terreno é íngreme demais para um estacionamento; o parque não terá.",
   "Placemaker.Plaza.centerKind": "Tipo de centro",
   "Placemaker.Plaza.centerKind.Tooltip": "Que tipo de peça central a escolha automática usa.",
   "Placemaker.Plaza.centerKind.any": "Qualquer",

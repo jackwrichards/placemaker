@@ -220,6 +220,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
         {
             var d = f.Biomes[b];
             uint s = Hashing.Mix(seed, Seeds.Hash("beds:" + d.Id));
+            if (d.BedRadius > 0f) return IslandBeds(f, b, s);
             var v = new float[f.Count];
             var vals = new List<float>();
             for (int k = 0; k < f.Count; k++)
@@ -233,6 +234,47 @@ namespace Placemaker.Core.Layers.Common.Biomes
             vals.Sort();
             float cut = vals[math.clamp((int)((1f - d.Beds) * vals.Count), 0, vals.Count - 1)];
             for (int k = 0; k < f.Count; k++) bed[k] = v[k] >= cut;
+            return bed;
+        }
+
+        /// <summary>
+        /// Island beds (P2-4): bed centres on a jittered grid spaced so the beds take about BiomeDef.Beds of the area, each a disc
+        /// of BedRadius ±35 % with a wobbling edge, 2.5 m or more inside the area; a mown gap of 2.5 m or more between beds.
+        /// </summary>
+        private static bool[] IslandBeds(BiomeField f, int b, uint s)
+        {
+            var d = f.Biomes[b];
+            var bed = new bool[f.Count];
+            float r0 = d.BedRadius, spacing = math.max(r0 * 2f + 3f, r0 * math.sqrt(math.PI / math.max(0.05f, d.Beds)));
+            float2 lo = new float2(float.MaxValue), hi = new float2(float.MinValue);
+            for (int k = 0; k < f.Count; k++)
+                if (f.Label[k] == b) { var p = f.Pos(k); lo = math.min(lo, p); hi = math.max(hi, p); }
+            if (lo.x > hi.x) return bed;
+            var beds = new List<float3>();   // x, z, radius
+            int gi = 0;
+            for (float z = lo.y; z <= hi.y + spacing; z += spacing * 0.87f, gi++)
+                for (float x = lo.x + ((gi & 1) != 0 ? spacing * 0.5f : 0f); x <= hi.x + spacing; x += spacing)
+                {
+                    uint h = Hashing.Mix(s, (int)math.floor(x * 7f), (int)math.floor(z * 7f));
+                    var c = new float2(x, z) + (new float2(Hashing.Unit(h), Hashing.Unit(Hashing.Mix(h, 1u))) - 0.5f) * spacing * 0.4f;
+                    float r = r0 * math.lerp(0.65f, 1.35f, Hashing.Unit(Hashing.Mix(h, 2u)));
+                    // the bed shrinks to the room it has: its centre at least r + 2.5 m inside the area
+                    float deep = f.InteriorAt(c);
+                    if (f.LabelAt(c) != b) continue;
+                    r = math.min(r, deep - 2.5f);
+                    if (r < r0 * 0.5f) continue;
+                    beds.Add(new float3(c, r));
+                }
+            for (int k = 0; k < f.Count; k++)
+            {
+                if (f.Label[k] != b || f.Interior[k] < 2f) continue;
+                var p = f.Pos(k);
+                foreach (var c in beds)
+                {
+                    float wob = 1f + 0.22f * BiomeField.Fbm(p / 3.5f, s);
+                    if (math.distance(p, c.xy) <= c.z * wob) { bed[k] = true; break; }
+                }
+            }
             return bed;
         }
 
@@ -723,7 +765,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 {
                     // a ring round an open heart: at most 45 % of how deep the area gets (narrow rooms keep a clearing too)
                     float rim = _d.TreeRim > 0f ? math.min(_d.TreeRim, DeepQuantile(0.9f) * 0.45f) : 0f;
-                    rejectTree = p => !Mine(p) || rim > 0f && Deep(p) > rim || !PathClear(p, 2.6f) || InWater(p, 2f);
+                    bool inBeds = _d.TreesInBeds && _res.Beds?[_b] != null;
+                    rejectTree = p => !Mine(p) || rim > 0f && Deep(p) > rim || inBeds && !InBed(p) || !PathClear(p, 2.6f) || InWater(p, 2f);
                     rejectBush = p => !Mine(p) || !PathClear(p, 1.3f) || InWater(p, 0.8f);
                     rejectRim = p => !Mine(p) || Deep(p) > 9f || !PathClear(p, 1.3f) || InWater(p, 0.8f);
                 }

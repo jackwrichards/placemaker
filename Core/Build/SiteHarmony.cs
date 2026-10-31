@@ -83,6 +83,8 @@ namespace Placemaker.Core.Build
         private const int MaxNodes = 120000;
         /// <summary>Raster the build uses (BuildService.Terrain: 1.75 m texels, 4 m bank).</summary>
         public const float RasterCell = 1.75f, RasterBank = 4f;
+        /// <summary>(P2-4) Length a path's profile is smoothed over (m): bumps shorter than this are graded out, hills follow.</summary>
+        public const float ProfileLength = 24f;
         /// <summary>Level shoulder beside a path's edge (m).</summary>
         public const float Shoulder = 1f;
         /// <summary>Steepest bank a blend may make towards the ground it meets (rise/run).</summary>
@@ -442,7 +444,12 @@ namespace Placemaker.Core.Build
             for (int k = 0; k < n; k++) profile[k] = float.NaN;
             if (graph.Pos.Count > 0)
             {
-                report.SteepEdges = Profile(graph);
+                // each vertex changes no more than the border cap allows at its level band's far edge (the band stays level)
+                var ld = LockedDistance(c);
+                var vcap = new float[graph.Pos.Count];
+                for (int v = 0; v < vcap.Length; v++)
+                    vcap[v] = math.min(MaxEarthwork, BorderBank * math.max(0f, c.Sample(ld, graph.Pos[v], 0f) - (3f + Shoulder + c.C)));
+                report.SteepEdges = Profile(graph, vcap);
                 report.DryPathVertices = KeepAboveWater(graph, plan, site);
                 profile = StampCorridors(c, paths, graph, T, protect, pathW);
                 // A surface the path runs into (a link strip, a plaza edge) is refitted with the level band as part of
@@ -1192,12 +1199,19 @@ namespace Placemaker.Core.Build
         }
 
         /// <summary>Smooth profile along the graph (like a vanilla net) within each edge's grade limit. Returns edges still too steep.</summary>
-        private static int Profile(Graph g)
+        private static int Profile(Graph g, float[] vcap = null)
         {
             int n = g.Pos.Count;
             var tmp = new float[n];
             var h = g.H.ToArray();
-            for (int pass = 0; pass < 140; pass++)
+            // P2-4 (the lead, on rugged land: "real park paths on bumpy ground are graded"): the pull back to the ground sets
+            // the length the profile is smoothed over, about spacing / sqrt(pull). A fixed 2.5 % smoothed ~12 m on 2 m
+            // vertices, so 30-40 m bumps stayed in the walk; now ~24 m whatever the spacing (bumps go, hills stay).
+            float spacing = 0f; foreach (var e in g.Edges) spacing += e.len;
+            spacing = g.Edges.Count > 0 ? math.clamp(spacing / g.Edges.Count, 0.5f, 12f) : 2f;
+            float pull = math.clamp(spacing * spacing / (ProfileLength * ProfileLength), 0.002f, 0.025f);
+            int passes = (int)math.clamp(2.5f / pull, 140f, 600f);
+            for (int pass = 0; pass < passes; pass++)
             {
                 for (int v = 0; v < n; v++)
                 {
@@ -1205,7 +1219,8 @@ namespace Placemaker.Core.Build
                     float s = 0f, wsum = 0f; foreach (int u in g.Nb[v]) { s += h[u]; wsum += 1f; }
                     var soft = g.Soft?[v];
                     if (soft != null) foreach (int u in soft) { s += 0.5f * h[u]; wsum += 0.5f; }
-                    tmp[v] = math.lerp(s / wsum, g.H0[v], 0.025f);
+                    tmp[v] = math.lerp(s / wsum, g.H0[v], pull);
+                    if (vcap != null) tmp[v] = math.clamp(tmp[v], g.H0[v] - vcap[v], g.H0[v] + vcap[v]);
                 }
                 Array.Copy(tmp, h, n);
             }
@@ -1227,7 +1242,7 @@ namespace Placemaker.Core.Build
                 if (!changed) break;
             }
             int steep = 0;
-            for (int v = 0; v < n; v++) h[v] = math.clamp(h[v], g.H0[v] - MaxEarthwork, g.H0[v] + MaxEarthwork);
+            for (int v = 0; v < n; v++) { float cap = vcap != null ? math.max(vcap[v], 0.05f) : MaxEarthwork; if (!g.Pinned[v]) h[v] = math.clamp(h[v], g.H0[v] - cap, g.H0[v] + cap); }
             foreach (var e in g.Edges) if (math.abs(h[e.b] - h[e.a]) > e.grade * e.len * 1.05f + 0.02f) steep++;
             for (int v = 0; v < n; v++) g.H[v] = h[v];
             return steep;
