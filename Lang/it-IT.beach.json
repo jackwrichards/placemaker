@@ -198,6 +198,7 @@
   "Placemaker.Beach.Issue.NarrowLand": "Solo {0} m di terra dietro l'acqua: non c'è spazio per la sabbia, un sentiero e ciò che sta dietro. Disegna l'area 30–60 m verso l'interno.",
   "Placemaker.Beach.Issue.SteepShore": "Il pendio verso l'acqua è ripido ({0} %): la spiaggia viene scavata al suo interno e il retro resta un'alta scarpata. Un tratto più dolce è più naturale, oppure scegli Burrone roccioso o Costa di granito.",
   "Placemaker.Beach.Issue.CliffAdvice": "Su una scogliera viene scavata nella roccia una piccola caletta, con un sentiero che scende in un canalone. Per una spiaggia lunga, sposta l'area su un tratto più basso della riva.",
+  "Placemaker.Beach.Issue.IslandsOutside": "Nessuna isola ci sta: disegna l'area circa 50 m sull'acqua per averne una.",
   "Placemaker.Beach.islands": "Isolotti",
   "Placemaker.Beach.islands.Tooltip": "Bassi isolotti rocciosi davanti alla spiaggia, ognuno raggiunto da una passerella di legno con una panchina in cima (modifica permanente del terreno)."
 }

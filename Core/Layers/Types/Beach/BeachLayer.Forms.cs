@@ -24,6 +24,7 @@ namespace Placemaker.Core.Layers.Types.Beach
     {
         public const string NoWaterKey = "Placemaker.Beach.Issue.NoWater";
         public const string ShortShoreKey = "Placemaker.Beach.Issue.ShortShore";
+        public const string IslandsOutsideKey = "Placemaker.Beach.Issue.IslandsOutside";
         public const string NarrowLandKey = "Placemaker.Beach.Issue.NarrowLand";
         public const string SteepShoreKey = "Placemaker.Beach.Issue.SteepShore";
         public const string CliffAdviceKey = "Placemaker.Beach.Issue.CliffAdvice";

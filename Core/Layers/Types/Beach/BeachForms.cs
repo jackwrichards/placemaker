@@ -127,6 +127,8 @@ namespace Placemaker.Core.Layers.Types.Beach
                 if (!shore.Outline.ContainsDisc(ic, r + 3f)) continue;
                 f.Islands.Add((ic, r, 1.4f + 0.8f * Hashing.Unit(Hashing.Mix(v, 3u)), s));
             }
+            // the player asked for an island but drew the outline along the shore: say how to get one
+            if (islands > 0 && len > 50f && f.Islands.Count == 0) ctx.Issue(IssueSeverity.Info, BeachLayer.IslandsOutsideKey);
             if (f.Islands.Count > 0) { f.Reach = math.max(f.Reach, 46f); f.MaxFill = math.max(f.MaxFill, 7f); f.MaxGrade = math.max(f.MaxGrade, 0.5f); }
             int knolls = ctx.I("knolls");
             for (int i = 0; i < knolls; i++)
@@ -305,12 +307,12 @@ namespace Placemaker.Core.Layers.Types.Beach
                 foreach (var (pc, pr) in Pans)
                 {
                     float d = math.distance(p, pc) / pr;
-                    if (d < 1.2f) t = math.lerp(t, level + 0.06f, Sculpt.Smooth01(1.2f - d) * a);
+                    if (d < 1.2f) t = math.lerp(t, level - 0.35f, Sculpt.Smooth01(1.2f - d) * a);   // pools that hold water
                 }
                 float dc = ChannelDistance(p, out float tw);
                 if (dc < tw + 2f)
                 {
-                    float bed = level - 1.2f * (0.55f + 0.45f * math.saturate(tw / 4f));
+                    float bed = level - 1.4f * (0.6f + 0.4f * math.saturate(tw / 6f));
                     t = math.lerp(bed, t, Sculpt.Smooth01(math.saturate((dc - tw * 0.5f) / (tw * 0.5f + 2f))));
                 }
             }
@@ -337,7 +339,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                     var a = l[i - 1]; var b = l[i]; var ab = b - a;
                     float t = math.saturate(math.dot(p - a, ab) / math.max(1e-4f, math.dot(ab, ab)));
                     float d = math.distance(p, a + ab * t);
-                    if (d < best) { best = d; halfWidth = math.lerp(4.2f, 1.8f, (i - 1 + t) / math.max(1, l.Length - 1)); }
+                    if (d < best) { best = d; halfWidth = math.lerp(6.5f, 3.2f, (i - 1 + t) / math.max(1, l.Length - 1)); }   // (3.6 m wide creeks vanished on the 3.5 m heightmap)
                 }
             }
             return best;

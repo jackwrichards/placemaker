@@ -205,6 +205,7 @@
   "Placemaker.Beach.Issue.NarrowLand": "Only {0} m of land behind the water: no room for the sand, a walk and what stands behind it. Draw the area 30–60 m inland.",
   "Placemaker.Beach.Issue.SteepShore": "The bank down to the water is steep ({0} %): the beach is carved into it and its back stays a high bank. A gentler stretch looks more natural, or pick Rocky ravine or Granite shore.",
   "Placemaker.Beach.Issue.CliffAdvice": "On a cliff a small pocket beach is cut into the rock, with a path down a gully. For a long beach, move the area to a lower stretch of the shore.",
+  "Placemaker.Beach.Issue.IslandsOutside": "No island fits: draw the area about 50 m out over the water to get one.",
   "Placemaker.Beach.islands": "Islands",
   "Placemaker.Beach.islands.Tooltip": "Low rocky islets off the beach, each reached by a timber footbridge with a bench at the top (permanent terrain change)."
 }

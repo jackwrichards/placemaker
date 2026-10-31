@@ -198,6 +198,7 @@
   "Placemaker.Beach.Issue.NarrowLand": "水后方的陆地只有 {0} 米：放不下沙滩、步道和后方的设施。请把区域向内陆画 30–60 米。",
   "Placemaker.Beach.Issue.SteepShore": "通往水边的岸坡很陡（{0} %）：海滩会挖进坡里，后方仍是高岸。较平缓的一段会更自然，或改选“岩石峡谷”或“花岗岩岸”。",
   "Placemaker.Beach.Issue.CliffAdvice": "在悬崖处会在岩石中凿出一个小海湾沙滩，并有一条沿沟谷下行的小路。想要长海滩，请把区域移到岸线较低的一段。",
+  "Placemaker.Beach.Issue.IslandsOutside": "放不下岛屿：把区域向水面画出约 50 米即可得到一个。",
   "Placemaker.Beach.islands": "小岛",
   "Placemaker.Beach.islands.Tooltip": "海滩外的低矮岩石小岛，各有一座木栈桥通达，岛顶设长椅（永久改变地形）。"
 }
