@@ -35,16 +35,23 @@ namespace Placemaker.Core.Build
     public static class RemovalPlanner
     {
         public const int MaxPerPass = 32;
+        /// <summary>
+        /// Objects and areas per pass (p1-bulldoze). They hold no graph references (rule 12 is about edges and nodes), so
+        /// they go in large batches: the 32-per-frame pace made a big park take 120+ frames, several seconds in a busy city.
+        /// </summary>
+        public const int MaxObjectsPerPass = 4096;
 
         /// <summary>
         /// Plans the next pass from the current live state.
         /// <paramref name="nodeEdges"/> lists, for every member node, ALL live edges connected to it
         /// (member and foreign). Call again next pass with the refreshed graph.
         /// </summary>
-        public static RemovalPass NextPass(IReadOnlyList<RemovalMember> members, IReadOnlyDictionary<long, List<long>> nodeEdges, int maxPerPass = MaxPerPass)
+        public static RemovalPass NextPass(IReadOnlyList<RemovalMember> members, IReadOnlyDictionary<long, List<long>> nodeEdges, int maxPerPass = MaxPerPass,
+            int maxObjectsPerPass = MaxObjectsPerPass)
         {
             var pass = new RemovalPass();
             if (maxPerPass < 1) maxPerPass = 1;
+            if (maxObjectsPerPass < 1) maxObjectsPerPass = maxPerPass;
             var memberIds = new HashSet<long>();
             var memberEdges = new HashSet<long>();
             var memberNodes = new HashSet<long>();
@@ -64,7 +71,7 @@ namespace Placemaker.Core.Build
                 foreach (var m in members)
                 {
                     if (m.Kind == MemberKind.Edge || m.Kind == MemberKind.Node || m.Kind == MemberKind.Auxiliary) continue;
-                    if (pass.Delete.Count >= maxPerPass) break;
+                    if (pass.Delete.Count >= maxObjectsPerPass) break;
                     pass.Delete.Add(m.Id);
                 }
                 return pass;
@@ -111,7 +118,7 @@ namespace Placemaker.Core.Build
             foreach (var m in members)
             {
                 if (m.Kind != MemberKind.Auxiliary) continue;
-                if (pass.Delete.Count >= maxPerPass) break;
+                if (pass.Delete.Count >= maxObjectsPerPass) break;
                 pass.Delete.Add(m.Id);
             }
             pass.Final = pass.Delete.Count == aux;

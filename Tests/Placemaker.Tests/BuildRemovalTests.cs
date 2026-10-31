@@ -15,7 +15,7 @@ namespace Placemaker.Tests
             int passes = 0;
             while (passes < 1000)
             {
-                var pass = RemovalPlanner.NextPass(members, nodeEdges, max);
+                var pass = RemovalPlanner.NextPass(members, nodeEdges, max, max);
                 passes++;
                 Assert.True(pass.Delete.Count <= max || pass.Delete.Count <= 3, "pass too large");
                 var deleted = new HashSet<long>(pass.Delete);
@@ -36,6 +36,31 @@ namespace Placemaker.Tests
             }
             Assert.Fail("never finished");
             return passes;
+        }
+
+        [Fact]
+        public void ObjectsGoInLargeBatchesEdgesStayBounded()
+        {
+            // p1-bulldoze: 5000 objects and 100 edges in a chain; objects in two passes, edges at most 32 per pass.
+            var members = new List<RemovalMember>();
+            var graph = new Dictionary<long, List<long>>();
+            for (int i = 0; i < 5000; i++) members.Add(new RemovalMember { Id = 10000 + i, Kind = MemberKind.Object });
+            for (int n = 0; n <= 100; n++) { members.Add(new RemovalMember { Id = 1 + n, Kind = MemberKind.Node }); graph[1 + n] = new List<long>(); }
+            for (int e = 0; e < 100; e++)
+            {
+                members.Add(new RemovalMember { Id = 500 + e, Kind = MemberKind.Edge, StartNode = 1 + e, EndNode = 2 + e });
+                graph[1 + e].Add(500 + e); graph[2 + e].Add(500 + e);
+            }
+            var first = RemovalPlanner.NextPass(members, graph);
+            Assert.Equal(RemovalPlanner.MaxObjectsPerPass, first.Delete.Count);
+            Assert.All(first.Delete, id => Assert.True(id >= 10000));
+            members.RemoveAll(x => first.Delete.Contains(x.Id));
+            var second = RemovalPlanner.NextPass(members, graph);
+            Assert.Equal(5000 - RemovalPlanner.MaxObjectsPerPass, second.Delete.Count);
+            members.RemoveAll(x => second.Delete.Contains(x.Id));
+            var third = RemovalPlanner.NextPass(members, graph);
+            Assert.InRange(third.Delete.Count, 1, RemovalPlanner.MaxPerPass);
+            Assert.Contains(third.Delete, id => id >= 500 && id < 600);
         }
 
         [Fact]

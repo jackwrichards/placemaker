@@ -32,6 +32,13 @@ namespace Placemaker.Game.Groups
         private ToolSystem _toolSystem;
         private EntityQuery _tempQuery;
         /// <summary>Per record being removed: when it started, its frames, its main-thread time (logged when it ends).</summary>
+        /// <summary>
+        /// (p1-bulldoze) Each removal's members, found once: a pass used to scan every tagged piece of every group in the city,
+        /// every frame. Refreshed by a full scan when the plan says nothing is left (members adopted meanwhile) and every
+        /// <see cref="RescanPasses"/> passes.
+        /// </summary>
+        private readonly Dictionary<Entity, List<Entity>> _members = new Dictionary<Entity, List<Entity>>();
+        private const int RescanPasses = 60;
         private readonly Dictionary<Entity, (System.Diagnostics.Stopwatch Wall, int Frames, double Ms, double MaxMs, int Members, float WorstFrame)> _timing
             = new Dictionary<Entity, (System.Diagnostics.Stopwatch, int, double, double, int, float)>();
 
@@ -66,7 +73,7 @@ namespace Placemaker.Game.Groups
             if (_requestQuery.IsEmptyIgnoreFilter) return;
             using var requests = _requestQuery.ToEntityArray(Allocator.Temp);
             if (requests.Length == 0) return;
-            // One group per frame keeps each pass ≤ 32 parts in total.
+            // One group per frame: each pass is ≤ 32 net parts, or one batch of objects (RemovalPlanner).
             var record = requests[0];
             var sw = System.Diagnostics.Stopwatch.StartNew();
             try
@@ -91,6 +98,7 @@ namespace Placemaker.Game.Groups
             if (t.Frames > 1) t.WorstFrame = Math.Max(t.WorstFrame, UnityEngine.Time.unscaledDeltaTime * 1000f);   // the game's whole previous frame
             if (EntityManager.Exists(record) && !EntityManager.HasComponent<Deleted>(record)) { _timing[record] = t; return; }
             _timing.Remove(record);
+            _members.Remove(record);
             Mod.Log.Info($"Placemaker removal timing: {t.Members} member(s) in {t.Frames} frame(s), {t.Wall.Elapsed.TotalMilliseconds:F0} ms from start to end, "
                 + $"{t.Ms:F1} ms of main-thread work, worst frame {t.MaxMs:F1} ms (the game's longest frame meanwhile {t.WorstFrame:F0} ms).");
         }
@@ -107,17 +115,9 @@ namespace Placemaker.Game.Groups
             var group = EntityManager.GetComponentData<PlacemakerGroup>(record);
             var removal = EntityManager.GetComponentData<PlacemakerRemoval>(record);
 
-            var entities = new List<Entity>();
-            bool anyTemp = false;
-            using (var all = _memberQuery.ToEntityArray(Allocator.Temp))
-            using (var tags = _memberQuery.ToComponentDataArray<PlacemakerMember>(Allocator.Temp))
-                for (int i = 0; i < all.Length; i++)
-                {
-                    if (tags[i].GroupId != group.GroupId) continue;
-                    // A member currently being edited by a tool (Temp copy) would race with the tool.
-                    if (EntityManager.HasComponent<Temp>(all[i])) { anyTemp = true; continue; }
-                    entities.Add(all[i]);
-                }
+            bool full = !_members.ContainsKey(record) || removal.Passes > 0 && removal.Passes % RescanPasses == 0;
+            var entities = Members(record, group.GroupId, full, out bool anyTemp);
+            if (!full && entities.Count == 0 && !anyTemp) entities = Members(record, group.GroupId, true, out anyTemp);
             if (anyTemp && entities.Count == 0) return;
             NoteMembers(record, entities.Count);
 
@@ -175,6 +175,8 @@ namespace Placemaker.Game.Groups
 
             var pass = RemovalPlanner.NextPass(members, nodeEdges);
             var refresh = new HashSet<Entity>();
+            var doomed = new List<Entity>(pass.Delete.Count);
+            var seen = new HashSet<Entity>();
             foreach (var id in pass.Delete)
             {
                 if (!byId.TryGetValue(id, out var e) || !EntityManager.Exists(e) || EntityManager.HasComponent<Deleted>(e)) continue;   // idempotent
@@ -185,7 +187,14 @@ namespace Placemaker.Game.Groups
                     refresh.Add(edge.m_End);
                 }
                 PrepareDelete(e);
-                EntityManager.AddComponent<Deleted>(e);
+                if (seen.Add(e)) doomed.Add(e);
+                AddOwnedSubObjects(e, doomed, seen);
+            }
+            if (doomed.Count > 0)
+            {
+                // one structural change for the whole batch
+                using var batch = new NativeArray<Entity>(doomed.ToArray(), Allocator.Temp);
+                EntityManager.AddComponent<Deleted>(batch);
             }
             foreach (var id in pass.Release)
                 if (byId.TryGetValue(id, out var e) && EntityManager.Exists(e))
@@ -213,6 +222,62 @@ namespace Placemaker.Game.Groups
             if (removal.Passes > MaxPassesWithoutProgress) { GiveUp(record); return; }
             EntityManager.SetComponentData(record, removal);
             _registry.MarkDirty();
+        }
+
+        /// <summary>This group's live members (not Temp copies); <paramref name="full"/> scans every tagged piece, else the cached list is filtered.</summary>
+        private List<Entity> Members(Entity record, int groupId, bool full, out bool anyTemp)
+        {
+            anyTemp = false;
+            var entities = new List<Entity>();
+            if (full)
+            {
+                using (var all = _memberQuery.ToEntityArray(Allocator.Temp))
+                using (var tags = _memberQuery.ToComponentDataArray<PlacemakerMember>(Allocator.Temp))
+                    for (int i = 0; i < all.Length; i++)
+                    {
+                        if (tags[i].GroupId != groupId) continue;
+                        // A member currently being edited by a tool (Temp copy) would race with the tool.
+                        if (EntityManager.HasComponent<Temp>(all[i])) { anyTemp = true; continue; }
+                        entities.Add(all[i]);
+                    }
+                _members[record] = new List<Entity>(entities);
+                return entities;
+            }
+            var list = _members[record];
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                var e = list[i];
+                if (!EntityManager.Exists(e) || EntityManager.HasComponent<Deleted>(e) || !EntityManager.HasComponent<PlacemakerMember>(e)
+                    || EntityManager.GetComponentData<PlacemakerMember>(e).GroupId != groupId) { list.RemoveAt(i); continue; }
+                if (EntityManager.HasComponent<Temp>(e)) { anyTemp = true; continue; }
+                entities.Add(e);
+            }
+            return entities;
+        }
+
+        /// <summary>
+        /// (p1-bulldoze) The sub-objects an object member owns: the decorations of a kiosk, food stall or barn (vents, signs,
+        /// racks, wall lights, spawn spots). The game deletes the sub-objects of a deleted building, but an owned object that is
+        /// not a building is skipped (SubObjectSystem returns early for Object + Owner without Building), and our members are
+        /// owned by the carrier. Marking the member Deleted alone left them standing (fairground, market square, farmstead,
+        /// beach, sports park, junk yard). Recursive; other members and secondary objects go their own way.
+        /// </summary>
+        private void AddOwnedSubObjects(Entity owner, List<Entity> into, HashSet<Entity> seen, int depth = 0)
+        {
+            if (depth > 4 || !EntityManager.HasComponent<global::Game.Objects.Object>(owner) || !EntityManager.HasBuffer<global::Game.Objects.SubObject>(owner)) return;
+            var buf = EntityManager.GetBuffer<global::Game.Objects.SubObject>(owner, true);
+            if (buf.Length == 0) return;
+            var subs = new List<Entity>(buf.Length);
+            for (int i = 0; i < buf.Length; i++) subs.Add(buf[i].m_SubObject);
+            foreach (var sub in subs)
+            {
+                if (sub == Entity.Null || !EntityManager.Exists(sub) || EntityManager.HasComponent<Deleted>(sub) || EntityManager.HasComponent<Temp>(sub)
+                    || EntityManager.HasComponent<PlacemakerMember>(sub) || EntityManager.HasComponent<global::Game.Objects.Secondary>(sub)) continue;
+                if (!EntityManager.HasComponent<Owner>(sub) || EntityManager.GetComponentData<Owner>(sub).m_Owner != owner) continue;
+                if (!seen.Add(sub)) continue;
+                into.Add(sub);
+                AddOwnedSubObjects(sub, into, seen, depth + 1);
+            }
         }
 
         private bool ReferencedByTemporaries(List<Entity> members)
