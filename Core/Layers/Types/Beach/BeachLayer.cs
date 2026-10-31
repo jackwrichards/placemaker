@@ -297,6 +297,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             if (!allCliff) Hinterland(b);
             ctx.Plan.Facts["msHinterland"] = sw2.ElapsedMilliseconds;
             if (!allCliff) BlendGrass(b);
+            if (!allCliff) DuneSand(b);
             Backdrop(b);
 
             sw2.Restart();
@@ -479,17 +480,6 @@ namespace Placemaker.Core.Layers.Types.Beach
                     foreach (var strip in shore.StripFromWater(-math.max(2f, b.Under), top + b.Blend + 3f, run.x, run.y))
                         foreach (var piece in Clip(strip, clip))
                             TerrainPaint.Field(ctx, piece, layer, 1f, 3f, math.clamp(b.Blend * 0.12f, 0.8f, 3f), b.WaterEdge, full, fade, 0f, 0x5A4Du);
-                // Dunes are sand too: lighter at the foot, thinning to the vegetated crest.
-                if (ctx.S("backdrop") == "dunes" && !rocky)
-                {
-                    float d0 = b.PathDw + b.Hw + 0.5f, depth = ctx.F("duneDepth");
-                    foreach (var run in b.BeachRuns)
-                        foreach (var strip in shore.StripFromWater(d0, d0 + depth + 2f, run.x, run.y))
-                            foreach (var piece in Clip(strip, clip))
-                                // p2-beaches: sand over the whole dune belt (at 0.6 thinning to the crest the game runner's dunes read as
-                                // green scrub), giving way to the ground only behind the back dune
-                                TerrainPaint.Field(ctx, piece, layer, 1f, 6f, 2.5f, null, 0f, 0f, 0f, 0xD0E5u);   // (no gradient: measured from the old waterline it stopped 20-32 m short behind a carved bay)
-                }
             }
             if (ctx.B("sandSurface") && AssetAvailability.Require(ctx.Plan, AssetCategories.SurfaceSand, new[] { ctx.S("sandAsset") }, Keys.Category(AssetCategories.SurfaceSand)))
                 foreach (var ring in shore.BandFromWater(0f, top))
@@ -501,6 +491,24 @@ namespace Placemaker.Core.Layers.Types.Beach
                 foreach (var ring in shore.BandFromWater(from, shore.MaxDepth + Shoreline.MaxGap + 20f))
                     Waterfront.WaterfrontLayer.Lawn(ctx, ring);   // (rf-beach) painted, not the hard-edged grass surface
             }
+        }
+
+        /// <summary>
+        /// (p2-beaches) Sand over the whole dune belt, laid after the land behind (its biome patches spilled over the belt and
+        /// painted it green: the game runner's dunes read as scrub; at 0.6 thinning to the crest they did too).
+        /// </summary>
+        private static void DuneSand(Work b)
+        {
+            var ctx = b.Ctx; var shore = b.Shore;
+            if (!ctx.B("paint") || ctx.S("backdrop") != "dunes" || b.Style == "rocky") return;
+            var clip = Poly.UnionAll(b.G.Clips);
+            int layer = math.clamp(ctx.I("paintLayer"), 1, 4);
+            float d0 = b.PathDw + b.Hw + 0.5f, depth = ctx.F("duneDepth");
+            foreach (var run in b.BeachRuns)
+                foreach (var strip in shore.StripFromWater(d0, d0 + depth + 2f, run.x, run.y))
+                    foreach (var piece in Clip(strip, clip))
+                        // no gradient: measured from the old waterline it stopped 20-32 m short behind a carved bay
+                        TerrainPaint.Field(ctx, piece, layer, 1f, 6f, 2.5f, null, 0f, 0f, 0f, 0xD0E5u);
         }
 
         private static List<float2[]> Clip(float2[] ring, List<Region> clip)
