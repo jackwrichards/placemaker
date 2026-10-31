@@ -474,7 +474,7 @@ namespace Placemaker.Core.Layers.Parking
                     float chance = math.saturate((0.5f + 0.45f * busy) * g) * B.Density;
                     if (_r.F() > chance) continue;
                     var p = b.Center + b.Axis * (b.Length * 0.14) + b.RowDir * ((_r.F() - 0.5f) * 0.5);
-                    Put("stallOil", W(p), Dir(b.Axis), (float)(b.Length * _r.R(0.26f, 0.4f)), math.saturate(_r.R(0.55f, 0.95f) * (0.6f + 0.5f * busy) * math.min(1.4f, g)), "cars:oil", 1f, -1, false);
+                    Put("stallOil", W(p), Dir(b.Axis), (float)(b.Length * _r.R(0.26f, 0.4f)), math.saturate(_r.R(0.75f, 1f) * (0.75f + 0.35f * busy) * math.min(1.3f, 0.4f + 0.7f * g)), "cars:oil", 1f, -1, false);
                     if (_r.F() < 0.25f * g) Put("oilDrips", W(p + b.Axis * 0.6), Dir(b.Axis), 0, _r.R(0.5f, 0.9f), "cars:drips", 1f, -1, false);
                 }
                 // tyre polish down every drive lane, stronger near the entrances
@@ -486,8 +486,8 @@ namespace Placemaker.Core.Layers.Parking
                     var line = new[] { a, bb };
                     Brushes.EdgeStrip(B, line, "tyrePolish", new StripOptions
                     {
-                        Side = 1, Gaps = math.lerp(0.45f, 0.1f, busy), Run = new float2(10f, 30f),
-                        Opacity = new float2(0.45f, 0.85f) * math.min(1.3f, 0.5f + 0.6f * g) * (0.7f + 0.4f * busy), Width = new float2(0.9f, 1.1f), Cause = "cars:tyres",
+                        Side = 1, Gaps = math.lerp(0.25f, 0.05f, busy), Run = new float2(12f, 36f),
+                        Opacity = new float2(0.7f, 1f) * math.min(1.2f, 0.6f + 0.5f * g) * (0.8f + 0.3f * busy), Width = new float2(0.95f, 1.1f), Cause = "cars:tyres",   // lead review: read clearly at 45 degrees
                     });
                 }
                 // skid marks where the lanes meet (turning wheels scrub there)

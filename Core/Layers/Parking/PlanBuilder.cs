@@ -513,8 +513,8 @@ namespace Placemaker.Core.Layers.Parking
         }
 
         /// <summary>
-        /// (P2-5) Terraced: a dark masonry retaining wall along every tier step (the game's garden walls in courses of 0.9 m), its foot
-        /// on the lower tier and its top flush with the upper one. Returns the pieces made.
+        /// (P2-5) Terraced: a dark masonry retaining wall along every tier step (the game's garden wall scaled to the rise), its foot on
+        /// the lower tier and its top a parapet above the upper one. Returns the pieces made.
         /// </summary>
         private static int RetainingWalls(AreaPlan plan, Layout layout, List<(double Y, double X0, double X1, double Low, double High)> walls, Func<double2, float> H)
         {
@@ -525,27 +525,29 @@ namespace Placemaker.Core.Layers.Parking
                 // a parapet 0.25 m above the upper tier, so the wall reads as a wall and not as a buried ledge
                 // Low/High: the tiers before and after the wall line (along +y); the wall stands on whichever is lower
                 double lowH = Math.Min(w.Low, w.High), step = Math.Abs(w.High - w.Low), rise = step + 0.25, side = w.Low < w.High ? -1 : 1;
-                int courses = Math.Max(1, (int)Math.Ceiling(rise / Kerbs.WallH));
-                float sink = (float)(courses * Kerbs.WallH - rise);
+                // one wall piece scaled to the whole rise (courses of 0.9 m stacked read as layered bands: lead review 2026-10-31);
+                // scaled, a 3 m piece is 3 x scale long, so the pieces step by that
+                float scale = (float)Math.Max(1.0, rise / Kerbs.WallH);
+                double pieceLen = 3.0 * scale;
                 var dir = f.DirToWorld(new double2(1, 0));
                 float yaw = (float)Math.Atan2(dir.x, dir.y);
                 // stand a metre in front of the step on the lower tier's ground: the terrain raster smears the step over a cell or
                 // two, and a wall at the step itself was buried to its top (game runner 1031-133315)
                 double y = w.Y + side * 1.0;
-                for (double x = w.X0 + 1.5; x + 1.5 <= w.X1 + 1e-6; x += 3)
+                double len = w.X1 - w.X0;
+                int count = Math.Max(1, (int)Math.Ceiling(len / pieceLen));
+                for (int i = 0; i < count; i++)
                 {
+                    double x = count == 1 ? (w.X0 + w.X1) * 0.5 : w.X0 + pieceLen * 0.5 + (len - pieceLen) * i / (count - 1);
                     var p = f.ToWorld(new double2(x, y));
                     float g = H(p);
-                    for (int c = 0; c < courses; c++)
+                    plan.Objects.Add(new PlannedObject
                     {
-                        plan.Objects.Add(new PlannedObject
-                        {
-                            Position = new float3((float)p.x, g, (float)p.y), Yaw = yaw, Role = ObjectRole.Furniture,
-                            Asset = new AssetRef("EU_Wall08", "EU_Wall01"), Category = AssetCategories.RuinsWall, Variation = (uint)n,
-                            Elevation = (float)(lowH - g) + c * Kerbs.WallH - sink,
-                        });
-                        n++;
-                    }
+                        Position = new float3((float)p.x, g, (float)p.y), Yaw = yaw, Role = ObjectRole.Furniture,
+                        Asset = new AssetRef("EU_Wall08", "EU_Wall01"), Category = AssetCategories.RuinsWall, Variation = (uint)n,
+                        Scale = scale, Elevation = (float)(lowH - g) - 0.1f + (float)(rise - scale * Kerbs.WallH),
+                    });
+                    n++;
                 }
             }
             return n;
@@ -847,7 +849,8 @@ namespace Placemaker.Core.Layers.Parking
                     Role = p.Tree ? ObjectRole.Tree : ObjectRole.Bush,
                     Asset = p.Species < speciesAssets.Count ? speciesAssets[p.Species] : new AssetRef(""),
                     // rf-parking: the trees of a planting line share one growth stage (adult), so the line reads as planted
-                    Age = !p.Tree ? -1 : p.Row ? 2 : 1 + (int)(p.Seed % 2), Variation = p.Seed,
+                    // (P2-5, lead review) in narrow medians the line trees are a stage younger: smaller crowns, the lot stays visible at 45°
+                    Age = !p.Tree ? -1 : p.Row ? (s.Median > 0 && s.Median < 3.5 ? 1 : 2) : 1 + (int)(p.Seed % 2), Variation = p.Seed,
                 });
                 if (p.Tree) trees++;
             }

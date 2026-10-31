@@ -1,0 +1,21 @@
+{
+  "_about": "P2-5: the terraced car park on a 12 % slope, shot so the steps read: from the low side (looking up at the retaining walls), from the high side, and from the side (the terraces in profile). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/parking-terraced.json -Who p2-parking-looks",
+  "scenarios": [
+    {
+      "id": "terraced",
+      "land": { "shape": "rect", "size": [170, 140], "ground": "slope", "grade": 12, "toward": "north" },
+      "steps": [
+        { "do": "area", "tool": "land" },
+        { "do": "type", "layer": "parking", "preset": "terraced" },
+        { "do": "entrances" },
+        { "do": "preview" },
+        { "do": "build" },
+        { "do": "camera", "target": "build", "view": "oblique", "yaw": 0, "pitch": 28, "distance": 110, "shot": "from-south", "shotMode": "render" },
+        { "do": "camera", "target": "build", "view": "oblique", "yaw": 180, "pitch": 28, "distance": 110, "shot": "from-north", "shotMode": "render" },
+        { "do": "camera", "target": "build", "view": "oblique", "yaw": 90, "pitch": 14, "distance": 95, "shot": "profile", "shotMode": "render" },
+        { "do": "camera", "target": "build", "view": "oblique", "yaw": 0, "pitch": 35, "distance": 45, "shot": "walls-close", "shotMode": "render" },
+        { "do": "terrain", "name": "terrain" }
+      ]
+    }
+  ]
+}
