@@ -16,6 +16,16 @@
           "preset": "standard"
         },
         {
+          "do": "value",
+          "id": "gridTurn",
+          "value": "0"
+        },
+        {
+          "do": "value",
+          "id": "markings",
+          "value": true
+        },
+        {
           "do": "entrance",
           "side": "south",
           "t": 0.42
@@ -274,6 +284,16 @@
           "do": "value",
           "id": "rowAngleMode",
           "value": "zones"
+        },
+        {
+          "do": "value",
+          "id": "gridTurn",
+          "value": "0"
+        },
+        {
+          "do": "value",
+          "id": "markings",
+          "value": true
         },
         {
           "do": "area",
