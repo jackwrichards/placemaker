@@ -50,10 +50,10 @@ namespace Placemaker.Tests
                             foreach (var n in l.Nets)
                                 if (n.Role == NetRole.Fence)
                                     for (int k = 1; k < 16; k++)
-                                        if (f.InZone(Composer.Bezier(n.A, n.B, n.C, n.D, k / 16f).xz)) { fences++; break; }
+                                        if (f.InFenceZone(Composer.Bezier(n.A, n.B, n.C, n.D, k / 16f).xz)) { fences++; break; }
                             foreach (var o in l.Objects)
                             {
-                                if (Placemaker.Core.Layers.Common.Cutouts.IsBorder(o) && f.InZone(o.Position.xz)) fences++;
+                                if (Placemaker.Core.Layers.Common.Cutouts.IsBorder(o) && f.InFenceZone(o.Position.xz)) fences++;
                                 if (PitRims.IsPile(o) && PitRims.Straddles(f, o.Position.xz, SiteHarmony.FootprintRadius(o, site))) piles++;
                             }
                         }

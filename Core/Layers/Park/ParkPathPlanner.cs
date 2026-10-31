@@ -133,27 +133,41 @@ namespace Placemaker.Core.Layers.Park
         // routes run across the slope and turn back and forth where they must gain height (switchbacks), and on gentle land
         // nothing changes.
 
-        /// <summary>Whether the region's ground varies by less than 1.5 m (no slope cost then).</summary>
+        /// <summary>
+        /// Whether the region is too level for a slope cost: its ground spans less than 6 m (rolling or bumpy land keeps its old
+        /// routes; the site harmony grades those), or no stretch of the coarse grid climbs faster than the walk grade.
+        /// </summary>
         private static bool IsLevel(LayerRegion region, Func<float2, float> h)
         {
-            float lo = float.MaxValue, hi = float.MinValue;
+            const int n = 8;
             var size = region.Max - region.Min;
-            for (int j = 0; j <= 8; j++)
-                for (int i = 0; i <= 8; i++)
+            var g = new float[(n + 1) * (n + 1)];
+            float lo = float.MaxValue, hi = float.MinValue;
+            for (int j = 0; j <= n; j++)
+                for (int i = 0; i <= n; i++)
                 {
-                    var p = region.Min + size * new float2(i / 8f, j / 8f);
-                    float v = h(p);
-                    if (!math.isfinite(v)) continue;
+                    float v = h(region.Min + size * new float2(i / (float)n, j / (float)n));
+                    if (!math.isfinite(v)) v = 0f;
+                    g[j * (n + 1) + i] = v;
                     lo = math.min(lo, v); hi = math.max(hi, v);
                 }
-            return !(hi - lo >= 1.5f);
+            if (!(hi - lo >= 6f)) return true;
+            float sx = size.x / n, sy = size.y / n, steep = 0f;
+            for (int j = 0; j <= n; j++)
+                for (int i = 0; i <= n; i++)
+                {
+                    float v = g[j * (n + 1) + i];
+                    if (i < n && sx > 1f) steep = math.max(steep, math.abs(g[j * (n + 1) + i + 1] - v) / sx);
+                    if (j < n && sy > 1f) steep = math.max(steep, math.abs(g[(j + 1) * (n + 1) + i] - v) / sy);
+                }
+            return steep <= _grade;
         }
 
-        /// <summary>Mean cost multiplier of walking a straight link: 1 on the level, gently more up to the walk grade, steeply beyond.</summary>
+        /// <summary>Mean cost multiplier of walking a straight link: 1 up to the walk grade (gentle and bumpy land plan as before), steeply more beyond.</summary>
         private static double SlopeFactor(float2 a, float2 b, double d)
         {
             if (_height == null || d < 0.5) return 1.0;
-            int n = Math.Max(2, (int)Math.Ceiling(d / 6.0));
+            int n = Math.Max(1, (int)Math.Ceiling(d / 20.0));   // over 20 m stretches: the hill, not every bump
             double seg = d / n, sum = 0.0;
             float prev = _height(a);
             for (int k = 1; k <= n; k++)
@@ -161,7 +175,7 @@ namespace Placemaker.Core.Layers.Park
                 float h = _height(math.lerp(a, b, k / (float)n));
                 double r = Math.Abs(h - prev) / seg / _grade;
                 prev = h;
-                sum += r <= 1.0 ? 1.0 + 0.4 * r * r : 1.4 + 6.0 * (r - 1.0);
+                sum += r <= 1.0 ? 1.0 : 1.0 + 6.0 * (r - 1.0);
             }
             return sum / n;
         }

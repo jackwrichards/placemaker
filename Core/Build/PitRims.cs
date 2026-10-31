@@ -27,6 +27,8 @@ namespace Placemaker.Core.Build
         public const float PitDepth = 1.5f;
         /// <summary>The hole's edge zone: the build's bank (TerraformRaster, 4 m) plus a raster cell and a fence's half width.</summary>
         public const float Reach = SiteHarmony.RasterBank + SiteHarmony.RasterCell + 0.5f;
+        /// <summary>Fences: the edge zone plus this (m), so the shallow corners of a pit (cut less than PitDepth) leave no stub of a rim fence.</summary>
+        public const float FenceExtra = 3f;
         /// <summary>A pile with more than this change of ground height under its footprint hangs over an edge (m).</summary>
         public const float PileStep = 1.2f;
         private const float Cell = 2f;
@@ -64,6 +66,7 @@ namespace Placemaker.Core.Build
             public float DistanceAt(float2 p) { int k = Index(p); return k < 0 ? float.MaxValue : Dist[k]; }
             public float DeltaAt(float2 p) { int k = Index(p); return k < 0 || float.IsNaN(Delta[k]) ? 0f : Delta[k]; }
             public bool InZone(float2 p) => DistanceAt(p) <= Reach;
+            public bool InFenceZone(float2 p) => DistanceAt(p) <= Reach + FenceExtra;
             public bool IsDug(float2 p) => DeltaAt(p) <= -PitDepth;
         }
 
@@ -182,9 +185,9 @@ namespace Placemaker.Core.Build
             foreach (var l in plan.Layers)
             {
                 if (l == null) continue;
-                fences += l.Objects.RemoveAll(o => Layers.Common.Cutouts.IsBorder(o) && f.InZone(o.Position.xz));
+                fences += l.Objects.RemoveAll(o => Layers.Common.Cutouts.IsBorder(o) && f.InFenceZone(o.Position.xz));
                 piles += l.Objects.RemoveAll(o => IsPile(o) && Straddles(f, o.Position.xz, SiteHarmony.FootprintRadius(o, site)));
-                fences += Layers.Common.Cutouts.ClipBorderNets(l, (p, pad) => f.InZone(p));
+                fences += Layers.Common.Cutouts.ClipBorderNets(l, (p, pad) => f.InFenceZone(p));
             }
             if (plan.Layers.Count > 0 && plan.Layers[0] != null && fences + piles > 0)
             {
