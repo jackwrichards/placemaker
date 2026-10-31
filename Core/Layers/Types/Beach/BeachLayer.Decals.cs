@@ -253,6 +253,12 @@ namespace Placemaker.Core.Layers.Types.Beach
             var sc = new Weathering.Scene(new List<AreaPlan> { ctx.Plan }, ring, ctx.Site, g.H, Hashing.Mix(ctx.Seed, 0xB10Fu), 1f, lib, outList, B.Density, B.Budget);
             if (BiomeGround.Any(sc)) BiomeGround.Run(sc);
 
+            // nothing past the drawn outline: the bluff and ravine bands reach beyond it (seen past the road in the game)
+            int culled = 0;
+            for (int i = outList.Count - 1; i >= start; i--)
+                if (!shore.Outline.Contains(outList[i].P)) { outList.RemoveAt(i); culled++; }
+            ctx.Plan.Facts["beachDecalsCulled"] = culled;
+
             int placed = outList.Count - start;
             ctx.Plan.Facts["beachDecals"] = placed;
             ctx.Plan.Facts["beachDecalDensity"] = density;
