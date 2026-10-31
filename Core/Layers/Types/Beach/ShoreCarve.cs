@@ -144,8 +144,9 @@ namespace Placemaker.Core.Layers.Types.Beach
             if (!math.all(math.isfinite(pk.O))) return null;
             pk.Inw = inw;
             pk.Tan = new float2(inw.y, -inw.x);
-            pk.HalfW = math.clamp(best * 0.2f, 18f, 30f);
-            pk.Sand = math.clamp(landDepth * 0.2f, 14f, 20f);
+            // (the game runner: an 11 m gully and a 17 m deep cove blurred into a green dip on the 3.5 m heightmap)
+            pk.HalfW = math.clamp(best * 0.25f, 22f, 36f);
+            pk.Sand = math.clamp(landDepth * 0.25f, 16f, 24f);
             // the gully: a 12 % climb (15 % on shallow land) from the back of the sand until it meets the cliff top
             pk.End = float.NaN;
             foreach (float grade in new[] { TerrainSurvey.RampGrade, 0.15f })
@@ -195,7 +196,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             public float2 O, Inw, Tan;
             public float Level, HalfW, Sand, End, Grade, TopH;
             /// <summary>Half-width of the gully floor (a 3 m path and its verges).</summary>
-            public float Gully = 5.5f;
+            public float Gully = 8f;
             /// <summary>Grade of the rock walls (about 60°).</summary>
             public const float Wall = 1.7f;
             public float2 Bottom => O + Inw * (Sand - 3f);
@@ -228,6 +229,21 @@ namespace Placemaker.Core.Layers.Types.Beach
                 float o = Outside(p, out _, out float d);
                 return o < -margin && d < Sand + 1f;
             }
+
+            /// <summary>The outline of the carved shape grown by k m (negative: shrunk), as rings: the cove and the gully.</summary>
+            public List<float2[]> Rings(float k)
+            {
+                float depth = Sand + 3f + k, hw = HalfW + k;
+                var cove = new List<float2> { At(hw, -8f) };
+                for (int i = 0; i <= 24; i++) { float a = math.PI * i / 24f; cove.Add(At(hw * math.cos(a), depth * math.sin(a))); }
+                cove.Add(At(-hw, -8f));
+                var gully = new[] { At(-(Gully + k), Sand * 0.5f), At(Gully + k, Sand * 0.5f), At(Gully + k, End + k), At(-(Gully + k), End + k) };
+                var list = new List<float2[]> { cove.ToArray(), gully };
+                foreach (var r in list) if (Poly.SignedArea(r) < 0f) Array.Reverse(r);
+                return list;
+            }
+
+            public float2 At(float x, float d) => O + Tan * x + Inw * d;
 
             /// <summary>On the rock walls (or their foot and lip): left natural, nothing placed there.</summary>
             public bool OnWall(float2 p)

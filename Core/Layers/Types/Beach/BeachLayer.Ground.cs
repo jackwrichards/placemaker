@@ -30,6 +30,33 @@ namespace Placemaker.Core.Layers.Types.Beach
             ctx.Plan.Facts["hinterlandBiomes"] = res != null ? 1 : 0;
         }
 
+        /// <summary>
+        /// (p2-beaches) The pocket beach's ground: rock on its walls and lip, sand over the cove floor, gravel up the gully (the
+        /// game runner: the cut read as a green dip with grass to the water).
+        /// </summary>
+        private static void PocketGround(Work b, List<Geometry.Region> clip)
+        {
+            var ctx = b.Ctx; var pk = b.Pocket;
+            float lip = (pk.TopH - pk.Level) / ShoreCarve.Pocket.Wall + 2.5f;
+            void Fill(List<Geometry.Region> regions, int layer, float strength, float feather, float noise, uint salt)
+            {
+                foreach (var r in regions)
+                    foreach (var piece in Geometry.Poly.CutHoles(r, 0.5f))
+                        Paint(ctx, clip, piece, layer, strength, feather, noise, null, 0f, 0f, 0f, salt);
+            }
+            var outer = Geometry.Poly.Boolean(pk.Rings(lip), new List<IReadOnlyList<float2>>(), Geometry.BoolOp.Union, Geometry.FillRule.NonZero);
+            var walls = Geometry.Poly.Boolean(pk.Rings(lip), pk.Rings(-1.5f), Geometry.BoolOp.Difference, Geometry.FillRule.NonZero);
+            Fill(walls, TerrainMaterials.Dirt, 1f, 1.5f, 1.5f, 0x90C1u);
+            // the cove floor: sand from under the water to the gully mouth
+            var sand = Geometry.Poly.Boolean(new[] { pk.Rings(-1.5f)[0] }, new List<IReadOnlyList<float2>>(), Geometry.BoolOp.Union, Geometry.FillRule.NonZero);
+            Fill(sand, TerrainMaterials.Sand, 1f, 2f, 1.5f, 0x90C2u);
+            var g = pk.Gully - 1.5f;
+            var gully = new[] { pk.At(-g, pk.Sand + 2f), pk.At(g, pk.Sand + 2f), pk.At(g, pk.End), pk.At(-g, pk.End) };
+            if (Geometry.Poly.SignedArea(gully) < 0f) System.Array.Reverse(gully);
+            Paint(ctx, clip, gully, TerrainMaterials.Dirt, 0.55f, 3f, 2f, null, 0f, 0f, 0f, 0x90C3u);
+            ctx.Plan.Facts["pocketPaint"] = outer.Count;
+        }
+
         private static bool RavineAt(Work b, float2 p)
         {
             b.Shore.Nearest(p, out _, out float s);
@@ -90,6 +117,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                     Paint(ctx, clip, strip, TerrainMaterials.Dirt, 0.55f, 5f, 4f, null, 0f, 0f, 0f, 0xB1F0u);
                     Paint(ctx, clip, strip, TerrainMaterials.Lush, 0.35f, 6f, 6f, null, 0f, 0f, 0f, 0xB1F1u);
                 }
+            if (b.Pocket != null) PocketGround(b, clip);
             switch (b.Style)
             {
                 case "mulch":

@@ -139,12 +139,13 @@ namespace Placemaker.Core.Layers.Types.Beach
             Preset("sandy", ("style", "sandy"), ("beachDepth", 56.0), ("sandBlend", 16.0), ("umbrellas", 110.0), ("layout", "scattered"), ("backdrop", "dunes"),
                 ("huts", "none"), ("lifeguards", 2.0), ("duneDepth", 26.0), ("duneHeight", 2.0), ("grassDensity", 70.0), ("treeDensity", 40.0), ("kiosks", 1.0),
                 ("jetties", 1.0), ("jettyLength", 26.0), ("jettyHead", true), ("boats", true), ("bay", 24.0), ("berm", 0.7), ("hummocks", 0.4),
-                ("biomeLawn", 60.0), ("biomeMeadow", 25.0), ("biomeForest", 15.0));
+                ("biomeLawn", 0.0), ("biomeDunes", 30.0), ("biomeForest", 30.0), ("biomeHeath", 25.0), ("biomeMeadow", 15.0));   // p2-beaches: grey dunes into pines, not a park
             // Promenade beach: tidy rows, one wide promenade on a level bench with benches and kiosks, palms on a lawn.
             // rf-beach: denser rows (110 -> 150 /ha), a palm avenue along the promenade (Backdrop), a long pier with a T-head.
             Preset("resort", ("style", "sandy"), ("beachDepth", 52.0), ("sandBlend", 6.0), ("umbrellas", 150.0), ("layout", "rows"), ("backdrop", "lawn"), ("huts", "none"),
                 ("pathWidth", "wide"), ("benchSpacing", 15.0), ("kiosks", 2.0), ("lifeguards", 2.0), ("slope", 4.0), ("treeDensity", 30.0), ("accessSpacing", 45.0),
-                ("jetties", 1.0), ("jettyLength", 44.0), ("jettyHead", true), ("bay", 16.0), ("berm", 0.5));   // lawn behind (the mix's default)
+                ("jetties", 1.0), ("jettyLength", 44.0), ("jettyHead", true), ("bay", 16.0), ("berm", 0.5),
+                ("biomeLawn", 30.0), ("biomeMeadow", 30.0), ("biomeForest", 25.0), ("biomeHeath", 15.0));   // the palm lawn along the promenade, then less park
             // Rocky cove: dirt texture with sand pockets, rocks along the waterline, tide pools, a wide rough blend.
             Preset("rocky", ("style", "rocky"), ("umbrellas", 5.0), ("sandSurface", false), ("paintLayer", (double)TerrainMaterials.Dirt), ("backdrop", "none"),
                 ("huts", "none"), ("lifeguards", 0.0), ("kiosks", 0.0), ("rockClusters", 8.0), ("tidePools", 5.0), ("beachDepth", 36.0), ("sandBlend", 20.0),
@@ -255,6 +256,8 @@ namespace Placemaker.Core.Layers.Types.Beach
 
             bool allCliff = pocket == null && shore.CliffShare >= ShoreGround.CliffShoreShare || b.BeachRuns.Count == 0;
             ctx.Plan.Facts["pocketBeach"] = pocket != null && !allCliff ? 1 : 0;
+            float runLen = 0f; foreach (var r in b.BeachRuns) runLen += r.y - r.x;
+            ctx.Plan.Facts["beachRunLength"] = runLen;
             if (shore.CliffShare > 0.05f)
                 ctx.Issue(allCliff ? IssueSeverity.Warning : IssueSeverity.Info, ShoreGround.CliffKey, (int)math.round(shore.CliffShare * 100f));
 
@@ -430,13 +433,23 @@ namespace Placemaker.Core.Layers.Types.Beach
                 }
                 if (dunes && dw > duneStart && dw < duneEnd)
                 {
-                    // Low rolling ridges parallel to the shore: a smooth cross profile, a slow swell along it (70–110 m).
-                    float u = (dw - duneStart) / (duneEnd - duneStart);
-                    float cross = math.pow(math.sin(math.PI * math.pow(u, 0.85f)), 1.6f);
-                    float swell = 0.78f + 0.16f * math.sin(along / 90f * 6.283f + phase1) + 0.06f * math.sin(along / 37f * 6.283f + phase2);
+                    // p2-beaches: two ridges instead of one smooth hump (the game runner's 5 m dunes read flat from 45°): a foredune
+                    // with a steep sea face and a long lee, a lower back dune whose crest wanders, a slack between them, peaks and
+                    // saddles along the shore, and the crests ending at the belt's ends.
+                    float belt = duneEnd - duneStart;
+                    float u = (dw - duneStart) / belt;
+                    float x1 = (u - 0.3f) * belt / 7f;
+                    float fore = x1 < 0f ? math.exp(-x1 * x1 * 2.2f) : math.exp(-x1 * x1 * 0.7f);
+                    float c2 = 0.72f + 0.08f * math.sin(along / 23f + phase2);
+                    float x2 = (u - c2) * belt / 6f;
+                    float back = 0.7f * (x2 < 0f ? math.exp(-x2 * x2 * 1.4f) : math.exp(-x2 * x2 * 0.9f));
+                    float ends = math.saturate(u * belt / 3f) * math.saturate((1f - u) * belt / 6f);
+                    float peaks = 0.5f + 0.5f * ValueNoise.Sample(new float2(along / 32f, 0.5f), Hashing.Mix(seed, 3u))
+                        + 0.12f * math.sin(along / 90f * 6.283f + phase1);
+                    float lumps = 0.22f * (ValueNoise.Sample(p / 7f, Hashing.Mix(seed, 4u)) - 0.5f);
                     // s30: dunes only where the ground is not cut deeply (a dune ridge on top of a cut bank made it a near-vertical sheet).
                     float onCut = math.saturate(1f - math.max(0f, h0 - t - 0.3f) / 1.5f);
-                    t += duneH * cross * swell * onCut;
+                    t += duneH * math.max(0f, (math.max(fore, back) + lumps) * peaks) * ends * onCut;
                 }
                 return forms.Apply(t, dw, along, h0, p, g.Ref(along));
             });

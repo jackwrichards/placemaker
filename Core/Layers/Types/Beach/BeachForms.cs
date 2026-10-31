@@ -176,6 +176,8 @@ namespace Placemaker.Core.Layers.Types.Beach
         public void Dunes(LayerContext ctx, Shoreline shore, float start, float end, float height)
         {
             DuneStart = start; DuneEnd = end; DuneH = height;
+            // a dune's sea face stands near the sand's angle of repose (at 33 % a 5 m foredune was a smooth hump)
+            if (height >= 2f) MaxGrade = math.max(MaxGrade, 0.6f);
             int n = ctx.I("blowouts");
             for (int i = 0; i < n; i++)
             {

@@ -59,12 +59,12 @@ namespace Placemaker.Core.Layers.Types.Beach
             Preset("shingle", ("style", "shingle"), ("paintLayer", (double)TerrainMaterials.Dirt), ("beachDepth", 40.0), ("slope", 11.0), ("wetBand", 4.0), ("storms", 3.0),
                 ("sandBlend", 6.0), ("umbrellas", 0.0), ("huts", "row"), ("boats", true), ("backdrop", "lawn"), ("treeDensity", 10.0), ("lifeguards", 0.0), ("kiosks", 2.0),
                 ("showers", false), ("pathWidth", "wide"), ("benchSpacing", 18.0), ("accessSpacing", 70.0), ("landings", false), ("bay", 0.0), ("rockClusters", 0.0),
-                ("biomeLawn", 60.0), ("biomeHeath", 40.0));
+                ("biomeLawn", 0.0), ("biomeHeath", 45.0), ("biomeMeadow", 30.0), ("biomeRocky", 25.0));   // p2-beaches: coastal heath, not a park
             // Pine lake beach: a short strip of sand under pines, needles and duff drifting onto it, a jetty, kayaks, a fire ring.
             Preset("mulch", ("style", "mulch"), ("beachDepth", 22.0), ("wetBand", 3.0), ("slope", 4.0), ("sandBlend", 10.0), ("umbrellas", 0.0), ("backdrop", "woods"),
                 ("treeDensity", 60.0), ("grassDensity", 40.0), ("jetties", 1.0), ("jettyLength", 22.0), ("boats", true), ("fires", true), ("lifeguards", 0.0), ("kiosks", 0.0),
                 ("huts", "none"), ("lamps", false), ("benchSpacing", 30.0), ("bay", 12.0), ("berm", 0.25), ("knolls", 2.0), ("boulders", 20.0), ("landings", false),
-                ("biomeLawn", 45.0), ("biomeForest", 55.0));
+                ("biomeLawn", 0.0), ("biomeForest", 70.0), ("biomeHeath", 30.0));
             // Granite shore: rounded granite domes and boulders on the beach and out in clear shallows, coarse sand between, pines.
             Preset("granite", ("style", "granite"), ("beachDepth", 34.0), ("wetBand", 4.0), ("slope", 6.0), ("knolls", 7.0), ("boulders", 55.0), ("umbrellas", 12.0),
                 ("backdrop", "woods"), ("treeDensity", 25.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("jetties", 1.0), ("jettyLength", 30.0),
@@ -83,9 +83,9 @@ namespace Placemaker.Core.Layers.Types.Beach
             // Harbour cove: two rock headlands jutting out into the water with boulders piled on them, rock platforms with pools,
             // a small beach and boats between, a jetty.
             Preset("harbour", ("style", "harbour"), ("headlands", 34.0), ("platforms", 40.0), ("bay", 0.0), ("beachDepth", 30.0), ("umbrellas", 35.0), ("boats", true),
-                ("jetties", 1.0), ("jettyLength", 30.0), ("backdrop", "lawn"), ("treeDensity", 25.0), ("lifeguards", 1.0), ("kiosks", 1.0), ("huts", "few"), ("boulders", 20.0),
+                ("jetties", 1.0), ("jettyLength", 30.0), ("backdrop", "none"), ("treeDensity", 15.0), ("lifeguards", 1.0), ("kiosks", 1.0), ("huts", "few"), ("boulders", 20.0),
                 ("berm", 0.4), ("tidePools", 0.0), ("rockClusters", 0.0), ("islands", 1.0),
-                ("biomeLawn", 25.0), ("biomeRocky", 30.0), ("biomeMeadow", 25.0), ("biomeHeath", 20.0));
+                ("biomeLawn", 0.0), ("biomeRocky", 35.0), ("biomeHeath", 30.0), ("biomeMeadow", 20.0), ("biomeForest", 15.0));   // p2-beaches: maquis, no palm lawn
             // Wild beach: low dunes with blowouts, wrack and driftwood, a fire ring, no facilities.
             Preset("wild", ("style", "wild"), ("beachDepth", 46.0), ("umbrellas", 0.0), ("backdrop", "dunes"), ("duneHeight", 3.0), ("duneDepth", 26.0), ("blowouts", 2.0),
                 ("hummocks", 0.6), ("berm", 0.8), ("fires", true), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
@@ -187,6 +187,28 @@ namespace Placemaker.Core.Layers.Types.Beach
                             Boulder(b, At(shore, hs + bend + (Hashing.Unit(xv) - 0.5f) * w * 1.4f, dw - 2f - 4f * Hashing.Unit(Hashing.Mix(xv, 1u))), 1f + 1.2f * Hashing.Unit(Hashing.Mix(xv, 2u)), xv, true, 0.3f);
                         }
                 }
+            // the pocket beach: boulders fallen at the feet of its walls (the gully path's line kept clear)
+            if (b.Pocket != null)
+            {
+                var pk = b.Pocket;
+                float depth = pk.Sand + 3f;
+                for (int i = 0; i <= 40; i++)
+                {
+                    float a = math.PI * i / 40f;
+                    uint v = Hashing.Mix(seed, n++);
+                    float inset = 2.2f + 2f * Hashing.Unit(v);
+                    var p = pk.At((pk.HalfW - inset) * math.cos(a), (depth - inset) * math.sin(a));
+                    if (math.abs(math.dot(p - pk.O, pk.Tan)) < pk.Gully) continue;   // the gully mouth
+                    Boulder(b, p, 0.8f + 1.4f * Hashing.Unit(Hashing.Mix(v, 1u)), v, true, 0.35f);
+                }
+                for (float d = pk.Sand + 2f; d < pk.End; d += 3.2f)
+                    foreach (float side in new[] { -1f, 1f })
+                    {
+                        uint v = Hashing.Mix(seed, n++);
+                        if (Hashing.Unit(Hashing.Mix(v, 7u)) < 0.3f) continue;
+                        Boulder(b, pk.At(side * (pk.Gully - 1.8f - 1.5f * Hashing.Unit(v)), d), 0.6f + 1.1f * Hashing.Unit(Hashing.Mix(v, 1u)), v, false, 0.35f);
+                    }
+            }
             // ravines: boulders choke the floor, more at the wall feet
             foreach (var (rs, rw, rlen) in f.Ravines)
                 for (float dw = 1f; dw < math.min(rlen, shore.MaxDepth + Shoreline.MaxGap); dw += 3.4f)
