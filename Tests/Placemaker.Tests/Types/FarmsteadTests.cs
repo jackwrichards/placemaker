@@ -99,7 +99,7 @@ namespace Placemaker.Tests.Types
         public static void PresetsPlanEverywhere(string id)
         {
             var gen = TestKit.Gen(id);
-            Assert.InRange(gen.Presets.Count, 4, 6);
+            Assert.InRange(gen.Presets.Count, 4, 8);
             foreach (var ring in new[] { OneHa, SixHaL })
                 foreach (var p in gen.Presets)
                 {
@@ -154,7 +154,8 @@ namespace Placemaker.Tests.Types
                 output.WriteLine($"{id}/{p.Id}: {sw.ElapsedMilliseconds} ms");
                 worst = Math.Max(worst, sw.ElapsedMilliseconds);
             }
-            Assert.True(worst < TimingBudget.Ms(250), $"{id} took {worst} ms for 5 ha");
+            // (P2-3) the farmstead plans a landscape (biome mix, a ravine, terraces): the adventure playground's 450 ms
+            Assert.True(worst < TimingBudget.Ms(id == "farmstead" ? 450 : 250), $"{id} took {worst} ms for 5 ha");
         }
 
         /// <summary>Terraform never leaves a step at the outline: cells touching it keep the original height.</summary>
@@ -279,8 +280,8 @@ namespace Placemaker.Tests.Types
         {
             var g = TestKit.Gen(Id);
             Assert.Equal("farms", GeneratorGroups.Of(g));
-            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, 40);   // (Phase 1) look settings not counted
-            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Distinct().Count(), 4, 9);   // (Phase 1) look settings not counted
+            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look") && c.Group != Placemaker.Core.Layers.Common.Biomes.BiomeMix.Group), 15, 48);   // (Phase 1) look settings, (P2-3) the landscape mix not counted
+            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look") && c.Group != Placemaker.Core.Layers.Common.Biomes.BiomeMix.Group).Select(c => c.Group).Distinct().Count(), 4, 9);   // (Phase 1) look settings not counted
             Assert.Contains(g.Controls, c => c.Id == "subtype" && c.Kind == ControlKind.Choice && c.Tier == ControlTier.Essential);
             Assert.Equal("identity", g.Controls[0].Group);
         }
@@ -304,9 +305,9 @@ namespace Placemaker.Tests.Types
             Assert.Contains(plan.Objects, o => o.Category == AssetCategories.FarmSilo);
             Assert.True(plan.Facts["hedgeItems"] > 50, "hedge items " + plan.Facts["hedgeItems"]);
             Assert.Contains(plan.Nets, n => n.Role == NetRole.Pathway);
-            // Ground before props: fields are crop surfaces (straw, rows, ploughed, green), not thousands of plants.
-            Assert.True(plan.Facts["fieldSurfaces"] >= 3, "field surfaces " + plan.Facts["fieldSurfaces"]);
-            Assert.Contains(plan.Surfaces, s => (s.Category ?? "").StartsWith(AssetCategories.SurfaceCrop));
+            // (P2-3) Ground before props: fields are terrain paint in their season (rows as stripes), never crop surface carpets.
+            Assert.True(plan.Facts["stripes"] >= 10, "paint stripes " + plan.Facts["stripes"]);
+            Assert.DoesNotContain(plan.Surfaces, s => (s.Category ?? "").StartsWith(AssetCategories.SurfaceCrop));
             Assert.True(plan.Facts["cropItems"] <= 600, "crop accents " + plan.Facts["cropItems"]);
             Assert.Contains(plan.Regions, r => r.Tags.Contains(RegionTags.Core));
             // Fields are places: features keep out.

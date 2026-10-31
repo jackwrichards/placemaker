@@ -21,5 +21,11 @@
   "Placemaker.Biome.water.Tooltip": "Естественные пруды в низинах с пологими берегами, тростником и прибрежными деревьями. Навсегда: меняет рельеф.",
   "Placemaker.Biome.scale": "Размер участков",
   "Placemaker.Biome.scale.Tooltip": "Мало: много мелких участков вперемешку. Много: несколько больших участков, у каждого свой характер.",
-  "Placemaker.UI.Group.biomes": "Ландшафт"
+  "Placemaker.UI.Group.biomes": "Ландшафт",
+  "Placemaker.Biome.fields": "Поля",
+  "Placemaker.Biome.fields.Tooltip": "Собственные поля фермы: посевы, сенокосы и пастбища с живыми изгородями, воротами и дорогами.",
+  "Placemaker.Biome.orchard": "Сад",
+  "Placemaker.Biome.orchard.Tooltip": "Плодовые деревья ровными рядами с выкошенными междурядьями, на тёплых склонах и равнинах.",
+  "Placemaker.Biome.pasture": "Дикое пастбище",
+  "Placemaker.Biome.pasture.Tooltip": "Кочковатая трава с дроком и колючим кустарником, камни и овечьи тропы на крутой и бедной земле."
 }

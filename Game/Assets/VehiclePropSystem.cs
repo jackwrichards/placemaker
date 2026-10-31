@@ -117,7 +117,7 @@ namespace Placemaker.Game.Assets
             if (em.HasComponent<GarbageTruckData>(e)) return "Garbage";
             // A loader fits a 5 × 9 m slot; the mining excavator (25 m) does not.
             if (Has(n, "FrontendLoader", "WheelLoader")) return "Loader";
-            if (Has(n, "Tractor") && !Has(n, "TruckTractor", "Trailer")) return "Tractor";
+            if (Has(n, "Tractor") && !Has(n, "TruckTractor", "Trailer")) return Has(n, "Mining", "Ore") ? "Tractor" : "FarmTractor";
             if (em.HasComponent<PersonalCarData>(e))
             {
                 // Ordinary cars only: no motorbikes, no limousines or buses in private use.

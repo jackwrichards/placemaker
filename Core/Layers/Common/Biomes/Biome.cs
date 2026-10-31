@@ -41,6 +41,10 @@ namespace Placemaker.Core.Layers.Common.Biomes
         Beds = 9,
         /// <summary>Along a few trodden lines wandering through the area (sandy paths over a heath).</summary>
         Trails = 10,
+        /// <summary>Along the area's planted rows (RowPitch): the bare strip under an orchard's trees, windfalls.</summary>
+        Rows = 11,
+        /// <summary>The grass alleys between the planted rows: mown strips, the mower's and the tractor's wheel lines.</summary>
+        Alleys = 12,
     }
 
     /// <summary>A layer of low plants of a biome: tussocks, reeds, heather, flowering drifts (vanilla bushes, scaled).</summary>
@@ -125,6 +129,15 @@ namespace Placemaker.Core.Layers.Common.Biomes
         public float Beds;
         /// <summary>Trees stand only in the rim band this wide (m): a glade's ring of trees round its open heart. 0 = anywhere.</summary>
         public float TreeRim;
+        /// <summary>Trees in straight planted rows this far apart (m; an orchard, a vineyard, a tree nursery), along the site's
+        /// row axis (BiomeSite.RowAxis, else the site's long axis); 0 = natural groves (NatureKit). Rows keep TreesPerHa unused.</summary>
+        public float RowPitch;
+        /// <summary>Spacing of the trees along a row (m).</summary>
+        public float RowSpacing = 5f;
+        /// <summary>Gaps in the rows (share of trees missing: an old orchard's dead or grubbed trees).</summary>
+        public float RowGaps;
+        /// <summary>Tree scale range of the rows (orchard trees are kept low by pruning).</summary>
+        public float RowScaleLo = 0.75f, RowScaleHi = 1f;
         /// <summary>Low plant layers (tussocks, reeds, heather, flower drifts).</summary>
         public BiomePlants[] Plants = Array.Empty<BiomePlants>();
 
@@ -394,8 +407,59 @@ namespace Placemaker.Core.Layers.Common.Biomes
             },
         };
 
+        // ── farms (P2-3, docs/runbooks/farmstead.md) ──
+
+        public static readonly BiomeDef Fields = new BiomeDef
+        {
+            // the farm's own fields (the farmstead's lattice of crops, leys and hay meadows, with its hedges and gates)
+            Id = "fields", Color = "#c9a94e", Host = true, Open = true,
+            Flat = 0.9f, Slope = 0.3f, Steep = -0.9f, Hollow = -0.2f, NearPath = 0.4f, Ridge = 0.1f,
+        };
+
+        public static readonly BiomeDef Orchard = new BiomeDef
+        {
+            // fruit trees in straight rows 7 m apart, a bare strip down each row, mown grass alleys with the tractor's wheel
+            // lines; on the warm slopes and the flats, never in a frost hollow (real orchards: Kent, the Altes Land, Normandy)
+            Id = "orchard", Color = "#b8453a",
+            Slope = 0.7f, Flat = 0.5f, Ridge = 0.2f, Hollow = -0.7f, Steep = -0.6f, NearPath = 0.3f, MaxGrade = 0.24f,
+            RowPitch = 7f, RowSpacing = 4.6f, RowGaps = 0.04f, RowScaleLo = 0.8f, RowScaleHi = 1.05f,
+            TreesPerHa = 300f, Trees = new[] { "AppleTree01" },
+            Decals = new[]
+            {
+                new BiomeDecal("orchardStrip", 1f, BiomeWhere.Rows, 0.7f, 0.95f),
+                new BiomeDecal("windfalls", 0.22f, BiomeWhere.Rows, 0.7f, 1f, 2.5f),
+                new BiomeDecal("wheelRut", 1f, BiomeWhere.Alleys, 0.35f, 0.6f, quiet: true),
+                new BiomeDecal("longGrass", 0.3f, BiomeWhere.Rim, 0.45f, 0.75f, 4f),
+            },
+        };
+
+        public static readonly BiomeDef Pasture = new BiomeDef
+        {
+            // rough grazing: tussocky grass, gorse and thorn scrub in clumps, a lone thorn tree, stones, sheep tracks and dung;
+            // the steep and the poor ground a farm never ploughs (a Welsh or Pennine hill farm's "ffridd", a Dales pasture)
+            Id = "pasture", Color = "#6f9440",
+            Slope = 0.8f, Steep = 0.9f, Ridge = 0.5f, Hollow = 0.2f, Flat = -0.3f, NearEdge = 0.3f, NearPath = -0.2f,
+            Break = 0.12f,
+            TreesPerHa = 4f, Trees = Solitary, GroveScale = 50f,
+            BushesPerHa = 45f, Bushes = Scrub, RimScrub = 1.8f,
+            BouldersPerHa = 5f, StonesPerHa = 40f, RockSize = 0.8f,
+            Plants = new[]
+            {
+                new BiomePlants(420f, 0.45f, 0.75f, BiomeWhere.All, 6f, "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWildChild01"),
+                new BiomePlants(90f, 0.6f, 1f, BiomeWhere.Drift, 12f, "GreenBushCity01", "GreenBushCity02", "GreenBushWildElderly01"),
+            },
+            Decals = new[]
+            {
+                new BiomeDecal("longGrass", 0.45f, BiomeWhere.All, 0.5f, 0.8f, 5f),
+                new BiomeDecal("animalTrail", 0.45f, BiomeWhere.Trails, 0.55f, 0.85f, 3f),
+                new BiomeDecal("dungPats", 0.12f, BiomeWhere.All, 0.7f, 1f, 3f),
+                new BiomeDecal("molehills", 0.03f, BiomeWhere.All, 0.6f, 0.9f, 2f),
+                new BiomeDecal("pebbles", 0.06f, BiomeWhere.Core, 0.5f, 0.8f, 2f),
+            },
+        };
+
         /// <summary>Every biome, in the panel's order.</summary>
-        public static readonly BiomeDef[] All = { Lawn, Meadow, FlowerField, Mulch, Glade, Forest, Rocky, SandHeath, Wetland, Pond };
+        public static readonly BiomeDef[] All = { Lawn, Meadow, FlowerField, Mulch, Glade, Forest, Rocky, SandHeath, Wetland, Pond, Fields, Orchard, Pasture };
 
         private static readonly Dictionary<string, BiomeDef> ById = Index();
 

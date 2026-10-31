@@ -21,5 +21,11 @@
   "Placemaker.Biome.water.Tooltip": "Estanques naturales en las zonas bajas con orillas en talud, juncos y árboles de ribera. Permanente: cambia el terreno.",
   "Placemaker.Biome.scale": "Escala",
   "Placemaker.Biome.scale.Tooltip": "Bajo: muchas manchas pequeñas mezcladas. Alto: pocas zonas grandes, cada una con su propio carácter.",
-  "Placemaker.UI.Group.biomes": "Paisaje"
+  "Placemaker.UI.Group.biomes": "Paisaje",
+  "Placemaker.Biome.fields": "Campos",
+  "Placemaker.Biome.fields.Tooltip": "Los campos de la granja: cultivos, prados de heno y pastos con sus setos, portones y caminos.",
+  "Placemaker.Biome.orchard": "Huerto frutal",
+  "Placemaker.Biome.orchard.Tooltip": "Frutales en hileras rectas con calles de hierba segada, en laderas cálidas y llanos.",
+  "Placemaker.Biome.pasture": "Pasto agreste",
+  "Placemaker.Biome.pasture.Tooltip": "Hierba en matas con aulagas y espinos, piedras y sendas de ovejas, en el terreno empinado y pobre."
 }

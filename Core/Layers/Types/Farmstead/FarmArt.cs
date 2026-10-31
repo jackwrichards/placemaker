@@ -4,6 +4,7 @@
 // no silo at all. Each default is an explicit vanilla id; installed farm assets (or the player's pick) still win.
 
 using Placemaker.Core.Layers.Common;
+using Placemaker.Core.Layers.Types.Yards;
 
 namespace Placemaker.Core.Layers.Types.Farmstead
 {
@@ -20,5 +21,17 @@ namespace Placemaker.Core.Layers.Types.Farmstead
 
         /// <summary>The irrigation rig that stands in the big arable fields (arable farms).</summary>
         public const string Irrigation = "AgricultureSprinklerSystem";
+
+        /// <summary>The farm tractor: Placemaker's prop of the game's own farm tractor (VehicleProps), else a loaded trailer.</summary>
+        public static readonly AssetRef Tractor = new AssetRef(VehicleProps.FarmTractor(1), VehicleProps.FarmTractor(2), "TractorTrailer01_CropPile02");
+
+        /// <summary>The farm pickup / runabout: the game's taller cars (SUVs, pickups) as props; vanilla has no quad bike.</summary>
+        public static readonly AssetRef Pickup = new AssetRef(VehicleProps.Car(3), VehicleProps.Car(9), VehicleProps.Car(8), VehicleProps.Car(1));
+
+        /// <summary>The farm's water tanks (vanilla WaterTank01-03).</summary>
+        public static AssetRef Tank(int k) => k % 3 == 0 ? AssetMix.One("WaterTank02", "WaterTank03", "WaterTank01") : k % 3 == 1 ? AssetMix.One("WaterTank03", "WaterTank02") : AssetMix.One("WaterTank01", "WaterTank02");
+
+        /// <summary>Firewood: the open log shelter, else a pile.</summary>
+        public static readonly AssetRef Firewood = new AssetRef("FirewoodShelter01", "FirewoodShelter02", "FirewoodPile01", "FirewoodPile02");
     }
 }

@@ -57,13 +57,15 @@ namespace Placemaker.Core.Layers.Types.Yards
         public static string Truck(int i) => Prefix + "Truck " + i;
         public static string Garbage(int i) => Prefix + "Garbage " + i;
         public static string Tractor(int i) => Prefix + "Tractor " + i;
+        /// <summary>A farm tractor (the game's field tractors, never the mining tractor).</summary>
+        public static string FarmTractor(int i) => Prefix + "FarmTractor " + i;
         public static string Camper(int i) => Prefix + "Camper " + i;
         public static string Loader(int i) => Prefix + "Loader " + i;
 
         /// <summary>Slot kinds and how many of each the game makes (the game layer reads this list).</summary>
         public static readonly (string kind, int count)[] Slots =
         {
-            ("Car", 10), ("Van", 3), ("Truck", 3), ("Garbage", 2), ("Tractor", 2), ("Camper", 2), ("Loader", 2),
+            ("Car", 10), ("Van", 3), ("Truck", 3), ("Garbage", 2), ("Tractor", 2), ("FarmTractor", 2), ("Camper", 2), ("Loader", 2),
         };
     }
 

@@ -1,14 +1,12 @@
 {
   "Placemaker.Recipe.Farmstead": "Farmstead",
   "Placemaker.Recipe.Farmstead.Description": "A working farm: farmyard with barns and silos, fields by crop with rows, hedgerows, tracks, paddocks and a pond.",
-
   "Placemaker.UI.Group.fields": "Fields",
   "Placemaker.UI.Group.farmyard": "Farmyard",
   "Placemaker.UI.Group.livestock": "Livestock",
   "Placemaker.UI.Group.hedgerows": "Hedgerows",
   "Placemaker.UI.Group.hives": "Beehives",
   "Placemaker.UI.Group.farmStand": "Farm stand",
-
   "Placemaker.Category.farm.barn": "barns",
   "Placemaker.Category.farm.silo": "silos",
   "Placemaker.Category.farm.machinery": "farm machinery",
@@ -19,7 +17,6 @@
   "Placemaker.Category.farm.crate": "fruit crates",
   "Placemaker.Category.farm.crop": "field crops",
   "Placemaker.Category.tree.fruit": "fruit trees",
-
   "Placemaker.Stat.Fields": "Fields",
   "Placemaker.Stat.FieldArea": "Field area",
   "Placemaker.Stat.Paddocks": "Paddocks",
@@ -27,12 +24,10 @@
   "Placemaker.Stat.Silos": "Silos",
   "Placemaker.Stat.Hedgerow": "Hedgerow",
   "Placemaker.Stat.Beehives": "Beehives",
-
   "Placemaker.Feature.apiary": "Beehives",
   "Placemaker.Feature.farmStand": "Farm stand",
   "Placemaker.Feature.bigtrees": "Big trees",
   "Placemaker.Feature.flowerbeds": "Flowerbeds",
-
   "Placemaker.Farmstead.Name": "Farmstead",
   "Placemaker.Farmstead.subtype": "Farm type",
   "Placemaker.Farmstead.subtype.Tooltip": "What the farm mostly does. Presets set everything below to match; you can still change each option.",
@@ -136,7 +131,6 @@
   "Placemaker.Farmstead.Issue.NoFields": "Farmstead: no room left for fields. Make the area bigger or the fields smaller.",
   "Placemaker.Farmstead.Issue.NoPond": "Farmstead: no room for the pond.",
   "Placemaker.Farmstead.Issue.FewerPaddocks": "Farmstead: only {0} of {1} paddocks fit.",
-
   "Placemaker.AddOn.Apiary.Name": "Beehives",
   "Placemaker.AddOn.Apiary.hives": "Hives",
   "Placemaker.AddOn.Apiary.layout": "Layout",
@@ -157,7 +151,6 @@
   "Placemaker.AddOn.Apiary.Preset.smallholder": "Smallholder",
   "Placemaker.AddOn.Apiary.Preset.beeYard": "Bee yard",
   "Placemaker.AddOn.Apiary.Issue.Fewer": "Only {0} of {1} beehives fit.",
-
   "Placemaker.AddOn.FarmStand.Name": "Farm stand",
   "Placemaker.AddOn.FarmStand.count": "Stands",
   "Placemaker.AddOn.FarmStand.where": "Placement",
@@ -179,5 +172,28 @@
   "Placemaker.AddOn.FarmStand.Preset.honesty": "Honesty box",
   "Placemaker.AddOn.FarmStand.Preset.ciderBar": "Cider bar",
   "Placemaker.AddOn.FarmStand.Preset.market": "Farm market",
-  "Placemaker.AddOn.FarmStand.Issue.Fewer": "Only {0} of {1} farm stands fit."
+  "Placemaker.AddOn.FarmStand.Issue.Fewer": "Only {0} of {1} farm stands fit.",
+  "Placemaker.Farmstead.Preset.fruitFarm": "Fruit farm",
+  "Placemaker.Farmstead.Preset.hillFarm": "Hill farm",
+  "Placemaker.Farmstead.season": "Season",
+  "Placemaker.Farmstead.season.Tooltip": "How the fields look: spring drilling, the summer crop, golden stubble after the harvest, or autumn ploughing.",
+  "Placemaker.Farmstead.season.spring": "Spring",
+  "Placemaker.Farmstead.season.summer": "Summer",
+  "Placemaker.Farmstead.season.harvest": "Harvest",
+  "Placemaker.Farmstead.season.autumn": "Autumn",
+  "Placemaker.Farmstead.terraces": "Terraced fields",
+  "Placemaker.Farmstead.terraces.Tooltip": "Steps the steep fields into level terraces with short banks. Permanent: changes the terrain.",
+  "Placemaker.Farmstead.vehicles": "Vehicles",
+  "Placemaker.Farmstead.vehicles.Tooltip": "Tractors and the farm pickup, parked where they would be: in the machinery shed, by the sheds, out in the yard.",
+  "Placemaker.Farmstead.yardMud": "Muddy yard",
+  "Placemaker.Farmstead.yardMud.Tooltip": "How worked the farmyard is: low is tidy, high is churned mud, puddles and tyre tracks.",
+  "Placemaker.Farmstead.heaps": "Heaps",
+  "Placemaker.Farmstead.heaps.Tooltip": "A muck heap and a compost windrow beside the yard, and firewood at its back.",
+  "Placemaker.Farmstead.drainage": "Drainage",
+  "Placemaker.Farmstead.drainage.Tooltip": "Ditches along the field edges, or a ravine cut down the land where the water runs. Permanent: changes the terrain.",
+  "Placemaker.Farmstead.drainage.none": "None",
+  "Placemaker.Farmstead.drainage.ditches": "Ditches",
+  "Placemaker.Farmstead.drainage.ravine": "Ravine",
+  "Placemaker.Farmstead.tanks": "Water tanks",
+  "Placemaker.Farmstead.tanks.Tooltip": "Water tanks beside the barns: the farm's water store."
 }

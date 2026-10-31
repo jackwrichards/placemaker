@@ -21,5 +21,11 @@
   "Placemaker.Biome.water.Tooltip": "Natürliche Teiche in den Senken mit geböschten Ufern, Schilf und Uferbäumen. Dauerhaft: verändert das Gelände.",
   "Placemaker.Biome.scale": "Fleckengröße",
   "Placemaker.Biome.scale.Tooltip": "Niedrig: viele kleine Flecken gemischt. Hoch: wenige große Bereiche, jeder mit eigenem Charakter.",
-  "Placemaker.UI.Group.biomes": "Landschaft"
+  "Placemaker.UI.Group.biomes": "Landschaft",
+  "Placemaker.Biome.fields": "Felder",
+  "Placemaker.Biome.fields.Tooltip": "Die eigenen Felder des Hofs: Äcker, Heuwiesen und Weiden mit Hecken, Toren und Wegen.",
+  "Placemaker.Biome.orchard": "Obstgarten",
+  "Placemaker.Biome.orchard.Tooltip": "Obstbäume in geraden Reihen mit gemähten Grasgassen, an warmen Hängen und in der Ebene.",
+  "Placemaker.Biome.pasture": "Raue Weide",
+  "Placemaker.Biome.pasture.Tooltip": "Bültiges Gras mit Ginster und Dornengestrüpp, Steinen und Schafpfaden auf steilem, kargem Boden."
 }

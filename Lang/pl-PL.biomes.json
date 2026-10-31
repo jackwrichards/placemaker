@@ -21,5 +21,11 @@
   "Placemaker.Biome.water.Tooltip": "Naturalne stawy w obniżeniach ze skarpami brzegów, trzciną i drzewami nad wodą. Trwałe: zmienia teren.",
   "Placemaker.Biome.scale": "Wielkość płatów",
   "Placemaker.Biome.scale.Tooltip": "Nisko: wiele małych płatów wymieszanych. Wysoko: kilka dużych obszarów, każdy z własnym charakterem.",
-  "Placemaker.UI.Group.biomes": "Krajobraz"
+  "Placemaker.UI.Group.biomes": "Krajobraz",
+  "Placemaker.Biome.fields": "Pola",
+  "Placemaker.Biome.fields.Tooltip": "Własne pola gospodarstwa: uprawy, łąki kośne i pastwiska z żywopłotami, bramami i drogami.",
+  "Placemaker.Biome.orchard": "Sad",
+  "Placemaker.Biome.orchard.Tooltip": "Drzewa owocowe w prostych rzędach z koszonymi alejkami, na ciepłych zboczach i równinach.",
+  "Placemaker.Biome.pasture": "Dzikie pastwisko",
+  "Placemaker.Biome.pasture.Tooltip": "Kępkowa trawa z janowcem i ciernistymi krzakami, kamienie i owcze ścieżki, na stromej i ubogiej ziemi."
 }
