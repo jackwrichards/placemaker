@@ -68,6 +68,26 @@ namespace Placemaker.Core.Layers.Parking
             return best;
         }
 
+        /// <summary>
+        /// The slow copy of a drive path (Game/Assets/SlowPathPrefabSystem: 25 km/h, dearer to drive through, so through
+        /// traffic keeps to the streets; PLT parity). Save format: never rename.
+        /// </summary>
+        public static string SlowName(string path) => "Placemaker Slow " + path;
+
+        /// <summary>A two-way drive path for <paramref name="width"/>: the slow copy first, the vanilla path when it is missing.</summary>
+        public static AssetRef Drive(double width)
+        {
+            var path = DrivePath(width);
+            return new AssetRef(SlowName(path), path);
+        }
+
+        /// <summary>The one-way entrance path: slow first, then vanilla, then the two-way path for <paramref name="width"/>.</summary>
+        public static AssetRef OneWay(double width)
+        {
+            var path = DrivePath(width);
+            return new AssetRef(SlowName(OneWayPath), OneWayPath, SlowName(path), path);
+        }
+
         public static AssetRef Pick(string chosen, string fallback, params string[] more)
         {
             var fb = new string[more.Length + 1];

@@ -611,7 +611,7 @@ namespace Placemaker.Core.Layers.Parking
                     case LineKind.Ring:
                     case LineKind.Aisle:
                     case LineKind.Cross:
-                        segs.Add(new Seg { A = f.ToWorld(l.A), B = f.ToWorld(l.B), Role = NetRole.DriveAisle, Asset = new AssetRef(ParkingAssets.DrivePath(l.Width)) });
+                        segs.Add(new Seg { A = f.ToWorld(l.A), B = f.ToWorld(l.B), Role = NetRole.DriveAisle, Asset = ParkingAssets.Drive(l.Width) });
                         break;
                     case LineKind.Footpath:
                         segs.Add(new Seg { A = f.ToWorld(l.A), B = f.ToWorld(l.B), Role = NetRole.Pathway, Asset = new AssetRef(ParkingAssets.PedestrianPath) });
@@ -645,7 +645,7 @@ namespace Placemaker.Core.Layers.Parking
                 if (!e.Connected || e.ConnectorLine < 0 || layout.Lines[e.ConnectorLine].Removed) continue;
                 bool exit = EntranceKinds.Outbound(e.Kind);
                 bool oneWay = EntranceKinds.OneWay(e.Kind);
-                var asset = !oneWay ? new AssetRef(ParkingAssets.DrivePath(e.Width)) : new AssetRef(ParkingAssets.OneWayPath, ParkingAssets.DrivePath(e.Width));
+                var asset = !oneWay ? ParkingAssets.Drive(e.Width) : ParkingAssets.OneWay(e.Width);
                 double2 outer = E;
                 bool hasRoad = Roads.ForEntrance(roads, E, inward, out var hit, search);
                 if (hasRoad && EntranceKinds.IsAlley(e.Kind))

@@ -217,7 +217,7 @@ namespace Placemaker.Core.Layers.Commercial
         private void Drive(ShopEntrances.Gate g, (float2 from, float2 kerb, long id, float t) street, Lane target, float2 hit, float2[] corridor)
         {
             bool oneWay = ShopEntrances.OneWay(g.Kind), outbound = ShopEntrances.Outbound(g.Kind);
-            var asset = oneWay ? new AssetRef(ParkingAssets.OneWayPath, ParkingAssets.DrivePath(7)) : new AssetRef(ParkingAssets.DrivePath(7));
+            var asset = oneWay ? ParkingAssets.OneWay(7) : ParkingAssets.Drive(7);
             // The drive runs from the kerb (a dead end there: the game connects it to the street's lanes) to the lane's node.
             var kerb = street.kerb;
             if (outbound) Ctx.StraightNet(hit, kerb, NetRole.DriveConnector, asset);
