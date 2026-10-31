@@ -791,6 +791,7 @@ namespace Placemaker.Core.Layers.Parking
             // Same key as Game/Economy/ParkingEconomySystem.FeeFact. Note: the build receipt sums facts
             // over layers, so a recipe with two parking steps would add their fees (docs/proposals/parking.md).
             plan.Facts["parking.fee"] = s.Fee;
+            if (layout.SketchCut > 0 || layout.SketchRows > 0) { plan.Facts["sketch.cut"] = layout.SketchCut; plan.Facts["sketch.rows"] = layout.SketchRows; }
             layout.UncoveredArea = uncovered;
         }
 

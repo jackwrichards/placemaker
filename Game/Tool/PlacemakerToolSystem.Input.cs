@@ -163,6 +163,7 @@ namespace Placemaker.Game.Tool
             }
             _resolver.SnapDistance = math.clamp(HandleRadius(raw) * 1.3f, 4f, 24f);
             _resolver.Begin(raw);
+            ZoneSnapForDesign();
             if (_settings == null || _settings.SnapToRoadsWhenDrawing) _snapCollector.Collect(_resolver, mask);
             else _snapCollector.Collect(_resolver, mask & ~global::Game.Tools.Snap.NetSide);
             var pts = _draw.Points;
@@ -171,6 +172,26 @@ namespace Placemaker.Game.Tool
             _lastSnap = _resolver.Result();
             _lastSnap.Position = WithHeight(_lastSnap.Position);
             return _lastSnap.Position;
+        }
+
+        /// <summary>
+        /// (P2-1) With the rows on the zone grid (a step's "Row direction" set to "Zone grid"), outline corners snap to the zone
+        /// cells as firmly as to roads, also away from any zoned cell: the extended grid of the nearest street's block (64 m).
+        /// </summary>
+        private void ZoneSnapForDesign()
+        {
+            bool zones = _recipe != null && UsesZoneRows(_recipe.Root);
+            _snapCollector.ZoneLevel = zones ? SnapResolver.LevelNet : SnapResolver.LevelZoneGrid;
+            _snapCollector.ZoneReach = zones ? 64f : 0f;
+        }
+
+        private static bool UsesZoneRows(Placemaker.Core.RecipeStep step)
+        {
+            if (step == null || !step.Enabled) return false;
+            if (step.Settings != null && step.Settings.Values.TryGetValue(Placemaker.Core.Layers.Parking.ParkingIds.RowAngleMode, out var v) && v as string == "zones") return true;
+            foreach (var c in step.Children) if (UsesZoneRows(c)) return true;
+            foreach (var o in step.RegionOverrides.Values) if (UsesZoneRows(o)) return true;
+            return false;
         }
 
         private float3 WithHeight(float3 p) => new float3(p.x, _site.SampleHeight(p.xz), p.z);

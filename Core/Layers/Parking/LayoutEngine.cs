@@ -153,10 +153,11 @@ namespace Placemaker.Core.Layers.Parking
             _out.Entrances.AddRange(entrances);
             ConnectEntrances();
             if (_ring) PlacePerimeterRow();
+            // (P2-1) drawn lines before the clean-up: their rows keep clear of connectors, reserved space and buildings too
+            ApplySketches();
             ClearCorridors();
             RemoveReserved();
             AvoidBuildings();
-            ApplySketches();
             CheckReachability();
             _cancel.ThrowIfCancellationRequested();
 
@@ -1252,6 +1253,7 @@ namespace Placemaker.Core.Layers.Parking
             if (_rq.Sketches == null || _rq.Sketches.Count == 0) return;
             var f = _out.Frame;
             int cut = 0;
+            var aisles = new List<int>();
             foreach (var (drive, pts) in _rq.Sketches)
             {
                 if (pts == null || pts.Length < 2) continue;
@@ -1263,10 +1265,59 @@ namespace Placemaker.Core.Layers.Parking
                         var corridor = PGeo.Corridor(a, b, width / 2 + 0.1);
                         foreach (var bay in _out.Bays)
                             if (!bay.Removed && bay.Quad != null && PGeo.ConvexOverlap(bay.Quad, corridor)) { bay.Removed = true; cut++; }
-                        AddLine(a, b, drive ? LineKind.Sketch : LineKind.Walk, width);
+                        int id = AddLine(a, b, drive ? LineKind.Sketch : LineKind.Walk, width);
+                        if (drive) aisles.Add(id);
                     }
             }
             _out.SketchCut = cut;
+            foreach (int id in aisles) RowsAlongSketch(_out.Lines[id]);
+        }
+
+        /// <summary>
+        /// (P2-1) A row of stalls on each side of a drawn aisle wherever there is room: inside the setback, off every other
+        /// lane and walkway, square to the drawn line. The drawn aisle's rows win over the planned stalls they overlap (the
+        /// player drew it to have rows there); those stalls go and are counted in SketchCut. Returns the stalls they cost.
+        /// </summary>
+        private int RowsAlongSketch(DriveLine line)
+        {
+            double sw = _s.StallWidth, sl = _s.StallLength;
+            double len = line.Length;
+            if (len < sw) return 0;
+            var tan = (line.B - line.A) / len;
+            var lanes = new List<double2[]>();
+            foreach (var l in _out.Lines)
+                if (!l.Removed && l.Id != line.Id && l.Length > 1e-3)
+                    lanes.Add(PGeo.Corridor(l.A, l.B, l.Kind == LineKind.Connector ? l.Width / 2 + 0.3 : l.Width / 2));
+            var inside = GridOf(_c1);
+            int lost = 0;
+            foreach (double side in new[] { 1.0, -1.0 })
+            {
+                var axis = PGeo.Perp(tan) * side;
+                int row = _nextRow++, order = 0;
+                for (double x = 0; x + sw <= len + 1e-9;)
+                {
+                    var c = line.A + tan * (x + sw / 2) + axis * (line.Width / 2 + sl / 2);
+                    var bay = MakeBay(c, axis, tan * side, BayKind.Inner, row, order, line.Id);
+                    bool ok = inside.ConvexInside(bay.Quad, 1e-4);
+                    for (int i = 0; ok && i < lanes.Count; i++)
+                        if (PGeo.ConvexOverlap(bay.Quad, lanes[i], 1e-3)) ok = false;
+                    // stalls already along a drawn aisle stay (another drawn line, or this one's other side)
+                    for (int i = 0; ok && i < _out.Bays.Count; i++)
+                    {
+                        var o = _out.Bays[i];
+                        if (!o.Removed && o.Sketched && math.distance(o.Center, c) < sw + sl && PGeo.ConvexOverlap(bay.Quad, o.Quad, 1e-3)) ok = false;
+                    }
+                    if (!ok) { x += 0.5; order++; continue; }
+                    foreach (var o in _out.Bays)
+                        if (!o.Removed && math.distance(o.Center, c) < sw + sl && PGeo.ConvexOverlap(bay.Quad, o.Quad, 1e-3)) { o.Removed = true; lost++; }
+                    bay.Sketched = true;
+                    _out.Bays.Add(bay);
+                    _out.SketchRows++;
+                    x += sw; order++;
+                }
+            }
+            _out.SketchCut += lost;
+            return lost;
         }
 
         /// <summary>The pieces of segment a–b inside the lot.</summary>

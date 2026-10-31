@@ -86,6 +86,8 @@ namespace Placemaker.Core.Layers.Parking
         public bool Pinned;
         /// <summary>(P2-1) Removed by hand to make a planted island (still offered to the hand-edit tool, to take it back).</summary>
         public bool Island;
+        /// <summary>(P2-1) In a row along a drawn aisle.</summary>
+        public bool Sketched;
         /// <summary>(P2-1) The hand edit applied to it ("" = none) and where that touch is.</summary>
         public string TouchedBy = "";
         public float3 TouchAt;
@@ -205,6 +207,8 @@ namespace Placemaker.Core.Layers.Parking
         public int TouchesDropped;
         /// <summary>(P2-1) Stalls taken out by the lines the player drew.</summary>
         public int SketchCut;
+        /// <summary>(P2-1) Stalls in the rows along drawn aisles.</summary>
+        public int SketchRows;
 
         public int StallCount
         {

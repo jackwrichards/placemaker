@@ -1,5 +1,5 @@
 {
-  "_about": "P2-1 parking tools: (1) a standard car park with a drive aisle and a walkway drawn on the map (sketch lines), built, the drive lanes read (slow 25 km/h copies), then Edit with the old build hidden; (2) rows on the zone grid and the space markings off. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/parking-tools.json -Who p2-parking-tools",
+  "_about": "P2-1 parking tools: (1) a standard car park with a drive aisle (its own rows of stalls along both sides) and a walkway drawn on the map, built, close views, the Manage panel (picked car park, then the car park list), the drive lanes read, then Edit with the old build hidden; (2) rows on the zone grid with the space markings off; (3) outline corners on the zone grid: the same skewed corners drawn before and after the rows are set to Zone grid. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/parking-tools.json -Who p2-parking-tools",
   "scenarios": [
     {
       "id": "parking-sketch",
@@ -73,6 +73,42 @@
           "pitch": 45,
           "shot": "built-45",
           "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "point",
+          "at": [
+            0,
+            0
+          ],
+          "view": "oblique",
+          "pitch": 45,
+          "distance": 75,
+          "shot": "aisle-close-45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "point",
+          "at": [
+            0,
+            0
+          ],
+          "view": "top",
+          "distance": 95,
+          "shot": "aisle-close-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "select",
+          "shot": "manage-picked",
+          "shotMode": "ui"
+        },
+        {
+          "do": "select",
+          "list": true,
+          "shot": "manage-list",
+          "shotMode": "ui"
         },
         {
           "do": "lab",
@@ -169,9 +205,121 @@
           "shotMode": "render"
         },
         {
+          "do": "camera",
+          "target": "point",
+          "at": [
+            0,
+            0
+          ],
+          "view": "oblique",
+          "pitch": 45,
+          "distance": 75,
+          "shot": "zones-close-45",
+          "shotMode": "render"
+        },
+        {
           "do": "lab",
           "op": "driveLanes",
           "label": "no markings"
+        }
+      ]
+    },
+    {
+      "id": "parking-zone-corners",
+      "site": "flat",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -97.3,
+              -93.6
+            ],
+            [
+              95.1,
+              -98.2
+            ],
+            [
+              98.6,
+              94.7
+            ],
+            [
+              -93.8,
+              97.3
+            ]
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "zoneCorners",
+          "label": "before (row direction: longest side)"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "value",
+          "id": "rowAngleMode",
+          "value": "zones"
+        },
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -97.3,
+              -93.6
+            ],
+            [
+              95.1,
+              -98.2
+            ],
+            [
+              98.6,
+              94.7
+            ],
+            [
+              -93.8,
+              97.3
+            ]
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "zoneCorners",
+          "label": "after (row direction: zone grid)"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.42
+        },
+        {
+          "do": "preview",
+          "shot": "plan-zone-corners"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "zone-corners-45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "zone-corners-top",
+          "shotMode": "render",
+          "zones": true
         }
       ]
     }

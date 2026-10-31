@@ -23,8 +23,8 @@ Parking Lot Tool is in `docs/refactor/parking.md` ("P2-1 audit"). The general me
 | Picked edge | Hand edit "rows line up here" | Wins over every direction; the first band starts at that edge. |
 | Entrances | Marker mode | Snap to an aisle end (5 m along the edge, at least 30°), dashed guide, Shift = free; drag to move, right-click removes; red and refused when closer than PLT's spacing (aisle + 2 stalls) to another car entrance. |
 | Fee | Manage → group → "Parking fee" switch + slider 1–50 | Off keeps the lot free (the economy system no longer writes a fee back). |
-| Sketch lines | Hand edits "Draw aisle", "Draw walkway" | Click points (snapped; Shift free), right-click or the last point finishes, Esc drops the line, a click on a line removes it. A drive lane or a footpath through the rows; stalls in the way go. |
-| Zone grid | Row direction "Zone grid" | Rows follow the zoning blocks of the streets round the lot (then the grid turn). |
+| Sketch lines | Hand edits "Draw aisle", "Draw walkway" | Click points (snapped; Shift free), right-click or the last point finishes, Esc drops the line, a click on a line removes it. A drive lane (with a row of stalls on each side where there is room) or a footpath through the rows; stalls in the way go. |
+| Zone grid | Row direction "Zone grid" | Rows follow the zoning blocks of the streets round the lot (then the grid turn); outline corners snap to the zone grid as firmly as to roads, up to 64 m from the nearest zoned cell. |
 | Space markings | Spaces, "Space markings" (More) | Off: invisible stalls (cars still park), no chargers. |
 | Slow lanes | Automatic | Every drive path is a 25 km/h copy that costs more to drive through: through traffic keeps to the streets (PLT values). |
 | Occupancy | Info panel, Manage | "x of y spaces taken"; Manage with nothing picked lists every car park with its fee. |
@@ -62,6 +62,6 @@ player; `{"do":"touch","kind":"grid.edge","side":"west"}` picks an edge. Read "N
 ## Open (for P2-5 and the lead)
 
 - Looks (P2-5): walkways are paved like the aisles (they need a look of their own: pavers, paint); sparse median trees.
-- A drawn aisle only cuts through; rows of new stalls along it are not made.
-- Outline corners do not snap to zone cells or guide lines (the rows follow the zone grid).
+- Rows along a drawn aisle are always square stalls (90 degrees), whatever the stall angle.
+- A bucket-filled outline follows the streets, not the zone grid (its corners are where the streets are).
 - Through traffic was not watched with real traffic (the test world has none); the lanes carry PLT's speed and cost.

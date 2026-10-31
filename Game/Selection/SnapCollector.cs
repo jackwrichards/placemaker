@@ -254,11 +254,22 @@ namespace Placemaker.Game.Selection
             r.Offer(SnapResolver.LevelObject, SnapKind.ObjectSide, new float3(flat.x, Height(flat), flat.y), dir);
         }
 
+        /// <summary>
+        /// (P2-1) The zone grid's snap level and reach. Default: a visible cell under the cursor, below roads and areas. With the
+        /// rows on the zone grid (parking "Zone grid"), the tool sets the level of roads and a reach of 64 m: away from any
+        /// zoned cell a corner still snaps to the extended grid of the nearest street's zone block.
+        /// </summary>
+        public float ZoneLevel = SnapResolver.LevelZoneGrid, ZoneReach;
+
         private void ZoneGrid(SnapResolver r)
         {
             if (_zoneSearch == null) return;
             var raw = r.Raw;
-            float radius = 8f * 1.4142136f + r.SnapDistance;
+            float radius = math.max(8f * 1.4142136f + r.SnapDistance, ZoneReach);
+            float visibleRadius = 8f * 1.4142136f + r.SnapDistance;
+            float farDistance = float.MaxValue;
+            float3 farPos = float3.zero;
+            float2 farDir = float2.zero;
             var tree = _zoneSearch.GetSearchTree(true, out var deps);
             deps.Complete();
             var results = new NativeList<Entity>(8, Allocator.Temp);
@@ -278,16 +289,18 @@ namespace Placemaker.Game.Selection
                     var index = math.clamp(global::Game.Zones.ZoneUtils.GetCellIndex(block, raw.xz), 0, block.m_Size - 1);
                     if (index.x < 0 || index.y < 0 || index.x >= block.m_Size.x || index.y >= block.m_Size.y) continue;
                     var cell = cells[index.x + index.y * block.m_Size.x];
-                    if ((cell.m_State & global::Game.Zones.CellFlags.Visible) == 0) continue;
                     var pos = global::Game.Zones.ZoneUtils.GetCellPosition(block, index);
                     float d = math.distance(pos.xz, raw.xz);
-                    if (d >= bestDistance) continue;
+                    if (ZoneReach > 0 && d < farDistance && d < ZoneReach) { farDistance = d; farPos = pos; farDir = block.m_Direction; }
+                    if ((cell.m_State & global::Game.Zones.CellFlags.Visible) == 0) continue;
+                    if (d >= bestDistance || d >= visibleRadius) continue;
                     bestDistance = d;
                     cellPos = pos;
                     cellDir = block.m_Direction;
                 }
             }
             finally { results.Dispose(); }
+            if (math.lengthsq(cellDir) < 0.5f) { cellPos = farPos; cellDir = farDir; }
             if (math.lengthsq(cellDir) < 0.5f) return;
             var across = MathUtils.Right(cellDir);
             var delta = raw.xz - cellPos.xz;
@@ -296,8 +309,8 @@ namespace Placemaker.Game.Selection
             float side = MathUtils.Snap(math.dot(delta, across), 8f, 4f);
             var snapped = cellPos.xz + cellDir * along + across * side;
             var world = new float3(snapped.x, Height(snapped), snapped.y);
-            r.Offer(SnapResolver.LevelZoneGrid, SnapKind.ZoneGrid, world, cellDir, true);
-            r.Offer(SnapResolver.LevelZoneGrid, SnapKind.ZoneGrid, world, across, true);
+            r.Offer(ZoneLevel, SnapKind.ZoneGrid, world, cellDir, true);
+            r.Offer(ZoneLevel, SnapKind.ZoneGrid, world, across, true);
         }
     }
 }

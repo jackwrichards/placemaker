@@ -255,6 +255,7 @@ namespace Placemaker.Game.Tool
             if (mask == global::Game.Tools.Snap.None) return raw;
             _resolver.SnapDistance = math.clamp(HandleRadius(raw), 3f, 16f);
             _resolver.Begin(raw);
+            ZoneSnapForDesign();
             _snapCollector.Collect(_resolver, mask);
             _lastSnap = _resolver.Result();
             return _lastSnap.Position;

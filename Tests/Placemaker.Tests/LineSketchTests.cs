@@ -85,6 +85,35 @@ namespace Placemaker.Tests
         }
 
         [Fact]
+        public void DrawnAisleGetsRowsOfStallsAlongBothSides()
+        {
+            var a = new float2(30, 15); var b = new float2(130, 95);
+            var r = ParkingKit.Run(Rect, markers: Entrance(), touches: new List<HandTouch> { Line(ParkingIds.LineAisle, a, b) });
+            var rows = r.Layout.LiveBays.Where(x => x.Sketched).ToList();
+            Assert.True(r.Layout.SketchRows >= 10, "stalls along the drawn aisle: " + r.Layout.SketchRows);
+            Assert.Equal(rows.Count, r.Layout.SketchRows - r.Layout.Bays.Count(x => x.Sketched && x.Removed));
+            var dir = math.normalize(b - a);
+            int left = 0, right = 0;
+            foreach (var bay in rows)
+            {
+                // square to the drawn line, its front on the line's edge
+                var axis = r.Layout.Frame.DirToWorld(bay.Axis);
+                Assert.True(math.abs(math.dot(new float2((float)axis.x, (float)axis.y), dir)) < 0.01f);
+                var c = r.Layout.Frame.ToWorld(bay.Center);
+                float side = dir.x * ((float)c.y - a.y) - dir.y * ((float)c.x - a.x);
+                if (side > 0) left++; else right++;
+            }
+            Assert.True(left > 3 && right > 3, $"{left} left, {right} right");
+            // no two live stalls overlap
+            var live = r.Layout.LiveBays.ToList();
+            for (int i = 0; i < live.Count; i++)
+                for (int k = i + 1; k < live.Count; k++)
+                    Assert.False(PGeo.ConvexOverlap(live[i].Quad, live[k].Quad, 1e-3), "stalls overlap");
+            // every stall still reachable over the lanes
+            Assert.DoesNotContain(r.Layout.Issues, x => x.Key == "Placemaker.Parking.Issue.UnreachableStalls");
+        }
+
+        [Fact]
         public void DrawnWalkwayIsAFootpathThroughTheRows()
         {
             var a = new float2(80, 2); var b = new float2(80, 108);

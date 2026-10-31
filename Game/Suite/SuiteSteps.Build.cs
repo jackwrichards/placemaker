@@ -168,6 +168,16 @@ namespace Placemaker.Game.Suite
 
         private IEnumerator StepSelect(ScenarioState st, JObject step, JObject rec)
         {
+            // (P2-1) {"do":"select","list":true}: Manage with nothing picked (the car park list), like a right-click there
+            if ((bool?)step["list"] ?? false)
+            {
+                if (_tool.Stage != ToolStage.Manage) yield return UiGoToStage(rec, ToolStage.Manage);
+                _tool.ManageGroup(0);
+                yield return Frames(20);
+                rec["stage"] = _tool.Stage.ToString();
+                rec["managed"] = _tool.ManagedGroup;
+                yield break;
+            }
             yield return SelectBuild(st, rec);
         }
 

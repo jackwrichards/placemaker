@@ -132,7 +132,7 @@ done yet, why), **declined** (deliberately not, why).
 | **Drawing and shape** ||||
 | 1 | Draw a polygon, click the first point to close | Points tool, block pick, paint bucket, paint area (`docs/AREA-TOOLS.md`) | have (more ways) |
 | 2 | Drag a corner, drag an edge (parallel), Shift slides along neighbours, Ctrl+click inserts, Alt+drag extrudes, right-click deletes | `Core/Tool/PolygonEditor.cs` (ported from PLT's EdgeDrag) | have |
-| 3 | Outline snapping (roads, building lots, other lots, zone grid, axis, guides), six toggles | `SnapResolver`/`SnapCollector`: kerbs, road nodes, other builds; **the rows can follow the zone grid** (row direction "Zone grid": the zoning blocks of the streets round the lot); sketch lines snap to corners, sides, the plan's lanes and square angles | partial (outline corners do not snap to zone cells or guide lines; the rows do) |
+| 3 | Outline snapping (roads, building lots, other lots, zone grid, axis, guides), six toggles | `SnapResolver`/`SnapCollector`: kerbs, road nodes, other builds; **the rows can follow the zone grid** (row direction "Zone grid": the zoning blocks of the streets round the lot); sketch lines snap to corners, sides, the plan's lanes and square angles; **outline corners snap to the zone grid** (the vanilla toggle; with the rows on "Zone grid" as firmly as to roads and up to 64 m from any zoned cell: the extended grid of the nearest street, docs/AREA-TOOLS.md), guide lines and square directions from the other corners, the vanilla snap panel's toggles | have (game runner `zoneCorners`: the corners on the grid) |
 | 4 | Undo/redo with named steps | one history for outline and design, named steps | have |
 | 5 | Split area into sub-areas, a reference line per sub-area | one grid per lot; two lots side by side give two grids | declined for now: per-lot alignment covers the common case; sub-areas need a split editor (core request if wanted) |
 | 6 | Large-lot warning | "too big" warning (`SizeGuide`) | have |
@@ -197,6 +197,7 @@ done yet, why), **declined** (deliberately not, why).
 Done (2026-10-31): **sketch lines** (`Core/Tool/LineSketch.cs`, docs/AREA-TOOLS.md "Sketch lines"), open polylines drawn on
 the map with snapping, kept as hand edits (`line.aisle`, `line.walk`), so they survive Edit, rebuilds and reloads. Parking
 lays them over its own layout: a drawn aisle is a drive lane through the rows (the stalls in its way go, it joins every lane
-it crosses), a drawn walkway a footpath with its paving. The band planner still plans the rows; the player cuts lanes and
-walkways where they want them. Not done: rows of new stalls along a drawn aisle (it only cuts through), and a look of its own
-for walkways (they are paved like the aisles: for P2-5).
+it crosses) with **a row of stalls on each side wherever there is room** (square to the line; its rows win over the planned
+stalls they overlap), a drawn walkway a footpath with its paving. The band planner still plans the rest. Not done: a look of
+its own for walkways (they are paved like the aisles: for P2-5); the rows along a drawn aisle are always square (90 degree)
+stalls, whatever the stall angle.
