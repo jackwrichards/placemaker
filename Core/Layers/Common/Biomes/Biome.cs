@@ -220,7 +220,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
         private static readonly string[] Flowers = { "GreenBushWildChild01", "FlowerBushWildChild02", "GreenBushWildTeen01", "GreenBushWildChild01", "FlowerBushWildChild02", "GreenBushWild02" };
         // P2-4 (the lead: meadow, mulch and heath all read as scattered wild bushes): beds take the city's clipped garden shrubs,
         // heather is only low dark wild clumps (the lilac FlowerBushWildChild02 read as pale blobs on the heath)
-        private static readonly string[] Beds_ = { "GreenBushCity01", "GreenBushCity03", "GreenBushCity02", "FlowerBushCity01", "GreenBushCity01", "FlowerBushCity03", "GreenBushWildAdult01" };
+        // P2-8: no flowering city shrubs (pastel teal balls from 45°): clipped greens of three sizes
+        private static readonly string[] Beds_ = { "GreenBushCity01", "GreenBushCity03", "GreenBushCity02", "GreenBushCity01", "GreenBushWildAdult01", "GreenBushCity03" };
         private static readonly string[] Heather = { "GreenBushWildChild01", "GreenBushWildElderly01", "GreenBushWildChild01" };
 
         public static readonly BiomeDef Lawn = new BiomeDef
@@ -404,7 +405,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
             Plants = new[]
             {
                 new BiomePlants(1500f, 0.65f, 1.1f, BiomeWhere.Beds, 6f, Beds_),
-                new BiomePlants(500f, 0.4f, 0.65f, BiomeWhere.Beds, 5f, "FlowerBushCity01", "FlowerBushCity03", "GreenBushCity03"),
+                new BiomePlants(300f, 0.4f, 0.6f, BiomeWhere.Beds, 5f, "GreenBushCity03", "GreenBushWildChild01"),
             },
             Decals = new[]
             {
