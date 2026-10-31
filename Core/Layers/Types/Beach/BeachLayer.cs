@@ -188,6 +188,8 @@ namespace Placemaker.Core.Layers.Types.Beach
             public int Umbrellas, Loungers, Showers, Huts, Guards, Courts, Rocks, Pools, Boats, Fires, Kiosks, Lookouts, Jetties;
             /// <summary>(p2-beaches) the landforms, and what the layout put where (the ground design reads them).</summary>
             public BeachForms Forms;
+            /// <summary>(p2-beaches) The pocket beach cut into a cliff shore, or null.</summary>
+            public ShoreCarve.Pocket Pocket;
             public readonly List<float2> UmbrellaSpots = new List<float2>();
             public readonly List<(float2 root, float2 end)> Decks = new List<(float2, float2)>();
             public readonly List<(float2 p, float r)> RockSpots = new List<(float2, float)>();
@@ -204,14 +206,21 @@ namespace Placemaker.Core.Layers.Types.Beach
             if (shore == null) { ctx.Issue(IssueSeverity.Warning, Keys.NoSpace, NameKey); return; }
             // a bay first: the lake flows into it, and everything below is laid out along the curved waterline it makes
             bool carvedBay = false;
-            if (ctx.F("bay") >= 3f && ShoreCarve.Bay(ctx, shore, ctx.F("bay"), 18f, Hashing.Mix(ctx.Seed, 0xBA7u), out _))
+            if (ctx.F("bay") >= 3f && shore.CliffShare < ShoreGround.CliffShoreShare && ShoreCarve.Bay(ctx, shore, ctx.F("bay"), 18f, Hashing.Mix(ctx.Seed, 0xBA7u), out _))
             {
                 carvedBay = true;
                 var carved = Shoreline.Analyze(ctx, region0, ctx.S("waterSide"));
                 if (carved != null) shore = carved;
             }
+            // p2-beaches: a shore that is all cliff gets a pocket beach cut into it (a cove down to the water, a gully path up)
+            var pocket = carvedBay ? null : ShoreCarve.CutPocket(ctx, shore, shore.MaxDepth + shore.GapAt(shore.Length * 0.5f));
+            if (pocket != null)
+            {
+                var cut = Shoreline.Analyze(ctx, region0, ctx.S("waterSide"));
+                if (cut != null) shore = cut;
+            }
             ctx.LayerRegion = shore.Land;
-            var b = new Work { Ctx = ctx, Shore = shore, Style = ctx.S("style") };
+            var b = new Work { Ctx = ctx, Shore = shore, Style = ctx.S("style"), Pocket = pocket };
             b.Under = ctx.B("sandReach") ? ctx.F("underwater") : 0f;
             // p2-beaches: the sand covers the whole carved bay floor (it stopped 20 m out from the new waterline and left the old
             // bank as a band of grass under the shallow water: the game runner's family beach, SandIsPaintedToTheWater)
@@ -219,6 +228,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             float landDepth = shore.MaxDepth + shore.GapAt(shore.Length * 0.5f);
             b.Wet = math.min(ctx.F("wetBand"), math.max(2f, landDepth * 0.2f));
             b.D = math.min(ctx.F("beachDepth"), math.max(b.Wet + 6f, landDepth - 6f));
+            if (pocket != null) { b.D = pocket.Sand - 1f; b.Wet = math.min(b.Wet, 4f); }
             // p2-beaches: the landforms first (headlands and knolls reach out into the water: the sculpt must reach that far)
             b.Forms = BeachForms.Plan(ctx, shore, b.Wet, b.D, Hashing.Mix(ctx.Seed, 0xF0A3u));
             ShoreAdvice(ctx, shore, landDepth);
@@ -226,12 +236,15 @@ namespace Placemaker.Core.Layers.Types.Beach
             b.G = ShoreGround.Create(ctx, shore, math.max(b.Under, b.Forms.Reach), 2f);
             b.Occ = new Occupancy(shore.Land, ctx.Input.Reserved, ctx.Site);
             var g = b.G;
+            // only the cove's sand is shaped: the walls, the gully and the cliff top beside the cove (the beach profile, measured from
+            // the cove's waterline, dug a trench along the rim) stay as cut
+            if (pocket != null) g.Lock(pocket.OnWall, p => !pocket.OnSand(p, 1.5f) && (pocket.Outside(p, out _, out _) < 0f || shore.FromWater(p) < pocket.Sand + 24f));
             b.Occ.GroundOk = (p, r) => g.CanStand(p, r);
             b.Blend = math.max(1f, ctx.F("sandBlend"));
             var pathRole = ctx.S("pathWidth") == "wide" ? NetRole.PathwayWide : NetRole.Pathway;
             b.Hw = Composer.DefaultHalfWidth(pathRole);
             b.PathDw = b.D + b.Hw + 0.5f;
-            b.HasPath = ctx.B("backPath") && landDepth > b.PathDw + b.Hw + 2f;
+            b.HasPath = ctx.B("backPath") && landDepth > b.PathDw + b.Hw + 2f && pocket == null;   // a pocket beach: the gully path
             b.WaterEdge = shore.WaterEdge();
             b.BeachRuns = g.Runs(k => k != ShoreKind.Cliff, 12f);
             b.CliffRuns = g.Runs(k => k == ShoreKind.Cliff, 16f);
@@ -240,7 +253,8 @@ namespace Placemaker.Core.Layers.Types.Beach
             ctx.Plan.Facts["foreshore"] = g.Foreshore.Count;
             PickSetAssets(b);
 
-            bool allCliff = shore.CliffShare >= ShoreGround.CliffShoreShare || b.BeachRuns.Count == 0;
+            bool allCliff = pocket == null && shore.CliffShare >= ShoreGround.CliffShoreShare || b.BeachRuns.Count == 0;
+            ctx.Plan.Facts["pocketBeach"] = pocket != null && !allCliff ? 1 : 0;
             if (shore.CliffShare > 0.05f)
                 ctx.Issue(allCliff ? IssueSeverity.Warning : IssueSeverity.Info, ShoreGround.CliffKey, (int)math.round(shore.CliffShare * 100f));
 
@@ -581,9 +595,20 @@ namespace Placemaker.Core.Layers.Types.Beach
             foreach (var gt in all) if (shore.FromWater(gt.Position) > b.D * 0.6f) gates.Add(gt);
             // An entrance placed on the wet sand or in the water is reached over the sand: no path is drawn to it.
             if (gates.Count == 0) foreach (var gt in all) if (shore.FromWater(gt.Position) > b.Wet + 4f) gates.Add(gt);
+            // p2-beaches: the pocket beach's path, down the gully floor from the cliff top to the back of the sand
+            var gully = new List<float2[]>();
+            if (b.Pocket != null && !allCliff)
+            {
+                var pk = b.Pocket;
+                LeisureKit.Path(ctx, occ, pk.Top, pk.Bottom, NetRole.Pathway, asset);
+                gully.Add(new[] { pk.Top, pk.Bottom });
+                spine.Add((pk.Top, pk.Bottom));
+                b.Access.Add((pk.Top, pk.Bottom));
+            }
             if (spine.Count > 0)
             {
                 var walks = new List<float2[]>(b.Lines);
+                walks.AddRange(gully);
                 walks.AddRange(cliffLines);
                 g.ConnectAll(occ, gates.ConvertAll(gt => gt.Position), walks, NetRole.Pathway, asset, b.HasPath ? b.Hw + 1.5f : 0f);
             }

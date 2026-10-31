@@ -197,7 +197,7 @@
   "Placemaker.Beach.Issue.ShortShore": "Seulement {0} m de rivage : une plage a besoin de 40 m ou plus le long de l'eau pour en avoir l'air. Tracez la zone plus longue le long de l'eau.",
   "Placemaker.Beach.Issue.NarrowLand": "Seulement {0} m de terre derrière l'eau : pas de place pour le sable, un chemin et ce qui se trouve derrière. Tracez la zone sur 30–60 m vers l'intérieur.",
   "Placemaker.Beach.Issue.SteepShore": "La pente vers l'eau est raide ({0} %) : la plage y est creusée et son arrière reste un haut talus. Un tronçon plus doux est plus naturel, ou choisissez Ravin rocheux ou Côte de granit.",
-  "Placemaker.Beach.Issue.CliffAdvice": "Le mieux sur une falaise : déplacez la zone vers une partie plus basse du rivage pour une vraie plage, ou gardez-la pour un chemin en haut de la falaise avec des belvédères.",
+  "Placemaker.Beach.Issue.CliffAdvice": "Sur une falaise, une petite crique est taillée dans la roche, avec un chemin qui descend par un ravin. Pour une longue plage, déplacez la zone vers une partie plus basse du rivage.",
   "Placemaker.Beach.islands": "Îlots",
   "Placemaker.Beach.islands.Tooltip": "Îlots rocheux bas au large de la plage, chacun relié par une passerelle en bois, un banc au sommet (modification permanente du terrain)."
 }

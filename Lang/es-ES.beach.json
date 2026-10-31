@@ -197,7 +197,7 @@
   "Placemaker.Beach.Issue.ShortShore": "Solo {0} m de orilla: una playa necesita 40 m o más junto al agua para parecerlo. Dibuja la zona más larga a lo largo de la orilla.",
   "Placemaker.Beach.Issue.NarrowLand": "Solo {0} m de tierra detrás del agua: no hay sitio para la arena, un paseo y lo que hay detrás. Dibuja la zona 30–60 m tierra adentro.",
   "Placemaker.Beach.Issue.SteepShore": "La pendiente hasta el agua es fuerte ({0} %): la playa se excava en ella y su parte trasera sigue siendo un talud alto. Un tramo más suave queda más natural, o elige Barranco rocoso o Costa de granito.",
-  "Placemaker.Beach.Issue.CliffAdvice": "Lo mejor en un acantilado: mueve la zona a un tramo más bajo de la orilla para una playa de verdad, o déjala para un paseo por lo alto con miradores.",
+  "Placemaker.Beach.Issue.CliffAdvice": "En un acantilado se excava en la roca una pequeña cala, con un camino que baja por un barranco. Para una playa larga, mueve la zona a un tramo más bajo de la orilla.",
   "Placemaker.Beach.islands": "Islotes",
   "Placemaker.Beach.islands.Tooltip": "Islotes rocosos frente a la playa, cada uno con una pasarela de madera y un banco en lo alto (cambio permanente del terreno)."
 }

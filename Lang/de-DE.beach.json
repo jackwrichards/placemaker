@@ -197,7 +197,7 @@
   "Placemaker.Beach.Issue.ShortShore": "Nur {0} m Ufer: Ein Strand braucht 40 m oder mehr am Wasser, um wie einer auszusehen. Zeichne die Fläche länger entlang der Wasserlinie.",
   "Placemaker.Beach.Issue.NarrowLand": "Nur {0} m Land hinter dem Wasser: kein Platz für den Sand, einen Weg und was dahinter steht. Zeichne die Fläche 30–60 m landeinwärts.",
   "Placemaker.Beach.Issue.SteepShore": "Der Hang zum Wasser ist steil ({0} %): Der Strand wird hineingegraben und seine Rückseite bleibt ein hoher Hang. Ein sanfterer Abschnitt wirkt natürlicher, oder wähle Felsschlucht oder Granitufer.",
-  "Placemaker.Beach.Issue.CliffAdvice": "Am besten an einer Klippe: Verschiebe die Fläche an einen niedrigeren Uferabschnitt für einen echten Strand, oder nutze sie für einen Klippenweg mit Aussichtspunkten.",
+  "Placemaker.Beach.Issue.CliffAdvice": "An einer Klippe wird eine kleine Badebucht in den Fels geschnitten, mit einem Weg durch eine Schlucht hinunter. Für einen langen Strand verschiebe die Fläche an einen niedrigeren Uferabschnitt.",
   "Placemaker.Beach.islands": "Inseln",
   "Placemaker.Beach.islands.Tooltip": "Flache Felsinseln vor dem Strand, jede über eine Holzbrücke erreichbar, oben eine Bank (dauerhafte Geländeänderung)."
 }

@@ -197,7 +197,7 @@
   "Placemaker.Beach.Issue.ShortShore": "岸邊只有 {0} 公尺：沙灘沿水邊至少需要 40 公尺才像樣。請沿水線把區域畫長一些。",
   "Placemaker.Beach.Issue.NarrowLand": "水後方的陸地只有 {0} 公尺：放不下沙灘、步道和後方的設施。請把區域往內陸畫 30–60 公尺。",
   "Placemaker.Beach.Issue.SteepShore": "通往水邊的岸坡很陡（{0} %）：沙灘會挖進坡裡，後方仍是高岸。較平緩的一段會更自然，或改選「岩石峽谷」或「花崗岩岸」。",
-  "Placemaker.Beach.Issue.CliffAdvice": "懸崖處的最佳做法：把區域移到岸邊較低的一段以建成真正的沙灘，或保留它做有觀景點的崖頂步道。",
+  "Placemaker.Beach.Issue.CliffAdvice": "在懸崖處會在岩石中鑿出一個小海灣沙灘，並有一條沿溝谷下行的小路。想要長沙灘，請把區域移到岸邊較低的一段。",
   "Placemaker.Beach.islands": "小島",
   "Placemaker.Beach.islands.Tooltip": "海灘外的低矮岩石小島，各有一座木棧橋通達，島頂設長椅（永久改變地形）。"
 }

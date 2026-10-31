@@ -111,5 +111,130 @@ namespace Placemaker.Core.Layers.Types.Beach
             ctx.Plan.Facts["bayArea"] = math.abs(Poly.SignedArea(r));
             return true;
         }
+
+        /// <summary>
+        /// (p2-beaches) A pocket beach cut into a cliff: a cove opened down to the water in the middle of the longest cliff
+        /// stretch, rock walls on three sides, and a gully climbing from the back of the sand to the cliff top at a walkable
+        /// grade (the path down runs on its floor). Null (nothing changed) on a shore that is not mostly cliff, or without
+        /// room for the gully. On success the layer's input carries the carved site and the terraform is in the plan.
+        /// </summary>
+        public static Pocket CutPocket(LayerContext ctx, Shoreline shore, float landDepth)
+        {
+            if (shore == null || shore.Kinds == null || !math.isfinite(shore.WaterLevel) || shore.Mode != ShoreMode.Edge) return null;
+            if (shore.CliffShare < ShoreGround.CliffShoreShare) return null;
+            // the longest cliff stretch
+            float best = 0f, s0 = 0f, s1 = 0f, start = float.NaN;
+            for (float s = 0f; s <= shore.Length + 1e-3f; s += 2f)
+            {
+                bool cliff = shore.KindAt(math.min(s, shore.Length)) == ShoreKind.Cliff;
+                if (cliff && float.IsNaN(start)) start = s;
+                if ((!cliff || s + 2f > shore.Length) && !float.IsNaN(start))
+                {
+                    float end = cliff ? shore.Length : s - 1f;
+                    if (end - start > best) { best = end - start; s0 = start; s1 = end; }
+                    start = float.NaN;
+                }
+            }
+            if (best < 46f) return null;
+            var site = ctx.Site;
+            Func<float2, float> h0 = site.HeightAt ?? (_ => 0f);
+            Func<float2, float> d0 = site.WaterDepthAt ?? (_ => 0f);
+            var pk = new Pocket { Level = shore.WaterLevel };
+            pk.O = shore.WaterAt((s0 + s1) * 0.5f, out var inw);
+            if (!math.all(math.isfinite(pk.O))) return null;
+            pk.Inw = inw;
+            pk.Tan = new float2(inw.y, -inw.x);
+            pk.HalfW = math.clamp(best * 0.2f, 18f, 30f);
+            pk.Sand = math.clamp(landDepth * 0.2f, 14f, 20f);
+            // the gully: a 12 % climb (15 % on shallow land) from the back of the sand until it meets the cliff top
+            pk.End = float.NaN;
+            foreach (float grade in new[] { TerrainSurvey.RampGrade, 0.15f })
+            {
+                pk.Grade = grade;
+                for (float d = pk.Sand + 4f; d < landDepth - 8f; d += 1f)
+                    if (pk.Base(d) >= h0(pk.O + inw * d) - 0.2f) { pk.End = d; break; }
+                if (math.isfinite(pk.End)) break;
+            }
+            if (!math.isfinite(pk.End) || !shore.Land.ContainsDisc(pk.Top, 4f)) return null;
+            pk.TopH = h0(pk.Top);
+
+            Func<float2, float> h1 = p => math.min(h0(p), pk.Floor(p));
+            var carved = site.WithHeight(h1);
+            float level = pk.Level;
+            carved.WaterDepthAt = p => math.max(d0(p), level - h1(p));
+            // sloped 2 m quads (corner heights on the carved surface): the walls stay continuous rock faces, not terraces
+            const float cell = 2f;
+            int cells = 0;
+            float reach = math.max(pk.HalfW, pk.Gully) + 12f;
+            for (float d = -10f; d < pk.End + 10f; d += cell)
+            {
+                ctx.Check();
+                for (float x = -reach; x < reach; x += cell)
+                {
+                    var c = pk.O + pk.Tan * (x + cell * 0.5f) + inw * (d + cell * 0.5f);
+                    if (h0(c) - h1(c) < 0.15f) continue;
+                    var ring = new[] { pk.O + pk.Tan * x + inw * d, pk.O + pk.Tan * (x + cell) + inw * d, pk.O + pk.Tan * (x + cell) + inw * (d + cell), pk.O + pk.Tan * x + inw * (d + cell) };
+                    if (Poly.SignedArea(ring) < 0f) Array.Reverse(ring);
+                    ctx.Plan.Terraform.Add(new PlannedTerraform { Ring = Poly.To3D(ring, h1), Kind = TerraformKind.Lower, TargetHeight = h1(c), Permanent = true, Sloped = true });
+                    cells++;
+                }
+            }
+            if (cells == 0) return null;
+            ShoreTerrain.Warn(ctx);
+            ctx.Input = ctx.Input.WithSite(carved);
+            ctx.Plan.Facts["pocketCells"] = cells;
+            ctx.Plan.Facts["pocketWidth"] = pk.HalfW * 2f;
+            ctx.Plan.Facts["pocketGully"] = pk.End - pk.Sand;
+            ctx.Plan.Facts["pocketGrade"] = pk.Grade;
+            return pk;
+        }
+
+        /// <summary>(p2-beaches) The pocket beach's shape, in a frame on the waterline at its middle (x along the shore, d inland).</summary>
+        public sealed class Pocket
+        {
+            public float2 O, Inw, Tan;
+            public float Level, HalfW, Sand, End, Grade, TopH;
+            /// <summary>Half-width of the gully floor (a 3 m path and its verges).</summary>
+            public float Gully = 5.5f;
+            /// <summary>Grade of the rock walls (about 60°).</summary>
+            public const float Wall = 1.7f;
+            public float2 Bottom => O + Inw * (Sand - 3f);
+            public float2 Top => O + Inw * (End + 3f);
+
+            /// <summary>The floor along the axis: sand shelving out of the water, then the gully's climb.</summary>
+            public float Base(float d) => d < 0f ? math.max(Level - 1.4f, Level + 0.3f + 0.2f * d)
+                : Level + 0.3f + 0.045f * math.min(d, Sand) + Grade * math.max(0f, d - Sand);
+
+            /// <summary>Distance outside the carved shape (negative inside): a half-ellipse cove open to the water, and the gully.</summary>
+            public float Outside(float2 p, out float x, out float d)
+            {
+                var v = p - O; x = math.dot(v, Tan); d = math.dot(v, Inw);
+                float depth = Sand + 3f;
+                float ex = x / HalfW, ed = math.max(0f, d) / depth;
+                float cove = (math.sqrt(ex * ex + ed * ed) - 1f) * math.min(HalfW, depth);
+                float gully = math.max(math.abs(x) - Gully, d - End);
+                return math.min(cove, gully);
+            }
+
+            public float Floor(float2 p)
+            {
+                float o = Outside(p, out _, out float d);
+                return Base(math.clamp(d, -10f, End)) + Wall * math.max(0f, o);
+            }
+
+            /// <summary>On the open sand of the cove (not the walls, not the gully).</summary>
+            public bool OnSand(float2 p, float margin)
+            {
+                float o = Outside(p, out _, out float d);
+                return o < -margin && d < Sand + 1f;
+            }
+
+            /// <summary>On the rock walls (or their foot and lip): left natural, nothing placed there.</summary>
+            public bool OnWall(float2 p)
+            {
+                float o = Outside(p, out _, out float d);
+                return o > -1.5f && o < (TopH - Level) / Wall + 2f && d > -6f;
+            }
+        }
     }
 }

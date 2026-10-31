@@ -197,7 +197,7 @@
   "Placemaker.Beach.Issue.ShortShore": "岸が{0} mしかありません: ビーチらしく見えるには水際に沿って40 m以上必要です。水際に沿ってエリアを長く描いてください。",
   "Placemaker.Beach.Issue.NarrowLand": "水の背後の陸地が{0} mしかありません: 砂浜、散歩道、その奥のものを置く余地がありません。エリアを内陸へ30〜60 m描いてください。",
   "Placemaker.Beach.Issue.SteepShore": "水際までの土手が急です（{0} %）: ビーチはそこへ削り込まれ、背後は高い土手のまま残ります。なだらかな区間の方が自然に見えます。または「岩の峡谷」か「花崗岩の岸」を選んでください。",
-  "Placemaker.Beach.Issue.CliffAdvice": "崖でのおすすめ: 本物のビーチにするにはエリアを岸の低い区間へ移すか、展望所のある崖上の散歩道として使ってください。",
+  "Placemaker.Beach.Issue.CliffAdvice": "崖では岩を削って小さな入り江のビーチを作り、谷筋を下る小道を通します。長いビーチにするにはエリアを岸の低い区間へ移してください。",
   "Placemaker.Beach.islands": "小島",
   "Placemaker.Beach.islands.Tooltip": "浜の沖にある低い岩の小島。それぞれ木の歩道橋で渡れ、頂上にベンチがあります（地形は恒久的に変わります）。"
 }

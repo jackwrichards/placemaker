@@ -197,7 +197,7 @@
   "Placemaker.Beach.Issue.ShortShore": "물가가 {0} m뿐입니다. 해변처럼 보이려면 물을 따라 40 m 이상 필요합니다. 물가선을 따라 구역을 더 길게 그리세요.",
   "Placemaker.Beach.Issue.NarrowLand": "물 뒤의 땅이 {0} m뿐입니다. 모래, 산책로, 그 뒤에 놓일 것을 위한 공간이 없습니다. 구역을 내륙으로 30–60 m 그리세요.",
   "Placemaker.Beach.Issue.SteepShore": "물까지 이어지는 둑이 가파릅니다({0} %). 해변은 둑을 깎아 만들어지고 뒤쪽은 높은 둑으로 남습니다. 더 완만한 구간이 더 자연스럽고, 아니면 바위 협곡이나 화강암 물가를 고르세요.",
-  "Placemaker.Beach.Issue.CliffAdvice": "절벽에서의 권장: 진짜 해변을 원하면 구역을 물가의 낮은 구간으로 옮기고, 아니면 전망대가 있는 절벽 위 산책로로 두세요.",
+  "Placemaker.Beach.Issue.CliffAdvice": "절벽에서는 바위를 깎아 작은 만 해변을 만들고 협곡을 따라 내려가는 길을 냅니다. 긴 해변을 원하면 구역을 물가의 낮은 구간으로 옮기세요.",
   "Placemaker.Beach.islands": "작은 섬",
   "Placemaker.Beach.islands.Tooltip": "해변 앞의 낮은 바위섬. 각각 나무 인도교로 건너가며 꼭대기에 벤치가 있습니다(지형이 영구적으로 바뀝니다)."
 }

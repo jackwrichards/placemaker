@@ -197,7 +197,7 @@
   "Placemaker.Beach.Issue.ShortShore": "Só {0} m de orla: uma praia precisa de 40 m ou mais ao longo da água para parecer uma. Desenhe a área mais longa ao longo da linha d'água.",
   "Placemaker.Beach.Issue.NarrowLand": "Só {0} m de terra atrás da água: não há espaço para a areia, um caminho e o que fica atrás. Desenhe a área 30–60 m para o interior.",
   "Placemaker.Beach.Issue.SteepShore": "A encosta até a água é íngreme ({0} %): a praia é escavada nela e o fundo continua um barranco alto. Um trecho mais suave fica mais natural, ou escolha Ravina rochosa ou Costa de granito.",
-  "Placemaker.Beach.Issue.CliffAdvice": "O ideal num penhasco: mova a área para um trecho mais baixo da orla para ter uma praia de verdade, ou deixe-a para um passeio no alto com mirantes.",
+  "Placemaker.Beach.Issue.CliffAdvice": "Num penhasco, uma pequena enseada é escavada na rocha, com um caminho que desce por uma ravina. Para uma praia longa, mova a área para um trecho mais baixo da orla.",
   "Placemaker.Beach.islands": "Ilhotas",
   "Placemaker.Beach.islands.Tooltip": "Ilhotas rochosas baixas em frente à praia, cada uma ligada por uma passarela de madeira com um banco no topo (mudança permanente do terreno)."
 }

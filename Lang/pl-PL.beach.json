@@ -197,7 +197,7 @@
   "Placemaker.Beach.Issue.ShortShore": "Tylko {0} m brzegu: plaża potrzebuje 40 m lub więcej wzdłuż wody, żeby wyglądać jak plaża. Narysuj obszar dłuższy wzdłuż linii wody.",
   "Placemaker.Beach.Issue.NarrowLand": "Tylko {0} m lądu za wodą: brak miejsca na piasek, ścieżkę i to, co stoi za nimi. Narysuj obszar 30–60 m w głąb lądu.",
   "Placemaker.Beach.Issue.SteepShore": "Zbocze do wody jest strome ({0} %): plaża zostaje w nie wcięta, a jej tył pozostaje wysoką skarpą. Łagodniejszy odcinek wygląda naturalniej, albo wybierz Skalisty wąwóz lub Granitowy brzeg.",
-  "Placemaker.Beach.Issue.CliffAdvice": "Najlepiej przy urwisku: przesuń obszar na niższy odcinek brzegu, by mieć prawdziwą plażę, albo zostaw go na spacer po krawędzi z punktami widokowymi.",
+  "Placemaker.Beach.Issue.CliffAdvice": "Na urwisku w skale wycinana jest mała zatoczka z plażą i ścieżką w dół wąwozem. Dla długiej plaży przesuń obszar na niższy odcinek brzegu.",
   "Placemaker.Beach.islands": "Wysepki",
   "Placemaker.Beach.islands.Tooltip": "Niskie skaliste wysepki przy plaży, każda z drewnianą kładką i ławką na szczycie (trwała zmiana terenu)."
 }
