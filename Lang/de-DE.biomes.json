@@ -21,5 +21,9 @@
   "Placemaker.Biome.water.Tooltip": "Natürliche Teiche in den Senken mit geböschten Ufern, Schilf und Uferbäumen. Dauerhaft: verändert das Gelände.",
   "Placemaker.Biome.scale": "Fleckengröße",
   "Placemaker.Biome.scale.Tooltip": "Niedrig: viele kleine Flecken gemischt. Hoch: wenige große Bereiche, jeder mit eigenem Charakter.",
-  "Placemaker.UI.Group.biomes": "Landschaft"
+  "Placemaker.UI.Group.biomes": "Landschaft",
+  "Placemaker.Biome.dunes": "Dünen",
+  "Placemaker.Biome.dunes.Tooltip": "Knubbelige Sandhügel, dicht mit Strandhafer bewachsen, kahler Sand, wo der Wind einschneidet, eine oder zwei krumme Kiefern.",
+  "Placemaker.Biome.shingle": "Kies",
+  "Placemaker.Biome.shingle.Tooltip": "Eine Fläche grauer Kiesel in niedrigen Wällen mit spärlichen Büscheln Meerkohl und Ginster, hier und da ein verwitterter Baumstamm."
 }

@@ -21,5 +21,9 @@
   "Placemaker.Biome.water.Tooltip": "Estanques naturales en las zonas bajas con orillas en talud, juncos y árboles de ribera. Permanente: cambia el terreno.",
   "Placemaker.Biome.scale": "Escala",
   "Placemaker.Biome.scale.Tooltip": "Bajo: muchas manchas pequeñas mezcladas. Alto: pocas zonas grandes, cada una con su propio carácter.",
-  "Placemaker.UI.Group.biomes": "Paisaje"
+  "Placemaker.UI.Group.biomes": "Paisaje",
+  "Placemaker.Biome.dunes": "Dunas",
+  "Placemaker.Biome.dunes.Tooltip": "Lomas de arena irregulares cubiertas de barrón, arena desnuda donde entra el viento, algún pino achaparrado.",
+  "Placemaker.Biome.shingle": "Guijarros",
+  "Placemaker.Biome.shingle.Tooltip": "Una llanura de guijarros grises en cordones bajos con matas dispersas de col marina y retama, algún tronco curtido aquí y allá."
 }

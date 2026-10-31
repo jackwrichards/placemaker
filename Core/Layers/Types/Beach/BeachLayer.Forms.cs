@@ -48,6 +48,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             c.Slider("blowouts", 0, 0, 6, 1, "count", ControlTier.More, "backdrop").When("backdrop=dunes").Tip();
             c.Slider("hummocks", 0, 0, 1.5, 0.1, "m", ControlTier.More, "backdrop").When("backdrop=dunes").Tip();
             c.Toggle("boardwalk", false, ControlTier.More, "amenities").Tip();
+            c.Slider("islands", 0, 0, 2, 1, "count", ControlTier.More, "shore").Tip();
             BiomeMix.Define(c, Biomes);
         }
 
@@ -58,32 +59,32 @@ namespace Placemaker.Core.Layers.Types.Beach
             Preset("shingle", ("style", "shingle"), ("paintLayer", (double)TerrainMaterials.Dirt), ("beachDepth", 40.0), ("slope", 11.0), ("wetBand", 4.0), ("storms", 3.0),
                 ("sandBlend", 6.0), ("umbrellas", 0.0), ("huts", "row"), ("boats", true), ("backdrop", "lawn"), ("treeDensity", 10.0), ("lifeguards", 0.0), ("kiosks", 2.0),
                 ("showers", false), ("pathWidth", "wide"), ("benchSpacing", 18.0), ("accessSpacing", 70.0), ("landings", false), ("bay", 0.0), ("rockClusters", 0.0),
-                ("biomeLawn", 35.0), ("biomeShingle", 45.0), ("biomeHeath", 20.0));
+                ("biomeLawn", 60.0), ("biomeHeath", 40.0));
             // Pine lake beach: a short strip of sand under pines, needles and duff drifting onto it, a jetty, kayaks, a fire ring.
             Preset("mulch", ("style", "mulch"), ("beachDepth", 22.0), ("wetBand", 3.0), ("slope", 4.0), ("sandBlend", 10.0), ("umbrellas", 0.0), ("backdrop", "woods"),
-                ("treeDensity", 95.0), ("grassDensity", 40.0), ("jetties", 1.0), ("jettyLength", 22.0), ("boats", true), ("fires", true), ("lifeguards", 0.0), ("kiosks", 0.0),
+                ("treeDensity", 60.0), ("grassDensity", 40.0), ("jetties", 1.0), ("jettyLength", 22.0), ("boats", true), ("fires", true), ("lifeguards", 0.0), ("kiosks", 0.0),
                 ("huts", "none"), ("lamps", false), ("benchSpacing", 30.0), ("bay", 12.0), ("berm", 0.25), ("knolls", 2.0), ("boulders", 20.0), ("landings", false),
-                ("biomeLawn", 25.0), ("biomeForest", 75.0));
+                ("biomeLawn", 45.0), ("biomeForest", 55.0));
             // Granite shore: rounded granite domes and boulders on the beach and out in clear shallows, coarse sand between, pines.
-            Preset("granite", ("style", "granite"), ("beachDepth", 34.0), ("wetBand", 4.0), ("slope", 6.0), ("knolls", 7.0), ("boulders", 130.0), ("umbrellas", 12.0),
-                ("backdrop", "woods"), ("treeDensity", 60.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("jetties", 1.0), ("jettyLength", 30.0),
-                ("boats", true), ("sandBlend", 12.0), ("bay", 0.0), ("lamps", false), ("landings", false), ("underwater", 30.0),
-                ("biomeLawn", 0.0), ("biomeRocky", 40.0), ("biomeForest", 60.0));
+            Preset("granite", ("style", "granite"), ("beachDepth", 34.0), ("wetBand", 4.0), ("slope", 6.0), ("knolls", 7.0), ("boulders", 55.0), ("umbrellas", 12.0),
+                ("backdrop", "woods"), ("treeDensity", 25.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("jetties", 1.0), ("jettyLength", 30.0),
+                ("boats", true), ("sandBlend", 12.0), ("bay", 0.0), ("lamps", false), ("landings", false), ("underwater", 30.0), ("islands", 1.0),
+                ("biomeLawn", 0.0), ("biomeRocky", 50.0), ("biomeForest", 30.0), ("biomeHeath", 20.0));
             // Rocky ravine: a high rocky bank behind a pocket beach, cut by two boulder-choked barrancas down to the water.
-            Preset("ravine", ("style", "ravine"), ("beachDepth", 20.0), ("wetBand", 3.0), ("slope", 7.0), ("bluff", 6.0), ("ravines", 2.0), ("boulders", 160.0), ("knolls", 2.0),
-                ("umbrellas", 0.0), ("backdrop", "none"), ("treeDensity", 18.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
+            Preset("ravine", ("style", "ravine"), ("beachDepth", 20.0), ("wetBand", 3.0), ("slope", 7.0), ("bluff", 6.0), ("ravines", 2.0), ("boulders", 60.0), ("knolls", 0.0),
+                ("umbrellas", 0.0), ("backdrop", "none"), ("treeDensity", 10.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
                 ("benchSpacing", 40.0), ("bay", 0.0), ("landings", false), ("sandBlend", 8.0),
                 ("biomeLawn", 0.0), ("biomeRocky", 60.0), ("biomeHeath", 40.0));
             // Marsh shore: a saltmarsh flat with creeks and salt pans, reed beds, a boardwalk out to the open water, a strip of sand.
             Preset("marsh", ("style", "marsh"), ("beachDepth", 36.0), ("wetBand", 2.0), ("slope", 2.0), ("channels", 4.0), ("boardwalk", true), ("umbrellas", 0.0),
                 ("backdrop", "none"), ("treeDensity", 18.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("landings", false),
-                ("accessSpacing", 200.0), ("benchSpacing", 35.0), ("lamps", false), ("sandBlend", 4.0), ("bay", 0.0),
+                ("accessSpacing", 200.0), ("benchSpacing", 35.0), ("lamps", false), ("sandBlend", 4.0), ("bay", 0.0), ("islands", 1.0),
                 ("biomeLawn", 0.0), ("biomeMeadow", 70.0), ("biomeForest", 30.0));   // the shore is the marsh; a wetland biome behind it cost 300 ms more
             // Harbour cove: two rock headlands jutting out into the water with boulders piled on them, rock platforms with pools,
             // a small beach and boats between, a jetty.
-            Preset("harbour", ("style", "harbour"), ("headlands", 30.0), ("platforms", 35.0), ("bay", 28.0), ("beachDepth", 30.0), ("umbrellas", 35.0), ("boats", true),
-                ("jetties", 1.0), ("jettyLength", 30.0), ("backdrop", "lawn"), ("treeDensity", 25.0), ("lifeguards", 1.0), ("kiosks", 1.0), ("huts", "few"), ("boulders", 40.0),
-                ("berm", 0.4), ("tidePools", 0.0), ("rockClusters", 0.0),
+            Preset("harbour", ("style", "harbour"), ("headlands", 34.0), ("platforms", 40.0), ("bay", 0.0), ("beachDepth", 30.0), ("umbrellas", 35.0), ("boats", true),
+                ("jetties", 1.0), ("jettyLength", 30.0), ("backdrop", "lawn"), ("treeDensity", 25.0), ("lifeguards", 1.0), ("kiosks", 1.0), ("huts", "few"), ("boulders", 20.0),
+                ("berm", 0.4), ("tidePools", 0.0), ("rockClusters", 0.0), ("islands", 1.0),
                 ("biomeLawn", 60.0), ("biomeRocky", 20.0), ("biomeMeadow", 20.0));
             // Wild beach: low dunes with blowouts, wrack and driftwood, a fire ring, no facilities.
             Preset("wild", ("style", "wild"), ("beachDepth", 46.0), ("umbrellas", 0.0), ("backdrop", "dunes"), ("duneHeight", 3.0), ("duneDepth", 26.0), ("blowouts", 2.0),
@@ -137,7 +138,11 @@ namespace Placemaker.Core.Layers.Types.Beach
             if (b.G.OnCliff(p) || !inWater && b.Shore.FromWater(p) < 0.3f) return false;
             if (!b.Shore.Land.Contains(p) && !inWater) return false;
             float r = 1.1f * scale;
-            if (!FreeIgnoringGround(b.Occ, p, r * 0.7f, 0.2f, 0.05f) || ctx.Input.Reserved != null && ctx.Input.Reserved.Blocks(p, r)) return false;
+            bool onLand = b.Shore.Land.Contains(p);
+            // off the land (out in the water) the occupancy has no ground to give: only keep clear of other rocks and decks
+            if (onLand ? !FreeIgnoringGround(b.Occ, p, r * 0.7f, 0.2f, 0.05f) : b.Occ.Discs.Overlaps(p, r * 0.7f, 0.05f) || b.Occ.Corridors.Overlaps(p, r * 0.7f))
+                return false;
+            if (ctx.Input.Reserved != null && ctx.Input.Reserved.Blocks(p, r)) return false;
             var o = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 5u)) * 6.283f, ObjectRole.Furniture, new AssetRef(Boulders[(int)(v % (uint)Boulders.Length)]), v, -1, AssetCategories.Rock);
             o.Scale = scale;
             o.Elevation = -sink * scale;
@@ -230,7 +235,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                     if (f.InRavine(s, dw)) continue;
                     if (b.Occ.Corridors.Overlaps(p, 2f)) continue;
                     float sc = 0.6f + 1.9f * math.pow(Hashing.Unit(Hashing.Mix(v, 3u)), 1.6f);
-                    if (Boulder(b, p, sc, v, dw < 0f, dw < 0f ? 0.2f : 0.35f)) placed++;
+                    if (Boulder(b, p, sc, v, dw < 0f, dw < 0f ? 0.3f : 0.5f)) placed++;
                 }
                 ctx.Plan.Facts["boulderField"] = placed;
             }
@@ -350,6 +355,59 @@ namespace Placemaker.Core.Layers.Types.Beach
             });
             float hw = Composer.DefaultHalfWidth(NetRole.Pathway);
             b.Occ.TakeCorridor(a, e, hw + 1f, 100);
+        }
+
+        /// <summary>
+        /// A footbridge from the beach out to each island: a ground path off the promenade to its foot on the sand, the deck
+        /// (ramp, level span 1.3 m over the water, ramp) to a path end on the island, a path up to a bench at the top. Both deck ends
+        /// are path ends, so each joint is one node (docs/GROUND-RUNDOWN.md, bridges).
+        /// </summary>
+        private static void IslandBridges(Work b)
+        {
+            var ctx = b.Ctx; var shore = b.Shore; var g = b.G; var f = b.Forms;
+            if (f.Islands.Count == 0 || shore.Mode == ShoreMode.Assumed || !shore.HasWaterline) return;
+            var asset = new AssetRef("", Waterfront.WaterfrontArt.Boardwalk);
+            var pathAsset = AssetMix.One(ctx.S("pathAsset"));
+            float level = g.HasLevel ? g.Level : g.Ref(shore.Length * 0.5f);
+            int n = 0;
+            foreach (var (ic, ir, ih, s) in f.Islands)
+            {
+                uint v = Hashing.Mix(ctx.Seed, 0x15B0u + (uint)n);
+                var w = shore.WaterAt(s, out var inw);
+                var land = w + inw * math.max(3f, b.Wet * 0.6f);
+                var dir = math.normalizesafe(ic - land);
+                var foot = ic - dir * (ir * 0.55f);
+                float best = 70f; float2 from = default; bool has = false;
+                foreach (var line in b.Lines) foreach (var q in line) { float d = math.distance(q, land); if (d < best) { best = d; from = q; has = true; } }
+                if (!has || b.Occ.Corridors.Overlaps(land, 1.5f)) continue;
+                LeisureKit.Path(ctx, b.Occ, from, land, NetRole.Pathway, pathAsset);
+                LeisureKit.Path(ctx, b.Occ, foot, ic, NetRole.Pathway, pathAsset);
+                float y0 = g.H(land), y1 = level + ih * 0.9f, mid = math.max(level + 1.3f, math.max(y0, y1));
+                var a = math.lerp(land, foot, 0.15f); var e = math.lerp(land, foot, 0.85f);
+                Deck(b, land, y0, a, mid, asset);
+                Deck(b, a, mid, e, mid, asset);
+                Deck(b, e, mid, foot, y1, asset);
+                b.Decks.Add((land, foot));
+                // the island: a bench at the top looking back, pines in its lee, boulders round its rim
+                var bench = ctx.Object(ic + dir * 1.6f, LeisureKit.Yaw(ic, ic + dir), ObjectRole.Bench, AssetMix.Pick(BeachArt.Benches, 0u), v);
+                for (int k = 0; k < 4; k++)
+                {
+                    uint tv = Hashing.Mix(v, 10u + (uint)k);
+                    float ang = math.atan2(dir.y, dir.x) + (Hashing.Unit(tv) - 0.5f) * 2.4f;
+                    var tp = ic + new float2(math.cos(ang), math.sin(ang)) * ir * (0.35f + 0.25f * Hashing.Unit(Hashing.Mix(tv, 1u)));
+                    ctx.Object(tp, Hashing.Unit(Hashing.Mix(tv, 2u)) * 6.283f, ObjectRole.Tree, new AssetRef("", "PineTree01"), tv);
+                }
+                for (int k = 0; k < 14; k++)
+                {
+                    uint rv = Hashing.Mix(v, 40u + (uint)k);
+                    float ang = Hashing.Unit(rv) * 6.283f;
+                    var rp = ic + new float2(math.cos(ang), math.sin(ang)) * ir * (0.85f + 0.3f * Hashing.Unit(Hashing.Mix(rv, 1u)));
+                    if (math.distance(rp, foot) < 4f) continue;
+                    Boulder(b, rp, 0.9f + 1.3f * Hashing.Unit(Hashing.Mix(rv, 2u)), rv, true, 0.35f);
+                }
+                n++;
+            }
+            ctx.Plan.Facts["islandBridges"] = n;
         }
 
         /// <summary>Footbridges where the promenade stops at a ravine's rim: a deck from one walk end straight to the next.</summary>

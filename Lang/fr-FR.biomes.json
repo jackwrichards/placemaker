@@ -21,5 +21,9 @@
   "Placemaker.Biome.water.Tooltip": "Des étangs naturels dans les creux, aux berges en pente, avec roseaux et arbres de rive. Permanent : modifie le terrain.",
   "Placemaker.Biome.scale": "Taille des taches",
   "Placemaker.Biome.scale.Tooltip": "Bas : beaucoup de petites taches mélangées. Haut : quelques grandes zones, chacune avec son caractère.",
-  "Placemaker.UI.Group.biomes": "Paysage"
+  "Placemaker.UI.Group.biomes": "Paysage",
+  "Placemaker.Biome.dunes": "Dunes",
+  "Placemaker.Biome.dunes.Tooltip": "Buttes de sable bosselées couvertes d'oyats, sable nu là où le vent entaille, un ou deux pins rabougris.",
+  "Placemaker.Biome.shingle": "Galets",
+  "Placemaker.Biome.shingle.Tooltip": "Une étendue de galets gris en cordons bas avec de rares touffes de chou marin et de genêt, çà et là un tronc délavé."
 }

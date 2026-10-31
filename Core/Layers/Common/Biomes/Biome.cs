@@ -401,7 +401,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
             Id = "dunes", Color = "#e3cf9a",
             Ridge = 0.7f, Flat = 0.5f, Slope = 0.3f, Hollow = -0.4f, NearPath = -0.2f, Steep = -0.3f,
             Lift = 2.4f, Break = 0.7f,
-            PaintLayer = 4, PaintStrength = 0.75f, CorePaint = 4, CoreStrength = 0.95f,
+            PaintLayer = 4, PaintStrength = 0.35f, CorePaint = 4, CoreStrength = 0.6f,
             TreesPerHa = 4f, Trees = new[] { "PineTree01", "PineTree01", "BirchTree01" }, GroveScale = 40f, Dead = 0.15f,
             BushesPerHa = 0f, Bushes = Heather,
             StonesPerHa = 6f, RockSize = 0.6f, LogsPerHa = 1f,

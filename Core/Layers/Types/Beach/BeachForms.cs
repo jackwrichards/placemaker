@@ -39,6 +39,8 @@ namespace Placemaker.Core.Layers.Types.Beach
         public float Bluff, BluffAt, BluffW = 9f;
         public readonly List<(float s, float w, float len)> Ravines = new List<(float, float, float)>();
         public readonly List<(float2 c, float r, float h)> Knolls = new List<(float2, float, float)>();
+        /// <summary>Islands out in the water (a footbridge reaches each from the beach): centre, radius, height over the water, its arc length.</summary>
+        public readonly List<(float2 c, float r, float h, float s)> Islands = new List<(float2, float, float, float)>();
         public float MarshTo;
         public readonly List<float2[]> Channels = new List<float2[]>();
         public readonly List<(float2 c, float r)> Pans = new List<(float2, float)>();
@@ -64,19 +66,21 @@ namespace Placemaker.Core.Layers.Types.Beach
             f.Cusps = storms > 0;
             // headlands: one at each end of the shore (a cove between them), or one in the middle; inset from the outline's ends so
             // the sculpt's border cap does not flatten them
-            int heads = ctx.I("headlands");
-            float hl = ctx.F("headlandLength");
+            float hl = ctx.F("headlands");   // how far they reach out (0 = none); two, one at each end of the cove
+            int heads = hl >= 8f ? 2 : 0;
             if (heads > 0 && len > 60f)
             {
-                float inset = math.min(len * 0.22f, 26f + hl * 0.15f);
-                var at = heads == 1 ? new[] { len * (0.3f + 0.4f * Hashing.Unit(Hashing.Mix(seed, 0x4EADu))) } : new[] { inset, len - inset };
+                // a fifth in from each end: the cove lies between them, and the sculpt's border cap at the outline's sides leaves them whole
+                float inset = math.max(30f, len * 0.2f);
+                var at = heads == 1 || len < 2f * inset + 30f ? new[] { len * (0.3f + 0.4f * Hashing.Unit(Hashing.Mix(seed, 0x4EADu))) } : new[] { inset, len - inset };
                 foreach (float s in at)
                 {
                     uint v = Hashing.Mix(seed, (uint)(s * 10f));
-                    f.Headlands.Add((s, hl * (0.85f + 0.3f * Hashing.Unit(v)), 2.6f + 1.4f * Hashing.Unit(Hashing.Mix(v, 1u)), 7f + 3f * Hashing.Unit(Hashing.Mix(v, 2u))));
+                    f.Headlands.Add((s, hl * (0.85f + 0.3f * Hashing.Unit(v)), 3.4f + 1.4f * Hashing.Unit(Hashing.Mix(v, 1u)), 8f + 3f * Hashing.Unit(Hashing.Mix(v, 2u))));
                 }
                 f.Reach = math.max(f.Reach, hl * 1.15f + 18f);
                 f.MaxFill = math.max(f.MaxFill, 8f);
+                f.MaxGrade = math.max(f.MaxGrade, 0.55f);   // rock: steep flanks (at 33 % a 16 m wide ridge stood only 2.6 m)
             }
             float plat = ctx.F("platforms") / 100f;
             if (plat > 0f)
@@ -102,6 +106,17 @@ namespace Placemaker.Core.Layers.Types.Beach
                     f.Ravines.Add((s, 10f + 4f * Hashing.Unit(Hashing.Mix(seed, 0x2A72u + (uint)i)), 200f));
                 }
             if (f.Bluff > 0f || f.Ravines.Count > 0) { f.MaxFill = math.max(f.MaxFill, f.Bluff + 1.5f); f.MaxCut = math.max(f.MaxCut, 8f); f.MaxGrade = math.max(f.MaxGrade, 0.75f); }
+            // islands: a low rocky islet off the beach, reached by a footbridge (the user: bridges out to an island must join)
+            int islands = ctx.I("islands");
+            for (int i = 0; i < islands && len > 50f; i++)
+            {
+                uint v = Hashing.Mix(seed, 0x15A0u + (uint)i);
+                float s = len * (islands == 1 ? 0.35f + 0.3f * Hashing.Unit(v) : (i + 0.5f) / islands);
+                float r = 9f + 5f * Hashing.Unit(Hashing.Mix(v, 1u));
+                var w = shore.WaterAt(s, out var inw);
+                f.Islands.Add((w - inw * (r + 14f + 8f * Hashing.Unit(Hashing.Mix(v, 2u))), r, 1.4f + 0.8f * Hashing.Unit(Hashing.Mix(v, 3u)), s));
+            }
+            if (f.Islands.Count > 0) { f.Reach = math.max(f.Reach, 46f); f.MaxFill = math.max(f.MaxFill, 7f); f.MaxGrade = math.max(f.MaxGrade, 0.5f); }
             int knolls = ctx.I("knolls");
             for (int i = 0; i < knolls; i++)
             {
@@ -109,7 +124,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                 float s = len * (i + 0.2f + 0.6f * Hashing.Unit(v)) / math.max(1, knolls);
                 float dw = -7f + Hashing.Unit(Hashing.Mix(v, 1u)) * (depth * 0.7f + 7f);
                 var w = shore.WaterAt(s, out var inw);
-                float r = 5f + 6f * Hashing.Unit(Hashing.Mix(v, 2u));
+                float r = 7f + 6f * Hashing.Unit(Hashing.Mix(v, 2u));
                 f.Knolls.Add((w + inw * dw, r, 1.2f + 2.2f * Hashing.Unit(Hashing.Mix(v, 3u))));
             }
             if (knolls > 0) { f.Reach = math.max(f.Reach, 22f); f.MaxFill = math.max(f.MaxFill, 6f); f.MaxGrade = math.max(f.MaxGrade, 0.6f); }
@@ -247,6 +262,16 @@ namespace Placemaker.Core.Layers.Types.Beach
                 float tipFade = math.saturate((dw + hlen + 6f) / 6f);
                 if (c < 1f) t = math.max(t, math.lerp(t, h, tipFade));
             }
+            // islands: a flat-topped rocky islet, steep at its rim
+            foreach (var (ic, ir, ih, _) in Islands)
+            {
+                float d = math.distance(p, ic) / ir;
+                if (d > 1.6f) continue;
+                float lump = 0.85f + 0.3f * ValueNoise.Sample(p / 3.2f, Hashing.Mix(Seed, 0xDu));
+                float top = level + ih * lump * (1f - 0.25f * d * d);
+                float rim = math.saturate((1.6f - d) / 0.6f);
+                t = math.max(t, math.lerp(math.min(t, level - 1.2f), top, Sculpt.Smooth01(rim)));
+            }
             // granite knolls: lumpy domes (on land and out in the shallows)
             foreach (var (kc, kr, kh) in Knolls)
             {
@@ -270,7 +295,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                 float dc = ChannelDistance(p, out float tw);
                 if (dc < tw + 2f)
                 {
-                    float bed = level - 0.75f * (0.5f + 0.5f * math.saturate(tw / 2.6f));
+                    float bed = level - 1.2f * (0.55f + 0.45f * math.saturate(tw / 4f));
                     t = math.lerp(bed, t, Sculpt.Smooth01(math.saturate((dc - tw * 0.5f) / (tw * 0.5f + 2f))));
                 }
             }
@@ -297,7 +322,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                     var a = l[i - 1]; var b = l[i]; var ab = b - a;
                     float t = math.saturate(math.dot(p - a, ab) / math.max(1e-4f, math.dot(ab, ab)));
                     float d = math.distance(p, a + ab * t);
-                    if (d < best) { best = d; halfWidth = math.lerp(2.8f, 1.1f, (i - 1 + t) / math.max(1, l.Length - 1)); }
+                    if (d < best) { best = d; halfWidth = math.lerp(4.2f, 1.8f, (i - 1 + t) / math.max(1, l.Length - 1)); }
                 }
             }
             return best;
@@ -326,6 +351,12 @@ namespace Placemaker.Core.Layers.Types.Beach
                 float bend = 4f * math.sin(dw / 9f + hs) * (1f - u);
                 if (math.abs(s - hs - bend) < hw * (0.55f + 0.45f * u)) return true;
             }
+            return false;
+        }
+
+        public bool OnIsland(float2 p, float pad = 0f)
+        {
+            foreach (var (ic, ir, _, _) in Islands) if (math.distance(p, ic) < ir + pad) return true;
             return false;
         }
 

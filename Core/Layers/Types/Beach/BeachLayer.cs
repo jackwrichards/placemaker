@@ -139,7 +139,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             Preset("sandy", ("style", "sandy"), ("beachDepth", 56.0), ("sandBlend", 16.0), ("umbrellas", 110.0), ("layout", "scattered"), ("backdrop", "dunes"),
                 ("huts", "none"), ("lifeguards", 2.0), ("duneDepth", 26.0), ("duneHeight", 2.0), ("grassDensity", 70.0), ("treeDensity", 40.0), ("kiosks", 1.0),
                 ("jetties", 1.0), ("jettyLength", 26.0), ("jettyHead", true), ("boats", true), ("bay", 24.0), ("berm", 0.7), ("hummocks", 0.4),
-                ("biomeLawn", 60.0), ("biomeDunes", 25.0), ("biomeForest", 15.0));
+                ("biomeLawn", 60.0), ("biomeMeadow", 25.0), ("biomeForest", 15.0));
             // Promenade beach: tidy rows, one wide promenade on a level bench with benches and kiosks, palms on a lawn.
             // rf-beach: denser rows (110 -> 150 /ha), a palm avenue along the promenade (Backdrop), a long pier with a T-head.
             Preset("resort", ("style", "sandy"), ("beachDepth", 52.0), ("sandBlend", 6.0), ("umbrellas", 150.0), ("layout", "rows"), ("backdrop", "lawn"), ("huts", "none"),
@@ -258,6 +258,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             if (!allCliff)
             {
                 Boardwalk(b);   // p2-beaches: decks first, everything keeps off them
+                IslandBridges(b);
                 Jetties(b);   // rf-beach: before anything else takes the sand at the water
                 Courts(b);
                 FormRocks(b);

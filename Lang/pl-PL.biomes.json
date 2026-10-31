@@ -21,5 +21,9 @@
   "Placemaker.Biome.water.Tooltip": "Naturalne stawy w obniżeniach ze skarpami brzegów, trzciną i drzewami nad wodą. Trwałe: zmienia teren.",
   "Placemaker.Biome.scale": "Wielkość płatów",
   "Placemaker.Biome.scale.Tooltip": "Nisko: wiele małych płatów wymieszanych. Wysoko: kilka dużych obszarów, każdy z własnym charakterem.",
-  "Placemaker.UI.Group.biomes": "Krajobraz"
+  "Placemaker.UI.Group.biomes": "Krajobraz",
+  "Placemaker.Biome.dunes": "Wydmy",
+  "Placemaker.Biome.dunes.Tooltip": "Guzowate piaszczyste wzgórza gęsto porośnięte piaskownicą, nagi piasek tam, gdzie wcina się wiatr, jedna czy dwie karłowate sosny.",
+  "Placemaker.Biome.shingle": "Żwir",
+  "Placemaker.Biome.shingle.Tooltip": "Płaszczyzna szarych otoczaków w niskich wałach z rzadkimi kępami modrej kapusty i janowca, tu i ówdzie wyblakły pień."
 }

@@ -21,5 +21,9 @@
   "Placemaker.Biome.water.Tooltip": "낮은 땅의 자연 연못: 비탈진 기슭, 갈대, 물가 나무. 영구적: 지형을 바꿉니다.",
   "Placemaker.Biome.scale": "구역 크기",
   "Placemaker.Biome.scale.Tooltip": "낮음: 작은 구역 여럿이 섞임. 높음: 개성 있는 큰 구역 몇 개.",
-  "Placemaker.UI.Group.biomes": "경관"
+  "Placemaker.UI.Group.biomes": "경관",
+  "Placemaker.Biome.dunes": "사구",
+  "Placemaker.Biome.dunes.Tooltip": "갯그령이 빽빽한 울퉁불퉁한 모래 언덕, 바람이 파고드는 곳의 맨모래, 키 작은 소나무 한두 그루.",
+  "Placemaker.Biome.shingle": "자갈밭",
+  "Placemaker.Biome.shingle.Tooltip": "낮은 둔덕을 이룬 회색 조약돌 평지에 갯배추와 금작화 덤불이 드문드문, 군데군데 풍화된 통나무."
 }

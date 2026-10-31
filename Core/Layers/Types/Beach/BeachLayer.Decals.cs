@@ -190,6 +190,13 @@ namespace Placemaker.Core.Layers.Types.Beach
                 Brushes.Scatter(B, a, "rockPlatform", 0.35f, new ScatterOptions { Opacity = new float2(0.7f, 1f), Clump = 2f, Cause = "rock:headland" });
                 Brushes.Scatter(B, a, "tidePool", 0.06f, new ScatterOptions { Weight = p => shore.FromWater(p) < 3f ? 1f : 0.1f, Opacity = new float2(0.8f, 1f), Clump = 2f, Cause = "rock:pool" });
             }
+            foreach (var (ic, ir, ih, _) in f.Islands)
+            {
+                var isle = BrushArea.Of(LeisureKit.Blob(ic, ir * 1.05f, Hashing.Mix(seed, (uint)(ic.x * 3f)), 14, 0.2f));
+                Brushes.Scatter(B, isle, "rockOutcrop", 0.5f, new ScatterOptions { Opacity = new float2(0.8f, 1f), Clump = 2f, Cause = "rock:island" });
+                Brushes.Scatter(B, isle, "tidePool", 0.05f, new ScatterOptions { Weight = p => math.saturate(math.distance(p, ic) / ir - 0.6f), Opacity = new float2(0.8f, 1f), Clump = 1.5f, Cause = "rock:pool" });
+                Brushes.EdgeStrip(B, LeisureKit.Blob(ic, ir * 1.1f, Hashing.Mix(seed, (uint)(ic.y * 3f)), 18, 0.15f), "wrackLine", new StripOptions { Closed = true, Gaps = 0.4f, Opacity = new float2(0.7f, 1f), Cause = "water:island" });
+            }
             foreach (var (kc, kr, kh) in f.Knolls)
                 Brushes.Scatter(B, BrushArea.Of(LeisureKit.Blob(kc, kr, Hashing.Mix(seed, (uint)(kc.x * 5f)), 12, 0.2f)), "rockOutcrop", 0.6f, new ScatterOptions { Opacity = new float2(0.85f, 1f), Clump = 2f, Cause = "rock:knoll" });
             foreach (var (rs, rw, rlen) in f.Ravines)
@@ -213,7 +220,8 @@ namespace Placemaker.Core.Layers.Types.Beach
             // ── style grounds ──
             if (st == "shingle")
             {
-                Brushes.Tone(B, Band(-1f, b.D + 1f), "shingleCarpet", new float2(0.8f, 1f), 0.45f, ColourLevel.Any, "shingle:ground");
+                // soft overlapping patches, not the tiling carpet (a carpet laid alone shows its square edge: round 1)
+                Brushes.Scatter(B, Band(-1f, b.D + 1f), "shinglePatch", 1.1f, new ScatterOptions { Opacity = new float2(0.85f, 1f), Clump = 2.5f, Loners = 0.5f, Spill = 1.5f, Cause = "shingle:ground" });
                 foreach (float rd in f.Ridges)
                     foreach (var line in Along(rd))
                         Brushes.EdgeStrip(B, line, "shingleRidge", new StripOptions { Side = -WaterSide(shore, line), Gaps = 0.08f, Run = new float2(20f, 50f), Opacity = new float2(0.8f, 1f), Cause = "shingle:ridge" });

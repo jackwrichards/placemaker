@@ -21,5 +21,9 @@
   "Placemaker.Biome.water.Tooltip": "低窪處的天然池塘，帶斜坡岸、蘆葦和水邊樹木。永久：改變地形。",
   "Placemaker.Biome.scale": "斑塊大小",
   "Placemaker.Biome.scale.Tooltip": "低：許多小斑塊混在一起。高：少數大區域，各有特色。",
-  "Placemaker.UI.Group.biomes": "景觀"
+  "Placemaker.UI.Group.biomes": "景觀",
+  "Placemaker.Biome.dunes": "沙丘",
+  "Placemaker.Biome.dunes.Tooltip": "高低不平的沙丘上密生濱草，風切入處露出裸沙，還有一兩棵矮小的松樹。",
+  "Placemaker.Biome.shingle": "礫石灘",
+  "Placemaker.Biome.shingle.Tooltip": "一片灰色卵石平地堆成低矮的石脊，零星長著海甘藍和金雀花，四處可見風化的浮木。"
 }

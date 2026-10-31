@@ -21,5 +21,9 @@
   "Placemaker.Biome.water.Tooltip": "低地の自然な池：斜面の岸、葦、水辺の木。永続的：地形を変えます。",
   "Placemaker.Biome.scale": "区画の大きさ",
   "Placemaker.Biome.scale.Tooltip": "小：小さな区画がたくさん混ざる。大：少数の大きな区画、それぞれに個性。",
-  "Placemaker.UI.Group.biomes": "景観"
+  "Placemaker.UI.Group.biomes": "景観",
+  "Placemaker.Biome.dunes": "砂丘",
+  "Placemaker.Biome.dunes.Tooltip": "ハマニンニクが密生するでこぼこの砂山、風が切り込む所はむき出しの砂、いじけた松が1〜2本。",
+  "Placemaker.Biome.shingle": "砂利浜",
+  "Placemaker.Biome.shingle.Tooltip": "低い堤をなす灰色の小石の平地に、ハマナやエニシダの株がまばらに生え、ところどころに風化した流木。"
 }

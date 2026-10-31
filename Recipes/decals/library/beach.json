@@ -264,15 +264,15 @@
     {
       "id": "shinglePatch", "name": "Shingle", "tier": "macro",
       "about": "A spread of pebbles and cobbles on sand or grass, thick in its middle, thinning out: a shingle bar, a storm-thrown tongue, a cove's back.",
-      "texel": 0.025, "layers": "terrain", "order": 3, "lod": 40, "maxTexels": 512, "opacity": 0.85,
+      "texel": 0.03, "layers": "terrain", "order": 3, "lod": 50, "maxTexels": 512, "opacity": 0.95,
       "edge": { "feather": 1.4, "warp": 1.2, "warpScale": 3.5, "round": 0.85 },
-      "variants": { "count": 8, "size": [6, 11], "aspect": [0.4, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "variants": { "count": 8, "size": [8, 14], "aspect": [0.5, 1], "strength": [0.85, 1], "fades": ["soft", "islands", "wide"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 3 },
         { "op": "remap", "in": "n", "out": "bed", "lo": -0.6, "hi": 0.4 },
         { "op": "mul", "a": "bed", "b": "shape", "out": "b" },
-        { "op": "layer", "alpha": "b", "alphaK": 0.3, "color": [112, 104, 92], "smooth": 0.2 },
-        { "op": "scatter", "stamp": "pebble", "density": 55, "clusters": 5, "cluster": 0.35, "clusterRadius": [0.9, 2.7], "noise": { "scale": 3, "lo": -1, "hi": 0.25 }, "size": [0.05, 0.16], "aspect": [0.6, 0.95], "palette": [[118, 112, 104], [102, 98, 92], [128, 118, 102], [90, 86, 82], [112, 102, 88], [96, 92, 86]], "alpha": [0.95, 1], "value": 0.15, "height": 1, "smooth": 0.25, "max": 60000 }
+        { "op": "layer", "alpha": "b", "alphaK": 0.72, "color": [100, 96, 90], "color2": [86, 82, 78], "tone": "n", "smooth": 0.25 },
+        { "op": "scatter", "stamp": "pebble", "density": 60, "clusters": 5, "cluster": 0.35, "clusterRadius": [0.9, 2.7], "noise": { "scale": 3, "lo": -1.2, "hi": 0.1 }, "size": [0.08, 0.22], "aspect": [0.6, 0.95], "palette": [[118, 112, 104], [102, 98, 92], [128, 118, 102], [90, 86, 82], [112, 102, 88], [96, 92, 86]], "alpha": [0.95, 1], "value": 0.15, "height": 1, "smooth": 0.25, "max": 60000 }
       ]
     },
     {
