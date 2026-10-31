@@ -236,6 +236,22 @@ namespace Placemaker.Tests.Types
         }
 
         [Fact]
+        public void DesignedGroundsHaveWalksToEveryFacility()
+        {
+            // P2-4 (the user: sports parks "lack paths to the different facilities"): the designs were paving surfaces only
+            foreach (var id in SportsDesigns.Ids)
+            {
+                var host = Host(Compose(Preset(id), FiveHa, TestKit.RoadAlongBottom(250)));
+                if (!host.Facts.ContainsKey("sportsDesign")) { _out.WriteLine(id + ": classic park on this site"); continue; }
+                int walks = host.Nets.Count(n => n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide);
+                _out.WriteLine($"{id}: {host.Facts["facilities"]} facilities, {walks} walk pieces, {host.Facts["designWalkSpurs"]} spurs");
+                Assert.True(walks >= 6, id + " has no walks");
+                Assert.True(host.Facts["designWalkSpurs"] >= 1, id + " has no walk to a facility");
+                T04TypeTestBase.AssertNothingOnPaths(host);
+            }
+        }
+
+        [Fact]
         public void EntrancePlazaGrowsWithThePark()
         {
             // P2-4 (the user: the plaza doesn't grow when the park is drawn very big)

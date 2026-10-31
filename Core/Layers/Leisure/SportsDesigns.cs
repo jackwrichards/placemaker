@@ -55,6 +55,8 @@ namespace Placemaker.Core.Layers.Leisure
             public PlazaDesigns.Levels Lv;
             public float2 Entry;           // where most people arrive (the main gate, else the box's −B side)
             public int Places;
+            /// <summary>Every facility's place (the walks join each one).</summary>
+            public readonly List<OrientedRect> PlaceRects = new List<OrientedRect>();
             public float2 A => K.A;
             public float2 S => K.S;
             public float2 W(float u, float v) => K.W(u, v);
@@ -125,6 +127,7 @@ namespace Placemaker.Core.Layers.Leisure
                 return false;
             }
             ctx.Check();
+            Walks(s, gates, kerb + prom * 0.5f);
             k.RingTrees(treeRow, 9.5f, false, 1, true);
             k.Leftover(treeRow + 2f, "fence");
             k.FillLeftover();
@@ -147,6 +150,98 @@ namespace Placemaker.Core.Layers.Leisure
             ctx.Plan.Facts["designFlights"] = k.FlightCount;
             ctx.Plan.Facts["designCafes"] = k.CafeCount;
             return true;
+        }
+
+        /// <summary>
+        /// The walks (P2-4; the user: sports parks "lack paths to the different facilities"): the designs were paving surfaces only,
+        /// with no path a citizen or the eye could follow. A loop along the perimeter promenade, a spur in from every gate, and from
+        /// the loop the shortest clear spur to each facility (never across another one). Whatever the design stood in their way
+        /// (a tree, a bench, a flag) goes, and the tree rows planted after keep off them.
+        /// </summary>
+        private static void Walks(Site s, List<Gate> gates, float loopInset)
+        {
+            var ctx = s.Ctx; var region = ctx.LayerRegion;
+            var asset = AssetMix.One(ctx.S("pathAsset"));
+            float hw = Composer.DefaultHalfWidth(NetRole.Pathway);
+            var loop = region.InsetVertices(loopInset);
+            if (loop == null || loop.Length < 3) return;
+            var segs = new List<(float2 a, float2 b)>();
+            void Lay(float2 a, float2 b)
+            {
+                if (math.distance(a, b) < 1f) return;
+                ctx.StraightNet(a, b, NetRole.Pathway, asset);
+                s.K.Occ.TakeCorridor(a, b, hw + 0.4f, 100);
+                s.K.Occ.Paths.Add(a, b, hw, 100);
+                segs.Add((a, b));
+            }
+            // the loop, its corners broken where it cuts across them (a gate or a spur lands on the nearest straight)
+            for (int i = 0; i < loop.Length; i++) Lay(loop[i], loop[(i + 1) % loop.Length]);
+            float2 OnLoop(float2 p)
+            {
+                float2 best = loop[0]; float bd = float.MaxValue;
+                for (int i = 0; i < loop.Length; i++)
+                {
+                    var q = SegmentIndex.ClosestPoint(p, loop[i], loop[(i + 1) % loop.Length]);
+                    float d = math.distancesq(p, q);
+                    if (d < bd) { bd = d; best = q; }
+                }
+                return best;
+            }
+            foreach (var g in gates)
+                if (EntranceKinds.Walks(g.Kind)) Lay(g.Position, OnLoop(g.Position));
+            int spurs = 0;
+            foreach (var r in s.PlaceRects)
+            {
+                float best = float.MaxValue; float2 ba = default, bb = default;
+                var ring = r.Ring;
+                for (int e = 0; e < 4; e++)
+                {
+                    var mid = math.lerp(ring[e], ring[(e + 1) % 4], 0.5f);
+                    var outN = math.normalizesafe(mid - r.Center);
+                    var a = mid + outN * 0.8f;
+                    var hit = OnLoop(a);
+                    float len = math.distance(a, hit);
+                    if (len < 1.5f) { best = 0f; break; }   // the facility sits on the loop already
+                    // the spur leaves square to the facility's side and turns onto the loop at most once
+                    var bend = a + outN * math.max(0f, math.dot(hit - a, outN));
+                    if (len >= best || region.CrossesBoundary(a, bend, false) || region.CrossesBoundary(bend, hit, false)) continue;
+                    bool clear = true;
+                    foreach (var o in s.PlaceRects)
+                    {
+                        if (o.Center.Equals(r.Center)) continue;
+                        if (Crosses(o, a, bend, hw + 0.6f) || Crosses(o, bend, hit, hw + 0.6f)) { clear = false; break; }
+                    }
+                    if (!clear) continue;
+                    best = len; ba = a; bb = bend;
+                    if (math.distance(bend, hit) < 0.5f) bb = hit;
+                }
+                if (best <= 0f || best == float.MaxValue) continue;
+                Lay(ba, bb);
+                var end = OnLoop(bb);
+                if (math.distance(bb, end) > 0.5f) Lay(bb, end);
+                spurs++;
+            }
+            // clear what stands on the walks
+            ctx.Plan.Objects.RemoveAll(o =>
+            {
+                if (o.Role == ObjectRole.Decal || o.Role == ObjectRole.AccessPoint) return false;
+                float keep = hw + (o.Role == ObjectRole.Tree ? 2f : 0.7f);
+                foreach (var (a, b) in segs) if (SegmentIndex.DistSq(o.Position.xz, a, b) < keep * keep) return true;
+                return false;
+            });
+            ctx.Plan.Facts["designWalkSpurs"] = spurs;
+        }
+
+        /// <summary>The segment a-b passes within <paramref name="pad"/> of the rectangle.</summary>
+        private static bool Crosses(OrientedRect r, float2 a, float2 b, float pad)
+        {
+            int n = math.max(2, (int)(math.distance(a, b) / 1.5f));
+            for (int i = 0; i <= n; i++)
+            {
+                var p = math.lerp(a, b, i / (float)n) - r.Center;
+                if (math.abs(math.dot(p, r.Axis)) < r.HalfLength + pad && math.abs(math.dot(p, r.Side)) < r.HalfWidth + pad) return true;
+            }
+            return false;
         }
 
         private static float2 MainGate(PlazaDesigns.Kit k, List<Gate> gates)
@@ -189,6 +284,7 @@ namespace Placemaker.Core.Layers.Leisure
             if (!string.IsNullOrEmpty(extra)) tags.Add(extra);
             s.Ctx.AddRegion(r.Ring, Amenities.Place(layer) + ":" + s.Places, tags.ToArray());
             s.K.Occ.TakePolygon(r.Ring);
+            s.PlaceRects.Add(r);
             s.Places++;
         }
 
@@ -492,9 +588,9 @@ namespace Placemaker.Core.Layers.Leisure
             if (u1 - u0 >= 40f)
             {
                 float bu = 38.6f, bv = 35.5f;
-                int nu = (int)math.floor((u1 - u0 + 2f) / (bu + 2f));
+                int nu = math.min(2, (int)math.floor((u1 - u0 + 2f) / (bu + 2f)));   // P2-4: at most 2 x 2 blocks of practice courts
                 for (int i = 0; i < nu; i++)
-                    for (float v = -s.IB + 1f; v + bv <= s.IB - 1f; v += bv + 2f)
+                    for (float v = -s.IB + 1f; v + bv <= s.IB - 1f && courts < 4; v += bv + 2f)
                     {
                         float a0 = u0 + i * (bu + 2f);
                         if (hill && a0 < hillU1 + 2f && v < hv1 + 2f) continue;
@@ -718,17 +814,22 @@ namespace Placemaker.Core.Layers.Leisure
             float u = -s.IA;
             int col = 0;
             float alley = 0f;
-            while (col < 8)
+            // P2-4: a big site filled edge to edge with 80 cages read as a car park of courts; a cage park is a block of up to
+            // 16 (four rows), the rest of the site its gardens
+            const int MaxCages = 16, MaxRows = 4;
+            float gv0 = float.MaxValue, gv1 = float.MinValue;
+            while (col < 8 && cages.Count < MaxCages)
             {
                 bool pitchCol = five && col == 0 && v1 - v0 >= 39f;
                 float cl = pitchCol ? 47f : 34f, cw = pitchCol ? 39f : 25f;
                 if (u + cl > s.IA) break;
-                int rows = (int)math.floor((v1 - v0 + gap) / (cw + gap));
-                if (rows < 1) break;
+                int rows = math.min(MaxRows, (int)math.floor((v1 - v0 + gap) / (cw + gap)));
+                if (rows < 1 || cages.Count + rows > MaxCages && cages.Count >= 8) break;
                 float span = rows * cw + (rows - 1) * gap;
                 float vs = (v0 + v1) * 0.5f - span * 0.5f;
                 for (int r = 0; r < rows; r++)
                     cages.Add((pitchCol ? "pitch" : "basketballCourt", k.Box(u, u + cl, vs + r * (cw + gap), vs + r * (cw + gap) + cw)));
+                gv0 = math.min(gv0, vs); gv1 = math.max(gv1, vs + span);
                 float wide = col == 0 ? SportsProps.Small02.Depth + 2.4f : gap;   // a wide alley after the first column for stands
                 if (col == 0) alley = u + cl;
                 u += cl + wide;
@@ -752,7 +853,7 @@ namespace Placemaker.Core.Layers.Leisure
             var turf = new List<float2[]>();
             foreach (var (layer, r0) in cages)
                 if (layer == "pitch") turf.Add(new OrientedRect { Center = r0.Center + s.A * shift, Axis = r0.Axis, HalfLength = r0.HalfLength - 1f, HalfWidth = r0.HalfWidth - 1f }.Ring);
-            k.Lay(PFeature + 8, k.Pieces(k.Box(-s.IA, s.IA, v0, v1).Ring, turf, 20f), Asphalt, SurfaceRole.Asphalt, AssetCategories.SurfaceAsphalt);
+            k.Lay(PFeature + 8, k.Pieces(k.Box(math.max(-s.IA, -used * 0.5f - 3f), math.min(s.IA, used * 0.5f + 3f), math.max(v0, gv0 - 3f), math.min(v1, gv1 + 3f)).Ring, turf, 20f), Asphalt, SurfaceRole.Asphalt, AssetCategories.SurfaceAsphalt);
             var masts = new HashSet<(int, int)>();
             foreach (var (layer, r0) in cages)
             {
