@@ -73,7 +73,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                 ("biomeLawn", 0.0), ("biomeRocky", 50.0), ("biomeForest", 30.0), ("biomeHeath", 20.0));
             // Rocky ravine: a high rocky bank behind a pocket beach, cut by two boulder-choked barrancas down to the water.
             Preset("ravine", ("style", "ravine"), ("beachDepth", 20.0), ("wetBand", 3.0), ("slope", 7.0), ("bluff", 10.0), ("ravines", 2.0), ("boulders", 60.0), ("knolls", 0.0),
-                ("umbrellas", 0.0), ("backdrop", "none"), ("treeDensity", 30.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
+                ("umbrellas", 0.0), ("backdrop", "none"), ("treeDensity", 16.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
                 ("benchSpacing", 40.0), ("bay", 0.0), ("landings", false), ("sandBlend", 8.0),
                 ("biomeLawn", 0.0), ("biomeRocky", 35.0), ("biomeHeath", 40.0), ("biomeForest", 25.0));   // pines and heath on the bluff top, not bare
             // Marsh shore: a saltmarsh flat with creeks and salt pans, reed beds, a boardwalk out to the open water, a strip of sand.

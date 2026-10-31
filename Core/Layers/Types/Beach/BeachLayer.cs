@@ -1316,12 +1316,16 @@ namespace Placemaker.Core.Layers.Types.Beach
                         if (band == null) continue;
                         // p2-beaches: tufts, not a carpet: the sea face of the foredune bare, a few on its crest, more in the slack
                         // and on the back dune (450 /ha covered the sand and the relief with round bushes)
-                        int wanted = (int)(band.Area / 10000f * 200f * pct);
+                        // marram where the sand stands high (crests and upper slopes), none in the slacks: the grass draws the ridges
+                        // (the game's light barely shades bare sand: 5 m dunes read flat from 45°)
+                        float duneH = math.max(1f, ctx.F("duneHeight"));
+                        int wanted = (int)(band.Area / 10000f * 320f * pct);
                         LeisureKit.Plant(ctx, occ, band, wanted, ObjectRole.Bush, grass, 0.9f, 9f, 0.2f, 0xD6A5u, p =>
                         {
                             float u = (shore.FromWater(p) - behind) / math.max(1f, duneEnd - behind);
-                            float keep = u < 0.25f ? 0f : u < 0.4f ? 0.25f : 0.6f;
-                            return Hashing.Unit(Hashing.Mix(salt, (int)(p.x * 5f), (int)(p.y * 5f))) > keep;
+                            if (u < 0.2f) return true;   // the sea face stays bare
+                            float high = math.saturate((b.G.H(p) - ctx.H(p)) / (0.55f * duneH));
+                            return Hashing.Unit(Hashing.Mix(salt, (int)(p.x * 5f), (int)(p.y * 5f))) > 0.9f * high * high;
                         });
                     }
                     occ.GroundOk = keep;
@@ -1362,7 +1366,8 @@ namespace Placemaker.Core.Layers.Types.Beach
                         var band = LayerRegion.From(ring);
                         if (band == null) continue;
                         LeisureKit.Plant(ctx, occ, band, (int)(band.Area / 10000f * treeDensity * factor), ObjectRole.Tree, trees, 2.5f,
-                            backdrop == "lawn" ? 26f : 16f, backdrop == "lawn" ? 0.15f : 0.35f, 0x7E56u, null, 1, 3);
+                            backdrop == "lawn" ? 26f : 16f, backdrop == "lawn" ? 0.15f : 0.35f, 0x7E56u,
+                            b.Forms.Ravines.Count > 0 ? (System.Func<float2, bool>)(p => RavineAt(b, p)) : null, 1, 3);   // trees hid the ravines
                     }
                 if (backdrop == "woods")
                 {
