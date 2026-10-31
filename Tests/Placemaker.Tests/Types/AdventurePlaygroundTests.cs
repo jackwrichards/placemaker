@@ -125,9 +125,9 @@ namespace Placemaker.Tests.Types
             foreach (var p in g.Presets) Need(p.LabelKey);
             foreach (var f in Features.Of(g)) { Need(f.LabelKey); Need(f.TooltipKey); }
             Assert.True(missing.Count == 0, "Missing en-US keys: " + string.Join(", ", missing));
-            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, maxControls);   // (Phase 1) look settings not counted
+            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look") && c.Group != Placemaker.Core.Layers.Common.Biomes.BiomeMix.Group), 15, maxControls);   // (Phase 1) look settings not counted; (Biome mix) the mix is one control
             Assert.InRange(g.Presets.Count, minPresets, 6);
-            var groups = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Where(x => x != "entrances" && x != "shops").Distinct().Count();   // (Phase 1) look settings not counted
+            var groups = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look") && c.Group != Placemaker.Core.Layers.Common.Biomes.BiomeMix.Group).Select(c => c.Group).Where(x => x != "entrances" && x != "shops").Distinct().Count();   // (Phase 1) look settings not counted
             Assert.InRange(groups, 4, 8);
             Assert.Equal("parks", GeneratorGroups.Of(g));
             Assert.Contains(g.Controls, c => c.Id == "style" && c.Kind == ControlKind.Choice && c.Tier == ControlTier.Essential);
@@ -156,7 +156,7 @@ namespace Placemaker.Tests.Types
             return r;
         }
 
-        public static void AssertFast(string layer, ITestOutputHelper output)
+        public static void AssertFast(string layer, ITestOutputHelper output, int budget = 250)
         {
             var gen = TestKit.Gen(layer);
             var ring = TestKit.Rect(250, 200);
@@ -167,7 +167,7 @@ namespace Placemaker.Tests.Types
                 PlanPreset(layer, p, ring, TestKit.RoadAlongBottom(250));
                 sw.Stop();
                 output?.WriteLine($"{layer}/{p.Id}: {sw.ElapsedMilliseconds} ms");
-                Assert.True(sw.ElapsedMilliseconds < TimingBudget.Ms(250), $"{layer}/{p.Id} took {sw.ElapsedMilliseconds} ms for 5 ha");
+                Assert.True(sw.ElapsedMilliseconds < TimingBudget.Ms(budget), $"{layer}/{p.Id} took {sw.ElapsedMilliseconds} ms for 5 ha");
             }
         }
 
@@ -250,7 +250,7 @@ namespace Placemaker.Tests.Types
         }
 
         [Fact]
-        public void FastOnFiveHectares() => TypeChecks09.AssertFast(Id, _out);
+        public void FastOnFiveHectares() => TypeChecks09.AssertFast(Id, _out, 450);   // (Biome mix) it plans a landscape between its zones now (forest, rocks, glade: ~150 ms of 5 ha)
 
         [Fact]
         public void FeaturesCompose() => TypeChecks09.AssertFeaturesCompose(Id);
@@ -297,7 +297,7 @@ namespace Placemaker.Tests.Types
             var jungle = P("jungle");
             Assert.True(Cat(jungle, AssetCategories.PlayClimb) > Cat(adventure, AssetCategories.PlayClimb), $"climb {Cat(jungle, AssetCategories.PlayClimb)} vs {Cat(adventure, AssetCategories.PlayClimb)}");
             // (parks makeover) the wild places shape the ground; the jungle itself does not
-            var jv = Preset("jungle").Values.Clone(); jv.Values["moods"] = false;
+            var jv = Preset("jungle").Values.Clone(); jv.Values["moods"] = false; BiomeMixTests.LawnOnly(jv);
             Assert.Empty(TestKit.Gen(Id).Plan(TestKit.Input(ring, jv, 7, null, TestKit.RoadAlongBottom(200)), System.Threading.CancellationToken.None).Terraform);
         }
 

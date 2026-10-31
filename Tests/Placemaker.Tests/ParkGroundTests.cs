@@ -24,7 +24,7 @@ namespace Placemaker.Tests
         private readonly ITestOutputHelper _out;
         public ParkGroundTests(ITestOutputHelper o) { _out = o; }
 
-        internal static ComposedPlan Plan(string type, string preset, float w, float d, Func<float2, float> ground, uint seed = 1)
+        internal static ComposedPlan Plan(string type, string preset, float w, float d, Func<float2, float> ground, uint seed = 1, bool lawnOnly = false)
         {
             GroundDesignTests.Lib();
             var gen = GeneratorRegistry.Get(type);
@@ -34,6 +34,7 @@ namespace Placemaker.Tests
             uint n = 0;
             editor.AddDefaultFeatures(r, () => ++n);
             if (preset != null) editor.ApplyPreset(r, RecipePaths.Root, preset);
+            if (lawnOnly) BiomeMixTests.LawnOnly(r.Root.Settings);
             uint k = 0;
             foreach (var kv in RecipePaths.Walk(r)) kv.Value.Seed = seed * 1000u + (++k);
             var ring = DynamicDecalsTests.Block(w, d);
@@ -66,7 +67,8 @@ namespace Placemaker.Tests
             var w = plan.Weathering;
             Assert.NotNull(w);
             var host = plan.Layers.First(l => l.GeneratorId == type);
-            var moods = host.Facts.Where(f => f.Key.StartsWith("mood.")).Select(f => f.Key + "=" + f.Value).ToList();
+            // (Biome mix) the natural areas replaced the places with moods: either counts as a park of several characters
+            var moods = host.Facts.Where(f => f.Key.StartsWith("mood.") || f.Key.StartsWith("biome.") && f.Key != "biome.lawn" && f.Value > 0).Select(f => f.Key + "=" + f.Value).ToList();
             _out.WriteLine($"{type}/{style}/{site}: compose {sw.ElapsedMilliseconds} ms; moods [{string.Join(", ", moods)}] rocks {Fact(host, "moodRocks")} plants {Fact(host, "moodPlants")} terrain {Fact(host, "moodTerrainCells")} cells");
             _out.WriteLine($"  {w}");
             Assert.InRange(w.Instances, 200, Weathering.MaxInstances);
@@ -74,7 +76,7 @@ namespace Placemaker.Tests
             if (type == "park" && style != "urban")
             {
                 Assert.True(moods.Count >= 2, "a park has several distinct moods: " + string.Join(", ", moods));
-                Assert.True(w.ByCause.Keys.Any(c => c.StartsWith("mood:")), "no mood ground");
+                Assert.True(w.ByCause.Keys.Any(c => c.StartsWith("mood:") || c.StartsWith("biome:")), "no mood or biome ground");
             }
             // the country park has the community garden on: one lawn room of allotment plots
             if (type == "park" && style == "wild") Assert.True(Fact(host, "allotmentPlots") >= 4, "allotments " + Fact(host, "allotmentPlots"));
@@ -92,7 +94,8 @@ namespace Placemaker.Tests
             foreach (var st in new[] { "natural", "default", "garden" })
                 for (uint seed = 1; seed <= 4; seed++)
                 {
-                    var plan = Plan("park", st == "default" ? null : st, 146f, 136f, null, seed);
+                    // (Biome mix) the knoll is a mood: moods plan for a mix turned down to the lawn alone
+                    var plan = Plan("park", st == "default" ? null : st, 146f, 136f, null, seed, lawnOnly: true);
                     var host = plan.Layers.First(l => l.GeneratorId == "park");
                     _out.WriteLine($"{st} seed {seed}: outcrop {Fact(host, "mood.outcrop")} stand {Fact(host, "moodStand")} rocks {Fact(host, "moodRocks")} drifts {Fact(host, "bushDrifts")} bushes {Fact(host, "bushesPlanted")}/{Fact(host, "bushesWanted")}");
                     Assert.True(Fact(host, "mood.outcrop") >= 1, $"{st} seed {seed}: no knoll");
@@ -108,7 +111,7 @@ namespace Placemaker.Tests
         {
             for (uint seed = 1; seed <= 8; seed++)
             {
-                var plan = Plan("park", "natural", 180f, 160f, null, seed);
+                var plan = Plan("park", "natural", 180f, 160f, null, seed, lawnOnly: true);   // (Biome mix) moods plan for a mix of lawn alone
                 var host = plan.Layers.First(l => l.GeneratorId == "park");
                 var moods = host.Facts.Where(f => f.Key.StartsWith("mood.")).ToList();
                 _out.WriteLine($"seed {seed}: {string.Join(", ", moods.Select(m => m.Key + "=" + m.Value))}");
@@ -126,7 +129,7 @@ namespace Placemaker.Tests
             var plan = Plan("park", "natural", w, d, p => 3f * math.sin(p.x / 60f) * math.cos(p.y / 50f));
             sw.Stop();
             var host = plan.Layers.First(l => l.GeneratorId == "park");
-            _out.WriteLine($"{w} x {d}: compose {sw.ElapsedMilliseconds} ms; {plan.Weathering}; moods {Fact(host, "moodPlaces")} terrain {Fact(host, "moodTerrainCells")} cells");
+            _out.WriteLine($"{w} x {d}: compose {sw.ElapsedMilliseconds} ms; {plan.Weathering}; moods {Fact(host, "moodPlaces")} terrain {Fact(host, "moodTerrainCells")} cells; biomes {Fact(host, "biomeMs")} ms (field {Fact(host, "biomeMsField")}, shape {Fact(host, "biomeMsShape")}, objects {Fact(host, "biomeMsObjects")}) objects {host.Objects.Count}; plan {string.Join(", ", plan.Timings.Select(t => t.Key + " " + Math.Round(t.Value)))}");
             Assert.False(plan.HasErrors);
             Assert.True(sw.ElapsedMilliseconds < 12000, $"compose {sw.ElapsedMilliseconds} ms");
             Assert.True(plan.Weathering == null || plan.Weathering.Instances <= Weathering.MaxInstances);

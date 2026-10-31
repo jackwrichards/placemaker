@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+7dfda428",
+  "assembly": "0.3.6+09af870c-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -16819,6 +16819,63 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookPlazaTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "grid",
+            "islands"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookFlowerbeds",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookShore",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "auto",
+            "promenade",
+            "boardwalk",
+            "beach",
+            "reeds",
+            "pier"
+          ],
+          "default": "auto"
+        },
+        {
+          "id": "lookTerraceGarden",
+          "kind": "Toggle",
+          "default": false
         }
       ],
       "shelvedStyles": [
@@ -17437,6 +17494,7 @@
         "riverside",
         "greenway",
         "picnic",
+        "rocky",
         "wild",
         "neglected"
       ],
@@ -17714,6 +17772,105 @@
           "id": "moodGround",
           "kind": "Toggle",
           "default": true
+        },
+        {
+          "id": "biomeLawn",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 45.0
+        },
+        {
+          "id": "biomeMeadow",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 15.0
+        },
+        {
+          "id": "biomeFlowers",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeMulch",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeGlade",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 10.0
+        },
+        {
+          "id": "biomeForest",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 15.0
+        },
+        {
+          "id": "biomeRocky",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 9.0
+        },
+        {
+          "id": "biomeHeath",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeWetland",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 6.0
+        },
+        {
+          "id": "biomeWater",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeScale",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 55.0
         },
         {
           "id": "carPark",
@@ -18236,11 +18393,102 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookWater",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "pond",
+            "lake"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "some"
+        },
+        {
+          "id": "lookFlowerbeds",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "some"
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookGroundPatches",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mixed",
+            "meadowMown",
+            "rockGarden",
+            "sandGravel",
+            "wornLawn"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookShore",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "auto",
+            "promenade",
+            "boardwalk",
+            "beach",
+            "reeds",
+            "pier"
+          ],
+          "default": "auto"
+        },
+        {
+          "id": "lookTerraceGarden",
+          "kind": "Toggle",
+          "default": false
         }
       ],
       "shelvedStyles": [
         "formal",
-        "woodland",
         "meadow",
         "pocket",
         "victorian",
@@ -18439,6 +18687,34 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -18509,6 +18785,96 @@
           "id": "moodGround",
           "kind": "Toggle",
           "default": true
+        },
+        {
+          "id": "biomeLawn",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 48.0
+        },
+        {
+          "id": "biomeFlowers",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 16.0
+        },
+        {
+          "id": "biomeMulch",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 12.0
+        },
+        {
+          "id": "biomeGlade",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 8.0
+        },
+        {
+          "id": "biomeForest",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeRocky",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 9.0
+        },
+        {
+          "id": "biomeHeath",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeWetland",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 7.0
+        },
+        {
+          "id": "biomeWater",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeScale",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 35.0
         },
         {
           "id": "benches",
@@ -18674,6 +19040,34 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -19279,6 +19673,34 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelved": true
@@ -19463,6 +19885,34 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelved": true
@@ -19633,6 +20083,34 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -19827,6 +20305,28 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerraceGarden",
+          "kind": "Toggle",
+          "default": false
         }
       ],
       "shelved": true
@@ -20004,6 +20504,23 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelved": true
@@ -20267,6 +20784,23 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -20421,6 +20955,23 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelved": true
@@ -20566,6 +21117,23 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -21966,6 +22534,28 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -22724,6 +23314,28 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookFlowerbeds",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -22994,6 +23606,16 @@
         },
         {
           "id": "dressPaintClear",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookSpoilHeaps",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookWorkLights",
           "kind": "Toggle",
           "default": false
         }
@@ -23297,6 +23919,38 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookSpoilHeaps",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookWorkLights",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -23730,6 +24384,39 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookLightTowers",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -24115,6 +24802,44 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookLightTowers",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookFlowerbeds",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -24427,6 +25152,56 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookFlowerbeds",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelved": true
@@ -24752,6 +25527,44 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookPlazaTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "grid",
+            "islands"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookFlowerbeds",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -25129,6 +25942,45 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -25413,6 +26265,34 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
         }
       ],
       "shelved": true
@@ -25743,6 +26623,39 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookFlowerbeds",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
         }
       ]
     },
@@ -26060,6 +26973,28 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -26167,6 +27102,78 @@
           "id": "moodGround",
           "kind": "Toggle",
           "default": true
+        },
+        {
+          "id": "biomeLawn",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 40.0
+        },
+        {
+          "id": "biomeMeadow",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 10.0
+        },
+        {
+          "id": "biomeMulch",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 5.0
+        },
+        {
+          "id": "biomeGlade",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 15.0
+        },
+        {
+          "id": "biomeForest",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 15.0
+        },
+        {
+          "id": "biomeRocky",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 15.0
+        },
+        {
+          "id": "biomeWetland",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeScale",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 45.0
         },
         {
           "id": "logs",
@@ -26403,6 +27410,39 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookKickabout",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -26638,6 +27678,60 @@
           "default": true
         },
         {
+          "id": "biomeLawn",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 70.0
+        },
+        {
+          "id": "biomeMeadow",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 10.0
+        },
+        {
+          "id": "biomeFlowers",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 8.0
+        },
+        {
+          "id": "biomeGlade",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 12.0
+        },
+        {
+          "id": "biomeForest",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeScale",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 40.0
+        },
+        {
           "id": "treeSpecies",
           "kind": "AssetMulti",
           "default": []
@@ -26775,6 +27869,50 @@
         },
         {
           "id": "dressPaintClear",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookFlowerbeds",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerraceGarden",
           "kind": "Toggle",
           "default": false
         }
@@ -27063,6 +28201,11 @@
         },
         {
           "id": "dressPaintClear",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookBreakArea",
           "kind": "Toggle",
           "default": false
         }
@@ -27367,6 +28510,17 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -27662,6 +28816,38 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookJunkPiles",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookSkips",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
         }
       ],
       "shelved": true
@@ -27956,6 +29142,50 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookDebris",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -28312,6 +29542,39 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookDebris",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "few"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -28625,6 +29888,27 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookSkips",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookJunkPiles",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [
@@ -29686,6 +30970,17 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
         }
       ]
     },
@@ -30015,6 +31310,34 @@
           "id": "dressPaintClear",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
         }
       ],
       "shelvedStyles": [

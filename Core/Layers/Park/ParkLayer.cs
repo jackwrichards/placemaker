@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using Placemaker.Core.Geometry;
 using Placemaker.Core.Layers.AddOns;
 using Placemaker.Core.Layers.Common;
+using Placemaker.Core.Layers.Common.Biomes;
 using Placemaker.Core.Layers.Common.Shore;
 using Unity.Mathematics;
 
@@ -97,6 +98,15 @@ namespace Placemaker.Core.Layers.Park
 
         public IReadOnlyList<FeatureInfo> Features => FeatureList;
 
+        /// <summary>
+        /// (Biome mix, 2026-10-30) The park's natural areas: its own lawn (the style's planting and furniture), meadow, flower
+        /// field, mulch beds, woodland glade, forest, rocky ground, sand and heath, wetland, ponds. The styles preset the mix.
+        /// It replaces the places with moods and the rocky-areas setting (hidden; saved designs still build).
+        /// </summary>
+        public static readonly BiomeOffer Biomes = new BiomeOffer(
+            ("lawn", 45), ("meadow", 15), ("flowers", 0), ("mulch", 0), ("glade", 10), ("forest", 15), ("rocky", 9), ("heath", 0), ("wetland", 6), ("water", 0))
+        { Scale = 55 };
+
         internal static SettingsBag Bag(params (string key, object value)[] values)
         {
             var b = new SettingsBag();
@@ -155,6 +165,7 @@ namespace Placemaker.Core.Layers.Park
             // corner, a copse with fallen logs, standing stones): ParkMoods.cs. "moodGround" lets them shape the ground.
             c.Toggle("moods", true, ControlTier.Essential, "layout").Tip();
             c.Toggle("moodGround", true, ControlTier.More, "layout").When("moods=true").Tip();
+            BiomeMix.Define(c, Biomes);
             c.Toggle("carPark", false, ControlTier.More, "boundary").Tip();
             c.Toggle("communityGarden", false, ControlTier.More, "layout").Tip();
             c.Toggle("fence", false, ControlTier.More, "boundary");
@@ -199,39 +210,57 @@ namespace Placemaker.Core.Layers.Park
 
         protected override void DefinePresets()
         {
-            Preset("natural", ("style", "natural"), ("treeDensity", 26.0), ("bushDensity", 65.0), ("furniture", 4.0), ("pathStyle", "curvy"), ("desireLines", "worn"));
-            Preset("formal", ("style", "formal"), ("pathWidth", "narrow"), ("curvedPaths", false), ("treeDensity", 30.0),
-                ("bushDensity", 60.0), ("furniture", 4.5), ("paths", "network"), ("pathStyle", "formal"));
-            Preset("garden", ("style", "garden"), ("pathWidth", "narrow"), ("treeDensity", 22.0), ("bushDensity", 95.0),
-                ("furniture", 4.0), ("pathStyle", "garden"), ("naturalGround", true));
-            Preset("woodland", ("style", "woodland"), ("pathWidth", "narrow"), ("treeDensity", 80.0), ("bushDensity", 90.0),
-                ("furniture", 1.5), ("animals", true), ("lamps", false), ("pathStyle", "garden"), ("naturalGround", true), ("trails", 3.0));
-            Preset("meadow", ("style", "meadow"), ("pathWidth", "narrow"), ("treeDensity", 8.0), ("bushDensity", 20.0),
-                ("furniture", 3.0), ("paths", "minimal"), ("pathStyle", "scenic"));
-            Preset("pocket", ("style", "pocket"), ("treeDensity", 40.0), ("bushDensity", 60.0), ("furniture", 6.0),
-                ("paths", "minimal"));
+            Preset("natural", BiomeMix.With(new (string, object)[] { ("style", "natural"), ("treeDensity", 26.0), ("bushDensity", 65.0), ("furniture", 4.0), ("pathStyle", "curvy"), ("desireLines", "worn") },
+                BiomeMix.Preset(Biomes, 55, ("lawn", 38), ("meadow", 14), ("flowers", 4), ("glade", 10), ("forest", 16), ("rocky", 11), ("wetland", 7))));
+            Preset("formal", BiomeMix.With(new (string, object)[] { ("style", "formal"), ("pathWidth", "narrow"), ("curvedPaths", false), ("treeDensity", 30.0),
+                ("bushDensity", 60.0), ("furniture", 4.5), ("paths", "network"), ("pathStyle", "formal") },
+                BiomeMix.Preset(Biomes, 30, ("lawn", 70), ("flowers", 18), ("mulch", 12))));
+            Preset("garden", BiomeMix.With(new (string, object)[] { ("style", "garden"), ("pathWidth", "narrow"), ("treeDensity", 22.0), ("bushDensity", 95.0),
+                ("furniture", 4.0), ("pathStyle", "garden"), ("naturalGround", true) },
+                BiomeMix.Preset(Biomes, 35, ("lawn", 42), ("flowers", 20), ("mulch", 18), ("glade", 8), ("forest", 4), ("rocky", 8))));
+            Preset("woodland", BiomeMix.With(new (string, object)[] { ("style", "woodland"), ("pathWidth", "narrow"), ("treeDensity", 80.0), ("bushDensity", 90.0),
+                ("furniture", 1.5), ("animals", true), ("lamps", false), ("pathStyle", "garden"), ("naturalGround", true), ("trails", 3.0) },
+                BiomeMix.Preset(Biomes, 60, ("lawn", 8), ("glade", 22), ("forest", 58), ("rocky", 6), ("wetland", 6))));
+            Preset("meadow", BiomeMix.With(new (string, object)[] { ("style", "meadow"), ("pathWidth", "narrow"), ("treeDensity", 8.0), ("bushDensity", 20.0),
+                ("furniture", 3.0), ("paths", "minimal"), ("pathStyle", "scenic") },
+                BiomeMix.Preset(Biomes, 60, ("lawn", 15), ("meadow", 55), ("flowers", 18), ("glade", 7), ("wetland", 5))));
+            Preset("pocket", BiomeMix.With(new (string, object)[] { ("style", "pocket"), ("treeDensity", 40.0), ("bushDensity", 60.0), ("furniture", 6.0),
+                ("paths", "minimal") },
+                BiomeMix.Preset(Biomes, 25, ("lawn", 75), ("mulch", 15), ("flowers", 10))));
             // Round 5: six park idioms, each a different path figure + planting rule (not density tweaks).
-            Preset("victorian", ("style", "victorian"), ("pathStyle", "figureEight"), ("pathWidth", "narrow"), ("treeDensity", 30.0),
-                ("bushDensity", 75.0), ("furniture", 5.0), ("fence", true), ("lamps", true), ("bins", true), ("curvedPaths", true));
+            Preset("victorian", BiomeMix.With(new (string, object)[] { ("style", "victorian"), ("pathStyle", "figureEight"), ("pathWidth", "narrow"), ("treeDensity", 30.0),
+                ("bushDensity", 75.0), ("furniture", 5.0), ("fence", true), ("lamps", true), ("bins", true), ("curvedPaths", true) },
+                BiomeMix.Preset(Biomes, 35, ("lawn", 64), ("flowers", 14), ("mulch", 14), ("glade", 8))));
             Preset("landscape", ("style", "landscape"), ("pathStyle", "circuit"), ("pathWidth", "narrow"), ("treeDensity", 34.0),
                 ("bushDensity", 45.0), ("furniture", 3.0), ("belt", true), ("lamps", false), ("curvedPaths", true), ("trails", 2.0), ("smallPaths", 1.0),
-                ("lakeSize", 100.0), ("lookWater", "lake"));
-            Preset("modern", ("style", "modern"), ("pathStyle", "promenade"), ("pathWidth", "narrow"), ("curvedPaths", false),
-                ("treeDensity", 40.0), ("bushDensity", 45.0), ("furniture", 5.0), ("belt", true), ("lamps", true));
+                ("lakeSize", 100.0), ("lookWater", "lake"), ("biomeLawn", 62.0), ("biomeMeadow", 0.0), ("biomeGlade", 16.0), ("biomeForest", 18.0), ("biomeRocky", 0.0),
+                ("biomeWetland", 4.0), ("biomeScale", 65.0));
+            Preset("modern", BiomeMix.With(new (string, object)[] { ("style", "modern"), ("pathStyle", "promenade"), ("pathWidth", "narrow"), ("curvedPaths", false),
+                ("treeDensity", 40.0), ("bushDensity", 45.0), ("furniture", 5.0), ("belt", true), ("lamps", true) },
+                BiomeMix.Preset(Biomes, 40, ("lawn", 60), ("flowers", 18), ("mulch", 12), ("heath", 10))));
             Preset("wildflower", ("style", "wildflower"), ("pathStyle", "woodlandTrail"), ("pathWidth", "narrow"), ("treeDensity", 6.0),
-                ("bushDensity", 45.0), ("furniture", 2.5), ("lamps", false), ("bins", false), ("naturalGround", true), ("animals", true));
-            Preset("urban", ("style", "urban"), ("pathStyle", "spokeRing"), ("pathWidth", "mixed"), ("treeDensity", 45.0),
-                ("bushDensity", 50.0), ("furniture", 7.0), ("lamps", true), ("bins", true), ("belt", true));
+                ("bushDensity", 45.0), ("furniture", 2.5), ("lamps", false), ("bins", false), ("naturalGround", true), ("animals", true),
+                ("biomeLawn", 12.0), ("biomeMeadow", 34.0), ("biomeFlowers", 46.0), ("biomeGlade", 8.0), ("biomeForest", 0.0), ("biomeRocky", 0.0), ("biomeWetland", 0.0), ("biomeScale", 55.0));
+            Preset("urban", BiomeMix.With(new (string, object)[] { ("style", "urban"), ("pathStyle", "spokeRing"), ("pathWidth", "mixed"), ("treeDensity", 45.0),
+                ("bushDensity", 50.0), ("furniture", 7.0), ("lamps", true), ("bins", true), ("belt", true) },
+                BiomeMix.Preset(Biomes, 25, ("lawn", 66), ("mulch", 22), ("flowers", 12))));
             Preset("riverside", ("style", "riverside"), ("pathStyle", "riverside"), ("pathWidth", "narrow"), ("treeDensity", 30.0),
-                ("bushDensity", 60.0), ("furniture", 4.0), ("naturalGround", true), ("animals", true), ("curvedPaths", true), ("bikePath", true));
+                ("bushDensity", 60.0), ("furniture", 4.0), ("naturalGround", true), ("animals", true), ("curvedPaths", true), ("bikePath", true),
+                ("biomeLawn", 40.0), ("biomeMeadow", 18.0), ("biomeGlade", 0.0), ("biomeForest", 16.0), ("biomeRocky", 0.0), ("biomeWetland", 20.0), ("biomeWater", 6.0), ("biomeScale", 55.0));
             // Grand park wave (g3): the full hierarchy — bike through-route, main walk, small paths, trails, worn shortcuts.
             Preset("greenway", ("style", "natural"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 28.0), ("bushDensity", 60.0),
-                ("furniture", 3.5), ("bikePath", true), ("smallPaths", 2.0), ("trails", 1.0), ("desireLines", "worn"), ("curvedPaths", true));
+                ("furniture", 3.5), ("bikePath", true), ("smallPaths", 2.0), ("trails", 1.0), ("desireLines", "worn"), ("curvedPaths", true),
+                ("biomeLawn", 44.0), ("biomeMeadow", 20.0), ("biomeGlade", 14.0), ("biomeForest", 18.0), ("biomeRocky", 0.0), ("biomeWetland", 4.0), ("biomeScale", 60.0));
 
             // rf-parks: picnic grounds fold into the park as a style: a gentle circuit round a big open lawn, picnic groups with
             // shelters and grills spread over the grass, shade-tree clumps round the edge, a playground and restrooms.
-            Preset("picnic", ("style", "picnic"), ("pathStyle", "circuit"), ("pathWidth", "narrow"), ("treeDensity", 22.0), ("bushDensity", 20.0),
-                ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", true), ("curvedPaths", true), ("picnicSpots", 7.0));
+            Preset("picnic", BiomeMix.With(new (string, object)[] { ("style", "picnic"), ("pathStyle", "circuit"), ("pathWidth", "narrow"), ("treeDensity", 22.0), ("bushDensity", 20.0),
+                ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", true), ("curvedPaths", true), ("picnicSpots", 7.0) },
+                BiomeMix.Preset(Biomes, 60, ("lawn", 66), ("meadow", 12), ("glade", 12), ("forest", 10))));
+            // (Biome mix) the rocky park: a rock garden of a park, knolls of massed boulders and scree, pines and heath between
+            Preset("rocky", BiomeMix.With(new (string, object)[] { ("style", "natural"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 18.0), ("bushDensity", 50.0),
+                ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", false), ("curvedPaths", true), ("desireLines", "worn"), ("naturalGround", true) },
+                BiomeMix.Preset(Biomes, 60, ("lawn", 12), ("meadow", 8), ("glade", 6), ("forest", 12), ("rocky", 52), ("heath", 10))));
 
             // Playtest 4b: presets look complete. On top of the DefaultOn features (playground, picnic,
             // restrooms, big trees, flowerbeds, decals, shore) each idiom turns on what belongs to it.
@@ -252,14 +281,15 @@ namespace Placemaker.Core.Layers.Park
             // park: native groves and long grass, a fence of its own, dirt trails, rustic benches, no lamps or loose flowerbeds.
             Preset("wild", ("style", "wild"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 22.0), ("bushDensity", 70.0),
                 ("furniture", 2.0), ("lamps", false), ("bins", false), ("belt", true), ("curvedPaths", true), ("naturalGround", true), ("naturalLayer", 1.0),
-                ("animals", true), ("trails", 2.0), ("trailStyle", "painted"), ("desireLines", "worn"), ("fence", true), ("benchAsset", "CampgroundBench01"), ("carPark", true), ("communityGarden", true));
+                ("animals", true), ("trails", 2.0), ("trailStyle", "painted"), ("desireLines", "worn"), ("fence", true), ("benchAsset", "CampgroundBench01"), ("carPark", true), ("communityGarden", true),
+                ("biomeLawn", 10.0), ("biomeMeadow", 28.0), ("biomeFlowers", 4.0), ("biomeGlade", 12.0), ("biomeForest", 22.0), ("biomeRocky", 12.0), ("biomeHeath", 4.0), ("biomeWetland", 8.0), ("biomeScale", 62.0));
             PresetFeatures("wild", "-flowerbeds", "-playground", "-restrooms", "-bigtrees");
             PresetFeatureValues("wild", "picnic", ("groups", 2.0), ("tables", 1.0));
             // The neglected park is its own version (the user: neglect "changes the entire vibe of everything"), not a grime amount:
             // thickets and old trees close in, the lawns go to seed, the paths crack and gather moss, litter, a tired playground.
             Preset("neglected", ("style", "neglected"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 34.0), ("bushDensity", 150.0),
                 ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", true), ("curvedPaths", true), ("naturalGround", true), ("naturalLayer", 3.0),
-                ("desireLines", "worn"));
+                ("desireLines", "worn"), ("biomeLawn", 26.0), ("biomeMeadow", 34.0), ("biomeGlade", 6.0), ("biomeForest", 24.0), ("biomeRocky", 0.0), ("biomeWetland", 10.0), ("biomeScale", 50.0));
             PresetFeatures("neglected", "-flowerbeds", "-bigtrees");
             // The urban pocket's plaza stays an open paved square (the park's own trees already ring it; with the plaza's edge trees
             // the canopy closed over it on a round site).
@@ -535,9 +565,17 @@ namespace Placemaker.Core.Layers.Park
             // 3d. Places with a mood of their own (ParkMoods): they take their ground before the furniture and planting.
             // the community garden folds in as a lawn room of allotments (ParkMoods.Allotments), with or without the other places
             bool allotments = ctx.B("communityGarden");
-            var moods = ctx.B("moods") || allotments ? ParkMoods.Plan(ctx, s, lawns, ctx.B("moods") ? style.Id : "none", ctx.B("moodGround"), 1f, allotments) : new List<MoodPlace>();
+            // (Biome mix) the natural areas replace the moods: a mix with anything but the park's own lawn plans biomes, and the
+            // places with moods only plan for a design that turned the mix down to lawn alone (then as before, if still on)
+            var biomeMix = BiomeMix.Shares(ctx, Biomes);
+            bool useBiomes = BiomeMix.AnyNatural(biomeMix);
+            bool moodsOn = ctx.B("moods") && !useBiomes;
+            var moods = moodsOn || allotments ? ParkMoods.Plan(ctx, s, lawns, moodsOn ? style.Id : "none", ctx.B("moodGround"), 1f, allotments) : new List<MoodPlace>();
             ctx.Check();
             clock.Lap("moods");
+            BiomeResult biomes = useBiomes ? PlanBiomes(ctx, s, style, plaza, biomeMix) : null;
+            ctx.Check();
+            clock.Lap("biomes");
 
             // 4. Furniture first so planting keeps clear of it (ParkManager ordering).
             GatewayProps(ctx, s);
@@ -555,6 +593,7 @@ namespace Placemaker.Core.Layers.Park
                 {
                     var views = new List<float2>();
                     foreach (var m in moods) views.Add(m.C);
+                    if (biomes != null) foreach (var a in biomes.Areas) if (math.abs(Poly.Area(a)) > 400f) views.Add(Poly.Centroid(a));
                     if (s.Lake.Length >= 3) views.Add(Poly.Centroid(s.Lake));
                     foreach (var cl in clearings) views.Add(cl.c);
                     ParkPlanting.SeatBenches(s, benchInterval, views, ParkPlanting.BenchRadius);
@@ -573,7 +612,7 @@ namespace Placemaker.Core.Layers.Park
 
             // 5. Vegetation. Layout size: areal counts scale by 1/scale (between keeping the density and keeping the
             // spacing, since the canopies are real size); tree-to-tree clearances stay footprint-based (PlantFits).
-            float carved = (s.Lake.Length >= 3 ? Poly.Area(s.Lake) : 0f) + (plaza.Length >= 3 ? Poly.Area(plaza) : 0f) + ParkMoods.Area(moods);   // the places plant their own
+            float carved = (s.Lake.Length >= 3 ? Poly.Area(s.Lake) : 0f) + (plaza.Length >= 3 ? Poly.Area(plaza) : 0f) + ParkMoods.Area(moods) + (biomes?.Taken ?? 0f);   // the places and the natural areas plant their own
             float plantedHa = math.max(0f, region.Area - carved) / 10000f;
             int trees = math.min(4000, (int)math.round(plantedHa * ctx.F("treeDensity") / ctx.Scale));
             int bushes = math.min(6000, (int)math.round(plantedHa * ctx.F("bushDensity") / ctx.Scale));
@@ -629,6 +668,8 @@ namespace Placemaker.Core.Layers.Park
             {
                 // a lawn that became a place is the place's: the features (picnic, restrooms …) stay on the park's own lawns
                 if (i != coreIndex && moods.Exists(m => m.Lawn != null && Poly.Contains(m.Lawn, Poly.Centroid(lawns[i])) && Poly.Area(m.Lawn) > 0.5f * Poly.Area(lawns[i]))) continue;
+                // (Biome mix) a lawn mostly given to a natural area (a wood, rocks, a marsh) is no lawn for the features
+                if (i != coreIndex && biomes != null && !MostlyLawn(biomes.Field, lawns[i])) continue;
                 if (i == coreIndex) ctx.AddRegion(lawns[i], "green:" + i, RegionTags.Green, RegionTags.Core);
                 else ctx.AddRegion(lawns[i], "green:" + i, RegionTags.Green);
             }
@@ -652,6 +693,51 @@ namespace Placemaker.Core.Layers.Park
                 if (n > 0) ctx.Plan.Facts[k + "Entrances"] = n;
             }
             if (plaza.Length >= 3) ctx.Plan.Facts["plazaArea"] = Poly.Area(plaza);
+        }
+
+        /// <summary>
+        /// (Biome mix) The park's natural areas: its ground off the paths' verges, the lake, the plaza, the entrances and the
+        /// features' clearings (they stay lawn: a playground in a wood stands in a mown clearing) is split by the mix and built.
+        /// </summary>
+        private BiomeResult PlanBiomes(LayerContext ctx, ParkSite s, ParkStyle style, float2[] plaza, List<(BiomeDef biome, float share)> mix)
+        {
+            var reserved = ctx.Input?.Reserved;
+            float td = ctx.F("treeDensity"), bd = ctx.F("bushDensity");
+            double styleTd = 26, styleBd = 65;
+            foreach (var p in Presets) if (p != null && p.Values.S("style", "") == style.Id) { styleTd = p.Values.Num("treeDensity", styleTd); styleBd = p.Values.Num("bushDensity", styleBd); break; }
+            var site = new BiomeSite
+            {
+                Ctx = ctx, Region = s.LayerRegion, Paths = s.Occ.Corridors, Occ = s.Occ,
+                Verge = ctx.M(3f, 2.5f),
+                Blocked = p => s.InLake(p, 3f) || s.InClearing(p, 3f) || s.GateDistanceSq(p) < 144f
+                    || plaza.Length >= 3 && (Poly.Contains(plaza, p) || ParkSite.MinDistToRing(plaza, p) < 3f)
+                    || s.Occ.Discs.Overlaps(p, 2.5f) || s.Occ.HitsPolygon(p, 1.5f) || reserved != null && reserved.Blocks(p, 1.5f),
+                Trees = ctx.L("treeSpecies") ?? Array.Empty<string>(), Bushes = ctx.L("bushSpecies") ?? Array.Empty<string>(),
+                TreeAmount = td <= 0f ? 0f : math.clamp(td / (float)math.max(1.0, styleTd), 0.25f, 2f),
+                BushAmount = bd <= 0f ? 0f : math.clamp(bd / (float)math.max(1.0, styleBd), 0.25f, 2f),
+                // with the Terrain feature on, its landform is the park's character: the areas plant but leave the ground alone
+                Shape = !ctx.Input.HasChild("terrain"),
+            };
+            return BiomeBuilder.Plan(site, mix, BiomeMix.Scale(ctx, Biomes), Hashing.Mix(ctx.Seed, 0xB10Eu));
+        }
+
+        /// <summary>At least half of the lawn is the park's own ground (not a natural area).</summary>
+        private static bool MostlyLawn(BiomeField f, float2[] lawn)
+        {
+            if (f == null || lawn == null || lawn.Length < 3) return true;
+            Poly.Bounds(lawn, out var lo, out var hi);
+            int all = 0, own = 0;
+            float step = math.max(2f, f.Cell);
+            for (float y = lo.y; y <= hi.y; y += step)
+                for (float x = lo.x; x <= hi.x; x += step)
+                {
+                    var p = new float2(x, y);
+                    if (!Poly.Contains(lawn, p)) continue;
+                    all++;
+                    var b = f.BiomeAt(p);
+                    if (b == null || b.Host || b.Open) own++;
+                }
+            return all == 0 || own * 2 >= all;
         }
 
         private static float2[] PlanLake(LayerContext ctx, ParkSite s, float2[] plaza)

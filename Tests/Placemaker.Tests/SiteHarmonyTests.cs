@@ -63,7 +63,7 @@ namespace Placemaker.Tests
             var r = Editor.SingleLayerRecipe(GeneratorRegistry.Get(type), 7);
             uint n = 0;
             Editor.AddDefaultFeatures(r, () => ++n);
-            if (!moods) r.Root.Settings.Values["moods"] = false;   // (parks makeover) the places' own ground, off to test the Terrain feature alone
+            if (!moods) { r.Root.Settings.Values["moods"] = false; BiomeMixTests.LawnOnly(r.Root.Settings); }   // (parks makeover) the places' own ground, off to test the Terrain feature alone
             if (terrain)
             {
                 if (!Editor.SetFeature(r, RecipePaths.Root, "terrain", true, 900)) r.Root.Children.Add(new RecipeStep { Layer = "terrain", Seed = 900, Settings = GeneratorRegistry.Get("terrain").Defaults() });
@@ -234,7 +234,7 @@ namespace Placemaker.Tests
             var r = Editor.SingleLayerRecipe(GeneratorRegistry.Get("park"), 7);
             uint n = 0;
             Editor.AddDefaultFeatures(r, () => ++n);
-            r.Root.Settings.Values["moods"] = false;   // (parks makeover) the places shape the ground unless switched off
+            r.Root.Settings.Values["moods"] = false; BiomeMixTests.LawnOnly(r.Root.Settings);   // (parks makeover) the places shape the ground unless switched off
             var plan = Composer.Compose(r, new AreaShape { Ring = Site, Source = AreaSource.Drawn }, ZoningCutoutTests.Streets(Site), CancellationToken.None);
             Assert.Equal(0, plan.Layers.Sum(l => l.Terraform.Count(t => !math.isfinite(t.WaterLevel))));
             Assert.DoesNotContain(plan.AllIssues(), i => i.Key == TerrainShaper.PermanentKey);

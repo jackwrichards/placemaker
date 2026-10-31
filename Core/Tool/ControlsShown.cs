@@ -21,7 +21,8 @@ namespace Placemaker.Core.Tool
             // test planned; the paint still follows its default.
             ["*"] = new[] { Decals.DressingControls.DesirePathsId },
             // Animal spawns removed from every place (LayerContext.Object drops the spawners): their switches and counts.
-            ["park"] = new[] { "animals" },
+            // (Biome mix) the places with moods and the rocky areas fold into the mix (saved designs still build them)
+            ["park"] = new[] { "animals", "moods", "moodGround", "lookRockyAreas" },
             ["wetland"] = new[] { "animals" },
             ["farmstead"] = new[] { "animals" },
             ["natureReserve"] = new[] { "animals" },
@@ -48,7 +49,10 @@ namespace Placemaker.Core.Tool
             ["carYard"] = new[] { "floodlights" },
             ["junkYard"] = new[] { "floodlights", "spoil" },
             ["campground"] = new[] { "facilities" },
-            ["adventurePlayground"] = new[] { "sightlines" },
+            ["adventurePlayground"] = new[] { "sightlines", "moods", "moodGround" },
+            // (Biome mix) the places with moods fold into the mix
+            ["botanicalGarden"] = new[] { "moods", "moodGround" },
+            ["memorialPark"] = new[] { "moods" },
             ["golf"] = new[] { "teeBoxes" },
         };
 

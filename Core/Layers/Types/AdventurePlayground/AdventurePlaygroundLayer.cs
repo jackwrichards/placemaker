@@ -15,6 +15,7 @@
 
 using System.Collections.Generic;
 using Placemaker.Core.Layers.Common;
+using Placemaker.Core.Layers.Common.Biomes;
 using Placemaker.Core.Layers.Leisure;
 using Placemaker.Core.Layers.Park;
 using Unity.Mathematics;
@@ -64,6 +65,7 @@ namespace Placemaker.Core.Layers.Types.AdventurePlayground
             // a copse with logs to balance on.
             c.Toggle("moods", true, ControlTier.Essential, "nature").Tip();
             c.Toggle("moodGround", true, ControlTier.More, "nature").When("moods=true").Tip();
+            BiomeMix.Define(c, Biomes);
             c.Slider("logs", 8, 0, 24, 1, "count", ControlTier.More, "nature").When("naturePlay=true");
             c.Slider("boulders", 6, 0, 20, 1, "count", ControlTier.More, "nature").When("naturePlay=true");
             c.Toggle("mound", true, ControlTier.More, "nature").When("naturePlay=true").Tip();
@@ -99,17 +101,25 @@ namespace Placemaker.Core.Layers.Types.AdventurePlayground
             c.Fixed("paintLayer");
         }
 
+        /// <summary>(Biome mix) The wild ground between the play zones: a glade, a wood to build dens in, rocks to scramble, long grass, bark.</summary>
+        public static readonly BiomeOffer Biomes = new BiomeOffer(("lawn", 40), ("meadow", 10), ("mulch", 5), ("glade", 15), ("forest", 15), ("rocky", 15), ("wetland", 0)) { Scale = 45 };
+
         protected override void DefinePresets()
         {
-            Preset("adventure", ("style", "adventure"), ("ageZones", "byAge"), ("equipment", 24.0), ("ground", "sand"), ("waterPlay", true), ("naturePlay", true));
+            Preset("adventure", ("style", "adventure"), ("ageZones", "byAge"), ("equipment", 24.0), ("ground", "sand"), ("waterPlay", true), ("naturePlay", true),
+                ("biomeLawn", 40.0), ("biomeMeadow", 10.0), ("biomeMulch", 5.0), ("biomeGlade", 15.0), ("biomeForest", 15.0), ("biomeRocky", 15.0));
             Preset("toddler", ("style", "toddler"), ("ageZones", "toddlers"), ("equipment", 14.0), ("clearance", 1.5), ("ground", "rubber"),
-                ("waterPlay", true), ("jets", 4.0), ("pools", 0.0), ("naturePlay", false), ("benches", 14.0), ("shade", "shelters"), ("fence", true));
+                ("waterPlay", true), ("jets", 4.0), ("pools", 0.0), ("naturePlay", false), ("benches", 14.0), ("shade", "shelters"), ("fence", true),
+                ("biomeLawn", 72.0), ("biomeMeadow", 10.0), ("biomeMulch", 10.0), ("biomeGlade", 8.0), ("biomeForest", 0.0), ("biomeRocky", 0.0));
             Preset("water", ("style", "water"), ("ageZones", "mixed"), ("equipment", 8.0), ("ground", "sand"), ("waterPlay", true), ("jets", 18.0),
-                ("pools", 5.0), ("naturePlay", false), ("shade", "both"));
+                ("pools", 5.0), ("naturePlay", false), ("shade", "both"),
+                ("biomeLawn", 60.0), ("biomeMeadow", 15.0), ("biomeMulch", 0.0), ("biomeGlade", 15.0), ("biomeForest", 0.0), ("biomeRocky", 0.0), ("biomeWetland", 10.0));
             Preset("nature", ("style", "nature"), ("ageZones", "mixed"), ("equipment", 6.0), ("ground", "bark"), ("waterPlay", false), ("naturePlay", true),
-                ("logs", 18.0), ("boulders", 14.0), ("mound", true), ("moundHeight", 2.5), ("tunnel", true), ("treeDensity", 75.0), ("lamps", false));
+                ("logs", 18.0), ("boulders", 14.0), ("mound", true), ("moundHeight", 2.5), ("tunnel", true), ("treeDensity", 75.0), ("lamps", false),
+                ("biomeLawn", 15.0), ("biomeMeadow", 15.0), ("biomeMulch", 0.0), ("biomeGlade", 25.0), ("biomeForest", 25.0), ("biomeRocky", 20.0));
             Preset("jungle", ("style", "jungle"), ("ageZones", "byAge"), ("equipment", 30.0), ("clearance", 3.0), ("ground", "sand"), ("waterPlay", false),
-                ("naturePlay", false), ("shade", "trees"));
+                ("naturePlay", false), ("shade", "trees"),
+                ("biomeLawn", 20.0), ("biomeMeadow", 0.0), ("biomeMulch", 0.0), ("biomeGlade", 20.0), ("biomeForest", 45.0), ("biomeRocky", 15.0));
         }
 
         // ───────────── planning ─────────────
@@ -202,7 +212,9 @@ namespace Placemaker.Core.Layers.Types.AdventurePlayground
             // Wild places in the ground the zones left (makeover): they take it before the benches, hub dressing and shade trees.
             var moodSite = new ParkSite { LayerRegion = region, Occ = occ, Seed = ctx.Seed, Cancel = ctx.Cancel, Gates = gates };
             List<MoodPlace> moods = null;
-            if (ctx.B("moods"))
+            // (Biome mix) the wild ground's natural areas replace the places with moods
+            var biomes = BiomeHost.Plan(ctx, occ, Biomes, gates.ConvertAll(g => g.Position));
+            if (biomes == null && ctx.B("moods"))
             {
                 var open = FreeSpace.Pieces(region, p => occ.Corridors.Overlaps(p, 0.75f), 2f, 80f, ctx.Cancel);
                 moods = ParkMoods.Plan(ctx, moodSite, open, "playground", ctx.B("moodGround"), ctx.S("style") == "toddler" ? 0.5f : 1f);

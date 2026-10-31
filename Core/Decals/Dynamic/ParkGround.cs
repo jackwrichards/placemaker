@@ -100,6 +100,8 @@ namespace Placemaker.Core.Decals.Dynamic
             {
                 if (_sc.GrimeAmount <= 0f) return;
                 Moods();
+                // (Biome mix) the natural areas' own decals (forest floor, scree, marsh mud, flowers ...)
+                BiomeGround.Run(_sc, _formal);
                 Edges();
                 if (!_formal) Runoff();
                 Play();

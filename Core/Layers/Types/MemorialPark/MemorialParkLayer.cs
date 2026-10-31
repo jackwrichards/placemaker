@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using Placemaker.Core.Geometry;
 using Placemaker.Core.Layers.AddOns.Monuments;
 using Placemaker.Core.Layers.Common;
+using Placemaker.Core.Layers.Common.Biomes;
 using Placemaker.Core.Layers.Leisure;
 using Placemaker.Core.Layers.Park;
 using Placemaker.Core.Layers.Types.AdventurePlayground;
@@ -93,6 +94,7 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
             // makeover (2026-10-29): the side lawns get places of their own before any grove (ParkMoods): a wildflower meadow of
             // remembrance, a ring of standing stones, a quiet copse, a knoll of boulders. Off the axis, so the axis stays solemn.
             c.Toggle("moods", true, ControlTier.Essential, "planting").Tip();
+            BiomeMix.Define(c, Biomes);
             c.AssetMulti("treeSpecies", AssetCategories.Tree, ControlTier.More, "planting");
             // Lighting.
             c.Choice("lighting", "bollards", ControlTier.Essential, "lighting", "bollards", "lanterns", "uplights", "none").Tip();
@@ -110,21 +112,29 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
             c.Fixed("monumentScale");
         }
 
+        /// <summary>(Biome mix) A memorial's side ground: mostly lawn (the axis stays solemn), a quiet glade, a meadow of remembrance, flowers.</summary>
+        public static readonly BiomeOffer Biomes = new BiomeOffer(("lawn", 70), ("meadow", 10), ("flowers", 8), ("glade", 12), ("forest", 0)) { Scale = 40 };
+
         protected override void DefinePresets()
         {
             // rf-parks: every axial style keeps its lawn open (few lawn trees, so the axis, the rooms and the monument read) and has a
             // scaled focal monument; each gets its own signature: flower borders, poppies and flags, a fountain rill, a sculpture trail.
             Preset("garden", ("style", "garden"), ("focal", "end"), ("pool", false), ("rooms", true), ("roomContent", "flowers"), ("lighting", "bollards"),
-                ("flowerRing", true), ("borders", true), ("plaques", 4.0), ("lawnTrees", 0.0), ("monumentScale", 220.0), ("bosque", true));
+                ("flowerRing", true), ("borders", true), ("plaques", 4.0), ("lawnTrees", 0.0), ("monumentScale", 220.0), ("bosque", true),
+                ("biomeLawn", 60.0), ("biomeMeadow", 8.0), ("biomeFlowers", 20.0), ("biomeGlade", 12.0));
             Preset("square", ("style", "square"), ("focal", "centre"), ("crossAxis", true), ("paving", true), ("forecourt", 16.0), ("pool", false), ("rooms", false),
-                ("lighting", "lanterns"), ("enclosure", "none"), ("processionWidth", 10.0), ("lawnTrees", 0.0), ("flowerRing", false));
+                ("lighting", "lanterns"), ("enclosure", "none"), ("processionWidth", 10.0), ("lawnTrees", 0.0), ("flowerRing", false),
+                ("biomeLawn", 100.0), ("biomeMeadow", 0.0), ("biomeFlowers", 0.0), ("biomeGlade", 0.0));
             Preset("war", ("style", "war"), ("focal", "end"), ("raised", true), ("raiseHeight", 2.0), ("plaques", 12.0), ("flags", 10.0), ("pool", true),
                 ("poolLength", 45.0), ("rooms", true), ("roomContent", "benches"), ("lighting", "uplights"), ("flowerRing", true), ("borders", true), ("enclosure", "hedge"),
-                ("lawnTrees", 0.0), ("monumentScale", 350.0), ("bosque", true));
+                ("lawnTrees", 0.0), ("monumentScale", 350.0), ("bosque", true),
+                ("biomeLawn", 72.0), ("biomeMeadow", 14.0), ("biomeFlowers", 0.0), ("biomeGlade", 14.0));
             Preset("reflection", ("style", "reflection"), ("focal", "end"), ("pool", true), ("poolLength", 70.0), ("poolWidth", 7.0), ("rooms", true),
-                ("roomContent", "tree"), ("lighting", "bollards"), ("plaques", 0.0), ("allees", true), ("treeSpacing", 8.0), ("lawnTrees", 0.0), ("monumentScale", 260.0), ("bosque", true));
+                ("roomContent", "tree"), ("lighting", "bollards"), ("plaques", 0.0), ("allees", true), ("treeSpacing", 8.0), ("lawnTrees", 0.0), ("monumentScale", 260.0), ("bosque", true),
+                ("biomeLawn", 70.0), ("biomeMeadow", 12.0), ("biomeFlowers", 4.0), ("biomeGlade", 14.0));
             Preset("sculpture", ("style", "sculpture"), ("sculptures", 14.0), ("pool", true), ("poolLength", 30.0), ("rooms", true), ("roomContent", "sculpture"),
-                ("allees", false), ("lighting", "uplights"), ("lawnTrees", 25.0), ("plaques", 0.0), ("enclosure", "fence"), ("monumentScale", 220.0));
+                ("allees", false), ("lighting", "uplights"), ("lawnTrees", 25.0), ("plaques", 0.0), ("enclosure", "fence"), ("monumentScale", 220.0),
+                ("biomeLawn", 66.0), ("biomeMeadow", 10.0), ("biomeFlowers", 10.0), ("biomeGlade", 14.0));
         }
 
         // ───────────── planning ─────────────
@@ -174,15 +184,20 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
             public List<MoodPlace> Moods;
             public float2 VistaA, VistaB;
             public float Vista;
+            public BiomeResult Biomes;
         }
 
         /// <summary>(makeover) Places with a mood in the ground the composition left, never on the vista along the axis.</summary>
         private static void PlanMoods(State st)
         {
             var ctx = st.Ctx;
-            if (st.Moods != null || !ctx.B("moods")) return;
+            if (st.Moods != null || st.Biomes != null) return;
             st.MoodSite = new ParkSite { LayerRegion = st.Region, Occ = st.Occ, Seed = ctx.Seed, Cancel = ctx.Cancel, Gates = st.Gates };
             if (st.Vista > 0f) st.Occ.TakeCorridor(st.VistaA, st.VistaB, st.Vista + 2f, 7);   // the vista stays open
+            // (Biome mix) the side ground's natural areas replace the places with moods (the vista, a corridor now, stays lawn)
+            st.Biomes = BiomeHost.Plan(ctx, st.Occ, Biomes, st.Gates.ConvertAll(g => g.Position));
+            if (st.Biomes != null) { st.Moods = new List<MoodPlace>(); return; }
+            if (!ctx.B("moods")) return;
             var open = FreeSpace.Pieces(st.Region, p => st.Occ.Corridors.Overlaps(p, 0.75f) || st.Occ.Discs.Overlaps(p, 2f) || st.Occ.HitsPolygon(p, 1f), 2f, 80f, ctx.Cancel);   // the ground the groves, rooms and monument left
             st.Moods = ParkMoods.Plan(ctx, st.MoodSite, open, "memorial", true, 0.8f);
         }

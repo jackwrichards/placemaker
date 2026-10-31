@@ -34,9 +34,9 @@ namespace Placemaker.Tests
             Assert.Contains(plan.Regions, r => r.Tags.Contains(RegionTags.Core) && r.Tags.Contains(RegionTags.Green));
             Assert.Contains(plan.Regions, r => r.Tags.Contains(RegionTags.Edge));
             // s33: the default lawn is painted terrain (no grass surface); "Grass surface" lays exactly one.
-            Assert.Empty(plan.Surfaces);
+            Assert.Empty(plan.Surfaces.Where(x => x.Role != SurfaceRole.Water));   // (Biome mix) the marsh pools are water
             var surf = TestKit.Plan("park", TestKit.Entered("park", TestKit.Input(Hectare5, new SettingsBag { Values = { [Placemaker.Core.Decals.DressingControls.LawnId] = "surface" } }, site: TestKit.RoadAlongBottom(250))));
-            Assert.Single(surf.Surfaces);
+            Assert.Single(surf.Surfaces.Where(x => x.Role != SurfaceRole.Water));
 
             Assert.Equal(50000, TestKit.Stat(plan, Keys.StatArea), 0);
             Assert.True(TestKit.Stat(plan, Keys.StatPathLength) > 100);
@@ -154,10 +154,10 @@ namespace Placemaker.Tests
         [Fact]
         public void LakeIsOptInPermanentAndWarned()
         {
-            var off = new SettingsBag(); off.Values["moods"] = false;   // (parks makeover) the places shape the ground by default
+            var off = new SettingsBag(); off.Values["moods"] = false; BiomeMixTests.LawnOnly(off);   // (parks makeover) the places shape the ground by default
             var plain = TestKit.Plan("park", TestKit.Input(Hectare5, off));
             Assert.Empty(plain.Terraform);
-            var s = new SettingsBag(); s.Values["lake"] = true; s.Values["moods"] = false;
+            var s = new SettingsBag(); s.Values["lake"] = true; s.Values["moods"] = false; BiomeMixTests.LawnOnly(s);
             var plan = TestKit.Plan("park", TestKit.Input(Hectare5, s));
             Assert.Single(plan.Terraform);
             Assert.True(plan.Terraform[0].Permanent);
@@ -178,8 +178,8 @@ namespace Placemaker.Tests
         [Fact]
         public void DensityControlsScaleCounts()
         {
-            var lo = new SettingsBag(); lo.Values["treeDensity"] = 10.0; lo.Values["moods"] = false;   // the park's own planting
-            var hi = new SettingsBag(); hi.Values["treeDensity"] = 60.0; hi.Values["moods"] = false;
+            var lo = new SettingsBag(); lo.Values["treeDensity"] = 10.0; lo.Values["moods"] = false; BiomeMixTests.LawnOnly(lo);   // the park's own planting
+            var hi = new SettingsBag(); hi.Values["treeDensity"] = 60.0; hi.Values["moods"] = false; BiomeMixTests.LawnOnly(hi);
             int a = TestKit.Count(TestKit.Plan("park", TestKit.Input(Hectare5, lo)), ObjectRole.Tree);
             int b = TestKit.Count(TestKit.Plan("park", TestKit.Input(Hectare5, hi)), ObjectRole.Tree);
             Assert.True(b > a * 3, $"{a} → {b}");

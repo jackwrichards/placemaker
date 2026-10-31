@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using Placemaker.Core.Geometry;
 using Placemaker.Core.Layers.Common;
+using Placemaker.Core.Layers.Common.Biomes;
 using Placemaker.Core.Layers.Park;
 using Placemaker.Core.Layers.Types.AdventurePlayground;
 using Unity.Mathematics;
@@ -40,6 +41,7 @@ namespace Placemaker.Core.Layers.Leisure
             c.Toggle("glasshouse", true, ControlTier.Essential, "collections").Tip();
             c.Toggle("moods", true, ControlTier.Essential, "collections").Tip();
             c.Toggle("moodGround", true, ControlTier.More, "collections").When("moods=true").Tip();
+            BiomeMix.Define(c, Biomes);
             c.Slider("benches", 3, 0, 12, 0.5, "per100m", ControlTier.Essential, "furniture");
             c.Asset("glasshouseAsset", AssetCategories.Glasshouse, ControlTier.More, "collections").When("glasshouse=true");
             c.AssetMulti("flowerAssets", AssetCategories.Flowerbed, ControlTier.More, "collections");
@@ -61,12 +63,19 @@ namespace Placemaker.Core.Layers.Leisure
             c.Fixed("glasshouse");
         }
 
+        /// <summary>(Biome mix) The garden's natural areas: its lawn of collections, flower field, mulch beds, a glade, a rock garden, a bog garden.</summary>
+        public static readonly BiomeOffer Biomes = new BiomeOffer(
+            ("lawn", 48), ("flowers", 16), ("mulch", 12), ("glade", 8), ("forest", 0), ("rocky", 9), ("heath", 0), ("wetland", 7), ("water", 0)) { Scale = 35 };
+
         protected override void DefinePresets()
         {
-            Preset("mixed", ("theme", "mixed"), ("bedDensity", 90.0));
-            Preset("flowerShow", ("theme", "flowers"), ("bedDensity", 35.0), ("benches", 4.0), ("showBeds", 10.0));
-            Preset("arboretum", ("theme", "trees"), ("bedDensity", 90.0), ("glasshouse", false), ("benches", 2.5));
-            Preset("shrubbery", ("theme", "shrubs"), ("bedDensity", 140.0), ("pathBorders", 60.0));
+            Preset("mixed", BiomeMix.With(new (string, object)[] { ("theme", "mixed"), ("bedDensity", 90.0) }, BiomeMix.Preset(Biomes, 35, ("lawn", 48), ("flowers", 16), ("mulch", 12), ("glade", 8), ("rocky", 9), ("wetland", 7))));
+            Preset("flowerShow", BiomeMix.With(new (string, object)[] { ("theme", "flowers"), ("bedDensity", 35.0), ("benches", 4.0), ("showBeds", 10.0) },
+                BiomeMix.Preset(Biomes, 30, ("lawn", 42), ("flowers", 32), ("mulch", 18), ("rocky", 8))));
+            Preset("arboretum", BiomeMix.With(new (string, object)[] { ("theme", "trees"), ("bedDensity", 90.0), ("glasshouse", false), ("benches", 2.5) },
+                BiomeMix.Preset(Biomes, 55, ("lawn", 50), ("glade", 32), ("forest", 12), ("wetland", 6))));
+            Preset("shrubbery", BiomeMix.With(new (string, object)[] { ("theme", "shrubs"), ("bedDensity", 140.0), ("pathBorders", 60.0) },
+                BiomeMix.Preset(Biomes, 35, ("lawn", 42), ("mulch", 32), ("flowers", 10), ("glade", 10), ("rocky", 6))));
         }
 
         // ───────────── art direction (art pass a3) ─────────────
@@ -213,7 +222,9 @@ namespace Placemaker.Core.Layers.Leisure
             // makeover (2026-10-29): a botanical garden has places of its own too: a rock garden on a knoll of boulders, a
             // wildflower meadow, a bog garden in a wet hollow, a fern glade (ParkMoods, the park's planner).
             var moodSite = new ParkSite { LayerRegion = region, Occ = occ, Seed = ctx.Seed, Cancel = ctx.Cancel, Gates = gates };
-            var moods = ctx.B("moods") ? ParkMoods.Plan(ctx, moodSite, lawns, "botanical", ctx.B("moodGround"), 0.8f) : new List<MoodPlace>();
+            // (Biome mix) the natural areas replace the places with moods (which only plan for a mix turned down to lawn alone)
+            var biomes = BiomeHost.Plan(ctx, occ, Biomes, gates.ConvertAll(g => g.Position));
+            var moods = biomes == null && ctx.B("moods") ? ParkMoods.Plan(ctx, moodSite, lawns, "botanical", ctx.B("moodGround"), 0.8f) : new List<MoodPlace>();
             string theme = ctx.S("theme");
             float density = ctx.F("bedDensity");
             var flowers = Or(ctx.L("flowerAssets"), AssetAvailability.Has(AssetCategories.Flowerbed) ? FlowerBeds : new string[0]);
