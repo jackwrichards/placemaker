@@ -202,3 +202,18 @@ side, so small neighbours never cover each other); the white lines between neigh
 part or its label opens that biome's box (share, Only this, take out, its settings); Add shows the biomes not in the mix;
 "Whole place" holds Patch size. Mock-up shown to the user: https://claude.ai/artifact/YDbMHsGohWMLuRxSGKyuNN. Mock test:
 `UI/mock/tests/biomes.spec.ts`.
+
+### Runs (P2-8)
+
+| Run | What it shows |
+|---|---|
+| `send-p2-biomes-r2-1030-235003` | BEFORE: 100 % meadow with trees |
+| `send-p2-8-full-1031-132144` | 100 % meadow and flowers: no trees; natural unchanged |
+| `send-p2-8-r3-1031-134440` | Plain park (the user: "looks very good"), Open field with decal spots (the user: stains) |
+| `show-2-builds-1031-135837-7dc8` | Open field paint only: clean |
+| `show-4-builds-1031-140237-354b` | Formal city green (lawn panels, avenues), garden without the pastel shrubs |
+| `show-6-builds-1031-135541-3283` | Wildflower meadow: coloured drifts, no confetti |
+
+Shown again on the shelf: Formal and Wildflower meadow. Still hidden: pocket (a wood on a block), meadow, victorian, landscape,
+modern, riverside, greenway; the dog park type (a flat brown square). Not done: a Japanese park style (the Zen garden type
+covers it), a dog park and a linear park worth showing, the panel's i18n fit test for the new labels.
