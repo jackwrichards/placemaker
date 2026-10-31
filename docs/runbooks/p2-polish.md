@@ -22,6 +22,7 @@ meadow, mulch beds and heath all read as scattered bushes. Colours: leafy greens
 | Sports tests | `SportsDesigns`, `SportsParkComposer.Tree`, `SportsParkTests` | 4 failing | athletics gets a 70 x 40 m training track on a hectare; a design gives way to reserved space (classic park plans round it); grove crowns keep off reserved space; the terrace-stands and design-signature tests updated to the 2026-10-29 designs |
 | Ruins' basement | `BuildingRuins.cs` | a continuous double wall 1.5-1.85 m tall round the hole: a border fence | broken low stretches (corners kept, about a third of the rest, clumped), one skin |
 | Landfill | `LandfillLayer.Active` | daily cover over the whole tip on the vanilla fallback "Oil Surface 01" (pale sand): a bleached disc with a pie slice | brown forestry ground as the cover, only on the top and the working side, the far flanks green (older capped cells), a ragged edge |
+| Game runner land | `Core/Suite/SuiteLayout.Grow.cs` `PatchOutside` | land laid out after the 11th plot of a session was left flat (0 texels): the old fixture's bounding box was kept whole, and the second row of plots lies inside it. **Every hill test with more than ~10 lands in one game ran later builds on flat ground** (the first P2-4 matrix too) | only the grid and each earlier plot are kept; `SuiteLayoutGrowTests.LandInASecondRowGetsItsGround` |
 | Decal memory | `DecalTexture.DetailSize/Resample`, `SharedDecals`, `DecalVariants.GpuBytes` | every category at once 203 MiB (game budget 200; in-use variants are never freed) | normal and mask maps at half size, colour full: 102 MiB (whole library 252 -> 127). Cache format PDC2. `DecalBudgetTests` measures it (plans every shelf type and style on flat and rolling land) |
 
 ## Verified in the game (pit checks)
@@ -40,6 +41,14 @@ p1-ground): the user decides.
 | `send-p2-biomes-r1-1030-232325` | meadow, mulch, heath at 100 % and a mix after the first change |
 | `show-45-builds-1030-232426-5eca` | BEFORE: every sports style on the four hard lands and 420 x 360 |
 | `show-56-builds-1030-232328-ebb3` | pit checks (above) |
+| `show-12-builds-1030-234333-9686` | parks after the path fix (plots 1-11 on real land; showed the runner bug from plot 12) |
+| `send-p2-biomes-r2-1030-235003` | meadow after round 2, the decal half-size maps drawing in the game |
+
+## Lessons
+
+- Check the terrain map (`-Modes clean,terrain`) before judging a hill picture: a flat plot looks like a hill test from 45°.
+- A bend per graph edge is a sawtooth once the router makes many short edges: bend runs between junctions, not edges.
+- The plaza kit's designs lay surfaces only: anything a citizen should walk needs path nets of its own.
 
 ## Open
 
