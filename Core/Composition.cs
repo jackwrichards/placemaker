@@ -227,6 +227,9 @@ namespace Placemaker.Core
             // surfaces flat, decorative mounds kept off them, all terraform merged into one smooth field (no curtains).
             Build.SiteHarmony.Apply(result, area, site, cancel);
             clock.Lap("site harmony");
+            // (p1-ground) Holes (quarries, foundations, basements, earthworks): no fence round the rim, no pile over the edge.
+            Build.PitRims.Apply(result, site);
+            clock.Lap("pit rims");
             // (s15) Never build on existing buildings: drop / cut whatever would touch a building lot.
             Build.SiteSafety.Apply(result, area, site);
             clock.Lap("site safety");
@@ -285,6 +288,9 @@ namespace Placemaker.Core
 
             AreaPlan plan;
             var layerClock = new PlanClock(result.Timings);
+            // (p1-ground) the ground for the park path planner's slope cost (every type that lays walks with it)
+            var keepHeight = Layers.Park.ParkPathPlanner.AmbientHeight;
+            Layers.Park.ParkPathPlanner.AmbientHeight = site?.HeightAt;
             try
             {
                 plan = gen.Plan(input, cancel) ?? new AreaPlan();
@@ -300,6 +306,7 @@ namespace Placemaker.Core
                 });
                 return;
             }
+            finally { Layers.Park.ParkPathPlanner.AmbientHeight = keepHeight; }
 
             plan.GeneratorId = gen.Id;
             plan.StepPath = path + "@" + regionKey;

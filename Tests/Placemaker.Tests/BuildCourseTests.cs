@@ -19,6 +19,22 @@ namespace Placemaker.Tests
 
 
         [Fact]
+        public void ADeckEndOnAGroundPathTakesItsEndExactly()
+        {
+            // (p1-ground) the bank path ends at (0.03, 0.01) on ground 0.5 + something not a round float; the deck ends 0.8 m up,
+            // 3 cm off: the game made two nodes (an overhang). Joined, the deck end is bit-identical to the path's pinned end.
+            System.Func<float2, float> ground = p => 0.5f + 0.0137f * p.x + 0.0071f * p.y;
+            var deck = new Cubic(new float3(0, 0.8f, 0), new float3(10, 2.4f, 0), new float3(20, 2.4f, 0), new float3(30, 0.8f, 0));
+            var pathEnd = new float2(0.03f, 0.01f);
+            var landed = CourseFitting.LandEnds(deck, ground);
+            var joined = CourseFitting.JoinEnds(landed, ground, pathEnd, null);
+            Assert.Equal(new float3(pathEnd.x, ground(pathEnd), pathEnd.y), joined.A);   // exactly the path's pinned end (PinEnds)
+            Assert.Equal(landed.D, joined.D);
+            var pieces = CourseFitting.FitElevated(joined, 12f);
+            Assert.Equal(joined.A, pieces[0].A);   // the first piece starts there bit for bit
+        }
+
+        [Fact]
         public void ABridgeEndOnHigherGroundRisesToIt()
         {
             // a footbridge from the bank (deck 0.8 m) to an island raised to 1.5 m: its island end stood 0.7 m under the

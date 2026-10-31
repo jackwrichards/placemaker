@@ -164,6 +164,24 @@ namespace Placemaker.Core.Build
             return c;
         }
 
+        /// <summary>
+        /// (p1-ground) A deck end that meets a ground path takes the path's end exactly: the same x, z and the ground height there,
+        /// assigned (not raised by a difference, which is often one float step off). CS2 merges two course ends into one node only
+        /// when their positions are bit-identical, y included (GenerateNodesSystem); otherwise each ends in its own dead end and
+        /// the bridge's end cap shows as an overhang next to the path (the user: bridges out of the water and onto islands).
+        /// The deck ramps down (or up) to it over its first and last thirds.
+        /// </summary>
+        public static Cubic JoinEnds(Cubic c, Func<float2, float> heightAt, float2? a, float2? d)
+        {
+            if (heightAt == null || !IsFinite(c) || (a == null && d == null)) return c;
+            float da = 0f, dd = 0f;
+            if (a != null) { float g = heightAt(a.Value); if (math.isfinite(g)) { da = g - c.A.y; c.A = new float3(a.Value.x, g, a.Value.y); } }
+            if (d != null) { float g = heightAt(d.Value); if (math.isfinite(g)) { dd = g - c.D.y; c.D = new float3(d.Value.x, g, d.Value.y); } }
+            c.B.y += math.lerp(da, dd, 1f / 3f);
+            c.C.y += math.lerp(da, dd, 2f / 3f);
+            return c;
+        }
+
         public static List<Cubic> FitElevated(Cubic curve, float maxPiece)
         {
             var result = new List<Cubic>();

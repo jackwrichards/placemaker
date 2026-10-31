@@ -78,7 +78,21 @@ namespace Placemaker.Core.Layers.Park
             public int Loops;
             /// <summary>Add the stretch shortcut (only for richer networks).</summary>
             public bool StretchLoop;
+            /// <summary>(p1-ground) Ground height for the slope cost; null = <see cref="AmbientHeight"/> (the composer sets it per layer).</summary>
+            public Func<float2, float> Height;
+            /// <summary>Along-grade a walk takes without strain (rise/run); 0 = TerrainSurvey.WalkGrade (8 %).</summary>
+            public float MaxGrade;
         }
+
+        /// <summary>
+        /// (p1-ground) The site's ground while a layer plans (Composer.Run), so every type that lays its walks with this planner
+        /// weighs the slope without each passing it. Thread-static: planning runs on workers.
+        /// </summary>
+        [ThreadStatic] public static Func<float2, float> AmbientHeight;
+        /// <summary>Tests: the old distance-only roadmap, to compare.</summary>
+        [ThreadStatic] public static bool SlopeCostOff;
+        [ThreadStatic] private static Func<float2, float> _height;
+        [ThreadStatic] private static float _grade;
 
         /// <summary>Best of <see cref="CandidateCount"/> seeded candidates by naturalness score.</summary>
         public static ParkPathGraph PlanBest(LayerRegion region, IReadOnlyList<float2> gates, Options options, uint seed,
@@ -92,15 +106,94 @@ namespace Placemaker.Core.Layers.Park
             // One triangulation for all candidates (its seeded start vertex still varies per park seed);
             // ear clipping a 100+ vertex painted outline six times was a third of the planning time.
             var triangles = Triangulate(region, (int)(seed % (uint)region.Ring.Length));
-            for (int i = 0; i < CandidateCount; i++)
+            var keepH = _height; var keepG = _grade;
+            _height = SlopeCostOff ? null : options.Height ?? AmbientHeight;
+            _grade = options.MaxGrade > 0.005f ? options.MaxGrade : TerrainSurvey.WalkGrade;
+            if (_height != null && IsLevel(region, _height)) _height = null;   // flat land: exactly the old roadmap
+            try
             {
-                cancel.ThrowIfCancellationRequested();
-                uint candidateSeed = Hashing.Mix(seed, (uint)(i * 104729 + 1));
-                var candidate = Generate(region, gates, hub, candidateSeed, wantedLoops, options.StretchLoop, triangles, cancel);
-                double score = candidate.NaturalnessScore(region, wantedLoops);
-                if (score < bestScore) { best = candidate; bestScore = score; }
+                for (int i = 0; i < CandidateCount; i++)
+                {
+                    cancel.ThrowIfCancellationRequested();
+                    uint candidateSeed = Hashing.Mix(seed, (uint)(i * 104729 + 1));
+                    var candidate = Generate(region, gates, hub, candidateSeed, wantedLoops, options.StretchLoop, triangles, cancel);
+                    double score = candidate.NaturalnessScore(region, wantedLoops) + SteepScore(candidate);
+                    if (score < bestScore) { best = candidate; bestScore = score; }
+                }
             }
+            finally { _height = keepH; _grade = keepG; }
             return best ?? ParkPathGraph.Empty();
+        }
+
+        // ───────────── slope (p1-ground) ─────────────
+        // The user: on a hill "I'm seeing certain pathways not work ... smoothing the paths out, not having them double back on each
+        // other and snap". The roadmap knew only distance, so walks went straight up the fall line: grades of 20-40 % that the game
+        // rejects (a pathway's max slope) or the site harmony cut metres deep to tame (350-450 steep path pieces per park on the game
+        // runner's mountains). Now each roadmap link costs more the steeper it climbs (like the hiking trail's router): the cheapest
+        // routes run across the slope and turn back and forth where they must gain height (switchbacks), and on gentle land
+        // nothing changes.
+
+        /// <summary>
+        /// Whether the region is too level for a slope cost: its ground spans less than 6 m (rolling or bumpy land keeps its old
+        /// routes; the site harmony grades those), or no stretch of the coarse grid climbs faster than the walk grade.
+        /// </summary>
+        private static bool IsLevel(LayerRegion region, Func<float2, float> h)
+        {
+            const int n = 8;
+            var size = region.Max - region.Min;
+            var g = new float[(n + 1) * (n + 1)];
+            float lo = float.MaxValue, hi = float.MinValue;
+            for (int j = 0; j <= n; j++)
+                for (int i = 0; i <= n; i++)
+                {
+                    float v = h(region.Min + size * new float2(i / (float)n, j / (float)n));
+                    if (!math.isfinite(v)) v = 0f;
+                    g[j * (n + 1) + i] = v;
+                    lo = math.min(lo, v); hi = math.max(hi, v);
+                }
+            if (!(hi - lo >= 6f)) return true;
+            float sx = size.x / n, sy = size.y / n, steep = 0f;
+            for (int j = 0; j <= n; j++)
+                for (int i = 0; i <= n; i++)
+                {
+                    float v = g[j * (n + 1) + i];
+                    if (i < n && sx > 1f) steep = math.max(steep, math.abs(g[j * (n + 1) + i + 1] - v) / sx);
+                    if (j < n && sy > 1f) steep = math.max(steep, math.abs(g[(j + 1) * (n + 1) + i] - v) / sy);
+                }
+            return steep <= _grade;
+        }
+
+        /// <summary>Mean cost multiplier of walking a straight link: 1 up to the walk grade (gentle and bumpy land plan as before), steeply more beyond.</summary>
+        private static double SlopeFactor(float2 a, float2 b, double d)
+        {
+            if (_height == null || d < 0.5) return 1.0;
+            int n = Math.Max(1, (int)Math.Ceiling(d / 20.0));   // over 20 m stretches: the hill, not every bump
+            double seg = d / n, sum = 0.0;
+            float prev = _height(a);
+            for (int k = 1; k <= n; k++)
+            {
+                float h = _height(math.lerp(a, b, k / (float)n));
+                double r = Math.Abs(h - prev) / seg / _grade;
+                prev = h;
+                sum += r <= 1.0 ? 1.0 : 1.0 + 6.0 * (r - 1.0);
+            }
+            return sum / n;
+        }
+
+        /// <summary>Candidate penalty for walks steeper than the walk grade (metres of path times how far over it they are).</summary>
+        private static double SteepScore(ParkPathGraph g)
+        {
+            if (_height == null) return 0.0;
+            double s = 0.0;
+            foreach (var e in g.Edges)
+            {
+                var a = g.Nodes[e.A].Position; var b = g.Nodes[e.B].Position;
+                double d = math.distance(a, b);
+                if (d < 1.0) continue;
+                double r = Math.Abs(_height(b) - _height(a)) / d / _grade;
+                if (r > 1.0) s += d * (r - 1.0) * 2.0;
+            }
+            return s;
         }
 
         /// <summary>Coverage loops by area, judged at design size (a smaller layout gets more, smaller loops).</summary>
@@ -366,6 +459,7 @@ namespace Placemaker.Core.Layers.Park
                 double penalty = Math.Max(0.0, (PreferredBoundaryClearance - clearance) / (PreferredBoundaryClearance - BoundaryClearance));
                 cost *= 1.0 + 2.0 * penalty * penalty;
             }
+            cost *= SlopeFactor(nodes[a].Position, nodes[b].Position, d);
             cost *= EdgeVariation(seed, a, b, gateConnector ? 0.025 : 0.08);
             graph.Set(a, b, cost);
         }

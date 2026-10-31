@@ -156,7 +156,6 @@ ode_modules`.
   themselves only appear with the user's asset packs (`-AllMods`), not run.
 - Plazas and market squares: their shops face the city streets (these types have no lanes); for the Shops & squares
   agent to decide.
-- The roads presets strict-grid and superblocks build nothing.
 - The game crash (native, `TerrainSystem.CullForCascades`) on the 4th park build: the terrain road-cull list overflows
   (sized 6 per road, an edge can write 18). Guarded by `Game/Build/TerrainCullGuard.cs` (makeover-parks): 10 of 10 builds
   after it, but the crash was intermittent, so not proven.
