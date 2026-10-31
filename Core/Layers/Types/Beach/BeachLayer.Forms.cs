@@ -202,13 +202,20 @@ namespace Placemaker.Core.Layers.Types.Beach
                     if (math.abs(math.dot(p - pk.O, pk.Tan)) < pk.Gully) continue;   // the gully mouth
                     Boulder(b, p, 0.8f + 1.4f * Hashing.Unit(Hashing.Mix(v, 1u)), v, true, 0.35f);
                 }
-                for (float d = pk.Sand + 2f; d < pk.End; d += 3.2f)
-                    foreach (float side in new[] { -1f, 1f })
+                // up the gully a few fallen rocks in clumps (one every 3 m each side read as a kerb lining the path)
+                for (float d = pk.Sand + 3f; d < pk.End; d += 4f + 4f * Hashing.Unit(Hashing.Mix(seed, n++)))
+                {
+                    uint v = Hashing.Mix(seed, n++);
+                    if (Hashing.Unit(Hashing.Mix(v, 7u)) < 0.45f) continue;
+                    float side = Hashing.Unit(Hashing.Mix(v, 8u)) < 0.5f ? -1f : 1f;
+                    int clump = 1 + (int)(Hashing.Unit(Hashing.Mix(v, 9u)) * 3f);
+                    for (int k = 0; k < clump; k++)
                     {
-                        uint v = Hashing.Mix(seed, n++);
-                        if (Hashing.Unit(Hashing.Mix(v, 7u)) < 0.3f) continue;
-                        Boulder(b, pk.At(side * (pk.Gully - 1.8f - 1.5f * Hashing.Unit(v)), d), 0.6f + 1.1f * Hashing.Unit(Hashing.Mix(v, 1u)), v, false, 0.35f);
+                        uint kv = Hashing.Mix(v, 20u + (uint)k);
+                        Boulder(b, pk.At(side * (pk.Gully - 1.2f - 2.2f * Hashing.Unit(kv)), d + (Hashing.Unit(Hashing.Mix(kv, 1u)) - 0.5f) * 3f),
+                            0.5f + 1.2f * Hashing.Unit(Hashing.Mix(kv, 2u)), kv, false, 0.35f);
                     }
+                }
             }
             // ravines: boulders choke the floor, more at the wall feet
             foreach (var (rs, rw, rlen) in f.Ravines)

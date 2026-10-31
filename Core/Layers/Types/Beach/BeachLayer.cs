@@ -485,7 +485,9 @@ namespace Placemaker.Core.Layers.Types.Beach
                     foreach (var run in b.BeachRuns)
                         foreach (var strip in shore.StripFromWater(d0, d0 + depth + 2f, run.x, run.y))
                             foreach (var piece in Clip(strip, clip))
-                                TerrainPaint.Field(ctx, piece, layer, 0.6f, 5f, 2.5f, b.WaterEdge, d0 + depth * 0.2f, depth * 0.8f, 0.1f, 0xD0E5u);
+                                // p2-beaches: sand over the whole dune belt (at 0.6 thinning to the crest the game runner's dunes read as
+                                // green scrub), giving way to the ground only behind the back dune
+                                TerrainPaint.Field(ctx, piece, layer, 1f, 5f, 2.5f, b.WaterEdge, d0 + depth * 0.75f, depth * 0.3f, 0.15f, 0xD0E5u);
                 }
             }
             if (ctx.B("sandSurface") && AssetAvailability.Require(ctx.Plan, AssetCategories.SurfaceSand, new[] { ctx.S("sandAsset") }, Keys.Category(AssetCategories.SurfaceSand)))
@@ -1297,11 +1299,14 @@ namespace Placemaker.Core.Layers.Types.Beach
                     {
                         var band = LayerRegion.From(ring);
                         if (band == null) continue;
-                        int wanted = (int)(band.Area / 10000f * 450f * pct);
+                        // p2-beaches: tufts, not a carpet: the sea face of the foredune bare, a few on its crest, more in the slack
+                        // and on the back dune (450 /ha covered the sand and the relief with round bushes)
+                        int wanted = (int)(band.Area / 10000f * 200f * pct);
                         LeisureKit.Plant(ctx, occ, band, wanted, ObjectRole.Bush, grass, 0.9f, 9f, 0.2f, 0xD6A5u, p =>
                         {
-                            float t = math.saturate((shore.FromWater(p) - behind) / math.max(1f, (duneEnd - behind) * 0.5f));
-                            return Hashing.Unit(Hashing.Mix(salt, (int)(p.x * 5f), (int)(p.y * 5f))) > 0.35f + 0.65f * t;
+                            float u = (shore.FromWater(p) - behind) / math.max(1f, duneEnd - behind);
+                            float keep = u < 0.25f ? 0f : u < 0.4f ? 0.25f : 0.6f;
+                            return Hashing.Unit(Hashing.Mix(salt, (int)(p.x * 5f), (int)(p.y * 5f))) > keep;
                         });
                     }
                     occ.GroundOk = keep;
