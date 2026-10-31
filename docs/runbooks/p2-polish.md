@@ -87,3 +87,20 @@ p1-ground): the user decides.
 - Designed sports grounds on a big site: the leftover is plain rough lawn (no groves or paths beyond the spurs).
 - `ParkPathHierarchyTests.SmallPathsTrailsAndPavedShortcutsAddNarrowJoinedPaths` fails on master too (9 loose ends; 7 now).
 - Rundown lots (rubble field, fenced wasteland, burnt out) read sparse and flat from 45°.
+
+## Round 4 (seen in the game runner: show-8-builds-1031-112612-1925 parks, show-8-builds-1031-112612-9d9c sports)
+
+- **Contour roadmap** (`ParkPathPlanner`, every type that plans walks with it): on a site where over 30 % climbs faster than 12 % the
+  roadmap is a 7 m lattice linked in every direction and a link over the walk grade costs 30x its excess, so routes run on the
+  contours and turn back to climb. Meander is skipped there (`ParkLayer`, `LeisureLayer`); the tracer (`Switchbacks`) still
+  rewinds combs and steep runs. Flat and gentle land plan exactly as before.
+- **Steps** (`Weathering.Stairs`, new decal kind `stepTreads`): every walk stretch of 3 m or more still over 10 % on the final ground
+  gets a flight of stone steps. Tests (runner's mountains): walks over 10 % without steps 2-10 %; steep path pieces in the game
+  natural 113, garden 128, wild 171, woodland 139 (round 3b: 174, 236, 258, 192); flat 0.
+- **Arena**: the hill stand is sized to the pitch (rows for about half its width) with a level terrace and stalls on top and a
+  wooded bank up to the hill; an entrance plaza on the arrival side. Known: on a 21 % slope corner to corner one uphill corner bank
+  reaches ~68 % (test allowance).
+- **Sports designs**: the tree ring keeps clear of the promenade walk (the 7 "too few trees" failures, older than P2-4, pass).
+
+Left for later: the contour-first planner as a full rewrite (this is the lattice inside the old roadmap), stairs as real geometry
+(they are decals on the walk), the arena plaza's dressing on a slope, the comb ladders near steep entrances.
