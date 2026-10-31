@@ -1,7 +1,8 @@
 // Writes a game-runner scenario for the beach styles on real shores (docs/runbooks/beach.md, p2-beaches).
 // node tools/suite/beach-scenario.js <out.json> <styles|all> [lands] [views]
 //   styles: comma list of beach preset ids, or "all" (the shelf's visible ones)
-//   lands:  comma list of lake | cliff | steep | lagoon | small (default lake)
+//   lands:  comma list of lake | lakein | cliff | steep | lagoon | small (default lake)
+//           lakein: the lake land, the outline drawn 45 m out over the water (islands and water rocks need it)
 //   views:  comma list of 45 | top | close | joints | low | terrain (default 45,top,close,joints,terrain)
 // Every build runs the simulation 30 s afterwards so the water flows into carved bays, creeks and round headlands.
 // "joints" frames every place a deck (jetty, boardwalk, footbridge) meets a ground path: camera target "joint", index "all".
@@ -15,6 +16,7 @@ const lands = {
   steep: { size: [180, 100], water: { side: "north", freeboard: 3, bank: 35 } },
   lagoon: { size: [240, 160], ground: "slope", grade: 4, toward: "north", water: { side: "north", width: 120 } },
   small: { size: [90, 70], water: { side: "north", width: 70 } },
+  lakein: { size: [200, 110], water: { side: "north", width: 90 }, area: { do: "area", tool: "points", points: [[-100, -55], [100, -55], [100, 100], [-100, 100]] } },
 };
 const views = viewsArg.split(",");
 const shot = (v) => {
@@ -31,11 +33,12 @@ const shot = (v) => {
 const scenarios = [];
 for (const land of landsArg.split(","))
   for (const style of styles) {
-    const l = Object.assign({ gap: 10, roads: "around" }, lands[land]);
+    const { area, ...landDef } = lands[land];
+    const l = Object.assign({ gap: 10, roads: "around" }, landDef);
     scenarios.push({
       id: `beach-${style}-${land}`, site: "flat", pace: "settled", land: l,
       steps: [
-        { do: "area", tool: "land" }, { do: "type", layer: "beach", preset: style }, { do: "entrances" }, { do: "preview" },
+        area || { do: "area", tool: "land" }, { do: "type", layer: "beach", preset: style }, { do: "entrances" }, { do: "preview" },
         { do: "build" }, { do: "grow", seconds: 30 }, ...views.flatMap(shot),
       ],
     });

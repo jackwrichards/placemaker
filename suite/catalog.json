@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+d9511334-dirty",
+  "assembly": "0.3.6+86f2c648",
   "categories": [
     {
       "id": "zoning",
@@ -22613,6 +22613,15 @@
           "id": "boardwalk",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "islands",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 2.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
         },
         {
           "id": "biomeLawn",

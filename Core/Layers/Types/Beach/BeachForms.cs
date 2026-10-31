@@ -114,7 +114,10 @@ namespace Placemaker.Core.Layers.Types.Beach
                 float s = len * (islands == 1 ? 0.35f + 0.3f * Hashing.Unit(v) : (i + 0.5f) / islands);
                 float r = 9f + 5f * Hashing.Unit(Hashing.Mix(v, 1u));
                 var w = shore.WaterAt(s, out var inw);
-                f.Islands.Add((w - inw * (r + 14f + 8f * Hashing.Unit(Hashing.Mix(v, 2u))), r, 1.4f + 0.8f * Hashing.Unit(Hashing.Mix(v, 3u)), s));
+                var ic = w - inw * (r + 14f + 8f * Hashing.Unit(Hashing.Mix(v, 2u)));
+                // only where the player drew the outline out over the water far enough to hold it
+                if (!shore.Outline.ContainsDisc(ic, r + 3f)) continue;
+                f.Islands.Add((ic, r, 1.4f + 0.8f * Hashing.Unit(Hashing.Mix(v, 3u)), s));
             }
             if (f.Islands.Count > 0) { f.Reach = math.max(f.Reach, 46f); f.MaxFill = math.max(f.MaxFill, 7f); f.MaxGrade = math.max(f.MaxGrade, 0.5f); }
             int knolls = ctx.I("knolls");

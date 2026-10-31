@@ -85,7 +85,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             Preset("harbour", ("style", "harbour"), ("headlands", 34.0), ("platforms", 40.0), ("bay", 0.0), ("beachDepth", 30.0), ("umbrellas", 35.0), ("boats", true),
                 ("jetties", 1.0), ("jettyLength", 30.0), ("backdrop", "lawn"), ("treeDensity", 25.0), ("lifeguards", 1.0), ("kiosks", 1.0), ("huts", "few"), ("boulders", 20.0),
                 ("berm", 0.4), ("tidePools", 0.0), ("rockClusters", 0.0), ("islands", 1.0),
-                ("biomeLawn", 60.0), ("biomeRocky", 20.0), ("biomeMeadow", 20.0));
+                ("biomeLawn", 25.0), ("biomeRocky", 30.0), ("biomeMeadow", 25.0), ("biomeHeath", 20.0));
             // Wild beach: low dunes with blowouts, wrack and driftwood, a fire ring, no facilities.
             Preset("wild", ("style", "wild"), ("beachDepth", 46.0), ("umbrellas", 0.0), ("backdrop", "dunes"), ("duneHeight", 3.0), ("duneDepth", 26.0), ("blowouts", 2.0),
                 ("hummocks", 0.6), ("berm", 0.8), ("fires", true), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
@@ -137,6 +137,8 @@ namespace Placemaker.Core.Layers.Types.Beach
             var ctx = b.Ctx;
             if (b.G.OnCliff(p) || !inWater && b.Shore.FromWater(p) < 0.3f) return false;
             if (!b.Shore.Land.Contains(p) && !inWater) return false;
+            // never past the drawn outline (the water beyond it belongs to the player, not this build)
+            if (!b.Shore.Outline.ContainsDisc(p, 1.1f * scale)) return false;
             float r = 1.1f * scale;
             bool onLand = b.Shore.Land.Contains(p);
             // off the land (out in the water) the occupancy has no ground to give: only keep clear of other rocks and decks
@@ -145,7 +147,8 @@ namespace Placemaker.Core.Layers.Types.Beach
             if (ctx.Input.Reserved != null && ctx.Input.Reserved.Blocks(p, r)) return false;
             var o = ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 5u)) * 6.283f, ObjectRole.Furniture, new AssetRef(Boulders[(int)(v % (uint)Boulders.Length)]), v, -1, AssetCategories.Rock);
             o.Scale = scale;
-            o.Elevation = -sink * scale;
+            // boulders are already partly buried; sink 0.35-0.6 of their 1.6 m on top so they bed in instead of sitting on the ground like popcorn
+            o.Elevation = -math.min(0.6f, 0.2f + sink) * 1.6f * scale;
             b.Occ.Take(p, r * 0.8f, 2);
             b.RockSpots.Add((p, r));
             b.Rocks++;
@@ -186,11 +189,11 @@ namespace Placemaker.Core.Layers.Types.Beach
                 }
             // ravines: boulders choke the floor, more at the wall feet
             foreach (var (rs, rw, rlen) in f.Ravines)
-                for (float dw = 1f; dw < math.min(rlen, shore.MaxDepth + Shoreline.MaxGap); dw += 2.6f)
+                for (float dw = 1f; dw < math.min(rlen, shore.MaxDepth + Shoreline.MaxGap); dw += 3.4f)
                 {
                     float wiggle = 3f * math.sin(dw / 13f + rs);
                     float half = 2.2f + 0.04f * dw;
-                    for (int i = 0; i < 3; i++)
+                    for (int i = 0; i < 2; i++)
                     {
                         uint v = Hashing.Mix(seed, n++);
                         float c = (Hashing.Unit(v) * 2f - 1f) * (half + 2.5f);
@@ -265,7 +268,9 @@ namespace Placemaker.Core.Layers.Types.Beach
                     bool bank = dc > hw * 0.9f && dc < hw + 4f;
                     bool pan = false;
                     foreach (var (pc, pr) in f.Pans) { float d = math.distance(p, pc); if (d < pr * 0.95f) { pan = false; goto skip; } if (d < pr + 3f) pan = true; }
-                    float chance = bank ? 0.9f : pan ? 0.7f : 0.16f * ValueNoise.Clumps(p, 9f, seed);
+                    // reed beds in clumps along the creeks, not hedge rows
+                    float clump = ValueNoise.Clumps(p, 7f, seed ^ 0x5EDu);
+                    float chance = bank ? 1.1f * clump : pan ? 0.8f * clump : 0.16f * ValueNoise.Clumps(p, 9f, seed);
                     if (Hashing.Unit(Hashing.Mix(v, 2u)) > chance) continue;
                     if (dc < hw * 0.9f) continue;
                     if (!b.Occ.Free(p, 0.5f, 0.2f, 0.05f) || ctx.Input.Reserved != null && ctx.Input.Reserved.Blocks(p, 0.8f)) continue;
