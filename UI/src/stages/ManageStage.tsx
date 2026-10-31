@@ -102,7 +102,7 @@ const CarParkList = () => {
     return (
         <div className={s.carParks} data-testid="manage-car-parks">
             <div className={s.carParksHead}>
-                <div className={s.bigLabel}>{t("Placemaker.UI.Manage.CarParks", "Your car parks")}</div>
+                <div className={s.carParksTitle}>{t("Placemaker.UI.Manage.CarParks", "Your car parks")}</div>
                 <div className={s.carParksTotal}>{t("Placemaker.UI.Info.Taken", "{0} of {1} spaces taken", [String(taken), String(spaces)])}</div>
             </div>
             {rows.map((r) => (
@@ -114,9 +114,8 @@ const CarParkList = () => {
                     title={t("Placemaker.UI.Manage.CarParkTip", "Show it and manage it")}
                 >
                     <div className={s.carParkName}>{r.customName || tl(r.recipeName)}</div>
-                    <div className={s.carParkTaken}>
-                        {r.taken}/{r.spaces}
-                    </div>
+                    {/* one text node: Gameface stacks separate text nodes when the row is tight */}
+                    <div className={s.carParkTaken}>{`${r.taken} / ${r.spaces}`}</div>
                     <div className={s.carParkFee}>{r.feeOn ? money(r.fee) : t("Placemaker.UI.Manage.Free", "Free")}</div>
                 </div>
             ))}

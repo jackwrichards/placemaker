@@ -590,8 +590,19 @@
     margin-bottom: 4rem;
 }
 
+.carParksTitle {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 11rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: $c-text-dim;
+    @include ellipsis;
+}
+
 .carParksTotal {
-    margin-left: auto;
+    flex: 0 0 auto;
+    margin-left: 8rem;
     font-size: $fs;
     color: $c-text-dim;
     white-space: nowrap;
@@ -621,6 +632,7 @@
 
 .carParkTaken,
 .carParkFee {
+    flex: 0 0 auto;
     margin-left: 10rem;
     font-size: $fs;
     white-space: nowrap;

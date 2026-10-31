@@ -151,6 +151,9 @@ namespace Placemaker.Game.Economy
             using var lanes = _allLanes.ToEntityArray(Allocator.Temp);
             for (int i = 0; i < lanes.Length; i++)
             {
+                // a stall's lane only: the drive paths carry parking lanes of their own (78 on a 318-stall lot), not spaces
+                var owner = EntityManager.GetComponentData<Owner>(lanes[i]).m_Owner;
+                if (EntityManager.HasComponent<global::Game.Net.Edge>(owner)) continue;
                 int group = GroupOfLane(lanes[i]);
                 if (group == 0 || !AppliesTo(group)) continue;
                 int cars = 0;
