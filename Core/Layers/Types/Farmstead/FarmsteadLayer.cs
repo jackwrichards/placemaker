@@ -490,8 +490,11 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                 // A growing crop and its stubble are the crop surface (the vanilla field rows read as a crop from 45°; a green crop
                 // painted on grass did not show at all: run show-5-builds-1030-233210-474c). The bare soil of spring drilling,
                 // autumn ploughing and fallow is terrain paint at full strength, with the rows striped in.
+                // Drilled and ploughed soil is the crop surface's row ground: even the dark paint with a little earth under it showed
+                // the earth's pale blotches over a whole field (run 20261031-102933-farm-close, the hill farm in autumn).
                 bool bare = f.Kind == FieldKind.Fallow || (f.Kind == FieldKind.Grain || f.Kind == FieldKind.Veg) && (season == 0 || season == 3);
-                if (bare && paint) stripes += PaintField(ctx, f.Ring, f.Kind == FieldKind.Fallow ? "Fallow" : "Grain", f.RowDir, rs, season, MaxStripes - stripes);
+                if (bare && f.Kind != FieldKind.Fallow && GroundCover.Field(ctx, f.Ring, GroundCover.Rows)) fieldSurfaces++;
+                else if (bare && paint) stripes += PaintField(ctx, f.Ring, f.Kind == FieldKind.Fallow ? "Fallow" : "Grain", f.RowDir, rs, season, MaxStripes - stripes);
                 else if (f.Kind == FieldKind.Grain && GroundCover.Field(ctx, f.Ring, GroundCover.Straw)) fieldSurfaces++;
                 else if (f.Kind == FieldKind.Veg && GroundCover.Field(ctx, f.Ring, GroundCover.Rows)) fieldSurfaces++;
                 else if (f.Kind == FieldKind.Hay && GroundCover.Field(ctx, f.Ring, GroundCover.Green)) fieldSurfaces++;
@@ -582,15 +585,20 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             if (sub == "ranch")
             {
                 int fenced = 0;
+                // a pasture's fence stops where a paddock's own fence already runs beside it (two fences 3-5 m apart, run
+                // 20261031-102933-farm-close)
+                var penPrints = new Footprints();
+                foreach (var pd in paddocks) penPrints.Add(pd.Ring);
                 foreach (var f in fields)
                 {
                     if ((f.Kind != FieldKind.Pasture && f.Kind != FieldKind.Hay) || fenced >= 24) continue;
                     var gp = f.Region.ClosestOnBoundary(origin, out int gs, out float gt);
                     foreach (var run in Fences.Runs(f.Region, new List<Gate> { new Gate { Position = gp, Segment = gs, T = gt } }, 2f))
-                    {
-                        ctx.StraightNet(run.c0, run.c1, NetRole.Fence, fenceAsset);
-                        occ.TakeCorridor(run.c0, run.c1, 0.45f, 5);
-                    }
+                        foreach (var (ra, rb) in Runs(run.c0, run.c1, p => penPrints.Hits(p, 6f), 1f, 3f))
+                        {
+                            ctx.StraightNet(ra, rb, NetRole.Fence, fenceAsset);
+                            occ.TakeCorridor(ra, rb, 0.45f, 5);
+                        }
                     // (P2-3) the pasture gate, open toward the yard track
                     var ge = f.Region.PointAt(f.Region.AlongOf(gs, gt), out var gtan, out var gin, out _);
                     GateLeaf(ctx, fenceAsset, ge - gtan * 2f + gin * Fences.Inset, gtan, gin, 4f, Hashing.Mix(ctx.Seed, 0x6A7Eu + (uint)fenced));
