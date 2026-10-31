@@ -394,8 +394,57 @@ namespace Placemaker.Core.Layers.Common.Biomes
             },
         };
 
+        public static readonly BiomeDef Dunes = new BiomeDef
+        {
+            // (p2-beaches) grey dunes behind a beach: knobbly sand hills, marram grass massed in clumps on them, bare sand where the
+            // wind cuts in, a stunted pine or two; ripples on the open sand, sand blowing onto the neighbour's ground
+            Id = "dunes", Color = "#e3cf9a",
+            Ridge = 0.7f, Flat = 0.5f, Slope = 0.3f, Hollow = -0.4f, NearPath = -0.2f, Steep = -0.3f,
+            Lift = 2.4f, Break = 0.7f,
+            PaintLayer = 4, PaintStrength = 0.75f, CorePaint = 4, CoreStrength = 0.95f,
+            TreesPerHa = 4f, Trees = new[] { "PineTree01", "PineTree01", "BirchTree01" }, GroveScale = 40f, Dead = 0.15f,
+            BushesPerHa = 0f, Bushes = Heather,
+            StonesPerHa = 6f, RockSize = 0.6f, LogsPerHa = 1f,
+            Plants = new[]
+            {
+                new BiomePlants(1100f, 0.42f, 0.78f, BiomeWhere.Drift, 5f, "GreenBushWildChild01", "GreenBushWildTeen01", "GreenBushWildChild01", "GreenBushWildChild01"),
+                new BiomePlants(140f, 0.5f, 0.85f, BiomeWhere.Rim, 8f, "GreenBushWildTeen01", "GreenBushWild02", "GreenBushWildElderly01"),
+            },
+            Decals = new[]
+            {
+                new BiomeDecal("sandRipples", 0.45f, BiomeWhere.Core, 0.35f, 0.6f, 3f),
+                new BiomeDecal("sandFan", 0.12f, BiomeWhere.Spill, 0.55f, 0.85f, 2f),
+                new BiomeDecal("dryGrass", 0.16f, BiomeWhere.Rim, 0.25f, 0.45f, 3f, quiet: true),
+                new BiomeDecal("driftwood", 0.02f, BiomeWhere.All, 0.85f, 1f, 1.5f),
+            },
+        };
+
+        public static readonly BiomeDef Shingle = new BiomeDef
+        {
+            // (p2-beaches) vegetated shingle (Dungeness, Orford Ness): a flat of grey pebbles in low ridges, sea kale and broom in
+            // sparse clumps, lichen-dark stones, a weathered post or log; open, wind-bare
+            Id = "shingle", Color = "#a39d93",
+            Flat = 0.8f, Ridge = 0.3f, Hollow = -0.2f, Steep = -0.8f, NearPath = -0.1f,
+            Lift = 0.45f, Break = 0.3f,
+            PaintLayer = 3, PaintStrength = 0.75f, CorePaint = 3, CoreStrength = 0.95f,
+            TreesPerHa = 0f, Trees = Heath,
+            BushesPerHa = 24f, Bushes = new[] { "GreenBushWild02", "GreenBushCity01", "GreenBushWildElderly01" }, RimScrub = 2f,
+            StonesPerHa = 320f, RockSize = 0.55f, BouldersPerHa = 2f, LogsPerHa = 1.5f,
+            Plants = new[]
+            {
+                new BiomePlants(140f, 0.4f, 0.7f, BiomeWhere.Drift, 12f, "GreenBushWildChild01", "GreenBushWildTeen01", "FlowerBushWildChild02"),
+            },
+            Decals = new[]
+            {
+                new BiomeDecal("shinglePatch", 0.85f, BiomeWhere.All, 0.75f, 1f, 3f),
+                new BiomeDecal("strandPebbles", 0.25f, BiomeWhere.Rim, 0.6f, 0.9f, 2f),
+                new BiomeDecal("driftwood", 0.03f, BiomeWhere.All, 0.85f, 1f, 1.5f),
+                new BiomeDecal("dryGrass", 0.12f, BiomeWhere.Spill, 0.25f, 0.45f, 3f, quiet: true),
+            },
+        };
+
         /// <summary>Every biome, in the panel's order.</summary>
-        public static readonly BiomeDef[] All = { Lawn, Meadow, FlowerField, Mulch, Glade, Forest, Rocky, SandHeath, Wetland, Pond };
+        public static readonly BiomeDef[] All = { Lawn, Meadow, FlowerField, Mulch, Glade, Forest, Rocky, SandHeath, Dunes, Shingle, Wetland, Pond };
 
         private static readonly Dictionary<string, BiomeDef> ById = Index();
 

@@ -21,5 +21,9 @@
   "Placemaker.Biome.water.Tooltip": "Natural ponds in the low ground with banked shores, reeds and wet trees. Permanent: changes the terrain.",
   "Placemaker.Biome.scale": "Patch size",
   "Placemaker.Biome.scale.Tooltip": "Low: many small patches mixed together. High: a few big areas, each with its own character.",
-  "Placemaker.UI.Group.biomes": "Landscape"
+  "Placemaker.UI.Group.biomes": "Landscape",
+  "Placemaker.Biome.dunes": "Dunes",
+  "Placemaker.Biome.dunes.Tooltip": "Knobbly sand hills with marram grass massed on them, bare sand where the wind cuts in, a stunted pine or two.",
+  "Placemaker.Biome.shingle": "Shingle",
+  "Placemaker.Biome.shingle.Tooltip": "A flat of grey pebbles in low ridges with sparse clumps of sea kale and broom, a weathered log here and there."
 }

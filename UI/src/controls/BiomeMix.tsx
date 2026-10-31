@@ -33,6 +33,8 @@ const BIOME_COLOR: Record<string, string> = {
     biomeForest: "#2f6b3a",
     biomeRocky: "#9a9187",
     biomeHeath: "#c7a46b",
+    biomeDunes: "#e3cf9a",
+    biomeShingle: "#a39d93",
     biomeWetland: "#4f8f86",
     biomeWater: "#3f7fbf",
 };

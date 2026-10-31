@@ -1,0 +1,359 @@
+{
+  "_about": "Shared decal library, family 'beach' (p2-beaches, 2026-10-31): the shore read as a place: the wet sand the waves keep dark, the wrack line of the last high water with its shells and driftwood, wind ripples, footprints to the water, towels and toys by the umbrellas, dug pits, sand washed down banks and blown onto paths, rock platforms with their tide pools and weed, shingle and storm ridges, pine litter on a lake beach, salt pans in a marsh. Colours stay mid (no white on the ground).",
+  "family": "beach",
+  "saturations": [1, 0.8],
+  "kinds": [
+    {
+      "id": "wetSandBand", "name": "Wet sand band", "tier": "macro",
+      "about": "The strip the waves keep wet: dark glossy sand on the water side (+z), drying lighter up the beach with a lobed swash line and a few shell bits. Lay it along the waterline, its +z toward the water.",
+      "texel": 0.06, "layers": "terrain", "order": 2, "lod": 60, "maxTexels": 384, "opacity": 0.74,
+      "edge": { "feather": 0.5, "warp": 0.7, "warpScale": 2.4, "round": 1, "widthNoise": 0.35 },
+      "variants": { "count": 8, "size": [12, 14], "width": [5, 8], "tile": "x", "strength": [0.75, 1], "wet": [0.5, 1] },
+      "ops": [
+        { "op": "remap", "in": "across", "out": "wet", "lo": -2.4, "hi": 1.6 },
+        { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 4, "stretch": [3, 1], "warp": 0.8, "warpScale": 3 },
+        { "op": "fbm", "out": "g", "scale": 0.12, "octaves": 2 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.7, "hi": 0.35 },
+        { "op": "mul", "a": "wet", "b": "macro", "c": "shape", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.2, "out": "wetM" },
+        { "op": "layer", "alpha": "wetM", "alphaK": 0.55, "color": [104, 90, 68], "color2": [88, 76, 58], "tone": "n", "vary": 0.05, "smooth": 0.45, "smooth2": 0.72, "smoothBy": "wet", "height": -0.1 },
+        { "op": "mul", "a": "n", "b": 0.9, "out": "nw" },
+        { "op": "add", "a": "across", "b": "nw", "out": "ac2" },
+        { "op": "band", "in": "ac2", "out": "sw", "at": -1.4, "width": 0.3 },
+        { "op": "mul", "a": "sw", "b": "shape", "out": "swS" },
+        { "op": "layer", "alpha": "swS", "alphaK": 0.32, "color": [84, 72, 54], "smooth": 0.5 },
+        { "op": "scatter", "stamp": ["shell", "pebble"], "density": 0.7, "clusters": 4, "cluster": 0.5, "clusterRadius": [0.4, 1.2], "size": [0.05, 0.1], "aspect": [0.7, 1], "palette": [[150, 128, 108], [136, 116, 104], [156, 136, 112], [128, 118, 108], [142, 106, 94], [118, 108, 98], [146, 124, 96]], "alpha": [0.8, 1], "value": 0.1, "height": 0.6, "smooth": 0.5 }
+      ]
+    },
+    {
+      "id": "wrackLine", "name": "Wrack line", "tier": "macro",
+      "about": "The strandline of the last high water: dark kelp and wrack in a broken line, bleached driftwood sticks, shells and grit caught in it, the sand under it a little damp. Lay it along the high-water mark.",
+      "texel": 0.03, "layers": "terrain", "order": 4, "lod": 45, "maxTexels": 512, "opacity": 0.88,
+      "edge": { "feather": 0.35, "warp": 0.5, "warpScale": 1.8, "round": 1, "widthNoise": 0.5 },
+      "variants": { "count": 8, "size": [10, 12], "width": [1.6, 2.8], "tile": "x", "strength": [0.75, 1], "wet": [0.2, 0.8] },
+      "ops": [
+        { "op": "abs", "in": "across", "out": "aa" },
+        { "op": "remap", "in": "aa", "out": "mid", "lo": 1.2, "hi": 0.15 },
+        { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 4, "stretch": [4, 1] },
+        { "op": "remap", "in": "n", "out": "runs", "lo": -0.55, "hi": 0.25 },
+        { "op": "mul", "a": "mid", "b": "runs", "c": "shape", "out": "cover" },
+        { "op": "layer", "alpha": "cover", "alphaK": 0.28, "color": [92, 80, 60], "smooth": 0.35 },
+        { "op": "scatter", "stamp": "kelp", "density": 12, "clusters": 10, "cluster": 0.75, "clusterRadius": [0.3, 1.2], "noise": { "scale": 2, "lo": -0.6, "hi": 0.3 }, "size": [0.35, 0.8], "aspect": [0.6, 0.9], "palette": [[58, 56, 30], [44, 46, 28], [72, 62, 36], [38, 36, 26], [64, 58, 34]], "alpha": [0.85, 1], "value": 0.12, "height": 0.6, "smooth": 0.55 },
+        { "op": "scatter", "stamp": "twig", "density": 0.3, "clusters": 3, "cluster": 0.4, "clusterRadius": [0.5, 1.5], "size": [0.45, 1.3], "aspect": [0.05, 0.1], "palette": [[124, 112, 98], [112, 102, 90], [134, 120, 102], [100, 92, 82]], "alpha": [0.9, 1], "value": 0.08, "height": 1, "smooth": 0.12 },
+        { "op": "scatter", "stamp": ["shell", "pebble", "shell"], "density": 2.2, "clusters": 6, "cluster": 0.5, "clusterRadius": [0.3, 1], "size": [0.04, 0.09], "aspect": [0.7, 1], "palette": [[150, 128, 108], [136, 116, 104], [156, 136, 112], [128, 118, 108], [142, 106, 94], [118, 108, 98], [146, 124, 96]], "alpha": [0.85, 1], "value": 0.12, "height": 0.7, "smooth": 0.3 }
+      ]
+    },
+    {
+      "id": "shellScatter", "name": "Shells", "tier": "detail",
+      "about": "Scallops, cockles and pebbles thrown up along the strandline: thick where the waves dropped them, thinning out. Mid tan and pink-brown, never white.",
+      "texel": 0.012, "layers": "terrain", "order": 5, "lod": 26, "maxTexels": 512, "opacity": 0.92,
+      "edge": { "feather": 1.2, "warp": 1, "warpScale": 2.5, "round": 0.85 },
+      "variants": { "count": 8, "size": [3, 6], "aspect": [0.45, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "ops": [
+        { "op": "scatter", "stamp": ["shell", "shell", "pebble"], "density": 16, "clusters": 5, "cluster": 0.5, "clusterRadius": [0.4, 1.5], "noise": { "scale": 1.6, "lo": -0.9, "hi": 0.3 }, "size": [0.05, 0.12], "aspect": [0.75, 1], "palette": [[150, 128, 108], [136, 116, 104], [156, 136, 112], [128, 118, 108], [142, 106, 94], [118, 108, 98], [146, 124, 96]], "alpha": [0.9, 1], "value": 0.12, "height": 0.8, "smooth": 0.35, "max": 40000 }
+      ]
+    },
+    {
+      "id": "strandPebbles", "name": "Strand pebbles", "tier": "detail",
+      "about": "Rounded pebbles and grit sorted by the swash along a sandy strand, a few shells among them, the sand under them damp.",
+      "texel": 0.022, "layers": "terrain", "order": 4, "lod": 32, "maxTexels": 512, "opacity": 0.8,
+      "edge": { "feather": 1.5, "warp": 1.2, "warpScale": 3.5, "round": 0.85 },
+      "variants": { "count": 6, "size": [5, 9], "aspect": [0.35, 0.8], "strength": [0.75, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 3, "stretch": [2.5, 1] },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.4, "hi": 0.4 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "damp" },
+        { "op": "layer", "alpha": "damp", "alphaK": 0.16, "color": [100, 88, 68], "smooth": 0.35 },
+        { "op": "scatter", "stamp": "pebble", "density": 30, "clusters": 6, "cluster": 0.5, "clusterRadius": [0.6, 2.2], "noise": { "scale": 2.4, "lo": -1, "hi": 0.25 }, "size": [0.04, 0.14], "aspect": [0.6, 0.95], "palette": [[118, 112, 104], [102, 98, 92], [128, 118, 102], [90, 86, 82], [112, 102, 88], [96, 92, 86]], "alpha": [0.9, 1], "value": 0.14, "height": 0.9, "smooth": 0.35, "max": 40000 },
+        { "op": "scatter", "stamp": "shell", "density": 2, "clusters": 4, "cluster": 0.4, "clusterRadius": [0.5, 1.5], "size": [0.05, 0.1], "aspect": [0.8, 1], "palette": [[150, 128, 108], [136, 116, 104], [156, 136, 112], [128, 118, 108], [142, 106, 94], [118, 108, 98], [146, 124, 96]], "alpha": [0.9, 1], "height": 0.7, "smooth": 0.3 }
+      ]
+    },
+    {
+      "id": "sandRipples", "name": "Wind ripples", "tier": "macro",
+      "about": "Dry upper sand combed by the wind into faint ripples with darker troughs, in soft lobes. Faint: a texture over the dry beach and the dunes, never a pattern.",
+      "texel": 0.05, "layers": "terrain", "order": 1, "lod": 50, "maxTexels": 384, "opacity": 0.5,
+      "edge": { "feather": 1.4, "warp": 1.3, "warpScale": 3.5, "round": 1 },
+      "variants": { "count": 8, "size": [9, 16], "aspect": [0.5, 1], "strength": [0.6, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 3, "octaves": 4, "warp": 1, "warpScale": 3 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.4 },
+        { "op": "wave", "in": "along", "out": "w", "period": 1.1, "phase": 0, "sharp": 1.4, "warp": 0.6, "warpScale": 2.2 },
+        { "op": "remap", "in": "w", "out": "trough", "lo": 0.45, "hi": 0.1 },
+        { "op": "mul", "a": "trough", "b": "macro", "c": "shape", "out": "t" },
+        { "op": "layer", "alpha": "t", "alphaK": 0.28, "color": [150, 132, 102], "smooth": 0.15, "height": -0.3 },
+        { "op": "remap", "in": "w", "out": "crest", "lo": 0.6, "hi": 0.9 },
+        { "op": "mul", "a": "crest", "b": "macro", "c": "shape", "out": "c" },
+        { "op": "layer", "alpha": "c", "alphaK": 0.12, "color": [196, 180, 146], "smooth": 0.12, "height": 0.3 }
+      ]
+    },
+    {
+      "id": "sandFootprints", "name": "Footprints in sand", "tier": "macro",
+      "about": "A trail of bare feet and shoes walking along +x through soft sand: shallow dents with their own shadow, fading out (lay it from a landing down to the water).",
+      "texel": 0.022, "layers": "terrain", "order": 5, "lod": 24, "maxTexels": 512, "opacity": 0.85,
+      "edge": { "feather": 0.35, "warp": 0.28, "warpScale": 1.68, "round": 0.5 },
+      "variants": { "count": 8, "size": [7, 11], "width": [1, 1.5], "strength": [0.7, 1] },
+      "ops": [
+        { "op": "scatter", "stamp": ["print", "print", "boot"], "trail": 0.86, "gait": 0.13, "angle": 0, "angleJitter": 12, "ramp": [1, 0.35], "size": [0.3, 0.38], "aspect": [0.36, 0.42], "palette": [[150, 132, 100], [138, 120, 92], [158, 140, 108]], "alpha": [0.55, 0.85], "value": 0.06, "height": 0.9, "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "trampledSand", "name": "Trampled sand", "tier": "macro",
+      "about": "Soft sand churned by many feet round a landing, a shower, a kiosk or a court: dents every way, a faint darker tone.",
+      "texel": 0.03, "layers": "terrain", "order": 4, "lod": 30, "maxTexels": 384, "opacity": 0.75,
+      "edge": { "feather": 1.2, "warp": 1, "warpScale": 2.5, "round": 1 },
+      "variants": { "count": 8, "size": [4, 9], "aspect": [0.5, 1], "strength": [0.7, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2, "octaves": 3 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.4 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "t" },
+        { "op": "layer", "alpha": "t", "alphaK": 0.16, "color": [156, 138, 106], "smooth": 0.12 },
+        { "op": "scatter", "stamp": ["print", "print", "boot"], "density": 1.4, "clusters": 4, "cluster": 0.3, "clusterRadius": [0.6, 1.6], "size": [0.3, 0.38], "aspect": [0.36, 0.42], "palette": [[150, 132, 100], [140, 122, 94]], "alpha": [0.5, 0.8], "height": 0.8, "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "beachTowels", "name": "Beach towels", "tier": "detail",
+      "about": "A family's towels laid out on the sand: striped and plain, sun-faded colours, roughly side by side (x along the row), never neon. Lay near umbrellas, the water and the landings.",
+      "texel": 0.02, "layers": "terrain", "order": 6, "lod": 30, "maxTexels": 512, "opacity": 1,
+      "edge": { "feather": 0.3, "warp": 0, "warpScale": 3, "round": 0.5 },
+      "variants": { "count": 10, "size": [3, 5], "aspect": [0.55, 0.9], "strength": [1, 1], "fades": ["soft"] },
+      "ops": [
+        { "op": "scatter", "stamp": "towel", "density": 0.34, "clusters": 10, "cluster": 0.7, "clusterRadius": [0.8, 1.4], "size": [1.7, 2], "aspect": [0.48, 0.56], "angle": 90, "angleJitter": 14, "palette": [[176, 64, 54], [52, 94, 150], [206, 168, 62], [60, 140, 130], [184, 104, 140], [90, 148, 70], [214, 118, 58], [70, 80, 140]], "alpha": [1, 1], "value": 0.06, "height": 0.3, "smooth": 0.12 }
+      ]
+    },
+    {
+      "id": "beachToys", "name": "Beach toys and castles", "tier": "detail",
+      "about": "Where children play by the water: buckets and spades in bright plastic, little sand castles and the holes they were dug from.",
+      "texel": 0.016, "layers": "terrain", "order": 6, "lod": 26, "maxTexels": 512, "opacity": 1,
+      "edge": { "feather": 1, "warp": 0.8, "warpScale": 2, "round": 1 },
+      "variants": { "count": 8, "size": [2.5, 4.5], "aspect": [0.6, 1], "strength": [0.8, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.5, "octaves": 3 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.4, "hi": 0.4 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "dug" },
+        { "op": "layer", "alpha": "dug", "alphaK": 0.22, "color": [140, 122, 92], "smooth": 0.25 },
+        { "op": "scatter", "stamp": "blob", "density": 0.6, "clusters": 3, "cluster": 0.6, "clusterRadius": [0.4, 1], "size": [0.5, 1.1], "aspect": [0.8, 1], "palette": [[150, 130, 98], [140, 122, 92]], "alpha": [0.9, 1], "height": 1.6, "smooth": 0.1 },
+        { "op": "scatter", "stamp": "toy", "density": 0.7, "clusters": 3, "cluster": 0.5, "clusterRadius": [0.5, 1.2], "size": [0.7, 0.95], "aspect": [0.5, 0.56], "palette": [[200, 52, 42], [226, 186, 44], [44, 100, 186], [60, 156, 72], [226, 118, 42]], "alpha": [1, 1], "value": 0.05, "height": 1, "smooth": 0.55 }
+      ]
+    },
+    {
+      "id": "sandPit", "name": "Dug sand pit", "tier": "detail",
+      "about": "A hole dug in the beach: damp dark sand in the hollow, the dry spoil heaped in a ring round it, a few prints.",
+      "texel": 0.025, "layers": "terrain", "order": 5, "lod": 30, "maxTexels": 384, "opacity": 0.9,
+      "edge": { "feather": 0.6, "warp": 0.6, "warpScale": 1.6, "round": 1 },
+      "variants": { "count": 8, "size": [2.2, 4.2], "aspect": [0.6, 1], "strength": [0.8, 1], "fades": ["soft", "islands"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 0.8, "octaves": 3 },
+        { "op": "remap", "in": "radial", "out": "hole", "lo": 0.5, "hi": 0.15 },
+        { "op": "layer", "alpha": "hole", "alphaK": 0.7, "color": [108, 92, 70], "color2": [96, 82, 62], "tone": "n", "smooth": 0.4, "height": -1 },
+        { "op": "mul", "a": "n", "b": 0.08, "out": "nn" },
+        { "op": "add", "a": "radial", "b": "nn", "out": "rr" },
+        { "op": "band", "in": "rr", "out": "ring", "at": 0.66, "width": 0.16 },
+        { "op": "mul", "a": "ring", "b": "shape", "out": "spoil" },
+        { "op": "layer", "alpha": "spoil", "alphaK": 0.45, "color": [178, 160, 126], "smooth": 0.12, "height": 0.9 },
+        { "op": "scatter", "stamp": "print", "density": 0.5, "clusters": 2, "cluster": 0.4, "clusterRadius": [0.4, 1], "size": [0.3, 0.36], "aspect": [0.38, 0.42], "palette": [[146, 128, 98]], "alpha": [0.5, 0.75], "height": 0.8, "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "sandFan", "name": "Sand runoff fan", "tier": "macro",
+      "about": "Sand washed down a slope by rain and spread in tongues at its foot, over grass or a path; thin rills scored down it. Its +x points downhill.",
+      "texel": 0.05, "layers": "ground", "order": 3, "lod": 45, "maxTexels": 384, "opacity": 0.72,
+      "edge": { "feather": 0.9, "warp": 1.1, "warpScale": 2.6, "round": 1 },
+      "variants": { "count": 8, "size": [6, 12], "aspect": [0.35, 0.6], "strength": [0.7, 1], "fades": ["soft", "islands", "linear", "side"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 4, "stretch": [2.6, 1], "warp": 0.8, "warpScale": 2.5 },
+        { "op": "fbm", "out": "g", "scale": 0.1, "octaves": 2 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.55, "hi": 0.3 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.4, "out": "sand" },
+        { "op": "layer", "alpha": "sand", "alphaK": 0.82, "color": [190, 172, 136], "color2": [172, 154, 120], "tone": "n", "vary": 0.05, "smooth": 0.14 },
+        { "op": "fbm", "out": "r", "scale": 0.9, "octaves": 3, "stretch": [5, 1], "ridged": true },
+        { "op": "remap", "in": "r", "out": "rill", "lo": 0.72, "hi": 0.95 },
+        { "op": "mul", "a": "rill", "b": "sand", "out": "rl" },
+        { "op": "layer", "alpha": "rl", "alphaK": 0.35, "color": [138, 120, 92], "smooth": 0.2, "height": -0.5 }
+      ]
+    },
+    {
+      "id": "blownSand", "name": "Blown sand", "tier": "macro",
+      "about": "Sand blown off the beach onto a promenade, a path or a car park, piled against its beach side (+z) in streaks and thinning across it.",
+      "texel": 0.04, "layers": "ground", "order": 3, "lod": 40, "maxTexels": 384, "opacity": 0.75,
+      "edge": { "feather": 0.4, "warp": 0.6, "warpScale": 1.8, "round": 1, "widthNoise": 0.45 },
+      "variants": { "count": 8, "size": [9, 12], "width": [1.6, 3.2], "tile": "x", "strength": [0.7, 1] },
+      "ops": [
+        { "op": "remap", "in": "across", "out": "side", "lo": -1.2, "hi": 1 },
+        { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 4, "stretch": [3.5, 1] },
+        { "op": "fbm", "out": "g", "scale": 0.08, "octaves": 2 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "runs", "lo": -0.6, "hi": 0.3 },
+        { "op": "mul", "a": "side", "b": "runs", "c": "shape", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.6, "out": "sand" },
+        { "op": "layer", "alpha": "sand", "alphaK": 0.85, "color": [196, 178, 140], "color2": [182, 164, 128], "tone": "n", "vary": 0.05, "smooth": 0.12 }
+      ]
+    },
+    {
+      "id": "tidePool", "name": "Tide pool", "tier": "macro",
+      "about": "A rock pool left by the tide: dark clear water reflecting the sky, olive weed and green algae round its rim, a few dark pebbles and red anemones in it. On rock platforms, never on sand.",
+      "texel": 0.035, "layers": "terrain", "order": 6, "lod": 45, "maxTexels": 384, "opacity": 0.85,
+      "edge": { "feather": 0.55, "warp": 0.8, "warpScale": 1.8, "round": 1 },
+      "variants": { "count": 8, "size": [2.5, 6], "aspect": [0.45, 1], "strength": [0.8, 1], "wet": [0.7, 1], "fades": ["soft", "islands", "linear", "wide"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 1.4, "octaves": 4 },
+        { "op": "remap", "in": "edge", "out": "depth", "lo": 0, "hi": 1 },
+        { "op": "mul", "a": "n", "b": 0.25, "out": "nn" },
+        { "op": "add", "a": "depth", "b": "nn", "out": "d" },
+        { "op": "band", "in": "d", "out": "rim", "at": 0.25, "width": 0.25 },
+        { "op": "layer", "alpha": "rim", "alphaK": 0.7, "color": [62, 74, 40], "color2": [50, 60, 34], "tone": "n", "smooth": 0.6, "height": 0.4 },
+        { "op": "remap", "in": "d", "out": "water", "lo": 0.35, "hi": 0.7 },
+        { "op": "fbm", "out": "r", "scale": 0.4, "octaves": 2 },
+        { "op": "layer", "alpha": "water", "alphaK": 0.8, "color": [40, 48, 50], "color2": [56, 66, 68], "tone": "r", "vary": 0, "smooth": 0.97 },
+        { "op": "scatter", "stamp": "pebble", "density": 3, "clusters": 4, "cluster": 0.5, "clusterRadius": [0.3, 0.9], "size": [0.05, 0.15], "aspect": [0.6, 0.95], "palette": [[64, 62, 58], [76, 72, 66], [56, 54, 52]], "alpha": [0.7, 0.95], "height": 0.6, "smooth": 0.8 },
+        { "op": "scatter", "stamp": "blob", "density": 1, "clusters": 2, "cluster": 0.6, "clusterRadius": [0.3, 0.8], "size": [0.05, 0.1], "aspect": [0.8, 1], "palette": [[128, 48, 46], [112, 40, 52]], "alpha": [0.8, 1], "height": 0.5, "smooth": 0.8 }
+      ]
+    },
+    {
+      "id": "wetRock", "name": "Wet rock and weed", "tier": "macro",
+      "about": "Rock the waves wash: dark and glossy, streaked with green algae and olive weed, barnacle specks, darkest at the water.",
+      "texel": 0.04, "layers": "terrain", "order": 4, "lod": 50, "maxTexels": 384, "opacity": 0.8,
+      "edge": { "feather": 1.2, "warp": 1.2, "warpScale": 3, "round": 1 },
+      "variants": { "count": 8, "size": [5, 11], "aspect": [0.45, 1], "strength": [0.75, 1], "wet": [0.6, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 4, "warp": 1, "warpScale": 3 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.6, "hi": 0.35 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "wet" },
+        { "op": "layer", "alpha": "wet", "alphaK": 0.62, "color": [70, 66, 58], "color2": [58, 56, 50], "tone": "n", "vary": 0.06, "smooth": 0.6 },
+        { "op": "fbm", "out": "a", "scale": 1.1, "octaves": 3, "stretch": [1, 2.5], "ridged": true },
+        { "op": "remap", "in": "a", "out": "alg", "lo": 0.6, "hi": 0.9 },
+        { "op": "mul", "a": "alg", "b": "wet", "out": "al" },
+        { "op": "layer", "alpha": "al", "alphaK": 0.55, "color": [52, 66, 36], "color2": [64, 70, 34], "tone": "n", "smooth": 0.55, "height": 0.3 },
+        { "op": "scatter", "stamp": "pebble", "density": 10, "clusters": 6, "cluster": 0.6, "clusterRadius": [0.3, 1], "size": [0.02, 0.05], "aspect": [0.7, 1], "palette": [[108, 104, 96], [96, 92, 86]], "alpha": [0.6, 0.9], "height": 0.6, "smooth": 0.2, "max": 20000 }
+      ]
+    },
+    {
+      "id": "rockPlatform", "name": "Rock platform", "tier": "macro",
+      "about": "Flat bedrock at the water's edge, broken into slabs by dark joints, darker and weedy toward the water; grit in the cracks. Reads from far away.",
+      "texel": 0.045, "layers": "terrain", "order": 3, "lod": 60, "maxTexels": 512, "opacity": 0.92,
+      "edge": { "feather": 1.4, "warp": 1.4, "warpScale": 4, "round": 0.85 },
+      "variants": { "count": 10, "size": [8, 16], "aspect": [0.45, 1], "strength": [0.85, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 3.5, "octaves": 4, "warp": 1.2, "warpScale": 4 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.45, "hi": 0.35 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "slab" },
+        { "op": "worley", "out": "w", "scale": 2.2, "mode": "edge" },
+        { "op": "remap", "in": "w", "out": "joint", "lo": 0.09, "hi": 0.01 },
+        { "op": "fbm", "out": "t", "scale": 0.6, "octaves": 3 },
+        { "op": "layer", "alpha": "slab", "alphaK": 0.9, "color": [110, 104, 94], "color2": [96, 90, 82], "tone": "t", "vary": 0.07, "smooth": 0.18, "height": 0.6 },
+        { "op": "mul", "a": "joint", "b": "slab", "out": "j" },
+        { "op": "layer", "alpha": "j", "alphaK": 0.85, "color": [56, 52, 46], "smooth": 0.15, "height": -0.8, "ao": 0.5 },
+        { "op": "scatter", "stamp": "pebble", "density": 6, "clusters": 6, "cluster": 0.6, "clusterRadius": [0.4, 1.4], "size": [0.03, 0.08], "palette": [[118, 112, 104], [102, 98, 92], [128, 118, 102], [90, 86, 82], [112, 102, 88], [96, 92, 86]], "alpha": [0.8, 1], "height": 0.7, "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "shingleCarpet", "name": "Shingle (carpet)", "tier": "macro",
+      "about": "A shingle beach's own ground, repeating every way: packed rounded pebbles and cobbles in grey-browns, a few darker wet ones.",
+      "texel": 0.025, "layers": "terrain", "order": 3, "lod": 40, "maxTexels": 512, "opacity": 0.85,
+      "edge": { "feather": 0.75, "warp": 0, "warpScale": 6, "round": 0 },
+      "variants": { "count": 6, "size": [9, 9.15], "aspect": [1, 1], "tile": "xy", "strength": [0.75, 1] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 3 },
+        { "op": "remap", "in": "n", "out": "bed", "lo": -0.8, "hi": 0.4 },
+        { "op": "layer", "alpha": "bed", "alphaK": 0.35, "color": [112, 104, 92], "smooth": 0.2 },
+        { "op": "scatter", "stamp": "pebble", "density": 70, "clusters": 3, "cluster": 0.15, "clusterRadius": [0.9, 2.7], "noise": { "scale": 3, "lo": -1.2, "hi": 0.2 }, "size": [0.05, 0.16], "aspect": [0.6, 0.95], "palette": [[118, 112, 104], [102, 98, 92], [128, 118, 102], [90, 86, 82], [112, 102, 88], [96, 92, 86]], "alpha": [0.95, 1], "value": 0.15, "height": 1, "smooth": 0.25, "max": 60000 }
+      ]
+    },
+    {
+      "id": "shinglePatch", "name": "Shingle", "tier": "macro",
+      "about": "A spread of pebbles and cobbles on sand or grass, thick in its middle, thinning out: a shingle bar, a storm-thrown tongue, a cove's back.",
+      "texel": 0.025, "layers": "terrain", "order": 3, "lod": 40, "maxTexels": 512, "opacity": 0.85,
+      "edge": { "feather": 1.4, "warp": 1.2, "warpScale": 3.5, "round": 0.85 },
+      "variants": { "count": 8, "size": [6, 11], "aspect": [0.4, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 3 },
+        { "op": "remap", "in": "n", "out": "bed", "lo": -0.6, "hi": 0.4 },
+        { "op": "mul", "a": "bed", "b": "shape", "out": "b" },
+        { "op": "layer", "alpha": "b", "alphaK": 0.3, "color": [112, 104, 92], "smooth": 0.2 },
+        { "op": "scatter", "stamp": "pebble", "density": 55, "clusters": 5, "cluster": 0.35, "clusterRadius": [0.9, 2.7], "noise": { "scale": 3, "lo": -1, "hi": 0.25 }, "size": [0.05, 0.16], "aspect": [0.6, 0.95], "palette": [[118, 112, 104], [102, 98, 92], [128, 118, 102], [90, 86, 82], [112, 102, 88], [96, 92, 86]], "alpha": [0.95, 1], "value": 0.15, "height": 1, "smooth": 0.25, "max": 60000 }
+      ]
+    },
+    {
+      "id": "shingleRidge", "name": "Shingle ridge", "tier": "macro",
+      "about": "The crest of a storm ridge on a shingle beach: coarse cobbles packed in a band along it, finer pebbles either side, wrack caught on its landward face (+z).",
+      "texel": 0.03, "layers": "terrain", "order": 4, "lod": 45, "maxTexels": 512, "opacity": 0.9,
+      "edge": { "feather": 0.4, "warp": 0.6, "warpScale": 2, "round": 1, "widthNoise": 0.4 },
+      "variants": { "count": 6, "size": [10, 12], "width": [2.2, 3.8], "tile": "x", "strength": [0.8, 1] },
+      "ops": [
+        { "op": "abs", "in": "across", "out": "aa" },
+        { "op": "remap", "in": "aa", "out": "mid", "lo": 1.6, "hi": 0.2 },
+        { "op": "fbm", "out": "n", "scale": 1.8, "octaves": 3, "stretch": [3, 1] },
+        { "op": "remap", "in": "n", "out": "runs", "lo": -0.7, "hi": 0.3 },
+        { "op": "mul", "a": "mid", "b": "runs", "c": "shape", "out": "c" },
+        { "op": "layer", "alpha": "c", "alphaK": 0.3, "color": [104, 98, 88], "smooth": 0.2 },
+        { "op": "scatter", "stamp": ["pebble", "rock"], "density": 18, "clusters": 6, "cluster": 0.5, "clusterRadius": [0.4, 1.4], "noise": { "scale": 2, "lo": -0.8, "hi": 0.3 }, "size": [0.1, 0.26], "aspect": [0.6, 0.95], "palette": [[118, 112, 104], [102, 98, 92], [128, 118, 102], [90, 86, 82], [112, 102, 88], [96, 92, 86]], "alpha": [0.95, 1], "value": 0.14, "height": 1, "smooth": 0.2 },
+        { "op": "scatter", "stamp": "kelp", "density": 0.8, "clusters": 3, "cluster": 0.6, "clusterRadius": [0.3, 1], "side": 0.7, "size": [0.25, 0.5], "aspect": [0.6, 0.9], "palette": [[58, 56, 30], [44, 46, 28], [72, 62, 36], [38, 36, 26], [64, 58, 34]], "alpha": [0.8, 1], "height": 0.5, "smooth": 0.4 }
+      ]
+    },
+    {
+      "id": "driftwood", "name": "Driftwood", "tier": "detail",
+      "about": "Bleached branches and a stump or two the sea left high on the beach, grey-brown, with their shadows and a little wrack tangled in them.",
+      "texel": 0.02, "layers": "terrain", "order": 5, "lod": 32, "maxTexels": 512, "opacity": 0.95,
+      "edge": { "feather": 1, "warp": 0.8, "warpScale": 2, "round": 0.8 },
+      "variants": { "count": 8, "size": [3, 6], "aspect": [0.45, 1], "strength": [0.85, 1], "fades": ["soft", "islands", "linear"] },
+      "ops": [
+        { "op": "scatter", "stamp": "twig", "density": 0.5, "clusters": 2, "cluster": 0.5, "clusterRadius": [0.5, 1.5], "size": [0.8, 2.2], "aspect": [0.045, 0.09], "palette": [[124, 112, 98], [112, 102, 90], [134, 120, 102], [100, 92, 82]], "alpha": [0.95, 1], "value": 0.08, "height": 1, "smooth": 0.1 },
+        { "op": "scatter", "stamp": "chip", "density": 0.8, "clusters": 2, "cluster": 0.5, "clusterRadius": [0.4, 1], "size": [0.15, 0.35], "aspect": [0.25, 0.45], "palette": [[124, 112, 98], [112, 102, 90], [134, 120, 102], [100, 92, 82]], "alpha": [0.9, 1], "height": 0.8, "smooth": 0.1 },
+        { "op": "scatter", "stamp": "kelp", "density": 0.6, "clusters": 2, "cluster": 0.6, "clusterRadius": [0.4, 1], "size": [0.25, 0.5], "aspect": [0.6, 0.9], "palette": [[58, 56, 30], [44, 46, 28], [72, 62, 36], [38, 36, 26], [64, 58, 34]], "alpha": [0.8, 1], "height": 0.5, "smooth": 0.4 }
+      ]
+    },
+    {
+      "id": "pineDuffSand", "name": "Pine litter on sand", "tier": "macro",
+      "about": "A lake beach under pines: needles, cones and bark crumbs drifted over the sand in a dark organic mulch, thick under the trees, thinning toward the water.",
+      "texel": 0.03, "layers": "terrain", "order": 4, "lod": 40, "maxTexels": 512, "opacity": 0.85,
+      "edge": { "feather": 1.4, "warp": 1.3, "warpScale": 3.5, "round": 1 },
+      "variants": { "count": 8, "size": [7, 13], "aspect": [0.45, 1], "strength": [0.75, 1], "fades": ["soft", "islands", "linear", "wide", "side", "ring"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.8, "octaves": 4, "warp": 1, "warpScale": 3 },
+        { "op": "fbm", "out": "g", "scale": 0.15, "octaves": 2 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.55, "hi": 0.35 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
+        { "op": "erode", "cover": "cover", "grain": "g01", "sharp": 2.2, "out": "duff" },
+        { "op": "layer", "alpha": "duff", "alphaK": 0.62, "color": [98, 74, 50], "color2": [84, 64, 44], "tone": "n", "vary": 0.06, "smooth": 0.15 },
+        { "op": "scatter", "stamp": "twig", "density": 30, "clusters": 4, "cluster": 0.3, "clusterRadius": [0.9, 2.4], "noise": { "scale": 3, "lo": -0.9, "hi": 0.3 }, "size": [0.18, 0.3], "aspect": [0.18, 0.22], "palette": [[136, 84, 46], [118, 74, 42], [150, 98, 56], [104, 70, 42]], "alpha": [0.85, 1], "value": 0.12, "height": 0.4, "smooth": 0.3, "max": 40000 },
+        { "op": "scatter", "stamp": "chip", "density": 1.2, "clusters": 4, "cluster": 0.5, "clusterRadius": [0.5, 1.5], "size": [0.06, 0.12], "aspect": [0.55, 0.75], "palette": [[96, 66, 40], [84, 58, 36]], "alpha": [0.9, 1], "height": 1, "smooth": 0.15 }
+      ]
+    },
+    {
+      "id": "saltPan", "name": "Salt pan", "tier": "macro",
+      "about": "A bare hollow in a saltmarsh where water stands and dries: fine grey-brown mud cracked into plates, a damp darker heart, sedge litter at its rim.",
+      "texel": 0.035, "layers": "terrain", "order": 3, "lod": 45, "maxTexels": 384, "opacity": 0.8,
+      "edge": { "feather": 1, "warp": 1.2, "warpScale": 3, "round": 1 },
+      "variants": { "count": 8, "size": [5, 11], "aspect": [0.45, 1], "strength": [0.75, 1], "wet": [0.2, 0.9], "fades": ["soft", "islands", "linear", "wide"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 2.2, "octaves": 4, "warp": 1, "warpScale": 2.8 },
+        { "op": "remap", "in": "n", "out": "macro", "lo": -0.55, "hi": 0.35 },
+        { "op": "mul", "a": "shape", "b": "macro", "out": "mud" },
+        { "op": "layer", "alpha": "mud", "alphaK": 0.72, "color": [112, 104, 90], "color2": [100, 94, 82], "tone": "n", "vary": 0.06, "smooth": 0.2 },
+        { "op": "worley", "out": "w", "scale": 0.45, "mode": "edge" },
+        { "op": "remap", "in": "w", "out": "joint", "lo": 0.03, "hi": 0.006 },
+        { "op": "mul", "a": "joint", "b": "mud", "out": "cr" },
+        { "op": "layer", "alpha": "cr", "alphaK": 0.6, "color": [64, 58, 50], "smooth": 0.1, "height": -0.6 },
+        { "op": "remap", "in": "radial", "out": "heart", "lo": 0.6, "hi": 0.1, "k": { "wet": [0.2, 1] } },
+        { "op": "mul", "a": "heart", "b": "mud", "out": "dh" },
+        { "op": "layer", "alpha": "dh", "alphaK": 0.6, "color": [70, 66, 58], "smooth": 0.75 }
+      ]
+    },
+    {
+      "id": "kelpHeap", "name": "Kelp heap", "tier": "detail",
+      "about": "A heap of storm-thrown kelp and wrack, thick and glossy, a driftwood stick or two in it: piled at the back of the wrack line or against rocks.",
+      "texel": 0.025, "layers": "terrain", "order": 5, "lod": 34, "maxTexels": 384, "opacity": 0.95,
+      "edge": { "feather": 0.9, "warp": 0.8, "warpScale": 1.8, "round": 1 },
+      "variants": { "count": 6, "size": [2.2, 4.5], "aspect": [0.4, 0.8], "strength": [0.85, 1], "fades": ["soft", "islands"] },
+      "ops": [
+        { "op": "remap", "in": "radial", "out": "core", "lo": 0.9, "hi": 0.3 },
+        { "op": "layer", "alpha": "core", "alphaK": 0.4, "color": [56, 52, 34], "smooth": 0.5 },
+        { "op": "scatter", "stamp": "kelp", "density": 14, "clusters": 3, "cluster": 0.8, "clusterRadius": [0.4, 1], "size": [0.3, 0.7], "aspect": [0.6, 0.9], "palette": [[58, 56, 30], [44, 46, 28], [72, 62, 36], [38, 36, 26], [64, 58, 34]], "alpha": [0.9, 1], "value": 0.12, "height": 0.8, "smooth": 0.6 },
+        { "op": "scatter", "stamp": "twig", "density": 0.3, "clusters": 1, "cluster": 0.5, "clusterRadius": [0.4, 0.8], "size": [0.6, 1.2], "aspect": [0.05, 0.09], "palette": [[124, 112, 98], [112, 102, 90], [134, 120, 102], [100, 92, 82]], "alpha": [0.95, 1], "height": 1, "smooth": 0.1 }
+      ]
+    }
+  ]
+}

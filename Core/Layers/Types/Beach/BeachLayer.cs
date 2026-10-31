@@ -25,9 +25,9 @@ using Unity.Mathematics;
 namespace Placemaker.Core.Layers.Types.Beach
 {
     [AreaGenerator(70, Group = "water")]
-    public sealed class BeachLayer : LeisureLayer
+    public sealed partial class BeachLayer : LeisureLayer
     {
-        public static readonly string[] Styles = { "sandy", "rocky", "river", "cove", "volleyball" };
+        public static readonly string[] Styles = { "sandy", "rocky", "river", "cove", "volleyball", "shingle", "mulch", "granite", "ravine", "marsh", "harbour", "wild" };
         private static readonly List<Gate> NoGates = new List<Gate>();
         /// <summary>How far past the outline the sand may reach to find the water (m).</summary>
         public const float ForeshoreReach = Shoreline.MaxGap;
@@ -113,6 +113,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             c.Toggle("jettyHead", true, ControlTier.More, "amenities").Tip();
             // (appended) a bay carved into the land below the water level, so the lake flows in and the shore curves (ShoreCarve).
             c.Slider("bay", 0, 0, 40, 2, "m", ControlTier.Essential, "shore").Tip();
+            DefineFormControls(c);
 
             c.Fixed("waterSide");
             c.Fixed("carve");
@@ -137,12 +138,13 @@ namespace Placemaker.Core.Layers.Types.Beach
             // rf-beach: busier (umbrellas 70 -> 110 /ha), a swimming jetty with a T-head, boats pulled up, dunes a little higher.
             Preset("sandy", ("style", "sandy"), ("beachDepth", 56.0), ("sandBlend", 16.0), ("umbrellas", 110.0), ("layout", "scattered"), ("backdrop", "dunes"),
                 ("huts", "none"), ("lifeguards", 2.0), ("duneDepth", 26.0), ("duneHeight", 2.0), ("grassDensity", 70.0), ("treeDensity", 40.0), ("kiosks", 1.0),
-                ("jetties", 1.0), ("jettyLength", 26.0), ("jettyHead", true), ("boats", true), ("bay", 24.0));
+                ("jetties", 1.0), ("jettyLength", 26.0), ("jettyHead", true), ("boats", true), ("bay", 24.0), ("berm", 0.7), ("hummocks", 0.4),
+                ("biomeLawn", 60.0), ("biomeDunes", 25.0), ("biomeForest", 15.0));
             // Promenade beach: tidy rows, one wide promenade on a level bench with benches and kiosks, palms on a lawn.
             // rf-beach: denser rows (110 -> 150 /ha), a palm avenue along the promenade (Backdrop), a long pier with a T-head.
             Preset("resort", ("style", "sandy"), ("beachDepth", 52.0), ("sandBlend", 6.0), ("umbrellas", 150.0), ("layout", "rows"), ("backdrop", "lawn"), ("huts", "none"),
                 ("pathWidth", "wide"), ("benchSpacing", 15.0), ("kiosks", 2.0), ("lifeguards", 2.0), ("slope", 4.0), ("treeDensity", 30.0), ("accessSpacing", 45.0),
-                ("jetties", 1.0), ("jettyLength", 44.0), ("jettyHead", true), ("bay", 16.0));
+                ("jetties", 1.0), ("jettyLength", 44.0), ("jettyHead", true), ("bay", 16.0), ("berm", 0.5));   // lawn behind (the mix's default)
             // Rocky cove: dirt texture with sand pockets, rocks along the waterline, tide pools, a wide rough blend.
             Preset("rocky", ("style", "rocky"), ("umbrellas", 5.0), ("sandSurface", false), ("paintLayer", (double)TerrainMaterials.Dirt), ("backdrop", "none"),
                 ("huts", "none"), ("lifeguards", 0.0), ("kiosks", 0.0), ("rockClusters", 8.0), ("tidePools", 5.0), ("beachDepth", 36.0), ("sandBlend", 20.0),
@@ -152,10 +154,13 @@ namespace Placemaker.Core.Layers.Types.Beach
             // Wild dunes: no amenities, sand drifting up low, smooth dune ridges parallel to the shore, headlands, fire rings, pines.
             // rf-beach: real dunes (2 -> 3.5 m, deeper belt, thick marram grass; no sand fences: vanilla has no timber one), pines only far behind them.
             Preset("cove", ("style", "cove"), ("beachDepth", 44.0), ("sandBlend", 22.0), ("umbrellas", 6.0), ("backdrop", "dunes"), ("duneDepth", 36.0),
-                ("duneHeight", 3.5), ("treeDensity", 25.0), ("grassDensity", 90.0), ("fires", true), ("lifeguards", 0.0), ("huts", "none"), ("kiosks", 0.0),
-                ("lamps", false), ("rockClusters", 3.0), ("boats", true), ("benchSpacing", 0.0), ("accessSpacing", 90.0), ("showers", false), ("bay", 32.0));
+                ("duneHeight", 5.0), ("treeDensity", 25.0), ("grassDensity", 90.0), ("fires", true), ("lifeguards", 0.0), ("huts", "none"), ("kiosks", 0.0),
+                ("lamps", false), ("rockClusters", 3.0), ("boats", true), ("benchSpacing", 0.0), ("accessSpacing", 90.0), ("showers", false), ("bay", 32.0),
+                ("berm", 0.9), ("blowouts", 3.0), ("hummocks", 1.0), ("boardwalk", true),
+                ("biomeLawn", 0.0), ("biomeDunes", 50.0), ("biomeHeath", 30.0), ("biomeForest", 20.0));
             Preset("volleyball", ("style", "volleyball"), ("beachDepth", 66.0), ("sandBlend", 10.0), ("courts", 4.0), ("umbrellas", 25.0), ("accessSpacing", 120.0),
                 ("lifeguards", 1.0), ("kiosks", 2.0), ("huts", "none"), ("pathWidth", "wide"), ("backdrop", "lawn"), ("treeDensity", 30.0), ("slope", 3.0));
+            DefineFormPresets();
         }
 
         protected override int WantedEntrances(LayerRegion region) => math.min(4, Entrances.WantedByArea(region.Area));
@@ -181,6 +186,12 @@ namespace Placemaker.Core.Layers.Types.Beach
             public List<float2> Landings = new List<float2>();
             public AssetRef Umbrella, Lounger;
             public int Umbrellas, Loungers, Showers, Huts, Guards, Courts, Rocks, Pools, Boats, Fires, Kiosks, Lookouts, Jetties;
+            /// <summary>(p2-beaches) the landforms, and what the layout put where (the ground design reads them).</summary>
+            public BeachForms Forms;
+            public readonly List<float2> UmbrellaSpots = new List<float2>();
+            public readonly List<(float2 root, float2 end)> Decks = new List<(float2, float2)>();
+            public readonly List<(float2 p, float r)> RockSpots = new List<(float2, float)>();
+            public readonly List<float2> FirePlaces = new List<float2>();
 
             public float FromWater(float2 p) => Shore.FromWater(p);
         }
@@ -192,22 +203,30 @@ namespace Placemaker.Core.Layers.Types.Beach
             var shore = Shoreline.Analyze(ctx, region0, ctx.S("waterSide"));
             if (shore == null) { ctx.Issue(IssueSeverity.Warning, Keys.NoSpace, NameKey); return; }
             // a bay first: the lake flows into it, and everything below is laid out along the curved waterline it makes
+            bool carvedBay = false;
             if (ctx.F("bay") >= 3f && ShoreCarve.Bay(ctx, shore, ctx.F("bay"), 18f, Hashing.Mix(ctx.Seed, 0xBA7u), out _))
             {
+                carvedBay = true;
                 var carved = Shoreline.Analyze(ctx, region0, ctx.S("waterSide"));
                 if (carved != null) shore = carved;
             }
             ctx.LayerRegion = shore.Land;
             var b = new Work { Ctx = ctx, Shore = shore, Style = ctx.S("style") };
             b.Under = ctx.B("sandReach") ? ctx.F("underwater") : 0f;
-            // s30: a 2 m node grid (a 4 m grid smeared the promenade bench and the access ramps into cross slopes).
-            b.G = ShoreGround.Create(ctx, shore, b.Under, 2f);
-            b.Occ = new Occupancy(shore.Land, ctx.Input.Reserved, ctx.Site);
-            var g = b.G;
-            b.Occ.GroundOk = (p, r) => g.CanStand(p, r);
+            // p2-beaches: the sand covers the whole carved bay floor (it stopped 20 m out from the new waterline and left the old
+            // bank as a band of grass under the shallow water: the game runner's family beach, SandIsPaintedToTheWater)
+            if (carvedBay && b.Under > 0f) b.Under = math.max(b.Under, ctx.F("bay") + 12f);
             float landDepth = shore.MaxDepth + shore.GapAt(shore.Length * 0.5f);
             b.Wet = math.min(ctx.F("wetBand"), math.max(2f, landDepth * 0.2f));
             b.D = math.min(ctx.F("beachDepth"), math.max(b.Wet + 6f, landDepth - 6f));
+            // p2-beaches: the landforms first (headlands and knolls reach out into the water: the sculpt must reach that far)
+            b.Forms = BeachForms.Plan(ctx, shore, b.Wet, b.D, Hashing.Mix(ctx.Seed, 0xF0A3u));
+            ShoreAdvice(ctx, shore, landDepth);
+            // s30: a 2 m node grid (a 4 m grid smeared the promenade bench and the access ramps into cross slopes).
+            b.G = ShoreGround.Create(ctx, shore, math.max(b.Under, b.Forms.Reach), 2f);
+            b.Occ = new Occupancy(shore.Land, ctx.Input.Reserved, ctx.Site);
+            var g = b.G;
+            b.Occ.GroundOk = (p, r) => g.CanStand(p, r);
             b.Blend = math.max(1f, ctx.F("sandBlend"));
             var pathRole = ctx.S("pathWidth") == "wide" ? NetRole.PathwayWide : NetRole.Pathway;
             b.Hw = Composer.DefaultHalfWidth(pathRole);
@@ -227,18 +246,24 @@ namespace Placemaker.Core.Layers.Types.Beach
 
             if (!allCliff)
             {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
                 Terrain(b);
+                ctx.Plan.Facts["msTerrain"] = sw.ElapsedMilliseconds;
                 ctx.Check();
                 Ground(b);
+                StyleGround(b);
             }
             Paths(b, pathRole, allCliff);
             ctx.Check();
             if (!allCliff)
             {
+                Boardwalk(b);   // p2-beaches: decks first, everything keeps off them
                 Jetties(b);   // rf-beach: before anything else takes the sand at the water
                 Courts(b);
+                FormRocks(b);
                 Rocks(b);
                 TidePools(b);
+                MarshPlanting(b);
                 SandPockets(b);
                 Lifeguards(b);
                 Showers(b);
@@ -250,11 +275,19 @@ namespace Placemaker.Core.Layers.Types.Beach
             BackPathFurniture(b);
             HutsAndKiosks(b);
             ctx.Check();
+            var sw2 = System.Diagnostics.Stopwatch.StartNew();
+            if (!allCliff) Hinterland(b);
+            ctx.Plan.Facts["msHinterland"] = sw2.ElapsedMilliseconds;
             if (!allCliff) BlendGrass(b);
             Backdrop(b);
 
+            sw2.Restart();
+            if (!allCliff) LayDecals(b);
+            ctx.Plan.Facts["msDecals"] = sw2.ElapsedMilliseconds;
+            sw2.Restart();
             // s30: banks ≤ 33 % (45 % read as a near-vertical sheet over a 3.5 m heightmap texel once the walk bench was re-laid).
-            g.Finish(5f, 1.5f, 0.33f);
+            g.Finish(b.Forms.MaxCut, b.Forms.MaxFill, b.Forms.MaxGrade);
+            ctx.Plan.Facts["msFinish"] = sw2.ElapsedMilliseconds;
             EmitGreenRegions(ctx, b.Occ, g);
             CommonStats(ctx);
             ctx.Stat("Placemaker.Stat.Shoreline", System.Math.Round(shore.Length), Keys.UnitM);
@@ -334,7 +367,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             var ctx = b.Ctx; var shore = b.Shore; var g = b.G;
             bool carve = ctx.B("carve");
             bool dunes = ctx.S("backdrop") == "dunes" && ctx.F("duneHeight") > 0f;
-            if (!carve && !dunes) return;
+            if (!carve && !dunes && !b.Forms.Any) return;
             float slope = ctx.F("slope") / 100f;
             float D = b.D;
             // Typical rise from the back of the sand to the ground behind it → bank width.
@@ -356,6 +389,9 @@ namespace Placemaker.Core.Layers.Types.Beach
             uint seed = Hashing.Mix(ctx.Seed, 0xD00Eu);
             float phase1 = Hashing.Unit(seed) * 6.283f, phase2 = Hashing.Unit(Hashing.Mix(seed, 1u)) * 6.283f;
             float under = math.max(slope * 1.4f, 0.05f);
+            var forms = b.Forms;
+            if (!carve) forms.Berm = 0f;   // the berm is part of the carved beach face ("Carve terrain" off leaves the beach as it is)
+            forms.Dunes(ctx, shore, duneStart, duneEnd, dunes ? duneH : 0f);
             g.Profile((dw, along, h0, p) =>
             {
                 float r0 = g.Ref(along);
@@ -387,9 +423,11 @@ namespace Placemaker.Core.Layers.Types.Beach
                     float onCut = math.saturate(1f - math.max(0f, h0 - t - 0.3f) / 1.5f);
                     t += duneH * cross * swell * onCut;
                 }
-                return t;
+                return forms.Apply(t, dw, along, h0, p, g.Ref(along));
             });
-            g.Settle(5f, 1.5f, 0.33f, 10f);
+            // p2-beaches: the earthwork limits follow the forms (the old 1.5 m fill cap flattened 3.5 m dunes to 1.5 m)
+            g.Settle(forms.MaxCut, forms.MaxFill, forms.MaxGrade, 10f);
+            ctx.Plan.Facts["formsFill"] = forms.MaxFill;
         }
 
         /// <summary>
@@ -487,7 +525,10 @@ namespace Placemaker.Core.Layers.Types.Beach
         private static List<float2[]> BeachWalkLines(Work b, float2 run)
         {
             var shore = b.Shore; var g = b.G;
-            return ShoreWalk.SmoothFromWater(shore, b.PathDw, run, 24f, null, p => shore.Land.ContainsDisc(p, b.Hw + 1f) && !g.OnCliff(p), 24f);
+            // p2-beaches: the walk stops at a ravine's rim (a footbridge spans it, RavineBridges)
+            var f = b.Forms;
+            return ShoreWalk.SmoothFromWater(shore, b.PathDw, run, 24f, null, p => shore.Land.ContainsDisc(p, b.Hw + 1f) && !g.OnCliff(p)
+                && (f.Ravines.Count == 0 || !RavineAt(b, p)), 24f);
         }
 
         private void Paths(Work b, NetRole role, bool allCliff)
@@ -495,6 +536,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             var ctx = b.Ctx; var shore = b.Shore; var occ = b.Occ; var g = b.G;
             var asset = AssetMix.One(ctx.S("pathAsset"));
             var spine = new List<(float2, float2)>();
+            var walkEnds = new List<(float2 a, float ha, float2 e, float he)>();
             if (b.HasPath && !allCliff)
                 // s30: ONE smooth curve near the water (ShoreWalk: the waterline offset smoothed over tens of metres, radius
                 // ≥ 40 m) per beach run, on ONE level bench smoothed over ±40 m and ≤ 2 % along it; it ends where its level would
@@ -509,6 +551,8 @@ namespace Placemaker.Core.Layers.Types.Beach
                         ParkPaths.Index(curves, occ.Corridors, 100);
                         ParkPaths.Index(curves, occ.Paths, 100);
                         ParkPaths.Emit(ctx, curves, NoGates, asset);
+                        var c0 = curves[0].Samples; var c1 = curves[curves.Count - 1].Samples;
+                        walkEnds.Add((c0[0], profile(0f), c1[c1.Length - 1], profile(Shoreline.LengthOf(piece))));
                         foreach (var c in curves)
                             for (int i = 1; i < c.Samples.Length; i++) spine.Add((c.Samples[i - 1], c.Samples[i]));
                         b.Lines.Add(piece);
@@ -516,6 +560,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                     }
                 }
             b.HasPath = b.Lines.Count > 0;
+            RavineBridges(b, walkEnds);
 
             var cliffLines = new List<float2[]>();
             // Cliff stretches: a walk on the cliff top with lookouts (the cliff face stays natural).
@@ -833,10 +878,11 @@ namespace Placemaker.Core.Layers.Types.Beach
                 float s = s0;
                 // in line with the nearest access landing when one is close
                 float best = 16f;
+                float2 from = default; bool hasFrom = false;
                 foreach (var (_, bottom) in b.Access)
                 {
                     shore.Nearest(bottom, out _, out float a);
-                    if (math.abs(a - s0) < best) { best = math.abs(a - s0); s = a; }
+                    if (math.abs(a - s0) < best) { best = math.abs(a - s0); s = a; from = bottom; hasFrom = true; }
                 }
                 if (!InBeachRun(b, s)) continue;
                 var water = shore.WaterAt(s, out var inw);
@@ -863,6 +909,17 @@ namespace Placemaker.Core.Layers.Types.Beach
                 }
                 if (wet < 8f) continue;
                 var end = root + dir * len;
+                // p2-beaches: the jetty starts on a path end (the access in line with it, or a spur off the promenade), so the
+                // deck and the path share one node: no overhang, no step (docs/GROUND-RUNDOWN.md, bridges)
+                if (!hasFrom)
+                {
+                    float nd = 40f;
+                    foreach (var line in b.Lines)
+                        foreach (var q in line) { float dd = math.distance(q, root); if (dd < nd) { nd = dd; from = q; hasFrom = true; } }
+                }
+                if (hasFrom && math.distance(from, root) > 1.5f && !shore.Land.CrossesBoundary(from, root, true))
+                    LeisureKit.Path(ctx, b.Occ, from, root, NetRole.Pathway, AssetMix.One(ctx.S("pathAsset")));
+                b.Decks.Add((root, end));
                 ctx.Plan.Nets.Add(new PlannedNet
                 {
                     A = new float3(root.x, deck, root.y), B = new float3(math.lerp(root, end, 1f / 3f).x, deck, math.lerp(root, end, 1f / 3f).y),
@@ -955,6 +1012,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                     if (lounger != null && occ.Free(q, 0.7f, 0.4f, 0.1f)) spots.Add(q);
                 }
                 ctx.Object(p, Yaw(toWater) + jitter, ObjectRole.Furniture, b.Umbrella, v, -1, umbrella);
+                b.UmbrellaSpots.Add(p);
                 occ.Take(p, 1.6f, 1);
                 b.Umbrellas++;
                 foreach (var q in spots)
@@ -1021,6 +1079,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                     o.Scale = 0.55f;
                 }
                 b.Occ.Take(c, 1.3f, 1);
+                b.FirePlaces.Add(c);
                 float phase = Hashing.Unit(v) * 6.283f;
                 for (int k = 0; k < 3; k++)
                 {
