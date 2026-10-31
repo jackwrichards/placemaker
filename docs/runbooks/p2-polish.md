@@ -39,7 +39,7 @@ meadow, mulch beds and heath all read as scattered bushes. Colours: leafy greens
 | Landfill | `LandfillLayer` | loaders and refuse lorries on the face and queuing on the haul road (our own vehicle props: the clean game has no machine pool), a ragged working face |
 | Sports park on a big site | `SportsParkComposer.Count`, new control `growWithSite` (12 languages) | the repeatable facilities multiply with the site (x(area/4.5 ha)^0.8, at most 4): community on 15 ha 4 -> 12 facilities |
 | Arena on a hill | `SportsDesigns.Arena` | banks the hill rises behind become seating terraces with benches |
-| Hairpins | `ParkPathStyles.WidenTurns` | turns over 80 degrees become arcs up to 6 m radius |
+| Hairpins (tried, reverted) | `ParkPathStyles.WidenTurns` | arcs at turns over 80 degrees pushed walks onto steeper ground (wild on mountains 164 -> 325 steep pieces) and still read as Vs from above |
 | Tried, reverted | `ParkPathPlanner.SlopeFactor` | a stiffer climb penalty (6 -> 14) made natural walks more convoluted (112 -> 179 steep pieces): the roadmap limits it |
 
 ## Verified in the game (pit checks)
