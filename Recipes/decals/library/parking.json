@@ -6,15 +6,15 @@
     {
       "id": "stallOil", "name": "Stall oil", "tier": "macro",
       "about": "The dark heart of a parking stall: an engine's drips gathered into one soft stain with a few fresh drops round it, longer along the stall. Busy stalls are darker.",
-      "texel": 0.03, "layers": "ground", "order": 3, "lod": 34, "maxTexels": 256, "opacity": 0.9,
+      "texel": 0.03, "layers": "ground", "order": 3, "lod": 34, "maxTexels": 256, "opacity": 1,
       "edge": { "feather": 0.7, "warp": 0.6, "warpScale": 0.9, "round": 1 },
-      "variants": { "count": 8, "size": [1.3, 2.2], "aspect": [0.5, 0.75], "strength": [0.55, 1], "fades": ["soft", "islands"] },
+      "variants": { "count": 8, "size": [1.6, 2.6], "aspect": [0.5, 0.75], "strength": [0.55, 1], "fades": ["soft", "islands"] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 0.6, "octaves": 4, "warp": 0.6, "warpScale": 0.8 },
         { "op": "remap", "in": "n", "out": "m", "lo": -0.35, "hi": 0.25 },
         { "op": "remap", "in": "radial", "out": "core", "lo": 0.95, "hi": 0.15 },
         { "op": "mul", "a": "m", "b": "core", "c": "shape", "out": "s" },
-        { "op": "layer", "alpha": "s", "alphaK": 0.88, "color": [12, 12, 12], "color2": [50, 50, 50], "tone": "n", "vary": 0.08, "smooth": 0.12 },
+        { "op": "layer", "alpha": "s", "alphaK": 1, "color": [12, 12, 12], "color2": [50, 50, 50], "tone": "n", "vary": 0.08, "smooth": 0.12 },
         { "op": "scatter", "stamp": "blob", "density": 7, "clusters": 20, "cluster": 0.8, "clusterRadius": [0.15, 0.5], "size": [0.03, 0.12], "aspect": [0.6, 1], "palette": [[12, 12, 12], [50, 50, 50]], "alpha": [0.55, 0.95], "smooth": 0.15 }
       ]
     },
@@ -23,14 +23,14 @@
       "about": "Two dark rubbed lanes where every car's wheels run down an aisle, slightly glossy, broken and wavering. Repeats along +x; lay it down the middle of a drive lane.",
       "texel": 0.05, "layers": "ground", "order": 1, "lod": 60, "maxTexels": 384, "opacity": 0.75,
       "edge": { "feather": 0.25, "warp": 0.15, "warpScale": 3, "round": 1, "widthNoise": 0.2 },
-      "variants": { "count": 4, "size": [12, 16], "width": [2.4, 2.8], "tile": "x", "strength": [0.6, 1] },
+      "variants": { "count": 4, "size": [12, 16], "width": [2.6, 3], "tile": "x", "strength": [0.6, 1] },
       "ops": [
         { "op": "abs", "in": "across", "out": "ax" },
-        { "op": "band", "in": "ax", "out": "lanes", "at": 0.82, "width": 0.34 },
+        { "op": "band", "in": "ax", "out": "lanes", "at": 0.82, "width": 0.42 },
         { "op": "fbm", "out": "n", "scale": 2.5, "octaves": 4, "stretch": [4, 1] },
         { "op": "remap", "in": "n", "out": "runs", "lo": -0.55, "hi": 0.2 },
         { "op": "mul", "a": "lanes", "b": "runs", "c": "shape", "out": "r" },
-        { "op": "layer", "alpha": "r", "alphaK": 0.6, "color": [50, 50, 50], "color2": [50, 50, 50], "tone": "n", "smooth": 0.08 }
+        { "op": "layer", "alpha": "r", "alphaK": 0.9, "color": [50, 50, 50], "color2": [50, 50, 50], "tone": "n", "smooth": 0.08 }
       ]
     },
     {
@@ -182,17 +182,17 @@
     },
     {
       "id": "asphaltPatch", "name": "Asphalt patch", "tier": "macro",
-      "about": "A cut-and-filled repair: a darker, newer rectangle of asphalt with a black tar seal along its sawn edge. Crisp, square, never a smudge.",
-      "texel": 0.035, "layers": "ground", "order": 2, "lod": 40, "maxTexels": 384, "opacity": 0.9,
-      "edge": { "feather": 0.05, "warp": 0.04, "warpScale": 1.2, "round": 0.05 },
+      "about": "A cut-and-filled repair: a slightly darker, newer patch of asphalt with a broken tar seal along its edge, its outline worn soft by traffic. Aged asphalt colour, never a coloured box.",
+      "texel": 0.035, "layers": "ground", "order": 2, "lod": 40, "maxTexels": 384, "opacity": 0.8,
+      "edge": { "feather": 0.35, "warp": 0.3, "warpScale": 1.4, "round": 0.25 },
       "variants": { "count": 6, "size": [2.5, 7], "aspect": [0.35, 0.9], "strength": [0.7, 1] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 0.9, "octaves": 3 },
-        { "op": "layer", "alpha": "shape", "alphaK": 0.72, "color": [50, 50, 50], "color2": [72, 72, 72], "tone": "n", "vary": 0.05, "smooth": 0.1 },
+        { "op": "layer", "alpha": "shape", "alphaK": 0.45, "color": [72, 72, 72], "color2": [87, 87, 87], "tone": "n", "vary": 0.05, "smooth": 0.1 },
         { "op": "band", "in": "edge", "out": "sealB", "at": 0.04, "width": 0.07 },
         { "op": "remap", "in": "n", "out": "sealN", "lo": -0.8, "hi": 0.1 },
         { "op": "mul", "a": "sealB", "b": "sealN", "out": "seal" },
-        { "op": "layer", "alpha": "seal", "alphaK": 0.9, "color": [12, 12, 12], "smooth": 0.2, "height": 0.4 }
+        { "op": "layer", "alpha": "seal", "alphaK": 0.6, "color": [50, 50, 50], "smooth": 0.2, "height": 0.4 }
       ]
     },
     {

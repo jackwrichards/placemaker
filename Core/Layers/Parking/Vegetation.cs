@@ -163,11 +163,12 @@ namespace Placemaker.Core.Layers.Parking
 
         /// <summary>
         /// Spacing factor of the planting lines for the density setting (P2-5: denser, the user found the median trees sparse):
-        /// 50 % (the default) lets the crowns just touch, 100 % closes the canopy, 20 % leaves wide gaps.
+        /// 50 % (the default) leaves half a crown between trees (lead review 2026-10-31: the canopy hid the lot at 45 degrees; about
+        /// 2/3 of the dense lines), 100 % lets the crowns touch, 20 % leaves wide gaps.
         /// Was: 50 % left a fifth of a crown
         /// between trees, 80 % lets the crowns just meet, 100 % closes the canopy, 20 % leaves wide gaps.
         /// </summary>
-        public static double RowSpacingFactor(int density) => 0.5 + 25.0 / Math.Max(5, Math.Min(100, density));
+        public static double RowSpacingFactor(int density) => 0.5 + 50.0 / Math.Max(5, Math.Min(100, density));
 
         /// <summary>
         /// Trees and shrubs in rows on the centre line of the green strip behind every stall row. The strip is found by
