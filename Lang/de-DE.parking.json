@@ -51,7 +51,7 @@
   "Placemaker.Parking.Control.ZoningDepth.Tip": "Wie viele Zellen tief die Gebäude reichen, von der Straße gezählt (eine Zelle ist 8 m, das Spiel erlaubt bis zu 6).",
   "Placemaker.Parking.Control.ZoningPatchWidth": "Breite Baugrundstück",
   "Placemaker.Parking.Control.ZoningPatchWidth.Tip": "Wie viele Zellen breit jede Baugrundstück-Markierung ist (eine Zelle ist 8 m).",
-  "Placemaker.Parking.Control.AsphaltSurface": "Belag",
+  "Placemaker.Parking.Control.AsphaltSurface": "Asphalttextur",
   "Placemaker.Parking.Control.AsphaltSurface.Tip": "Die Oberfläche unter Fahrgassen und Stellplätzen.",
   "Placemaker.Parking.Control.Greenery": "Begrünung",
   "Placemaker.Parking.Control.Greenery.Tip": "Wo Gras, Bäume und Büsche statt Belag hinkommen.",
@@ -332,5 +332,17 @@
   "Placemaker.Parking.Control.Construction": "Im Bau",
   "Placemaker.Parking.Control.Construction.Tip": "Wie viel des Platzes noch Baustelle ist.",
   "Placemaker.Parking.Control.Kiosk": "Kassenhäuschen",
-  "Placemaker.Parking.Control.Kiosk.Tip": "Ein Häuschen mit Kassierer an jeder Einfahrt."
+  "Placemaker.Parking.Control.Kiosk.Tip": "Ein Häuschen mit Kassierer an jeder Einfahrt.",
+
+  "Placemaker.Parking.Preset.round": "Rund",
+  "Placemaker.Parking.Control.LotShape": "Form",
+  "Placemaker.Parking.Control.LotShape.Tip": "Wie der Parkplatz angelegt ist.",
+  "Placemaker.Parking.LotShape.Rows": "Reihen",
+  "Placemaker.Parking.LotShape.Rows.Tip": "Gerade Reihen von Stellplätzen.",
+  "Placemaker.Parking.LotShape.Round": "Rund",
+  "Placemaker.Parking.LotShape.Round.Tip": "Ringe von Stellplätzen um eine bepflanzte Insel.",
+
+  "Placemaker.Parking.Preset.terraced": "Terrassiert",
+  "Placemaker.Parking.LotShape.Terraced": "Terrassen",
+  "Placemaker.Parking.LotShape.Terraced.Tip": "Ebene Terrassen am Hang, mit Stützmauern."
 }

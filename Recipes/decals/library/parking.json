@@ -14,8 +14,8 @@
         { "op": "remap", "in": "n", "out": "m", "lo": -0.35, "hi": 0.25 },
         { "op": "remap", "in": "radial", "out": "core", "lo": 0.95, "hi": 0.15 },
         { "op": "mul", "a": "m", "b": "core", "c": "shape", "out": "s" },
-        { "op": "layer", "alpha": "s", "alphaK": 0.7, "color": [26, 25, 24], "color2": [40, 38, 35], "tone": "n", "vary": 0.08, "smooth": 0.12 },
-        { "op": "scatter", "stamp": "blob", "density": 7, "clusters": 20, "cluster": 0.8, "clusterRadius": [0.15, 0.5], "size": [0.03, 0.12], "aspect": [0.6, 1], "palette": [[22, 21, 20], [36, 34, 31]], "alpha": [0.55, 0.95], "smooth": 0.15 }
+        { "op": "layer", "alpha": "s", "alphaK": 0.88, "color": [12, 12, 12], "color2": [50, 50, 50], "tone": "n", "vary": 0.08, "smooth": 0.12 },
+        { "op": "scatter", "stamp": "blob", "density": 7, "clusters": 20, "cluster": 0.8, "clusterRadius": [0.15, 0.5], "size": [0.03, 0.12], "aspect": [0.6, 1], "palette": [[12, 12, 12], [50, 50, 50]], "alpha": [0.55, 0.95], "smooth": 0.15 }
       ]
     },
     {
@@ -30,7 +30,7 @@
         { "op": "fbm", "out": "n", "scale": 2.5, "octaves": 4, "stretch": [4, 1] },
         { "op": "remap", "in": "n", "out": "runs", "lo": -0.55, "hi": 0.2 },
         { "op": "mul", "a": "lanes", "b": "runs", "c": "shape", "out": "r" },
-        { "op": "layer", "alpha": "r", "alphaK": 0.36, "color": [32, 31, 29], "color2": [44, 42, 39], "tone": "n", "smooth": 0.08 }
+        { "op": "layer", "alpha": "r", "alphaK": 0.6, "color": [50, 50, 50], "color2": [50, 50, 50], "tone": "n", "smooth": 0.08 }
       ]
     },
     {
@@ -43,7 +43,7 @@
         { "op": "fbm", "out": "n", "scale": 7, "octaves": 4, "warp": 2, "warpScale": 6 },
         { "op": "fbm", "out": "g", "scale": 0.4, "octaves": 2, "stretch": [6, 1] },
         { "op": "remap", "in": "n", "out": "a", "lo": -1.2, "hi": 0.6, "k": 0.78 },
-        { "op": "layer", "alpha": "a", "color": [38, 37, 34], "color2": [52, 51, 47], "tone": "g", "vary": 0.05, "smooth": 0.08 }
+        { "op": "layer", "alpha": "a", "color": [50, 50, 50], "color2": [72, 72, 72], "tone": "g", "vary": 0.05, "smooth": 0.08 }
       ]
     },
     {
@@ -188,11 +188,11 @@
       "variants": { "count": 6, "size": [2.5, 7], "aspect": [0.35, 0.9], "strength": [0.7, 1] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 0.9, "octaves": 3 },
-        { "op": "layer", "alpha": "shape", "alphaK": 0.72, "color": [38, 38, 40], "color2": [48, 48, 50], "tone": "n", "vary": 0.05, "smooth": 0.1 },
+        { "op": "layer", "alpha": "shape", "alphaK": 0.72, "color": [50, 50, 50], "color2": [72, 72, 72], "tone": "n", "vary": 0.05, "smooth": 0.1 },
         { "op": "band", "in": "edge", "out": "sealB", "at": 0.04, "width": 0.07 },
         { "op": "remap", "in": "n", "out": "sealN", "lo": -0.8, "hi": 0.1 },
         { "op": "mul", "a": "sealB", "b": "sealN", "out": "seal" },
-        { "op": "layer", "alpha": "seal", "alphaK": 0.9, "color": [20, 20, 21], "smooth": 0.2, "height": 0.4 }
+        { "op": "layer", "alpha": "seal", "alphaK": 0.9, "color": [12, 12, 12], "smooth": 0.2, "height": 0.4 }
       ]
     },
     {
@@ -216,9 +216,9 @@
         { "op": "fbm", "out": "n", "scale": 0.5, "octaves": 4 },
         { "op": "remap", "in": "n", "out": "silt", "lo": -0.6, "hi": 0.3 },
         { "op": "mul", "a": "silt", "b": "shape", "out": "stain" },
-        { "op": "layer", "alpha": "stain", "alphaK": 0.55, "color": [40, 38, 34], "color2": [56, 50, 42], "tone": "n", "smooth": 0.6 },
-        { "op": "layer", "alpha": "box", "alphaK": 1, "color": [46, 44, 42], "smooth": 0.4, "height": 0.3 },
-        { "op": "layer", "alpha": "holes", "alphaK": 1, "color": [10, 10, 10], "smooth": 0.1, "height": -0.8, "ao": 0.8 }
+        { "op": "layer", "alpha": "stain", "alphaK": 0.55, "color": [50, 50, 50], "color2": [72, 72, 72], "tone": "n", "smooth": 0.6 },
+        { "op": "layer", "alpha": "box", "alphaK": 1, "color": [50, 50, 50], "smooth": 0.4, "height": 0.3 },
+        { "op": "layer", "alpha": "holes", "alphaK": 1, "color": [0, 0, 0], "smooth": 0.1, "height": -0.8, "ao": 0.8 }
       ]
     },
     {
@@ -297,17 +297,17 @@
         { "op": "remap", "in": "w", "out": "stripe", "lo": 0.45, "hi": 0.55 },
         { "op": "mul", "a": "ends", "b": "stripe", "out": "yel" },
         { "op": "fbm", "out": "n", "scale": 0.3, "octaves": 3 },
-        { "op": "layer", "alpha": "shape", "alphaK": 1, "color": [58, 58, 60], "color2": [70, 70, 72], "tone": "n", "smooth": 0.5, "height": 0.4 },
+        { "op": "layer", "alpha": "shape", "alphaK": 1, "color": [50, 50, 50], "color2": [72, 72, 72], "tone": "n", "smooth": 0.5, "height": 0.4 },
         { "op": "mul", "a": "yel", "b": "shape", "out": "y" },
         { "op": "layer", "alpha": "y", "alphaK": 1, "color": [214, 176, 40], "smooth": 0.4 }
       ]
     },
     {
       "id": "gravelLot", "name": "Gravel lot", "tier": "macro",
-      "about": "Loose grey-brown gravel over packed earth, the surface of an overflow or event car park: a sheet that repeats both ways, with darker wheel-packed streaks.",
+      "about": "Loose grey-brown gravel over packed earth, the surface of an overflow or event car park: a sheet that tiles seamlessly both ways (lay it edge to edge on a grid, never turned), with darker wheel-packed streaks.",
       "texel": 0.04, "layers": "ground", "order": -1, "lod": 70, "maxTexels": 384, "opacity": 0.95,
-      "edge": { "feather": 0.9, "warp": 0.6, "warpScale": 3, "round": 0 },
-      "variants": { "count": 4, "size": [12, 14], "aspect": [1, 1], "tile": "xy", "strength": [0.85, 1] },
+      "edge": { "feather": 0, "warp": 0, "warpScale": 4, "round": 0 },
+      "variants": { "count": 4, "size": [8, 8], "aspect": [1, 1], "tile": "xy", "strength": [0.85, 1] },
       "ops": [
         { "op": "fbm", "out": "n", "scale": 3, "octaves": 4, "warp": 1.5, "warpScale": 3 },
         { "op": "remap", "in": "n", "out": "a", "lo": -1.4, "hi": 0.2, "k": 0.85 },
@@ -382,9 +382,9 @@
         { "op": "fbm", "out": "n", "scale": 0.7, "octaves": 4 },
         { "op": "layer", "alpha": "body", "alphaK": 1, "color": [118, 116, 110], "color2": [96, 94, 88], "tone": "n", "vary": 0.06, "smooth": 0.2 },
         { "op": "mul", "a": "slot", "b": "shape", "out": "s" },
-        { "op": "layer", "alpha": "s", "alphaK": 0.9, "color": [40, 40, 38], "smooth": 0.6, "height": -0.6 },
+        { "op": "layer", "alpha": "s", "alphaK": 0.9, "color": [50, 50, 50], "smooth": 0.6, "height": -0.6 },
         { "op": "mul", "a": "grate", "b": "body", "c": "b2", "out": "g" },
-        { "op": "layer", "alpha": "g", "alphaK": 1, "color": [30, 30, 30], "smooth": 0.3, "height": -0.8 }
+        { "op": "layer", "alpha": "g", "alphaK": 1, "color": [12, 12, 12], "smooth": 0.3, "height": -0.8 }
       ]
     },
     {
@@ -412,9 +412,9 @@
         { "op": "remap", "in": "n", "out": "dirt", "lo": -0.8, "hi": 0.6 },
         { "op": "remap", "in": "ax", "out": "halo", "lo": 0.08, "hi": 0.02 },
         { "op": "mul", "a": "halo", "b": "dirt", "c": "shape", "out": "h" },
-        { "op": "layer", "alpha": "h", "alphaK": 0.35, "color": [80, 76, 70], "smooth": 0.1 },
+        { "op": "layer", "alpha": "h", "alphaK": 0.35, "color": [87, 87, 87], "smooth": 0.1 },
         { "op": "mul", "a": "cut", "b": "shape", "out": "c" },
-        { "op": "layer", "alpha": "c", "alphaK": 0.95, "color": [44, 42, 40], "smooth": 0.1, "height": -0.5 }
+        { "op": "layer", "alpha": "c", "alphaK": 0.95, "color": [50, 50, 50], "smooth": 0.1, "height": -0.5 }
       ]
     }
   ]

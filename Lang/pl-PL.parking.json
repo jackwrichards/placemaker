@@ -51,7 +51,7 @@
   "Placemaker.Parking.Control.ZoningDepth.Tip": "Na ile działek w głąb sięgają budynki, licząc od ulicy (jedna działka to 8 m, gra pozwala na 6).",
   "Placemaker.Parking.Control.ZoningPatchWidth": "Szerokość działki",
   "Placemaker.Parking.Control.ZoningPatchWidth.Tip": "Na ile działek szeroki jest każdy znacznik działki budowlanej (jedna działka to 8 m).",
-  "Placemaker.Parking.Control.AsphaltSurface": "Nawierzchnia",
+  "Placemaker.Parking.Control.AsphaltSurface": "Tekstura asfaltu",
   "Placemaker.Parking.Control.AsphaltSurface.Tip": "Powierzchnia kładziona pod pasami i miejscami.",
   "Placemaker.Parking.Control.Greenery": "Zieleń",
   "Placemaker.Parking.Control.Greenery.Tip": "Gdzie zamiast nawierzchni jest trawa, drzewa i krzewy.",
@@ -332,5 +332,17 @@
   "Placemaker.Parking.Control.Construction": "W budowie",
   "Placemaker.Parking.Control.Construction.Tip": "Jaka część parkingu jest wciąż placem budowy.",
   "Placemaker.Parking.Control.Kiosk": "Budka",
-  "Placemaker.Parking.Control.Kiosk.Tip": "Budka z obsługą przy każdym wjeździe."
+  "Placemaker.Parking.Control.Kiosk.Tip": "Budka z obsługą przy każdym wjeździe.",
+
+  "Placemaker.Parking.Preset.round": "Okrągły",
+  "Placemaker.Parking.Control.LotShape": "Kształt",
+  "Placemaker.Parking.Control.LotShape.Tip": "Jak rozplanowany jest parking.",
+  "Placemaker.Parking.LotShape.Rows": "Rzędy",
+  "Placemaker.Parking.LotShape.Rows.Tip": "Proste rzędy miejsc.",
+  "Placemaker.Parking.LotShape.Round": "Okrągły",
+  "Placemaker.Parking.LotShape.Round.Tip": "Pierścienie miejsc wokół obsadzonej wysepki.",
+
+  "Placemaker.Parking.Preset.terraced": "Tarasowy",
+  "Placemaker.Parking.LotShape.Terraced": "Tarasy",
+  "Placemaker.Parking.LotShape.Terraced.Tip": "Płaskie tarasy schodzące po zboczu, z murami oporowymi."
 }

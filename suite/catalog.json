@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+3d104dc3-dirty",
+  "assembly": "0.3.6+d0714786-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -8782,7 +8782,9 @@
         "rundown",
         "gravel",
         "construction",
-        "eco"
+        "eco",
+        "terraced",
+        "round"
       ],
       "options": [
         {
@@ -9043,6 +9045,16 @@
           "step": 1.0,
           "unit": "count",
           "default": 3.0
+        },
+        {
+          "id": "lotShape",
+          "kind": "Choice",
+          "options": [
+            "rows",
+            "round",
+            "terraced"
+          ],
+          "default": "rows"
         },
         {
           "id": "paving",

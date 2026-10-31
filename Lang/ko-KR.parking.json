@@ -51,7 +51,7 @@
   "Placemaker.Parking.Control.ZoningDepth.Tip": "거리에서부터 건물이 몇 칸 깊이까지 들어서는지입니다(한 칸은 8 m, 게임은 최대 6칸 허용).",
   "Placemaker.Parking.Control.ZoningPatchWidth": "건물 부지 폭",
   "Placemaker.Parking.Control.ZoningPatchWidth.Tip": "건물 부지 표시 하나의 폭(칸 수)입니다(한 칸은 8 m).",
-  "Placemaker.Parking.Control.AsphaltSurface": "포장",
+  "Placemaker.Parking.Control.AsphaltSurface": "아스팔트 질감",
   "Placemaker.Parking.Control.AsphaltSurface.Tip": "주행로와 주차 칸 아래에 까는 표면입니다.",
   "Placemaker.Parking.Control.Greenery": "녹지",
   "Placemaker.Parking.Control.Greenery.Tip": "포장 대신 잔디, 나무, 덤불이 들어갈 곳입니다.",
@@ -332,5 +332,17 @@
   "Placemaker.Parking.Control.Construction": "공사 중",
   "Placemaker.Parking.Control.Construction.Tip": "주차장 중 아직 공사장인 부분의 비율입니다.",
   "Placemaker.Parking.Control.Kiosk": "요금 부스",
-  "Placemaker.Parking.Control.Kiosk.Tip": "들어오는 곳마다 직원이 있는 부스를 둡니다."
+  "Placemaker.Parking.Control.Kiosk.Tip": "들어오는 곳마다 직원이 있는 부스를 둡니다.",
+
+  "Placemaker.Parking.Preset.round": "원형",
+  "Placemaker.Parking.Control.LotShape": "형태",
+  "Placemaker.Parking.Control.LotShape.Tip": "주차장 배치 방식.",
+  "Placemaker.Parking.LotShape.Rows": "줄",
+  "Placemaker.Parking.LotShape.Rows.Tip": "곧게 늘어선 주차 칸.",
+  "Placemaker.Parking.LotShape.Round": "원형",
+  "Placemaker.Parking.LotShape.Round.Tip": "녹지 섬을 둘러싼 원형 주차 칸.",
+
+  "Placemaker.Parking.Preset.terraced": "계단식",
+  "Placemaker.Parking.LotShape.Terraced": "계단식",
+  "Placemaker.Parking.LotShape.Terraced.Tip": "옹벽과 함께 경사면을 따라 내려가는 평평한 단."
 }

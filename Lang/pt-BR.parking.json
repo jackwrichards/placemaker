@@ -51,7 +51,7 @@
   "Placemaker.Parking.Control.ZoningDepth.Tip": "Quantos lotes de profundidade os edifícios ocupam, contados a partir da rua (um lote tem 8 m; o jogo permite até 6).",
   "Placemaker.Parking.Control.ZoningPatchWidth": "Larg. do lote",
   "Placemaker.Parking.Control.ZoningPatchWidth.Tip": "Quantos lotes de largura tem cada marcador de lote de construção (um lote tem 8 m).",
-  "Placemaker.Parking.Control.AsphaltSurface": "Pavimento",
+  "Placemaker.Parking.Control.AsphaltSurface": "Textura do asfalto",
   "Placemaker.Parking.Control.AsphaltSurface.Tip": "A superfície assentada sob as pistas e vagas.",
   "Placemaker.Parking.Control.Greenery": "Verde",
   "Placemaker.Parking.Control.Greenery.Tip": "Onde vão grama, árvores e arbustos em vez de pavimento.",
@@ -332,5 +332,17 @@
   "Placemaker.Parking.Control.Construction": "Em construção",
   "Placemaker.Parking.Control.Construction.Tip": "Quanto do estacionamento ainda é canteiro de obras.",
   "Placemaker.Parking.Control.Kiosk": "Guarita",
-  "Placemaker.Parking.Control.Kiosk.Tip": "Uma guarita com atendente em cada acesso."
+  "Placemaker.Parking.Control.Kiosk.Tip": "Uma guarita com atendente em cada acesso.",
+
+  "Placemaker.Parking.Preset.round": "Circular",
+  "Placemaker.Parking.Control.LotShape": "Forma",
+  "Placemaker.Parking.Control.LotShape.Tip": "Como o estacionamento é organizado.",
+  "Placemaker.Parking.LotShape.Rows": "Fileiras",
+  "Placemaker.Parking.LotShape.Rows.Tip": "Fileiras retas de vagas.",
+  "Placemaker.Parking.LotShape.Round": "Circular",
+  "Placemaker.Parking.LotShape.Round.Tip": "Anéis de vagas ao redor de uma ilha plantada.",
+
+  "Placemaker.Parking.Preset.terraced": "Em terraços",
+  "Placemaker.Parking.LotShape.Terraced": "Terraços",
+  "Placemaker.Parking.LotShape.Terraced.Tip": "Terraços planos descendo a encosta, com muros de arrimo."
 }

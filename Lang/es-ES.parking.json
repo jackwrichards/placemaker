@@ -51,7 +51,7 @@
   "Placemaker.Parking.Control.ZoningDepth.Tip": "Cuántas parcelas de fondo ocupan los edificios, contando desde la calle (una parcela son 8 m; el juego permite hasta 6).",
   "Placemaker.Parking.Control.ZoningPatchWidth": "Ancho de parcela",
   "Placemaker.Parking.Control.ZoningPatchWidth.Tip": "Cuántas parcelas de ancho tiene cada marcador de parcela edificable (una parcela son 8 m).",
-  "Placemaker.Parking.Control.AsphaltSurface": "Pavimento",
+  "Placemaker.Parking.Control.AsphaltSurface": "Textura de asfalto",
   "Placemaker.Parking.Control.AsphaltSurface.Tip": "La superficie bajo los carriles y las plazas.",
   "Placemaker.Parking.Control.Greenery": "Zonas verdes",
   "Placemaker.Parking.Control.Greenery.Tip": "Dónde se coloca césped en lugar de pavimento.",
@@ -332,5 +332,17 @@
   "Placemaker.Parking.Control.Construction": "En construcción",
   "Placemaker.Parking.Control.Construction.Tip": "Qué parte del aparcamiento sigue en obras.",
   "Placemaker.Parking.Control.Kiosk": "Caseta de pago",
-  "Placemaker.Parking.Control.Kiosk.Tip": "Una caseta con empleado en cada acceso."
+  "Placemaker.Parking.Control.Kiosk.Tip": "Una caseta con empleado en cada acceso.",
+
+  "Placemaker.Parking.Preset.round": "Circular",
+  "Placemaker.Parking.Control.LotShape": "Forma",
+  "Placemaker.Parking.Control.LotShape.Tip": "Cómo se distribuye el aparcamiento.",
+  "Placemaker.Parking.LotShape.Rows": "Filas",
+  "Placemaker.Parking.LotShape.Rows.Tip": "Filas rectas de plazas.",
+  "Placemaker.Parking.LotShape.Round": "Circular",
+  "Placemaker.Parking.LotShape.Round.Tip": "Anillos de plazas alrededor de una isleta ajardinada.",
+
+  "Placemaker.Parking.Preset.terraced": "En terrazas",
+  "Placemaker.Parking.LotShape.Terraced": "Terrazas",
+  "Placemaker.Parking.LotShape.Terraced.Tip": "Terrazas llanas escalonadas en la ladera, con muros de contención."
 }

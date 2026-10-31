@@ -221,6 +221,7 @@ namespace Placemaker.Core.Layers.Parking
             // ── Surfaces ──
             var asphalt = C(ParkingIds.AsphaltSurface, ControlKind.Asset, ControlTier.Essential, "surfaces", "");
             asphalt.AssetCategory = AssetCategories.SurfaceAsphalt; asphalt.Cheap = true;
+            asphalt.VisibleWhen = LookIds.Paving + "=asphalt|darkAsphalt";   // (P2-5) the other pavings bring their own surface
             l.Add(asphalt);
             var gs = C(ParkingIds.GreenSurface, ControlKind.Asset, ControlTier.More, "surfaces", "");
             gs.AssetCategory = AssetCategories.SurfaceGrass; gs.Cheap = true;
@@ -262,6 +263,8 @@ namespace Placemaker.Core.Layers.Parking
         /// <summary>(P2-5) The look settings every parking style is a preset of. Labels: Placemaker.Parking.Control.*.</summary>
         private static void AddLookControls(List<ControlSchema> l)
         {
+            // layout: the lot's shape (rows, rings round a planted island, or terraces stepping down a hill)
+            l.Add(Choice(LookIds.Shape, ControlTier.Essential, "layout", new[] { "rows", "round", "terraced" }, 0, "LotShape"));
             // look: paving and wear
             l.Add(Choice(LookIds.Paving, ControlTier.Essential, "look", ParkingLook.PavingValues, 0, "Paving"));
             var sp = Choice(LookIds.StallPaving, ControlTier.More, "look", ParkingLook.StallPavingValues, 0, "StallPaving");
@@ -341,13 +344,17 @@ namespace Placemaker.Core.Layers.Parking
                 P("rundown", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (ParkingIds.PlantingDensity, 25.0), (ParkingIds.Lanterns, true),
                     (LookIds.PaintAge, 85.0), (LookIds.Cleanliness, 8.0), (LookIds.Wear, 180.0), (LookIds.PavingAge, 95.0), (LookIds.Kerbs, "concrete"),
                     (LookIds.RundownCars, 45.0), (LookIds.Camp, true), (LookIds.Crossings, "none"), (LookIds.Signs, false), (LookIds.Bins, false), (LookIds.MarkingStyle, "classic")),
-                P("gravel", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "edges"), (ParkingIds.Markings, false), (ParkingIds.CrossEvery, 0.0), (ParkingIds.AccessibleShare, 0.0), (ParkingIds.EvShare, 0.0),
+                P("gravel", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "edges"), (ParkingIds.Markings, false), (ParkingIds.Lanterns, false), (ParkingIds.CrossEvery, 0.0), (ParkingIds.AccessibleShare, 0.0), (ParkingIds.EvShare, 0.0),
                     (LookIds.Paving, "gravel"), (LookIds.Kerbs, "none"), (LookIds.Crossings, "none"), (LookIds.Drainage, "none"), (LookIds.Cleanliness, 40.0), (LookIds.Wear, 140.0),
                     (LookIds.AisleMarks, false), (LookIds.Bins, false)),
                 P("construction", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (LookIds.Construction, 35.0), (LookIds.Cleanliness, 35.0), (LookIds.Wear, 130.0)),
                 P("eco", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (ParkingIds.MedianDepth, 4.0), (ParkingIds.PlantingDensity, 70.0), (ParkingIds.EvShare, 20.0),
                     (LookIds.StallPaving, "grassPavers"), (LookIds.IslandStyle, "bioswale"), (LookIds.SolarCanopies, true), (LookIds.Kerbs, "flush"),
                     (LookIds.BikeStands, true), (LookIds.Cleanliness, 80.0), (LookIds.PavingAge, 35.0), (LookIds.Crossings, "zebra")),
+                P("terraced", (LookIds.Shape, "terraced"), (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (ParkingIds.MedianDepth, 5.0), (ParkingIds.PlantingDensity, 60.0),
+                    (ParkingIds.Grading, true), (LookIds.Kerbs, "granite"), (LookIds.Cleanliness, 65.0), (LookIds.Crossings, "dashed"), (LookIds.Drainage, "channel")),
+                P("round", (LookIds.Shape, "round"), (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (ParkingIds.MedianDepth, 3.0), (ParkingIds.PlantingDensity, 70.0),
+                    (ParkingIds.LanternAsset, "EU_LightpolePark01"), (LookIds.Kerbs, "granite"), (LookIds.MarkingStyle, "tee"), (LookIds.Cleanliness, 70.0), (LookIds.Crossings, "zebra")),
             };
             // (P2-5) a preset lays its values over the current ones (DesignEditor.ApplyPreset): every style names every key any
             // style sets, the rest at their defaults, so German then Classic is Classic again

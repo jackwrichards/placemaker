@@ -56,7 +56,7 @@
   "Placemaker.Parking.Control.ZoningPatchWidth": "Building plot width",
   "Placemaker.Parking.Control.ZoningPatchWidth.Tip": "How many plots wide each building plot marker is (one plot is 8 m).",
 
-  "Placemaker.Parking.Control.AsphaltSurface": "Pavement",
+  "Placemaker.Parking.Control.AsphaltSurface": "Asphalt texture",
   "Placemaker.Parking.Control.AsphaltSurface.Tip": "The surface laid under the lanes and spaces.",
   "Placemaker.Parking.Control.Greenery": "Greenery",
   "Placemaker.Parking.Control.Greenery.Tip": "Where grass, trees and bushes go instead of pavement.",
@@ -345,5 +345,17 @@
   "Placemaker.Parking.Control.Construction": "Under construction",
   "Placemaker.Parking.Control.Construction.Tip": "How much of the lot is still a building site.",
   "Placemaker.Parking.Control.Kiosk": "Pay booth",
-  "Placemaker.Parking.Control.Kiosk.Tip": "An attendant's booth at every way in."
+  "Placemaker.Parking.Control.Kiosk.Tip": "An attendant's booth at every way in.",
+
+  "Placemaker.Parking.Preset.round": "Round",
+  "Placemaker.Parking.Control.LotShape": "Shape",
+  "Placemaker.Parking.Control.LotShape.Tip": "How the lot is laid out.",
+  "Placemaker.Parking.LotShape.Rows": "Rows",
+  "Placemaker.Parking.LotShape.Rows.Tip": "Straight rows of spaces.",
+  "Placemaker.Parking.LotShape.Round": "Round",
+  "Placemaker.Parking.LotShape.Round.Tip": "Rings of spaces round a planted island.",
+
+  "Placemaker.Parking.Preset.terraced": "Terraced",
+  "Placemaker.Parking.LotShape.Terraced": "Terraced",
+  "Placemaker.Parking.LotShape.Terraced.Tip": "Level terraces stepping down a slope, with retaining walls."
 }

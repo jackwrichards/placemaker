@@ -121,6 +121,23 @@ namespace Placemaker.Core.Layers.Parking
                 var inward = lotCcw ? PGeo.Perp(d) : -PGeo.Perp(d);
                 SplitByProbe(a, b, inward, p => !isGreen(p) && InLot(p), (x, y) => Edge(x, y, inward, true));
             }
+            // paving against bare ground inside the lot (the round lot's circle: the city's own ground outside it)
+            var paved = new List<List<double2>>();
+            foreach (var sp in layout.Surfaces) if (sp.Asphalt && sp.Ring != null && sp.Ring.Count >= 3) paved.Add(sp.Ring);
+            bool Paved(double2 p) { foreach (var r in paved) if (PGeo.Contains(r, p)) return true; return false; }
+            if (paved.Count < 400)
+                foreach (var ring0 in paved)
+                {
+                    var ring = Collinear(ring0);
+                    bool ccw = PGeo.SignedArea(ring) > 0;
+                    for (int i = 0; i < ring.Count; i++)
+                    {
+                        var a = ring[i]; var b = ring[(i + 1) % ring.Count];
+                        var d = PGeo.Norm(b - a);
+                        var outward = ccw ? new double2(d.y, -d.x) : new double2(-d.y, d.x);
+                        SplitByProbe(a, b, outward, p => InLot(p) && !isGreen(p) && !Paved(p), (x, y) => Edge(x, y, -outward, false));
+                    }
+                }
             return runs;
         }
 

@@ -55,6 +55,8 @@ namespace Placemaker.Core.Layers.Parking
                 works.Center = new double2((Math.Max(lo.x, works.MinX) + Math.Min(hi.x, works.MaxX)) * 0.5, (lo.y + hi.y) * 0.5);
                 foreach (var b in layout.Bays)
                     if (!b.Removed && b.Center.x >= works.MinX && b.Center.x <= works.MaxX) { b.Removed = true; }
+                // nothing planted or kerbed yet where the lot is still being built
+                layout.Plants.RemoveAll(p => p.Position.x >= works.MinX && p.Position.x <= works.MaxX);
             }
             if (look.Camp)
             {

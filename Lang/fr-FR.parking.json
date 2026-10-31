@@ -51,7 +51,7 @@
   "Placemaker.Parking.Control.ZoningDepth.Tip": "Nombre de parcelles en profondeur occupées par les bâtiments, depuis la rue (une parcelle fait 8 m, le jeu en permet jusqu'à 6).",
   "Placemaker.Parking.Control.ZoningPatchWidth": "Largeur de parcelle",
   "Placemaker.Parking.Control.ZoningPatchWidth.Tip": "Nombre de parcelles en largeur de chaque repère de parcelle à bâtir (une parcelle fait 8 m).",
-  "Placemaker.Parking.Control.AsphaltSurface": "Revêtement",
+  "Placemaker.Parking.Control.AsphaltSurface": "Texture d'asphalte",
   "Placemaker.Parking.Control.AsphaltSurface.Tip": "La surface posée sous les allées et les places.",
   "Placemaker.Parking.Control.Greenery": "Verdure",
   "Placemaker.Parking.Control.Greenery.Tip": "Là où l'herbe, les arbres et les buissons remplacent le revêtement.",
@@ -332,5 +332,17 @@
   "Placemaker.Parking.Control.Construction": "En construction",
   "Placemaker.Parking.Control.Construction.Tip": "La part du parking qui est encore un chantier.",
   "Placemaker.Parking.Control.Kiosk": "Guérite",
-  "Placemaker.Parking.Control.Kiosk.Tip": "Une guérite avec préposé à chaque accès."
+  "Placemaker.Parking.Control.Kiosk.Tip": "Une guérite avec préposé à chaque accès.",
+
+  "Placemaker.Parking.Preset.round": "Circulaire",
+  "Placemaker.Parking.Control.LotShape": "Forme",
+  "Placemaker.Parking.Control.LotShape.Tip": "Comment le parking est disposé.",
+  "Placemaker.Parking.LotShape.Rows": "Rangées",
+  "Placemaker.Parking.LotShape.Rows.Tip": "Des rangées droites de places.",
+  "Placemaker.Parking.LotShape.Round": "Circulaire",
+  "Placemaker.Parking.LotShape.Round.Tip": "Des anneaux de places autour d'un îlot planté.",
+
+  "Placemaker.Parking.Preset.terraced": "En terrasses",
+  "Placemaker.Parking.LotShape.Terraced": "Terrasses",
+  "Placemaker.Parking.LotShape.Terraced.Tip": "Des terrasses planes à flanc de pente, avec murs de soutènement."
 }

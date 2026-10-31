@@ -51,7 +51,7 @@
   "Placemaker.Parking.Control.ZoningDepth.Tip": "На сколько участков в глубину заходят здания, считая от улицы (один участок — 8 m, игра допускает до 6).",
   "Placemaker.Parking.Control.ZoningPatchWidth": "Ширина участка под здание",
   "Placemaker.Parking.Control.ZoningPatchWidth.Tip": "Сколько участков в ширину занимает каждый маркер участка под здание (один участок — 8 m).",
-  "Placemaker.Parking.Control.AsphaltSurface": "Покрытие",
+  "Placemaker.Parking.Control.AsphaltSurface": "Текстура асфальта",
   "Placemaker.Parking.Control.AsphaltSurface.Tip": "Покрытие под проездами и местами.",
   "Placemaker.Parking.Control.Greenery": "Зелень",
   "Placemaker.Parking.Control.Greenery.Tip": "Где вместо покрытия трава, деревья и кусты.",
@@ -332,5 +332,17 @@
   "Placemaker.Parking.Control.Construction": "Строится",
   "Placemaker.Parking.Control.Construction.Tip": "Какая часть парковки еще стройплощадка.",
   "Placemaker.Parking.Control.Kiosk": "Будка",
-  "Placemaker.Parking.Control.Kiosk.Tip": "Будка с кассиром у каждого въезда."
+  "Placemaker.Parking.Control.Kiosk.Tip": "Будка с кассиром у каждого въезда.",
+
+  "Placemaker.Parking.Preset.round": "Круглая",
+  "Placemaker.Parking.Control.LotShape": "Форма",
+  "Placemaker.Parking.Control.LotShape.Tip": "Как устроена парковка.",
+  "Placemaker.Parking.LotShape.Rows": "Ряды",
+  "Placemaker.Parking.LotShape.Rows.Tip": "Прямые ряды мест.",
+  "Placemaker.Parking.LotShape.Round": "Круглая",
+  "Placemaker.Parking.LotShape.Round.Tip": "Кольца мест вокруг озеленённого островка.",
+
+  "Placemaker.Parking.Preset.terraced": "Террасы",
+  "Placemaker.Parking.LotShape.Terraced": "Террасы",
+  "Placemaker.Parking.LotShape.Terraced.Tip": "Ровные террасы уступами по склону, с подпорными стенами."
 }

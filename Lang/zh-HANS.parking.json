@@ -51,7 +51,7 @@
   "Placemaker.Parking.Control.ZoningDepth.Tip": "建筑从街道算起的进深地块数（一块为 8 m，游戏最多允许 6 块）。",
   "Placemaker.Parking.Control.ZoningPatchWidth": "建筑地块宽度",
   "Placemaker.Parking.Control.ZoningPatchWidth.Tip": "每个建筑地块标记的宽度地块数（一块为 8 m）。",
-  "Placemaker.Parking.Control.AsphaltSurface": "铺装",
+  "Placemaker.Parking.Control.AsphaltSurface": "沥青纹理",
   "Placemaker.Parking.Control.AsphaltSurface.Tip": "铺在车道和车位下面的表面。",
   "Placemaker.Parking.Control.Greenery": "绿化",
   "Placemaker.Parking.Control.Greenery.Tip": "哪里用草地、树木和灌木代替铺装。",
@@ -332,5 +332,17 @@
   "Placemaker.Parking.Control.Construction": "施工中",
   "Placemaker.Parking.Control.Construction.Tip": "停车场还有多少是工地。",
   "Placemaker.Parking.Control.Kiosk": "收费亭",
-  "Placemaker.Parking.Control.Kiosk.Tip": "每个入口一个有人值守的收费亭。"
+  "Placemaker.Parking.Control.Kiosk.Tip": "每个入口一个有人值守的收费亭。",
+
+  "Placemaker.Parking.Preset.round": "圆形",
+  "Placemaker.Parking.Control.LotShape": "形状",
+  "Placemaker.Parking.Control.LotShape.Tip": "停车场的布局方式。",
+  "Placemaker.Parking.LotShape.Rows": "排列",
+  "Placemaker.Parking.LotShape.Rows.Tip": "笔直成排的车位。",
+  "Placemaker.Parking.LotShape.Round": "圆形",
+  "Placemaker.Parking.LotShape.Round.Tip": "围绕绿化岛的环形车位。",
+
+  "Placemaker.Parking.Preset.terraced": "梯台式",
+  "Placemaker.Parking.LotShape.Terraced": "梯台",
+  "Placemaker.Parking.LotShape.Terraced.Tip": "沿坡分级的平台，带挡土墙。"
 }

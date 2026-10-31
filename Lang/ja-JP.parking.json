@@ -51,7 +51,7 @@
   "Placemaker.Parking.Control.ZoningDepth.Tip": "通りから数えて、建物が何区画分の奥行きまで届くかです（1区画は 8 m、ゲームでは最大6）。",
   "Placemaker.Parking.Control.ZoningPatchWidth": "建物用地の幅",
   "Placemaker.Parking.Control.ZoningPatchWidth.Tip": "各建物用地マーカーが何区画分の幅かです（1区画は 8 m）。",
-  "Placemaker.Parking.Control.AsphaltSurface": "舗装",
+  "Placemaker.Parking.Control.AsphaltSurface": "アスファルトの質感",
   "Placemaker.Parking.Control.AsphaltSurface.Tip": "通路と駐車枠の下に敷く地表です。",
   "Placemaker.Parking.Control.Greenery": "緑化",
   "Placemaker.Parking.Control.Greenery.Tip": "舗装の代わりに芝生を置く場所です。",
@@ -332,5 +332,17 @@
   "Placemaker.Parking.Control.Construction": "建設中",
   "Placemaker.Parking.Control.Construction.Tip": "駐車場のうち、まだ工事中の割合です。",
   "Placemaker.Parking.Control.Kiosk": "料金所",
-  "Placemaker.Parking.Control.Kiosk.Tip": "各入口に係員のいるブースを置きます。"
+  "Placemaker.Parking.Control.Kiosk.Tip": "各入口に係員のいるブースを置きます。",
+
+  "Placemaker.Parking.Preset.round": "円形",
+  "Placemaker.Parking.Control.LotShape": "形",
+  "Placemaker.Parking.Control.LotShape.Tip": "駐車場の配置。",
+  "Placemaker.Parking.LotShape.Rows": "列",
+  "Placemaker.Parking.LotShape.Rows.Tip": "まっすぐ並んだ駐車枠。",
+  "Placemaker.Parking.LotShape.Round": "円形",
+  "Placemaker.Parking.LotShape.Round.Tip": "植栽の島を囲む環状の駐車枠。",
+
+  "Placemaker.Parking.Preset.terraced": "段々",
+  "Placemaker.Parking.LotShape.Terraced": "段々",
+  "Placemaker.Parking.LotShape.Terraced.Tip": "擁壁付きで斜面に段々に並ぶ平らな区画。"
 }

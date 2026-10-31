@@ -40,6 +40,8 @@ namespace Placemaker.Core.Layers.Parking
         /// <summary>(s29) Outline points tied to an existing road's height, and the largest correction the blend applied.</summary>
         public int Ties;
         public float MaxTie;
+        /// <summary>(P2-5) Terraced: the retaining walls between tiers (frame-local y, x from/to, the lower and upper heights).</summary>
+        public readonly List<(double Y, double X0, double X1, double Low, double High)> Walls = new List<(double, double, double, double, double)>();
     }
 
     internal static class LotGrading
@@ -64,6 +66,9 @@ namespace Placemaker.Core.Layers.Parking
             TieBlendMax = 30.0, TieGrade = 0.025;
         /// <summary>Below this deviation from the graded surface the lot keeps its ground (m).</summary>
         public const float Tolerance = 0.15f;
+        /// <summary>(P2-5) Terraced: the largest step a retaining wall takes between two tiers (m), the perimeter road's ramp
+        /// between tier middles, and where the wall stands past the lower tier's edge (m).</summary>
+        public const double TerraceStep = 2.7, TerraceRamp = 0.15, WallSet = 0.45;
         private const float Sample = 3f;
 
         private sealed class Tier
@@ -76,7 +81,7 @@ namespace Placemaker.Core.Layers.Parking
         /// <param name="outline">World outline the grading may cover (the lot plus its setback strip); null = the lot only.</param>
         /// <param name="roads">(s29) Existing roads: where one runs along the outline the graded edge meets the road's own height.</param>
         public static GradingResult Grade(Layout layout, Func<double2, float> ground, CancellationToken cancel, IReadOnlyList<double2> outline = null,
-            List<RoadLine> roads = null)
+            List<RoadLine> roads = null, bool terraced = false)
         {
             var res = new GradingResult();
             if (layout?.Lot == null || layout.Lot.Count < 3 || ground == null) return res;
@@ -230,7 +235,9 @@ namespace Placemaker.Core.Layers.Parking
                     double baseB = desired[i + 1] + b.By * (b.Y0 - b.Yc), baseA = desired[i] + a.By * (a.Y1 - a.Yc);
                     double want = baseB - baseA;
                     double c = (b.By * ((b.Y0 + b.Y1) * 0.5 - b.Y0)) - (a.By * ((a.Y0 + a.Y1) * 0.5 - a.Y1));
-                    double lo2 = Math.Max(-MaxBank * gap, -MaxRamp * pitch - c), hi2 = Math.Min(MaxBank * gap, MaxRamp * pitch - c);
+                    // (P2-5) terraced: a retaining wall takes the step (up to TerraceStep), the perimeter road ramps steeper
+                    double bank = terraced ? TerraceStep : MaxBank * gap, ramp = terraced ? TerraceRamp : MaxRamp;
+                    double lo2 = Math.Max(-bank, -ramp * pitch - c), hi2 = Math.Min(bank, ramp * pitch - c);
                     double d = lo2 <= hi2 ? Math.Max(lo2, Math.Min(hi2, want)) : 0.5 * (lo2 + hi2);
                     b.A = d + a.A + a.By * (a.Y1 - a.Yc) - b.By * (b.Y0 - b.Yc);
                 }
@@ -262,6 +269,9 @@ namespace Placemaker.Core.Layers.Parking
                     if (i + 1 < tiers.Count && y > t.Y1 && y < tiers[i + 1].Y0)
                     {
                         var u = tiers[i + 1];
+                        // (P2-5) terraced: a sharp step at the wall line, each side on its own tier
+                        // (the middle of the median: the raster smears a step over a cell or two, keep it off the stalls; game runner 1031-131742)
+                        if (terraced) return y < t.Y1 + Math.Max(WallSet, (u.Y0 - t.Y1) * 0.5) ? t.At(x, t.Y1, bx) : u.At(x, u.Y0, bx);
                         double k = (y - t.Y1) / Math.Max(1e-6, u.Y0 - t.Y1);
                         return t.At(x, t.Y1, bx) * (1 - k) + u.At(x, u.Y0, bx) * k;
                     }
@@ -288,6 +298,14 @@ namespace Placemaker.Core.Layers.Parking
 
             // The blend starts a little past the last bay so the end stalls stay on their terrace (raster cells are 1.75 m).
             double ra = xa - EndClear, rb = xb + EndClear;
+            if (terraced)
+                for (int i = 0; i + 1 < tiers.Count; i++)
+                {
+                    var a = tiers[i]; var b = tiers[i + 1];
+                    double y = a.Y1 + Math.Max(WallSet, (b.Y0 - a.Y1) * 0.5), x0 = Math.Max(ra, Math.Max(a.X0, b.X0)), x1 = Math.Min(rb, Math.Min(a.X1, b.X1));
+                    double ha = a.At((x0 + x1) * 0.5, a.Y1, bx), hb = b.At((x0 + x1) * 0.5, b.Y0, bx);
+                    if (Math.Abs(hb - ha) >= 0.3 && x1 - x0 > 3) res.Walls.Add((y, x0, x1, Math.Min(ha, hb), Math.Max(ha, hb)));
+                }
             double W(double x) => x < ra ? Math.Min(1, (ra - x) / Transition) : x > rb ? Math.Min(1, (x - rb) / Transition) : 0;
 
             double F(double x, double y)
@@ -380,6 +398,7 @@ namespace Placemaker.Core.Layers.Parking
             // ── emit: cells of the lot between the tier/ramp breaks, sloped polygons (planes are exact) ──
             var ys = new List<double> { lo.y - 1, hi.y + 1 };
             foreach (var t in tiers) { ys.Add(t.Y0); ys.Add(t.Y1); ys.Add((t.Y0 + t.Y1) * 0.5); }
+            if (terraced) for (int i = 0; i + 1 < tiers.Count; i++) ys.Add(tiers[i].Y1 + Math.Max(WallSet, (tiers[i + 1].Y0 - tiers[i].Y1) * 0.5));
             var xs = new List<double> { lo.x - 1, hi.x + 1, ra, rb };
             for (double k = 1; k <= Transition / 2.0 + 1e-6; k++) { xs.Add(ra - k * 2.0); xs.Add(rb + k * 2.0); }
             ys.Sort(); xs.Sort();

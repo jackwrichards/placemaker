@@ -51,7 +51,7 @@
   "Placemaker.Parking.Control.ZoningDepth.Tip": "Quanti lotti in profondità arrivano gli edifici, contando dalla strada (un lotto è 8 m, il gioco ne consente fino a 6).",
   "Placemaker.Parking.Control.ZoningPatchWidth": "Largh. lotto edificabile",
   "Placemaker.Parking.Control.ZoningPatchWidth.Tip": "Quanti lotti è largo ogni segnaposto di lotto edificabile (un lotto è 8 m).",
-  "Placemaker.Parking.Control.AsphaltSurface": "Pavimentazione",
+  "Placemaker.Parking.Control.AsphaltSurface": "Texture asfalto",
   "Placemaker.Parking.Control.AsphaltSurface.Tip": "La superficie posata sotto corsie e posti.",
   "Placemaker.Parking.Control.Greenery": "Verde",
   "Placemaker.Parking.Control.Greenery.Tip": "Dove vanno erba, alberi e cespugli al posto della pavimentazione.",
@@ -332,5 +332,17 @@
   "Placemaker.Parking.Control.Construction": "In costruzione",
   "Placemaker.Parking.Control.Construction.Tip": "Quanta parte del parcheggio è ancora un cantiere.",
   "Placemaker.Parking.Control.Kiosk": "Casello",
-  "Placemaker.Parking.Control.Kiosk.Tip": "Un casotto con addetto a ogni accesso."
+  "Placemaker.Parking.Control.Kiosk.Tip": "Un casotto con addetto a ogni accesso.",
+
+  "Placemaker.Parking.Preset.round": "Circolare",
+  "Placemaker.Parking.Control.LotShape": "Forma",
+  "Placemaker.Parking.Control.LotShape.Tip": "Come è disposto il parcheggio.",
+  "Placemaker.Parking.LotShape.Rows": "File",
+  "Placemaker.Parking.LotShape.Rows.Tip": "File diritte di posti.",
+  "Placemaker.Parking.LotShape.Round": "Circolare",
+  "Placemaker.Parking.LotShape.Round.Tip": "Anelli di posti attorno a un'isola verde.",
+
+  "Placemaker.Parking.Preset.terraced": "A terrazze",
+  "Placemaker.Parking.LotShape.Terraced": "Terrazze",
+  "Placemaker.Parking.LotShape.Terraced.Tip": "Terrazze piane lungo il pendio, con muri di sostegno."
 }

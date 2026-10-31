@@ -180,21 +180,10 @@ namespace Placemaker.Core.Layers.Parking
                     // gravel or packed earth: a sheet over the whole lot, wheel-packed lanes darker
                     var ring = new float2[_l.Lot.Count];
                     for (int i = 0; i < ring.Length; i++) ring[i] = W(_l.Lot[i]);
-                    var area = BrushArea.Of(ring);
-                    area.Bounds(out var lo, out var hi);
-                    var k = _lib.Get("gravelLot");
-                    if (k == null) return;
-                    // overlapping, jittered and turned (game runner 1031-125942: an exact grid of sheets showed every seam)
-                    float t = DecalVariants.FootprintOf(k, 0).x * 0.7f;
-                    var ax = Dir(new double2(1, 0));
-                    for (float x = lo.x; x < hi.x + t; x += t)
-                        for (float y = lo.y; y < hi.y + t; y += t)
-                        {
-                            var p = new float2(x + _r.R(-0.25f, 0.25f) * t, y + _r.R(-0.25f, 0.25f) * t);
-                            if (!area.Contains(p) && area.EdgeDistance(p) > t * 0.4f) continue;
-                            float turn = _r.F() * 6.283f;
-                            Put("gravelLot", p, new float2(math.cos(turn), math.sin(turn)), 0, _k.Paving == Paving.Dirt ? 0.75f : 1f, "coat:gravel", 1f, -1, false);
-                        }
+                    GravelTiles(_l.Lot, x => true, _k.Paving == Paving.Dirt ? 0.75f : 1f, "coat:gravel");
+                    // the repeat broken by loose stones and darker packed patches
+                    Brushes.Scatter(B, BrushArea.Of(ring), "pebbles", 0.08f, new ScatterOptions { Cause = "coat:stones" });
+                    Brushes.Scatter(B, BrushArea.Of(ring), "mudPatch", 0.06f, new ScatterOptions { Cause = "coat:packed", Opacity = new float2(0.25f, 0.45f) });
                     // the wheels' ruts down every drive lane, puddles in them on a tired lot
                     foreach (var ln in _l.LiveLines)
                     {
@@ -211,14 +200,7 @@ namespace Placemaker.Core.Layers.Parking
                     var wk = _l.Works;
                     PGeo.Bounds(_l.Lot, out var wlo, out var whi);
                     double x0 = Math.Max(wlo.x, wk.MinX), x1 = Math.Min(whi.x, wk.MaxX);
-                    for (double x = x0 + 4; x < x1 + 4; x += 8)
-                        for (double y = wlo.y + 4; y < whi.y + 4; y += 8)
-                        {
-                            var p = new double2(Math.Min(x, x1 - 2) + _r.R(-1.5f, 1.5f), y + _r.R(-1.5f, 1.5f));
-                            if (!PGeo.Contains(_l.Lot, p)) continue;
-                            float turn = _r.F() * 6.283f;
-                            Put("gravelLot", W(p), new float2(math.cos(turn), math.sin(turn)), 0, 1f, "works:ground", 1f, -1, false);
-                        }
+                    GravelTiles(_l.Lot, p => p.x >= x0 && p.x <= x1, 1f, "works:ground");
                     for (int i = 0; i < 6; i++)
                     {
                         var a = new double2(x0 + _r.F() * (x1 - x0), wlo.y + _r.F() * (whi.y - wlo.y));
@@ -261,30 +243,46 @@ namespace Placemaker.Core.Layers.Parking
                     Brushes.Tone(B, asphalt, "asphaltTonePatch", new float2(0.16f, 0.3f), 0.25f, ColourLevel.Quiet, "coat:tone");
             }
 
-            /// <summary>A band of <paramref name="kind"/> down every drive lane, as wide as the paving either side of it (probed).</summary>
+            /// <summary>
+            /// Gravel sheets edge to edge on the frame's grid (a seamless tile: never turned, never overlapped: game runner
+            /// 1031-125942/130713 showed every seam and every turned corner), only where the whole tile lies in the lot.
+            /// </summary>
+            private void GravelTiles(List<double2> lot, Func<double2, bool> where, float opacity, string cause)
+            {
+                var k = _lib.Get("gravelLot");
+                if (k == null) return;
+                double t = DecalVariants.SpanOf(k, 0).x;
+                PGeo.Bounds(lot, out var lo, out var hi);
+                var ax = Dir(new double2(1, 0));
+
+                for (double x = lo.x + t * 0.5; x < hi.x; x += t)
+                    for (double y = lo.y + t * 0.5; y < hi.y; y += t)
+                    {
+                        var p = new double2(x, y);
+                        if (!where(p)) continue;
+                        bool inside = true;
+                        foreach (var o in new[] { new double2(-1, -1), new double2(1, -1), new double2(1, 1), new double2(-1, 1) })
+                            if (!PGeo.Contains(lot, p + o * (t * 0.5))) { inside = false; break; }
+                        if (!inside) continue;
+                        Put("gravelLot", W(p), ax, 0, opacity, cause, 1f, 0, false);   // one variant: seamless
+                    }
+            }
+
+            /// <summary>
+            /// A coat of <paramref name="kind"/> over the paving: one band down every drive lane (its own width) and one patch per
+            /// stall (game runner 1031-130713: bands as wide as the lane and both rows also coated the row-end islands).
+            /// </summary>
             private void Bands(string kind, float strength)
             {
                 foreach (var ln in _l.LiveLines)
                 {
-                    if (ln.Kind != LineKind.Aisle && ln.Kind != LineKind.Ring && ln.Kind != LineKind.Cross && ln.Kind != LineKind.Sketch) continue;
-                    var dirL = PGeo.Norm(ln.B - ln.A);
-                    var nrm = PGeo.Perp(dirL);
-                    double len = ln.Length;
-                    if (len < 3) continue;
-                    // the asphalt either side, sampled along the lane
-                    double left = 1e9, right = 1e9;
-                    for (int i = 1; i <= 5; i++)
-                    {
-                        var p = ln.A + dirL * (len * i / 6.0);
-                        left = Math.Min(left, Reach(p, nrm));
-                        right = Math.Min(right, Reach(p, -nrm));
-                    }
-                    double w = left + right;
-                    if (w < 2) continue;
-                    var c0 = ln.A + nrm * ((left - right) * 0.5);
-                    var c1 = ln.B + nrm * ((left - right) * 0.5);
-                    Line(kind, W(c0), W(c1), strength, "coat:seal", (float)(w / 20.0));
+                    if (ln.Kind == LineKind.Footpath || ln.Kind == LineKind.Walk || ln.Length < 2) continue;
+                    var d = PGeo.Norm(ln.B - ln.A);
+                    // run past the ends by half the width so crossings and corners are coated
+                    Line(kind, W(ln.A - d * (ln.Width * 0.5)), W(ln.B + d * (ln.Width * 0.5)), strength, "coat:seal", (float)((ln.Width + 0.6) / 20.0));
                 }
+                foreach (var b in _l.LiveBays)
+                    if (b.Quad != null) Put(kind, W(b.Center), Dir(b.Axis), (float)b.Length + 0.3f, strength, "coat:seal", (float)((b.Width + 0.1) / 20.0));
             }
 
             /// <summary>Metres of asphalt from p along dir (≤ 14 m), in the frame.</summary>
@@ -460,7 +458,7 @@ namespace Placemaker.Core.Layers.Parking
                 {
                     if (b.Role == BayRole.Blank || b.Quad == null) continue;
                     float busy = Busy(b.Center);
-                    float chance = math.saturate((0.3f + 0.6f * busy) * g) * B.Density;
+                    float chance = math.saturate((0.5f + 0.45f * busy) * g) * B.Density;
                     if (_r.F() > chance) continue;
                     var p = b.Center + b.Axis * (b.Length * 0.14) + b.RowDir * ((_r.F() - 0.5f) * 0.5);
                     Put("stallOil", W(p), Dir(b.Axis), (float)(b.Length * _r.R(0.26f, 0.4f)), math.saturate(_r.R(0.55f, 0.95f) * (0.6f + 0.5f * busy) * math.min(1.4f, g)), "cars:oil", 1f, -1, false);
