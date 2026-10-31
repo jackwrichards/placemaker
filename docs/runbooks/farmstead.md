@@ -73,6 +73,11 @@ strawLitter, dungPats, hoofChurn, tramline, manureHeap, mudTyreTrack, orchardStr
 | `show-7-builds-1031-000929-4a92` | round 2, every style flat: wooden fences, crop rows, woods, orchard rows; pale painted yards and blotchy ploughing |
 | `show-3-builds-1031-003306-233b` | slope 10 %: terraces smoothed away by the site harmony, no ravine (the walker stopped at the yard) |
 | `show-3-builds-1031-005331-af71` | slope 10 % after the shaped:* hook: terraces kept (benches on the terrain map), dark yards; the ravine still missing in game |
+| `show-farmstead-hillFarm-1031-020409-c89f` | the ravine built (5.7 m deep, wooded) |
+| `show-4-builds-1031-095800-712d` | farmhouse, gates, terrace bank scrub; ponds full with `-Grow 45` |
+| `20261031-101259-farm-close` | close-ups (house, yard): the level-1 house read as a mobile home, bushes stood in the ponds |
+| `20261031-102933-farm-close` | level 3-5 cottage; big site on hills (contour rows); autumn paint blotched, ranch fences doubled, orchard crowns merged |
+| `20261031-105249-farm-close` | ploughed rows surface, terraces read as terraced arable; hill-farm woods hid the house |
 
 ## Lessons
 
@@ -85,6 +90,12 @@ strawLitter, dungPats, hoofChurn, tramline, manureHeap, mudTyreTrack, orchardStr
   `shapedTerrainCells` (SiteHarmony.ShapedFact).
 - A fall-line walker must steer round obstacles, not stop at them: the yard sits right where water would go.
 - The paddock fence default is the wooden post-and-rail (AnimalParkArt.PenFence), never the urban railing.
+- Judge a type's own ponds with `-Grow 45`: the water only comes with the simulation, and then it fills the dug basin's
+  falloff 2-3 m past the outline (plant the bank past that).
+- A house prop: the game's level-1 houses are cabins; level 3-5 on a 3 × 3 lot read as a farmhouse.
+- Even 0.35 of the earth slot under the forest floor blotches a whole field: bare soil is the crop surface's rows.
+- Terraced ground reads only with something on its banks: a broken line of scrub along each riser.
+- A scenario file with `"target":"point"` close-ups (the plan logs `farmHouseX/Z`) shows what the 45° picture hides.
 
 ## Open
 

@@ -423,7 +423,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
             Id = "orchard", Color = "#b8453a",
             Slope = 0.7f, Flat = 0.5f, Ridge = 0.2f, Hollow = -0.7f, Steep = -0.6f, NearPath = 0.3f, MaxGrade = 0.24f,
             // (P2-3) trees kept apart: at 4.6 m and full size the crowns merged into one wood from close (run 20261031-102933-farm-close)
-            RowPitch = 7.5f, RowSpacing = 5f, RowGaps = 0.04f, RowScaleLo = 0.6f, RowScaleHi = 0.78f,
+            // mown alleys 9 m apart so the rows read from 45° (at 7-7.5 m the canopies closed over the alleys)
+            RowPitch = 9f, RowSpacing = 5f, RowGaps = 0.04f, RowScaleLo = 0.6f, RowScaleHi = 0.78f,
             TreesPerHa = 300f, Trees = new[] { "AppleTree01" },
             Decals = new[]
             {
