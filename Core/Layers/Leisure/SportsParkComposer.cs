@@ -537,7 +537,8 @@ namespace Placemaker.Core.Layers.Leisure
             // P2-4 (the user: the plaza doesn't grow when the park is drawn very big): the square grows with the park, up to a
             // grand forecourt of about 75 x 45 m on a 450 m site; it gives back size where the outline will not take it.
             float grow = math.clamp(_span / 150f, 1f, 2.7f);
-            float bigW = math.min(width * grow, 76f), bigD = math.min(depth * math.pow(grow, 0.75f), 46f);
+            // in real metres: the layout scale shrinks design sizes on a very big site (a 15 ha park started from 14 m)
+            float bigW = math.min(math.max(width, 28f) * grow, 76f), bigD = math.min(math.max(depth, 18f) * math.pow(grow, 0.75f), 46f);
             foreach (float f in new[] { 1f, 0.82f, 0.66f, 0.5f, 0f })
             {
                 float w = math.lerp(width, bigW, f), d = math.lerp(depth, bigD, f);
@@ -1236,7 +1237,7 @@ namespace Placemaker.Core.Layers.Leisure
                 Bins(r.Local(-r.HalfLength + 1.5f, r.HalfWidth - 1.5f), 0xB11u);
                 foreach (var (u, w) in new[] { (-1f, -1f), (1f, -1f), (1f, 1f), (-1f, 1f) })
                     Tree(r.Local(u * (r.HalfLength + 3f), w * (r.HalfWidth - 1f)), 0x9A0u + (uint)(u * 3 + w + 5), 2);
-                if (r.HalfLength >= 19f && r.HalfWidth >= 10f) GrandPlaza(r, seed);
+                if (r.HalfLength >= 15f && r.HalfWidth >= 9f) GrandPlaza(r, seed);
             }
 
 
