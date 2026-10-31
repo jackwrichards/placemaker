@@ -319,7 +319,7 @@
   "Placemaker.UI.Review.CostHead": "Kosten",
   "Placemaker.UI.Review.Fewer": "Weniger",
   "Placemaker.UI.Review.Issue": "Problem",
-  "Placemaker.UI.Review.PaintOnly": "Bodenfarbe bleibt, wenn der Bau entfernt wird.",
+  "Placemaker.UI.Review.PaintOnly": "Beim Entfernen des Baus wird die Bodenfarbe gelöscht; einzelne Teile behalten sie.",
   "Placemaker.UI.Review.Planning": "Wird geplant…",
   "Placemaker.UI.Review.PlusN": "+{0} weitere",
   "Placemaker.UI.Review.StatsHead": "Was Sie bekommen",

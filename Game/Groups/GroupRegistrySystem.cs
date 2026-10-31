@@ -424,7 +424,7 @@ namespace Placemaker.Game.Groups
             int n = 0;
             foreach (var e in list)
             {
-                if (!EntityManager.Exists(e) || EntityManager.HasComponent<Deleted>(e)) continue;
+                if (!EntityManager.Exists(e) || EntityManager.HasComponent<Deleted>(e) || !EntityManager.HasComponent<PlacemakerMember>(e)) continue;
                 if (!includeAuxiliary && EntityManager.GetComponentData<PlacemakerMember>(e).Kind == MemberKind.Auxiliary) continue;
                 n++;
             }
@@ -627,7 +627,7 @@ namespace Placemaker.Game.Groups
             if (!_members.TryGetValue(groupId, out var list)) return 0;
             int n = 0;
             foreach (var e in list)
-                if (EntityManager.Exists(e) && !EntityManager.HasComponent<Deleted>(e)
+                if (EntityManager.Exists(e) && !EntityManager.HasComponent<Deleted>(e) && EntityManager.HasComponent<PlacemakerMember>(e)
                     && EntityManager.GetComponentData<PlacemakerMember>(e).Kind != MemberKind.Auxiliary) n++;
             return n;
         }
@@ -658,6 +658,21 @@ namespace Placemaker.Game.Groups
             }
             if (orphans > 0)
                 Mod.Log.Warn($"Placemaker: {orphans} built elements reference groups that no longer exist (saved without Placemaker?). They stay as normal city objects.");
+
+            // (p1-bulldoze) Game.Tools.Hidden is not saved (no ISerializable): the park and parking companions, hidden when they
+            // were made, came back visible after every load (a building at the build's road front).
+            int hidden = 0;
+            foreach (var kv in _members)
+                foreach (var e in kv.Value)
+                {
+                    if (!EntityManager.Exists(e) || !EntityManager.HasComponent<PlacemakerMember>(e) || EntityManager.HasComponent<global::Game.Tools.Hidden>(e)) continue;
+                    var role = EntityManager.GetComponentData<PlacemakerMember>(e).Role;
+                    if (role != MemberRole.Companion && role != MemberRole.ParkCompanion) continue;
+                    EntityManager.AddComponent<global::Game.Tools.Hidden>(e);
+                    if (!EntityManager.HasComponent<BatchesUpdated>(e)) EntityManager.AddComponent<BatchesUpdated>(e);   // redrawn without it
+                    hidden++;
+                }
+            if (hidden > 0) Mod.Log.Info($"Placemaker load: {hidden} park/parking companion(s) hidden again (the game does not save Hidden).");
 
             int restored = 0;
             foreach (var kv in _records)

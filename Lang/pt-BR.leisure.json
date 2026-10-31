@@ -71,7 +71,7 @@
   "Placemaker.Feature.picnic": "Área de piquenique",
   "Placemaker.Feature.fountain": "Fonte",
   "Placemaker.Terrain.Issue.Permanent": "O terreno será remodelado. Isso é permanente: remover a área depois não restaura o solo.",
-  "Placemaker.Paint.Issue.Permanent": "A textura do solo será pintada. Isso é permanente: remover a área depois não desfaz a pintura.",
+  "Placemaker.Paint.Issue.Permanent": "A textura do solo será pintada. Remover a construção a apaga; se construída em peças separadas, a pintura fica.",
   "Placemaker.AddOn.Terrain.Name": "Forma do terreno",
   "Placemaker.AddOn.Terrain.shape": "Forma",
   "Placemaker.AddOn.Terrain.shape.Tooltip": "O que fazer com o solo. Toda forma mescla de volta à altura original na borda.",

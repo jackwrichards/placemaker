@@ -71,7 +71,7 @@
   "Placemaker.Feature.picnic": "Зона для пикника",
   "Placemaker.Feature.fountain": "Фонтан",
   "Placemaker.Terrain.Issue.Permanent": "Рельеф будет изменен. Это постоянно: удаление области позже не вернет землю.",
-  "Placemaker.Paint.Issue.Permanent": "Текстура земли будет окрашена. Это постоянно: удаление области позже не отменит окраску.",
+  "Placemaker.Paint.Issue.Permanent": "Текстура земли будет окрашена. При удалении постройки она стирается; если построено отдельными частями, покраска остаётся.",
   "Placemaker.AddOn.Terrain.Name": "Форма рельефа",
   "Placemaker.AddOn.Terrain.shape": "Форма",
   "Placemaker.AddOn.Terrain.shape.Tooltip": "Что сделать с землей. Любая форма у края плавно возвращается к исходной высоте.",

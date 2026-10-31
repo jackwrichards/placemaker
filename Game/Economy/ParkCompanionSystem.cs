@@ -335,7 +335,7 @@ namespace Placemaker.Game.Economy
             var list = new List<Entity>();
             _registry.GetMembers(groupId, list);
             foreach (var m in list)
-                if (EntityManager.Exists(m) && !EntityManager.HasComponent<Deleted>(m)
+                if (EntityManager.Exists(m) && !EntityManager.HasComponent<Deleted>(m) && EntityManager.HasComponent<PlacemakerMember>(m)
                     && EntityManager.GetComponentData<PlacemakerMember>(m).Role == MemberRole.ParkCompanion) return m;
             return Entity.Null;
         }

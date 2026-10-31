@@ -71,7 +71,7 @@
   "Placemaker.Feature.picnic": "Aire de pique-nique",
   "Placemaker.Feature.fountain": "Fontaine",
   "Placemaker.Terrain.Issue.Permanent": "Le terrain sera remodelé. C'est permanent : retirer la zone plus tard ne rétablit pas le sol.",
-  "Placemaker.Paint.Issue.Permanent": "La texture du sol sera peinte. C'est permanent : retirer la zone plus tard ne l'annule pas.",
+  "Placemaker.Paint.Issue.Permanent": "La texture du sol sera peinte. Retirer la construction l'efface ; construite en éléments séparés, la peinture reste.",
   "Placemaker.AddOn.Terrain.Name": "Forme du terrain",
   "Placemaker.AddOn.Terrain.shape": "Forme",
   "Placemaker.AddOn.Terrain.shape.Tooltip": "Ce qu'on fait du sol. Chaque forme se raccorde à la hauteur d'origine au bord.",

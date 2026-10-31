@@ -319,7 +319,7 @@
   "Placemaker.UI.Review.CostHead": "Custo",
   "Placemaker.UI.Review.Fewer": "Menos",
   "Placemaker.UI.Review.Issue": "Problema",
-  "Placemaker.UI.Review.PaintOnly": "A pintura do solo fica quando a construção é removida.",
+  "Placemaker.UI.Review.PaintOnly": "Remover a construção apaga a pintura do solo; peças separadas a mantêm.",
   "Placemaker.UI.Review.Planning": "Planejando…",
   "Placemaker.UI.Review.PlusN": "+{0} mais",
   "Placemaker.UI.Review.StatsHead": "O que você ganha",

@@ -65,11 +65,20 @@ namespace Placemaker.Game.Groups
             });
         }
 
+        protected override void OnGameLoadingComplete(Colossal.Serialization.Entities.Purpose purpose, GameMode mode)
+        {
+            base.OnGameLoadingComplete(purpose, mode);
+            // keyed by entity: a load reuses entity ids, so nothing carries over (a removal saved half done starts afresh)
+            _members.Clear();
+            _timing.Clear();
+        }
+
         [Preserve]
         protected override void OnUpdate()
         {
             // Ungroup: builds dissolved into plain city pieces, in this phase for the same reasons (GroupRegistrySystem.Dissolve.cs)
             if (_registry.HasPendingDissolves) _registry.RunDissolves();
+            else if (_registry.HasPendingUninstall) _registry.RunUninstallStrip();   // "ready to remove Placemaker", after its ungroups
             if (_requestQuery.IsEmptyIgnoreFilter) return;
             using var requests = _requestQuery.ToEntityArray(Allocator.Temp);
             if (requests.Length == 0) return;
@@ -129,7 +138,9 @@ namespace Placemaker.Game.Groups
             if (ReferencedByTemporaries(entities))
             {
                 removal.Passes++;
-                if (removal.Passes == ToolReleaseFrames && _toolSystem.activeTool != null && !(_toolSystem.activeTool is DefaultToolSystem))
+                // never the build's own tool: a build in progress releases its temporaries when it ends (switching away breaks it)
+                if (removal.Passes == ToolReleaseFrames && _toolSystem.activeTool != null && !(_toolSystem.activeTool is DefaultToolSystem)
+                    && !(_toolSystem.activeTool is global::Placemaker.Game.Build.BuildToolSystem))
                 {
                     Mod.Log.Info($"Placemaker: a tool still previews parts of group {group.GroupId}; switching to the default tool to remove it safely.");
                     _toolSystem.activeTool = World.GetOrCreateSystemManaged<DefaultToolSystem>();
@@ -212,6 +223,13 @@ namespace Placemaker.Game.Groups
                 // Record goes one pass after the last member so both cascades never stack (PM).
                 if (removal.Passes >= 1)
                 {
+                    // (p1-bulldoze) its ground paint wiped first (BuildService.Unpaint), a stamp per frame; the record waits
+                    if (!Unpainted(group.GroupId))
+                    {
+                        removal.Passes = 1;
+                        EntityManager.SetComponentData(record, removal);
+                        return;
+                    }
                     EntityManager.AddComponent<Deleted>(record);
                     Mod.Log.Info($"Placemaker removed group {group.GroupId}.");
                     ReportLeftovers(group.GroupId);
@@ -222,6 +240,14 @@ namespace Placemaker.Game.Groups
             if (removal.Passes > MaxPassesWithoutProgress) { GiveUp(record); return; }
             EntityManager.SetComponentData(record, removal);
             _registry.MarkDirty();
+        }
+
+        /// <summary>True when the group's ground paint is wiped, or it had none (only builds that painted or terraformed carry PermanentTerrain).</summary>
+        private bool Unpainted(int groupId)
+        {
+            var rec = _registry.GetRecord(groupId);
+            if (rec == null || (rec.Flags & GroupFlags.PermanentTerrain) == 0 || rec.Area?.Ring == null) return true;
+            return !(Services.Build is global::Placemaker.Game.Build.BuildService build) || build.StepUnpaint(groupId, rec.Area.Ring);
         }
 
         /// <summary>This group's live members (not Temp copies); <paramref name="full"/> scans every tagged piece, else the cached list is filtered.</summary>

@@ -71,7 +71,7 @@
   "Placemaker.Feature.picnic": "Miejsce piknikowe",
   "Placemaker.Feature.fountain": "Fontanna",
   "Placemaker.Terrain.Issue.Permanent": "Teren zostanie przekształcony. To jest trwałe: późniejsze usunięcie obszaru nie przywróci gruntu.",
-  "Placemaker.Paint.Issue.Permanent": "Tekstura gruntu zostanie pomalowana. To jest trwałe: późniejsze usunięcie obszaru tego nie cofnie.",
+  "Placemaker.Paint.Issue.Permanent": "Tekstura terenu zostanie pomalowana. Usunięcie obiektu ją wymaże; zbudowany z osobnych elementów zachowa malowanie.",
   "Placemaker.AddOn.Terrain.Name": "Kształt terenu",
   "Placemaker.AddOn.Terrain.shape": "Kształt",
   "Placemaker.AddOn.Terrain.shape.Tooltip": "Co zrobić z gruntem. Każdy kształt na krawędzi wraca do pierwotnej wysokości.",

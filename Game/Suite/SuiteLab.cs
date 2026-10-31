@@ -42,6 +42,9 @@ namespace Placemaker.Game.Suite
                 case "pickpart": yield return LabPickPart(st, step, rec); yield break;
                 case "ungroupaudit": yield return LabUngroupAudit(st, step, rec); yield break;
                 case "leftovers": LabLeftovers(st, step, rec); yield break;
+                case "removegroups": yield return LabRemoveGroups(st, step, rec); yield break;
+                case "bulldozequestion": yield return LabBulldozeQuestion(st, step, rec); yield break;
+                case "prepareuninstall": global::Placemaker.Game.Groups.GroupRegistrySystem.Instance?.PrepareForUninstall(); yield return Frames(120); yield break;
                 case "oldungrouped": LabOldUngrouped(st, rec); yield break;
                 case "toolstate":
                     rec["editingGroup"] = _tool.EditingGroup;

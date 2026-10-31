@@ -71,7 +71,7 @@
   "Placemaker.Feature.picnic": "Zona de pícnic",
   "Placemaker.Feature.fountain": "Fuente",
   "Placemaker.Terrain.Issue.Permanent": "Se remodelará el terreno. Es permanente: quitar la zona más tarde no restaura el terreno.",
-  "Placemaker.Paint.Issue.Permanent": "Se pintará la textura del suelo. Es permanente: quitar la zona más tarde no lo deshace.",
+  "Placemaker.Paint.Issue.Permanent": "Se pintará la textura del suelo. Al quitar la construcción se borra; si se construye en piezas sueltas, la pintura se queda.",
   "Placemaker.AddOn.Terrain.Name": "Forma del terreno",
   "Placemaker.AddOn.Terrain.shape": "Forma",
   "Placemaker.AddOn.Terrain.shape.Tooltip": "Qué hacer con el terreno. Todas las formas se funden con la altura original en el borde.",

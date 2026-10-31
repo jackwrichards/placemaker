@@ -50,6 +50,7 @@ namespace Placemaker.Game.Settings
 
         /// <summary>Raised by the maintenance buttons; the tool/registration layer acts on them (keeps this class free of system references).</summary>
         public static event Action RemoveEverythingRequested;
+        public static event Action PrepareUninstallRequested;
         public static event Action ResetDefaultsRequested;
 
         public PlacemakerSettings(IMod mod) : base(mod) { SetDefaults(); }
@@ -350,6 +351,19 @@ namespace Placemaker.Game.Settings
             {
                 try { RemoveEverythingRequested?.Invoke(); }
                 catch (Exception e) { Mod.Log.Error(e, "Placemaker: remove everything failed"); }
+            }
+        }
+
+        /// <summary>(p1-bulldoze) Keeps every build as plain pieces and strips our runtime prefabs, so a save loads clean without the mod.</summary>
+        [SettingsUISection(SectionMain, GroupMaintenance)]
+        [SettingsUIButton]
+        [SettingsUIConfirmation]
+        public bool PrepareUninstall
+        {
+            set
+            {
+                try { PrepareUninstallRequested?.Invoke(); }
+                catch (Exception e) { Mod.Log.Error(e, "Placemaker: getting the city ready to remove the mod failed"); }
             }
         }
 

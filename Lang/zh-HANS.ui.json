@@ -319,7 +319,7 @@
   "Placemaker.UI.Review.CostHead": "成本",
   "Placemaker.UI.Review.Fewer": "收起",
   "Placemaker.UI.Review.Issue": "问题",
-  "Placemaker.UI.Review.PaintOnly": "移除建造后，地面涂刷仍会保留。",
+  "Placemaker.UI.Review.PaintOnly": "移除建造会清除其地面涂色；分开的部件会保留。",
   "Placemaker.UI.Review.Planning": "规划中……",
   "Placemaker.UI.Review.PlusN": "另外 +{0} 项",
   "Placemaker.UI.Review.StatsHead": "你将得到",

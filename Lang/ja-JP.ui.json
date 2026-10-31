@@ -319,7 +319,7 @@
   "Placemaker.UI.Review.CostHead": "費用",
   "Placemaker.UI.Review.Fewer": "減らす",
   "Placemaker.UI.Review.Issue": "問題",
-  "Placemaker.UI.Review.PaintOnly": "作品を削除しても地面のペイントは残ります。",
+  "Placemaker.UI.Review.PaintOnly": "作品を削除すると地面のペイントも消えます。別々のパーツなら残ります。",
   "Placemaker.UI.Review.Planning": "計画中…",
   "Placemaker.UI.Review.PlusN": "他 +{0}件",
   "Placemaker.UI.Review.StatsHead": "できるもの",

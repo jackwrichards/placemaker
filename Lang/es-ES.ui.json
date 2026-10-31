@@ -319,7 +319,7 @@
   "Placemaker.UI.Review.CostHead": "Coste",
   "Placemaker.UI.Review.Fewer": "Menos",
   "Placemaker.UI.Review.Issue": "Problema",
-  "Placemaker.UI.Review.PaintOnly": "La pintura del suelo se queda al quitar la construcción.",
+  "Placemaker.UI.Review.PaintOnly": "Al quitar la construcción se borra la pintura del suelo; las piezas sueltas la conservan.",
   "Placemaker.UI.Review.Planning": "Planificando…",
   "Placemaker.UI.Review.PlusN": "+{0} más",
   "Placemaker.UI.Review.StatsHead": "Lo que obtienes",

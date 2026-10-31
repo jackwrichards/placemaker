@@ -71,7 +71,7 @@
   "Placemaker.Feature.picnic": "Picnic area",
   "Placemaker.Feature.fountain": "Fountain",
   "Placemaker.Terrain.Issue.Permanent": "The terrain will be reshaped. This is permanent: removing the area later does not restore the ground.",
-  "Placemaker.Paint.Issue.Permanent": "The ground texture will be painted. This is permanent: removing the area later does not undo it.",
+  "Placemaker.Paint.Issue.Permanent": "The ground texture will be painted. Removing the build wipes it; if it is built as separate pieces, the paint stays.",
   "Placemaker.AddOn.Terrain.Name": "Terrain shape",
   "Placemaker.AddOn.Terrain.shape": "Shape",
   "Placemaker.AddOn.Terrain.shape.Tooltip": "What to do with the ground. Every shape blends back to the original height at the edge.",

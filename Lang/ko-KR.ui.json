@@ -319,7 +319,7 @@
   "Placemaker.UI.Review.CostHead": "비용",
   "Placemaker.UI.Review.Fewer": "접기",
   "Placemaker.UI.Review.Issue": "문제",
-  "Placemaker.UI.Review.PaintOnly": "건설물을 지워도 지면 칠은 남습니다.",
+  "Placemaker.UI.Review.PaintOnly": "건설물을 제거하면 바닥 칠하기도 지워집니다. 개별 조각은 그대로 남습니다.",
   "Placemaker.UI.Review.Planning": "계획 중…",
   "Placemaker.UI.Review.PlusN": "+{0}개 더",
   "Placemaker.UI.Review.StatsHead": "얻는 것",

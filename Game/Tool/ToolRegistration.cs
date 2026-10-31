@@ -50,6 +50,7 @@ namespace Placemaker.Game.Tool
             s_Tool = updateSystem.World.GetOrCreateSystemManaged<PlacemakerToolSystem>();
 
             PlacemakerSettings.RemoveEverythingRequested += OnRemoveEverything;
+            PlacemakerSettings.PrepareUninstallRequested += OnPrepareUninstall;
             PlacemakerSettings.ResetDefaultsRequested += OnResetDefaults;
             Mod.Log.Info("Placemaker tool registered");
         }
@@ -57,6 +58,7 @@ namespace Placemaker.Game.Tool
         public static void Unregister()
         {
             PlacemakerSettings.RemoveEverythingRequested -= OnRemoveEverything;
+            PlacemakerSettings.PrepareUninstallRequested -= OnPrepareUninstall;
             PlacemakerSettings.ResetDefaultsRequested -= OnResetDefaults;
             LocalizationLoader.Unregister();
             try { Settings?.UnregisterInOptionsUI(); } catch (Exception) { }
@@ -65,6 +67,7 @@ namespace Placemaker.Game.Tool
         }
 
         private static void OnRemoveEverything() => s_Tool?.RemoveEverything();
+        private static void OnPrepareUninstall() => global::Placemaker.Game.Groups.GroupRegistrySystem.Instance?.PrepareForUninstall();
         private static void OnResetDefaults() => s_Tool?.ResetAllDefaults();
 
         /// <summary>

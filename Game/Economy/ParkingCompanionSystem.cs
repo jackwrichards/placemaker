@@ -227,7 +227,7 @@ namespace Placemaker.Game.Economy
 
         private void CreateCompanion(int groupId, Entity prefab)
         {
-            if (!_registry.TryGetRecordEntity(groupId, out var record)) return;
+            if (!_registry.TryGetRecordEntity(groupId, out var record) || EntityManager.HasComponent<global::Placemaker.Game.Groups.PlacemakerRemoval>(record)) return;
             var g = EntityManager.GetComponentData<PlacemakerGroup>(record);
             if (g.Companion != Entity.Null && EntityManager.Exists(g.Companion)) return;
             if (!TryFindRoadSide(groupId, out var position, out var rotation)) return;

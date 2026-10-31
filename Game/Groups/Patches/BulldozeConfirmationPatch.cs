@@ -36,7 +36,7 @@ namespace Placemaker.Game.Groups.Patches
 
         private sealed class Approval { internal bool Confirmed; }
         private static readonly ConditionalWeakTable<BulldozeToolSystem, Approval> Approvals = new ConditionalWeakTable<BulldozeToolSystem, Approval>();
-        private static readonly FieldInfo StateField = AccessTools.Field(typeof(BulldozeToolSystem), "m_State");
+        internal static readonly FieldInfo StateField = AccessTools.Field(typeof(BulldozeToolSystem), "m_State");
         private static readonly MethodInfo ApplyModeSetter = AccessTools.PropertySetter(typeof(ToolBaseSystem), "applyMode");
 
         [HarmonyPrepare]
@@ -99,7 +99,7 @@ namespace Placemaker.Game.Groups.Patches
         /// Remove all / Ungroup / Cancel in the game's dialog. False when it cannot be shown (the caller asks the vanilla way).
         /// The answer comes on the main thread (the UI's bindings update); a tool that left its Waiting state meanwhile ignores it.
         /// </summary>
-        private static bool AskRemoveOrUngroup(BulldozeToolSystem tool, GroupRegistrySystem registry, System.Collections.Generic.List<int> groups)
+        internal static bool AskRemoveOrUngroup(BulldozeToolSystem tool, GroupRegistrySystem registry, System.Collections.Generic.List<int> groups)
         {
             var bindings = global::Game.SceneFlow.GameManager.instance?.userInterface?.appBindings;
             if (bindings == null) return false;

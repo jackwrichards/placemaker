@@ -71,7 +71,7 @@
   "Placemaker.Feature.picnic": "ピクニック場",
   "Placemaker.Feature.fountain": "噴水",
   "Placemaker.Terrain.Issue.Permanent": "地形が造り変えられます。元に戻せません: 後で範囲を削除しても地面は元に戻りません。",
-  "Placemaker.Paint.Issue.Permanent": "地面のテクスチャが塗られます。元に戻せません: 後で範囲を削除しても消えません。",
+  "Placemaker.Paint.Issue.Permanent": "地面のテクスチャが塗られます。作品を削除すると消えます。別々のパーツとして建てた場合は残ります。",
   "Placemaker.AddOn.Terrain.Name": "地形の形",
   "Placemaker.AddOn.Terrain.shape": "形",
   "Placemaker.AddOn.Terrain.shape.Tooltip": "地面をどうするかです。どの形も縁で元の高さになじみます。",

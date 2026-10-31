@@ -1,0 +1,670 @@
+{
+ "_about": "p1-bulldoze stress: removals at once while building, save mid-removal, removal right after a build, the bulldozer's question, a 900x700 park, paint wipe, ready to remove Placemaker.",
+ "scenarios": [
+  {
+   "id": "st-keep-fair",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "fairground"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    }
+   ]
+  },
+  {
+   "id": "st-keep-market",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "marketSquare"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    }
+   ]
+  },
+  {
+   "id": "st-keep-parking",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "parking"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    }
+   ]
+  },
+  {
+   "id": "st-keep-farm",
+   "land": {
+    "shape": "rect",
+    "size": [
+     140,
+     120
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "farmstead"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    }
+   ]
+  },
+  {
+   "id": "st-all-while-building",
+   "land": {
+    "shape": "rect",
+    "size": [
+     140,
+     120
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "sportsPark"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "removeGroups",
+     "which": "all",
+     "after": 40,
+     "label": "all, 40 frames into the next build"
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "wait",
+     "seconds": 8
+    },
+    {
+     "do": "lab",
+     "op": "groupRecords",
+     "label": "after removing all while building"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "sports park still standing"
+    }
+   ]
+  },
+  {
+   "id": "st-remove-now",
+   "land": {
+    "shape": "rect",
+    "size": [
+     140,
+     120
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "park"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "removeGroups",
+     "which": "current",
+     "label": "right after the build",
+     "wait": true
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after remove right after build"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "st-save-mid-removal",
+   "land": {
+    "shape": "rect",
+    "size": [
+     140,
+     120
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "beach"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "removeGroups",
+     "which": "current",
+     "label": "then save at once"
+    },
+    {
+     "do": "lab",
+     "op": "saveLoad"
+    },
+    {
+     "do": "wait",
+     "seconds": 4
+    },
+    {
+     "do": "lab",
+     "op": "groupRecords",
+     "label": "after the load"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after save and load mid-removal"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "st-question-ungroup",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "fairground"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "bulldozeQuestion",
+     "answer": "ungroup",
+     "picture": "question"
+    },
+    {
+     "do": "wait",
+     "frames": 60
+    },
+    {
+     "do": "lab",
+     "op": "ungroupAudit",
+     "label": "after Ungroup in the question"
+    }
+   ]
+  },
+  {
+   "id": "st-question-remove",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "marketSquare"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "bulldozeQuestion",
+     "answer": "cancel"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after Cancel (all still there)"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after the bulldozer"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "st-huge-park",
+   "land": {
+    "shape": "rect",
+    "size": [
+     900,
+     700
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "park"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldozing a 900x700 park"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "st-paint",
+   "land": {
+    "shape": "rect",
+    "size": [
+     140,
+     120
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "farmstead"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "view": "top",
+     "shot": "paint-built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldozing the farm"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "view": "top",
+     "shot": "paint-after"
+    }
+   ]
+  },
+  {
+   "id": "st-uninstall-yard",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "carYard"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    }
+   ]
+  },
+  {
+   "id": "st-uninstall-park",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "park"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "prepareUninstall"
+    },
+    {
+     "do": "wait",
+     "seconds": 3
+    },
+    {
+     "do": "lab",
+     "op": "groupRecords",
+     "label": "after ready to remove Placemaker"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "park after ready to remove"
+    }
+   ]
+  }
+ ]
+}

@@ -71,7 +71,7 @@
   "Placemaker.Feature.picnic": "Picknickplatz",
   "Placemaker.Feature.fountain": "Brunnen",
   "Placemaker.Terrain.Issue.Permanent": "Das Terrain wird umgeformt. Das ist dauerhaft: Wird die Fläche später entfernt, wird der Boden nicht wiederhergestellt.",
-  "Placemaker.Paint.Issue.Permanent": "Die Bodentextur wird bemalt. Das ist dauerhaft: Wird die Fläche später entfernt, wird es nicht rückgängig gemacht.",
+  "Placemaker.Paint.Issue.Permanent": "Die Bodentextur wird bemalt. Wird der Bau entfernt, wird sie gelöscht; als einzelne Teile gebaut, bleibt die Farbe.",
   "Placemaker.AddOn.Terrain.Name": "Geländeform",
   "Placemaker.AddOn.Terrain.shape": "Form",
   "Placemaker.AddOn.Terrain.shape.Tooltip": "Was mit dem Boden geschieht. Jede Form geht am Rand in die ursprüngliche Höhe über.",

@@ -763,7 +763,7 @@ namespace Placemaker.Game.Build
             rec.Upkeep = estimate.Upkeep;
             rec.PrefabNames = new List<string>(_usedPrefabNames);
             rec.PrefabNames.Sort(StringComparer.Ordinal);
-            if (_work.HasPermanentTerrain || HasPaint()) rec.Flags |= GroupFlags.PermanentTerrain;   // terraform and paint are never undone
+            if (_work.HasPermanentTerrain || HasPaint()) rec.Flags |= GroupFlags.PermanentTerrain;   // removal wipes the paint (BuildService.Unpaint); terraform stays
             if (_work.HasParking && _carrier != Entity.Null) rec.Flags |= GroupFlags.ParkingEconomy;
             if (_request.Ungrouped) rec.Flags |= GroupFlags.Ungrouped;   // built as separate pieces (the Review switch)
             if (_request.Recipe != null) rec.Recipe = _request.Recipe.Clone();

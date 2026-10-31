@@ -319,7 +319,7 @@
   "Placemaker.UI.Review.CostHead": "Koszt",
   "Placemaker.UI.Review.Fewer": "Mniej",
   "Placemaker.UI.Review.Issue": "Problem",
-  "Placemaker.UI.Review.PaintOnly": "Malowanie gruntu zostaje po usunięciu obiektu.",
+  "Placemaker.UI.Review.PaintOnly": "Usunięcie obiektu wymazuje malowanie terenu; osobne elementy je zachowują.",
   "Placemaker.UI.Review.Planning": "Planowanie…",
   "Placemaker.UI.Review.PlusN": "+{0} więcej",
   "Placemaker.UI.Review.StatsHead": "Co dostajesz",

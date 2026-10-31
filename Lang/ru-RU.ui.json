@@ -319,7 +319,7 @@
   "Placemaker.UI.Review.CostHead": "Стоимость",
   "Placemaker.UI.Review.Fewer": "Меньше",
   "Placemaker.UI.Review.Issue": "Проблема",
-  "Placemaker.UI.Review.PaintOnly": "Окраска земли останется после удаления постройки.",
+  "Placemaker.UI.Review.PaintOnly": "При удалении постройки покраска земли стирается; отдельные части её сохраняют.",
   "Placemaker.UI.Review.Planning": "Планирование…",
   "Placemaker.UI.Review.PlusN": "еще +{0}",
   "Placemaker.UI.Review.StatsHead": "Что получится",

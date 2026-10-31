@@ -319,7 +319,7 @@ function buildAlerts(t: TFunc, tl: (loc: LocText | undefined | null, fallback?: 
         raw.push({
             kind: paintOnly ? "info" : "warn",
             text: "",
-            full: tl(p) + (paintOnly ? " " + t("Placemaker.UI.Review.PaintOnly", "Ground paint stays when the build is removed.") : ""),
+            full: tl(p) + (paintOnly ? " " + t("Placemaker.UI.Review.PaintOnly", "Removing the build wipes its ground paint; separate pieces keep it.") : ""),
             permanent: true,
             loc: p,
         });

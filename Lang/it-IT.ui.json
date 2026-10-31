@@ -319,7 +319,7 @@
   "Placemaker.UI.Review.CostHead": "Costo",
   "Placemaker.UI.Review.Fewer": "Meno",
   "Placemaker.UI.Review.Issue": "Problema",
-  "Placemaker.UI.Review.PaintOnly": "La pittura del terreno resta quando la costruzione viene rimossa.",
+  "Placemaker.UI.Review.PaintOnly": "Rimuovendo la costruzione si cancella la pittura del terreno; i pezzi separati la tengono.",
   "Placemaker.UI.Review.Planning": "Pianificazione…",
   "Placemaker.UI.Review.PlusN": "+{0} altri",
   "Placemaker.UI.Review.StatsHead": "Cosa ottieni",

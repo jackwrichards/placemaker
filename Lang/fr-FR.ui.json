@@ -319,7 +319,7 @@
   "Placemaker.UI.Review.CostHead": "Coût",
   "Placemaker.UI.Review.Fewer": "Moins",
   "Placemaker.UI.Review.Issue": "Problème",
-  "Placemaker.UI.Review.PaintOnly": "La peinture du sol reste quand la construction est retirée.",
+  "Placemaker.UI.Review.PaintOnly": "Retirer la construction efface la peinture du sol ; des éléments séparés la gardent.",
   "Placemaker.UI.Review.Planning": "Planification…",
   "Placemaker.UI.Review.PlusN": "+{0} de plus",
   "Placemaker.UI.Review.StatsHead": "Ce que vous obtenez",

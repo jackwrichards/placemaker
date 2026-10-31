@@ -397,7 +397,7 @@
   "Placemaker.UI.Review.Later.Terrain.Tip": "The ground is raised and lowered when you build; the preview cannot show it. Turn on Terrain in the top view to see where.",
   "Placemaker.UI.Review.Later.Water": "Water fills in once built",
   "Placemaker.UI.Review.Later.Water.Tip": "Ponds and pools fill with water after the build.",
-  "Placemaker.UI.Review.PaintOnly": "Ground paint stays when the build is removed.",
+  "Placemaker.UI.Review.PaintOnly": "Removing the build wipes its ground paint; separate pieces keep it.",
   "Placemaker.UI.Review.Planning": "Planning…",
   "Placemaker.UI.Review.PlusN": "+{0} more",
   "Placemaker.UI.Review.StatsHead": "What you get",

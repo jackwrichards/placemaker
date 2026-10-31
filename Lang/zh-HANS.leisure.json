@@ -71,7 +71,7 @@
   "Placemaker.Feature.picnic": "野餐区",
   "Placemaker.Feature.fountain": "喷泉",
   "Placemaker.Terrain.Issue.Permanent": "地形将被改变。这是永久性的：之后移除区域也不会恢复地面。",
-  "Placemaker.Paint.Issue.Permanent": "地面纹理将被涂刷。这是永久性的：之后移除区域也不会撤销。",
+  "Placemaker.Paint.Issue.Permanent": "将为地面纹理涂色。移除建造会将其清除；若作为分开的部件建造，涂色会保留。",
   "Placemaker.AddOn.Terrain.Name": "地形塑造",
   "Placemaker.AddOn.Terrain.shape": "形状",
   "Placemaker.AddOn.Terrain.shape.Tooltip": "如何处理地面。每种形状在边缘处都会融合回原始高度。",

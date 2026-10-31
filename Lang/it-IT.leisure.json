@@ -71,7 +71,7 @@
   "Placemaker.Feature.picnic": "Area picnic",
   "Placemaker.Feature.fountain": "Fontana",
   "Placemaker.Terrain.Issue.Permanent": "Il terreno verrà rimodellato. È permanente: rimuovendo l'area in seguito il terreno non torna com'era.",
-  "Placemaker.Paint.Issue.Permanent": "La texture del terreno verrà dipinta. È permanente: rimuovendo l'area in seguito non si annulla.",
+  "Placemaker.Paint.Issue.Permanent": "La texture del terreno verrà dipinta. Rimuovendo la costruzione si cancella; se costruita in pezzi separati, la pittura resta.",
   "Placemaker.AddOn.Terrain.Name": "Forma del terreno",
   "Placemaker.AddOn.Terrain.shape": "Forma",
   "Placemaker.AddOn.Terrain.shape.Tooltip": "Cosa fare con il terreno. Ogni forma si raccorda all'altezza originale sul bordo.",

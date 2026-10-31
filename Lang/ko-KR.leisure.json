@@ -71,7 +71,7 @@
   "Placemaker.Feature.picnic": "피크닉장",
   "Placemaker.Feature.fountain": "분수",
   "Placemaker.Terrain.Issue.Permanent": "지형 모양이 바뀝니다. 영구적이라 나중에 구역을 지워도 땅이 되돌아가지 않습니다.",
-  "Placemaker.Paint.Issue.Permanent": "지면 텍스처를 칠합니다. 영구적이라 나중에 구역을 지워도 되돌릴 수 없습니다.",
+  "Placemaker.Paint.Issue.Permanent": "바닥 텍스처를 칠합니다. 건설물을 제거하면 지워지고, 개별 조각으로 지으면 칠이 남습니다.",
   "Placemaker.AddOn.Terrain.Name": "지형 모양",
   "Placemaker.AddOn.Terrain.shape": "모양",
   "Placemaker.AddOn.Terrain.shape.Tooltip": "땅을 어떻게 할지입니다. 모든 모양이 가장자리에서 원래 높이로 이어집니다.",

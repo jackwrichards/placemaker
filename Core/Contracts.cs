@@ -828,8 +828,8 @@ namespace Placemaker.Core
     /// (gamebuild round 4, proposal) Terrain texture painting: CS2's terrain material brush paints one of the
     /// map's four extra terrain layers (TerrainMaterialType Extra1..Extra4 — on vanilla maps Dry grass, Lush
     /// grass, Dirt, Sand; see <see cref="TerrainMaterials"/>) into the user splatmap, which is
-    /// saved with the city. Layer 0 erases back to the procedural grass/dirt/rock. Permanent: removing the
-    /// group does not unpaint (like terraform).
+    /// saved with the city. Layer 0 erases back to the procedural grass/dirt/rock. Removing the group wipes its
+    /// paint over its outline (Game/Build/BuildService.Unpaint); loose builds keep it, like terraform.
     /// </summary>
     public sealed class PlannedPaint
     {

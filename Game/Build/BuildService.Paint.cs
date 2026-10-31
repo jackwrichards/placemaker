@@ -13,8 +13,8 @@
 // world-aligned square stamps (one grid per material layer, merged by max) on a worker thread; the build then
 // applies at most one stamp per frame (each ≤ 512² texels, a 1 MB RGBA32 upload) with the resolved brush prefab's
 // m_Texture swapped for the stamp mask during the call. Exactly once per build: the Paint step runs only from the
-// terraform step, never on retries (ResetForRetry → EmitNets), and _paintStarted guards re-entry. Painting is
-// permanent (not undone when the group is removed). If the raster fails, the old per-ring brush dabs run.
+// terraform step, never on retries (ResetForRetry → EmitNets), and _paintStarted guards re-entry. Removing the
+// group wipes its paint over the outline (BuildService.Unpaint, p1-bulldoze). If the raster fails, the old per-ring brush dabs run.
 //
 // s33 (PaintSplatmap DXBC disassembled, docs/TERRAIN-PAINT.md): the user splatmap keeps one 4-bit weight per material
 // (R8 = Extra1 | Extra2 << 4, G8 = Extra3 | Extra4 << 4); PaintDither = max(old, mask.a × strength) on the tool's
