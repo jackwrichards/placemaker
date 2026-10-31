@@ -135,6 +135,7 @@ namespace Placemaker.Game.Build
             _objectIndex = _objectIndex ?? new PlanIndex(ObjectIndexCell);
             var random = new Unity.Mathematics.Random(Seeds.Mix(0x5EEDu, (uint)_groupId));
             var pathEnds = PlannedPathEnds();
+            var groundEnds = GroundPathEnds();
             int clearNotes = 0;
             foreach (var w in _work.Nets)
             {
@@ -176,6 +177,9 @@ namespace Placemaker.Game.Build
                 // An end on ground higher than the deck rises to it (else the game digs a notch there); the paths that meet
                 // it are pinned to the same ground, so the junction stays one node.
                 if (elevated) course = CourseFitting.LandEnds(course, GroundHeight);
+                // (p1-ground) a deck end on a ground path's end becomes that end exactly (one node, no overhang): see JoinEnds
+                float2? joinA = elevated ? groundEnds.Find(net.A.xz) : null, joinD = elevated ? groundEnds.Find(net.D.xz) : null;
+                if (joinA != null || joinD != null) course = CourseFitting.JoinEnds(course, GroundHeight, joinA, joinD);
                 var pieces = elevated
                     ? CourseFitting.FitElevated(course, settings.MaxLength > 1f ? math.min(ElevatedPieceLength, settings.MaxLength) : ElevatedPieceLength)
                     : CourseFitting.Fit(course, GroundHeight, settings);
@@ -200,6 +204,8 @@ namespace Placemaker.Game.Build
                     var start = MakeCoursePos(c.A, c.Tangent(0), 0f, CoursePosFlags.IsFirst, p == 0 ? net.StartAttach : -1, prefab);
                     var end = MakeCoursePos(c.D, -c.Tangent(1), 1f, CoursePosFlags.IsLast, p == pieces.Count - 1 ? net.EndAttach : -1, prefab);
                     if (elevated) Elevate(ref start, ref end, c, p > 0, p < pieces.Count - 1);
+                    if (p == 0 && joinA != null) start.m_Elevation = float2.zero;              // on the ground: the path's own node
+                    if (p == pieces.Count - 1 && joinD != null) end.m_Elevation = float2.zero;
                     // Attached ends snap onto the existing net: rebuild the curve to the snapped points.
                     var curve = new Bezier4x3(c.A, c.B, c.C, c.D);
                     if (!start.m_Position.Equals(c.A) || !end.m_Position.Equals(c.D))
@@ -247,6 +253,40 @@ namespace Placemaker.Game.Build
             public void Add(float3 p) { long k = Key(p); _count[k] = (_count.TryGetValue(k, out var n) ? n : 0) + 1; }
             /// <summary>Two or more ends at p (within 0.1 m grid): a junction.</summary>
             public bool Shared(float3 p) => _count.TryGetValue(Key(p), out var n) && n > 1;
+        }
+
+        /// <summary>(p1-ground) The exact x, z of every ground-following net end, found from a point within <see cref="Reach"/> m.</summary>
+        private sealed class GroundEndSet
+        {
+            public const float Reach = 0.15f;
+            private readonly Dictionary<long, List<float2>> _cells = new Dictionary<long, List<float2>>();
+            private static long Key(int x, int z) => ((long)x << 32) ^ (uint)z;
+            public void Add(float2 p)
+            {
+                long k = Key((int)math.floor(p.x), (int)math.floor(p.y));
+                if (!_cells.TryGetValue(k, out var l)) _cells[k] = l = new List<float2>(2);
+                l.Add(p);
+            }
+            public float2? Find(float2 p)
+            {
+                int x = (int)math.floor(p.x), z = (int)math.floor(p.y);
+                float best = Reach * Reach; float2? hit = null;
+                for (int dx = -1; dx <= 1; dx++)
+                    for (int dz = -1; dz <= 1; dz++)
+                        if (_cells.TryGetValue(Key(x + dx, z + dz), out var l))
+                            foreach (var q in l) { float d = math.distancesq(p, q); if (d <= best) { best = d; hit = q; } }
+                return hit;
+            }
+        }
+
+        private GroundEndSet GroundPathEnds()
+        {
+            var set = new GroundEndSet();
+            foreach (var l in _request.Plan.Layers)
+                if (l?.Nets != null)
+                    foreach (var n in l.Nets)
+                        if (n.FollowTerrain && n.Role != NetRole.Fence) { set.Add(n.A.xz); set.Add(n.D.xz); }
+            return set;
         }
 
         private EndSet PlannedPathEnds()
@@ -431,8 +471,47 @@ namespace Placemaker.Game.Build
             // barrels in it, all drawn; without it the game hid one of each pair).
             float sink = o.Elevation < -0.01f && o.Role != ObjectRole.Decal ? -o.Elevation : 0f;
             if (sink > 0f) elevation = -sink;
-            EmitObjectDefinition(prefab, o.Position, o.Yaw, o.Scale, o.Age, o.Variation, key, true, seed, elevation, optional: !IgnoreOwnCollisions && !PlanWork.IsFunctional(o.Role), roll: o.Roll, pitch: o.Pitch, sink: sink);   // (s59) anarchy: the ghost shows what the build places — nothing is cancelled
+            // (p1-ground) an upright vehicle prop stands on its four wheels: one height at its middle left a 5-9 m car hanging over
+            // the slope or the terrace step under one end (the user: floating cars in the industrial car parks)
+            float3 pos = o.Position; float roll = o.Roll, pitch = o.Pitch; bool snap = true;
+            if (roll == 0f && pitch == 0f && math.abs(o.Elevation) < 0.01f && IsVehicleProp(prefab) && OnWheels(prefab, o.Yaw, o.Scale, ref pos, out pitch, out roll))
+                snap = false;
+            EmitObjectDefinition(prefab, pos, o.Yaw, o.Scale, o.Age, o.Variation, key, snap, seed, elevation, optional: !IgnoreOwnCollisions && !PlanWork.IsFunctional(o.Role), roll: roll, pitch: pitch, sink: sink);   // (s59) anarchy: the ghost shows what the build places — nothing is cancelled
             NoteUsed(prefab);
+        }
+
+        /// <summary>Placemaker's own vehicle props (Game/Assets/VehiclePropSystem: parked cars, trucks, machines).</summary>
+        private bool IsVehicleProp(Entity prefab)
+        {
+            var n = _catalog.NameOf(prefab);
+            return n != null && n.StartsWith(Placemaker.Core.Layers.Types.Yards.VehicleProps.Prefix, StringComparison.Ordinal);
+        }
+
+        /// <summary>Most a parked vehicle tilts to its ground (rad, about 14 degrees): steeper ground is a step, and the car sits low.</summary>
+        private const float MaxVehicleTilt = 0.25f;
+
+        /// <summary>
+        /// Height, pitch and roll that put a vehicle on its wheels: the ground under the four wheels (live terrain: the build has
+        /// shaped it by now, and the game's height map rounds the terraform's steps), the body tilted to their plane and set on
+        /// their mean, a little low so no wheel floats where the ground bends.
+        /// </summary>
+        private bool OnWheels(Entity prefab, float yaw, float scale, ref float3 pos, out float pitch, out float roll)
+        {
+            pitch = roll = 0f;
+            if (!EntityManager.HasComponent<ObjectGeometryData>(prefab)) return false;
+            var size = EntityManager.GetComponentData<ObjectGeometryData>(prefab).m_Size * (scale > 0.05f ? scale : 1f);
+            if (!(size.z > 1f) || !(size.x > 0.5f)) return false;
+            float2 fwd = new float2(math.sin(yaw), math.cos(yaw)), right = new float2(math.cos(yaw), -math.sin(yaw));
+            float l = size.z * 0.36f, w = size.x * 0.38f;
+            var c = pos.xz;
+            float fl = Height(c + fwd * l - right * w), fr = Height(c + fwd * l + right * w);
+            float bl = Height(c - fwd * l - right * w), br = Height(c - fwd * l + right * w);
+            pitch = -math.clamp(math.atan(((fl + fr) - (bl + br)) * 0.5f / (2f * l)), -MaxVehicleTilt, MaxVehicleTilt);
+            roll = math.clamp(math.atan(((fr + br) - (fl + bl)) * 0.5f / (2f * w)), -MaxVehicleTilt, MaxVehicleTilt);
+            float mean = (fl + fr + bl + br) * 0.25f, low = math.min(math.min(fl, fr), math.min(bl, br));
+            pos.y = math.max(low, mean - 0.06f);
+            if (pitch == 0f) pitch = 1e-6f;   // a non-zero tilt is what makes the emit tilt the body
+            return true;
         }
 
         private static readonly float[] AgeStages = { 0f, 0.17500001f, 0.425f, 0.77500004f, 0.97f };   // ToolUtils.GetRandomAge; [4] = dead (ObjectUtils.InitializeTreeState: age ≥ 0.95)
