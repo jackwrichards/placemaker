@@ -80,6 +80,10 @@ runner's camera target `joint` (index `all`) frames each joint for a close-up (`
 | `20261031-003718-beach-r2-lake` | round 1/2 code on the lake: headlands show, boulders white popcorn, marsh without boardwalk |
 | `20261031-015913-beach-r2-hard` | every style on a 7 m cliff and a 3 m steep bank: cliff-top walk only, no beach (advice now a warning) |
 | `20261031-023318-beach-r3-lakein` | outline over the water: islands with footbridges (harbour, granite, marsh), headlands, marsh boardwalk |
+| `20261031-100145-beach-r7` | round 2: cliff pocket beach (sand cove, rock walls, gully path), ravine with rock walls, hinterland no longer a park |
+| `20261031-100835-beach-r8-grade` | the re-grade: every style on the lake (45, top, close) and three on the cliff (granite and ravine found no lake: runner gap) |
+| `20261031-102457-beach-r9` | marsh 32 m deep with boardwalk and island joint, promenade without the palm grid, granite and ravine on the cliff |
+| `20261031-103236-beach-r10-dunes` | deeper dune belts: more sand, relief still faint |
 
 ## What failed and why
 
@@ -95,9 +99,19 @@ runner's camera target `joint` (index `all`) frames each joint for a close-up (`
 - Joint close-ups: the runner schema did not know the `joint` target, and after a build the tool has no plan; the runner
   now keeps the built nets.
 
+- Cliff: the pocket beach was carved but read as a green dip (an 11 m gully blurs on the 3.5 m heightmap, no sand paint):
+  wider cove and gully, painted sand floor, rock walls, boulders at the wall feet.
+- Everything was half the design size in the game: the game's layout size is 0.5 by default and every Layout() slider
+  (beach depth, dune depth) is scaled by it; offline tests run at 1. The marsh was an 18 m strip, dune belts 13 m.
+- Dunes read as green scrub: 450 bushes/ha covered the sand; now sand over the whole belt, sparse tufts, sea face bare.
+- The promenade's lawn biome share planted palms in grid rows.
+- Ravine bluff: a bluff foot under the promenade lifted the beach 3 m; it now starts behind the bench.
+
 ## Left to do
 
-- Ravine: the barranca reads as boulder streams on brown ground from 45°; steeper ravine walls and a visible bluff face.
-- Hinterland: lawn with palms behind family and harbour looks like a park; dunes biome patches read as sand blobs.
-- A hint when Islands is set but the outline does not reach over the water (12 languages).
-- Cliff: the beach could cut a pocket beach into a cliff instead of only a cliff-top walk.
+- Dunes: relief still faint from 45° on the 110 m lake land (fill 2.4-3.7 m, the outline taper eats the back dune).
+- Shingle: storm ridges do not show; the beach reads as a flat grey strip with huts.
+- ShoreSculpt strict tests (31 failures, all already failing at milestone 1): mostly fill limits older than the landforms;
+  real ones: a path climbing 23-25 % on a steep bank (resort, granite), a bush on a cliff face (marsh headland), a rock
+  planned below the ground (ravine curved).
+- Runner: later cliff blocks in a long run had no lake (shoreMode 2).
