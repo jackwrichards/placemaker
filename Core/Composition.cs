@@ -227,6 +227,9 @@ namespace Placemaker.Core
             // surfaces flat, decorative mounds kept off them, all terraform merged into one smooth field (no curtains).
             Build.SiteHarmony.Apply(result, area, site, cancel);
             clock.Lap("site harmony");
+            // (p1-ground) Holes (quarries, foundations, basements, earthworks): no fence round the rim, no pile over the edge.
+            Build.PitRims.Apply(result, site);
+            clock.Lap("pit rims");
             // (s15) Never build on existing buildings: drop / cut whatever would touch a building lot.
             Build.SiteSafety.Apply(result, area, site);
             clock.Lap("site safety");

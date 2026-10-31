@@ -163,27 +163,32 @@ namespace Placemaker.Core.Layers.Common
                 if (l == null || l.GeneratorId == ZoningLayer) continue;
                 changed += l.Objects.RemoveAll(o => IsBorder(o) && NearCutEdge(o.Position.xz, BorderReach + 0.5f));
                 // Clip only the border nets (paths that cross a cutout edge are handled by the inside test).
-                var others = new List<PlannedNet>();
-                var borders = new List<PlannedNet>();
-                foreach (var n in l.Nets) (IsBorder(n) ? borders : others).Add(n);
-                if (borders.Count == 0) continue;
-                var tmp = new AreaPlan { GeneratorId = l.GeneratorId };
-                tmp.Nets.AddRange(borders);
-                int c = ClipNets(tmp, (p, pad) => NearCutEdge(p, BorderReach));
-                if (c == 0) continue;
-                changed += c;
-                // Rebuild the net list: other nets keep their indices (objects attach to them by index), borders after.
-                var keep = new List<PlannedNet>(l.Nets.Count);
-                var map = new Dictionary<int, int>();
-                for (int i = 0; i < l.Nets.Count; i++)
-                    if (!IsBorder(l.Nets[i])) { map[i] = keep.Count; keep.Add(l.Nets[i]); }
-                keep.AddRange(tmp.Nets);
-                foreach (var o in l.Objects)
-                    if (o.AttachedNet >= 0) o.AttachedNet = map.TryGetValue(o.AttachedNet, out var ni) ? ni : -1;
-                l.Nets.Clear();
-                l.Nets.AddRange(keep);
+                changed += ClipBorderNets(l, (p, pad) => NearCutEdge(p, BorderReach));
             }
             return changed;
+        }
+
+        /// <summary>Clips a layer's border nets (fences, walls) to the parts where <paramref name="inside"/> is false; other nets keep
+        /// their indices (objects attach to them by index), the clipped borders go after them. Returns how many changed.</summary>
+        public static int ClipBorderNets(AreaPlan l, Func<float2, float, bool> inside)
+        {
+            var borders = new List<PlannedNet>();
+            foreach (var n in l.Nets) if (IsBorder(n)) borders.Add(n);
+            if (borders.Count == 0) return 0;
+            var tmp = new AreaPlan { GeneratorId = l.GeneratorId };
+            tmp.Nets.AddRange(borders);
+            int c = ClipNets(tmp, inside);
+            if (c == 0) return 0;
+            var keep = new List<PlannedNet>(l.Nets.Count);
+            var map = new Dictionary<int, int>();
+            for (int i = 0; i < l.Nets.Count; i++)
+                if (!IsBorder(l.Nets[i])) { map[i] = keep.Count; keep.Add(l.Nets[i]); }
+            keep.AddRange(tmp.Nets);
+            foreach (var o in l.Objects)
+                if (o.AttachedNet >= 0) o.AttachedNet = map.TryGetValue(o.AttachedNet, out var ni) ? ni : -1;
+            l.Nets.Clear();
+            l.Nets.AddRange(keep);
+            return c;
         }
 
         /// <summary>How far outside the cutout an object of this role still reaches into it (crowns, benches).</summary>
