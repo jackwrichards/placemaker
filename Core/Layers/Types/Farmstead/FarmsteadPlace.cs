@@ -528,7 +528,15 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                 var a = inner[e]; var b = inner[(e + 1) % 4];
                 var mid = (a + b) * 0.5f; var d = math.normalizesafe(b - a);
                 var outward = math.normalizesafe(mid - plot.Center);
-                if (math.dot(outward, face) > 0.7f) { ctx.StraightNet(a, b, NetRole.Fence, fence); occ.TakeCorridor(a, b, 0.4f, 5); continue; }
+                if (math.dot(outward, face) > 0.7f)
+                {
+                    // the road fence with the front gate in its middle (a path out to the street would cut the boundary hedge)
+                    if (math.distance(a, mid) > 2f) ctx.StraightNet(a, mid - d * 0.9f, NetRole.Fence, fence);
+                    if (math.distance(mid, b) > 2f) ctx.StraightNet(mid + d * 0.9f, b, NetRole.Fence, fence);
+                    occ.TakeCorridor(a, b, 0.4f, 5);
+                    GateLeaf(ctx, fence, mid - d * 0.9f, d, -outward, 1.8f, Hashing.Mix(v, 8u));
+                    continue;
+                }
                 bool gateSide = math.dot(outward, yardDir) > 0.7f;
                 // the garden gate toward the yard, in the back half (the house fills the front)
                 var gateAt = mid - face * (plot.HalfWidth * 0.55f);
@@ -555,6 +563,10 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                 var p = plot.Center + plot.Axis * ((t == 0 ? -1f : 1f) * (plot.HalfLength - 4.5f)) + backward * (plot.HalfWidth - 4.5f);
                 LeisureKit.Put(ctx, occ, p, Hashing.Unit(Hashing.Mix(v, 20u + (uint)t)) * 6.28f, ObjectRole.Tree, trees, null, 2.2f, Hashing.Mix(v, 20u + (uint)t), 0.3f, 0.2f, 3, 2);
             }
+            // the kitchen garden: a dug bed in the back garden (dark soil)
+            var bedC = plot.Center - plot.Axis * (plot.HalfLength * 0.35f) + backward * (plot.HalfWidth - 5f);
+            TerrainPaint.Patch(ctx, LayerRegion.Rect(bedC, plot.Axis, 4.5f, 2.2f), TerrainMaterials.Lush, 1f, 0.5f);
+            occ.Take(bedC, 3f, 2);
             var shedAt = plot.Center + plot.Axis * (plot.HalfLength * 0.15f) + backward * (plot.HalfWidth - 3.2f);
             LeisureKit.Put(ctx, occ, shedAt, yaw, ObjectRole.Furniture, new AssetRef("ToolShed01", "ToolShed02", "ToolShed03"), null, 2f, Hashing.Mix(v, 30u), 0.2f, 0.2f);
             ctx.AddRegion(ring, HouseTag, HouseTag);

@@ -82,10 +82,12 @@ namespace Placemaker.Core.Layers.Types.Yards
         /// <summary>Slot → the vanilla buildings it may copy, in order (lot cells in the name: 3x3 = 24 × 24 m).</summary>
         public static readonly string[][] Sources =
         {
-            new[] { "EU_ResidentialLow01_L1_3x3", "EU_ResidentialLow03_L1_3x3", "NA_ResidentialLow01_L1_3x3" },
-            new[] { "EU_ResidentialLow03_L1_3x3", "EU_ResidentialLow01_L1_3x4", "NA_ResidentialLow01_L1_3x2" },
-            new[] { "EU_ResidentialLow01_L1_2x3", "EU_ResidentialLow03_L1_2x3", "NA_ResidentialLow01_L1_2x3" },
-            new[] { "NA_ResidentialLow01_L1_3x3", "EU_ResidentialLow01_L1_3x2", "EU_ResidentialLow03_L1_3x2" },
+            // level 3-5 houses on 3 × 3 lots: the level-1 ones are cabins (a green tiny home with a porch read as a mobile home,
+            // run 20261031-101259-farm-close)
+            new[] { "EU_ResidentialLow03_L3_3x3", "NA_ResidentialLow01_L2_3x3", "EU_ResidentialLow03_L1_3x3" },
+            new[] { "EU_ResidentialLow03_L5_3x3", "EU_ResidentialLow03_L3_3x3", "EU_ResidentialLow01_L1_3x3" },
+            new[] { "NA_ResidentialLow01_L2_3x3", "EU_ResidentialLow03_L3_3x3", "NA_ResidentialLow01_L1_3x3" },
+            new[] { "EU_ResidentialLow01_L3_3x2", "EU_ResidentialLow03_L3_3x2", "EU_ResidentialLow03_L3_3x3" },
         };
     }
 

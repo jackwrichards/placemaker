@@ -1086,7 +1086,9 @@ namespace Placemaker.Core.Layers.Types.Farmstead
 
         private static void PondPlanting(LayerContext ctx, Occupancy occ, float2 c, float r, string[] treeIds, string[] bushIds)
         {
-            float bank = r * 1.2f + 1.6f;
+            // (P2-3) the water fills the dug basin's falloff too: in the game it reached 2-3 m past the outline and stood
+            // round the bank bushes (run 20261031-101259-farm-close); the planting starts past it
+            float bank = r * 1.2f + 4.5f;
             int n = math.max(6, (int)(2f * math.PI * bank / 4f));
             for (int i = 0; i < n; i++)
             {

@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+2b4d07c9-dirty",
+  "assembly": "0.3.6+af813c56",
   "categories": [
     {
       "id": "zoning",
@@ -21786,7 +21786,7 @@
           "max": 25.0,
           "step": 1.0,
           "unit": "%",
-          "default": 8.0
+          "default": 5.0
         },
         {
           "id": "tracks",
