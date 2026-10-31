@@ -241,7 +241,7 @@ namespace Placemaker.Core.Layers.Leisure
                 string kind = theme == "mixed" ? Collections[(int)(Hashing.Mix(ctx.Seed, (uint)i + 0xC0u) % (uint)Collections.Length)] : theme;
                 if (theme != "mixed" && i % 4 == 3) kind = "meadow";   // even a themed garden breathes
                 if (kind == "flowers" && !canFlowers) kind = "shrubs";
-                float ha = lawn.Area / 10000f;
+                float ha = lawn.Area / 10000f * (biomes?.HostShare ?? 1f);   // (P2-8) the collections are the garden's lawn
                 uint salt = 0x1000u + (uint)i * 16u;
                 int n = 0;
                 switch (kind)

@@ -284,8 +284,10 @@ namespace Placemaker.Core.Layers.Common.Biomes
             // tussocks and a shrub or two at its edge, one or two old solitary trees. P2-4: 520 tussocks a hectare read as bushes.
             Id = "meadow", Color = "#c9b45a", Open = true,
             Flat = 0.9f, Slope = 0.2f, Hollow = 0.1f, NearPath = -0.1f, Steep = -0.3f,
-            TreesPerHa = 3f, Trees = Solitary, GroveScale = 60f,
-            BushesPerHa = 4f, Bushes = Scrub, RimScrub = 3f,
+            // P2-8 (the user: "even when I turn it to full meadow, I still get some trees"): a meadow is open grass, no trees or
+            // scrub of its own; a player who wants a lone oak in it sets the biome's Trees
+            TreesPerHa = 0f, Trees = Solitary, GroveScale = 60f,
+            BushesPerHa = 0f, Bushes = Scrub, RimScrub = 3f,
             Plants = new[]
             {
                 new BiomePlants(50f, 0.35f, 0.55f, BiomeWhere.Rim, 6f, "GreenBushWildChild01", "GreenBushWildTeen01"),
@@ -310,7 +312,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
             Id = "flowers", Color = "#c86fb4", Open = true,
             Flat = 1f, Slope = 0.3f, Steep = -0.6f, Hollow = -0.1f, NearPath = 0.2f,
             PaintLayer = 2, PaintStrength = 0.3f,
-            TreesPerHa = 2f, Trees = Solitary, GroveScale = 60f,
+            TreesPerHa = 0f, Trees = Solitary, GroveScale = 60f,
             BushesPerHa = 0f, Bushes = Flowers,
             Plants = new[]
             {

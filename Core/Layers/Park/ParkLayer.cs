@@ -643,6 +643,17 @@ namespace Placemaker.Core.Layers.Park
             // spacing, since the canopies are real size); tree-to-tree clearances stay footprint-based (PlantFits).
             float carved = (s.Lake.Length >= 3 ? Poly.Area(s.Lake) : 0f) + (plaza.Length >= 3 ? Poly.Area(plaza) : 0f) + ParkMoods.Area(moods) + (biomes?.Taken ?? 0f);   // the places and the natural areas plant their own
             float plantedHa = math.max(0f, region.Area - carved) / 10000f;
+            if (biomes != null)
+            {
+                // (P2-8 "full means full") the park's own planting is the lawn biome's: its share of the mix decides how much of the
+                // leftover ground (the walks' verges, the entrances, the clearings) it plants. 100 % meadow: no park trees at all.
+                float host = biomes.HostShare;
+                var f = biomes.Field;
+                float hostArea = 0f;
+                for (int bi = 0; bi < f.Biomes.Count; bi++) if (f.Biomes[bi].Host) hostArea += f.Got[bi] * f.NaturalCells * f.CellArea;
+                float rest = math.max(0f, region.Area - carved - hostArea);
+                plantedHa = (math.min(hostArea, math.max(0f, region.Area - carved)) + rest * host) / 10000f;
+            }
             int trees = math.min(4000, (int)math.round(plantedHa * ctx.F("treeDensity") / ctx.Scale));
             int bushes = math.min(6000, (int)math.round(plantedHa * ctx.F("bushDensity") / ctx.Scale));
             bool belt = ctx.B("belt");

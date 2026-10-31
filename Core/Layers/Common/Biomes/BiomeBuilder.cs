@@ -32,6 +32,11 @@ namespace Placemaker.Core.Layers.Common.Biomes
         public int Trees, Bushes, Boulders, Stones, Logs, Crowns, Ponds, Pools;
         /// <summary>Natural ground the non-host biomes took (m²): the host plants that much less of its own.</summary>
         public float Taken;
+        /// <summary>
+        /// (P2-8) The host's own share of the mix (0..1): its own planting on the ground the areas leave (verges, entrances,
+        /// clearings) scales with it, so a biome at 100 % has no host trees at all ("full means full").
+        /// </summary>
+        public float HostShare = 1f;
         /// <summary>Outer outlines of the non-host areas (taken in the host's occupancy).</summary>
         public readonly List<float2[]> Areas = new List<float2[]>();
         /// <summary>The ponds dug.</summary>
@@ -72,7 +77,9 @@ namespace Placemaker.Core.Layers.Common.Biomes
             if (shares == null || !BiomeMix.AnyNatural(shares)) return null;
             var clock = System.Diagnostics.Stopwatch.StartNew();
             var field = BiomeField.Build(site, shares, scale, seed, prior);
-            var res = new BiomeResult { Field = field };
+            var res = new BiomeResult { Field = field, HostShare = 0f };
+            foreach (var (b, sh) in shares) if (b.Host) res.HostShare += sh;
+            ctx.Plan.Facts["biomeHostShare"] = math.round(res.HostShare * 100f);
             if (field.NaturalCells == 0) return res;
             int wi = -1;
             for (int b = 0; b < field.Biomes.Count; b++) if (field.Biomes[b].Water) wi = b;

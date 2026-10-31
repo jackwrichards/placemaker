@@ -301,6 +301,31 @@ namespace Placemaker.Core
         public readonly List<Disc> Discs = new List<Disc>();
         /// <summary>Polygons that are fully claimed (e.g. a parking lot inside a mixed recipe).</summary>
         public readonly List<float2[]> Polygons = new List<float2[]>();
+        /// <summary>
+        /// (P2-8) The natural areas of a parent's biome mix (regions "biome:&lt;id&gt;" of a non-host biome, and their holes). Not
+        /// claimed: a facility may stand in a meadow, but nothing decorative is planted there (big trees, a picnic's shade trees,
+        /// a flowerbed): the biome owns its ground ("100 % meadow is 100 % meadow").
+        /// </summary>
+        public readonly List<(string biome, float2[] ring, bool hole)> Natural = new List<(string, float2[], bool)>();
+
+        /// <summary>The parent's own lawn has no share of its mix (a biome at 100 %): all of its ground is natural.</summary>
+        public bool NaturalOnly;
+
+        /// <summary>In a natural area of the parent's biome mix (not in one of its holes).</summary>
+        public bool InNatural(float2 p)
+        {
+            if (NaturalOnly) return true;
+            for (int i = 0; i < Natural.Count; i++)
+            {
+                var (biome, ring, hole) = Natural[i];
+                if (hole || !PointInPolygon(p, ring)) continue;
+                bool inHole = false;
+                for (int j = 0; j < Natural.Count && !inHole; j++)
+                    if (Natural[j].hole && Natural[j].biome == biome && PointInPolygon(p, Natural[j].ring)) inHole = true;
+                if (!inHole) return true;
+            }
+            return false;
+        }
 
         public void AddCorridor(float2 a, float2 b, float halfWidth, string tag = "") =>
             Corridors.Add(new Corridor { A = a, B = b, HalfWidth = halfWidth, Tag = tag });
@@ -325,6 +350,8 @@ namespace Placemaker.Core
             r.Corridors.AddRange(Corridors);
             r.Discs.AddRange(Discs);
             r.Polygons.AddRange(Polygons);
+            r.Natural.AddRange(Natural);
+            r.NaturalOnly = NaturalOnly;
             return r;
         }
 

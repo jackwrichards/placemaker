@@ -110,6 +110,7 @@ namespace Placemaker.Core.Layers.AddOns
                     float a = math.radians(200f + k * 35f) + (Hashing.Unit(Hashing.Mix(gs, (uint)k + 9u)) - 0.5f) * 0.4f;
                     var p = c + new float2(math.cos(a), math.sin(a)) * (ring + tableRadius + 3.2f);
                     if (!occ.Free(p, 2.5f, 1f, 0.5f)) continue;
+                    if (ctx.Input.Reserved != null && ctx.Input.Reserved.InNatural(p)) continue;   // (P2-8) a meadow stays a meadow
                     uint v = Hashing.Mix(gs, 0x7000u + (uint)k);
                     ctx.Object(p, Hashing.Unit(v) * 6.283f, ObjectRole.Tree, AssetMix.Pick(treeIds, v), v, 3);
                     occ.Take(p, 2.5f, 2);
