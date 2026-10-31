@@ -245,6 +245,7 @@ namespace Placemaker.MockHost
             var controls = new JsonArray();
             foreach (var c in g.Controls ?? Array.Empty<ControlSchema>())
             {
+                if (!Placemaker.Core.Tool.ControlsShown.IsShown(g, c)) continue;   // as Core UiModels.Layer
                 var o = new JsonObject
                 {
                     ["id"] = c.Id,
@@ -296,8 +297,8 @@ namespace Placemaker.MockHost
             }
             // Built-in features (Core.IHasFeatures) and Make-row visibility (AreaGenerator Hidden).
             var features = new JsonArray();
-            if (g is IHasFeatures hf)
-                foreach (var f in hf.Features ?? Array.Empty<FeatureInfo>())
+            // as Core UiModels: look features are settings, retired ones are offered by no type
+            foreach (var f in Placemaker.Core.Tool.Features.Of(g))
                     features.Add(new JsonObject
                     {
                         ["layer"] = f.Layer, ["target"] = f.Target ?? "", ["defaultOn"] = f.DefaultOn,
@@ -320,6 +321,7 @@ namespace Placemaker.MockHost
                 ["defaults"] = Bag(g.Defaults()),
                 ["minArea"] = g.MinArea,
                 ["maxArea"] = g.MaxArea,
+                ["comfortMaxArea"] = Placemaker.Core.Tool.SizeGuide.ComfortMax(g),
             };
         }
 
@@ -446,6 +448,8 @@ namespace Placemaker.MockHost
                 {
                     ["resolvedAssets"] = JsonNode.Parse(Placemaker.Core.Tool.UiModels.ResolvedAssets(plan, path, gen, label).ToString()),
                     ["netLegend"] = JsonNode.Parse(Placemaker.Core.Tool.UiModels.NetLegend(plan, path, label).ToString()),
+                    // (Phase 1) controls the plan never read: greyed "Not used by this style here", as Core UiModels.Step
+                    ["unused"] = Arr(Placemaker.Core.Tool.ControlsShown.Unused(gen, plan, path).ToArray()),
                 };
             }
 

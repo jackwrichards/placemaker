@@ -123,6 +123,8 @@ namespace Placemaker.Core
         public List<Build.ZoneQuad> ZoneQuads = new List<Build.ZoneQuad>();
         /// <summary>(s22) Height change of the terraform as a heat map over the area (preview / legend). Set by Compose; null = none.</summary>
         public Build.TerrainHeat TerrainHeat;
+        /// <summary>(Phase 1) Per step path ("0", "0/2"): every setting id its layer read while planning, all regions together.</summary>
+        public Dictionary<string, HashSet<string>> SettingsRead = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
         /// <summary>(dynamic decals) What the weathering pass placed (log, tests). Not persisted.</summary>
         public Decals.Dynamic.Weathering.Report Weathering;
         /// <summary>
@@ -266,18 +268,23 @@ namespace Placemaker.Core
                 result.Issues.Add(new PlanIssue { Severity = IssueSeverity.Error, Key = "Placemaker.Issue.UnknownLayer", Args = new object[] { step.Layer } });
                 return;
             }
+            // (Phase 1) Look settings (big trees, water, rocky areas…) make their feature children here (Layers/Common/LookSettings).
+            var children = Layers.Common.LookSettings.Children(gen, step);
 
+            // (Phase 1) the layer reads a copy that records what it reads (SettingsBag.Reads)
+            var tracked = step.Settings != null ? step.Settings.Clone() : new SettingsBag();
+            tracked.Reads = new HashSet<string>(StringComparer.Ordinal);
             var input = new AreaInput
             {
                 Shape = shape,
                 Site = site,
-                Settings = step.Settings,
+                Settings = tracked,
                 Seed = Seeds.Mix(step.Seed, Seeds.Hash(path + "|" + regionKey)),
                 Markers = MarkersOn(step.Markers, shape.Ring),
                 RegionTags = tags,
                 Reserved = reserved.Clone(),
-                ChildLayers = EnabledChildren(step, true),
-                ChildTargets = EnabledChildren(step, false),
+                ChildLayers = EnabledChildren(children, true),
+                ChildTargets = EnabledChildren(children, false),
             };
             // Layers inside a place (the one filling it and its own children) must not see it as taken.
             if (ownPlaces != null) foreach (var mine in ownPlaces) input.Reserved.Polygons.Remove(mine);
@@ -313,7 +320,11 @@ namespace Placemaker.Core
                 covered = true;
             }
             // Dressing settings: a fill step with decal controls owns its own; features and children share their parent's.
-            var ownDress = Decals.DressingControls.Read(gen, step.Settings);
+            var ownDress = Decals.DressingControls.Read(gen, tracked);
+            if (!result.SettingsRead.TryGetValue(path, out var read)) result.SettingsRead[path] = read = new HashSet<string>(StringComparer.Ordinal);
+            read.UnionWith(tracked.Reads);
+            if (plan.SettingsRead != null) read.UnionWith(plan.SettingsRead);
+            tracked.Reads = null;
             if (ownDress != null) ownDress.Ring = shape.Ring2D();
             var stepDress = ownDress ?? parentDress;
             if (dress != null && stepDress != null) dress[plan] = stepDress;
@@ -322,9 +333,9 @@ namespace Placemaker.Core
             // Features of a terraforming layer plan on the NEW ground (g5: TerrainField).
             var childSite = ChildSite(plan, site);
 
-            for (int ci = 0; ci < step.Children.Count; ci++)
+            for (int ci = 0; ci < children.Count; ci++)
             {
-                var child = step.Children[ci];
+                var child = children[ci];
                 string childPath = path + "/" + ci;
                 if (string.IsNullOrEmpty(child.Target))
                 {
@@ -356,11 +367,14 @@ namespace Placemaker.Core
         }
 
         /// <summary>Layer ids (or targets) of the enabled children of a step.</summary>
-        public static string[] EnabledChildren(RecipeStep step, bool layers)
+        public static string[] EnabledChildren(RecipeStep step, bool layers) => EnabledChildren(step?.Children, layers);
+
+        public static string[] EnabledChildren(IReadOnlyList<RecipeStep> children, bool layers)
         {
             var r = new List<string>();
-            foreach (var c in step.Children)
-                if (c != null && c.Enabled) r.Add(layers ? c.Layer ?? "" : c.Target ?? "");
+            if (children != null)
+                foreach (var c in children)
+                    if (c != null && c.Enabled) r.Add(layers ? c.Layer ?? "" : c.Target ?? "");
             return r.ToArray();
         }
 

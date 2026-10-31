@@ -187,7 +187,7 @@ namespace Placemaker.Tests.Types
         public static void FeaturesCompose(string id)
         {
             var gen = GeneratorRegistry.Get(id);
-            var features = Features.Of(gen).Select(f => f.Layer).ToArray();
+            var features = Phase1Looks.AllFeatures(gen);   // (Phase 1) add-ons and look settings
             Assert.True(features.Length >= 4, id + " needs features");
             foreach (var ring in new[] { FiveHa, SixHaL })
             {
@@ -279,8 +279,8 @@ namespace Placemaker.Tests.Types
         {
             var g = TestKit.Gen(Id);
             Assert.Equal("farms", GeneratorGroups.Of(g));
-            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, 40);
-            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).Select(c => c.Group).Distinct().Count(), 4, 9);
+            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, 40);   // (Phase 1) look settings not counted
+            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Distinct().Count(), 4, 9);   // (Phase 1) look settings not counted
             Assert.Contains(g.Controls, c => c.Id == "subtype" && c.Kind == ControlKind.Choice && c.Tier == ControlTier.Essential);
             Assert.Equal("identity", g.Controls[0].Group);
         }
@@ -340,7 +340,7 @@ namespace Placemaker.Tests.Types
             Assert.DoesNotContain(arable.Objects, o => o.Role == ObjectRole.AnimalSpawner);
             var ranch = PlanPreset("ranch");
             Assert.Equal(0.0, ranch.Facts["arableFields"]);
-            Assert.Contains(ranch.Objects, o => o.Role == ObjectRole.AnimalSpawner);
+            Assert.DoesNotContain(ranch.Objects, o => o.Role == ObjectRole.AnimalSpawner);   // (Phase 1) no animal spawners anywhere (the user)
             Assert.True(ranch.Nets.Count(n => n.Role == NetRole.Fence) > arable.Nets.Count(n => n.Role == NetRole.Fence));
             Assert.True(TestKit.Stat(ranch, "Placemaker.Stat.Paddocks") >= 2);
         }

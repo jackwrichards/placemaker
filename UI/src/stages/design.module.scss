@@ -117,6 +117,30 @@
     min-width: 0;
 }
 
+// ── Ground (Phase 1): Terrain paint · Ground cover · Shape under one heading, the Decals switch on it ──
+.ground {
+    @include col;
+    min-width: 0;
+}
+
+.groundDecals {
+    @include row;
+    flex-shrink: 0;
+    height: 20rem;
+    margin-left: 6rem;
+    padding: 0 3rem 0 7rem;
+    border-radius: 10rem;
+    background-color: rgba(255, 255, 255, 0.07);
+}
+
+.groundDecalsLabel {
+    margin: 0 7rem 0 5rem;
+    font-size: $fs-s;
+    font-weight: bold;
+    color: var(--menuText1Normal);
+    white-space: nowrap;
+}
+
 // ── entrances: the section header, then Add (type buttons, crosswalk switch) and Placed (one row each) ──
 // (No "look here" tint: the footer's "Add an entrance" only scrolls here. The user, 22 Oct: "Why does the entire
 // entrances section turn orange or yellow when I pick one of the entrances? That's dumb.")

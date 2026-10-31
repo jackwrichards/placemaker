@@ -104,7 +104,7 @@ namespace Placemaker.Tests.Types
         public void EveryFeatureComposes()
         {
             var gen = TestKit.Gen(Id);
-            var features = Features.Of(gen).Select(f => f.Layer).ToArray();
+            var features = Phase1Looks.AllFeatures(gen);   // (Phase 1) add-ons and look settings
             Assert.Contains("skipRow", features);
             var plan = YardTestKit.Compose(YardTestKit.With(Id, features), YardTestKit.FiveHa, TestKit.RoadAlongBottom(250));
             Assert.True(string.IsNullOrEmpty(YardTestKit.Errors(plan.AllIssues())), YardTestKit.Errors(plan.AllIssues()));

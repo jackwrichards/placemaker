@@ -563,7 +563,7 @@ export function summarize(
     if (!list.length) return "";
     // A "master" switch leads its group (the rest only shows when it is on): off → the group is "Off".
     const first = list[0];
-    const master = first.kind === "toggle" && (list.length === 1 || list.slice(1).some((c) => (c.visibleWhen ?? "").includes(first.id)));
+    const master = first.kind === "toggle" && (list.length === 1 || list.slice(1).every((c) => (c.visibleWhen ?? "").includes(first.id)));
     if (master && valueOf(step, first) !== true) return t("Placemaker.UI.Off", "Off");
     const parts: string[] = [];
     for (const c of list) {

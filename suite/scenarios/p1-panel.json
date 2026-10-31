@@ -1,0 +1,143 @@
+{
+  "_about": "Phase 1 panel foundation (2026-10-30): the Ground section with its Decals switch, look settings (water, rocky areas) instead of add-ons, the yellow Add an entrance button (no planning until there is one), the too-big warning, the note under Real, and Edit back in the game's info panel. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/p1-panel.json -Build -Who p1-panel",
+  "scenarios": [
+    {
+      "id": "p1-park-looks",
+      "land": {
+        "shape": "rect",
+        "size": [
+          220,
+          170
+        ]
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park"
+        },
+        {
+          "do": "shot",
+          "name": "design-ground",
+          "shotMode": "ui"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "value",
+          "path": "0",
+          "id": "lookWater",
+          "value": "lake"
+        },
+        {
+          "do": "value",
+          "path": "0",
+          "id": "lookRockyAreas",
+          "value": "many"
+        },
+        {
+          "do": "value",
+          "path": "0",
+          "id": "lookBigTrees",
+          "value": "many"
+        },
+        {
+          "do": "shot",
+          "name": "design-looks",
+          "shotMode": "ui"
+        },
+        {
+          "do": "preview",
+          "shot": "plan"
+        },
+        {
+          "do": "shot",
+          "name": "review-real",
+          "shotMode": "ui"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "shot": "built",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        },
+        {
+          "do": "infoEdit",
+          "shot": "info-edit",
+          "shotMode": "ui"
+        }
+      ]
+    },
+    {
+      "id": "p1-entrance-first",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "parking"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "shot",
+          "name": "needs-entrance",
+          "shotMode": "ui"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview",
+          "shot": "plan"
+        },
+        {
+          "do": "shot",
+          "name": "entrance-placed",
+          "shotMode": "ui"
+        }
+      ]
+    },
+    {
+      "id": "p1-too-big",
+      "land": {
+        "shape": "rect",
+        "size": [
+          260,
+          200
+        ]
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "plaza"
+        },
+        {
+          "do": "shot",
+          "name": "too-big",
+          "shotMode": "ui"
+        }
+      ]
+    }
+  ]
+}

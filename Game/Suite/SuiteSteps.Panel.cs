@@ -193,7 +193,9 @@ namespace Placemaker.Game.Suite
             rec["activePreset"] = ActivePresetId();
             rec["seed"] = st.S.Seed;
             yield return WaitPlan(st, rec);
-            if (_tool.Plan == null && _tool.Shape != null && st.Pace != "user") { rec["error"] = "no plan: " + _tool.SuiteUnreadyText(); st.Result["status"] = "no-plan"; }
+            // (Phase 1) a type that needs an entrance plans nothing until it has one (the next step places it)
+            if (_tool.WaitsForEntrance) rec["waitsForEntrance"] = true;
+            else if (_tool.Plan == null && _tool.Shape != null && st.Pace != "user") { rec["error"] = "no plan: " + _tool.SuiteUnreadyText(); st.Result["status"] = "no-plan"; }
         }
 
         private IEnumerable<string> CatalogLayers()

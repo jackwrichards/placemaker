@@ -40,6 +40,8 @@ namespace Placemaker.Core.Tool
         public int PointCount;
         public double AreaM2, PerimeterM;
         public LocText AreaProblem;
+        /// <summary>(Phase 1) Not a problem: the area is bigger than the type is made for (SizeGuide). Building still works.</summary>
+        public LocText AreaWarning;
         public PrimaryAction Primary;
         public bool CanUndo, CanRedo;
         public LocText UndoLabel, RedoLabel;
@@ -223,6 +225,7 @@ namespace Placemaker.Core.Tool
                 .Set("valid", s.AreaValid).Set("closed", s.AreaClosed).Set("pointCount", s.PointCount)
                 .Set("areaM2", Round(s.AreaM2, 0)).Set("perimeterM", Round(s.PerimeterM, 1));
             if (s.AreaProblem != null) area.Set("problem", s.AreaProblem.ToJson());
+            if (s.AreaWarning != null) area.Set("warning", s.AreaWarning.ToJson());
             o.Set("area", area);
             o.Set("primary", Primary(s.Primary));
             o.Set("canUndo", s.CanUndo);
@@ -417,7 +420,7 @@ namespace Placemaker.Core.Tool
             if (!string.IsNullOrEmpty(group)) o.Set("group", group);
             var controls = JsonValue.Arr();
             // (issue #2) controls that only placed decals from decal packs are not shown (Decals.PackDecals)
-            if (g.Controls != null) foreach (var c in g.Controls) if (c != null && !Decals.PackDecals.IsHiddenControl(g.Id, c.Id)) controls.Add(Control(c));
+            if (g.Controls != null) foreach (var c in g.Controls) if (c != null && ControlsShown.IsShown(g, c)) controls.Add(Control(c));
             o.Set("controls", controls);
             var presets = JsonValue.Arr();
             IReadOnlyList<PresetView> views = null;
@@ -581,6 +584,9 @@ namespace Placemaker.Core.Tool
                 keys = new List<string>(shown.Values.Keys);
                 keys.Sort(StringComparer.Ordinal);
             }
+            // (Phase 1) Look settings always show their level, also for designs saved with the old add-on child.
+            foreach (var (look, feature) in Layers.Common.LookSettings.Of(lg))
+                if (!shown.Values.ContainsKey(look.ControlId)) values.Set(look.ControlId, DesignEditor.ToJson(Layers.Common.LookSettings.ShownValue(look, feature, s)));
             foreach (var k in keys) values.Set(k, DesignEditor.ToJson(shown.Values[k]));
             o.Set("values", values);
             var locked = new List<string>(s.Locked);
@@ -632,7 +638,8 @@ namespace Placemaker.Core.Tool
             var children = JsonValue.Arr();
             if (depth < Composer.MaxDepth + 2)
                 for (int i = 0; i < s.Children.Count; i++)
-                    if (s.Children[i] != null) children.Add(Step(recipe, s.Children[i], RecipePaths.Child(path, i), status, plan, stale, depth + 1, generators, unavailable));
+                    // (Phase 1) a saved design's look feature child is shown as its setting, never as a step
+                    if (s.Children[i] != null && !Layers.Common.LookSettings.IsLookChild(gen, s.Children[i])) children.Add(Step(recipe, s.Children[i], RecipePaths.Child(path, i), status, plan, stale, depth + 1, generators, unavailable));
             o.Set("children", children);
             var overrides = JsonValue.Obj();
             if (depth < Composer.MaxDepth + 2)
@@ -654,7 +661,9 @@ namespace Placemaker.Core.Tool
             var notUsed = new List<string>();
             foreach (var kv in resolved.Properties)
                 if (kv.Value["unused"].AsBool() && (s.Settings == null || string.IsNullOrEmpty(s.Settings.S(kv.Key, "")))) notUsed.Add(kv.Key);
-            if (notUsed.Count > 0)
+            // (Phase 1) A control the latest plan never read changes nothing in this style here: greyed out with why.
+            var unread = ControlsShown.Unused(lg, plan, path);
+            if (notUsed.Count > 0 || unread.Count > 0)
             {
                 var dis = JsonValue.Obj();
                 if (why != null)
@@ -664,6 +673,7 @@ namespace Placemaker.Core.Tool
                     foreach (var id in wids) if (!id.StartsWith(Unavailable.FeaturePrefix, StringComparison.Ordinal)) dis.Set(id, why[id].ToJson());
                 }
                 foreach (var id in notUsed) if (!dis.Has(id)) dis.Set(id, new LocText(NotInLayoutKey).ToJson());
+                foreach (var id in unread) if (!dis.Has(id)) dis.Set(id, new LocText(ControlsShown.NotUsedKey).ToJson());
                 o.Set("disabled", dis);
             }
             var legend = NetLegend(plan, path, _assetLabel);

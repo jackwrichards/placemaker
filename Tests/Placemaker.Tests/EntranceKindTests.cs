@@ -173,15 +173,22 @@ namespace Placemaker.Tests
                 var f = Features.Of(TestKit.Gen(type));
                 foreach (var l in layers) Assert.True(f.Any(x => x.Layer == l && x.DefaultOn), $"{type}: {l} not on by default");
             }
-            On("park", "playground", "picnic", "restrooms", "bigtrees", "flowerbeds");
+            On("park", "playground", "picnic", "restrooms");
+            // (Phase 1) big trees and flowerbeds are the park's look: settings, on by default
+            Assert.Equal("some", TestKit.Gen("park").Defaults().S("lookBigTrees", ""));
+            Assert.Equal("some", TestKit.Gen("park").Defaults().S("lookFlowerbeds", ""));
             On("plaza", "fountain");   // art pass a2: the square plants its own trees and beds
             On("campground", "restrooms");
             On("sportsPark", "pitch", "tennisCourts", "basketballCourt", "playground");   // s10: the clubhouse has the toilets
             // s20: the waterfront plants its own beds and tree rows (the flower-bed feature scattered planter rows over its lawn).
-            Assert.DoesNotContain(Features.Of(TestKit.Gen("waterfront")), x => x.DefaultOn && (x.Layer == "flowerbeds" || x.Layer == "bigtrees"));
-            // Slow or situational features stay opt-in.
+            Assert.Equal("none", TestKit.Gen("waterfront").Defaults().S("lookFlowerbeds", ""));
+            Assert.Equal("none", TestKit.Gen("waterfront").Defaults().S("lookBigTrees", ""));
+            // Slow or situational looks stay off.
             foreach (var type in new[] { "park", "plaza", "campground", "botanicalGarden" })
-                Assert.DoesNotContain(Features.Of(TestKit.Gen(type)), x => x.DefaultOn && (x.Layer == "terrain" || x.Layer == "rocks"));
+            {
+                Assert.Equal("none", TestKit.Gen(type).Defaults().S("lookTerrainShape", "none"));
+                Assert.Equal("none", TestKit.Gen(type).Defaults().S("lookRockyAreas", "none"));
+            }
         }
 
         [Fact]

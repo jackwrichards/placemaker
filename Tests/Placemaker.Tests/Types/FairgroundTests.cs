@@ -153,8 +153,8 @@ namespace Placemaker.Tests.Types
             Assert.Equal(group, GeneratorGroups.Of(g));
             Assert.InRange(g.Presets.Count, 4, 6);
             // s12: the street-shop options (amount, layout, depth) sit under their feature toggle, not in the main list.
-            Assert.InRange(g.Controls.Count(c => System.Array.IndexOf(Placemaker.Core.Layers.Common.LayerBase.ShopOptions, c.Id) < 0 && !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, 48);   // s18: + the ground palette (chooser, hidden base, field and four role overrides)
-            var groups = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).Select(c => c.Group).Distinct().ToList();
+            Assert.InRange(g.Controls.Count(c => System.Array.IndexOf(Placemaker.Core.Layers.Common.LayerBase.ShopOptions, c.Id) < 0 && !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, 48);   // s18: + the ground palette (chooser, hidden base, field and four role overrides) (Phase 1: look settings not counted)
+            var groups = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Where(x => !Placemaker.Core.Layers.Common.GroundSection.IsGround(x)).Distinct().ToList();   // (Phase 1) look settings and the shared Ground section (terrain paint, ground cover, shape) not counted
             Assert.InRange(groups.Count, 4, 8);
             Assert.Equal(g.Controls.Count, g.Controls.Select(c => c.Id).Distinct().Count());
             Assert.Contains(g.Controls, c => c.Id == "style" && c.Kind == ControlKind.Choice);
@@ -261,7 +261,7 @@ namespace Placemaker.Tests.Types
         public void EveryFeatureComposes()
         {
             var gen = GeneratorRegistry.Get(Id);
-            var features = Features.Of(gen).Select(f => f.Layer).ToArray();
+            var features = Phase1Looks.AllFeatures(gen);   // (Phase 1) add-ons and look settings
             Assert.Contains("lightTowers", features);
             Assert.Contains("festivalCamping", features);
             foreach (var preset in new[] { "festival", "christmas" })

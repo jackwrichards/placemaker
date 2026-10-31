@@ -328,6 +328,16 @@ namespace Placemaker.Game.Tool
             DesignChanged();
             _history.Reset(Capture());
             SetStage(ToolStage.Design);
+            // (Phase 1) Edit from the game's info panel: Placemaker opens on the build (closed, the edit would linger unseen and the
+            // next build elsewhere replaced it: 22 Oct). Opening never ends the edit; closing does (OnStopRunning).
+            if (m_ToolSystem != null && m_ToolSystem.activeTool != this && !_building)
+            {
+                if (_painter) SetPainter(false);
+                if (_outgrowMode) SetOutgrowMode(false);
+                _closeAfterGhost = 0;
+                _closeAfterBuild = false;
+                m_ToolSystem.activeTool = this;
+            }
         }
 
         public void RemoveGroup(int groupId)

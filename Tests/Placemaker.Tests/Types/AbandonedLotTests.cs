@@ -192,15 +192,15 @@ namespace Placemaker.Tests.Types
             Assert.Equal("industrial", GeneratorGroups.Of(gen));
             Assert.Equal(LayerKind.Fill, gen.Kind);
             Assert.InRange(gen.Presets.Count, 4, 8);   // (rundown) + old car park, burnt-out lot, vacant lot
-            Assert.InRange(gen.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, 40);
+            Assert.InRange(gen.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, 40);   // (Phase 1) look settings not counted
             var subtype = gen.Controls.Single(c => c.Id == "subtype");
             Assert.Equal(gen.Presets.Select(p => p.Id), subtype.Options.Select(o => o.Value));
             foreach (var p in gen.Presets) Assert.Equal(p.Id, p.Values.S("subtype", ""));
-            var groups = gen.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).Select(c => c.Group).Distinct().ToList();
+            var groups = gen.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Distinct().ToList();   // (Phase 1) look settings not counted
             Assert.InRange(groups.Count(g => g != "entrances" && g != "shops"), 4, 8);
-            Assert.Contains(Features.Of(gen), f => f.Layer == "debris");
+            Assert.True(Phase1Looks.Offers(gen, "debris"));   // (Phase 1) a look setting now
             Assert.Contains(Features.Of(gen), f => f.Layer == "dirtJumps");
-            Assert.Contains(Features.Of(gen), f => f.Layer == "rocks");
+            Assert.True(Phase1Looks.Offers(gen, "rocks"));   // (Phase 1) a look setting now (lookRockyAreas)
         }
 
         [Theory]
@@ -306,7 +306,7 @@ namespace Placemaker.Tests.Types
         public void EveryFeatureComposes()
         {
             var gen = TestKit.Gen(Id);
-            var features = Features.Of(gen).Select(f => f.Layer).ToArray();
+            var features = Phase1Looks.AllFeatures(gen);   // (Phase 1) add-ons and look settings
             var plan = RuinsChecks.Compose(RuinsChecks.With(Id, features), RuinsChecks.FiveHa);
             Assert.True(RuinsChecks.Errors(plan.AllIssues()).Length == 0, RuinsChecks.Errors(plan.AllIssues()));
             foreach (var f in features) Assert.Contains(plan.Layers, l => l.GeneratorId == f);

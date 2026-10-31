@@ -92,7 +92,7 @@ namespace Placemaker.Tests.Types
         [Fact]
         public void EveryFeatureComposes()
         {
-            var features = Features.Of(GeneratorRegistry.Get(Id)).Select(f => f.Layer).ToArray();
+            var features = Phase1Looks.AllFeatures(GeneratorRegistry.Get(Id));   // (Phase 1) add-ons and look settings
             Assert.Contains("spoilHeaps", features);
             Assert.Contains("workLights", features);
             var ring = TestKit.LShape(250);

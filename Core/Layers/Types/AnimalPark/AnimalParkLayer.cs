@@ -318,7 +318,6 @@ namespace Placemaker.Core.Layers.Types.AnimalPark
             EmitRegions(ctx, occ, penSet, hubOn ? hubRing : null);
             CommonStats(ctx);
             ctx.Stat("Placemaker.Stat.Enclosures", pens.Count, Keys.UnitCount);
-            ctx.Stat("Placemaker.Stat.AnimalSpawners", spawners, Keys.UnitCount);
             ctx.Stat("Placemaker.Stat.Aviaries", aviaries, Keys.UnitCount);
             ctx.Plan.Facts["arena"] = hasArena ? 1 : 0;
         }

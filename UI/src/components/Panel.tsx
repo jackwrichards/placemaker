@@ -19,8 +19,7 @@ import { useT } from "../lib/l10n";
 import { ErrorBoundary } from "../lib/errorBoundary";
 import { useRtl } from "../lib/rtl";
 import { Tip, TipDirection, TipDirectionContext } from "../lib/tips";
-import { statIcon } from "../lib/icons";
-import { walk } from "../lib/schema";
+import { findStep, walk } from "../lib/schema";
 import { requestReveal } from "../lib/reveal";
 import { AreaStage } from "../stages/AreaStage";
 import { DesignStage, markerLabel } from "../stages/DesignStage";
@@ -423,8 +422,54 @@ const PreviewToggle = ({ state }: { state: ToolState }) => {
     );
 };
 
-function quickStats(summary: Summary) {
-    return summary.stats.filter((x) => x.unit === "count" && x.value > 0).slice(0, 1);
+/**
+ * A sentence with *marked* words: the marked ones underlined (translators keep the asterisks round the same words). One element
+ * per word in a wrapping row: Gameface does not flow mixed inline text (a span broke the line before and after it).
+ */
+export function underlined(text: string): React.ReactNode[] {
+    const out: React.ReactNode[] = [];
+    text.split("*").forEach((part, i) =>
+        part
+            .split(/\s+/)
+            .filter(Boolean)
+            .forEach((w, j) => out.push(<div key={i + "-" + j} className={classNames(s.word, { [s.u]: i % 2 === 1 })}>{w}</div>)),
+    );
+    return out;
+}
+
+/**
+ * (Phase 1) Under the Sketch | Real switch while Real is shown: what Real cannot show yet (the user: "roads aren't going to fully
+ * snap to the ground, there might be clipping until it's fully built, terrain paint won't be there until it's done"; short, key
+ * words underlined).
+ */
+const RealNote = () => {
+    const { t } = useT();
+    return (
+        <div className={s.realNote} data-testid="real-note">
+            <Icon name="info" size={12} tint="dim" />
+            <div className={s.realNoteText}>
+                {underlined(t("Placemaker.UI.Preview.RealNote", "Roads only *snap* to the ground once built, *clipping* is possible until then, and *terrain paint* comes at the end."))}
+            </div>
+        </div>
+    );
+};
+
+/** (Phase 1) Beside "too small" (the button's reason): bigger than the type is made for. It still builds. */
+const SizeWarning = ({ state }: { state: ToolState }) => {
+    const { tl } = useT();
+    const w = state.area.warning;
+    if (!w || !(state.stage === "area" || state.stage === "design" || state.stage === "review")) return null;
+    return (
+        <div className={s.sizeWarn} data-testid="size-warning">
+            <Icon name="warning" size={13} tint="warn" />
+            <div className={s.sizeWarnText}>{tl(w)}</div>
+        </div>
+    );
+};
+
+/** (Phase 1) The parking spaces of the plan (every layer's "… Stat.Stalls"); 0 when it has none. The user: size and spaces, not benches. */
+export function quickSpaces(summary: Summary): number {
+    return summary.stats.filter((x) => x.unit === "count" && /\.Stat\.Stalls$/.test(x.key)).reduce((n, x) => n + x.value, 0);
 }
 
 /** First enabled step that still lacks its required markers (entrances), or null. */
@@ -440,17 +485,21 @@ export function missingMarkers(root: StepView | null): StepView | null {
     return miss;
 }
 
-/** A step that still needs entrances: pressing the disabled primary starts placing one there. */
-type EntranceLead = { path: string; kind: string; viaPrimary: boolean };
+/** A step that still needs entrances: the yellow "Add an entrance" button starts placing one there. */
+type EntranceLead = { path: string; kind: string };
+
+/** The entrance kind the button picks: walk-in when the type has it (the user), else what C# asks for, else the first. */
+export function leadKind(step: StepView | null, asked: string): string {
+    const kinds = (step?.markerKinds ?? []).map((k) => k.kind);
+    const walk = kinds.find((k) => k === "pedestrian");
+    return walk ?? (asked && (!kinds.length || kinds.includes(asked)) ? asked : kinds[0] ?? asked ?? "");
+}
 
 function leadToEntrances(state: ToolState, lead: EntranceLead) {
-    if (lead.viaPrimary) act.primary(); // C# (and the mock) start placement on that step, back in Design
-    else {
-        if (state.stage !== "design") act.goToStage("design");
-        if (lead.kind) {
-            act.startMarkers(lead.path, lead.kind);
-            act.setMarkerKind(lead.path, lead.kind);
-        }
+    if (state.stage !== "design") act.goToStage("design");
+    if (lead.kind) {
+        if (state.markerMode?.stepPath !== lead.path) act.startMarkers(lead.path, lead.kind);
+        act.setMarkerKind(lead.path, lead.kind);
     }
     requestReveal("entrances:" + lead.path);
 }
@@ -498,13 +547,15 @@ const Footer = ({
             data-testid="primary"
             data-action={p.action}
             aria-disabled={enabled ? "false" : "true"}
-            className={classNames(s.primary, { [s.primaryOff]: !enabled, [s.primaryLead]: !enabled && !!lead, [s.primaryCancel]: p.action === "cancelBuild" })}
+            className={classNames(s.primary, { [s.primaryOff]: !enabled && !lead, [s.primaryLead]: !enabled && !!lead, [s.primaryCancel]: p.action === "cancelBuild" })}
+            data-lead={!enabled && lead ? "true" : undefined}
             onClick={(e) => {
                 e.stopPropagation();
                 if (enabled) act.primary();
-                else if (lead && !state.markerMode) leadToEntrances(state, lead);
+                else if (lead) leadToEntrances(state, lead);
             }}
         >
+            {!enabled && lead ? <Icon name="entrance" size={15} tint="dark" /> : null}
             <div className={s.primaryLabel} data-testid={!enabled && reason ? "primary-reason" : undefined}>
                 {shownLabel}
             </div>
@@ -517,18 +568,16 @@ const Footer = ({
             <div className={s.quickWrap}>
             {busyChip}
             <div className={classNames(s.quick, { [s.quickStale]: pending })} data-testid="quick-numbers" data-stale={pending ? "true" : "false"}>
-                {busy ? null : (
-                    <div className={s.quickItem}>
-                        <Icon name="area" size={12} tint="dim" />
-                        <div className={s.quickText}>{fmtArea(state.area.areaM2)}</div>
+                <div className={s.quickItem} data-testid="quick-area">
+                    <Icon name="area" size={12} tint="dim" />
+                    <div className={s.quickText}>{fmtArea(state.area.areaM2)}</div>
+                </div>
+                {quickSpaces(summary) > 0 ? (
+                    <div className={s.quickItem} data-testid="quick-spaces">
+                        <Icon name="parking" size={12} tint="dim" />
+                        <div className={s.quickText}>{formatValue(quickSpaces(summary), "count") + " " + t("Placemaker.Parking.Stat.Stalls", "Spaces").toLowerCase()}</div>
                     </div>
-                )}
-                {quickStats(summary).map((st) => (
-                    <div key={st.key} className={s.quickItem}>
-                        <Icon name={statIcon(st.key)} size={12} tint="dim" />
-                        <div className={s.quickText}>{formatValue(st.value, "count") + " " + t(st.key, "").toLowerCase()}</div>
-                    </div>
-                ))}
+                ) : null}
                 <div className={classNames(s.quickItem, { [s.quickBad]: !summary.canAfford })}>
                     <Icon name="cost" size={12} tint={summary.canAfford ? "dim" : "danger"} />
                     <div className={s.quickText}>{compactMoney(summary.cost)}</div>
@@ -577,6 +626,7 @@ const Footer = ({
                     ) : null}
                 </div>
             ) : null}
+            {compact ? null : <SizeWarning state={state} />}
             <div className={s.primaryRow}>
                 {ack && buildOptions ? (
                     <Tip title={t("Placemaker.UI.Review.AckShort", "OK, permanent")} description={t("Placemaker.UI.Review.AckTip", "Some changes stay after you remove the build (the amber tags). Click it to allow them.")}>
@@ -737,19 +787,20 @@ export const PlacemakerPanel = () => {
     const gated = state.primary.action === "toReview" || state.primary.action === "build" || state.primary.action === "finishEdit";
     // Who to lead to when the player presses the (disabled) button while entrances are missing.
     const pr = state.primary;
+    const leadStep = pr.action === "placeMarkers" && !pr.enabled && pr.stepPath ? findStep(design.root, pr.stepPath) : missing && gated ? missing : null;
     const lead: EntranceLead | null =
         pr.action === "placeMarkers" && !pr.enabled && pr.stepPath
-            ? { path: pr.stepPath, kind: pr.markerKind ?? "", viaPrimary: true }
+            ? { path: pr.stepPath, kind: leadKind(leadStep, pr.markerKind ?? "") }
             : missing && gated
-              ? { path: missing.path, kind: missing.markerKinds?.[0]?.kind ?? missing.markers[0]?.kind ?? "", viaPrimary: false }
+              ? { path: missing.path, kind: leadKind(missing, missing.markers[0]?.kind ?? "") }
               : null;
     let blockedReason: string | null = null;
     if (missing && gated) {
         const need = missing.markersRequired ?? 1;
         blockedReason =
             need > 1
-                ? t("Placemaker.UI.Markers.NeedNBuild", "Add {0} entrances to build", [need])
-                : t("Placemaker.UI.Markers.NeedOneBuild", "Add an entrance to build");
+                ? t("Placemaker.UI.Markers.NeedNBuild", "Add {0} entrances", [need])
+                : t("Placemaker.UI.Markers.NeedOneBuild", "Add an entrance");
     } else if (needsAck) {
         blockedReason = t("Placemaker.UI.Review.AckFirst", "Click OK to build");
     }
@@ -918,6 +969,7 @@ export const PlacemakerPanel = () => {
                                                 <PreviewToggle state={state} />
                                             </div>
                                         ) : null}
+                                        {showPreviewToggle && effectivePreviewMode(state) === "ghost" ? <RealNote /> : null}
                                         <VersionNotice state={state} />
                                         <ScrollArea className={s.bodyWrap} testId="panel-body">
                                             <div className={s.body} key={state.stage}>

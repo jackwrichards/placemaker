@@ -288,7 +288,7 @@
   "Placemaker.EdgeZoning.Issue.NoFrontage": "No road runs along this area, so nothing was zoned.",
 
   "Placemaker.UI.Group.walkways": "Walkways and lanes",
-  "Placemaker.UI.Group.terrain": "Terrain",
+  "Placemaker.UI.Group.terrain": "Shape",
   "Placemaker.Roads.Role.lane": "Lane",
   "Placemaker.Roads.Control.junctionSpacing": "Junction spacing",
   "Placemaker.Roads.Control.junctionSpacing.Tooltip": "On main roads (avenues): side streets join at most this often (m). Closer side streets end in a cul-de-sac before the avenue (with a footpath to it) or join their neighbours instead. 0 = every side street joins.",

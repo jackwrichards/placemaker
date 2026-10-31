@@ -122,9 +122,13 @@ test("launcher toggles the tool; info-panel section: no Edit (it left an edit op
     await clickWorld(page, 650, 380);
     await expect(page.getByTestId("info-section")).toBeVisible();
     await shot(page, "13-info-section");
-    // Edit lives in Placemaker's own Manage stage only: from the game's info panel it loaded the build without opening
-    // Placemaker, and the next build replaced it (the user, 22 Oct)
-    await expect(page.getByTestId("info-edit")).toHaveCount(0);
+    // (Phase 1) Edit · Rename · Ungroup · Remove: Edit is back first, and it opens Placemaker on the build (C# EditGroup
+    // activates the tool, so an edit can never linger unseen as on 22 Oct)
+    await expect(page.getByTestId("info-edit")).toBeVisible();
+    const order = await page.getByTestId("info-section").evaluate((el) =>
+        Array.from(el.querySelectorAll("[data-testid=info-edit],[data-testid=info-rename],[data-testid=info-ungroup],[data-testid=info-remove]")).map((b) => b.getAttribute("data-testid")),
+    );
+    expect(order).toEqual(["info-edit", "info-rename", "info-ungroup", "info-remove"]);
     // Ungroup asks in the section itself, no dialog
     await page.getByTestId("info-ungroup").click();
     await expect(page.getByTestId("info-confirm")).toBeVisible();
@@ -132,6 +136,9 @@ test("launcher toggles the tool; info-panel section: no Edit (it left an edit op
     await page.getByTestId("info-confirm-cancel").click();
     await expect(page.getByTestId("info-confirm")).toHaveCount(0);
     await expect(page.getByTestId("info-remove")).toBeVisible();
+    await page.getByTestId("info-edit").click();
+    await expect(page.getByTestId("placemaker-panel")).toBeVisible();
+    await expect(page.getByTestId("stage-design")).toBeVisible();
 });
 
 test("robustness: malformed or partial C# payloads never crash the panel", async ({ page }) => {

@@ -193,10 +193,10 @@ namespace Placemaker.Tests.Types
             Assert.NotNull(g);
             Assert.Equal("industrial", GeneratorGroups.Of(g));
             Assert.InRange(g.Presets.Count, 4, 6);
-            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, 40);
-            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).Select(c => c.Group).Distinct().Count(), 4, 8);
+            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, 40);
+            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Distinct().Count(), 4, 8);
             Assert.Contains(g.Controls, c => c.Id == "style" && c.Kind == ControlKind.Choice);
-            Assert.True(Features.Of(g).Count >= 3);
+            Assert.True(Features.Of(g).Count + Placemaker.Core.Layers.Common.LookSettings.Of(g).Count >= 3);   // (Phase 1) looks are settings
         }
 
         [Theory]
@@ -266,7 +266,7 @@ namespace Placemaker.Tests.Types
         [Fact]
         public void EveryFeatureComposes()
         {
-            var features = Features.Of(GeneratorRegistry.Get(Id)).Select(f => f.Layer).ToArray();
+            var features = Phase1Looks.AllFeatures(GeneratorRegistry.Get(Id));   // (Phase 1) add-ons and look settings
             var plan = B12Kit.Compose(B12Kit.With(Id, null, features), B12Kit.FiveHa, B12Kit.Road(250));
             Assert.True(string.IsNullOrEmpty(B12Kit.Errors(plan)), B12Kit.Errors(plan));
             foreach (var f in features) Assert.Contains(plan.Layers, l => l.GeneratorId == f);

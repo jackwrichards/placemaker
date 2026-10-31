@@ -480,6 +480,59 @@ function featureOptionIds(step: StepView): Set<string> {
     return out;
 }
 
+// ───────────── ground (Phase 1) ─────────────
+
+/** The groups of the Ground section (C# Core/Layers/Common/GroundSection): Terrain paint, Ground cover, Shape. */
+export const GROUND_GROUPS = ["groundPaint", "ground", "terrain"];
+/** The one switch for every ground decal of the type (C# DressingControls.GroundDecalsId): on the Ground heading. */
+export const GROUND_DECALS = "dressGroundDecals";
+
+/** Ids of a type's Ground section controls (never in its Parameters). */
+export function groundIds(layer: LayerType): Set<string> {
+    const out = new Set<string>();
+    for (const c of layer.controls) if (GROUND_GROUPS.includes(c.group)) out.add(c.id);
+    return out;
+}
+
+/**
+ * Ground: one section for everything about the ground (the user could not find the decal switch, nor tell the forest floor from
+ * the ground paint). Its heading carries the Decals switch, plainly visible; under it Terrain paint · Ground cover · Shape, each a
+ * folded line with its summary, opened like any section.
+ */
+const GroundCard = ({ step, layer, state, scope }: { step: StepView; layer: LayerType; state: ToolState; scope: string }) => {
+    const { t } = useT();
+    const ids = groundIds(layer);
+    const decals = layer.controls.find((c) => c.id === GROUND_DECALS);
+    ids.delete(GROUND_DECALS);
+    if (!ids.size && !decals) return null;
+    const on = decals ? valueOf(step, decals as ControlEx) !== false : true;
+    const right = decals ? (
+        <Tip
+            title={t("Placemaker.UI.Ground.Decals", "Decals")}
+            description={t(
+                "Placemaker.UI.Ground.DecalsTip",
+                "Cracks, grime, leaves, puddles and wear drawn on the ground. Off: no decals at all. Terrain paint is separate: it colours the map's own ground."
+            )}
+        >
+            <div className={s.groundDecals} data-testid="ground-decals-wrap" data-on={on ? "true" : "false"}>
+                <Icon name="decal" size={14} tint={on ? "light" : "dim"} />
+                <div className={s.groundDecalsLabel}>{t("Placemaker.UI.Ground.Decals", "Decals")}</div>
+                <Switch testId="ground-decals" on={on} onChange={(v) => act.setValue(step.path, GROUND_DECALS, v)} />
+            </div>
+        </Tip>
+    ) : undefined;
+    return (
+        <div className={s.ground} data-testid="ground">
+            <SubHead icon="mountain" title={t("Placemaker.UI.Ground.Title", "Ground")} right={right} testId="ground-head" />
+            {ids.size ? (
+                <ErrorBoundary name="ground">
+                    <ControlList step={step} layer={layer} state={state} scope={scope + ":ground"} only={[...ids]} />
+                </ErrorBoundary>
+            ) : null}
+        </div>
+    );
+};
+
 /** Paths of children that are shown as features (not as separate steps). */
 function featurePaths(root: StepView | null, step: StepView): Set<string> {
     const out = new Set<string>();
@@ -581,18 +634,23 @@ const StepOptions = ({ catalog, design, state, step }: { catalog: Catalog; desig
     const hidden = featurePaths(design.root, step);
     const subSteps = [...step.children.filter((c) => !hidden.has(c.path)), ...Object.keys(step.overrides).map((k) => step.overrides[k])];
     const scope = parent ? parent.layer + ">" + layer.id : layer.id;
+    // the Ground section: a place type's own (sub-steps of a mix keep their ground controls in their sections)
+    const grounded = !parent && layer.kind === "fill";
     // What the style keeps: Parameters (or Zoning), Add-ons and any sub-steps; the root's go in the style card.
     const body = (
         <>
             {!parent && isZoneMix(layer) ? (
                 <ZoningShape step={step} layer={layer} state={state} scope={scope} />
             ) : (
-                <div className={s.shape} data-testid="shape">
-                    {parent ? null : <SubHead icon="gear" title={t("Placemaker.UI.Parameters", "Parameters")} right={<ShuffleBtn step={step} />} />}
-                    <ErrorBoundary name="controls">
-                        <ControlList step={step} layer={layer} state={state} scope={scope} exclude={featureOptionIds(step)} />
-                    </ErrorBoundary>
-                </div>
+                <>
+                    <div className={s.shape} data-testid="shape">
+                        {parent ? null : <SubHead icon="gear" title={t("Placemaker.UI.Parameters", "Parameters")} right={<ShuffleBtn step={step} />} />}
+                        <ErrorBoundary name="controls">
+                            <ControlList step={step} layer={layer} state={state} scope={scope} exclude={new Set([...featureOptionIds(step), ...(grounded ? groundIds(layer) : [])])} />
+                        </ErrorBoundary>
+                    </div>
+                    {grounded ? <GroundCard step={step} layer={layer} state={state} scope={scope} /> : null}
+                </>
             )}
             <Extras catalog={catalog} design={design} state={state} step={step} />
             {subSteps.map((c) => (

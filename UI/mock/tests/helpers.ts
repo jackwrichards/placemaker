@@ -57,7 +57,15 @@ export const FIELD: [number, number][] = [
     [540, 500],
 ];
 
-export async function waitPlanned(page: Page) {
+/**
+ * Waits for the plan. (Phase 1) A type that needs an entrance plans nothing until it has one: by default an entrance is placed on
+ * the outline first, as a player does; <code>entrances: false</code> leaves it missing (the wait then ends at once).
+ */
+export async function waitPlanned(page: Page, entrances = true) {
+    await page.waitForTimeout(50);
+    const needs = await page.evaluate(() => (window as any).pm.backend.needsEntrances());
+    if (needs && !entrances) return;
+    if (needs) await page.evaluate(() => (window as any).pm.backend.autoEntrances());
     await page.waitForFunction(() => {
         const b = (window as any).pm.backend;
         return !!b.plan && !b.planning && !b.stale;

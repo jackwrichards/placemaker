@@ -215,7 +215,7 @@ namespace Placemaker.Core.Layers.Park
                 ("bushDensity", 75.0), ("furniture", 5.0), ("fence", true), ("lamps", true), ("bins", true), ("curvedPaths", true));
             Preset("landscape", ("style", "landscape"), ("pathStyle", "circuit"), ("pathWidth", "narrow"), ("treeDensity", 34.0),
                 ("bushDensity", 45.0), ("furniture", 3.0), ("belt", true), ("lamps", false), ("curvedPaths", true), ("trails", 2.0), ("smallPaths", 1.0),
-                ("lakeSize", 100.0));
+                ("lakeSize", 100.0), ("lookWater", "lake"));
             Preset("modern", ("style", "modern"), ("pathStyle", "promenade"), ("pathWidth", "narrow"), ("curvedPaths", false),
                 ("treeDensity", 40.0), ("bushDensity", 45.0), ("furniture", 5.0), ("belt", true), ("lamps", true));
             Preset("wildflower", ("style", "wildflower"), ("pathStyle", "woodlandTrail"), ("pathWidth", "narrow"), ("treeDensity", 6.0),
@@ -656,7 +656,9 @@ namespace Placemaker.Core.Layers.Park
 
         private static float2[] PlanLake(LayerContext ctx, ParkSite s, float2[] plaza)
         {
-            var lake = ParkLakePlanner.Generate(s.LayerRegion, s.Occ.Corridors, s.Gates, ctx.F("lakeSize") / 100f, Hashing.Mix(ctx.Seed, 0x1A4Eu));
+            // (Phase 1) Water: a pond is about half the water a lake is (a lake, or a design saved before, takes Water size as set)
+            float share = ctx.F("lakeSize") / 100f * (ctx.S("lookWater") == "pond" ? 0.5f : 1f);
+            var lake = ParkLakePlanner.Generate(s.LayerRegion, s.Occ.Corridors, s.Gates, share, Hashing.Mix(ctx.Seed, 0x1A4Eu));
             if (lake.Length >= 3 && plaza.Length >= 3 && (Poly.Contains(plaza, Poly.Centroid(lake)) || Poly.Contains(lake, Poly.Centroid(plaza))))
                 lake = Array.Empty<float2>();
             return lake;
