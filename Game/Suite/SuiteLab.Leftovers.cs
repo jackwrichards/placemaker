@@ -118,7 +118,8 @@ namespace Placemaker.Game.Suite
             string label = answer == "ungroup" ? L("Placemaker.Bulldoze.Ungroup") : answer == "remove" ? L("Placemaker.Bulldoze.RemoveAll") : L("Placemaker.Bulldoze.Cancel");
             JObject click = null;
             yield return UiRun("var b=[].slice.call(document.querySelectorAll('button,[role=button]')).filter(function(x){return (x.textContent||'').trim()===" + SuiteUiSystem.Q(label) + ";});"
-                + "if(!b.length)return 'no button';b[b.length-1].click();return 'clicked';", r => click = r);
+                + "if(!b.length)return 'no button';var el=b[b.length-1],r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;"
+                + "['mousedown','mouseup','click'].forEach(function(t){el.dispatchEvent(new MouseEvent(t,{bubbles:true,cancelable:true,clientX:x,clientY:y,button:0}));});return 'clicked';", r => click = r);
             rec["click"] = click?["value"] ?? click?["error"];
             yield return Frames(30);
             rec["toolState"] = state.GetValue(dozer).ToString();
