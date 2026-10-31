@@ -255,12 +255,18 @@ namespace Placemaker.Game.Suite
                     }
                     // the first corner again closes the outline ("open": true leaves it open, the corners still being drawn)
                     bool open = (bool?)step["open"] ?? false;
+                    var snaps = new JArray();
                     foreach (var p in open ? pts : pts.Concat(new[] { pts[0] }))
                     {
                         RaycastHit? hit = null;
                         yield return Press(st, rec, P3(p), false, h => hit = h);
                         if (!hit.HasValue) { st.Result["status"] = "no-outline"; yield break; }
+                        // what the click snapped to (the tool's last snap) and where the corner went
+                        var ls = _tool.LastSnap;
+                        snaps.Add($"{ls.Kind} ({ls.Position.x:F1},{ls.Position.z:F1}) clicked ({p.x:F1},{p.y:F1})");
                     }
+                    rec["snaps"] = snaps;
+                    Mod.Log.Info("Placemaker suite: points snapped: " + string.Join(" | ", snaps));
                     rec["clicks"] = pts.Count + (open ? 0 : 1);
                     if (open) { rec["corners"] = _tool.Draw.Count; yield break; }
                     break;

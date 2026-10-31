@@ -83,6 +83,17 @@ namespace Placemaker.Core.Tool
                     Position = ReadFloat3(m["position"]),
                 });
             }
+            foreach (var t in j["touches"].Items)
+            {
+                if (!t.IsObject) continue;
+                var kind = t["kind"].AsString("");
+                if (kind.Length == 0) continue;
+                // A touch from a newer Placemaker keeps its version, so it is carried along and written back, never applied.
+                s.Touches.Add(new HandTouch(kind, ReadFloat3(t["position"]), t["yaw"].Kind == JsonKind.Number ? (float)t["yaw"].AsNumber() : float.NaN, t["arg"].AsString(""))
+                {
+                    Version = (int)t["v"].AsNumber(1),
+                });
+            }
             foreach (var c in j["children"].Items)
                 if (c.IsObject) s.Children.Add(ReadStep(c, depth + 1));
             foreach (var kv in j["regionOverrides"].Properties)
@@ -154,6 +165,18 @@ namespace Placemaker.Core.Tool
                     a.Add(JsonValue.Obj().Set("kind", m.Kind ?? "").Set("segment", m.RingSegment).Set("t", m.RingT)
                         .Set("position", Float3(m.Position)));
                 o.Set("markers", a);
+            }
+            if (s.Touches.Count > 0)
+            {
+                var a = JsonValue.Arr();
+                foreach (var t in s.Touches)
+                {
+                    var to = JsonValue.Obj().Set("v", t.Version).Set("kind", t.Kind ?? "").Set("position", Float3(t.Position));
+                    if (t.HasYaw) to.Set("yaw", Math.Round((double)t.Yaw, 4));
+                    if (!string.IsNullOrEmpty(t.Arg)) to.Set("arg", t.Arg);
+                    a.Add(to);
+                }
+                o.Set("touches", a);
             }
             if (s.Children.Count > 0)
             {

@@ -21,6 +21,10 @@ namespace Placemaker.Game.Build
             // Industrial: the game's vehicles as static props (car yards, staff parking, machines), before any save loads.
             updateSystem.UpdateBefore<Placemaker.Game.Assets.VehiclePropSystem, global::Game.Prefabs.PrefabInitializeSystem>(SystemUpdatePhase.PrefabUpdate);
             updateSystem.UpdateBefore<ParkCompanionPrefabSystem, global::Game.Prefabs.PrefabInitializeSystem>(SystemUpdatePhase.PrefabUpdate);
+            // Slow drive paths inside car parks (25 km/h, dearer: through traffic keeps to the streets; PLT parity).
+            updateSystem.UpdateBefore<Placemaker.Game.Assets.SlowPathPrefabSystem, global::Game.Prefabs.PrefabInitializeSystem>(SystemUpdatePhase.PrefabUpdate);
+            // Stalls without painted markings (the parking lane stays; "Space markings" off).
+            updateSystem.UpdateBefore<Placemaker.Game.Assets.InvisibleBayPrefabSystem, global::Game.Prefabs.PrefabInitializeSystem>(SystemUpdatePhase.PrefabUpdate);
             // "Placemaker Area" owner lot (US7): one selectable/bulldozable thing per build.
             updateSystem.UpdateBefore<OwnerAreaPrefabSystem, global::Game.Prefabs.PrefabInitializeSystem>(SystemUpdatePhase.PrefabUpdate);
 

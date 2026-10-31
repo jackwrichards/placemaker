@@ -163,6 +163,7 @@ namespace Placemaker.Game.Tool
             }
             _resolver.SnapDistance = math.clamp(HandleRadius(raw) * 1.3f, 4f, 24f);
             _resolver.Begin(raw);
+            ZoneSnapForDesign();
             if (_settings == null || _settings.SnapToRoadsWhenDrawing) _snapCollector.Collect(_resolver, mask);
             else _snapCollector.Collect(_resolver, mask & ~global::Game.Tools.Snap.NetSide);
             var pts = _draw.Points;
@@ -171,6 +172,29 @@ namespace Placemaker.Game.Tool
             _lastSnap = _resolver.Result();
             _lastSnap.Position = WithHeight(_lastSnap.Position);
             return _lastSnap.Position;
+        }
+
+        /// <summary>
+        /// (P2-1) With the rows on the zone grid (a step's "Row direction" set to "Zone grid"), outline corners snap to the zone
+        /// cells as firmly as to roads, also away from any zoned cell: the extended grid of the nearest street's block (64 m).
+        /// </summary>
+        private void ZoneSnapForDesign()
+        {
+            bool zones = _recipe != null && UsesZoneRows(_recipe.Root);
+            _snapCollector.ZoneLevel = zones ? SnapResolver.LevelNet : SnapResolver.LevelZoneGrid;
+            _snapCollector.ZoneReach = zones ? 64f : 0f;
+            if (zones != _zoneSnapLogged) { _zoneSnapLogged = zones; Mod.Log.Info("Placemaker: outline corners snap to the zone grid " + (zones ? "firmly (rows on the zone grid, 64 m reach)" : "as usual") + "."); }
+        }
+
+        private bool _zoneSnapLogged;
+
+        private static bool UsesZoneRows(Placemaker.Core.RecipeStep step)
+        {
+            if (step == null || !step.Enabled) return false;
+            if (step.Settings != null && step.Settings.Values.TryGetValue(Placemaker.Core.Layers.Parking.ParkingIds.RowAngleMode, out var v) && v as string == "zones") return true;
+            foreach (var c in step.Children) if (UsesZoneRows(c)) return true;
+            foreach (var o in step.RegionOverrides.Values) if (UsesZoneRows(o)) return true;
+            return false;
         }
 
         private float3 WithHeight(float3 p) => new float3(p.x, _site.SampleHeight(p.xz), p.z);
@@ -183,7 +207,7 @@ namespace Placemaker.Game.Tool
 
         public override void GetAvailableSnapMask(out Snap onMask, out Snap offMask)
         {
-            if (_mode == SelectionMode.Draw && _stage != ToolStage.Manage && _stage != ToolStage.Building && _markerKind == null)
+            if (_mode == SelectionMode.Draw && _stage != ToolStage.Manage && _stage != ToolStage.Building && _markerKind == null && _touchKind == null)
             {
                 onMask = SupportedSnaps;
                 offMask = SupportedSnaps;
@@ -267,7 +291,7 @@ namespace Placemaker.Game.Tool
             {
                 IProxyAction apply = null, secondary = null;
                 // Never swap mid-gesture: the new state would not see the press that started it.
-                if (_gesture == Gesture.None && _markerKind == null && _mode == SelectionMode.Draw
+                if (_gesture == Gesture.None && _markerKind == null && _touchKind == null && _mode == SelectionMode.Draw
                     && (_stage == ToolStage.Area || _stage == ToolStage.Design || _stage == ToolStage.Review))
                 {
                     // (Right-click starts over while choosing the area: no vanilla words for that, so no secondary hint then.)

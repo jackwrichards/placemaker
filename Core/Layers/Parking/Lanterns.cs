@@ -32,7 +32,7 @@ namespace Placemaker.Core.Layers.Parking
             double S = Math.Max(MinSpacing, Math.Min(MaxSpacing, spacing));
             var lanes = new List<(double2 A, double2 B)>();
             foreach (var l in layout.LiveLines)
-                if (l.Kind != LineKind.Footpath) lanes.Add((l.A, l.B));
+                if (l.Kind != LineKind.Footpath && l.Kind != LineKind.Walk) lanes.Add((l.A, l.B));
             var outline = layout.Lot;
             var outlineGrid = new RingGrid(outline);   // (perf) by grid cell, same answers
             var laneGrid = new SegmentGrid(lanes, 8);

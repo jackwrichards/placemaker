@@ -95,7 +95,9 @@ namespace Placemaker.Core.Build
         /// without this the car yards built their fallbacks (trailer loads of boxes, cable reels, generators) instead of cars
         /// (industrial makeover, 2026-10-30).
         /// </summary>
-        public static bool IsOwn(string id) => id != null && id.StartsWith(Layers.Types.Yards.VehicleProps.Prefix, StringComparison.Ordinal);
+        public static bool IsOwn(string id) => id != null && (id.StartsWith(Layers.Types.Yards.VehicleProps.Prefix, StringComparison.Ordinal)
+            // (P2-1) the slow drive paths and the invisible stall: copies of vanilla prefabs, registered by Placemaker
+            || id.StartsWith("Placemaker Slow ", StringComparison.Ordinal) || id == Layers.Parking.ParkingAssets.InvisibleBay);
 
         public static int Resolve(ComposedPlan plan, AutoAssetSource source)
         {

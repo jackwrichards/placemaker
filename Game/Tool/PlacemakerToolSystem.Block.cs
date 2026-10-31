@@ -72,7 +72,7 @@ namespace Placemaker.Game.Tool
         /// The reach as a circle at the cursor (the user, 2026-10-22: "the reach should be shown in like a dotted outline as I
         /// move my mouse around ... just the full circle"): Paint bucket, choosing the area, over the world, no markers.
         /// </summary>
-        public bool BucketReachLive => IsActive && _mode == SelectionMode.Block && _stage == ToolStage.Area && _markerKind == null
+        public bool BucketReachLive => IsActive && _mode == SelectionMode.Block && _stage == ToolStage.Area && _markerKind == null && _touchKind == null
             && _brush == 0 && !_outgrowMode && _in.OverWorld && _in.HasHit;
         /// <summary>The radius the fill stops at in open land (clamped as AreaFill clamps it).</summary>
         public float BucketReach => math.clamp(BrushRules.Fill().Reach, FillOptions.MinReach, FillOptions.MaxReach);

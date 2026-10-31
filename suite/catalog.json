@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+77159ef6-dirty",
+  "assembly": "0.3.6+f9f1a2af-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -8805,10 +8805,34 @@
           "kind": "Choice",
           "options": [
             "edge",
+            "street",
+            "zones",
             "across",
             "fixed"
           ],
           "default": "edge"
+        },
+        {
+          "id": "gridTurn",
+          "kind": "Choice",
+          "options": [
+            "0",
+            "30",
+            "45",
+            "60",
+            "90",
+            "free"
+          ],
+          "default": "0"
+        },
+        {
+          "id": "gridTurnFree",
+          "kind": "Slider",
+          "min": 1.0,
+          "max": 179.0,
+          "step": 1.0,
+          "unit": "deg",
+          "default": 15.0
         },
         {
           "id": "rowAngle",
@@ -8891,6 +8915,25 @@
           "step": 1.0,
           "unit": "%",
           "default": 4.0
+        },
+        {
+          "id": "handEdits",
+          "kind": "Touches",
+          "options": [
+            "stall.accessible",
+            "stall.ev",
+            "stall.plain",
+            "stall.blank",
+            "stall.island",
+            "grid.edge",
+            "line.aisle",
+            "line.walk"
+          ]
+        },
+        {
+          "id": "markings",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "chargerAsset",

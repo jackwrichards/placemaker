@@ -12,6 +12,7 @@ using Game.UI;
 using Placemaker.Core;
 using Placemaker.Core.Tool;
 using Placemaker.Game.Tool;
+using Unity.Mathematics;
 using UnityEngine.Scripting;
 
 namespace Placemaker.Game.UI
@@ -48,6 +49,7 @@ namespace Placemaker.Game.UI
             AddBinding(_summary = new ValueBinding<string>(Group, "summary", UiModels.Summary(new SummaryInput()).ToString()));
             AddBinding(_assets = new ValueBinding<string>(Group, "assets", "{}"));
             AddBinding(_managed = new ValueBinding<string>(Group, "managed", "null"));
+            AddBinding(_carParks = new ValueBinding<string>(Group, "carParks", "[]"));
             AddBinding(_sitePlan = new ValueBinding<string>(Group, "sitePlan", "null"));
             AddBinding(_ai = new ValueBinding<string>(Group, "ai", "null"));
 
@@ -114,6 +116,9 @@ namespace Placemaker.Game.UI
             Trigger<double, double, double>("locate", (x, y, z) => _tool.Locate((float)x, (float)y, (float)z));
             Trigger<bool>("acknowledgePermanent", ack => _tool.AcknowledgePermanent(ack));
             Trigger<string, string>("setMarkerKind", (p, kind) => _tool.SetMarkerKind(p, kind));
+            // (P2-1) hand edits (Core/Touches.cs): pick the kind the next world click makes ("" = done), take them off
+            Trigger<string, string>("setTouchKind", (p, kind) => _tool.SetTouchKind(p, kind));
+            Trigger<string, string>("clearTouches", (p, kind) => _tool.ClearTouches(p, kind));
             Trigger<string, double>("removeMarker", (p, i) => _tool.RemoveMarker(p, (int)Math.Round(i)));
             Trigger<string, double, bool>("setMarkerCrosswalk", (p, i, on) => _tool.SetMarkerCrosswalk(p, (int)Math.Round(i), on));   // i < 0: the entrances placed next
             Trigger<double>("ungroupGroup", id => _tool.UngroupGroup((int)id));
@@ -172,6 +177,7 @@ namespace Placemaker.Game.UI
                 PushAi();
                 PushAssets();
                 PushManaged();
+                PushCarParks();
             }
             catch (Exception e)
             {
@@ -397,6 +403,50 @@ namespace Placemaker.Game.UI
 
         private readonly Dictionary<int, bool> _canEdit = new Dictionary<int, bool>();
 
+        // (P2-1) Manage with nothing picked: every car park, how full it is and its fee (Parking Lot Tool's lot list).
+        private ValueBinding<string> _carParks;
+        private string _carParksStamp;
+        private readonly Dictionary<int, float3> _centers = new Dictionary<int, float3>();
+
+        private void PushCarParks()
+        {
+            var groups = Services.Groups;
+            var economy = World.GetExistingSystemManaged<global::Placemaker.Game.Economy.ParkingEconomySystem>();
+            if (groups == null || economy == null || !_tool.IsActive || _tool.Stage != ToolStage.Manage) return;
+            string stamp = groups.AllGroups.Count + "|" + (_frame / 60);
+            if (stamp == _carParksStamp) return;
+            _carParksStamp = stamp;
+            var list = new System.Text.StringBuilder("[");
+            bool first = true;
+            foreach (var kv in economy.AllOccupancy())
+            {
+                GroupInfo info;
+                try { info = groups.Get(kv.Key); } catch (Exception) { info = null; }
+                if (info == null || !economy.TryFee(kv.Key, out int fee, out bool feeOn)) continue;
+                if (!_centers.TryGetValue(kv.Key, out var c))
+                {
+                    c = float.NaN;
+                    try
+                    {
+                        var ring = groups.GetReceipt(kv.Key)?.Area?.Ring;
+                        if (ring != null && ring.Length > 0) { c = 0; foreach (var p in ring) c += p; c /= ring.Length; }
+                    }
+                    catch (Exception) { }
+                    _centers[kv.Key] = c;
+                }
+                var o = JsonValue.Obj()
+                    .Set("id", info.Id)
+                    .Set("recipeName", new LocText(string.IsNullOrEmpty(info.RecipeNameKey) ? "Placemaker.Recipe.Unknown" : info.RecipeNameKey).ToJson())
+                    .Set("spaces", kv.Value.Spaces).Set("taken", kv.Value.Taken).Set("fee", fee).Set("feeOn", feeOn);
+                if (!string.IsNullOrEmpty(info.CustomName)) o.Set("customName", info.CustomName);
+                if (!float.IsNaN(c.x)) o.Set("at", JsonValue.Arr().Add(JsonValue.Num(Math.Round(c.x, 1))).Add(JsonValue.Num(Math.Round(c.y, 1))).Add(JsonValue.Num(Math.Round(c.z, 1))));
+                if (!first) list.Append(',');
+                list.Append(o.ToString());
+                first = false;
+            }
+            _carParks.Update(list.Append(']').ToString());
+        }
+
         private void PushManaged()
         {
             int id = _tool.ManagedGroup != 0 ? _tool.ManagedGroup : _tool.HoverGroup;
@@ -420,6 +470,14 @@ namespace Placemaker.Game.UI
             o.Set("stats", UiModels.Stats(info.Stats));
             o.Set("upkeep", Math.Round(info.Upkeep));
             o.Set("canEdit", canEdit);
+            // (P2-1) a car park: its fee and how full it is ("x of y taken", as Parking Lot Tool's list)
+            var economy = World.GetExistingSystemManaged<global::Placemaker.Game.Economy.ParkingEconomySystem>();
+            if (economy != null && economy.TryFee(id, out int fee, out bool feeOn))
+            {
+                var p = JsonValue.Obj().Set("fee", fee).Set("feeOn", feeOn);
+                if (economy.TryOccupancy(id, out int spaces, out int taken)) p.Set("spaces", spaces).Set("taken", taken);
+                o.Set("parking", p);
+            }
             _managed.Update(o.ToString());
         }
     }

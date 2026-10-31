@@ -27,6 +27,8 @@ namespace Placemaker.Core.Layers.Parking
             public AssetRef Asset;
             public long StartAttach = -1, EndAttach = -1;
             public float StartT, EndT;
+            /// <summary>(P2-1) A line the player drew: split where it crosses another.</summary>
+            public bool Sketch;
         }
 
         public static AreaPlan Build(AreaInput input, ParkingSettings s, ParkingLayer gen, CancellationToken cancel, Action<Layout> inspect = null)
@@ -109,6 +111,36 @@ namespace Placemaker.Core.Layers.Parking
             if (reserved != null && (reserved.Discs.Count > 0 || reserved.Corridors.Count > 0 || reserved.Polygons.Count > 0))
                 rq.Blocked = (p, r) => reserved.Blocks(new float2((float)p.x, (float)p.y), (float)r);
             rq.Entrances.AddRange(entrances);
+            rq.Roads = roads;
+            if (site.ZoneGrids != null) rq.ZoneGrids.AddRange(site.ZoneGrids);
+            // (P2-1) existing buildings inside or at the outline: the layout works round their lots
+            foreach (var b in Placemaker.Core.Build.SiteSafety.Protected(site))
+            {
+                var poly = new double2[b.Length];
+                for (int i = 0; i < b.Length; i++) poly[i] = new double2(b[i].x, b[i].y);
+                rq.Buildings.Add(poly);
+            }
+            // (P2-1) hand edits: the picked edge (the last one placed wins) and the stall touches
+            int edgeDropped = 0;
+            if (input.Touches != null)
+                foreach (var t in input.Touches)
+                {
+                    if (t.Kind == ParkingIds.TouchEdge)
+                    {
+                        int e = PickedEdge(world, new double2(t.Position.x, t.Position.z));
+                        if (e < 0) { edgeDropped++; continue; }
+                        rq.ChosenEdge = new[] { world[e], world[(e + 1) % world.Count] };
+                    }
+                    else if (t.Kind.StartsWith("stall.", StringComparison.Ordinal)) rq.Touches.Add(t);
+                    else if (t.Kind == ParkingIds.LineAisle || t.Kind == ParkingIds.LineWalk)
+                    {
+                        var pts = Placemaker.Core.Tool.LineSketch.Decode(t.Arg);
+                        if (pts.Length < 2) { edgeDropped++; continue; }
+                        var w = new double2[pts.Length];
+                        for (int i = 0; i < pts.Length; i++) w[i] = new double2(pts[i].x, pts[i].y);
+                        rq.Sketches.Add((t.Kind == ParkingIds.LineAisle, w));
+                    }
+                }
 
             // ── layout ──
             cancel.ThrowIfCancellationRequested();
@@ -268,6 +300,8 @@ namespace Placemaker.Core.Layers.Parking
             Emit(plan, layout, s, site, H, input, cancel, roads, zoning.MaxDepth);
             EmitBusStops(plan, busStops, world, roads, site, H);
             EmitZoning(plan, layout, zoning, s, H);
+            EmitTouchTargets(plan, layout, world, rq.ChosenEdge, H);
+            Touches.ReportDropped(plan, layout.TouchesDropped + edgeDropped);
             Issues(plan, layout);
             inspect?.Invoke(layout);
             return plan;
@@ -399,6 +433,62 @@ namespace Placemaker.Core.Layers.Parking
             foreach (var i in plan.Issues) if (i.Key == Layers.Common.TerrainShaper.PermanentKey) { has = true; break; }
             if (!has) plan.Issues.Add(new PlanIssue { Severity = IssueSeverity.Warning, Key = Layers.Common.TerrainShaper.PermanentKey });
         }
+
+        /// <summary>(P2-1) The outline edge a "grid.edge" touch was made on: within 3 m of the edge and not past its ends; -1 = none.</summary>
+        internal static int PickedEdge(List<double2> world, double2 p)
+        {
+            int best = -1; double bestD = 3;
+            for (int i = 0; i < world.Count; i++)
+            {
+                var a = world[i]; var b = world[(i + 1) % world.Count];
+                if (PGeo.Len(b - a) < 2) continue;
+                var q = PGeo.ClosestOnSeg(p, a, b, out double u);
+                if (u < 0.02 || u > 0.98) continue;
+                double d = PGeo.Len(q - p);
+                if (d < bestD) { bestD = d; best = i; }
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// (P2-1) What the hand-edit tool can touch: every stall (also those made into islands, to take them back) with its state,
+        /// and every outline edge long enough to line the rows up with.
+        /// </summary>
+        private static void EmitTouchTargets(AreaPlan plan, Layout layout, List<double2> world, double2[] chosen, Func<double2, float> H)
+        {
+            var f = layout.Frame;
+            foreach (var b in layout.Bays)
+            {
+                if (b.Quad == null || b.Quad.Length < 4 || (b.Removed && !b.Island)) continue;
+                var outline = new float2[4];
+                for (int k = 0; k < 4; k++) { var w = f.ToWorld(b.Quad[k]); outline[k] = new float2((float)w.x, (float)w.y); }
+                var c = f.ToWorld(b.Center);
+                string state = b.Island ? "island" : b.Role == BayRole.Blank ? "blank" : b.Role == BayRole.Disabled ? "accessible"
+                    : b.Role == BayRole.Electric ? "ev" : "normal";
+                plan.TouchTargets.Add(new TouchTarget
+                {
+                    Group = "stall", Center = new float3((float)c.x, H(c), (float)c.y), Outline = outline, State = state,
+                    Touched = b.TouchedBy ?? "", TouchAt = b.TouchAt,
+                });
+            }
+            for (int i = 0; i < world.Count; i++)
+            {
+                var a = world[i]; var b = world[(i + 1) % world.Count];
+                double len = PGeo.Len(b - a);
+                if (len < 2) continue;
+                var d = (b - a) / len; var n = PGeo.Perp(d);   // the outline is CCW: n points inward
+                var mid = (a + b) * 0.5;
+                bool picked = chosen != null && PGeo.Len(chosen[0] - a) < 1e-6 && PGeo.Len(chosen[1] - b) < 1e-6;
+                plan.TouchTargets.Add(new TouchTarget
+                {
+                    Group = "grid", Center = new float3((float)mid.x, H(mid), (float)mid.y), State = picked ? "picked" : "edge",
+                    Outline = new[] { F2(a), F2(b), F2(b + n * 1.5), F2(a + n * 1.5) },
+                    Touched = picked ? ParkingIds.TouchEdge : "", TouchAt = new float3((float)mid.x, H(mid), (float)mid.y),
+                });
+            }
+        }
+
+        private static float2 F2(double2 p) => new float2((float)p.x, (float)p.y);
 
         private static float3 P3(double2 p, Func<double2, float> H) => new float3((float)p.x, H(p), (float)p.y);
 
@@ -532,10 +622,17 @@ namespace Placemaker.Core.Layers.Parking
                     case LineKind.Ring:
                     case LineKind.Aisle:
                     case LineKind.Cross:
-                        segs.Add(new Seg { A = f.ToWorld(l.A), B = f.ToWorld(l.B), Role = NetRole.DriveAisle, Asset = new AssetRef(ParkingAssets.DrivePath(l.Width)) });
+                        segs.Add(new Seg { A = f.ToWorld(l.A), B = f.ToWorld(l.B), Role = NetRole.DriveAisle, Asset = ParkingAssets.Drive(l.Width) });
                         break;
                     case LineKind.Footpath:
                         segs.Add(new Seg { A = f.ToWorld(l.A), B = f.ToWorld(l.B), Role = NetRole.Pathway, Asset = new AssetRef(ParkingAssets.PedestrianPath) });
+                        break;
+                    // (P2-1) lines the player drew: split where they cross the other lines (a junction, not an overlap)
+                    case LineKind.Sketch:
+                        segs.Add(new Seg { A = f.ToWorld(l.A), B = f.ToWorld(l.B), Role = NetRole.DriveAisle, Asset = ParkingAssets.Drive(l.Width), Sketch = true });
+                        break;
+                    case LineKind.Walk:
+                        segs.Add(new Seg { A = f.ToWorld(l.A), B = f.ToWorld(l.B), Role = NetRole.Pathway, Asset = new AssetRef(ParkingAssets.PedestrianPath), Sketch = true });
                         break;
                 }
             }
@@ -566,7 +663,7 @@ namespace Placemaker.Core.Layers.Parking
                 if (!e.Connected || e.ConnectorLine < 0 || layout.Lines[e.ConnectorLine].Removed) continue;
                 bool exit = EntranceKinds.Outbound(e.Kind);
                 bool oneWay = EntranceKinds.OneWay(e.Kind);
-                var asset = !oneWay ? new AssetRef(ParkingAssets.DrivePath(e.Width)) : new AssetRef(ParkingAssets.OneWayPath, ParkingAssets.DrivePath(e.Width));
+                var asset = !oneWay ? ParkingAssets.Drive(e.Width) : ParkingAssets.OneWay(e.Width);
                 double2 outer = E;
                 bool hasRoad = Roads.ForEntrance(roads, E, inward, out var hit, search);
                 if (hasRoad && EntranceKinds.IsAlley(e.Kind))
@@ -635,6 +732,7 @@ namespace Placemaker.Core.Layers.Parking
             int bays = 0, ev = 0, acc = 0;
             foreach (var b in layout.LiveBays)
             {
+                if (b.Role == BayRole.Blank) continue;   // (P2-1) an empty paved space: no marking, no parking lane
                 AssetRef asset;
                 switch (b.Role)
                 {
@@ -642,6 +740,8 @@ namespace Placemaker.Core.Layers.Parking
                     case BayRole.Electric: asset = new AssetRef(ParkingAssets.ElectricDecal, ParkingAssets.Decal); ev++; break;
                     default: asset = new AssetRef(ParkingAssets.Decal); break;
                 }
+                // (P2-1) markings off: every stall the invisible bay (the lane stays; the painted one when it is missing)
+                if (!s.Markings) asset = new AssetRef(ParkingAssets.InvisibleBay, asset.Id);
                 bays++;
                 plan.Objects.Add(new PlannedObject
                 {
@@ -650,8 +750,10 @@ namespace Placemaker.Core.Layers.Parking
                 });
             }
             var chargerAsset = ParkingAssets.Pick(s.ChargerAsset, ParkingAssets.Charger);
-            foreach (var c in layout.Chargers)
-                plan.Objects.Add(new PlannedObject { Position = P3(c.Position), Yaw = Yaw(f.DirToWorld(c.Facing)), Role = ObjectRole.Charger, Asset = chargerAsset });
+            // a charger points at its EV stalls: without the markings there is nothing for it to belong to (as PLT)
+            if (s.Markings)
+                foreach (var c in layout.Chargers)
+                    plan.Objects.Add(new PlannedObject { Position = P3(c.Position), Yaw = Yaw(f.DirToWorld(c.Facing)), Role = ObjectRole.Charger, Asset = chargerAsset });
             foreach (var l in layout.Lanterns)
             {
                 var asset = !string.IsNullOrEmpty(s.LanternAsset) ? new AssetRef(s.LanternAsset, ParkingAssets.LampSingle)
@@ -689,6 +791,7 @@ namespace Placemaker.Core.Layers.Parking
             // Same key as Game/Economy/ParkingEconomySystem.FeeFact. Note: the build receipt sums facts
             // over layers, so a recipe with two parking steps would add their fees (docs/proposals/parking.md).
             plan.Facts["parking.fee"] = s.Fee;
+            if (layout.SketchCut > 0 || layout.SketchRows > 0) { plan.Facts["sketch.cut"] = layout.SketchCut; plan.Facts["sketch.rows"] = layout.SketchRows; }
             layout.UncoveredArea = uncovered;
         }
 
@@ -778,6 +881,15 @@ namespace Placemaker.Core.Layers.Parking
                 if (sg.StartAttach < 0) sg.A = Weld(sg.A);
                 if (sg.EndAttach < 0) sg.B = Weld(sg.B);
             }
+            // (P2-1) a drawn line crossing another line gets a junction there (both are split): nets must not overlap
+            for (int i = 0; i < segs.Count; i++)
+                for (int j = i + 1; j < segs.Count; j++)
+                {
+                    var p = segs[i]; var q = segs[j];
+                    if (!p.Sketch && !q.Sketch) continue;
+                    if (!PGeo.LineLine(p.A, p.B, q.A, q.B, out double t, out double u) || t < 0 || t > 1 || u < 0 || u > 1) continue;
+                    Weld(p.A + (p.B - p.A) * t);
+                }
             var outList = new List<Seg>();
             foreach (var sg in segs)
             {

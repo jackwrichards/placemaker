@@ -28,6 +28,8 @@ namespace Placemaker.Game.Economy
     public sealed partial class ParkingEconomySystem : GameSystemBase, IEffectProvider
     {
         public const string FeeFact = "parking.fee";
+        /// <summary>(P2-1) 1 = the fee is switched off on the click panel; the amount is kept for when it is switched on again (as PLT).</summary>
+        public const string FeeOffFact = "parking.feeOff";
         public const string CapacityFact = "parking.capacity.real";
         /// <summary>Comfort of our stalls (PLT used 0.5: between street parking and a garage).</summary>
         public const float ComfortFactor = 0.5f;
@@ -94,6 +96,75 @@ namespace Placemaker.Game.Economy
 
         public int FeeOf(int groupId) { EnsureFees(); return _fees.TryGetValue(groupId, out var f) ? f : 0; }
 
+        /// <summary>(P2-1) The fee amount the group keeps (also while switched off), and whether it is on.</summary>
+        public bool TryFee(int groupId, out int amount, out bool on)
+        {
+            amount = 0; on = false;
+            if (!FeatureEnabled || !AppliesTo(groupId)) return false;
+            var rec = _registry.GetRecord(groupId);
+            amount = rec.Facts.TryGetValue(FeeFact, out var f) ? (int)math.clamp(f, 0, 1000) : DefaultFee;
+            on = !(rec.Facts.TryGetValue(FeeOffFact, out var off) && off > 0) && amount > 0;
+            return true;
+        }
+
+        /// <summary>(P2-1) Click panel: switch the fee on or off, keeping the amount.</summary>
+        public void SetFeeOn(int groupId, bool on)
+        {
+            var rec = _registry.GetRecord(groupId);
+            if (rec == null || !_registry.TryGetRecordEntity(groupId, out var entity)) return;
+            if (on) { rec.Facts.Remove(FeeOffFact); if (!rec.Facts.TryGetValue(FeeFact, out var f) || f <= 0) rec.Facts[FeeFact] = DefaultFee > 0 ? DefaultFee : 10; }
+            else rec.Facts[FeeOffFact] = 1;
+            _registry.WriteRecord(entity, rec);
+            _feesVersion = -1;
+            _refreshGroups.Add(groupId);
+        }
+
+        private readonly Dictionary<int, (int Spaces, int Taken)> _occupancy = new Dictionary<int, (int, int)>();
+        private int _occupancyFrame = -1000;
+
+        /// <summary>
+        /// (P2-1) Spaces and parked cars per car park (PLT's "x of y taken"): every parking lane of a group and the parked cars
+        /// on it (Game.Net.LaneObject). Counted at most once a second, on demand (the panel asks).
+        /// </summary>
+        public bool TryOccupancy(int groupId, out int spaces, out int taken)
+        {
+            RefreshOccupancy();
+            spaces = taken = 0;
+            if (!_occupancy.TryGetValue(groupId, out var o)) return false;
+            spaces = o.Spaces; taken = o.Taken;
+            return true;
+        }
+
+        /// <summary>Every car park with its occupancy (ids in build order).</summary>
+        public IEnumerable<KeyValuePair<int, (int Spaces, int Taken)>> AllOccupancy()
+        {
+            RefreshOccupancy();
+            return _occupancy;
+        }
+
+        private void RefreshOccupancy()
+        {
+            int frame = UnityEngine.Time.frameCount;
+            if (frame - _occupancyFrame < 60 && frame >= _occupancyFrame) return;
+            _occupancyFrame = frame;
+            _occupancy.Clear();
+            using var lanes = _allLanes.ToEntityArray(Allocator.Temp);
+            for (int i = 0; i < lanes.Length; i++)
+            {
+                // a stall's lane only: the drive paths carry parking lanes of their own (78 on a 318-stall lot), not spaces
+                var owner = EntityManager.GetComponentData<Owner>(lanes[i]).m_Owner;
+                if (EntityManager.HasComponent<global::Game.Net.Edge>(owner)) continue;
+                int group = GroupOfLane(lanes[i]);
+                if (group == 0 || !AppliesTo(group)) continue;
+                int cars = 0;
+                if (EntityManager.HasBuffer<global::Game.Net.LaneObject>(lanes[i]))
+                    foreach (var o in EntityManager.GetBuffer<global::Game.Net.LaneObject>(lanes[i], true))
+                        if (EntityManager.HasComponent<global::Game.Vehicles.ParkedCar>(o.m_LaneObject)) cars++;
+                _occupancy.TryGetValue(group, out var n);
+                _occupancy[group] = (n.Spaces + 1, n.Taken + cars);
+            }
+        }
+
         /// <summary>Real stall count from the lanes (0 until counted).</summary>
         public int CapacityOf(int groupId) => _capacity.TryGetValue(groupId, out var c) ? c : 0;
 
@@ -103,6 +174,7 @@ namespace Placemaker.Game.Economy
             var rec = _registry.GetRecord(groupId);
             if (rec == null || !_registry.TryGetRecordEntity(groupId, out var entity)) return;
             rec.Facts[FeeFact] = fee;
+            if (fee > 0) rec.Facts.Remove(FeeOffFact);
             _registry.WriteRecord(entity, rec);
             _feesVersion = -1;
             _refreshGroups.Add(groupId);
@@ -151,7 +223,8 @@ namespace Placemaker.Game.Economy
             {
                 var rec = _registry.GetRecord(id);
                 if (rec == null || (rec.Flags & GroupFlags.ParkingEconomy) == 0) continue;
-                _fees[id] = rec.Facts.TryGetValue(FeeFact, out var f) ? (int)math.clamp(f, 0, 1000) : DefaultFee;
+                bool off = rec.Facts.TryGetValue(FeeOffFact, out var o) && o > 0;
+                _fees[id] = off ? 0 : rec.Facts.TryGetValue(FeeFact, out var f) ? (int)math.clamp(f, 0, 1000) : DefaultFee;
             }
         }
 

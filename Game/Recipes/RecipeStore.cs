@@ -178,7 +178,7 @@ namespace Placemaker.Game.Recipes
                     if (custom && string.IsNullOrEmpty(r.Name) && string.IsNullOrEmpty(r.NameKey)) r.Name = r.Id;
                     // Files hold overrides only (player recipes hold full values; overlaying is harmless).
                     editor.ApplyDefaults(r);
-                    foreach (var kv in RecipePaths.Walk(r)) kv.Value.Markers.Clear();
+                    foreach (var kv in RecipePaths.Walk(r)) { kv.Value.Markers.Clear(); kv.Value.Touches.Clear(); }
                     int order = file.Order != 1000 ? file.Order : LayerOrder(r.Root.Layer);
                     list.Add(new Entry { Recipe = r, Custom = custom, DescriptionKey = file.DescriptionKey, Order = order, FilePath = custom ? path : null });
                 }
@@ -209,7 +209,7 @@ namespace Placemaker.Game.Recipes
             r.Id = RecipeJson.NewPlayerRecipeId(name, salt);
             r.Name = name;
             r.NameKey = "";
-            foreach (var kv in RecipePaths.Walk(r)) kv.Value.Markers.Clear();   // markers belong to one site, not to a recipe
+            foreach (var kv in RecipePaths.Walk(r)) { kv.Value.Markers.Clear(); kv.Value.Touches.Clear(); }   // markers belong to one site, not to a recipe
             var path = Path.Combine(ModPaths.PlayerRecipeFolder, r.Id + ".json");
             try
             {

@@ -34,6 +34,22 @@ namespace Placemaker.Core.Layers.Parking
         public bool LeftHandTraffic;
         /// <summary>World point + radius → true when reserved by an earlier layer.</summary>
         public Func<double2, double, bool> Blocked = (p, r) => false;
+        /// <summary>(P2-1) Streets near the lot, for rows that follow the street (RowAngleMode.Street).</summary>
+        public List<RoadLine> Roads = new List<RoadLine>();
+        /// <summary>(P2-1) Zone blocks round the lot, for rows on the zone grid (RowAngleMode.ZoneGrid).</summary>
+        public List<ZoneGrid> ZoneGrids = new List<ZoneGrid>();
+        /// <summary>(P2-1) An edge the player picked (hand edit "grid.edge"): the rows run along it and start at it. Null = none.</summary>
+        public double2[] ChosenEdge;
+        /// <summary>
+        /// (P2-1) Existing building lots (world, CCW) the lot must keep clear of. The layout drops the stalls and drive lines that
+        /// would touch one, then what is cut off, so the lot works round the building (Build/SiteSafety would otherwise drop the
+        /// pieces after planning and leave stalls without an aisle).
+        /// </summary>
+        public List<double2[]> Buildings = new List<double2[]>();
+        /// <summary>(P2-1) The stall hand edits (StallTouches).</summary>
+        public List<HandTouch> Touches = new List<HandTouch>();
+        /// <summary>(P2-1) Lines the player drew (world XZ): a drive aisle (Drive) or a walkway through the rows.</summary>
+        public List<(bool Drive, double2[] Points)> Sketches = new List<(bool, double2[])>();
     }
 
     /// <summary>Convex asphalt piece with the zones it may pave (bit mask of Zone).</summary>
@@ -57,6 +73,8 @@ namespace Placemaker.Core.Layers.Parking
         private List<double2> _lot;
         private double2[] _c1Raw, _c2Raw, _caRaw, _c3Raw;
         private List<double2> _c1, _c2, _ca, _g;
+        /// <summary>(P2-1) -1 / +1: the band plan starts flush with the bottom / top of the grid (the picked edge's side); 0 = free.</summary>
+        private int _flush;
         private bool _ring;
         private readonly List<int> _ringLines = new List<int>();
         private List<double> _crossCenters = new List<double>();
@@ -135,18 +153,22 @@ namespace Placemaker.Core.Layers.Parking
             _out.Entrances.AddRange(entrances);
             ConnectEntrances();
             if (_ring) PlacePerimeterRow();
+            // (P2-1) drawn lines before the clean-up: their rows keep clear of connectors, reserved space and buildings too
+            ApplySketches();
             ClearCorridors();
             RemoveReserved();
+            AvoidBuildings();
             CheckReachability();
             _cancel.ThrowIfCancellationRequested();
 
-            SpecialStalls.Assign(_out, _s, ChargerSpotOk);
+            StallTouches.Apply(_out, _s, _rq.Touches, ChargerSpotOk, out int handGroups, out int handPairs);
+            SpecialStalls.Assign(_out, _s, ChargerSpotOk, handGroups, handPairs);
             AssignChargers();
             BuildPieces();
 
             double len = 0;
             foreach (var l in _out.LiveLines)
-                if (l.Kind == LineKind.Aisle || l.Kind == LineKind.Ring || l.Kind == LineKind.Cross) len += l.Length;
+                if (l.Kind == LineKind.Aisle || l.Kind == LineKind.Ring || l.Kind == LineKind.Cross || l.Kind == LineKind.Sketch) len += l.Length;
             _out.AisleLength = len;
             if (_out.StallCount == 0)
                 Issue(IssueSeverity.Warning, "Placemaker.Parking.Issue.NoStalls");
@@ -159,17 +181,28 @@ namespace Placemaker.Core.Layers.Parking
             var w = _rq.LotWorld;
             if (w == null || w.Count < 3) { Issue(IssueSeverity.Error, "Placemaker.Parking.Issue.BadShape"); return false; }
             double2 dir;
-            if (_s.AngleMode == RowAngleMode.Fixed)
+            var chosen = _rq.ChosenEdge;
+            bool picked = chosen != null && chosen.Length == 2 && PGeo.Len(chosen[1] - chosen[0]) > 0.5;
+            if (picked) dir = PGeo.Norm(chosen[1] - chosen[0]);
+            else if (_s.AngleMode == RowAngleMode.Fixed)
             {
                 double r = _s.RowAngleDeg * Math.PI / 180;
                 dir = new double2(Math.Cos(r), Math.Sin(r));
             }
+            else if (_s.AngleMode == RowAngleMode.Street) dir = StreetEdge(w, _rq.Roads) ?? LongestStraight(w);
+            else if (_s.AngleMode == RowAngleMode.ZoneGrid) dir = ZoneGridEdge(w, _rq.ZoneGrids) ?? StreetEdge(w, _rq.Roads) ?? LongestStraight(w);
             else
             {
                 dir = LongestStraight(w);
                 if (_s.AngleMode == RowAngleMode.Across) dir = PGeo.Perp(dir);
             }
+            // (P2-1) the player's turn of the grid against what it lines up with (0, 30, 45, 60, 90 degrees or free)
+            if (_s.AngleMode != RowAngleMode.Fixed || picked) dir = PGeo.Rotate(dir, _s.GridTurnDeg * Math.PI / 180);
             _out.Frame = new Frame(PGeo.Centroid(w), dir);
+            // rows start at the picked edge when the grid runs along it (no turn): the first module is flush with it
+            _flush = 0;
+            if (picked && Math.Abs(_s.GridTurnDeg) < 1e-6)
+                _flush = _out.Frame.ToLocal((chosen[0] + chosen[1]) * 0.5).y < 0 ? -1 : 1;
             _out.RowAngleDeg = (Math.Atan2(dir.y, dir.x) * 180 / Math.PI + 360) % 180;
             _lot = new List<double2>(w.Count);
             foreach (var p in w) _lot.Add(_out.Frame.ToLocal(p));
@@ -184,6 +217,53 @@ namespace Placemaker.Core.Layers.Parking
         /// Direction of the longest straight run of the outline, tolerating vertices up to 5 cm off
         /// the line (PLT Geometrie.LaengsteGerade; GeradeToleranz = 0.05). Ties → smaller angle.
         /// </summary>
+        /// <summary>
+        /// (P2-1) Direction of the outline edge that runs longest along a street (within 16 m of a street centreline, sampled
+        /// every 2 m), or null when no edge is near a street.
+        /// </summary>
+        internal static double2? StreetEdge(IReadOnlyList<double2> pts, List<RoadLine> roads)
+        {
+            if (roads == null || roads.Count == 0 || pts == null || pts.Count < 3) return null;
+            double best = 4; double2? dir = null;
+            for (int i = 0; i < pts.Count; i++)
+            {
+                var a = pts[i]; var b = pts[(i + 1) % pts.Count];
+                double len = PGeo.Len(b - a);
+                if (len < 4) continue;
+                int n = Math.Max(2, (int)Math.Ceiling(len / 2));
+                double along = 0;
+                for (int k = 0; k < n; k++)
+                {
+                    var q = a + (b - a) * ((k + 0.5) / n);
+                    if (Roads.Nearest(roads, q, 16, out _)) along += len / n;
+                }
+                if (along > best + 1e-6) { best = along; dir = PGeo.Norm(b - a); }
+            }
+            return dir;
+        }
+
+        /// <summary>
+        /// (P2-1) The direction of the zone grid round the lot: the zone blocks of the streets near it (8 m cells along their
+        /// road), each weighted by its cells and how close it is; the grid runs along the road of the strongest. Null = no block
+        /// within 40 m of the outline (then the street, then the longest side).
+        /// </summary>
+        internal static double2? ZoneGridEdge(IReadOnlyList<double2> pts, List<ZoneGrid> zones)
+        {
+            if (zones == null || zones.Count == 0 || pts == null || pts.Count < 3) return null;
+            double best = 0; double2? dir = null;
+            foreach (var z in zones)
+            {
+                var d = new double2(z.Direction.x, z.Direction.y);
+                if (PGeo.Len(d) < 1e-6 || z.Size.x <= 0 || z.Size.y <= 0) continue;
+                var c = new double2(z.Position.x, z.Position.y);
+                double gap = PGeo.Contains(pts, c) ? 0 : Math.Max(0, PGeo.DistToBoundary(pts, c) - Math.Max(z.Size.x, z.Size.y) * 4);
+                if (gap > 40) continue;
+                double score = z.Size.x * z.Size.y / (1 + gap / 8);
+                if (score > best + 1e-9) { best = score; dir = PGeo.Perp(PGeo.Norm(d)); }
+            }
+            return dir;
+        }
+
         internal static double2 LongestStraight(IReadOnlyList<double2> pts)
         {
             const double tol = 0.05;
@@ -410,21 +490,32 @@ namespace Placemaker.Core.Layers.Parking
                 if (full + halfCount == 0 || used > h + 1e-6) return;
                 double slack = h - used;
                 int steps = Math.Min(7, 1 + (int)Math.Floor(slack / 0.5));
-                var offsets = new List<double> { slack / 2 };
-                for (int j = 0; j < steps; j++) offsets.Add(steps == 1 ? 0 : slack * j / (steps - 1));
-                foreach (var off in offsets)
+                // (offset of the first module, extra width of every median)
+                var offsets = new List<(double Off, double Gap)> { (slack / 2, 0) };
+                for (int j = 0; j < steps; j++) offsets.Add((steps == 1 ? 0 : slack * j / (steps - 1), 0));
+                if (_flush != 0)
+                {
+                    // (P2-1) rows start at the picked edge. The spare width went to the far side as a leftover planted strip
+                    // (run send-parking-touches-save-1031-001049, rebuilt-top); spread over the medians it widens the planting
+                    // the player already has. Listed first: it wins a tie on stalls.
+                    offsets.Clear();
+                    int gaps = full + halfCount - 1;
+                    if (gaps > 0) offsets.Add((0, slack / gaps));
+                    offsets.Add((_flush < 0 ? 0 : slack, 0));
+                }
+                foreach (var (off, gap) in offsets)
                 {
                     var mods = new List<ModuleSpec>();
                     double y = minY + off;
                     if (halfCount > 0 && !halfOnTop)
                     {
                         mods.Add(new ModuleSpec { Y0 = y, Lower = halfLower, Upper = !halfLower });
-                        y += half + md;
+                        y += half + md + gap;
                     }
                     for (int i = 0; i < full; i++)
                     {
                         mods.Add(new ModuleSpec { Y0 = y, Lower = true, Upper = true });
-                        y += modH + md;
+                        y += modH + md + gap;
                     }
                     if (halfCount > 0 && halfOnTop)
                         mods.Add(new ModuleSpec { Y0 = y, Lower = halfLower, Upper = !halfLower });
@@ -1098,13 +1189,15 @@ namespace Placemaker.Core.Layers.Parking
             for (int i = 0; i < ls.Count; i++)
             {
                 var a = ls[i];
-                if (a.Removed || a.Kind == LineKind.Footpath || (!includeConnectors && a.Kind == LineKind.Connector)) continue;
+                if (a.Removed || a.Kind == LineKind.Footpath || a.Kind == LineKind.Walk || (!includeConnectors && a.Kind == LineKind.Connector)) continue;
                 for (int j = 0; j < ls.Count; j++)
                 {
                     if (i == j) continue;
                     var b = ls[j];
-                    if (b.Removed || b.Kind == LineKind.Footpath || (!includeConnectors && b.Kind == LineKind.Connector)) continue;
+                    if (b.Removed || b.Kind == LineKind.Footpath || b.Kind == LineKind.Walk || (!includeConnectors && b.Kind == LineKind.Connector)) continue;
                     if (PGeo.DistPointSeg(a.A, b.A, b.B) < 1e-3 || PGeo.DistPointSeg(a.B, b.A, b.B) < 1e-3) uf.Union(i, j);
+                    // (P2-1) a drawn aisle joins every lane it crosses (the nets are split there: PlanBuilder.SplitAtJunctions)
+                    else if ((a.Kind == LineKind.Sketch || b.Kind == LineKind.Sketch) && PGeo.SegmentsIntersect(a.A, a.B, b.A, b.B)) uf.Union(i, j);
                 }
             }
             return uf;
@@ -1122,7 +1215,7 @@ namespace Placemaker.Core.Layers.Parking
                 if (e.Connected && e.ConnectorLine >= 0) good.Add(uf.Find(e.ConnectorLine));
             if (good.Count == 0) return;
             foreach (var l in _out.Lines)
-                if (!l.Removed && l.Kind != LineKind.Footpath && !good.Contains(uf.Find(l.Id))) l.Removed = true;
+                if (!l.Removed && l.Kind != LineKind.Footpath && l.Kind != LineKind.Walk && l.Kind != LineKind.Sketch && !good.Contains(uf.Find(l.Id))) l.Removed = true;
             int lost = 0;
             foreach (var b in _out.Bays)
             {
@@ -1147,6 +1240,138 @@ namespace Placemaker.Core.Layers.Parking
                     }
                     if (!e.Connected || e.ConnectorLine < 0 || _out.Lines[e.ConnectorLine].Removed) l.Removed = true;
                 }
+        }
+
+        /// <summary>(P2-1) Stalls and drive lines touching an existing building lot (0.5 m clearance, SiteSafety.Margin) go.</summary>
+        /// <summary>
+        /// (P2-1) The lines the player drew: each piece inside the lot becomes a drive aisle (a lane through the rows, joined to
+        /// the aisles it crosses: PlanBuilder splits the nets where they cross) or a walkway (a footpath with its paving); the
+        /// stalls in its way go. They count as reachable: the player put them there.
+        /// </summary>
+        private void ApplySketches()
+        {
+            if (_rq.Sketches == null || _rq.Sketches.Count == 0) return;
+            var f = _out.Frame;
+            int cut = 0;
+            var aisles = new List<int>();
+            foreach (var (drive, pts) in _rq.Sketches)
+            {
+                if (pts == null || pts.Length < 2) continue;
+                double width = drive ? _s.Cross : ParkingSettings.FootpathWidth;
+                for (int i = 0; i + 1 < pts.Length; i++)
+                    foreach (var (a, b) in ClipToLot(f.ToLocal(pts[i]), f.ToLocal(pts[i + 1])))
+                    {
+                        if (PGeo.Len(b - a) < 1) continue;
+                        var corridor = PGeo.Corridor(a, b, width / 2 + 0.1);
+                        foreach (var bay in _out.Bays)
+                            if (!bay.Removed && bay.Quad != null && PGeo.ConvexOverlap(bay.Quad, corridor)) { bay.Removed = true; cut++; }
+                        int id = AddLine(a, b, drive ? LineKind.Sketch : LineKind.Walk, width);
+                        if (drive) aisles.Add(id);
+                    }
+            }
+            _out.SketchCut = cut;
+            foreach (int id in aisles) RowsAlongSketch(_out.Lines[id]);
+        }
+
+        /// <summary>
+        /// (P2-1) A row of stalls on each side of a drawn aisle wherever there is room: inside the setback, off every other
+        /// lane and walkway, square to the drawn line. The drawn aisle's rows win over the planned stalls they overlap (the
+        /// player drew it to have rows there); those stalls go and are counted in SketchCut. Returns the stalls they cost.
+        /// </summary>
+        private int RowsAlongSketch(DriveLine line)
+        {
+            double sw = _s.StallWidth, sl = _s.StallLength;
+            double len = line.Length;
+            if (len < sw) return 0;
+            var tan = (line.B - line.A) / len;
+            var lanes = new List<double2[]>();
+            foreach (var l in _out.Lines)
+                if (!l.Removed && l.Id != line.Id && l.Length > 1e-3)
+                    lanes.Add(PGeo.Corridor(l.A, l.B, l.Kind == LineKind.Connector ? l.Width / 2 + 0.3 : l.Width / 2));
+            var inside = GridOf(_c1);
+            int lost = 0;
+            foreach (double side in new[] { 1.0, -1.0 })
+            {
+                var axis = PGeo.Perp(tan) * side;
+                int row = _nextRow++, order = 0;
+                for (double x = 0; x + sw <= len + 1e-9;)
+                {
+                    var c = line.A + tan * (x + sw / 2) + axis * (line.Width / 2 + sl / 2);
+                    var bay = MakeBay(c, axis, tan * side, BayKind.Inner, row, order, line.Id);
+                    bool ok = inside.ConvexInside(bay.Quad, 1e-4);
+                    for (int i = 0; ok && i < lanes.Count; i++)
+                        if (PGeo.ConvexOverlap(bay.Quad, lanes[i], 1e-3)) ok = false;
+                    // stalls already along a drawn aisle stay (another drawn line, or this one's other side)
+                    for (int i = 0; ok && i < _out.Bays.Count; i++)
+                    {
+                        var o = _out.Bays[i];
+                        if (!o.Removed && o.Sketched && math.distance(o.Center, c) < sw + sl && PGeo.ConvexOverlap(bay.Quad, o.Quad, 1e-3)) ok = false;
+                    }
+                    if (!ok) { x += 0.5; order++; continue; }
+                    foreach (var o in _out.Bays)
+                        if (!o.Removed && math.distance(o.Center, c) < sw + sl && PGeo.ConvexOverlap(bay.Quad, o.Quad, 1e-3)) { o.Removed = true; lost++; }
+                    bay.Sketched = true;
+                    _out.Bays.Add(bay);
+                    _out.SketchRows++;
+                    x += sw; order++;
+                }
+            }
+            _out.SketchCut += lost;
+            return lost;
+        }
+
+        /// <summary>The pieces of segment a–b inside the lot.</summary>
+        private List<(double2, double2)> ClipToLot(double2 a, double2 b)
+        {
+            var ts = new List<double> { 0, 1 };
+            for (int i = 0; i < _lot.Count; i++)
+                if (PGeo.LineLine(a, b, _lot[i], _lot[(i + 1) % _lot.Count], out double t, out double u) && t > 0 && t < 1 && u >= 0 && u <= 1) ts.Add(t);
+            ts.Sort();
+            var r = new List<(double2, double2)>();
+            for (int i = 0; i + 1 < ts.Count; i++)
+            {
+                if (ts[i + 1] - ts[i] < 1e-6) continue;
+                var p = a + (b - a) * ts[i]; var q = a + (b - a) * ts[i + 1];
+                if (PGeo.Contains(_lot, (p + q) * 0.5)) r.Add((p, q));
+            }
+            return r;
+        }
+
+        private void AvoidBuildings()
+        {
+            if (_rq.Buildings == null || _rq.Buildings.Count == 0) return;
+            var f = _out.Frame;
+            var local = new List<double2[]>();
+            foreach (var poly in _rq.Buildings)
+            {
+                if (poly == null || poly.Length < 3) continue;
+                var l = new double2[poly.Length];
+                for (int i = 0; i < poly.Length; i++) l[i] = f.ToLocal(poly[i]);
+                local.Add(l);
+            }
+            if (local.Count == 0) return;
+            const double margin = 0.5;
+            bool Touches(IReadOnlyList<double2> shape)
+            {
+                foreach (var b in local)
+                {
+                    foreach (var p in shape) if (PGeo.Contains(b, p)) return true;
+                    foreach (var p in b) if (PGeo.Contains(shape, p)) return true;
+                    for (int i = 0; i < b.Length; i++)
+                        for (int k = 0; k < shape.Count; k++)
+                            if (PGeo.SegSegDist(b[i], b[(i + 1) % b.Length], shape[k], shape[(k + 1) % shape.Count]) < margin) return true;
+                }
+                return false;
+            }
+            int stalls = 0, lines = 0;
+            foreach (var b in _out.Bays)
+                if (!b.Removed && b.Quad != null && Touches(b.Quad)) { b.Removed = true; stalls++; }
+            foreach (var l in _out.Lines)
+            {
+                if (l.Removed || l.Kind == LineKind.Footpath || l.Kind == LineKind.Walk || l.Length < 1e-3) continue;
+                if (Touches(PGeo.Corridor(l.A, l.B, l.Width / 2))) { l.Removed = true; lines++; }
+            }
+            if (stalls + lines > 0) Issue(IssueSeverity.Info, "Placemaker.Parking.Issue.AroundBuildings", null, stalls);
         }
 
         // ───────────────────────────── chargers ─────────────────────────────
@@ -1195,7 +1420,7 @@ namespace Placemaker.Core.Layers.Parking
             foreach (var l in _out.Lines)
             {
                 if (l.Removed) continue;
-                if (l.Kind == LineKind.Cross)
+                if (l.Kind == LineKind.Cross || l.Kind == LineKind.Sketch || l.Kind == LineKind.Walk)
                     Pieces.Add(new AsphaltPiece { Poly = new List<double2>(PGeo.Corridor(l.A, l.B, l.Width / 2)), ZoneMask = ZGrid | ZRing });
                 else if (l.Kind == LineKind.Connector)
                 {

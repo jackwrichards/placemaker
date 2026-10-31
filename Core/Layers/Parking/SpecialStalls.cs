@@ -83,10 +83,10 @@ namespace Placemaker.Core.Layers.Parking
                 {
                     var b = layout.Bays[i];
                     if (b.Removed) continue;
-                    bool join = prev != null && b.Role == BayRole.Normal && prev.Role == BayRole.Normal &&
+                    bool join = prev != null && b.Role == BayRole.Normal && prev.Role == BayRole.Normal && !b.Pinned && !prev.Pinned &&
                         Math.Abs(PGeo.Dot(b.Center - prev.Center, dir) - LayoutEngine.HalfPitch(prev, dir) - LayoutEngine.HalfPitch(b, dir)) <= 0.05;
                     if (!join) { run = new List<int>(); runs.Add(run); }
-                    if (b.Role == BayRole.Normal) run.Add(i);
+                    if (b.Role == BayRole.Normal && !b.Pinned) run.Add(i);
                     prev = b;
                 }
             }
@@ -94,9 +94,12 @@ namespace Placemaker.Core.Layers.Parking
             return runs;
         }
 
-        public static void Assign(Layout layout, ParkingSettings s, Func<double2, bool> chargerSpotOk)
+        /// <summary>
+        /// The automatic accessible and charger stalls. <paramref name="handGroups"/> / <paramref name="handPairs"/>: those the player
+        /// placed by hand (StallTouches, already in the layout): they count toward the shares, and pinned stalls are left alone.
+        /// </summary>
+        public static void Assign(Layout layout, ParkingSettings s, Func<double2, bool> chargerSpotOk, int handGroups = 0, int handPairs = 0)
         {
-            layout.ElectricPairs.Clear();
             int total = layout.StallCount;
             if (total == 0) return;
 
@@ -111,7 +114,7 @@ namespace Placemaker.Core.Layers.Parking
             if (s.AccessibleShare > 0 && sizes.Count > 0)
             {
                 int wanted = (int)Math.Floor(total * s.AccessibleShare / 100.0 + 0.5);
-                int groups = Math.Max(1, (int)Math.Floor((double)wanted / sizes[0].Stalls + 0.5));
+                int groups = Math.Max(1, (int)Math.Floor((double)wanted / sizes[0].Stalls + 0.5)) - handGroups;
                 for (int gi = 0; gi < groups; gi++)
                 {
                     var anchor = targets[gi % targets.Count];
@@ -138,7 +141,7 @@ namespace Placemaker.Core.Layers.Parking
                     }
                     if (bestRun < 0)
                     {
-                        if (gi == 0) layout.Issues.Add(new LayoutIssue(IssueSeverity.Info, "Placemaker.Parking.Issue.NoRoomForAccessible"));
+                        if (gi == 0 && handGroups == 0) layout.Issues.Add(new LayoutIssue(IssueSeverity.Info, "Placemaker.Parking.Issue.NoRoomForAccessible"));
                         break;
                     }
                     Replace(layout, runs[bestRun].GetRange(bestStart, bestSize.Fields), bestSize);
@@ -148,7 +151,7 @@ namespace Placemaker.Core.Layers.Parking
             // ── EV pairs ──
             if (s.EvShare > 0 && layout.StallCount >= 2)
             {
-                int pairs = Math.Max(1, (int)Math.Floor(layout.StallCount * s.EvShare / 100.0 / 2 + 0.5));
+                int pairs = Math.Max(1, (int)Math.Floor(layout.StallCount * s.EvShare / 100.0 / 2 + 0.5)) - handPairs;
                 var blue = new List<double2>();
                 foreach (var b in layout.Bays) if (!b.Removed && b.Role == BayRole.Disabled) blue.Add(b.Center);
                 var refs = blue.Count > 0 ? blue : targets;
@@ -186,9 +189,46 @@ namespace Placemaker.Core.Layers.Parking
                     layout.ElectricPairs.Add(pr);
                     pairs--;
                 }
-                if (layout.ElectricPairs.Count == 0)
+                if (layout.ElectricPairs.Count == 0 && pairs > 0)
                     layout.Issues.Add(new LayoutIssue(IssueSeverity.Info, "Placemaker.Parking.Issue.NoRoomForChargers"));
             }
+        }
+
+        /// <summary>
+        /// (P2-1) A hand-placed accessible group on bay <paramref name="bay"/>: the best-fitting slice of its run of plain stalls that
+        /// covers it, centred as near the touch as the run allows. False when the bay is not in a square (90°) run long enough.
+        /// </summary>
+        internal static bool ReplaceAt(Layout layout, int bay, double2 at, List<Group> sizes, float3 touchAt)
+        {
+            var b0 = layout.Bays[bay];
+            if (Math.Abs(PGeo.Dot(b0.Axis, b0.RowDir)) > 1e-6) return false;
+            foreach (var run in Runs(layout, SortedRows(layout)))
+            {
+                int k = run.IndexOf(bay);
+                if (k < 0) continue;
+                foreach (var size in sizes)
+                {
+                    if (size.Fields > run.Count) continue;
+                    // the slice start that puts the touch nearest the slice's middle
+                    int bestStart = -1; double bestD = double.MaxValue;
+                    for (int st = Math.Max(0, k - size.Fields + 1); st <= k && st + size.Fields <= run.Count; st++)
+                    {
+                        var mid = (layout.Bays[run[st]].Center + layout.Bays[run[st + size.Fields - 1]].Center) * 0.5;
+                        double d = math.distance(mid, at);
+                        if (d < bestD) { bestD = d; bestStart = st; }
+                    }
+                    if (bestStart < 0) continue;
+                    int first = layout.Bays.Count;
+                    Replace(layout, run.GetRange(bestStart, size.Fields), size);
+                    for (int i = first; i < layout.Bays.Count; i++)
+                    {
+                        layout.Bays[i].Pinned = true; layout.Bays[i].TouchedBy = ParkingIds.TouchAccessible; layout.Bays[i].TouchAt = touchAt;
+                    }
+                    return true;
+                }
+                return false;
+            }
+            return false;
         }
 
         /// <summary>Replaces a run slice by wider accessible stalls covering the same span.</summary>

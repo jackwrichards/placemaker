@@ -253,6 +253,8 @@ namespace Placemaker.Core
         public AreaShape Shape = new AreaShape();
         public SiteContext Site = new SiteContext();
         public List<EdgeMarker> Markers = new List<EdgeMarker>();
+        /// <summary>(P2-1) The player's hand edits on this step (Core/Touches.cs), readable ones only. Empty for most types.</summary>
+        public List<HandTouch> Touches = new List<HandTouch>();
         public SettingsBag Settings = new SettingsBag();
         public uint Seed;
 
@@ -423,6 +425,7 @@ namespace Placemaker.Core
         AssetMulti = 4,  // string[]: several asset ids from AssetCategory (empty = automatic mix)
         Markers = 5,     // edge markers of MarkerKinds — tells the UI/tool this generator uses markers
         Arrangement = 6, // string[]: ordered sequence editor (plaza furniture)
+        Touches = 7,     // (P2-1) hand edits on the plan (Core/Touches.cs): Options are the touch kinds; holds no value
     }
 
     public enum ControlTier { Essential = 0, More = 1 }
@@ -985,6 +988,8 @@ namespace Placemaker.Core
         public List<PlanIssue> Issues = new List<PlanIssue>();
         /// <summary>(Phase 1) Setting ids the layer read while planning (SettingsBag.Reads); null = not recorded.</summary>
         public HashSet<string> SettingsRead;
+        /// <summary>(P2-1) What the player can touch in this plan (stalls…), for the hand-edit tool. Not persisted.</summary>
+        public List<TouchTarget> TouchTargets = new List<TouchTarget>();
         /// <summary>Generator-specific facts the game layer needs (e.g. parking capacity for the economy companion).</summary>
         public Dictionary<string, double> Facts = new Dictionary<string, double>(StringComparer.Ordinal);
 

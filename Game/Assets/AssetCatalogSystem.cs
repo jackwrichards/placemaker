@@ -105,6 +105,9 @@ namespace Placemaker.Game.Assets
             if (prefab.Has<UIObject>()) prefab.Remove<UIObject>();
             bool ok = prefabs.AddPrefab(prefab);
             if (ok) FindItCompat.Track(prefabs, prefab);
+            // (P2-1) by name for plans that name one (the slow drive paths): a copy registered after the catalog's scan never
+            // triggers a rescan (above), so the scan's name list does not have it
+            if (ok) try { s_ownByName[prefab.name] = prefabs.GetEntity(prefab); } catch (Exception) { }
             try
             {
                 if (before >= 0) s_ownPrefabs += math.max(0, q.CalculateEntityCount() - before);
@@ -113,6 +116,9 @@ namespace Placemaker.Game.Assets
             catch (Exception) { }
             return ok;
         }
+
+        private static readonly Dictionary<string, Entity> s_ownByName = new Dictionary<string, Entity>(StringComparer.Ordinal);
+        public static int OwnCount => s_ownByName.Count;
 
         /// <summary>Our own prefab (registered by Placemaker): never a catalogue item.</summary>
         public static bool IsOwnPrefabName(string name) => name != null && name.StartsWith("Placemaker ", StringComparison.Ordinal);
@@ -223,6 +229,7 @@ namespace Placemaker.Game.Assets
             {
                 var names = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var kv in _allPrefabsByName) if (Usable(kv.Value)) names.Add(kv.Key);
+                foreach (var kv in s_ownByName) if (Usable(kv.Value)) names.Add(kv.Key);   // (P2-1) our copies registered after the scan
                 _usableNames = names;
                 _usableVersion = _version;
             }
@@ -381,7 +388,7 @@ namespace Placemaker.Game.Assets
 
         /// <summary>True when any loaded prefab has this name (missing-asset detection).</summary>
         public bool PrefabExists(string name) =>
-            !string.IsNullOrEmpty(name) && _allPrefabsByName.TryGetValue(name, out var e) && Usable(e);
+            !string.IsNullOrEmpty(name) && (_allPrefabsByName.TryGetValue(name, out var e) && Usable(e) || s_ownByName.TryGetValue(name, out e) && Usable(e));
 
         public bool TryGetItem(string name, out CatalogItem item) => _byName.TryGetValue(name ?? "", out item);
 
@@ -485,6 +492,7 @@ namespace Placemaker.Game.Assets
             // Not catalogued (e.g. a prefab a layer names explicitly that our heuristics skip):
             // still honour it when it exists and is of a usable kind for the category.
             if (_allPrefabsByName.TryGetValue(name, out var e) && Usable(e) && KindMatches(e, category)) return e;
+            if (s_ownByName.TryGetValue(name, out e) && Usable(e) && KindMatches(e, category)) return e;
             return Entity.Null;
         }
 
@@ -595,6 +603,7 @@ namespace Placemaker.Game.Assets
             _byCategory.Clear(); foreach (var kv in byCategory) _byCategory[kv.Key] = kv.Value;
             _byName.Clear(); foreach (var kv in byName) _byName[kv.Key] = kv.Value;
             _allPrefabsByName.Clear(); foreach (var kv in allByName) _allPrefabsByName[kv.Key] = kv.Value;
+            foreach (var kv in s_ownByName) if (!_allPrefabsByName.ContainsKey(kv.Key)) _allPrefabsByName[kv.Key] = kv.Value;   // (P2-1) our copies, also when registered after a scan
             _defaults.Clear(); foreach (var kv in defaults) _defaults[kv.Key] = kv.Value;
             _infoMap = info;
             if (changed || !_ready) _version++;

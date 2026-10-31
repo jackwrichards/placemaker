@@ -35,6 +35,8 @@ namespace Placemaker.Core.Layers.Parking
         public const string DisabledDecal = "ParkingLotDisabledDecal01";
         public const string ElectricDecal = "ParkingLotElectricDecal01";
         public const string Charger = "ParkingLotCharger01";
+        /// <summary>(P2-1) A copy of the stall decal without its mesh (Game/Assets/InvisibleBayPrefabSystem): no paint, the parking lane stays. Save format.</summary>
+        public const string InvisibleBay = "Placemaker Invisible Parking Bay";
         // Art pass (2026-10-13): a real asphalt texture first (EAI surface pack, already cloned as an
         // overlay in the player's setup), the vanilla pavement PLT used as the fallback.
         // s25: the lot read as pale concrete in game (EAI "Concrete Asphalt" is a light grey slab under CS2's sun). The
@@ -66,6 +68,26 @@ namespace Placemaker.Core.Layers.Parking
             string best = TwoWayPaths[0].Name;
             foreach (var p in TwoWayPaths) if (p.Core <= width + 1e-6) best = p.Name;
             return best;
+        }
+
+        /// <summary>
+        /// The slow copy of a drive path (Game/Assets/SlowPathPrefabSystem: 25 km/h, dearer to drive through, so through
+        /// traffic keeps to the streets; PLT parity). Save format: never rename.
+        /// </summary>
+        public static string SlowName(string path) => "Placemaker Slow " + path;
+
+        /// <summary>A two-way drive path for <paramref name="width"/>: the slow copy first, the vanilla path when it is missing.</summary>
+        public static AssetRef Drive(double width)
+        {
+            var path = DrivePath(width);
+            return new AssetRef(SlowName(path), path);
+        }
+
+        /// <summary>The one-way entrance path: slow first, then vanilla, then the two-way path for <paramref name="width"/>.</summary>
+        public static AssetRef OneWay(double width)
+        {
+            var path = DrivePath(width);
+            return new AssetRef(SlowName(OneWayPath), OneWayPath, SlowName(path), path);
         }
 
         public static AssetRef Pick(string chosen, string fallback, params string[] more)

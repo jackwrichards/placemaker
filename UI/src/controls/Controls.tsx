@@ -152,6 +152,8 @@ function renderEditor(c: ControlEx, value: SettingValue, commit: (v: SettingValu
             return <ArrangementEditor c={c} value={Array.isArray(value) ? value : []} commit={commit} />;
         case "markers":
             return <MarkersEditor c={c} ctx={ctx} />;
+        case "touches":
+            return <TouchesEditor c={c} ctx={ctx} />;
         default:
             return <div className={s.unknown}>{t("Placemaker.UI.UnknownControl", "Unsupported")}</div>;
     }
@@ -544,6 +546,60 @@ const MarkersEditor = ({ c, ctx }: { c: ControlEx; ctx: RowCtx }) => {
                     </div>
                 );
             })}
+        </div>
+    );
+};
+
+/**
+ * (P2-1) Hand edits: pick what the next click on the world does (a chip per kind, the active one lit), then click stalls or an
+ * edge on the map. Clicking it again takes the edit off; right-click takes back the last one. The count and "Undo all" sit under it.
+ */
+const TouchesEditor = ({ c, ctx }: { c: ControlEx; ctx: RowCtx }) => {
+    const { t } = useT();
+    const opts = c.options ?? [];
+    const mode = ctx.state.touchMode;
+    const activeKind = mode && mode.stepPath === ctx.step.path ? mode.kind : "";
+    const total = (ctx.step.touches ?? []).reduce((n, x) => n + x.count, 0);
+    return (
+        <div className={s.touches} data-testid={`touches-${c.id}`}>
+            <div className={s.chips}>
+                {opts.map((o) => {
+                    const on = o.value === activeKind;
+                    const n = (ctx.step.touches ?? []).find((x) => x.kind === o.value)?.count ?? 0;
+                    return (
+                        <Tip key={o.value} title={optLabel(t, o)} description={o.tooltip ? t(o.tooltip, "") : undefined}>
+                            <button
+                                type="button"
+                                data-testid={`touch-${o.value}`}
+                                aria-pressed={on ? "true" : "false"}
+                                className={classNames(s.chip, { [s.chipOn]: on })}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    act.setTouchKind(ctx.step.path, on ? "" : o.value);
+                                }}
+                            >
+                                {o.icon ? <Icon name={o.icon} size={13} tint={on ? "light" : "dim"} /> : null}
+                                <div className={s.chipText}>{optLabel(t, o)}</div>
+                                {n > 0 ? <div className={s.chipCount}>{n}</div> : null}
+                            </button>
+                        </Tip>
+                    );
+                })}
+            </div>
+            <div className={s.touchFoot}>
+                <div className={s.touchHint}>
+                    {activeKind.startsWith("line.")
+                        ? t("Placemaker.UI.Touches.Drawing", "Click points on the map; right-click or click the last point again to finish. Shift: no snapping. Click a line to remove it.")
+                        : activeKind
+                        ? t("Placemaker.UI.Touches.Active", "Click on the map. Click again to undo it; right-click takes back the last one.")
+                        : total
+                        ? t("Placemaker.UI.Touches.Count", "{0} hand edits, kept when you edit or rebuild.", [total])
+                        : t("Placemaker.UI.Touches.Hint", "Pick one, then click on the map.")}
+                </div>
+                {total > 0 && !activeKind ? (
+                    <Btn icon="undo" iconSize={11} testId={`touches-clear`} label={t("Placemaker.UI.Touches.Clear", "Undo all")} onClick={() => act.clearTouches(ctx.step.path, "")} />
+                ) : null}
+            </div>
         </div>
     );
 };

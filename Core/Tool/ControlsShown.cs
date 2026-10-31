@@ -81,7 +81,7 @@ namespace Placemaker.Core.Tool
             foreach (var c in controls)
             {
                 if (c == null || read.Contains(c.Id) || !IsShown(gen, c)) continue;
-                if (c.Kind == ControlKind.Markers) continue;
+                if (c.Kind == ControlKind.Markers || c.Kind == ControlKind.Touches) continue;
                 if (Layers.Common.LookSettings.Find(gen, c.Id).look != null) continue;
                 list.Add(c.Id);
             }

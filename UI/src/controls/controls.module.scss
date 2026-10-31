@@ -278,6 +278,35 @@
     color: $c-text-dim;
 }
 
+// ── hand edits (P2-1) ──
+.touches {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+// (Gameface has no flex gap: margins)
+.touchFoot {
+    @include row;
+    min-width: 0;
+    margin-top: 4rem;
+}
+
+.touchHint {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: $fs-s;
+    color: $c-text-dim;
+}
+
+.chipCount {
+    margin-left: 4rem;
+    padding: 0 4rem;
+    border-radius: 6rem;
+    background-color: rgba(255, 255, 255, 0.16);
+    font-size: 10rem;
+}
+
 // ── markers (fallback for untyped marker controls) ──
 .markers {
     @include row;

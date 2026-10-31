@@ -265,7 +265,8 @@ namespace Placemaker.Game.Overlay
             foreach (var (key, s) in _spShapes)
             {
                 bool on = SpShows(s.Row);
-                float a = s.Alpha * (s.Ground ? alpha : objAlpha);
+                // (P2-1) the ground fills at the player's see-through strength (options: Plan preview fill), so the land shows through
+                float a = s.Alpha * (s.Ground ? alpha * FillStrength : objAlpha);
                 // under the Real preview the mesh fills draw after the ghost's see-through trees and fogged them (the user: "it has
                 // this weird haze"): none there
                 if (underGhost) a = 0f;

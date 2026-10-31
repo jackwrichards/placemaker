@@ -166,6 +166,7 @@ namespace Placemaker.Game.Tool
                 RedoLabel = RedoLabel,
                 MarkerStepPath = _markerPath,
                 MarkerKind = _markerKind,
+                TouchStepPath = _touchPath, TouchKind = _touchKind,
                 MarkerLabel = _markerKind != null ? MarkerLabel(_markerPath, _markerKind) : null,
                 MarkerCrosswalk = _markerCrosswalk,
                 Hints = Hints(),

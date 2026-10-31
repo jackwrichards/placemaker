@@ -33,6 +33,8 @@ namespace Placemaker.Core
         public bool Enabled = true;
         /// <summary>Markers placed by the player for this step (entrances, access points, split lines…).</summary>
         public List<EdgeMarker> Markers = new List<EdgeMarker>();
+        /// <summary>(P2-1) The player's hand edits on this step's plan (Core/Touches.cs). Like markers: never in a preset or a recipe file.</summary>
+        public List<HandTouch> Touches = new List<HandTouch>();
         public List<RecipeStep> Children = new List<RecipeStep>();
         /// <summary>
         /// Per-region replacement: region key → step that runs there instead of the matching child.
@@ -47,6 +49,7 @@ namespace Placemaker.Core
                 Layer = Layer, Settings = Settings.Clone(), Seed = Seed, Target = Target, Enabled = Enabled,
                 Locked = new HashSet<string>(Locked, StringComparer.Ordinal),
                 Markers = new List<EdgeMarker>(Markers),
+                Touches = new List<HandTouch>(Touches),
             };
             foreach (var ch in Children) c.Children.Add(ch.Clone());
             foreach (var kv in RegionOverrides) c.RegionOverrides[kv.Key] = kv.Value.Clone();
@@ -284,6 +287,7 @@ namespace Placemaker.Core
                 Settings = tracked,
                 Seed = Seeds.Mix(step.Seed, Seeds.Hash(path + "|" + regionKey)),
                 Markers = MarkersOn(step.Markers, shape.Ring),
+                Touches = Touches.Valid(step.Touches),
                 RegionTags = tags,
                 Reserved = reserved.Clone(),
                 ChildLayers = EnabledChildren(children, true),

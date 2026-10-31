@@ -57,14 +57,14 @@ namespace Placemaker.Tests
             var ids = g.Controls.Select(c => c.Id).ToList();
             Assert.Equal(ids.Count, ids.Distinct().Count());
             var d = g.Defaults();
-            foreach (var c in g.Controls.Where(c => c.Kind != ControlKind.Markers)) Assert.True(d.Values.ContainsKey(c.Id), c.Id);
+            foreach (var c in g.Controls.Where(c => c.Kind != ControlKind.Markers && c.Kind != ControlKind.Touches)) Assert.True(d.Values.ContainsKey(c.Id), c.Id);
             foreach (var c in g.Controls.Where(c => c.Kind == ControlKind.Slider))
             {
                 double v = d.Num(c.Id, double.NaN);
                 Assert.InRange(v, c.Min, c.Max);
             }
             Assert.Contains(g.Controls, c => c.Kind == ControlKind.Markers && c.MarkerKinds.SequenceEqual(new[] { "entrance", "entry", "exit", "alley", "alleyIn", "alleyOut", "footpath" }));
-            Assert.Equal(4, g.Controls.Count(c => c.Tier == ControlTier.Essential));
+            Assert.Equal(8, g.Controls.Count(c => c.Tier == ControlTier.Essential));
             Assert.Equal("rowAngleMode=fixed", g.Controls.Single(c => c.Id == "rowAngle").VisibleWhen);
         }
 
@@ -239,7 +239,7 @@ namespace Placemaker.Tests
             var exit = cons.Single(n => math.min(n.A.x, n.D.x) > 80);
             Assert.True(entry.A.z < entry.D.z, "entry drives into the lot");
             Assert.True(exit.A.z > exit.D.z, "exit drives out of the lot");
-            Assert.Equal("Invisible Road Path - 1xOneway", entry.Asset.Id);
+            Assert.Equal("Placemaker Slow Invisible Road Path - 1xOneway", entry.Asset.Id);
             Assert.Equal(2, r.Plan.Objects.Count(o => o.Role == ObjectRole.Arrow));
             Assert.Equal(2, r.Plan.Nets.Count(n => n.Role == NetRole.Pathway));
         }
@@ -262,8 +262,8 @@ namespace Placemaker.Tests
                         Assert.True(math.distance(p, n.A.xz) < 1e-3f || math.distance(p, n.D.xz) < 1e-3f, $"junction at {p} not split");
                 }
             }
-            Assert.Contains(nets, n => n.Asset.Id == "Invisible Road Path - 2xTwoway");
-            Assert.Contains(nets, n => n.Asset.Id == "Invisible Car Path - 1xTwoway");
+            Assert.Contains(nets, n => n.Asset.Id == "Placemaker Slow Invisible Road Path - 2xTwoway");
+            Assert.Contains(nets, n => n.Asset.Id == "Placemaker Slow Invisible Car Path - 1xTwoway");
         }
 
         // ───────────── objects, surfaces, regions, facts ─────────────

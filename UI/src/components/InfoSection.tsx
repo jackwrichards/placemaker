@@ -14,6 +14,7 @@ import { ErrorBoundary } from "../lib/errorBoundary";
 import { VC } from "../lib/vanilla";
 import { RenameField } from "../stages/ManageStage";
 import { Btn, Icon } from "./common";
+import { CarParkRows } from "./FeeRow";
 import s from "./infoSection.module.scss";
 
 export const INFO_SECTION_TYPE = "Placemaker.Game.Groups.PlacemakerGroupSection";
@@ -33,6 +34,12 @@ type Props = {
     missingAssets?: boolean;
     modified?: boolean;
     removing?: boolean;
+    /** (P2-1) The car park's fee per park (-1 or absent = not a car park), and whether it is charged. */
+    fee?: number;
+    feeOn?: boolean;
+    /** (P2-1) Its stalls and the parked cars on them (-1 = not counted / not a car park). */
+    spaces?: number;
+    taken?: number;
 };
 
 const Inner = (p: Props) => {
@@ -65,6 +72,7 @@ const Inner = (p: Props) => {
                     {typeof p.upkeep === "number" ? (stats.length ? " · " : "") + money(p.upkeep) + t("Placemaker.UI.PerMonth", "/mo") : ""}
                 </div>
             ) : null}
+            {typeof p.fee === "number" && p.fee >= 0 && id >= 0 ? <CarParkRows id={id} fee={p.fee} on={!!p.feeOn} spaces={p.spaces} taken={p.taken} /> : null}
             {p.missingAssets ? (
                 <div className={s.note} data-testid="info-missing">
                     <Icon name="warning" size={14} color="#ffb547" />

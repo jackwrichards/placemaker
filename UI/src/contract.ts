@@ -115,6 +115,8 @@ export interface ToolState {
   redoLabel?: LocText;
   /** Marker placement mode active (entrances/access points/split line) and for which step path. */
   markerMode?: { stepPath: string; kind: string; label: LocText; /** The entrances placed next come with a crosswalk (walking kinds). */ crosswalk?: boolean };
+  /** (P2-1) Hand edits: the kind the next click on the world makes (a control of kind "touches" lists them as options). */
+  touchMode?: { stepPath: string; kind: string };
   hints: Hint[];
   /** Non-null while the composer is planning in the background. */
   planning: boolean;
@@ -280,7 +282,7 @@ export interface PolishCity {
 /** One control, mirrors Core.ControlSchema. */
 export interface Control {
   id: string;
-  kind: "slider" | "toggle" | "choice" | "asset" | "assetMulti" | "markers" | "arrangement";
+  kind: "slider" | "toggle" | "choice" | "asset" | "assetMulti" | "markers" | "arrangement" | "touches";
   tier: "essential" | "more";
   group: string;
   label: string;            // localisation key
@@ -470,6 +472,8 @@ export interface StepView {
   values: Record<string, SettingValue>;
   locked: string[];         // ids set explicitly by the player
   markers: { kind: string; count: number }[];
+  /** (P2-1) The step's hand edits by kind (Core/Touches.cs). Absent from older builds. */
+  touches?: { kind: string; count: number }[];
   /** Every placed marker in placement order (index = removeMarker index). */
   markerList?: { kind: string; index: number; position: [number, number, number]; /** with a crosswalk across the street */ crosswalk?: boolean }[];
   /** Marker kinds this step accepts, in display order (e.g. entrance, entry, exit, alley, footpath). crosswalk = people walk in there: it can have one. */
@@ -701,6 +705,20 @@ export interface ManagedGroup {
   stats: Stat[];
   upkeep: number;
   canEdit: boolean;
+  /** (P2-1) a car park: its fee (money per park; feeOn false = free, amount kept) and how full it is (spaces = stalls). */
+  parking?: { fee: number; feeOn: boolean; spaces?: number; taken?: number };
+}
+
+/** carParks — (P2-1) every car park for Manage's list (Parking Lot Tool's lot list); pushed while Manage is open. */
+export interface CarParkRow {
+  id: number;
+  recipeName: LocText;
+  customName?: string;
+  spaces: number;
+  taken: number;
+  fee: number;
+  feeOn: boolean;
+  at?: [number, number, number];   // the outline's centre, for the camera
 }
 
 export const Values = {
@@ -710,6 +728,7 @@ export const Values = {
   summary: "summary",       // Summary
   assets: "assets",         // AssetLists
   managed: "managed",       // ManagedGroup | null
+  carParks: "carParks",     // CarParkRow[] (P2-1)
   ai: "ai",                 // AiView | null (null while the AI builder option is off; docs/AI-BUILDER.md)
   sitePlan: "sitePlan",     // SitePlanView | null (additive, sketch study)
 } as const;
@@ -806,6 +825,10 @@ export const Triggers = {
   setAnarchy: "setAnarchy",                 // (enabled: boolean)
   locate: "locate",                         // (x: number, y: number, z: number) — move camera to an issue
   acknowledgePermanent: "acknowledgePermanent", // (ack: boolean) — required before Build when summary.permanent is non-empty (Enter included)
+  setGroupFee: "setGroupFee",               // (groupId: number, fee: number) — (P2-1) a placed car park's fee per park (click panel)
+  setGroupFeeOn: "setGroupFeeOn",           // (groupId: number, on: boolean) — (P2-1) charge it or not (the amount is kept)
+  setTouchKind: "setTouchKind",             // (path: string, kind: string) — (P2-1) the hand edit the next world click makes; "" = done
+  clearTouches: "clearTouches",             // (path: string, kind: string) — (P2-1) take off the step's hand edits of that kind ("" = all)
   setMarkerKind: "setMarkerKind",           // (path: string, kind: string) — which marker type the next click places (entrance types etc.)
   removeMarker: "removeMarker",             // (path: string, index: number)
   setMarkerCrosswalk: "setMarkerCrosswalk", // (path: string, index: number, on: boolean) — index -1: the entrances placed next

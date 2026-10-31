@@ -123,7 +123,7 @@ namespace Placemaker.Tests
             input.Markers = s2;
             Assert.True(g.CheckReady(input).Ready);
             var plan = g.Plan(input, CancellationToken.None);
-            Assert.Equal(2, plan.Nets.Count(n => n.Role == NetRole.DriveConnector && n.Asset.Id == "Invisible Road Path - 1xOneway"));
+            Assert.Equal(2, plan.Nets.Count(n => n.Role == NetRole.DriveConnector && n.Asset.Id == "Placemaker Slow Invisible Road Path - 1xOneway"));
 
             foreach (var m in s1.Concat(s2)) Assert.DoesNotContain("alley", m.Kind);
         }
@@ -135,7 +135,7 @@ namespace Placemaker.Tests
         {
             var r = ParkingKit.Run(Rect, null, M((0, 60, "entrance")), Street());
             var con = r.Plan.Nets.Single(n => n.Role == NetRole.DriveConnector);
-            Assert.Equal("Invisible Road Path - 2xTwoway", con.Asset.Id);
+            Assert.Equal("Placemaker Slow Invisible Road Path - 2xTwoway", con.Asset.Id);
             Assert.InRange(con.A.z, -4.05f, -3.95f);
             Assert.DoesNotContain(r.Plan.Nets, n => n.Role == NetRole.Alley);
             Assert.DoesNotContain(r.Plan.Objects, o => o.Role == ObjectRole.Arrow);
@@ -166,7 +166,7 @@ namespace Placemaker.Tests
             Assert.Equal(42, outn.EndAttach);                                     // lot → street
             Assert.True(outn.A.z > outn.D.z);
             Assert.Equal(2, io.Plan.Objects.Count(o => o.Role == ObjectRole.Arrow));
-            Assert.Equal(2, io.Plan.Nets.Count(n => n.Role == NetRole.DriveConnector && n.Asset.Id == "Invisible Road Path - 1xOneway"));
+            Assert.Equal(2, io.Plan.Nets.Count(n => n.Role == NetRole.DriveConnector && n.Asset.Id == "Placemaker Slow Invisible Road Path - 1xOneway"));
             AssertClean(io);
         }
 

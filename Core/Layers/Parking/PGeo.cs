@@ -21,6 +21,8 @@ namespace Placemaker.Core.Layers.Parking
         public static double2 Norm(double2 a) { var l = Len(a); return l > 1e-12 ? a / l : new double2(1, 0); }
         /// <summary>Left normal (CCW rotation by 90°).</summary>
         public static double2 Perp(double2 a) => new double2(-a.y, a.x);
+        /// <summary>Turned counter-clockwise by <paramref name="rad"/>.</summary>
+        public static double2 Rotate(double2 a, double rad) { double c = Math.Cos(rad), s = Math.Sin(rad); return new double2(a.x * c - a.y * s, a.x * s + a.y * c); }
         public static int Mod(int v, int m) { int r = v % m; return r < 0 ? r + m : r; }
 
         public static double SignedArea(IReadOnlyList<double2> ring)
@@ -80,6 +82,10 @@ namespace Placemaker.Core.Layers.Parking
             }
             return inside;
         }
+
+        /// <summary>(P2-1) Distance between two segments (0 when they cross).</summary>
+        public static double SegSegDist(double2 a, double2 b, double2 c, double2 d) =>
+            SegmentsIntersect(a, b, c, d) ? 0 : Math.Min(Math.Min(DistPointSeg(a, c, d), DistPointSeg(b, c, d)), Math.Min(DistPointSeg(c, a, b), DistPointSeg(d, a, b)));
 
         public static double DistPointSeg(double2 p, double2 a, double2 b)
         {

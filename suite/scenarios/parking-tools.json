@@ -1,0 +1,363 @@
+{
+  "_about": "P2-1 parking tools: (1) a standard car park with a drive aisle (its own rows of stalls along both sides) and a walkway drawn on the map, built, close views, the Manage panel (picked car park, then the car park list), the drive lanes read, then Edit with the old build hidden; (2) rows on the zone grid with the space markings off; (3) outline corners on the zone grid: the same skewed corners drawn before and after the rows are set to Zone grid. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/parking-tools.json -Who p2-parking-tools",
+  "scenarios": [
+    {
+      "id": "parking-sketch",
+      "site": "flat",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "value",
+          "id": "gridTurn",
+          "value": "0"
+        },
+        {
+          "do": "value",
+          "id": "markings",
+          "value": true
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.42
+        },
+        {
+          "do": "preview",
+          "shot": "plan-before"
+        },
+        {
+          "do": "sketch",
+          "kind": "line.aisle",
+          "points": [
+            [
+              0.12,
+              0.25
+            ],
+            [
+              0.88,
+              0.75
+            ]
+          ]
+        },
+        {
+          "do": "sketch",
+          "kind": "line.walk",
+          "points": [
+            [
+              0.62,
+              0.03
+            ],
+            [
+              0.62,
+              0.97
+            ]
+          ]
+        },
+        {
+          "do": "preview",
+          "shot": "plan-sketched"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "built-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "built-45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "point",
+          "at": [
+            0,
+            0
+          ],
+          "view": "oblique",
+          "pitch": 45,
+          "distance": 75,
+          "shot": "aisle-close-45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "point",
+          "at": [
+            0,
+            0
+          ],
+          "view": "top",
+          "distance": 95,
+          "shot": "aisle-close-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "select",
+          "shot": "manage-picked",
+          "shotMode": "ui"
+        },
+        {
+          "do": "lab",
+          "op": "carParks",
+          "label": "picked"
+        },
+        {
+          "do": "select",
+          "list": true,
+          "shot": "manage-list",
+          "shotMode": "ui"
+        },
+        {
+          "do": "lab",
+          "op": "carParks",
+          "label": "list"
+        },
+        {
+          "do": "lab",
+          "op": "driveLanes",
+          "label": "after the build"
+        },
+        {
+          "do": "edit",
+          "build": true
+        },
+        {
+          "do": "lab",
+          "op": "driveLanes",
+          "label": "while editing"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "edit-old-hidden",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "groupRecords",
+          "label": "after the sketch build"
+        }
+      ]
+    },
+    {
+      "id": "parking-zones-nomarks",
+      "site": "flat",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.42
+        },
+        {
+          "do": "value",
+          "id": "rowAngleMode",
+          "value": "zones"
+        },
+        {
+          "do": "value",
+          "id": "gridTurn",
+          "value": "45"
+        },
+        {
+          "do": "value",
+          "id": "markings",
+          "value": false
+        },
+        {
+          "do": "preview",
+          "shot": "plan-zones-45"
+        },
+        {
+          "do": "lab",
+          "op": "assetCheck",
+          "names": [
+            "Placemaker Slow Invisible Road Path - 2xTwoway",
+            "Placemaker Invisible Parking Bay",
+            "Invisible Road Path - 2xTwoway"
+          ]
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "built-nomarks-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "built-nomarks-45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "point",
+          "at": [
+            0,
+            0
+          ],
+          "view": "oblique",
+          "pitch": 45,
+          "distance": 75,
+          "shot": "zones-close-45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "driveLanes",
+          "label": "no markings"
+        }
+      ]
+    },
+    {
+      "id": "parking-zone-corners",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -63.3,
+              -61.6
+            ],
+            [
+              62.1,
+              -64.2
+            ],
+            [
+              64.6,
+              62.7
+            ],
+            [
+              -61.8,
+              63.3
+            ]
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "zoneCorners",
+          "label": "before (row direction: longest side)"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "value",
+          "id": "rowAngleMode",
+          "value": "zones"
+        },
+        {
+          "do": "value",
+          "id": "gridTurn",
+          "value": "0"
+        },
+        {
+          "do": "value",
+          "id": "markings",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -63.3,
+              -61.6
+            ],
+            [
+              62.1,
+              -64.2
+            ],
+            [
+              64.6,
+              62.7
+            ],
+            [
+              -61.8,
+              63.3
+            ]
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "zoneCorners",
+          "label": "after (row direction: zone grid)"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.42
+        },
+        {
+          "do": "preview",
+          "shot": "plan-zone-corners"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "zone-corners-45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "zone-corners-top",
+          "shotMode": "render",
+          "zones": true
+        }
+      ],
+      "land": {
+        "shape": "square",
+        "size": [
+          320,
+          320
+        ]
+      }
+    }
+  ]
+}

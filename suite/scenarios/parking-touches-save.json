@@ -1,0 +1,157 @@
+{
+  "_about": "P2-1 manual touches, part 1 of 2: a standard car park on a grid block; an entrance snapped to an aisle; hand edits clicked on the map (accessible group far from the entrance, a charger pair, an empty space, a planted island); built; Edit; one more hand edit (the island taken back) and the rows lined up with the west side; rebuilt; the city saved. The driveLanes lines show the slow paths (speed and cost of the car lanes) and, while editing, the old build hidden. Part 2 (parking-touches-load.json, Send-Suite -Fresh) loads it and lists the hand edits the receipt kept. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/parking-touches-save.json -Who p2-parking-tools",
+  "scenarios": [
+    {
+      "id": "parking-touches",
+      "site": "flat",
+      "pace": "settled",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.42
+        },
+        {
+          "do": "preview",
+          "shot": "plan-before"
+        },
+        {
+          "do": "touch",
+          "kind": "stall.accessible",
+          "pick": "far"
+        },
+        {
+          "do": "touch",
+          "kind": "stall.ev",
+          "pick": "far",
+          "index": 12
+        },
+        {
+          "do": "touch",
+          "kind": "stall.blank",
+          "pick": "middle"
+        },
+        {
+          "do": "touch",
+          "kind": "stall.island",
+          "pick": "middle",
+          "index": 6
+        },
+        {
+          "do": "preview",
+          "shot": "plan-touched"
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "preview",
+          "shot": "plan-sketch"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "built-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "built-45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "groupRecords",
+          "label": "after the build"
+        },
+        {
+          "do": "lab",
+          "op": "driveLanes",
+          "label": "after the build"
+        },
+        {
+          "do": "edit",
+          "build": true
+        },
+        {
+          "do": "preview",
+          "shot": "edit-plan"
+        },
+        {
+          "do": "lab",
+          "op": "driveLanes",
+          "label": "while editing"
+        },
+        {
+          "do": "touch",
+          "kind": "stall.island",
+          "pick": "touched",
+          "state": "island"
+        },
+        {
+          "do": "touch",
+          "kind": "grid.edge",
+          "side": "west"
+        },
+        {
+          "do": "preview",
+          "shot": "edit-plan-touched"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "rebuilt-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "rebuilt-45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "groupRecords",
+          "label": "after the rebuild"
+        },
+        {
+          "do": "lab",
+          "op": "driveLanes",
+          "label": "after the rebuild"
+        },
+        {
+          "do": "lab",
+          "op": "saveCity",
+          "name": "PlacemakerTouches"
+        }
+      ]
+    }
+  ]
+}

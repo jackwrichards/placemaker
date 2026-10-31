@@ -93,6 +93,39 @@ namespace Placemaker.Core.Layers.Parking
             }
         }
 
+        internal static string TouchName(string kind)
+        {
+            switch (kind)
+            {
+                case ParkingIds.TouchAccessible: return "Accessible";
+                case ParkingIds.TouchCharger: return "Charger";
+                case ParkingIds.TouchPlain: return "Plain";
+                case ParkingIds.TouchBlank: return "Blank";
+                case ParkingIds.TouchIsland: return "Island";
+                case ParkingIds.TouchEdge: return "Edge";
+                case ParkingIds.LineAisle: return "LineAisle";
+                case ParkingIds.LineWalk: return "LineWalk";
+                default: return "Other";
+            }
+        }
+
+        /// <summary>Bundled UI glyphs (UI/src/assets/icons).</summary>
+        internal static string TouchIcon(string kind)
+        {
+            switch (kind)
+            {
+                case ParkingIds.TouchAccessible: return "people";
+                case ParkingIds.TouchCharger: return "sparkle";
+                case ParkingIds.TouchPlain: return "car";
+                case ParkingIds.TouchBlank: return "zoneEmpty";
+                case ParkingIds.TouchIsland: return "shrub";
+                case ParkingIds.TouchEdge: return "angle";
+                case ParkingIds.LineAisle: return "roads";
+                case ParkingIds.LineWalk: return "path";
+                default: return "";
+            }
+        }
+
         // Groups in display order — the UI shows every control, so the most used come first.
         internal static readonly string[] GroupOrder = { "entrances", "layout", "spaces", "planting", "lighting", "surfaces", "zoning", "fee", "decals" };
 
@@ -114,11 +147,22 @@ namespace Placemaker.Core.Layers.Parking
             angle.Options.Add(Opt("60", "StallAngle.60"));
             angle.Options.Add(Opt("45", "StallAngle.45"));
             l.Add(angle);
-            var mode = C(ParkingIds.RowAngleMode, ControlKind.Choice, ControlTier.More, "layout", "edge");
+            // (P2-1) what the grid lines up with, and its turn against it; a picked edge (hand edit) wins over both
+            var mode = C(ParkingIds.RowAngleMode, ControlKind.Choice, ControlTier.Essential, "layout", "edge");
             mode.Options.Add(Opt("edge", "RowAngleMode.Edge"));
+            mode.Options.Add(Opt("street", "RowAngleMode.Street"));
+            mode.Options.Add(Opt("zones", "RowAngleMode.Zones"));
             mode.Options.Add(Opt("across", "RowAngleMode.Across"));
             mode.Options.Add(Opt("fixed", "RowAngleMode.Fixed"));
             l.Add(mode);
+            var turn = C(ParkingIds.GridTurn, ControlKind.Choice, ControlTier.Essential, "layout", "0");
+            foreach (var t in new[] { "0", "30", "45", "60", "90" }) turn.Options.Add(Opt(t, "GridTurn." + t));
+            turn.Options.Add(Opt("free", "GridTurn.Free"));
+            turn.VisibleWhen = ParkingIds.RowAngleMode + "!=fixed";
+            l.Add(turn);
+            var turnFree = Slider(ParkingIds.GridTurnFree, ControlTier.More, "layout", 15, 1, 179, 1, "deg");
+            turnFree.VisibleWhen = ParkingIds.RowAngleMode + "!=fixed&" + ParkingIds.GridTurn + "=free";
+            l.Add(turnFree);
             var rowAngle = Slider(ParkingIds.RowAngle, ControlTier.More, "layout", 0, 0, 179, 1, "deg");
             rowAngle.VisibleWhen = ParkingIds.RowAngleMode + "=fixed";
             l.Add(rowAngle);
@@ -133,6 +177,16 @@ namespace Placemaker.Core.Layers.Parking
             l.Add(Slider(ParkingIds.StallLength, ControlTier.More, "spaces", ParkingSettings.DefaultStallLength, 4.5, 7, 0.1, "m"));
             l.Add(Slider(ParkingIds.AccessibleShare, ControlTier.More, "spaces", 2, 0, 10, 1, "%"));
             l.Add(Slider(ParkingIds.EvShare, ControlTier.More, "spaces", 4, 0, 30, 1, "%"));
+            // (P2-1) hand edits on the stalls and the edge the rows line up with (Core/Touches.cs)
+            var edits = C(ParkingIds.HandEdits, ControlKind.Touches, ControlTier.Essential, "spaces", null);
+            edits.Icon = "edit";
+            foreach (var k in ParkingIds.TouchKinds)
+            {
+                string name = TouchName(k);
+                edits.Options.Add(new ControlOption { Value = k, LabelKey = K + "Touch." + name, TooltipKey = K + "Touch." + name + ".Tip", Icon = TouchIcon(k) });
+            }
+            l.Add(edits);
+            l.Add(C(ParkingIds.Markings, ControlKind.Toggle, ControlTier.More, "spaces", true));
             var ch = C(ParkingIds.ChargerAsset, ControlKind.Asset, ControlTier.More, "spaces", "");
             ch.AssetCategory = AssetCategories.Charger; ch.Cheap = true;
             l.Add(ch);
@@ -185,7 +239,8 @@ namespace Placemaker.Core.Layers.Parking
             // (ZoningPatchWidth has no slider: the building plot marker it sizes is not offered any more, ParkingIds.MarkerKinds.)
 
             // ── Fee ──
-            l.Add(Slider(ParkingIds.Fee, ControlTier.More, "fee", 10, 0, 50, 1, "money", cheap: true));
+            // (P2-1) up front: the fee was hard to find (a creator turned fees off elsewhere); 0 = free. Changeable later on the click panel.
+            l.Add(Slider(ParkingIds.Fee, ControlTier.Essential, "fee", 10, 0, 50, 1, "money", cheap: true));
 
             // ── Decals (s21): oil in the bays, tyre marks, litter under lot trees — Core/Decals/Dressing ──
             var groups = new HashSet<string>(StringComparer.Ordinal);
