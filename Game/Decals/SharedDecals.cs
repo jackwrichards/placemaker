@@ -33,7 +33,7 @@ namespace Placemaker.Game.Decals
         public const long BudgetBytes = 200L * 1024 * 1024;
         private const double UploadBudgetMs = 1.5;
         private const float BoxHeight = 10f;
-        private const uint CacheMagic = 0x31434450;   // "PDC1"
+        private const uint CacheMagic = 0x32434450;   // "PDC2": the normal and mask maps at half size (P2-4)
 
         internal sealed class Variant
         {
@@ -54,6 +54,8 @@ namespace Placemaker.Game.Decals
             // worker results
             public byte[] A, N, M;
             public int W, H;
+            /// <summary>The normal and mask maps' size (DecalTexture.DetailSize: half the colour map's).</summary>
+            public int DW, DH;
             public string Error;
         }
 
@@ -233,8 +235,10 @@ namespace Placemaker.Game.Decals
                             var b = DecalVariants.Bake(v.K, v.Index);
                             v.W = b.Img.W; v.H = b.Img.H; v.Span = b.Span;
                             v.A = DecalTexture.Bc3Chain(LinearAlbedo(b.Img.Albedo), v.W, v.H, alphaWeighted: true, normal: false);
-                            v.N = DecalTexture.Bc3Chain(b.Img.Normal, v.W, v.H, alphaWeighted: false, normal: true);
-                            v.M = DecalTexture.Bc3Chain(b.Img.Mask, v.W, v.H, alphaWeighted: false, normal: false);
+                            var d = DecalTexture.DetailSize(v.W, v.H);
+                            v.DW = d.x; v.DH = d.y;
+                            v.N = DecalTexture.Bc3Chain(DecalTexture.Resample(b.Img.Normal, v.W, v.H, v.DW, v.DH, true), v.DW, v.DH, alphaWeighted: false, normal: true);
+                            v.M = DecalTexture.Bc3Chain(DecalTexture.Resample(b.Img.Mask, v.W, v.H, v.DW, v.DH, false), v.DW, v.DH, alphaWeighted: false, normal: false);
                             WriteCache(file, v);
                         }
                     }
@@ -259,10 +263,12 @@ namespace Placemaker.Game.Decals
                 using var r = new BinaryReader(File.OpenRead(file));
                 if (r.ReadUInt32() != CacheMagic || r.ReadInt32() != DecalVariants.GeneratorVersion) return false;
                 v.W = r.ReadInt32(); v.H = r.ReadInt32(); v.Span = new float2(r.ReadSingle(), r.ReadSingle());
-                int size = DecalTexture.Bc3Size(v.W, v.H);
                 if (v.W < 4 || v.H < 4 || v.W > 2048 || v.H > 2048) return false;
-                v.A = r.ReadBytes(size); v.N = r.ReadBytes(size); v.M = r.ReadBytes(size);
-                if (v.M.Length != size) return false;
+                var d = DecalTexture.DetailSize(v.W, v.H);
+                v.DW = d.x; v.DH = d.y;
+                int size = DecalTexture.Bc3Size(v.W, v.H), dsize = DecalTexture.Bc3Size(v.DW, v.DH);
+                v.A = r.ReadBytes(size); v.N = r.ReadBytes(dsize); v.M = r.ReadBytes(dsize);
+                if (v.A.Length != size || v.M.Length != dsize) return false;
                 v.FromDisk = true;
                 return true;
             }
@@ -392,7 +398,7 @@ namespace Placemaker.Game.Decals
         {
             try
             {
-                var a = Tex(v.A, v.W, v.H, true); var n = Tex(v.N, v.W, v.H, true); var m = Tex(v.M, v.W, v.H, true);
+                var a = Tex(v.A, v.W, v.H, true); var n = Tex(v.N, v.DW, v.DH, true); var m = Tex(v.M, v.DW, v.DH, true);
                 v.A = v.N = v.M = null;
                 if (a == null || n == null || m == null) { if (a) UnityEngine.Object.Destroy(a); if (n) UnityEngine.Object.Destroy(n); if (m) UnityEngine.Object.Destroy(m); return false; }
                 v.Tex = new[] { a, n, m };

@@ -19,6 +19,46 @@ namespace Placemaker.Core.Decals.Dynamic
             return m;
         }
 
+        /// <summary>
+        /// (P2-4, the decal memory budget) The size of a variant's normal and mask maps: half its colour map's, on the 4-texel
+        /// block grid. Relief and smoothness read the same at half resolution while the colour stays sharp, and the variant takes
+        /// half the GPU memory (colour 1 + normal ¼ + mask ¼ instead of 3).
+        /// </summary>
+        public static int2 DetailSize(int w, int h) => new int2(math.max(4, (w / 2 + 2) / 4 * 4), math.max(4, (h / 2 + 2) / 4 * 4));
+
+        /// <summary>An RGBA32 image resampled to nw x nh (box over the source texels each target texel covers); normal: RGB renormalised.</summary>
+        public static byte[] Resample(byte[] src, int w, int h, int nw, int nh, bool normal)
+        {
+            var dst = new byte[nw * nh * 4];
+            float sx = w / (float)nw, sy = h / (float)nh;
+            for (int y = 0; y < nh; y++)
+            {
+                int y0 = (int)(y * sy), y1 = math.max(y0 + 1, math.min(h, (int)math.ceil((y + 1) * sy)));
+                for (int x = 0; x < nw; x++)
+                {
+                    int x0 = (int)(x * sx), x1 = math.max(x0 + 1, math.min(w, (int)math.ceil((x + 1) * sx)));
+                    float r = 0, g = 0, b = 0, a = 0; int n = 0;
+                    for (int yy = y0; yy < y1; yy++)
+                        for (int xx = x0; xx < x1; xx++)
+                        {
+                            int i = (yy * w + xx) * 4;
+                            r += src[i]; g += src[i + 1]; b += src[i + 2]; a += src[i + 3]; n++;
+                        }
+                    r /= n; g /= n; b /= n; a /= n;
+                    if (normal)
+                    {
+                        var v = new float3(r, g, b) / 127.5f - 1f;
+                        v = math.normalizesafe(v, new float3(0, 0, 1));
+                        r = (v.x + 1f) * 127.5f; g = (v.y + 1f) * 127.5f; b = (v.z + 1f) * 127.5f;
+                    }
+                    int o = (y * nw + x) * 4;
+                    dst[o] = (byte)math.clamp((int)math.round(r), 0, 255); dst[o + 1] = (byte)math.clamp((int)math.round(g), 0, 255);
+                    dst[o + 2] = (byte)math.clamp((int)math.round(b), 0, 255); dst[o + 3] = (byte)math.clamp((int)math.round(a), 0, 255);
+                }
+            }
+            return dst;
+        }
+
         /// <summary>Bytes of a BC3 chain of <paramref name="w"/> x <paramref name="h"/> with all mips.</summary>
         public static int Bc3Size(int w, int h)
         {
