@@ -224,7 +224,7 @@ namespace Placemaker.Game.Tool
             _focus = RecipePaths.Root;
             if (_editingGroup != 0) _buildUngrouped = false;   // the edited build's choice was for that build only
             _markerCrosswalk = false;   // the Crosswalk switch is for the entrances of one build: off again for the next
-            _editingGroup = 0;
+            SetEditingGroup(0);
             _plan = null;
             _planRevision = -1;
             _requestedRevision = -1;
@@ -322,7 +322,7 @@ namespace Placemaker.Game.Tool
             _recipeId = _recipes.Find(receipt.Recipe.Id) != null ? receipt.Recipe.Id : "";
             _presetLayer = ""; _presetId = "";   // a receipt names no style: the panel shows the type's Standard (changed if it differs)
             _focus = RecipePaths.Root;
-            _editingGroup = groupId;
+            SetEditingGroup(groupId);
             _managedGroup = 0;
             _buildUngrouped = groups.IsUngrouped(groupId);   // a rebuild stays as it was: grouped or in pieces
             DesignChanged();
@@ -350,7 +350,7 @@ namespace Placemaker.Game.Tool
             if (!ok) { Flash(new LocText("Placemaker.Problem.RemoveFailed")); return; }
             if (_managedGroup == groupId) _managedGroup = 0;
             if (_hoverGroup == groupId) _hoverGroup = 0;
-            if (_editingGroup == groupId) _editingGroup = 0;
+            if (_editingGroup == groupId) SetEditingGroup(0);
             _membersGroup = -1;
             Flash(new LocText("Placemaker.Hint.Removed"));
             Touch();
@@ -412,7 +412,7 @@ namespace Placemaker.Game.Tool
                     if (groups.RequestRemove(id)) n++;
             }
             catch (Exception e) { Mod.Log.Error(e, "Placemaker: remove everything failed"); }
-            _managedGroup = _hoverGroup = _editingGroup = 0;
+            _managedGroup = _hoverGroup = 0; SetEditingGroup(0);
             Touch();
             Mod.Log.Info("Placemaker: requested removal of " + n + " groups");
             return n;

@@ -543,7 +543,7 @@ namespace Placemaker.Game.Tool
         {
             if (_editingGroup == 0) return;
             Mod.Log.Info($"Placemaker: the edit of group {_editingGroup} ended without building ({why}); the build stays as it was.");
-            _editingGroup = 0;
+            SetEditingGroup(0);
             _buildUngrouped = false;
             if (!forget) { Touch(); return; }
             ClearSelectionState();
