@@ -428,7 +428,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 foreach (var (r, slab) in slabs)
                     crackWeeds += DecayKit.CrackWeeds(ctx, occ, slab.Cracks, math.saturate(over * 0.9f + 0.05f) * (sub == "brokenCarPark" ? 0.3f : 1f), weedIds, weedCat, 0xC3Au + (uint)(r.Center.x * 3f));
             // P2-4: the scrub of a rubble field, a wasteland or a burnt lot reaches well in, in thickets (the middle was bare)
-            bool deep = sub == "rubbleField" || sub == "fencedWasteland" || sub == "burntOut";
+            bool deep = sub == "rubbleField" || sub == "burntOut";   // (the graded wasteland pad grew its scrub in stripes: kept as it was)
             float edgeReach = sub == "overgrown" ? 22f : deep ? 30f : 14f;
             // (P2-4) about 300 small bushes on 4 ha read as an empty lot from 45 degrees: the deep lots grow thickets, and a few
             // birches and buddleia trees seed themselves in
