@@ -75,6 +75,7 @@ namespace Placemaker.Game.Suite
                 case "drivelanes": LabDriveLanes(step, rec); yield break;
                 case "assetcheck": LabAssetCheck(step, rec); yield break;
                 case "zonecorners": LabZoneCorners(step, rec); yield break;
+                case "carparks": LabCarParks(step, rec); yield break;
                 case "oldduplicate": LabOldDuplicate(rec); yield break;
                 case "olddecalcleanup":
                     Placemaker.Game.Build.OldDecalCleanupSystem.SuiteSkip = (bool?)step["on"] == false;

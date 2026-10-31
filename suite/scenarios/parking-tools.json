@@ -105,10 +105,20 @@
           "shotMode": "ui"
         },
         {
+          "do": "lab",
+          "op": "carParks",
+          "label": "picked"
+        },
+        {
           "do": "select",
           "list": true,
           "shot": "manage-list",
           "shotMode": "ui"
+        },
+        {
+          "do": "lab",
+          "op": "carParks",
+          "label": "list"
         },
         {
           "do": "lab",

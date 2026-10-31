@@ -183,7 +183,10 @@ namespace Placemaker.Game.Tool
             bool zones = _recipe != null && UsesZoneRows(_recipe.Root);
             _snapCollector.ZoneLevel = zones ? SnapResolver.LevelNet : SnapResolver.LevelZoneGrid;
             _snapCollector.ZoneReach = zones ? 64f : 0f;
+            if (zones != _zoneSnapLogged) { _zoneSnapLogged = zones; Mod.Log.Info("Placemaker: outline corners snap to the zone grid " + (zones ? "firmly (rows on the zone grid, 64 m reach)" : "as usual") + "."); }
         }
+
+        private bool _zoneSnapLogged;
 
         private static bool UsesZoneRows(Placemaker.Core.RecipeStep step)
         {
