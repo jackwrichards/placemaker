@@ -481,7 +481,10 @@ namespace Placemaker.Tests
             var layer = new RoadsLayer();
             var flat = Input(Rect600, AreaSource.Drawn, Settings((RoadsIds.Pattern, "contour")));
             Assert.False(layer.CheckReady(flat).Ready);
-            Assert.Contains(Run(flat).Issues, i => i.Key == RoadsPlanner.IssueFlat);
+            // (p1-ground) a plan made anyway falls back to winding streets rather than nothing
+            var flatPlan = Run(flat);
+            Assert.NotEmpty(flatPlan.Nets);
+            Assert.True(flatPlan.Facts.ContainsKey(RoadsPlanner.FactContourFallback));
             var hilly = Input(Rect600, AreaSource.Drawn, Settings((RoadsIds.Pattern, "contour")));
             hilly.Site.HeightAt = p => 0.12f * p.x;
             Assert.True(layer.CheckReady(hilly).Ready);

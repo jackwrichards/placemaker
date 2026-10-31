@@ -149,9 +149,11 @@ namespace Placemaker.Tests
             Assert.NotNull(roads);
             var conditional = roads.Controls.Where(c => !string.IsNullOrEmpty(c.VisibleWhen)).ToList();
             Assert.NotEmpty(conditional);
-            // (and the terrace settings on natural land)
+            // (and the terrace settings on natural land, a look setting's own options while it is off (LookSettings.OnCondition),
+            // and pre-zoning where the type does not offer it)
             foreach (var c in conditional)
-                Assert.Equal(c.VisibleWhen.StartsWith("pattern=") || c.VisibleWhen.StartsWith("landShape="), c.HideWhenOff);
+                Assert.True((c.VisibleWhen.StartsWith("pattern=") || c.VisibleWhen.StartsWith("landShape=") || c.VisibleWhen.StartsWith("look")
+                    || c.VisibleWhen == "preZone=offered") == c.HideWhenOff, c.Id + ": " + c.VisibleWhen);
             Assert.Contains(conditional, c => !c.HideWhenOff);   // e.g. cul-de-sac options: greyed, not hidden
         }
 
