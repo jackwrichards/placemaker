@@ -78,7 +78,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             // Marsh shore: a saltmarsh flat with creeks and salt pans, reed beds, a boardwalk out to the open water, a strip of sand.
             Preset("marsh", ("style", "marsh"), ("beachDepth", 36.0), ("wetBand", 2.0), ("slope", 2.0), ("channels", 4.0), ("boardwalk", true), ("umbrellas", 0.0),
                 ("backdrop", "none"), ("treeDensity", 18.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("landings", false),
-                ("accessSpacing", 200.0), ("benchSpacing", 35.0), ("lamps", false), ("sandBlend", 4.0), ("bay", 0.0), ("islands", 1.0),
+                ("accessSpacing", 200.0), ("benchSpacing", 35.0), ("lamps", false), ("sandBlend", 4.0), ("bay", 0.0), ("islands", 1.0), ("paintLayer", (double)TerrainMaterials.Lush),
                 ("biomeLawn", 0.0), ("biomeMeadow", 70.0), ("biomeForest", 30.0));   // the shore is the marsh; a wetland biome behind it cost 300 ms more
             // Harbour cove: two rock headlands jutting out into the water with boulders piled on them, rock platforms with pools,
             // a small beach and boats between, a jetty.
@@ -107,7 +107,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             }
             if (shore.Length < 40f) ctx.Issue(IssueSeverity.Warning, ShortShoreKey, (int)math.round(shore.Length));
             if (landDepth < 25f) ctx.Issue(IssueSeverity.Warning, NarrowLandKey, (int)math.round(landDepth));
-            if (shore.CliffShare > 0.3f) ctx.Issue(IssueSeverity.Info, CliffAdviceKey);
+            if (shore.CliffShare > 0.3f) ctx.Issue(IssueSeverity.Warning, CliffAdviceKey);
             else
             {
                 // the bank's typical grade over the first 15 m inland

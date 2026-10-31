@@ -2,7 +2,8 @@
 // node tools/suite/beach-scenario.js <out.json> <styles|all> [lands] [views]
 //   styles: comma list of beach preset ids, or "all" (the shelf's visible ones)
 //   lands:  comma list of lake | lakein | cliff | steep | lagoon | small (default lake)
-//           lakein: the lake land, the outline drawn 45 m out over the water (islands and water rocks need it)
+//           lakein: the lake land, the outline drawn about 45 m out over the water (islands and water rocks need it;
+//           the block centre sits about 35 m north of the land centre, measured on the terrain map)
 //   views:  comma list of 45 | top | close | joints | low | terrain (default 45,top,close,joints,terrain)
 // Every build runs the simulation 30 s afterwards so the water flows into carved bays, creeks and round headlands.
 // "joints" frames every place a deck (jetty, boardwalk, footbridge) meets a ground path: camera target "joint", index "all".
@@ -16,7 +17,7 @@ const lands = {
   steep: { size: [180, 100], water: { side: "north", freeboard: 3, bank: 35 } },
   lagoon: { size: [240, 160], ground: "slope", grade: 4, toward: "north", water: { side: "north", width: 120 } },
   small: { size: [90, 70], water: { side: "north", width: 70 } },
-  lakein: { size: [200, 110], water: { side: "north", width: 90 }, area: { do: "area", tool: "points", points: [[-100, -55], [100, -55], [100, 100], [-100, 100]] } },
+  lakein: { size: [200, 110], water: { side: "north", width: 90 }, area: { do: "area", tool: "points", points: [[-100, -90], [100, -90], [100, 62], [-100, 62]] } },
 };
 const views = viewsArg.split(",");
 const shot = (v) => {

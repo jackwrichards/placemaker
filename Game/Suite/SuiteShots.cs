@@ -348,9 +348,11 @@ namespace Placemaker.Game.Suite
         /// that meet a ground-following path end within 1 m: the joints Phase 1 fixed in BuildService (one node, no overhang), each
         /// framed for its own close-up. Deck-to-deck joints over water are left out.
         /// </summary>
+        private List<PlannedNet> _builtNets;
+
         private List<float3> DeckJoints()
         {
-            var nets = _tool.Plan?.Layers.SelectMany(l => l.Nets).ToList() ?? new List<PlannedNet>();
+            var nets = _tool.Plan?.Layers.SelectMany(l => l.Nets).ToList() ?? _builtNets ?? new List<PlannedNet>();
             var ground = new List<float3>();
             foreach (var n in nets) if (n.FollowTerrain) { ground.Add(n.A); ground.Add(n.D); }
             var joints = new List<float3>();
