@@ -161,7 +161,16 @@ namespace Placemaker.Core.Decals.Dynamic
                 host.Facts["decalTouchedPct"] = Math.Round(r.Touched * 100f, 1);
                 host.Facts["decalStrongPct"] = Math.Round(r.Strong * 100f, 1);
             }
+            // the steps are decal instances too: counted in the report (they were added after it: Instances fell short on slopes)
+            int before = 0, after = 0;
+            foreach (var l in plan.Layers) if (l != null) before += l.DecalInstances.Count;
             Stairs(plan, groups, ground);
+            foreach (var l in plan.Layers) if (l != null) after += l.DecalInstances.Count;
+            if (after > before)
+            {
+                total.Instances += after - before;
+                total.ByCause["seam:stairs"] = (total.ByCause.TryGetValue("seam:stairs", out var st) ? st : 0) + after - before;
+            }
             total.Ms = clock.Elapsed.TotalMilliseconds;
             return total;
         }

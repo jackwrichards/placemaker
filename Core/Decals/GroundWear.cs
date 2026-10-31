@@ -200,6 +200,8 @@ namespace Placemaker.Core.Decals
                 bool water = Site?.WaterDepthAt != null;
                 // (P2-8) a plain biome (plain grass, the field) keeps the game's own grass: no lush or dry patches on it
                 var plain = Placemaker.Core.Decals.Dynamic.BiomeGround.PlainAt(new[] { Host });
+                // a place that is all natural ground (no share for its own lawn) with plain grass in it: no tint at all (the verges too)
+                if (plain != null && Host.Facts != null && Host.Facts.TryGetValue("biomeHostShare", out var hostShare) && hostShare <= 0) return;
                 for (int y = 0; y < gh; y++)
                     for (int x = 0; x < gw; x++)
                     {

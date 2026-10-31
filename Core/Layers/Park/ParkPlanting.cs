@@ -536,8 +536,8 @@ namespace Placemaker.Core.Layers.Park
                 if (belt) placed += Row(s, target - placed, 5f, 10f, true, species, ref rng);
             }
             else if (belt) placed += Row(s, target, 2.2f, 2.4f, false, species, ref rng);
-            // Whatever is left goes in a regular grid on open lawn (formal parterres keep the clearing).
-            if (placed < target) GridFill(s, target - placed, tree, species, ref rng);
+            // (P2-8) whatever the avenues and the edge rows did not take stays unplanted: a grid of the rest on the open lawn read as
+            // an orchard in the formal green's lawn panels (game run show-6-builds-1031-135541)
         }
 
         /// <summary>

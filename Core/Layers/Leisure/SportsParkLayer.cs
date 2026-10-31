@@ -198,11 +198,39 @@ namespace Placemaker.Core.Layers.Leisure
             string subtype = ctx.S("subtype");
             if (SportsDesigns.Handles(subtype) && SportsDesigns.Plan(ctx, Gates(ctx), subtype, Placemaker.Core.Layers.Plaza.PlazaDressing.SquareAxis(ctx.LayerRegion)))
             {
+                ClearWalks(ctx);
                 CommonStats(ctx);
                 return;
             }
             new SportsParkComposer(ctx, Gates(ctx)).Run();
+            ClearWalks(ctx);
             CommonStats(ctx);
+        }
+
+        /// <summary>
+        /// (P2-8) Nothing stands on a walk: props laid after the walks (an entrance plaza's low walls, seating lips) within the
+        /// walk's reserved half width + 0.3 m go (they stood 1.1 m from a path centre: SportsParkTests' nothing-on-paths check).
+        /// </summary>
+        private static void ClearWalks(LayerContext ctx)
+        {
+            var walks = new List<PlannedNet>();
+            foreach (var n in ctx.Plan.Nets) if (n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide) walks.Add(n);
+            if (walks.Count == 0) return;
+            ctx.Plan.Objects.RemoveAll(o =>
+            {
+                if (o.Role == ObjectRole.Decal || o.Role == ObjectRole.AccessPoint || o.Role == ObjectRole.AnimalSpawner) return false;
+                foreach (var n in walks)
+                {
+                    float keep = Composer.DefaultHalfWidth(n.Role) + 0.35f;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        float t0 = i / 8f, t1 = (i + 1) / 8f;
+                        var a = Composer.Bezier(n.A, n.B, n.C, n.D, t0).xz; var b = Composer.Bezier(n.A, n.B, n.C, n.D, t1).xz;
+                        if (SegmentIndex.DistSq(o.Position.xz, a, b) < keep * keep) return true;
+                    }
+                }
+                return false;
+            });
         }
 
         // ───────────── migration of the retired facility controls ─────────────

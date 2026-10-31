@@ -87,7 +87,7 @@ namespace Placemaker.Tests
                         break;
                 }
                 if (!string.IsNullOrEmpty(c.VisibleWhen))
-                    Assert.NotNull(g.Controls.FirstOrDefault(o => o.Id == c.VisibleWhen.Split('=')[0]));
+                    Assert.NotNull(g.Controls.FirstOrDefault(o => o.Id == c.VisibleWhen.Split(new[] { "!=", "=" }, StringSplitOptions.None)[0]));
             }
         }
 

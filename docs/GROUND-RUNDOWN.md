@@ -317,6 +317,18 @@ add a biome (farms: orchard, field; beaches: dune, shingle; golf: rough, heath).
 - Tracks of the path net come in pieces: chain `sc.Paths` into whole lines before laying ruts, or the wheel lines break
   at every joint.
 
+## P2-8 lessons (parks and biomes, 2026-10-31)
+
+- "100 %" must mean the whole ground: every layer that plants something decorative (host planting on verges, big trees, a
+  picnic's shade trees, flowerbeds) reads `ReservedSpace.InNatural(p)` (the parent's biome areas) and the host's share of
+  the mix. Write a test that lists every tree of the plan and its source before arguing about where they come from.
+- The shared lawn variation is heavy: GroundWear's "lush" paint (forest floor, layer 2) covers about half of a painted lawn
+  in noise patches and reads from 45° as dark green blotches. A ground that should look like plain or mown grass must keep
+  it off (`BiomeDef.Plain`), and the Weathering lawn tone, mottle, dry-grass and clover decals too.
+- Strip kinds on long thin lines (`wornPath`) read as orange dashes from 45° on open grass; faint `animalTrail` at 0.3-0.5
+  opacity reads as trodden lines. Pale flower dots in a lawn (daisies) at full white and cover 0.2 read as snow patches:
+  keep them under 210 grey and cover about 0.1.
+
 ## Lessons from parking looks (2026-10-31, docs/runbooks/parking-looks.md)
 
 - **Dark near-neutral greys draw purple.** Decal colours between about 32 and 42 (sRGB) came out violet in the game: the
