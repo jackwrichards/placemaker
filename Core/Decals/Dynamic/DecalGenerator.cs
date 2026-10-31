@@ -886,6 +886,69 @@ namespace Placemaker.Core.Decals.Dynamic
                                 height = -st.H * (0.4f + 0.6f * bars);
                                 break;
                             }
+                            case StampKind.Shell:
+                            {
+                                // (p2-beaches) a scallop: a ribbed fan opening from its hinge at -x, two small ears at the hinge
+                                float u = (a + 0.85f) / 1.8f, v = b * 0.95f;
+                                float rr = math.sqrt(u * u + v * v), th = math.atan2(v, u);
+                                bool ear = u >= 0f && u < 0.16f && math.abs(v) < 0.34f;
+                                float rim = 0.95f * (1f + 0.035f * math.cos(th * 15f));
+                                if (!ear && (math.abs(th) > 1.18f || rr > rim)) continue;
+                                cov = ear ? 1f : math.smoothstep(rim, rim * 0.9f, rr) * math.smoothstep(1.18f, 1.05f, math.abs(th));
+                                float rib = math.abs(math.cos(th * 13f));
+                                shade = (0.82f + 0.22f * rib) * (0.9f + 0.15f * rr);
+                                height = st.H * (0.55f + 0.45f * rib) * (1f - rr * 0.35f);
+                                break;
+                            }
+                            case StampKind.Towel:
+                            {
+                                // (p2-beaches) a beach towel laid flat: two-tone stripes across it (or a plain field with a border), a fringe
+                                // at both short ends, soft wrinkles
+                                float aa = math.abs(a), ab = math.abs(b);
+                                bool fringe = aa > 0.9f && aa < 1f && ab < 0.92f && math.sin(b * 46f) > -0.2f;
+                                if (!fringe && (aa > 0.9f || ab > 0.95f)) continue;
+                                cov = fringe ? 0.8f : math.smoothstep(0.95f, 0.9f, ab);
+                                float wr = DecalNoise.Perlin(a * 2.2f + (st.Hash & 31), b * 1.3f, st.Hash);
+                                int look = (int)(st.Hash % 3u);
+                                float stripe = look == 0 ? math.step(0.62f, aa) + math.step(0.7f, ab)
+                                    : math.step(0f, math.sin(a * math.PI * (look == 1 ? 3.5f : 6f) + (st.Hash & 7)));
+                                shade = (fringe ? 0.9f : math.lerp(1f, 0.58f, math.saturate(stripe))) * (0.92f + 0.12f * wr);
+                                height = st.H * (0.25f + 0.35f * wr);
+                                break;
+                            }
+                            case StampKind.Toy:
+                            {
+                                // (p2-beaches) a bucket (a ring with a dark inside) and a spade beside it, or a moulded sand castle mark
+                                float e = ((a + 0.42f) * (a + 0.42f)) / 0.2f + (b * b) / 0.8f;
+                                float handle = (a > 0.1f && a < 0.95f && math.abs(b + 0.55f * (a - 0.1f) * 0.3f) < 0.09f) ? 1f : 0f;
+                                float blade = ((a - 0.12f) * (a - 0.12f)) / 0.03f + ((b + 0.02f) * (b + 0.02f)) / 0.12f;
+                                if (e > 1f && handle <= 0f && blade > 1f) continue;
+                                if (e <= 1f)
+                                {
+                                    cov = math.smoothstep(1f, 0.8f, e);
+                                    shade = e < 0.45f ? 0.45f : (e > 0.8f ? 0.8f : 1.05f);
+                                    height = st.H * (e < 0.45f ? 0.2f : 1f);
+                                }
+                                else
+                                {
+                                    cov = blade <= 1f ? math.smoothstep(1f, 0.7f, blade) : 1f;
+                                    shade = 0.9f;
+                                    height = st.H * 0.4f;
+                                }
+                                break;
+                            }
+                            case StampKind.Kelp:
+                            {
+                                // (p2-beaches) a frond of kelp or wrack: a wavy ribbon along x, a darker midrib, thinning to its tips
+                                float b0 = 0.38f * math.sin(a * 3.1f + (st.Hash & 15)) + 0.12f * math.sin(a * 7.3f + (st.Hash & 7));
+                                float half = 0.22f * (1f - math.pow(math.abs(a), 4f)) * (0.75f + 0.5f * (0.5f + 0.5f * DecalNoise.Perlin(a * 3f, 0.5f, st.Hash)));
+                                float kOff = math.abs(b - b0);
+                                if (math.abs(a) > 1f || kOff > half) continue;
+                                cov = math.smoothstep(half, half * 0.6f, kOff);
+                                shade = 0.85f + 0.25f * math.smoothstep(0.02f, half, kOff) - 0.15f * (1f - math.smoothstep(0f, 0.04f, kOff));
+                                height = st.H * (1f - kOff / math.max(0.02f, half));
+                                break;
+                            }
                             default:   // blob: a soft round drop with a ragged rim
                             {
                                 float wob = 1f + 0.3f * DecalNoise.Perlin(a * 1.3f + (st.Hash & 255), b * 1.3f, st.Hash);

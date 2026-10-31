@@ -27,5 +27,9 @@
   "Placemaker.Biome.orchard": "Verger",
   "Placemaker.Biome.orchard.Tooltip": "Des arbres fruitiers en rangs droits avec des allées d’herbe tondue, sur les pentes chaudes et le plat.",
   "Placemaker.Biome.pasture": "Pâture rude",
-  "Placemaker.Biome.pasture.Tooltip": "Herbe en touffes, ajoncs et épineux, pierres et sentes à moutons, sur les sols pentus et pauvres."
+  "Placemaker.Biome.pasture.Tooltip": "Herbe en touffes, ajoncs et épineux, pierres et sentes à moutons, sur les sols pentus et pauvres.",
+  "Placemaker.Biome.dunes": "Dunes",
+  "Placemaker.Biome.dunes.Tooltip": "Buttes de sable bosselées couvertes d'oyats, sable nu là où le vent entaille, un ou deux pins rabougris.",
+  "Placemaker.Biome.shingle": "Galets",
+  "Placemaker.Biome.shingle.Tooltip": "Une étendue de galets gris en cordons bas avec de rares touffes de chou marin et de genêt, çà et là un tronc délavé."
 }

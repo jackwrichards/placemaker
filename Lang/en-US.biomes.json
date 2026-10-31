@@ -27,5 +27,9 @@
   "Placemaker.Biome.orchard": "Orchard",
   "Placemaker.Biome.orchard.Tooltip": "Fruit trees in straight rows with mown grass alleys, on the warm slopes and the flats.",
   "Placemaker.Biome.pasture": "Rough grazing",
-  "Placemaker.Biome.pasture.Tooltip": "Tussocky grass with gorse and thorn scrub, stones and sheep tracks, on the steep and poor ground."
+  "Placemaker.Biome.pasture.Tooltip": "Tussocky grass with gorse and thorn scrub, stones and sheep tracks, on the steep and poor ground.",
+  "Placemaker.Biome.dunes": "Dunes",
+  "Placemaker.Biome.dunes.Tooltip": "Knobbly sand hills with marram grass massed on them, bare sand where the wind cuts in, a stunted pine or two.",
+  "Placemaker.Biome.shingle": "Shingle",
+  "Placemaker.Biome.shingle.Tooltip": "A flat of grey pebbles in low ridges with sparse clumps of sea kale and broom, a weathered log here and there."
 }

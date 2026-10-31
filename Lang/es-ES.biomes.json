@@ -27,5 +27,9 @@
   "Placemaker.Biome.orchard": "Huerto frutal",
   "Placemaker.Biome.orchard.Tooltip": "Frutales en hileras rectas con calles de hierba segada, en laderas cálidas y llanos.",
   "Placemaker.Biome.pasture": "Pasto agreste",
-  "Placemaker.Biome.pasture.Tooltip": "Hierba en matas con aulagas y espinos, piedras y sendas de ovejas, en el terreno empinado y pobre."
+  "Placemaker.Biome.pasture.Tooltip": "Hierba en matas con aulagas y espinos, piedras y sendas de ovejas, en el terreno empinado y pobre.",
+  "Placemaker.Biome.dunes": "Dunas",
+  "Placemaker.Biome.dunes.Tooltip": "Lomas de arena irregulares cubiertas de barrón, arena desnuda donde entra el viento, algún pino achaparrado.",
+  "Placemaker.Biome.shingle": "Guijarros",
+  "Placemaker.Biome.shingle.Tooltip": "Una llanura de guijarros grises en cordones bajos con matas dispersas de col marina y retama, algún tronco curtido aquí y allá."
 }

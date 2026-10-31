@@ -74,6 +74,8 @@ namespace Placemaker.Game.Suite
                 yield break;
             }
             int doneBefore = _tool.SuiteBuildsDone;
+            // (p2-beaches) the plan is gone after the build: keep its nets for the joint close-ups
+            _builtNets = _tool.Plan?.Layers.SelectMany(l => l.Nets).ToList();
             float t0 = Time.realtimeSinceStartup;
             // what the build leaves: "fresh" (default, the area cleared as every scenario expects), "keep" (the area kept,
             // back to Design: the player's Build & keep area) or "close" (Build & close)

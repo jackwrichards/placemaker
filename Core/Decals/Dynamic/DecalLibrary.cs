@@ -65,6 +65,8 @@ namespace Placemaker.Core.Decals.Dynamic
     {
         Leaf, Pebble, Print, Blob, Twig, Tread, Litter,
         Oak, Maple, Birch, Rock, Chip, Butt, Paper, Cap, Splat, Paw, Boot, Petal,
+        // (p2-beaches) appended: a scallop shell, a beach towel, a bucket-and-spade toy, a frond of kelp
+        Shell, Towel, Toy, Kelp,
     }
 
     public sealed class DecalOp
@@ -426,6 +428,10 @@ namespace Placemaker.Core.Decals.Dynamic
                 case "paw": return StampKind.Paw;
                 case "boot": return StampKind.Boot;
                 case "petal": return StampKind.Petal;
+                case "shell": return StampKind.Shell;
+                case "towel": return StampKind.Towel;
+                case "toy": case "bucket": return StampKind.Toy;
+                case "kelp": case "seaweed": return StampKind.Kelp;
                 default: return StampKind.Leaf;
             }
         }

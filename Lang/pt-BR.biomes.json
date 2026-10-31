@@ -27,5 +27,9 @@
   "Placemaker.Biome.orchard": "Pomar",
   "Placemaker.Biome.orchard.Tooltip": "Árvores frutíferas em fileiras retas com corredores de grama aparada, nas encostas quentes e no plano.",
   "Placemaker.Biome.pasture": "Pasto rústico",
-  "Placemaker.Biome.pasture.Tooltip": "Capim em touceiras com tojo e espinheiros, pedras e trilhas de ovelhas, no terreno íngreme e pobre."
+  "Placemaker.Biome.pasture.Tooltip": "Capim em touceiras com tojo e espinheiros, pedras e trilhas de ovelhas, no terreno íngreme e pobre.",
+  "Placemaker.Biome.dunes": "Dunas",
+  "Placemaker.Biome.dunes.Tooltip": "Morros de areia irregulares cobertos de capim-das-dunas, areia nua onde o vento corta, um ou dois pinheiros raquíticos.",
+  "Placemaker.Biome.shingle": "Seixos",
+  "Placemaker.Biome.shingle.Tooltip": "Uma planície de seixos cinzentos em cordões baixos com tufos esparsos de couve-marinha e giesta, aqui e ali um tronco desgastado."
 }

@@ -27,5 +27,9 @@
   "Placemaker.Biome.orchard": "Frutteto",
   "Placemaker.Biome.orchard.Tooltip": "Alberi da frutto in file dritte con corsie d’erba falciata, sui pendii caldi e in piano.",
   "Placemaker.Biome.pasture": "Pascolo brado",
-  "Placemaker.Biome.pasture.Tooltip": "Erba a cespi con ginestre e rovi, sassi e sentieri di pecore, sui terreni ripidi e poveri."
+  "Placemaker.Biome.pasture.Tooltip": "Erba a cespi con ginestre e rovi, sassi e sentieri di pecore, sui terreni ripidi e poveri.",
+  "Placemaker.Biome.dunes": "Dune",
+  "Placemaker.Biome.dunes.Tooltip": "Colline di sabbia bitorzolute fitte di sparto pungente, sabbia nuda dove il vento incide, un pino stentato o due.",
+  "Placemaker.Biome.shingle": "Ciottoli",
+  "Placemaker.Biome.shingle.Tooltip": "Una distesa di ciottoli grigi in bassi cordoni con radi cespi di cavolo marino e ginestra, qua e là un tronco consumato."
 }

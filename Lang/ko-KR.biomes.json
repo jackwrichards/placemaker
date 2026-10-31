@@ -27,5 +27,9 @@
   "Placemaker.Biome.orchard": "과수원",
   "Placemaker.Biome.orchard.Tooltip": "깎은 풀 통로 사이로 과일나무가 곧게 줄지어 섭니다. 따뜻한 비탈과 평지에.",
   "Placemaker.Biome.pasture": "거친 방목지",
-  "Placemaker.Biome.pasture.Tooltip": "가시금작화와 가시덤불, 돌, 양이 다닌 길이 있는 풀밭. 가파르고 메마른 땅에."
+  "Placemaker.Biome.pasture.Tooltip": "가시금작화와 가시덤불, 돌, 양이 다닌 길이 있는 풀밭. 가파르고 메마른 땅에.",
+  "Placemaker.Biome.dunes": "사구",
+  "Placemaker.Biome.dunes.Tooltip": "갯그령이 빽빽한 울퉁불퉁한 모래 언덕, 바람이 파고드는 곳의 맨모래, 키 작은 소나무 한두 그루.",
+  "Placemaker.Biome.shingle": "자갈밭",
+  "Placemaker.Biome.shingle.Tooltip": "낮은 둔덕을 이룬 회색 조약돌 평지에 갯배추와 금작화 덤불이 드문드문, 군데군데 풍화된 통나무."
 }

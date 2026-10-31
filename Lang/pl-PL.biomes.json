@@ -27,5 +27,9 @@
   "Placemaker.Biome.orchard": "Sad",
   "Placemaker.Biome.orchard.Tooltip": "Drzewa owocowe w prostych rzędach z koszonymi alejkami, na ciepłych zboczach i równinach.",
   "Placemaker.Biome.pasture": "Dzikie pastwisko",
-  "Placemaker.Biome.pasture.Tooltip": "Kępkowa trawa z janowcem i ciernistymi krzakami, kamienie i owcze ścieżki, na stromej i ubogiej ziemi."
+  "Placemaker.Biome.pasture.Tooltip": "Kępkowa trawa z janowcem i ciernistymi krzakami, kamienie i owcze ścieżki, na stromej i ubogiej ziemi.",
+  "Placemaker.Biome.dunes": "Wydmy",
+  "Placemaker.Biome.dunes.Tooltip": "Guzowate piaszczyste wzgórza gęsto porośnięte piaskownicą, nagi piasek tam, gdzie wcina się wiatr, jedna czy dwie karłowate sosny.",
+  "Placemaker.Biome.shingle": "Żwir",
+  "Placemaker.Biome.shingle.Tooltip": "Płaszczyzna szarych otoczaków w niskich wałach z rzadkimi kępami modrej kapusty i janowca, tu i ówdzie wyblakły pień."
 }

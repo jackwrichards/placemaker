@@ -59,7 +59,7 @@
   "camera": {
     "keys": ["target", "view", "index", "yaw", "pitch", "distance", "fov", "at", "abs", "eye", "height", "clearView"],
     "enums": {
-      "target": ["block", "area", "build", "entrance", "issue", "point", "overview"],
+      "target": ["block", "area", "build", "entrance", "issue", "point", "joint", "overview"],
       "view": ["oblique", "top", "closeup", "low"]
     }
   }

@@ -27,5 +27,9 @@
   "Placemaker.Biome.orchard": "果園",
   "Placemaker.Biome.orchard.Tooltip": "果樹成排筆直栽種，中間是修剪過的草道，位於向陽坡地和平地。",
   "Placemaker.Biome.pasture": "粗放牧場",
-  "Placemaker.Biome.pasture.Tooltip": "叢生的草、荊豆和荊棘灌叢、石塊和羊道，位於陡峭貧瘠的土地上。"
+  "Placemaker.Biome.pasture.Tooltip": "叢生的草、荊豆和荊棘灌叢、石塊和羊道，位於陡峭貧瘠的土地上。",
+  "Placemaker.Biome.dunes": "沙丘",
+  "Placemaker.Biome.dunes.Tooltip": "高低不平的沙丘上密生濱草，風切入處露出裸沙，還有一兩棵矮小的松樹。",
+  "Placemaker.Biome.shingle": "礫石灘",
+  "Placemaker.Biome.shingle.Tooltip": "一片灰色卵石平地堆成低矮的石脊，零星長著海甘藍和金雀花，四處可見風化的浮木。"
 }

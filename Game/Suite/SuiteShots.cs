@@ -136,12 +136,21 @@ namespace Placemaker.Game.Suite
                     pivot = P3(Pt(c["at"], b, (bool?)c["abs"] ?? false));
                     radius = 20f;
                     break;
+                case "joint":
+                {
+                    // (p2-beaches) where a deck (pier, jetty, boardwalk, footbridge) meets a ground path: a close-up of each
+                    var joints = DeckJoints();
+                    if (i < 0 || i >= joints.Count) { err = $"no deck joint {i} (have {joints.Count})"; break; }
+                    pivot = joints[i];
+                    radius = 7f;
+                    break;
+                }
                 case "overview":
                     pivot = new float3((_fixture.Layout.LineX(0) + _fixture.Layout.LineX(_fixture.Layout.NX)) * 0.5f, _fixture.Layout.Base, (_fixture.Layout.LineZ(0) + _fixture.Layout.LineZ(_fixture.Layout.NZ)) * 0.5f);
                     radius = 600f;
                     break;
                 default:
-                    err = $"unknown camera target '{target}' (block, area, build, entrance, issue, point, overview)";
+                    err = $"unknown camera target '{target}' (block, area, build, entrance, issue, point, joint, overview)";
                     break;
             }
             string view = ((string)c["view"] ?? (target == "entrance" || target == "issue" || target == "point" ? "closeup" : "oblique")).ToLowerInvariant();
@@ -329,8 +338,35 @@ namespace Placemaker.Game.Suite
             {
                 case "entrance": return st.Markers.Count > 0 ? st.Markers.Count : _tool.SuiteMarkers().Count;
                 case "issue": return (_tool.Plan?.Issues.Concat(_tool.Plan.Layers.SelectMany(l => l.Issues)) ?? Enumerable.Empty<PlanIssue>()).Count(x => x.At.HasValue);
+                case "joint": return DeckJoints().Count;
             }
             return 0;
+        }
+
+        /// <summary>
+        /// (p2-beaches) The ends of the last plan's decks (nets that do not follow the terrain: piers, jetties, boardwalks, footbridges)
+        /// that meet a ground-following path end within 1 m: the joints Phase 1 fixed in BuildService (one node, no overhang), each
+        /// framed for its own close-up. Deck-to-deck joints over water are left out.
+        /// </summary>
+        private List<PlannedNet> _builtNets;
+
+        private List<float3> DeckJoints()
+        {
+            var nets = _tool.Plan?.Layers.SelectMany(l => l.Nets).ToList() ?? _builtNets ?? new List<PlannedNet>();
+            var ground = new List<float3>();
+            foreach (var n in nets) if (n.FollowTerrain) { ground.Add(n.A); ground.Add(n.D); }
+            var joints = new List<float3>();
+            foreach (var n in nets)
+            {
+                if (n.FollowTerrain) continue;
+                foreach (var e in new[] { n.A, n.D })
+                {
+                    if (!ground.Any(gp => math.distance(gp.xz, e.xz) < 1f)) continue;
+                    if (joints.Any(j => math.distance(j.xz, e.xz) < 2f)) continue;
+                    joints.Add(new float3(e.x, _fixture.H(e.x, e.z), e.z));
+                }
+            }
+            return joints;
         }
 
         // ───────────── settle gate ─────────────

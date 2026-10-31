@@ -27,5 +27,9 @@
   "Placemaker.Biome.orchard": "果樹園",
   "Placemaker.Biome.orchard.Tooltip": "刈られた草の通路をはさんで果樹がまっすぐ並びます。暖かい斜面や平地に。",
   "Placemaker.Biome.pasture": "粗放牧地",
-  "Placemaker.Biome.pasture.Tooltip": "ハリエニシダやとげのある藪、石、羊の踏み跡がある草地。急で痩せた土地に。"
+  "Placemaker.Biome.pasture.Tooltip": "ハリエニシダやとげのある藪、石、羊の踏み跡がある草地。急で痩せた土地に。",
+  "Placemaker.Biome.dunes": "砂丘",
+  "Placemaker.Biome.dunes.Tooltip": "ハマニンニクが密生するでこぼこの砂山、風が切り込む所はむき出しの砂、いじけた松が1〜2本。",
+  "Placemaker.Biome.shingle": "砂利浜",
+  "Placemaker.Biome.shingle.Tooltip": "低い堤をなす灰色の小石の平地に、ハマナやエニシダの株がまばらに生え、ところどころに風化した流木。"
 }

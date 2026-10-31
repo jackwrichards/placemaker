@@ -23,13 +23,22 @@ namespace Placemaker.Tests.Types
         public static IEnumerable<object[]> PresetIds() => TestKit.Gen("beach").Presets.Select(p => new object[] { p.Id });
         private static PresetInfo Preset(string id) => TestKit.Gen("beach").Presets.Single(p => p.Id == id);
 
+        /// <summary>The family beach without its carved bay (the bay moves the waterline 24 m inland; these checks measure from the
+        /// shore as drawn).</summary>
+        private static AreaPlan SandyWithoutBay(SiteContext site)
+        {
+            var v = Preset("sandy").Values.Clone();
+            v.Values["bay"] = 0.0;
+            return TestKit.Gen("beach").Plan(TestKit.Input(FiveHa, v, 7, null, site), CancellationToken.None);
+        }
+
         [Fact]
         public void HasFourToSixPresetsAndDeepControls()
         {
             var g = TestKit.Gen("beach");
-            Assert.InRange(g.Presets.Count, 4, 6);
-            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, 54);   // s13: sand blend, sand to water, landings, lifeguard/landing assets; rf-beach: jetties
-            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Distinct().Count(), 4, 10);
+            Assert.InRange(g.Presets.Count, 4, 14);   // p2-beaches: shingle, pine lake, granite, ravine, marsh, harbour cove, wild
+            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, 84);   // s13: sand blend, sand to water, landings, lifeguard/landing assets; rf-beach: jetties
+            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Distinct().Count(), 4, 12);   // p2-beaches: the biome mix
             Assert.Equal("water", GeneratorGroups.Of(g));
             Assert.Contains(g.Controls, c => c.Id == "style" && c.Kind == ControlKind.Choice);
         }
@@ -47,7 +56,9 @@ namespace Placemaker.Tests.Types
                 AssertInside(plan, ring);
                 AssertNothingOnPaths(plan);
                 TestKit.AssertSurfacesAccepted(plan);
-                AssertTerrainBlended(plan, ring, site, p => p.y, 4f);
+                // p2-beaches: knolls and headlands stand on the shore itself (up to 18 m in from the water)
+                var pv = Preset(preset).Values;
+                AssertTerrainBlended(plan, ring, site, p => p.y, pv.Num("knolls", 0) > 0 || pv.Num("headlands", 0) > 0 ? 20f : 4f);
                 // Deterministic.
                 var again = PlanPreset("beach", Preset(preset), ring, site);
                 Assert.Equal(TestKit.Fingerprint(plan), TestKit.Fingerprint(again));
@@ -69,9 +80,10 @@ namespace Placemaker.Tests.Types
             PlanPreset("beach", TestKit.Gen("beach").Presets[0], FiveHa, SeaSouth(0.04f));   // JIT (as the other types' timing tests)
             foreach (var p in TestKit.Gen("beach").Presets)
             {
-                long ms = Time(() => PlanPreset("beach", p, FiveHa, SeaSouth(0.04f)));
-                _out.WriteLine($"{p.Id}: {ms} ms");
-                Assert.True(ms < TimingBudget.Ms(250), $"beach/{p.Id} took {ms} ms for 5 ha");
+                AreaPlan pl = null;
+                long ms = Time(() => pl = PlanPreset("beach", p, FiveHa, SeaSouth(0.04f)));
+                _out.WriteLine($"{p.Id}: {ms} ms (terrain {pl.Facts.GetValueOrDefault("msTerrain")}, hinterland {pl.Facts.GetValueOrDefault("msHinterland")}, decals {pl.Facts.GetValueOrDefault("msDecals")}, finish {pl.Facts.GetValueOrDefault("msFinish")})");
+                Assert.True(ms < TimingBudget.Ms(450), $"beach/{p.Id} took {ms} ms for 5 ha");   // p2-beaches: it plans the land behind as a Biome mix (the adventure playground's 450 ms, docs/runbooks/biomes.md)
             }
         }
 
@@ -132,7 +144,7 @@ namespace Placemaker.Tests.Types
         public void CarvesAGentleSlopeIntoABankAndRaisesDunes()
         {
             var site = SeaSouth(0.2f);   // a 20 % bank rising from the water
-            var plan = PlanPreset("beach", Preset("sandy"), FiveHa, site);
+            var plan = SandyWithoutBay(site);
             var lowered = plan.Terraform.Where(t => t.Kind == TerraformKind.Lower).ToList();
             var raised = plan.Terraform.Where(t => t.Kind == TerraformKind.Raise).ToList();
             Assert.NotEmpty(lowered);
@@ -150,7 +162,8 @@ namespace Placemaker.Tests.Types
             foreach (var t in lowered)
             {
                 var c = Poly.Centroid(Poly.To2D(t.Ring));
-                if (c.y < 26f && c.x > 30f && c.x < 220f) Assert.True(t.TargetHeight <= 0.06f * c.y + 0.8f, $"beach at {c} is {t.TargetHeight:0.00} m high");
+                if (c.y < 26f && c.x > 30f && c.x < 220f) Assert.True(t.TargetHeight <= 0.06f * c.y + 0.8f + (float)Preset("sandy").Values.Num("berm", 0) * 1.1f,   // p2-beaches: the berm crest stands above the plane
+                     $"beach at {c} is {t.TargetHeight:0.00} m high");
             }
             // s20: hollows on the beach face may be filled a little (≤ 0.6 m), never more.
             Assert.All(raised.Where(t => Poly.Centroid(Poly.To2D(t.Ring)).y < (float)plan.Facts["beachDepth"]),
@@ -161,7 +174,13 @@ namespace Placemaker.Tests.Types
             keep.Values["carve"] = false;
             var flat = TestKit.Gen("beach").Plan(TestKit.Input(FiveHa, keep, 5, null, site), CancellationToken.None);
             // (s20: level pads under huts and kiosks behind the path may cut a little into the bank; the beach itself is not lowered)
-            Assert.DoesNotContain(flat.Terraform, t => Poly.Centroid(Poly.To2D(t.Ring)).y < (float)flat.Facts["beachDepth"] - 4f && t.TargetHeight < site.HeightAt(Poly.Centroid(Poly.To2D(t.Ring))) - 0.15f);
+            // (p2-beaches: a sloped patch is measured at its middle: its TargetHeight is its lowest corner)
+            foreach (var t in flat.Terraform)
+            {
+                var c = Poly.Centroid(Poly.To2D(t.Ring));
+                float mean = t.Ring.Average(v => v.y);
+                Assert.False(c.y < (float)flat.Facts["beachDepth"] - 4f && mean < site.HeightAt(c) - 0.15f, $"lowered at {c}: {mean:0.00} m, ground {site.HeightAt(c):0.00} m ({t.Kind}, {t.Ring.Length} corners)");
+            }
         }
 
         [Fact]
@@ -206,7 +225,7 @@ namespace Placemaker.Tests.Types
         {
             // The outline stops 8 m short of the sea (a grassy bank): the sand must still reach the water.
             var site = new SiteContext { WaterDepthAt = p => p.y < -8f ? 2f : 0f, HeightAt = p => p.y < -8f ? -1.5f : 0.06f * p.y };
-            var plan = PlanPreset("beach", Preset("sandy"), FiveHa, site);
+            var plan = SandyWithoutBay(site);
             Assert.True(plan.Facts["foreshore"] >= 1);
             var sand = plan.Paint.Where(p => p.Layer == TerrainMaterials.Sand && p.GradientFrom != null && p.Strength > 0.99f).ToList();   // the beach field (dunes have their own, lighter one)
             Assert.NotEmpty(sand);
@@ -234,7 +253,9 @@ namespace Placemaker.Tests.Types
             var landings = plan.Surfaces.Where(s => s.Role == SurfaceRole.Paving).Select(s => Poly.Centroid(Poly.To2D(s.Ring))).ToList();
             // Every access path ends at a landing (its seaward end touches one).
             // (the accesses drop off the promenade; an entrance connector coming down from the street ends on the promenade)
-            foreach (var n in plan.Nets.Where(n => n.Role == NetRole.Pathway && n.Category != AssetCategories.NetPier && math.abs(n.A.x - n.D.x) < 0.5f && n.A.z > n.D.z + 3f && n.A.z < (float)plan.Facts["beachDepth"] + 6f))
+            // (p2-beaches: a spur on to a jetty's root ends on the jetty, not a landing)
+            var pierRoots = plan.Nets.Where(n => n.Category == AssetCategories.NetPier).Select(n => n.A.xz).ToList();
+            foreach (var n in plan.Nets.Where(n => n.Role == NetRole.Pathway && n.Category != AssetCategories.NetPier && !pierRoots.Any(r => math.distance(r, n.D.xz) < 0.5f) && math.abs(n.A.x - n.D.x) < 0.5f && n.A.z > n.D.z + 3f && n.A.z < (float)plan.Facts["beachDepth"] + 6f))
                 Assert.Contains(landings, c => math.distance(c, n.D.xz) < 3f);
             Assert.Single(plan.Objects.Where(o => o.Category == AssetCategories.BeachUmbrella).Select(o => o.Asset.Id).Distinct());
             Assert.Single(plan.Objects.Where(o => o.Category == AssetCategories.BeachLounger).Select(o => o.Asset.Id).Distinct());

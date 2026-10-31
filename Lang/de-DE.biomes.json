@@ -27,5 +27,9 @@
   "Placemaker.Biome.orchard": "Obstgarten",
   "Placemaker.Biome.orchard.Tooltip": "Obstbäume in geraden Reihen mit gemähten Grasgassen, an warmen Hängen und in der Ebene.",
   "Placemaker.Biome.pasture": "Raue Weide",
-  "Placemaker.Biome.pasture.Tooltip": "Bültiges Gras mit Ginster und Dornengestrüpp, Steinen und Schafpfaden auf steilem, kargem Boden."
+  "Placemaker.Biome.pasture.Tooltip": "Bültiges Gras mit Ginster und Dornengestrüpp, Steinen und Schafpfaden auf steilem, kargem Boden.",
+  "Placemaker.Biome.dunes": "Dünen",
+  "Placemaker.Biome.dunes.Tooltip": "Knubbelige Sandhügel, dicht mit Strandhafer bewachsen, kahler Sand, wo der Wind einschneidet, eine oder zwei krumme Kiefern.",
+  "Placemaker.Biome.shingle": "Kies",
+  "Placemaker.Biome.shingle.Tooltip": "Eine Fläche grauer Kiesel in niedrigen Wällen mit spärlichen Büscheln Meerkohl und Ginster, hier und da ein verwitterter Baumstamm."
 }

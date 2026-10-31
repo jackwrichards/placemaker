@@ -1,0 +1,945 @@
+{
+  "_about": "Beach styles on real shores (tools/suite/beach-scenario.js)",
+  "scenarios": [
+    {
+      "id": "beach-sandy-lakein",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -100,
+              -90
+            ],
+            [
+              100,
+              -90
+            ],
+            [
+              100,
+              62
+            ],
+            [
+              -100,
+              62
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "sandy"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "joint",
+          "index": "all",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 32,
+          "shot": "joint",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "beach-resort-lakein",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -100,
+              -90
+            ],
+            [
+              100,
+              -90
+            ],
+            [
+              100,
+              62
+            ],
+            [
+              -100,
+              62
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "resort"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "joint",
+          "index": "all",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 32,
+          "shot": "joint",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "beach-cove-lakein",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -100,
+              -90
+            ],
+            [
+              100,
+              -90
+            ],
+            [
+              100,
+              62
+            ],
+            [
+              -100,
+              62
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "cove"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "joint",
+          "index": "all",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 32,
+          "shot": "joint",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "beach-wild-lakein",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -100,
+              -90
+            ],
+            [
+              100,
+              -90
+            ],
+            [
+              100,
+              62
+            ],
+            [
+              -100,
+              62
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "wild"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "joint",
+          "index": "all",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 32,
+          "shot": "joint",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "beach-shingle-lakein",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -100,
+              -90
+            ],
+            [
+              100,
+              -90
+            ],
+            [
+              100,
+              62
+            ],
+            [
+              -100,
+              62
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "shingle"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "joint",
+          "index": "all",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 32,
+          "shot": "joint",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "beach-mulch-lakein",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -100,
+              -90
+            ],
+            [
+              100,
+              -90
+            ],
+            [
+              100,
+              62
+            ],
+            [
+              -100,
+              62
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "mulch"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "joint",
+          "index": "all",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 32,
+          "shot": "joint",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "beach-granite-lakein",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -100,
+              -90
+            ],
+            [
+              100,
+              -90
+            ],
+            [
+              100,
+              62
+            ],
+            [
+              -100,
+              62
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "granite"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "joint",
+          "index": "all",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 32,
+          "shot": "joint",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "beach-ravine-lakein",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -100,
+              -90
+            ],
+            [
+              100,
+              -90
+            ],
+            [
+              100,
+              62
+            ],
+            [
+              -100,
+              62
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "ravine"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "joint",
+          "index": "all",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 32,
+          "shot": "joint",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "beach-marsh-lakein",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -100,
+              -90
+            ],
+            [
+              100,
+              -90
+            ],
+            [
+              100,
+              62
+            ],
+            [
+              -100,
+              62
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "marsh"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "joint",
+          "index": "all",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 32,
+          "shot": "joint",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "beach-harbour-lakein",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "points": [
+            [
+              -100,
+              -90
+            ],
+            [
+              100,
+              -90
+            ],
+            [
+              100,
+              62
+            ],
+            [
+              -100,
+              62
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "harbour"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "joint",
+          "index": "all",
+          "view": "closeup",
+          "distance": 24,
+          "pitch": 32,
+          "shot": "joint",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    }
+  ]
+}

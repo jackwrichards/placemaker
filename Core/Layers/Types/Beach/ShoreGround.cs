@@ -78,8 +78,26 @@ namespace Placemaker.Core.Layers.Types.Beach
         private readonly bool[] _cliff;
         private List<float2> _cliffRuns;
 
+        private Func<float2, bool> _wall;
+
+        /// <summary>
+        /// (p2-beaches) Extra natural ground the layer cut itself (a pocket beach's rock walls): cliff, locked, nothing placed
+        /// there; and ground kept as carved but not cliff (the gully floor its path climbs).
+        /// </summary>
+        public void Lock(Func<float2, bool> wall, Func<float2, bool> keep)
+        {
+            _wall = wall;
+            for (int k = 0; k < Sculpt.Count; k++)
+            {
+                var p = Sculpt.Pos(k);
+                if (wall(p)) { _cliff[k] = true; Sculpt.Free[k] = false; }
+                else if (keep != null && keep(p)) Sculpt.Free[k] = false;
+            }
+        }
+
         private bool CliffAt(float2 p, float along, float dw)
         {
+            if (_wall != null && _wall(p)) return true;
             if (Survey.GradeAt(p) >= 0.6f) return true;
             if (Shore.Kinds == null || Shore.CliffShare <= 0f) return false;
             // (s30) Only a real cliff stretch (≥ 16 m of cliff stations): one misread station at the shore's end locked a small island
@@ -564,16 +582,16 @@ namespace Placemaker.Core.Layers.Types.Beach
         /// Emits the sculpt: earthwork limits (an Info issue when they bound the design), grade relaxation, the sloped
         /// patches clipped to land ∪ foreshore, then every object/net/surface of the plan onto the new ground.
         /// </summary>
-        public TerrainResult Finish(float maxCut, float maxFill, float maxGrade)
+        public TerrainResult Finish(float maxCut, float maxFill, float maxGrade, float borderGrade = 0.25f)
         {
             // Round the creases where pads, benches and ramps meet the slope (a 4 m bilinear mesh kinks at cell edges),
             // relax grades, then hold the earthwork limits (last, so nothing pushes past them).
             Sculpt.Smooth(2, 0.3f);
-            Sculpt.CapToBorder(0.25f);
+            Sculpt.CapToBorder(borderGrade);
             Sculpt.LimitGrade(maxGrade);
             if (Sculpt.LimitEarthwork(maxCut, maxFill)) Ctx.Issue(IssueSeverity.Info, EarthworkKey, (int)math.round(maxCut), (int)math.round(maxFill));
             ReapplyBenches();
-            Sculpt.CapToBorder(0.25f);
+            Sculpt.CapToBorder(borderGrade);
             var e = Sculpt.Measure();
             Ctx.Plan.Facts["earthMaxCut"] = e.MaxCut;
             Ctx.Plan.Facts["earthMaxFill"] = e.MaxFill;
