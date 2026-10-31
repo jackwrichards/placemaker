@@ -80,6 +80,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
             var res = new BiomeResult { Field = field, HostShare = 0f };
             foreach (var (b, sh) in shares) if (b.Host) res.HostShare += sh;
             ctx.Plan.Facts["biomeHostShare"] = math.round(res.HostShare * 100f);
+            // (P2-8) the biomes' own settings, for the decals (BiomeGround rebuilds the tuned biomes from them)
+            foreach (var (b, sh) in shares) if (sh > 0f) BiomeKnobs.WriteFacts(ctx.Plan.Facts, ctx.Settings, BiomeLibrary.Get(b.Id) ?? b);
             if (field.NaturalCells == 0) return res;
             int wi = -1;
             for (int b = 0; b < field.Biomes.Count; b++) if (field.Biomes[b].Water) wi = b;

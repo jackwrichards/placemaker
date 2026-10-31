@@ -29,3 +29,38 @@ test("landscape card: picture", async ({ page }) => {
     await panelShot(page, "biomes-01-card");
     await card.screenshot({ path: "mock/screenshots/biomes-01-card-only.png" });
 });
+
+test("landscape card: drag, click, add, only this", async ({ page }) => {
+    const card = await park(page);
+    // click the meadow: its box opens with its own settings
+    await page.getByTestId("biomemix-part-biomeMeadow").click();
+    await expect(page.getByTestId("biomemix-box-biomeMeadow")).toBeVisible();
+    await expect(page.getByTestId("biomemix-box-biomeMeadow").getByTestId("control-biomeMeadowTrees")).toBeVisible();
+    await panelShot(page, "biomes-02-meadow-box");
+    await card.screenshot({ path: "mock/screenshots/biomes-02-card-only.png" });
+    // drag the first line to the right: lawn grows, its neighbour shrinks
+    const edge = page.getByTestId("biomemix-edge-0");
+    const box = (await edge.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2, { steps: 5 });
+    await page.mouse.up();
+    await waitCore(page);
+    // add the field, then make it the whole landscape
+    await page.getByTestId("biomemix-add-toggle").click();
+    await page.getByTestId("biomemix-add-biomeField").click();
+    await waitCore(page);
+    await expect(page.getByTestId("biomemix-box-biomeField")).toBeVisible();
+    await page.getByTestId("biomemix-only").click();
+    await waitCore(page);
+    await expect(page.getByTestId("biomemix-box-share")).toHaveText("100%");
+    await noTextOverflow(page, "landscape card field");
+    await card.screenshot({ path: "mock/screenshots/biomes-03-field-only.png" });
+    // the lawn box holds the park's own planting
+    await page.getByTestId("biomemix-add-toggle").click();
+    await page.getByTestId("biomemix-add-biomeLawn").click();
+    await waitCore(page);
+    await page.getByTestId("biomemix-part-biomeLawn").click();
+    await expect(page.getByTestId("biomemix-box-biomeLawn").getByTestId("control-treeDensity")).toBeVisible();
+    await card.screenshot({ path: "mock/screenshots/biomes-04-lawn-box.png" });
+});

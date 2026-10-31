@@ -104,8 +104,8 @@ namespace Placemaker.Core.Layers.Park
         /// It replaces the places with moods and the rocky-areas setting (hidden; saved designs still build).
         /// </summary>
         public static readonly BiomeOffer Biomes = new BiomeOffer(
-            ("lawn", 45), ("meadow", 15), ("flowers", 0), ("mulch", 0), ("glade", 10), ("forest", 15), ("rocky", 9), ("heath", 0), ("wetland", 6), ("water", 0))
-        { Scale = 72 };
+            ("lawn", 45), ("grass", 0), ("field", 0), ("meadow", 15), ("flowers", 0), ("mulch", 0), ("glade", 10), ("forest", 15), ("rocky", 9), ("heath", 0), ("wetland", 6), ("water", 0))
+        { Scale = 72, LawnControls = new[] { "treeDensity", "bushDensity", "treeSpecies", "bushSpecies", "belt" } };
 
         internal static SettingsBag Bag(params (string key, object value)[] values)
         {
@@ -742,9 +742,6 @@ namespace Placemaker.Core.Layers.Park
         private BiomeResult PlanBiomes(LayerContext ctx, ParkSite s, ParkStyle style, float2[] plaza, List<(BiomeDef biome, float share)> mix, BiomeField ahead)
         {
             var reserved = ctx.Input?.Reserved;
-            float td = ctx.F("treeDensity"), bd = ctx.F("bushDensity");
-            double styleTd = 26, styleBd = 65;
-            foreach (var p in Presets) if (p != null && p.Values.S("style", "") == style.Id) { styleTd = p.Values.Num("treeDensity", styleTd); styleBd = p.Values.Num("bushDensity", styleBd); break; }
             var site = new BiomeSite
             {
                 Ctx = ctx, Region = s.LayerRegion, Paths = s.Occ.Corridors, Occ = s.Occ,
@@ -752,9 +749,10 @@ namespace Placemaker.Core.Layers.Park
                 Blocked = p => s.InLake(p, 3f) || s.InClearing(p, 3f) || s.GateDistanceSq(p) < 144f
                     || plaza.Length >= 3 && (Poly.Contains(plaza, p) || ParkSite.MinDistToRing(plaza, p) < 3f)
                     || s.Occ.Discs.Overlaps(p, 2.5f) || s.Occ.HitsPolygon(p, 1.5f) || reserved != null && reserved.Blocks(p, 1.5f),
-                Trees = ctx.L("treeSpecies") ?? Array.Empty<string>(), Bushes = ctx.L("bushSpecies") ?? Array.Empty<string>(),
-                TreeAmount = td <= 0f ? 0f : math.clamp(td / (float)math.max(1.0, styleTd), 0.25f, 2f),
-                BushAmount = bd <= 0f ? 0f : math.clamp(bd / (float)math.max(1.0, styleBd), 0.25f, 2f),
+                // (P2-8) the park's species are its lawn's (Lawn box); each biome plants its own (a forest's Kind)
+                Trees = Array.Empty<string>(), Bushes = Array.Empty<string>(),
+                // (P2-8) each biome's own Trees and Shrubs decide its planting; the park's tree and bush density are its lawn's
+                TreeAmount = 1f, BushAmount = 1f,
                 // with the Terrain feature on, its landform is the park's character: the areas plant but leave the ground alone
                 Shape = !ctx.Input.HasChild("terrain"),
             };

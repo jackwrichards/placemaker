@@ -62,6 +62,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
 
         public BiomePlants(float perHa, float lo, float hi, BiomeWhere where, float drift, params string[] ids)
         { PerHa = perHa; ScaleLo = lo; ScaleHi = hi; Where = where; Drift = drift; Ids = ids; Radius = math.max(0.35f, 0.9f * hi); }
+
+        public BiomePlants Copy() => (BiomePlants)MemberwiseClone();
     }
 
     /// <summary>One decal pass of a biome (shared library kinds, Recipes/decals/library).</summary>
@@ -80,6 +82,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
 
         public BiomeDecal(string kind, float cover, BiomeWhere where = BiomeWhere.All, float lo = 0.5f, float hi = 0.9f, float clump = 3f, bool quiet = false)
         { Kind = kind; Cover = cover; Where = where; OpacityLo = lo; OpacityHi = hi; Clump = clump; Quiet = quiet; }
+
+        public BiomeDecal Copy() => (BiomeDecal)MemberwiseClone();
     }
 
     /// <summary>A biome: a complete ground design as numbers (see the file's header).</summary>
@@ -179,6 +183,12 @@ namespace Placemaker.Core.Layers.Common.Biomes
         // ── decals (BiomeGround) ──
         public BiomeDecal[] Decals = Array.Empty<BiomeDecal>();
 
+        /// <summary>(P2-8) The biome's own settings in the panel (null: made from what it has, BiomeKnobs.Of).</summary>
+        public BiomeKnob[] Knobs;
+
+        /// <summary>A copy to tune (BiomeKnobs.Apply replaces the arrays it changes, never edits them).</summary>
+        public BiomeDef Copy() => (BiomeDef)MemberwiseClone();
+
         public string ControlId => BiomeMix.ControlIdOf(Id);
         public string LabelKey => "Placemaker.Biome." + Id;
         public string TooltipKey => "Placemaker.Biome." + Id + ".Tooltip";
@@ -217,6 +227,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
         public static readonly BiomeDef Rocky = new BiomeDef
         {
             Id = "rocky", Color = "#9a9187",
+            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Rocks, 100, 200), BiomeKnob.Slider(BiomeKnobs.Relief, 100, 200).Named("height"), BiomeKnob.Slider(BiomeKnobs.Trees, 36, 120, "perHa") },
             Ridge = 1.2f, Steep = 1.4f, Slope = 0.3f, Hollow = -0.9f, Flat = -0.2f, NearPath = -0.3f,
             Lift = 3.4f, Break = 0.6f,
             PaintLayer = 3, PaintStrength = 0.7f, CorePaint = 3, CoreStrength = 1f,
@@ -238,6 +249,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
         public static readonly BiomeDef Forest = new BiomeDef
         {
             Id = "forest", Color = "#2f6b3a",
+            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Trees, 260, 400, "perHa"), BiomeKnob.Choice(BiomeKnobs.Kind, 0, "mixed", "broadleaf", "conifer", "birch"), BiomeKnob.Slider(BiomeKnobs.Shrubs, 100, 200).Named("undergrowth"), BiomeKnob.Slider(BiomeKnobs.DeadWood, 100, 200) },
             Slope = 0.8f, Steep = 0.4f, NearEdge = 0.6f, Flat = -0.1f, Ridge = 0.1f, NearPath = -0.1f,
             Lift = 0.45f, Break = 0.15f,
             PaintLayer = 2, PaintStrength = 0.85f, CorePaint = 2, CoreStrength = 1f,
@@ -258,6 +270,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
         {
             // an open, sunny heart ringed by trees: the trees keep to a 12 m rim band, flowers and long grass in the middle
             Id = "glade", Color = "#5f9a4b",
+            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Trees, 70, 150, "perHa"), BiomeKnob.Slider(BiomeKnobs.Flowers, 100, 200), BiomeKnob.Slider(BiomeKnobs.Shrubs, 100, 200) },
             Slope = 0.4f, Flat = 0.3f, NearEdge = 0.2f,
             PaintLayer = 2, PaintStrength = 0.35f,
             TreesPerHa = 70f, Trees = GladeTrees, GroveScale = 14f, Dead = 0.04f, TreeRim = 12f,
@@ -283,6 +296,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
             // open long grass: the sward itself is the look (long grass over the whole area, flowers in it), only a scatter of
             // tussocks and a shrub or two at its edge, one or two old solitary trees. P2-4: 520 tussocks a hectare read as bushes.
             Id = "meadow", Color = "#c9b45a", Open = true,
+            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Trees, 0, 20, "perHa"), BiomeKnob.Slider(BiomeKnobs.Flowers, 100, 200), BiomeKnob.Choice(BiomeKnobs.Grass, 1, "short", "long", "tall"), BiomeKnob.Slider(BiomeKnobs.Shrubs, 100, 200) },
             Flat = 0.9f, Slope = 0.2f, Hollow = 0.1f, NearPath = -0.1f, Steep = -0.3f,
             // P2-8 (the user: "even when I turn it to full meadow, I still get some trees"): a meadow is open grass, no trees or
             // scrub of its own; a player who wants a lone oak in it sets the biome's Trees
@@ -290,8 +304,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
             BushesPerHa = 0f, Bushes = Scrub, RimScrub = 3f,
             Plants = new[]
             {
-                new BiomePlants(50f, 0.35f, 0.55f, BiomeWhere.Rim, 6f, "GreenBushWildChild01", "GreenBushWildTeen01"),
-                new BiomePlants(25f, 0.35f, 0.55f, BiomeWhere.Drift, 10f, "FlowerBushCity01", "FlowerBushCity03"),
+                // P2-8: a few tussocks at the rim (the flowering city shrubs read as pale teal balls in the open grass: the flowers are the decals)
+                new BiomePlants(18f, 0.35f, 0.55f, BiomeWhere.Rim, 6f, "GreenBushWildChild01", "GreenBushWildTeen01"),
             },
             Decals = new[]
             {
@@ -305,11 +319,55 @@ namespace Placemaker.Core.Layers.Common.Biomes
             },
         };
 
+        public static readonly BiomeDef Grass = new BiomeDef
+        {
+            // (P2-8, the user: "maybe one that is just simpler, literally grass with some leaves, more vanilla") the game's own
+            // grass as it is: no paint, no wear, no flowers, no long edges; only a light scatter of summer leaves and a faint
+            // tone so it is not a flat sheet. Trees only if the player adds a few (then they stand as solitary trees).
+            Id = "grass", Color = "#5fae6e", Open = true,
+            Flat = 1f, Slope = 0.4f, NearPath = 0.3f, Steep = -0.4f,
+            TreesPerHa = 0f, Trees = Solitary, GroveScale = 40f,
+            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Leaves, 100, 300), BiomeKnob.Slider(BiomeKnobs.Trees, 0, 20, "perHa") },
+            Decals = new[]
+            {
+                new BiomeDecal("leafLitterSummer", 0.16f, BiomeWhere.All, 0.35f, 0.65f, 5f, quiet: true),
+                new BiomeDecal("lawnTonePatch", 0.18f, BiomeWhere.All, 0.25f, 0.45f, 9f, quiet: true),
+            },
+        };
+
+        public static readonly BiomeDef Field = new BiomeDef
+        {
+            // (P2-8, the user: "sometimes I just want a park to be a field ... but even a field should have good looking decals")
+            // a big mown field, nothing fancy: short grass with a gentle tone, an unmown long-grass margin round its edge, worn
+            // desire lines across it, bald and trampled patches where people play, clover and daisies, molehills, damp in the
+            // low ground; no stripes (the shared rule: stripes only on bounded pitches), no trees unless the player wants a few
+            // at its edge (Trees), and then leaves under them. Real fields: Clapham Common, Hampstead Heath's Parliament Hill
+            // fields, the Sheep Meadow (Central Park), the Tempelhofer Feld, a village recreation ground.
+            Id = "field", Color = "#c3dc6c", Open = true,
+            Flat = 1.3f, Slope = 0.2f, Steep = -0.9f, Hollow = 0.1f, Ridge = 0.05f, NearPath = 0.1f, NearEdge = -0.2f,
+            TreesPerHa = 0f, Trees = Solitary, GroveScale = 40f, TreeRim = 7f,
+            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Wear, 100, 200), BiomeKnob.Slider(BiomeKnobs.Edges, 100, 200), BiomeKnob.Slider(BiomeKnobs.Flowers, 100, 200).Named("daisies"), BiomeKnob.Slider(BiomeKnobs.Trees, 0, 20, "perHa").Named("edgeTrees") },
+            Decals = new[]
+            {
+                new BiomeDecal("lawnTonePatch", 0.35f, BiomeWhere.All, 0.35f, 0.6f, 8f, quiet: true),
+                new BiomeDecal("longGrass", 0.85f, BiomeWhere.Rim, 0.6f, 0.9f, 4f),
+                new BiomeDecal("wornPath", 0.6f, BiomeWhere.Trails, 0.55f, 0.85f, 3f),
+                new BiomeDecal("trampledGrass", 0.12f, BiomeWhere.Core, 0.5f, 0.8f, 6f),
+                new BiomeDecal("barePatch", 0.035f, BiomeWhere.Core, 0.55f, 0.85f, 3f),
+                new BiomeDecal("daisyLawn", 0.22f, BiomeWhere.Drift, 0.65f, 0.95f, 6f),
+                new BiomeDecal("cloverPatch", 0.12f, BiomeWhere.All, 0.4f, 0.7f, 5f),
+                new BiomeDecal("molehills", 0.012f, BiomeWhere.All, 0.6f, 0.9f, 2f),
+                new BiomeDecal("dampPatch", 0.06f, BiomeWhere.Downhill, 0.3f, 0.55f, 3f),
+                new BiomeDecal("leafLitterSummer", 0.14f, BiomeWhere.Rim, 0.4f, 0.7f, 3f, quiet: true),   // only with edge trees (BiomeKnobs.Apply)
+            },
+        };
+
         public static readonly BiomeDef FlowerField = new BiomeDef
         {
             // a sown wildflower field: drifts of single colours the size real drifts are (purple, red, blue, yellow, cream), the
             // flowering shrubs and low green clumps massed in them
             Id = "flowers", Color = "#c86fb4", Open = true,
+            Knobs = new[] { BiomeKnob.Choice(BiomeKnobs.Colours, 0, "mixed", "warm", "cool", "purple", "yellow", "white"), BiomeKnob.Slider(BiomeKnobs.Flowers, 100, 200), BiomeKnob.Slider(BiomeKnobs.Shrubs, 100, 200) },
             Flat = 1f, Slope = 0.3f, Steep = -0.6f, Hollow = -0.1f, NearPath = 0.2f,
             PaintLayer = 2, PaintStrength = 0.3f,
             TreesPerHa = 0f, Trees = Solitary, GroveScale = 60f,
@@ -337,6 +395,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
             // P2-4: island beds (round, separate, a mown lawn between them), a specimen tree in the bigger beds, clipped garden
             // shrubs packed inside; the lawn between is the host's (no paint), so each bed reads as a defined shape.
             Id = "mulch", Color = "#7b5236",
+            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Beds, 36, 80), BiomeKnob.Slider(BiomeKnobs.Trees, 22, 60, "perHa"), BiomeKnob.Slider(BiomeKnobs.Shrubs, 100, 200) },
             NearPath = 0.8f, Flat = 0.4f, Slope = 0.1f, Steep = -0.4f,
             Beds = 0.36f, BedRadius = 5f, TreesInBeds = true,
             TreesPerHa = 22f, Trees = Ornamental, GroveScale = 18f,
@@ -357,6 +416,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
             // a marsh: pools of standing water in its heart, reed beds massed along them, tussocks on the dark wet ground, mud,
             // alder carr in groups
             Id = "wetland", Color = "#4f8f86",
+            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Water, 30, 70), BiomeKnob.Slider(BiomeKnobs.Shrubs, 100, 200).Named("reeds"), BiomeKnob.Slider(BiomeKnobs.Trees, 30, 80, "perHa") },
             Hollow = 1.6f, Flat = 0.3f, Steep = -1.4f, Ridge = -1.1f, Slope = -0.3f, NearPath = -0.4f,
             PathKeep = 3.5f, MaxGrade = 0.14f,
             Dip = 0.55f, Break = 0.12f, Pools = 0.3f,
@@ -383,6 +443,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
         public static readonly BiomeDef Pond = new BiomeDef
         {
             Id = "water", Color = "#3f7fbf",
+            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Shrubs, 100, 200).Named("reeds"), BiomeKnob.Slider(BiomeKnobs.Trees, 30, 80, "perHa") },
             Hollow = 2f, Flat = 0.6f, Steep = -2.2f, Ridge = -1.4f, NearPath = -0.9f,
             PathKeep = 7f, MaxGrade = 0.1f,
             Water = true,
@@ -401,6 +462,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
         {
             // heather in mounds, gorse in drifts, birch and pine, sandy paths worn through it
             Id = "heath", Color = "#c7a46b",
+            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Shrubs, 100, 200).Named("heather"), BiomeKnob.Slider(BiomeKnobs.Trees, 16, 60, "perHa"), BiomeKnob.Slider(BiomeKnobs.Relief, 100, 200).Named("height") },
             Ridge = 0.6f, Slope = 0.4f, Flat = 0.2f, Hollow = -0.5f,
             // P2-4: the ground is the look: a dark mauve-brown heather carpet, low heather mounds in tight clumps (small dark wild
             // clumps, nothing pale), gorse in a few drifts, birch-led trees, grey-brown sandy trails (not the beach's pale sand)
@@ -526,7 +588,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
         };
 
         /// <summary>Every biome, in the panel's order.</summary>
-        public static readonly BiomeDef[] All = { Lawn, Meadow, FlowerField, Mulch, Glade, Forest, Rocky, SandHeath, Dunes, Shingle, Wetland, Pond, Fields, Orchard, Pasture };
+        public static readonly BiomeDef[] All = { Lawn, Grass, Field, Meadow, FlowerField, Mulch, Glade, Forest, Rocky, SandHeath, Dunes, Shingle, Wetland, Pond, Fields, Orchard, Pasture };
 
         private static readonly Dictionary<string, BiomeDef> ById = Index();
 

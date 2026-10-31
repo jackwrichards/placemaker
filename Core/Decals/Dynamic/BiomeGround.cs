@@ -31,6 +31,8 @@ namespace Placemaker.Core.Decals.Dynamic
         public static void Run(Weathering.Scene sc, bool quiet = false)
         {
             var outers = new Dictionary<string, List<float2[]>>(StringComparer.Ordinal);
+            // (P2-8) each biome as the player tuned it (its settings are in the facts of the layer that planned it)
+            var tuned = new Dictionary<string, BiomeDef>(StringComparer.Ordinal);
             var holes = new Dictionary<string, List<float2[]>>(StringComparer.Ordinal);
             var beds = new Dictionary<string, List<float2[]>>(StringComparer.Ordinal);
             var water = new List<float2[]>();
@@ -43,7 +45,13 @@ namespace Placemaker.Core.Decals.Dynamic
                     foreach (var t in r.Tags)
                     {
                         if (t == null) continue;
-                        if (t.StartsWith(BiomeBuilder.RegionPrefix, StringComparison.Ordinal)) { Add(outers, t.Substring(BiomeBuilder.RegionPrefix.Length), Poly.EnsureCcw(Poly.To2D(r.Ring))); break; }
+                        if (t.StartsWith(BiomeBuilder.RegionPrefix, StringComparison.Ordinal))
+                        {
+                            string id = t.Substring(BiomeBuilder.RegionPrefix.Length);
+                            Add(outers, id, Poly.EnsureCcw(Poly.To2D(r.Ring)));
+                            if (!tuned.ContainsKey(id) && BiomeLibrary.Get(id) is BiomeDef lib) tuned[id] = BiomeKnobs.FromFacts(l.Facts, lib);
+                            break;
+                        }
                         if (t.StartsWith(BiomeBuilder.HolePrefix, StringComparison.Ordinal)) { Add(holes, t.Substring(BiomeBuilder.HolePrefix.Length), Poly.EnsureCcw(Poly.To2D(r.Ring))); break; }
                         if (t.StartsWith(BiomeBuilder.BedPrefix, StringComparison.Ordinal)) { Add(beds, t.Substring(BiomeBuilder.BedPrefix.Length), Poly.EnsureCcw(Poly.To2D(r.Ring))); break; }
                     }
@@ -60,7 +68,7 @@ namespace Placemaker.Core.Decals.Dynamic
             foreach (var kv in outers)
             {
                 bi++;
-                var d = BiomeLibrary.Get(kv.Key);
+                var d = tuned.TryGetValue(kv.Key, out var td) ? td : BiomeLibrary.Get(kv.Key);
                 if (d == null || d.Decals.Length == 0) continue;
                 holes.TryGetValue(kv.Key, out var hl);
                 beds.TryGetValue(kv.Key, out var bl);

@@ -113,7 +113,7 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
         }
 
         /// <summary>(Biome mix) A memorial's side ground: mostly lawn (the axis stays solemn), a quiet glade, a meadow of remembrance, flowers.</summary>
-        public static readonly BiomeOffer Biomes = new BiomeOffer(("lawn", 70), ("meadow", 10), ("flowers", 8), ("glade", 12), ("forest", 0)) { Scale = 40 };
+        public static readonly BiomeOffer Biomes = new BiomeOffer(("lawn", 70), ("grass", 0), ("field", 0), ("meadow", 10), ("flowers", 8), ("glade", 12), ("forest", 0)) { Scale = 40 };
 
         protected override void DefinePresets()
         {

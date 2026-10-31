@@ -102,7 +102,7 @@ namespace Placemaker.Core.Layers.Types.AdventurePlayground
         }
 
         /// <summary>(Biome mix) The wild ground between the play zones: a glade, a wood to build dens in, rocks to scramble, long grass, bark.</summary>
-        public static readonly BiomeOffer Biomes = new BiomeOffer(("lawn", 40), ("meadow", 10), ("mulch", 5), ("glade", 15), ("forest", 15), ("rocky", 15), ("wetland", 0)) { Scale = 45 };
+        public static readonly BiomeOffer Biomes = new BiomeOffer(("lawn", 40), ("grass", 0), ("field", 0), ("meadow", 10), ("mulch", 5), ("glade", 15), ("forest", 15), ("rocky", 15), ("wetland", 0)) { Scale = 45 };
 
         protected override void DefinePresets()
         {
