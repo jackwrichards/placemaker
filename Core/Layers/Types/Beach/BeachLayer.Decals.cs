@@ -221,10 +221,22 @@ namespace Placemaker.Core.Layers.Types.Beach
             if (st == "shingle")
             {
                 // soft overlapping patches, not the tiling carpet (a carpet laid alone shows its square edge: round 1)
-                Brushes.Scatter(B, Band(-1f, b.D + 1f), "shinglePatch", 1.1f, new ScatterOptions { Opacity = new float2(0.85f, 1f), Clump = 2.5f, Loners = 0.5f, Spill = 1.5f, Cause = "shingle:ground" });
+                // p2-beaches: banded, not one even carpet (the game runner's shingle read as a flat strip): thick on the storm-ridge
+                // crests, thin in the sandy troughs between them, a wrack line at the foot of each ridge's sea face
+                float Crest(float2 p)
+                {
+                    float dw = shore.FromWater(p), w = 0f;
+                    foreach (float rd in f.Ridges) w = math.max(w, math.exp(-(dw - rd) * (dw - rd) / 9f));
+                    return 0.15f + 0.85f * w;
+                }
+                Brushes.Scatter(B, Band(-1f, b.D + 1f), "shinglePatch", 1.3f, new ScatterOptions { Weight = Crest, Opacity = new float2(0.85f, 1f), Clump = 2.5f, Loners = 0.5f, Spill = 1.5f, Cause = "shingle:ground" });
                 foreach (float rd in f.Ridges)
+                {
                     foreach (var line in Along(rd))
                         Brushes.EdgeStrip(B, line, "shingleRidge", new StripOptions { Side = -WaterSide(shore, line), Gaps = 0.08f, Run = new float2(20f, 50f), Opacity = new float2(0.8f, 1f), Cause = "shingle:ridge" });
+                    foreach (var line in Along(rd - 3.2f))
+                        Brushes.EdgeStrip(B, line, "wrackLine", new StripOptions { Side = WaterSide(shore, line), Gaps = 0.3f, Run = new float2(10f, 30f), Opacity = new float2(0.6f, 0.9f), Cause = "shingle:wrack" });
+                }
                 Brushes.Scatter(B, Band(b.D - 2f, b.D + 8f), "shinglePatch", 0.3f, new ScatterOptions { Opacity = new float2(0.7f, 1f), Clump = 2f, Cause = "shingle:thrown" });
             }
             if (st == "granite")

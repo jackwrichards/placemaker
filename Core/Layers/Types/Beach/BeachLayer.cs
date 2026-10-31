@@ -488,7 +488,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                             foreach (var piece in Clip(strip, clip))
                                 // p2-beaches: sand over the whole dune belt (at 0.6 thinning to the crest the game runner's dunes read as
                                 // green scrub), giving way to the ground only behind the back dune
-                                TerrainPaint.Field(ctx, piece, layer, 1f, 5f, 2.5f, b.WaterEdge, d0 + depth * 0.75f, depth * 0.3f, 0.15f, 0xD0E5u);
+                                TerrainPaint.Field(ctx, piece, layer, 1f, 6f, 2.5f, null, 0f, 0f, 0f, 0xD0E5u);   // (no gradient: measured from the old waterline it stopped 20-32 m short behind a carved bay)
                 }
             }
             if (ctx.B("sandSurface") && AssetAvailability.Require(ctx.Plan, AssetCategories.SurfaceSand, new[] { ctx.S("sandAsset") }, Keys.Category(AssetCategories.SurfaceSand)))
