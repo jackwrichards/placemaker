@@ -27,18 +27,25 @@ namespace Placemaker.Tests
                 + 0.15f * math.sin((u * 0.3f - v) * k * 4f + 0.7f));
         }
 
+        // the game runner's bumpy ground at 2.5 m, 36 m (the hill matrix's rugged land)
+        private static float Rugged(float2 p)
+        {
+            float k = 2f * math.PI / 36f; float u = p.x - 110f, v = p.y - 100f;
+            return 2.5f * (0.7f * math.sin(u * k) * math.cos(v * k * 1.3f) + 0.3f * math.sin((u * 0.6f + v * 0.8f) * k * 2.1f));
+        }
+
         public static IEnumerable<object[]> Cases()
         {
             foreach (var (t, s) in new[] { ("park", "garden"), ("park", "woodland"), ("park", "neglected"), ("botanicalGarden", "flowerShow"), ("botanicalGarden", "shrubbery"),
                          ("adventurePlayground", "adventure"), ("adventurePlayground", "toddler"), ("memorialPark", "sculpture") })
-                foreach (var land in new[] { "slope", "mountains" }) yield return new object[] { t, s, land };
+                foreach (var land in new[] { "slope", "mountains", "rugged" }) yield return new object[] { t, s, land };
         }
 
         [Theory]
         [MemberData(nameof(Cases))]
         public void WalksOnHillsDoNotSawtooth(string id, string preset, string land)
         {
-            Func<float2, float> h = land == "slope" ? p => 0.10f * p.y : Mountains;
+            Func<float2, float> h = land == "slope" ? p => 0.10f * p.y : land == "rugged" ? Rugged : Mountains;
             var gen = GeneratorRegistry.Get(id);
             var editor = new DesignEditor(GeneratorRegistry.Get);
             var site = DynamicDecalsTests.Streets(220, 200, h);
@@ -118,6 +125,41 @@ namespace Placemaker.Tests
                 Assert.Equal(land == "mountains", switched);
                 if (switched) Assert.Contains(plan.Layers[0].Issues, i => i.Key == "Placemaker.Park.Issue.PathStyleSteep");
             }
+        }
+        /// <summary>
+        /// (P2-4; the lead: "real park paths on bumpy ground are graded") On rugged land (the runner's bumpy ground, 2.5 m bumps
+        /// every 36 m) a walk runs on an even grade: the site harmony smooths its profile over about 24 m and levels a shoulder
+        /// each side, so the walk climbs far less than the ground under it.
+        /// </summary>
+        [Theory]
+        [InlineData("natural")]
+        [InlineData("garden")]
+        public void WalksOnRuggedLandAreGraded(string preset)
+        {
+            Func<float2, float> h = p => 2.5f * (0.7f * math.sin((p.x - 110f) * 2f * math.PI / 36f) * math.cos((p.y - 100f) * 2f * math.PI / 36f * 1.3f)
+                + 0.3f * math.sin(((p.x - 110f) * 0.6f + (p.y - 100f) * 0.8f) * 2f * math.PI / 36f * 2.1f));
+            var gen = GeneratorRegistry.Get("park");
+            var editor = new DesignEditor(GeneratorRegistry.Get);
+            var site = DynamicDecalsTests.Streets(220, 200, h);
+            var ring = DynamicDecalsTests.Block(220, 200).Select(p => new float3(p.x, h(p.xz), p.z)).ToArray();
+            var recipe = editor.SingleLayerRecipe(gen, 3);
+            editor.ApplyPreset(recipe, "0", preset);
+            TestKit.Entered(recipe, ring, site);
+            var plan = Composer.Compose(recipe, new AreaShape { Ring = ring, Source = AreaSource.Drawn }, site, CancellationToken.None);
+            double walk = 0, ground = 0, len = 0;
+            foreach (var n in plan.Layers.SelectMany(l => l.Nets).Where(n => (n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide) && n.FollowTerrain))
+            {
+                int m = math.max(2, (int)(math.distance(n.A.xz, n.D.xz) / 2f));
+                for (int k = 0; k < m; k++)
+                {
+                    var a = Composer.Bezier(n.A, n.B, n.C, n.D, k / (float)m); var b = Composer.Bezier(n.A, n.B, n.C, n.D, (k + 1) / (float)m);
+                    len += math.distance(a.xz, b.xz);
+                    walk += math.abs(b.y - a.y);
+                    ground += math.abs(h(b.xz) - h(a.xz));
+                }
+            }
+            _out.WriteLine($"{preset} on rugged land: {len:F0} m of walks climb {walk / len * 100:F1} m per 100 m over ground that climbs {ground / len * 100:F1}");
+            Assert.True(walk < ground * 0.6, $"walks climb {walk / len * 100:F1} m per 100 m, the ground {ground / len * 100:F1}");
         }
     }
 }

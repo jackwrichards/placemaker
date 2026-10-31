@@ -117,25 +117,33 @@ namespace Placemaker.Core.Layers.Park
         private static void AddMeander(List<float2> segs, float2 a, float2 b, float amplitude, float wavelength, uint seed, Func<float2, bool> ok)
         {
             float len = math.distance(a, b);
-            int pieces = math.max(1, (int)math.round(len / math.max(Layout.M(8f), wavelength)));
+            // P2-4: one smooth wave (a bend each side per two wavelengths, as before), sampled every eighth of it, its swing at
+            // most 7 % of the wave and fading in and out at the leg's ends. The old way put alternate corners every
+            // wavelength: with short waves (botanical gardens: 5.5 m every 16 m) that was a zig-zag on any ground.
+            float period = 2f * math.max(Layout.M(8f), wavelength);
+            int waves = math.max(1, (int)math.round(len / period));
+            float realPeriod = len / waves;
             var dir = (b - a) / math.max(0.001f, len);
             var n = new float2(-dir.y, dir.x);
-            float amp = math.min(amplitude, len * 0.18f);
+            float amp = math.min(math.min(amplitude, len * 0.12f), realPeriod * 0.07f);
+            int steps = math.max(2, waves * 8);
+            float phase = Hashing.Unit(seed) < 0.5f ? 0f : math.PI;
             var prev = a;
-            for (int i = 1; i <= pieces; i++)
+            for (int i = 1; i <= steps; i++)
             {
                 float2 p;
-                if (i == pieces) p = b;
+                if (i == steps) p = b;
                 else
                 {
-                    var basePt = math.lerp(a, b, (float)i / pieces);
-                    // Alternate sides with noisy amplitude so bends read as designed, not random.
-                    float side = (i & 1) == 0 ? 1f : -1f;
-                    float k = 0.5f + 0.5f * Hashing.Unit(Hashing.Mix(seed, (uint)i));
-                    p = basePt + n * side * amp * k;
+                    float t = (float)i / steps, s = t * len;
+                    var basePt = math.lerp(a, b, t);
+                    float wave = (int)(s / realPeriod), k = 0.6f + 0.4f * Hashing.Unit(Hashing.Mix(seed, (uint)wave));
+                    float fade = math.saturate(math.min(s, len - s) / (realPeriod * 0.5f));
+                    float off = amp * k * fade * math.sin(2f * math.PI * s / realPeriod + phase);
+                    p = basePt + n * off;
                     if (ok != null && !ok(p))
                     {
-                        p = basePt + n * side * amp * k * 0.4f;
+                        p = basePt + n * off * 0.4f;
                         if (!ok(p)) p = basePt;
                     }
                 }
