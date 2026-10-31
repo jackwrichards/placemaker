@@ -21,5 +21,11 @@
   "Placemaker.Biome.water.Tooltip": "Lagoas naturais nas partes baixas com margens em talude, juncos e árvores de beira d'água. Permanente: altera o terreno.",
   "Placemaker.Biome.scale": "Escala",
   "Placemaker.Biome.scale.Tooltip": "Baixo: muitas manchas pequenas misturadas. Alto: poucas áreas grandes, cada uma com seu caráter.",
-  "Placemaker.UI.Group.biomes": "Paisagem"
+  "Placemaker.UI.Group.biomes": "Paisagem",
+  "Placemaker.Biome.fields": "Campos",
+  "Placemaker.Biome.fields.Tooltip": "Os campos da fazenda: lavouras, prados de feno e pastos com sebes, porteiras e estradas.",
+  "Placemaker.Biome.orchard": "Pomar",
+  "Placemaker.Biome.orchard.Tooltip": "Árvores frutíferas em fileiras retas com corredores de grama aparada, nas encostas quentes e no plano.",
+  "Placemaker.Biome.pasture": "Pasto rústico",
+  "Placemaker.Biome.pasture.Tooltip": "Capim em touceiras com tojo e espinheiros, pedras e trilhas de ovelhas, no terreno íngreme e pobre."
 }

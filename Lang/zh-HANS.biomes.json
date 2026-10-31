@@ -21,5 +21,11 @@
   "Placemaker.Biome.water.Tooltip": "低洼处的天然池塘，带斜坡岸、芦苇和水边树木。永久：改变地形。",
   "Placemaker.Biome.scale": "斑块大小",
   "Placemaker.Biome.scale.Tooltip": "低：许多小斑块混在一起。高：少数大区域，各有特色。",
-  "Placemaker.UI.Group.biomes": "景观"
+  "Placemaker.UI.Group.biomes": "景观",
+  "Placemaker.Biome.fields": "田地",
+  "Placemaker.Biome.fields.Tooltip": "农场自己的田地：庄稼、干草地和牧场，带树篱、门和农道。",
+  "Placemaker.Biome.orchard": "果园",
+  "Placemaker.Biome.orchard.Tooltip": "果树成排笔直栽种，中间是修剪过的草道，位于向阳坡地和平地。",
+  "Placemaker.Biome.pasture": "粗放牧场",
+  "Placemaker.Biome.pasture.Tooltip": "丛生的草、荆豆和荆棘灌丛、石块和羊道，位于陡峭贫瘠的土地上。"
 }

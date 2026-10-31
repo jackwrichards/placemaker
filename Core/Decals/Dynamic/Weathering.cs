@@ -52,7 +52,7 @@ namespace Placemaker.Core.Decals.Dynamic
         /// (makeover, 2026-10-29) Per-type ground designs run on top of the shared causes above (tone, trees, seams, feet,
         /// water, objects): a type listed here gets the whole Scene and then its own pass (parks: ParkGround.cs).
         /// </summary>
-        internal static readonly Dictionary<string, Action<Scene>> Designs = ParkGround.Register(new Dictionary<string, Action<Scene>>(StringComparer.Ordinal));
+        internal static readonly Dictionary<string, Action<Scene>> Designs = FarmGround.Register(ParkGround.Register(new Dictionary<string, Action<Scene>>(StringComparer.Ordinal)));
 
         public static float Amount(SettingsBag values)
         {

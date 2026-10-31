@@ -21,5 +21,11 @@
   "Placemaker.Biome.water.Tooltip": "Natural ponds in the low ground with banked shores, reeds and wet trees. Permanent: changes the terrain.",
   "Placemaker.Biome.scale": "Patch size",
   "Placemaker.Biome.scale.Tooltip": "Low: many small patches mixed together. High: a few big areas, each with its own character.",
-  "Placemaker.UI.Group.biomes": "Landscape"
+  "Placemaker.UI.Group.biomes": "Landscape",
+  "Placemaker.Biome.fields": "Fields",
+  "Placemaker.Biome.fields.Tooltip": "The farm's own fields: crops, hay meadows and pastures with their hedges, gates and tracks.",
+  "Placemaker.Biome.orchard": "Orchard",
+  "Placemaker.Biome.orchard.Tooltip": "Fruit trees in straight rows with mown grass alleys, on the warm slopes and the flats.",
+  "Placemaker.Biome.pasture": "Rough grazing",
+  "Placemaker.Biome.pasture.Tooltip": "Tussocky grass with gorse and thorn scrub, stones and sheep tracks, on the steep and poor ground."
 }

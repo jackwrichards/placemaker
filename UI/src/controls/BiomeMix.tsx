@@ -35,6 +35,9 @@ const BIOME_COLOR: Record<string, string> = {
     biomeHeath: "#c7a46b",
     biomeWetland: "#4f8f86",
     biomeWater: "#3f7fbf",
+    biomeFields: "#c9a94e",
+    biomeOrchard: "#b8453a",
+    biomePasture: "#6f9440",
 };
 
 /** A layer with a biome mix. */

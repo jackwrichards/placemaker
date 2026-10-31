@@ -21,5 +21,11 @@
   "Placemaker.Biome.water.Tooltip": "Stagni naturali nelle zone basse con sponde in pendio, canne e alberi ripariali. Permanente: modifica il terreno.",
   "Placemaker.Biome.scale": "Scala",
   "Placemaker.Biome.scale.Tooltip": "Bassa: tante piccole macchie mescolate. Alta: poche grandi zone, ognuna con il suo carattere.",
-  "Placemaker.UI.Group.biomes": "Paesaggio"
+  "Placemaker.UI.Group.biomes": "Paesaggio",
+  "Placemaker.Biome.fields": "Campi",
+  "Placemaker.Biome.fields.Tooltip": "I campi della fattoria: colture, prati da fieno e pascoli con siepi, cancelli e sentieri.",
+  "Placemaker.Biome.orchard": "Frutteto",
+  "Placemaker.Biome.orchard.Tooltip": "Alberi da frutto in file dritte con corsie d’erba falciata, sui pendii caldi e in piano.",
+  "Placemaker.Biome.pasture": "Pascolo brado",
+  "Placemaker.Biome.pasture.Tooltip": "Erba a cespi con ginestre e rovi, sassi e sentieri di pecore, sui terreni ripidi e poveri."
 }

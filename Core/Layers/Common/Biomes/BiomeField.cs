@@ -39,6 +39,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
         public float TreeAmount = 1f, BushAmount = 1f;
         /// <summary>The host shapes the ground (false: the biomes leave the terrain alone).</summary>
         public bool Shape = true;
+        /// <summary>The direction planted rows run (orchards; RowPitch). Zero: the site's long axis.</summary>
+        public float2 RowAxis;
         /// <summary>Ground decals on (paint and objects always).</summary>
         public uint Salt = 0xB10Eu;
     }

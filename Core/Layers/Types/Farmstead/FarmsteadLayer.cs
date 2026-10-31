@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using Placemaker.Core.Geometry;
 using Placemaker.Core.Layers.Common;
+using Placemaker.Core.Layers.Common.Biomes;
 using Placemaker.Core.Layers.Leisure;
 using Placemaker.Core.Layers.Park;
 using Placemaker.Core.Layers.Types.UrbanFarm;
@@ -30,8 +31,8 @@ using Unity.Mathematics;
 
 namespace Placemaker.Core.Layers.Types.Farmstead
 {
-    [AreaGenerator(131, Group = "farms")]
-    public sealed class FarmsteadLayer : LeisureLayer
+    [AreaGenerator(69, Group = "farms")]
+    public sealed partial class FarmsteadLayer : LeisureLayer
     {
         /// <summary>Vehicle / non-park site: plain entrances, no pedestrian/bike/main kinds, never blocks Build.</summary>
         protected override bool TypedEntrances => false;
@@ -77,7 +78,7 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             c.Choice("subtype", "mixed", ControlTier.Essential, "identity", "dairy", "arable", "mixed", "hobby", "ranch").Tip();
 
             c.Choice("yardAt", "road", ControlTier.Essential, "layout", "road", "centre", "corner").Tip();
-            c.Slider("yardSize", 8, 3, 25, 1, "%", ControlTier.Essential, "layout").Tip();
+            c.Slider("yardSize", 5, 3, 25, 1, "%", ControlTier.Essential, "layout").Tip();   // (P2-3) 8 % left half the yard empty earth
             c.Choice("tracks", "spine", ControlTier.Essential, "layout", "spine", "grid", "none").Tip();
             c.Asset("trackAsset", AssetCategories.Pathway, ControlTier.More, "layout");
 
@@ -86,6 +87,8 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             c.Choice("rowAngle", "auto", ControlTier.Essential, "fields", "auto", "along", "across", "alternate").Tip();
             c.Slider("rowSpacing", 4, 2, 10, 0.5, "m", ControlTier.More, "fields").Tip();
             c.Choice("cropProps", "edges", ControlTier.More, "fields", "none", "edges", "rows").Tip();
+            c.Choice("season", "summer", ControlTier.Essential, "fields", "spring", "summer", "harvest", "autumn").Tip();
+            c.Toggle("terraces", false, ControlTier.More, "fields").Tip();
             c.Toggle("hayMeadows", true, ControlTier.More, "fields").Tip();
             c.Toggle("fieldPaint", true, ControlTier.More, "fields").Tip();
             c.Slider("paintLayer", 2, 1, 4, 1, "count", ControlTier.More, "fields").When("fieldPaint=true").Tip();
@@ -95,6 +98,10 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             c.Slider("barns", 2, 0, 6, 1, "count", ControlTier.More, "farmyard");
             c.Slider("silos", 2, 0, 8, 1, "count", ControlTier.More, "farmyard");
             c.Toggle("machinery", true, ControlTier.More, "farmyard");
+            c.Toggle("farmhouse", true, ControlTier.Essential, "farmyard").Tip();
+            c.Slider("vehicles", 2, 0, 6, 1, "count", ControlTier.Essential, "farmyard").Tip();
+            c.Slider("yardMud", 50, 0, 100, 5, "%", ControlTier.Essential, "farmyard").Tip();
+            c.Toggle("heaps", true, ControlTier.More, "farmyard").Tip();
             c.Toggle("hayStacks", true, ControlTier.More, "farmyard");
             c.Toggle("windpump", false, ControlTier.More, "farmyard").Tip();
             c.Choice("yardGround", "gravel", ControlTier.More, "farmyard", "gravel", "dirt", "paved");
@@ -115,10 +122,13 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             c.AssetMulti("treeSpecies", AssetCategories.Tree, ControlTier.More, "hedgerows");
             c.Asset("fenceAsset", AssetCategories.Fence, ControlTier.More, "hedgerows");
 
+            c.Choice("drainage", "none", ControlTier.Essential, "water", "none", "ditches", "ravine").Tip();
+            c.Slider("tanks", 2, 0, 6, 1, "count", ControlTier.More, "water").Tip();
             c.Toggle("pond", true, ControlTier.More, "water");
             c.Slider("pondSize", 30, 12, 80, 2, "m", ControlTier.More, "water").Layout(8).When("pond=true").Tip();
             c.Choice("pondAt", "lowest", ControlTier.More, "water", "lowest", "nearYard", "far").When("pond=true").Tip();
 
+            BiomeMix.Define(c, Biomes);
             EntranceMarkers(c);
 
             c.RandomRange("fieldSize", 0.6, 2.5);
@@ -132,20 +142,33 @@ namespace Placemaker.Core.Layers.Types.Farmstead
 
         protected override void DefinePresets()
         {
-            Preset("dairy", ("subtype", "dairy"), ("arablePct", 25.0), ("paddocks", 4.0), ("paddockSize", 60.0), ("livestock", "cattle"),
-                ("silos", 3.0), ("barns", 3.0), ("fieldSize", 1.5), ("edge", "hedgerow"), ("hayMeadows", true), ("cropProps", "none"),
-                ("rowAngle", "along"), ("pond", true));
-            Preset("arable", ("subtype", "arable"), ("arablePct", 100.0), ("paddocks", 0.0), ("silos", 5.0), ("barns", 2.0), ("fieldSize", 3.0),
+            // traditional farms first (the user: "more traditional farms should be the first options"), then the animal steads
+            Preset("mixed", BiomeMix.With(new (string, object)[] { ("subtype", "mixed"), ("arablePct", 60.0), ("paddocks", 2.0), ("barns", 3.0), ("livestock", "mixed"), ("fieldSize", 1.2),
+                ("rowAngle", "alternate"), ("pond", true), ("season", "summer"), ("vehicles", 3.0), ("yardMud", 55.0), ("drainage", "ditches"), ("tanks", 2.0) },
+                BiomeMix.Preset(Biomes, 70, ("fields", 78), ("orchard", 8), ("forest", 10), ("wetland", 4))));
+            Preset("arable", BiomeMix.With(new (string, object)[] { ("subtype", "arable"), ("arablePct", 100.0), ("paddocks", 0.0), ("silos", 5.0), ("barns", 2.0), ("fieldSize", 3.0),
                 ("rowSpacing", 5.0), ("fieldHedges", false), ("hedgeTrees", 1.0), ("tracks", "grid"), ("pond", false), ("cropProps", "edges"),
-                ("rowAngle", "auto"), ("yardGround", "paved"));
-            Preset("mixed", ("subtype", "mixed"), ("arablePct", 60.0), ("paddocks", 2.0), ("livestock", "mixed"), ("fieldSize", 1.2),
-                ("rowAngle", "alternate"), ("pond", true));
+                ("rowAngle", "auto"), ("yardGround", "paved"), ("season", "harvest"), ("vehicles", 4.0), ("yardMud", 30.0), ("drainage", "ditches"), ("tanks", 3.0) },
+                BiomeMix.Preset(Biomes, 80, ("fields", 92), ("forest", 8))));
+            Preset("fruitFarm", BiomeMix.With(new (string, object)[] { ("subtype", "mixed"), ("arablePct", 40.0), ("paddocks", 0.0), ("fieldSize", 1.0), ("silos", 0.0), ("barns", 2.0),
+                ("rowAngle", "auto"), ("pond", true), ("pondSize", 24.0), ("season", "summer"), ("vehicles", 2.0), ("yardMud", 35.0), ("drainage", "none"), ("tanks", 3.0),
+                ("edge", "hedgerow"), ("hedgeTrees", 2.0), ("yardGround", "gravel") },
+                BiomeMix.Preset(Biomes, 75, ("fields", 35), ("orchard", 55), ("forest", 6), ("wetland", 4))));
+            Preset("hillFarm", BiomeMix.With(new (string, object)[] { ("subtype", "mixed"), ("arablePct", 60.0), ("paddocks", 2.0), ("livestock", "sheep"), ("fieldSize", 0.9),
+                ("rowAngle", "auto"), ("terraces", true), ("edge", "fence"), ("fieldHedges", false), ("hedgeTrees", 0.0), ("silos", 0.0), ("barns", 2.0), ("pond", false),
+                ("season", "autumn"), ("vehicles", 2.0), ("yardMud", 70.0), ("drainage", "ravine"), ("tanks", 2.0), ("yardGround", "dirt") },
+                BiomeMix.Preset(Biomes, 70, ("fields", 64), ("pasture", 18), ("forest", 11), ("rocky", 7))));
+            Preset("dairy", BiomeMix.With(new (string, object)[] { ("subtype", "dairy"), ("arablePct", 25.0), ("paddocks", 4.0), ("paddockSize", 60.0), ("livestock", "cattle"),
+                ("silos", 3.0), ("barns", 3.0), ("fieldSize", 1.5), ("edge", "hedgerow"), ("hayMeadows", true), ("cropProps", "none"),
+                ("rowAngle", "along"), ("pond", true), ("season", "summer"), ("vehicles", 3.0), ("yardMud", 80.0), ("drainage", "ditches"), ("tanks", 4.0) },
+                BiomeMix.Preset(Biomes, 70, ("fields", 82), ("forest", 8), ("wetland", 10))));
             Preset("hobby", ("subtype", "hobby"), ("fieldSize", 0.3), ("arablePct", 70.0), ("cropProps", "rows"), ("paddocks", 1.0),
                 ("paddockSize", 30.0), ("livestock", "horses"), ("barns", 1.0), ("silos", 0.0), ("machinery", false), ("edge", "fence"),
-                ("pond", true), ("pondSize", 16.0), ("yardSize", 6.0), ("windpump", true), ("rowSpacing", 2.5), ("yardGround", "dirt"));
+                ("pond", true), ("pondSize", 16.0), ("yardSize", 6.0), ("windpump", true), ("rowSpacing", 2.5), ("yardGround", "dirt"), ("vehicles", 1.0), ("tanks", 1.0));
             Preset("ranch", ("subtype", "ranch"), ("arablePct", 0.0), ("paddocks", 6.0), ("paddockSize", 100.0), ("livestock", "cattle"),
                 ("edge", "fence"), ("fieldHedges", false), ("hedgeTrees", 0.0), ("barns", 2.0), ("silos", 1.0), ("hayStacks", true),
-                ("yardGround", "dirt"), ("pond", true), ("pondSize", 40.0), ("windpump", true), ("tracks", "spine"), ("fieldSize", 3.0));
+                ("yardGround", "dirt"), ("pond", true), ("pondSize", 40.0), ("windpump", true), ("tracks", "spine"), ("fieldSize", 3.0),
+                ("season", "harvest"), ("vehicles", 3.0), ("yardMud", 60.0), ("drainage", "ravine"), ("tanks", 4.0));
         }
 
         // ───────────── shared geometry helpers ─────────────
@@ -314,7 +337,8 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             var trackAsset = AssetMix.One(ctx.S("trackAsset"));
             var treeIds = ctx.L("treeSpecies");
             var hedgeIds = ctx.L("hedgeSpecies");
-            var fenceAsset = AssetMix.One(ctx.S("fenceAsset"));
+            // (P2-3) a farm's fences are wooden post-and-rail (the animal park's paddock fence), never the city's railings
+            var fenceAsset = string.IsNullOrEmpty(ctx.S("fenceAsset")) ? AnimalPark.AnimalParkArt.PenFence("", "paddocks") : AssetMix.One(ctx.S("fenceAsset"));
             int dirtLayer = ctx.I("paintLayer");
             bool paint = ctx.B("fieldPaint");
 
@@ -329,6 +353,9 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                 var toward = gates.Count > 0 ? gates[0].Position : region.ClosestOnBoundary(yard.Center, out _, out _);
                 frontSign = math.dot(toward - yard.Center, yard.Side) >= 0f ? 1f : -1f;
             }
+            // 1b. (P2-3) The farmhouse plot beside the yard, its front on the road side (claimed before the drive and the fields).
+            OrientedRect housePlot = default;
+            bool hasHouse = hasYard && HousePlot(ctx, region, res, hard, yard, frontSign, out housePlot);
             ctx.Check();
 
             // 2. Driveway from each entrance to the yard front (claimed before paddocks and the pond).
@@ -373,6 +400,9 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             {
                 var lake = LeisureKit.Blob(pondC, pondR, Hashing.Mix(ctx.Seed, 0x90DDu), 14, 0.18f);
                 ParkLayer.EmitLake(ctx, lake, 2.5f);
+                // (P2-3) a farm pond lies on mud, not the park lake's sand (it read as a dry sand pit, runs show-10/show-3)
+                var bed = ctx.Plan.Surfaces[ctx.Plan.Surfaces.Count - 1];
+                if (bed.Role == SurfaceRole.Water) bed.Asset = new AssetRef("Forestry Surface 01", "Forestry Surface 01");
                 hard.Add(LayerRegion.Circle(pondC, pondR * 1.2f + 1f, 20));
                 occ.Take(pondC, pondR * 1.2f + 0.5f, 0);
             }
@@ -380,6 +410,7 @@ namespace Placemaker.Core.Layers.Types.Farmstead
 
             // 4. Paddocks (and a round pen) around the yard.
             var paddocks = PlacePaddocks(ctx, region, hard, drive, origin, axis, out var pen, out float penR);
+            if (hasYard) Heaps(ctx, region, occ, hard, yard, frontSign);
             ctx.Check();
 
             // 5. Tracks: spine along the farm's axis through the yard, cross tracks every second field.
@@ -408,9 +439,33 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             }
             ctx.Check();
 
+            // 5b. Drainage: field ditches along the boundaries, or a ravine down the fall line (the fields keep out of it).
+            Drainage(ctx, region, occ, hard, origin, axis, side, Lf, Wf, trackLinesB, treeIds, out int channels);
+            ctx.Check();
+            // 5c. The landscape (Biome mix): orchards in rows, rough grazing, woods, wet ground, ponds, rock where the land wants
+            // them; the fields take the rest (every area held out of the field lattice, so a field's edge follows a wood's).
+            var gatePts = new List<float2>();
+            foreach (var g in gates) gatePts.Add(g.Position);
+            // the woods keep 10 m off the farmhouse plot (their crowns hid the house, run 20261031-105249-farm-close)
+            var housePrint = new Footprints();
+            if (hasHouse) housePrint.Add(housePlot.Ring);
+            var biomes = BiomeHost.Plan(ctx, occ, Biomes, gatePts, p => hard.Hits(p, 3f) || drive.Hits(p, 1f) || housePrint.Hits(p, 10f), rowAxis: axis);
+            if (biomes != null) foreach (var a in biomes.Areas) hard.Add(a);
+            ctx.Check();
+
             // 6. Fields on the lattice.
             var fields = BuildFields(ctx, region, hard, origin, axis, side, Lf, Wf, fieldArea);
             AssignKinds(ctx, fields, axis, side, sub);
+            int season = SeasonIndex(ctx.S("season"));
+            ctx.Plan.Facts[Decals.Dynamic.FarmGround.SeasonFact] = season;
+            ctx.Plan.Facts[Decals.Dynamic.FarmGround.MudFact] = ctx.F("yardMud") / 100.0;
+            // hill land: terraced benches on the steep fields (the hill farm)
+            if (ctx.B("terraces"))
+            {
+                var fr = new List<LayerRegion>();
+                foreach (var f in fields) fr.Add(f.Region);
+                Terraces(ctx, fr, occ, 1.8f);
+            }
             ctx.Check();
             int crops = 0, stripes = 0, bales = 0, fieldTrees = 0, spawners = 0;
             var cropIds = ctx.L("cropAssets");
@@ -435,10 +490,21 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             {
                 var f = fields[i];
                 uint v = Hashing.Mix(ctx.Seed, 0xF1E1u + (uint)i);
+                // A growing crop and its stubble are the crop surface (the vanilla field rows read as a crop from 45°; a green crop
+                // painted on grass did not show at all: run show-5-builds-1030-233210-474c). The bare soil of spring drilling,
+                // autumn ploughing and fallow is terrain paint at full strength, with the rows striped in.
+                // Drilled and ploughed soil is the crop surface's row ground: even the dark paint with a little earth under it showed
+                // the earth's pale blotches over a whole field (run 20261031-102933-farm-close, the hill farm in autumn).
+                bool bare = f.Kind == FieldKind.Fallow || (f.Kind == FieldKind.Grain || f.Kind == FieldKind.Veg) && (season == 0 || season == 3);
+                if (bare && f.Kind != FieldKind.Fallow && GroundCover.Field(ctx, f.Ring, GroundCover.Rows)) fieldSurfaces++;
+                else if (bare && paint) stripes += PaintField(ctx, f.Ring, f.Kind == FieldKind.Fallow ? "Fallow" : "Grain", f.RowDir, rs, season, MaxStripes - stripes);
+                else if (f.Kind == FieldKind.Grain && GroundCover.Field(ctx, f.Ring, GroundCover.Straw)) fieldSurfaces++;
+                else if (f.Kind == FieldKind.Veg && GroundCover.Field(ctx, f.Ring, GroundCover.Rows)) fieldSurfaces++;
+                else if (f.Kind == FieldKind.Hay && GroundCover.Field(ctx, f.Ring, GroundCover.Green)) fieldSurfaces++;
+                else if (paint && f.Kind != FieldKind.Pasture) stripes += PaintField(ctx, f.Ring, f.Kind.ToString(), f.RowDir, rs, season, MaxStripes - stripes);
                 switch (f.Kind)
                 {
                     case FieldKind.Grain:
-                        if (GroundCover.Field(ctx, f.Ring, GroundCover.Straw)) fieldSurfaces++;
                         // Arable farms water their big fields: an irrigation rig standing across the rows.
                         if (sub == "arable" && irrigation < 3 && f.Region.Area > 2500f)
                         {
@@ -446,31 +512,20 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                             if (clear > 9f && LeisureKit.Put(ctx, occ, at, FarmKit.Yaw(f.RowDir), ObjectRole.Furniture, AssetMix.One(FarmArt.Irrigation),
                                 AssetCategories.FarmMachinery, 8.6f, Hashing.Mix(v, 0x1A6u), 0.5f, 0.3f)) irrigation++;
                         }
-                        else if (paint)
-                        {
-                            TerrainPaint.Patch(ctx, f.Ring, dirtLayer, 0.85f, 3f);
-                            stripes += Stripes(ctx, f.Ring, f.RowDir, rs, stripeLayer, 0.55f, MaxStripes - stripes);
-                        }
                         GroundCover.RowTracks(ctx, occ, f.Ring, f.RowDir, ref tracksBudget, v, 6);
                         if (cropCat != null && cropMode != "none")
                             crops += GroundCover.RowHeads(ctx, occ, f.Ring, f.RowDir, rs, 2.5f, cropMode == "rows" ? 6f : 2.5f, cropMode == "rows" ? 1 : 3,
                                 CropRole(cropCat), cropCat, cropIds, perField, ref cropBudget, v);
                         break;
                     case FieldKind.Veg:
-                        if (GroundCover.Field(ctx, f.Ring, GroundCover.Rows)) fieldSurfaces++;
-                        else if (paint) TerrainPaint.Patch(ctx, f.Ring, dirtLayer, 1f, 2f);
                         if (cropCat != null)
                             crops += GroundCover.RowHeads(ctx, occ, f.Ring, f.RowDir, math.max(2f, rs * 0.6f), 2.2f, 4.5f, 1,
                                 CropRole(cropCat), cropCat, cropIds, perField, ref cropBudget, v);
                         break;
                     case FieldKind.Fallow:
-                        if (GroundCover.Field(ctx, f.Ring, GroundCover.Plowed)) fieldSurfaces++;
-                        else if (paint) TerrainPaint.Patch(ctx, f.Ring, dirtLayer, 0.55f, 4f);
                         GroundCover.RowTracks(ctx, occ, f.Ring, f.RowDir, ref tracksBudget, v, 4);
                         break;
                     case FieldKind.Hay:
-                        if (GroundCover.Field(ctx, f.Ring, GroundCover.Green)) fieldSurfaces++;
-                        else if (paint) stripes += Stripes(ctx, f.Ring, f.RowDir, math.max(4f, rs * 1.5f), stripeLayer, 0.35f, MaxStripes - stripes);
                         GroundCover.RowTracks(ctx, occ, f.Ring, f.RowDir, ref tracksBudget, v, 4);
                         if (hayCat != null) bales += HayBales(ctx, occ, f, hayCat, v);
                         break;
@@ -503,6 +558,7 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             // 7. Farmyard contents.
             int barns = 0, silos = 0;
             if (hasYard) DressYard(ctx, region, occ, res, yard, frontSign, hayCat, treeIds, out barns, out silos);
+            if (hasHouse) DressHouse(ctx, occ, housePlot, yard, frontSign, treeIds);
             ctx.Check();
 
             // 8. Paddock contents.
@@ -532,26 +588,43 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             if (sub == "ranch")
             {
                 int fenced = 0;
+                // a pasture's fence stops where a paddock's own fence already runs beside it (two fences 3-5 m apart, run
+                // 20261031-102933-farm-close)
+                var penPrints = new Footprints();
+                foreach (var pd in paddocks) penPrints.Add(pd.Ring);
                 foreach (var f in fields)
                 {
                     if ((f.Kind != FieldKind.Pasture && f.Kind != FieldKind.Hay) || fenced >= 24) continue;
                     var gp = f.Region.ClosestOnBoundary(origin, out int gs, out float gt);
                     foreach (var run in Fences.Runs(f.Region, new List<Gate> { new Gate { Position = gp, Segment = gs, T = gt } }, 2f))
-                    {
-                        ctx.StraightNet(run.c0, run.c1, NetRole.Fence, fenceAsset);
-                        occ.TakeCorridor(run.c0, run.c1, 0.45f, 5);
-                    }
+                        foreach (var (ra, rb) in Runs(run.c0, run.c1, p => penPrints.Hits(p, 6f), 1f, 3f))
+                        {
+                            ctx.StraightNet(ra, rb, NetRole.Fence, fenceAsset);
+                            occ.TakeCorridor(ra, rb, 0.45f, 5);
+                        }
+                    // (P2-3) the pasture gate, open toward the yard track
+                    var ge = f.Region.PointAt(f.Region.AlongOf(gs, gt), out var gtan, out var gin, out _);
+                    GateLeaf(ctx, fenceAsset, ge - gtan * 2f + gin * Fences.Inset, gtan, gin, 4f, Hashing.Mix(ctx.Seed, 0x6A7Eu + (uint)fenced));
                     fenced++;
                 }
                 ctx.Plan.Facts["fencedPastures"] = fenced;
             }
 
             // 11. Regions for features: yard, fields and paddocks (places), free grass as green/core.
-            if (hasYard) ctx.AddRegion(yard.Ring, YardTag, YardTag);
+            if (hasYard)
+            {
+                ctx.AddRegion(yard.Ring, YardTag, YardTag);
+                GateMark(ctx, yard.Center + yard.Side * frontSign * yard.HalfWidth, "yard", 0);
+            }
+            for (int i = 0; i < gates.Count; i++) GateMark(ctx, gates[i].Position, "road", i);
             var fieldPrints = new Footprints();
             for (int i = 0; i < fields.Count; i++)
             {
-                ctx.AddRegion(fields[i].Ring, "field:" + i, FieldPlace, FieldTag);
+                var fk = fields[i];
+                float deg = math.degrees(math.atan2(fk.RowDir.y, fk.RowDir.x));
+                ctx.AddRegion(fk.Ring, "field:" + i, FieldPlace, FieldTag, Decals.Dynamic.FarmGround.KindTag + fk.Kind,
+                    Decals.Dynamic.FarmGround.RowsTag + deg.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture));
+                if (fk.Kind != FieldKind.Pasture || i % 2 == 0) GateMark(ctx, fk.Region.ClosestOnBoundary(origin, out _, out _), fk.Kind == FieldKind.Pasture ? "paddock" : "field", i);
                 fieldPrints.Add(fields[i].Ring);
             }
             for (int i = 0; i < paddocks.Count; i++) ctx.AddRegion(paddocks[i].Ring, "paddock:" + i, PaddockPlace);
@@ -794,6 +867,8 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                     case "across": f.RowDir = side; break;
                     case "alternate": f.RowDir = ((f.A + f.B) & 1) == 0 ? axis : side; break;
                     default:
+                        // on a slope the rows follow the contour (ploughing across the fall line holds the soil)
+                        if (Contour(ctx, f.Region, out var cdir, out _)) { f.RowDir = cdir; break; }
                         f.Region.PrincipalAxes(out _, out var major, out _, out _);
                         f.RowDir = math.normalizesafe(major, axis);
                         break;
@@ -832,8 +907,17 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             string ground = ctx.S("yardGround");
             string groundCat = ground == "paved" ? AssetCategories.SurfacePaving
                 : LeisureKit.Category(ctx, "", ground == "dirt" ? AssetCategories.SurfaceDirt : AssetCategories.SurfaceNatural, AssetCategories.SurfaceNatural);
-            if (groundCat != null) ctx.Surface(yardRing, ground == "paved" ? SurfaceRole.Paving : SurfaceRole.Ground, AssetMix.One(""), groundCat);
-            if (ctx.B("fieldPaint") && ground != "paved") TerrainPaint.Patch(ctx, yardRing, ctx.I("paintLayer"), 0.7f, 2f);
+            // (P2-3) A dirt or gravel yard is the ground itself, worked to earth: painted (earth, and the dark forest floor for mud),
+            // its mud, puddles and tyre tracks laid by the ground design. The beige sand surface read as a slab dropped on the lawn
+            // (run show-10-builds-1030-231154-0c65). Only a paved yard keeps a surface.
+            // Painted earth read as pale blotches (the dither of the light earth slot, runs show-7-builds-1031-000929-4a92 and
+            // show-3-builds-1031-003306-233b): a dirt or gravel yard is the dark forestry ground surface, worked by the decals.
+            if (ground == "paved" && groundCat != null) ctx.Surface(yardRing, SurfaceRole.Paving, AssetMix.One(""), groundCat);
+            else
+            {
+                ctx.Surface(yardRing, SurfaceRole.Ground, new AssetRef("Forestry Surface 01", "Forestry Surface 01"), AssetCategories.SurfaceNatural);
+                TerrainPaint.Patch(ctx, LayerRegion.From(yardRing)?.InsetVertices(-4f) ?? yardRing, TerrainMaterials.Lush, 0.7f, 4f);
+            }
             var yardRegion = LayerRegion.From(yardRing);
             if (yardRegion == null) return;
             if (ctx.B("levelYard"))
@@ -889,6 +973,9 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                         barns++;
                 }
 
+            Homestead(ctx, region, yo, occ, yard, frontSign, out int vehicles);
+            ctx.Plan.Facts["farmVehicles"] = vehicles;
+
             // Machinery parked nose-in along the front.
             if (ctx.B("machinery"))
             {
@@ -915,6 +1002,7 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                     var p = hc + yard.Axis * ((k % 3 - 1) * 2.3f) + yard.Side * ((k / 3) * 2.3f);
                     LeisureKit.Put(ctx, yo, p, yard.Yaw, ObjectRole.Furniture, AssetMix.One(""), hayCat, 1f, Hashing.Mix(ctx.Seed, 0x4A70u + (uint)k), 0.3f, 0.1f);
                 }
+                HeapMark(ctx, hc, "bales", 0);
             }
 
             // Wind pump in a front corner, troughs between the barns and the yard.
@@ -963,8 +1051,12 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                 var m = (a + b) * 0.5f;
                 if (math.distance(a, m) > 3f) ctx.StraightNet(a, m - d * 2f, NetRole.Fence, fence);
                 if (math.distance(m, b) > 3f) ctx.StraightNet(m + d * 2f, b, NetRole.Fence, fence);
+                // (P2-3) the gate itself, hung on the post at one side of the gap and standing open into the paddock
+                GateLeaf(ctx, fence, m - d * 2f, d, math.normalizesafe(r.Center - m), 4f, Hashing.Mix(v, 9u));
             }
             var inward = math.normalizesafe(r.Center - gateMid);
+            GateMark(ctx, gateMid, "paddock", 100 + index);
+            HeapMark(ctx, gateMid + inward * 3f, "trough", 100 + index);
             var along = new float2(-inward.y, inward.x);
             // Worn ground at the gate, trough beside it, hay feeder in the middle, shelter in the far corner.
             if (dirtLayer > 0) TerrainPaint.Patch(ctx, LeisureKit.Blob(gateMid + inward * 4f, 5f, v, 12, 0.25f), dirtLayer, 0.6f, 2f);
@@ -1005,7 +1097,9 @@ namespace Placemaker.Core.Layers.Types.Farmstead
 
         private static void PondPlanting(LayerContext ctx, Occupancy occ, float2 c, float r, string[] treeIds, string[] bushIds)
         {
-            float bank = r * 1.2f + 1.6f;
+            // (P2-3) the water fills the dug basin's falloff too: in the game it reached 2-3 m past the outline and stood
+            // round the bank bushes (run 20261031-101259-farm-close); the planting starts past it
+            float bank = r * 1.2f + 4.5f;
             int n = math.max(6, (int)(2f * math.PI * bank / 4f));
             for (int i = 0; i < n; i++)
             {

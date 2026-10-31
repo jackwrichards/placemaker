@@ -184,10 +184,57 @@ namespace Placemaker.Core.Decals.Dynamic
                     case BiomeWhere.Trails:
                         foreach (var t in Trails(pass)) yield return t;
                         break;
+                    case BiomeWhere.Rows:
+                    case BiomeWhere.Alleys:
+                        foreach (var t in RowLines(where == BiomeWhere.Alleys)) yield return t;
+                        break;
                     default:
                         foreach (var r in _outer) yield return Closed(r);
                         break;
                 }
+            }
+
+            /// <summary>The planted rows (BiomeBuilder.Rows wrote their frame into the plan's facts): false when the area has none.</summary>
+            private bool RowFrame(out float2 axis, out float2 origin, out float pitch)
+            {
+                axis = origin = float2.zero; pitch = _d.RowPitch;
+                var f = _sc.Host?.Facts;
+                string k = "biomeRows." + _d.Id + ".";
+                if (pitch <= 0f || f == null || !f.TryGetValue(k + "ax", out var ax) || !f.TryGetValue(k + "ay", out var ay) || !f.TryGetValue(k + "ox", out var ox) || !f.TryGetValue(k + "oy", out var oy)) return false;
+                axis = math.normalizesafe(new float2((float)ax, (float)ay), new float2(1, 0)); origin = new float2((float)ox, (float)oy);
+                return true;
+            }
+
+            /// <summary>Distance (m) to the nearest planted row line.</summary>
+            private float RowDist(float2 p, float2 axis, float2 origin, float pitch)
+            {
+                float t = math.dot(p - origin, new float2(-axis.y, axis.x)) / pitch;
+                return math.abs(t - math.round(t)) * pitch;
+            }
+
+            /// <summary>The rows (or the alleys' two wheel lines) cut to the area.</summary>
+            private IEnumerable<float2[]> RowLines(bool alleys)
+            {
+                if (!RowFrame(out var axis, out var origin, out float pitch)) yield break;
+                var perp = new float2(-axis.y, axis.x);
+                float lo = float.MaxValue, hi = float.MinValue, reach = math.length(_boxHi - _boxLo) + 4f;
+                foreach (var c in new[] { _boxLo, _boxHi, new float2(_boxLo.x, _boxHi.y), new float2(_boxHi.x, _boxLo.y) }) { float d = math.dot(c - origin, perp); lo = math.min(lo, d); hi = math.max(hi, d); }
+                var mid = (_boxLo + _boxHi) * 0.5f;
+                float along = math.dot(mid - origin, axis);
+                for (float t = math.floor(lo / pitch) * pitch; t <= hi + pitch; t += pitch)
+                    foreach (float off in alleys ? new[] { pitch * 0.5f - 0.9f, pitch * 0.5f + 0.9f } : new[] { 0f })
+                    {
+                        var c = origin + perp * (t + off) + axis * along;
+                        foreach (var r in _outer)
+                            foreach (var (a, b) in Poly.ClipSegmentToPolygon(r, c - axis * reach, c + axis * reach))
+                            {
+                                // a row stops short of the area's edge (the headland the tractor turns on)
+                                float len = math.distance(a, b);
+                                if (len < 8f) continue;
+                                var d = (b - a) / len;
+                                yield return new[] { a + d * 2.5f, b - d * 2.5f };
+                            }
+                    }
             }
 
             private static float2[] Closed(float2[] r)
@@ -292,6 +339,14 @@ namespace Placemaker.Core.Decals.Dynamic
                             area = new BrushArea();
                             area.Outer.AddRange(Beds);
                             w = null;
+                            break;
+                        }
+                        case BiomeWhere.Rows:
+                        case BiomeWhere.Alleys:
+                        {
+                            if (!RowFrame(out var rax, out var ror, out float rp)) { w = null; area = new BrushArea(); break; }
+                            bool al = pass.Where == BiomeWhere.Alleys;
+                            w = p => { float d = RowDist(p, rax, ror, rp); return al ? BiomeField.Smooth01((d - 1.5f) / 1.5f) : 1f - BiomeField.Smooth01((d - 0.8f) / 1.8f); };
                             break;
                         }
                         case BiomeWhere.Core: w = p => 0.15f + 0.85f * BiomeField.Smooth01(Edge(p) / 10f); break;

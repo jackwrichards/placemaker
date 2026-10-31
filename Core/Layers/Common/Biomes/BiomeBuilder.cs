@@ -118,7 +118,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 ctx.Check();
                 var bb = new Builder(site, field, b, seed, thin, res);
                 // trees first (a pine grows out of the rock field), then the rocks round them, then the bushes in the gaps
-                bb.Planting(trees: true, bushes: false);
+                if (d.RowPitch > 0f) bb.Rows(); else bb.Planting(trees: true, bushes: false);
                 bb.Rocks();
                 bb.Planting(trees: false, bushes: true);
                 bb.PlantLayers();
@@ -660,6 +660,48 @@ namespace Placemaker.Core.Layers.Common.Biomes
             }
 
             // ── planting ──
+
+            /// <summary>The row lines of a planted biome (orchard): axis, a point on row 0, pitch. Shared with BiomeGround through the plan's facts.</summary>
+            public static void RowFrame(BiomeSite s, BiomeDef d, out float2 axis, out float2 origin)
+            {
+                axis = math.lengthsq(s.RowAxis) > 1e-6f ? math.normalize(s.RowAxis) : float2.zero;
+                if (math.lengthsq(axis) < 1e-6f) { s.Region.PrincipalAxes(out _, out var major, out _, out _); axis = math.normalizesafe(major, new float2(1, 0)); }
+                origin = s.Region.Centroid;
+            }
+
+            /// <summary>Trees in straight rows (RowPitch apart, RowSpacing along), only where the area is, a few gaps, off the paths.</summary>
+            public void Rows()
+            {
+                var treeIds = _s.Trees != null && _s.Trees.Length > 0 ? _s.Trees : _d.Trees;
+                if (treeIds.Length == 0 || !AssetAvailability.Has(AssetCategories.Tree) && _s.Trees.Length == 0) return;
+                RowFrame(_s, _d, out var axis, out var origin);
+                var perp = new float2(-axis.y, axis.x);
+                _ctx.Plan.Facts["biomeRows." + _d.Id + ".ax"] = axis.x; _ctx.Plan.Facts["biomeRows." + _d.Id + ".ay"] = axis.y;
+                _ctx.Plan.Facts["biomeRows." + _d.Id + ".ox"] = origin.x; _ctx.Plan.Facts["biomeRows." + _d.Id + ".oy"] = origin.y;
+                float lo = float.MaxValue, hi = float.MinValue, alo = float.MaxValue, ahi = float.MinValue;
+                foreach (var q in _box.Ring) { var dq = q - origin; lo = math.min(lo, math.dot(dq, perp)); hi = math.max(hi, math.dot(dq, perp)); alo = math.min(alo, math.dot(dq, axis)); ahi = math.max(ahi, math.dot(dq, axis)); }
+                float pitch = _d.RowPitch, step = math.max(2f, _d.RowSpacing);
+                int wanted = Count(_d.TreesPerHa * _s.TreeAmount);
+                int placed = 0;
+                for (float t = math.ceil(lo / pitch) * pitch; t <= hi && placed < wanted; t += pitch)
+                {
+                    // rows start on a whole step from the row frame, so neighbouring rows line up in both directions
+                    for (float a = math.ceil(alo / step) * step; a <= ahi && placed < wanted; a += step)
+                    {
+                        var p = origin + perp * t + axis * a;
+                        if (!Mine(p) || Deep(p) < 2.2f || !PathClear(p, 2.2f) || InWater(p, 2f) || Reserved(p, 1.5f)) continue;
+                        uint v = V(70);
+                        if (Hashing.Unit(v) < _d.RowGaps) continue;
+                        if (!_occ.Free(p, 1.6f, 1f, 0.3f)) continue;
+                        int age = Hashing.Unit(Hashing.Mix(v, 3u)) < 0.12f ? 2 : 3;   // (young apple trees have the wider crowns: run 20261031-110042-farm-close)
+                        var po = _ctx.Object(p, Hashing.Unit(Hashing.Mix(v, 5u)) * 6.283f, ObjectRole.Tree, AssetMix.Pick(treeIds, v), v, age);
+                        po.Scale = math.lerp(_d.RowScaleLo, _d.RowScaleHi, Hashing.Unit(Hashing.Mix(v, 9u)));
+                        _occ.Take(p, 1.6f, 3);
+                        placed++;
+                    }
+                }
+                _res.Trees += placed;
+            }
 
             public void Planting(bool trees = true, bool bushes = true)
             {

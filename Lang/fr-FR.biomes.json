@@ -21,5 +21,11 @@
   "Placemaker.Biome.water.Tooltip": "Des étangs naturels dans les creux, aux berges en pente, avec roseaux et arbres de rive. Permanent : modifie le terrain.",
   "Placemaker.Biome.scale": "Taille des taches",
   "Placemaker.Biome.scale.Tooltip": "Bas : beaucoup de petites taches mélangées. Haut : quelques grandes zones, chacune avec son caractère.",
-  "Placemaker.UI.Group.biomes": "Paysage"
+  "Placemaker.UI.Group.biomes": "Paysage",
+  "Placemaker.Biome.fields": "Champs",
+  "Placemaker.Biome.fields.Tooltip": "Les champs de la ferme : cultures, prés de fauche et pâtures avec leurs haies, barrières et chemins.",
+  "Placemaker.Biome.orchard": "Verger",
+  "Placemaker.Biome.orchard.Tooltip": "Des arbres fruitiers en rangs droits avec des allées d’herbe tondue, sur les pentes chaudes et le plat.",
+  "Placemaker.Biome.pasture": "Pâture rude",
+  "Placemaker.Biome.pasture.Tooltip": "Herbe en touffes, ajoncs et épineux, pierres et sentes à moutons, sur les sols pentus et pauvres."
 }

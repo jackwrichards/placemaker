@@ -57,13 +57,37 @@ namespace Placemaker.Core.Layers.Types.Yards
         public static string Truck(int i) => Prefix + "Truck " + i;
         public static string Garbage(int i) => Prefix + "Garbage " + i;
         public static string Tractor(int i) => Prefix + "Tractor " + i;
+        /// <summary>A farm tractor (the game's field tractors, never the mining tractor).</summary>
+        public static string FarmTractor(int i) => Prefix + "FarmTractor " + i;
         public static string Camper(int i) => Prefix + "Camper " + i;
         public static string Loader(int i) => Prefix + "Loader " + i;
 
         /// <summary>Slot kinds and how many of each the game makes (the game layer reads this list).</summary>
         public static readonly (string kind, int count)[] Slots =
         {
-            ("Car", 10), ("Van", 3), ("Truck", 3), ("Garbage", 2), ("Tractor", 2), ("Camper", 2), ("Loader", 2),
+            ("Car", 10), ("Van", 3), ("Truck", 3), ("Garbage", 2), ("Tractor", 2), ("FarmTractor", 2), ("Camper", 2), ("Loader", 2),
+        };
+    }
+
+    /// <summary>
+    /// (P2-3) Houses as static props: the meshes of the game's own low-density houses (Game/Assets/VehiclePropSystem makes
+    /// them with the vehicle props). Vanilla has no house prop at all; a farm without its farmhouse read as a barn yard.
+    /// Each slot takes the first of its sources the game has (EU first: the rural look), so a slot keeps its house.
+    /// </summary>
+    public static class HouseProps
+    {
+        public const string Prefix = "Placemaker House ";
+        public static string House(int i) => Prefix + i;
+
+        /// <summary>Slot → the vanilla buildings it may copy, in order (lot cells in the name: 3x3 = 24 × 24 m).</summary>
+        public static readonly string[][] Sources =
+        {
+            // level 3-5 houses on 3 × 3 lots: the level-1 ones are cabins (a green tiny home with a porch read as a mobile home,
+            // run 20261031-101259-farm-close)
+            new[] { "EU_ResidentialLow03_L3_3x3", "NA_ResidentialLow01_L2_3x3", "EU_ResidentialLow03_L1_3x3" },
+            new[] { "EU_ResidentialLow03_L5_3x3", "EU_ResidentialLow03_L3_3x3", "EU_ResidentialLow01_L1_3x3" },
+            new[] { "NA_ResidentialLow01_L2_3x3", "EU_ResidentialLow03_L3_3x3", "NA_ResidentialLow01_L1_3x3" },
+            new[] { "EU_ResidentialLow01_L3_3x2", "EU_ResidentialLow03_L3_3x2", "EU_ResidentialLow03_L3_3x3" },
         };
     }
 

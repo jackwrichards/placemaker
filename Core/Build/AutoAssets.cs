@@ -97,7 +97,8 @@ namespace Placemaker.Core.Build
         /// </summary>
         public static bool IsOwn(string id) => id != null && (id.StartsWith(Layers.Types.Yards.VehicleProps.Prefix, StringComparison.Ordinal)
             // (P2-1) the slow drive paths and the invisible stall: copies of vanilla prefabs, registered by Placemaker
-            || id.StartsWith("Placemaker Slow ", StringComparison.Ordinal) || id == Layers.Parking.ParkingAssets.InvisibleBay);
+            || id.StartsWith("Placemaker Slow ", StringComparison.Ordinal) || id == Layers.Parking.ParkingAssets.InvisibleBay
+            || id.StartsWith(Layers.Types.Yards.HouseProps.Prefix, StringComparison.Ordinal));   // (P2-3) the farmhouses, from vanilla houses
 
         public static int Resolve(ComposedPlan plan, AutoAssetSource source)
         {

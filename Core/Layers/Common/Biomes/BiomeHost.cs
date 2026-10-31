@@ -22,7 +22,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
         /// <paramref name="gates"/> keep 12 m of open ground; <paramref name="blocked"/> more ground that stays the type's.
         /// </summary>
         public static BiomeResult Plan(LayerContext ctx, Occupancy occ, BiomeOffer offer, IReadOnlyList<float2> gates = null, Func<float2, bool> blocked = null,
-            bool shape = true, string treeDensityId = "treeDensity", float treeDesign = 0f)
+            bool shape = true, string treeDensityId = "treeDensity", float treeDesign = 0f, float2 rowAxis = default)
         {
             var mix = BiomeMix.Shares(ctx, offer);
             if (!BiomeMix.AnyNatural(mix)) return null;
@@ -46,6 +46,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 Trees = ctx.L("treeSpecies") ?? Array.Empty<string>(), Bushes = ctx.L("bushSpecies") ?? Array.Empty<string>(),
                 TreeAmount = ta,
                 Shape = shape && !ctx.Input.HasChild("terrain"),
+                RowAxis = rowAxis,
             };
             return BiomeBuilder.Plan(site, mix, BiomeMix.Scale(ctx, offer), Hashing.Mix(ctx.Seed, 0xB10Eu));
         }

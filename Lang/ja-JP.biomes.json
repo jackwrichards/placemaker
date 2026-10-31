@@ -21,5 +21,11 @@
   "Placemaker.Biome.water.Tooltip": "低地の自然な池：斜面の岸、葦、水辺の木。永続的：地形を変えます。",
   "Placemaker.Biome.scale": "区画の大きさ",
   "Placemaker.Biome.scale.Tooltip": "小：小さな区画がたくさん混ざる。大：少数の大きな区画、それぞれに個性。",
-  "Placemaker.UI.Group.biomes": "景観"
+  "Placemaker.UI.Group.biomes": "景観",
+  "Placemaker.Biome.fields": "畑",
+  "Placemaker.Biome.fields.Tooltip": "農場自身の畑：作物、干し草地、牧草地と生け垣、門、農道。",
+  "Placemaker.Biome.orchard": "果樹園",
+  "Placemaker.Biome.orchard.Tooltip": "刈られた草の通路をはさんで果樹がまっすぐ並びます。暖かい斜面や平地に。",
+  "Placemaker.Biome.pasture": "粗放牧地",
+  "Placemaker.Biome.pasture.Tooltip": "ハリエニシダやとげのある藪、石、羊の踏み跡がある草地。急で痩せた土地に。"
 }
