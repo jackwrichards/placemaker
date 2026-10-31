@@ -110,11 +110,27 @@ namespace Placemaker.Core.Layers.Types.UrbanRuins
                     bool tall = outer && corner < 5f && Hashing.Unit(Hashing.Mix(v, 1u)) < 0.6f;
                     if (!occ.Free(p, 0.6f, 0.2f, 0f)) continue;
                     var o = ctx.Object(p, yaw, ObjectRole.Furniture, AssetMix.Pick(tall ? Tall : Low, v), v, -1, AssetCategories.RuinsWall);
-                    // the garden walls are 0.9 m: a ruin's surviving stretch near a corner stands up to twice that
-                    if (tall) o.Scale = 1.4f + 0.6f * Hashing.Unit(Hashing.Mix(v, 2u));
+                    // the garden walls are 0.9 m: a ruin's surviving stretch near a corner stands up to twice that; elsewhere
+                    // stubs of every height (P2-4, the lead: "varied heights", not a neat railing), the odd one leaning
+                    float hv = Hashing.Unit(Hashing.Mix(v, 2u));
+                    o.Scale = tall ? 1.4f + 0.6f * hv : 0.5f + 0.7f * hv;
+                    if (Hashing.Unit(Hashing.Mix(v, 5u)) < 0.3f) o.Roll = (Hashing.Unit(Hashing.Mix(v, 6u)) - 0.5f) * 0.3f;
                     occ.Take(p, 0.8f, 2);
                     res.WallPieces++;
                     res.Walls.Add((p - t * 1.4f, p + t * 1.4f));
+                    // what fell off it lies at its foot: a low heap of broken masonry inside the room (its decals follow res.Rubble)
+                    if (Hashing.Unit(Hashing.Mix(v, 3u)) < 0.45f)
+                    {
+                        var inside = math.normalizesafe(fp.Center - p);
+                        var q = p + new float2(-t.y, t.x) * math.sign(math.dot(new float2(-t.y, t.x), inside)) * 1.3f + t * ((Hashing.Unit(Hashing.Mix(v, 4u)) - 0.5f) * 1.6f);
+                        if (occ.Free(q, 0.9f, 0.2f, 0f))
+                        {
+                            var heap = ctx.Object(q, Hashing.Unit(Hashing.Mix(v, 7u)) * 6.283f, ObjectRole.Furniture, AssetMix.Pick(Heaps, v), v, -1, AssetCategories.RuinsRubble);
+                            heap.Scale = 0.45f + 0.3f * Hashing.Unit(Hashing.Mix(v, 8u));
+                            occ.Take(q, 1f, 2);
+                            res.Rubble.Add(q);
+                        }
+                    }
                 }
             }
             // the basement's own walls: what is left of them stands in broken stretches at the hole's edge, a third or so of the rim,
