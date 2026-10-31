@@ -161,8 +161,75 @@ namespace Placemaker.Core.Decals.Dynamic
                 host.Facts["decalTouchedPct"] = Math.Round(r.Touched * 100f, 1);
                 host.Facts["decalStrongPct"] = Math.Round(r.Strong * 100f, 1);
             }
+            Stairs(plan, groups, ground);
             total.Ms = clock.Elapsed.TotalMilliseconds;
             return total;
+        }
+
+        /// <summary>Grade over 4 m from which a walk on the final ground gets steps.</summary>
+        public const float StairGrade = 0.10f;
+        private const float StairTile = 7.2f;   // the stepTreads tile (a whole number of 0.9 m treads)
+
+        /// <summary>
+        /// (P2-4 round 4) Steps where a walk stays steeper than a walk may be once graded (an entrance from a street up a hill, a
+        /// short piece at a junction): a flight of stone steps (stepTreads) along every stretch of 5 m or more steeper than
+        /// <see cref="StairGrade"/> on the final ground, on every dressed layer's walks, whichever design dressed it.
+        /// </summary>
+        private static void Stairs(ComposedPlan plan, Dictionary<DressSettings, List<AreaPlan>> groups, Func<float2, float> ground)
+        {
+            foreach (var layers in groups.Values)
+                foreach (var l in layers)
+                {
+                    int flights = 0;
+                    foreach (var n in l.Nets)
+                    {
+                        if (n.Role != NetRole.Pathway && n.Role != NetRole.PathwayWide) continue;
+                        float half = Composer.DefaultHalfWidth(n.Role);
+                        int m = math.max(2, (int)math.ceil(math.distance(n.A.xz, n.D.xz) / 2f));
+                        var pts = new List<float2>();
+                        for (int k = 0; k <= m; k++) pts.Add(Composer.Bezier(n.A, n.B, n.C, n.D, k / (float)m).xz);
+                        var run = new List<float2>();
+                        void Flush()
+                        {
+                            float len = 0f; for (int i = 1; i < run.Count; i++) len += math.distance(run[i - 1], run[i]);
+                            if (run.Count >= 2 && len >= 3f)
+                            {
+                                // whole tiles along the stretch (the last one stretched a little), each laid on its own chord
+                                int tiles = math.max(1, (int)math.round(len / StairTile));
+                                float step = len / tiles;
+                                float2 prev = run[0]; float walked = 0f; int ri = 1;
+                                for (int t = 1; t <= tiles; t++)
+                                {
+                                    float target = t * step;
+                                    float2 next = run[run.Count - 1];
+                                    while (ri < run.Count)
+                                    {
+                                        float sl = math.distance(run[ri - 1], run[ri]);
+                                        if (walked + sl >= target) { next = math.lerp(run[ri - 1], run[ri], (target - walked) / math.max(1e-4f, sl)); break; }
+                                        walked += sl; ri++;
+                                    }
+                                    var d = next - prev; float dl = math.length(d);
+                                    if (dl > 0.5f)
+                                        l.DecalInstances.Add(new DecalInstance("stepTreads", (flights + t) & 1, (prev + next) * 0.5f, math.atan2(-d.y, d.x),
+                                            new float2(dl / StairTile, half * 2f / 3f), 1f, "seam:stairs"));
+                                    prev = next;
+                                }
+                                flights++;
+                            }
+                            run.Clear();
+                        }
+                        for (int i = 1; i < pts.Count; i++)
+                        {
+                            var a = pts[i - 1]; var b = pts[i];
+                            float dd = math.distance(a, b);
+                            bool steep = dd > 0.5f && math.abs(ground(b) - ground(a)) / dd > StairGrade;
+                            if (steep) { if (run.Count == 0) run.Add(a); run.Add(b); }
+                            else if (run.Count > 0) Flush();
+                        }
+                        if (run.Count > 0) Flush();
+                    }
+                    if (flights > 0) l.Facts["stairFlights"] = flights;
+                }
         }
 
         // ───────────────────────── the scene: causes read from the plan ─────────────────────────

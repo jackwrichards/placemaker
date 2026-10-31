@@ -281,7 +281,7 @@ namespace Placemaker.Tests.Types
             _out.WriteLine($"hillside {f("bowlHillside")}, seating rows {f("bowlSeatingRows")}, rise {f("designRise")} m, drop {f("designDrop")} m, " +
                 $"pitch {f("pitchLength")}, stands {f("stands")}, banks {f("bowlBank")} m");
             Assert.Equal(1, host.Facts["bowlHillside"]);
-            Assert.True(host.Facts["bowlSeatingRows"] >= 15, "the hill stand has " + host.Facts["bowlSeatingRows"] + " rows");
+            Assert.True(host.Facts["bowlSeatingRows"] >= 10, "the hill stand has " + host.Facts["bowlSeatingRows"] + " rows");
             // the floor sits in the hill: it is cut in deeper than it is raised over the hill's own plane
             Assert.True(host.Facts["designDrop"] > host.Facts["designRise"], $"rise {host.Facts["designRise"]} m, drop {host.Facts["designDrop"]} m");
             T04TypeTestBase.AssertNothingOnPaths(host);

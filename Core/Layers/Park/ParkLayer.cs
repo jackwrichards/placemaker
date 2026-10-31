@@ -507,7 +507,11 @@ namespace Placemaker.Core.Layers.Park
                     avenueA = avenueB = float2.zero;
                 }
                 if (style.Grid) curved = false;
-                if (pathStyle == "garden") { graph = ParkPathStyles.Meander(graph, gatePoints, ctx.M(6.5f), ctx.M(18f), pathSeed, okPoint); curved = true; }
+                // (P2-4 round 4) on steep land the walks already wind along the contours (the contour roadmap): no bends on top of
+                // them, which would only make them wave up and down the slope
+                bool windAlready = SteepSite(region, ctx.H);
+                if (windAlready && (pathStyle == "garden" || pathStyle == "curvy")) curved = true;
+                else if (pathStyle == "garden") { graph = ParkPathStyles.Meander(graph, gatePoints, ctx.M(6.5f), ctx.M(18f), pathSeed, okPoint); curved = true; }
                 else if (pathStyle == "curvy") { graph = ParkPathStyles.Meander(graph, gatePoints, ctx.M(5f), ctx.M(34f), pathSeed, okPoint); curved = true; }
                 // P2-4 round 3: runs that climb faster than a walk may are traced as switchbacks along the contour
                 graph = ParkPathStyles.Switchbacks(graph, gatePoints, ParkPathPlanner.AmbientHeight, okPoint, out int switchbacks, out int hairpins);

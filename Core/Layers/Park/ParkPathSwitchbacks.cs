@@ -49,8 +49,9 @@ namespace Placemaker.Core.Layers.Park
             {
                 var run = runs[r];
                 List<float2> line = null;
-                if (!NeedsTrace(run, h)) TraceLog?.Add($"RUN {r} len {Length(run):0} dh {math.abs(h(run[run.Count - 1]) - h(run[0])):0.0} skip");
-                if (NeedsTrace(run, h))
+                bool comb = Comb(run);
+                if (!NeedsTrace(run, h) && !comb) TraceLog?.Add($"RUN {r} len {Length(run):0} dh {math.abs(h(run[run.Count - 1]) - h(run[0])):0.0} skip");
+                if (NeedsTrace(run, h) || comb)
                 {
                     // up from the bottom or down from the top, first leg either way: the shortest trace that reaches the other end.
                     // Long legs across the whole corridor first; where those dead-end, a tighter ladder of shorter legs, then the
@@ -101,6 +102,24 @@ namespace Placemaker.Core.Layers.Park
             var segs = new List<float2>();
             foreach (var pts in lines) for (int i = 1; i < pts.Count; i++) { segs.Add(pts[i - 1]); segs.Add(pts[i]); }
             return ParkPathGraph.FromSegments(segs, gates);
+        }
+
+        /// <summary>
+        /// (P2-4 round 4) A comb: the contour roadmap climbs a steep face in short zig-zags (a turn back every few lattice links).
+        /// Two or more turns back with less than 22 m of walk between them: retraced as long legs across the face.
+        /// </summary>
+        private static bool Comb(List<float2> run)
+        {
+            if (run.Count < 4) return false;
+            var p = Resample(run, 3f);
+            int backs = 0; float since = 1e9f, len = 0f;
+            for (int i = 2; i < p.Count; i++)
+            {
+                var a = math.normalizesafe(p[i - 1] - p[i - 2]); var b = math.normalizesafe(p[math.min(p.Count - 1, i + 1)] - p[i - 1]);
+                len += math.distance(p[i - 1], p[i]); since += math.distance(p[i - 1], p[i]);
+                if (math.dot(a, b) < -0.3f && since > 6f) { if (since < 22f) backs++; since = 0f; }
+            }
+            return backs >= 2;
         }
 
         /// <summary>A run that climbs more than 5 m and has a 12 m stretch steeper than the walk grade.</summary>
