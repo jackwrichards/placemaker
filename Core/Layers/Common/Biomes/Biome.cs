@@ -284,7 +284,6 @@ namespace Placemaker.Core.Layers.Common.Biomes
             Plants = new[]
             {
                 new BiomePlants(220f, 0.45f, 0.7f, BiomeWhere.Core, 7f, "GreenBushWildChild01", "GreenBushWildTeen01"),
-                new BiomePlants(60f, 0.45f, 0.7f, BiomeWhere.Drift, 9f, "FlowerBushCity01", "FlowerBushCity03", "FlowerBushWildChild02"),
             },
             Decals = new[]
             {
@@ -300,7 +299,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
         {
             // open long grass: the sward itself is the look (long grass over the whole area, flowers in it), only a scatter of
             // tussocks and a shrub or two at its edge, one or two old solitary trees. P2-4: 520 tussocks a hectare read as bushes.
-            Id = "meadow", Color = "#c9b45a", Open = true,
+            Id = "meadow", Color = "#c9b45a", Open = true, Plain = true,   // P2-8: the sward is its look (the shared lush paint under it read as dark blotches)
             Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Trees, 0, 20, "perHa"), BiomeKnob.Slider(BiomeKnobs.Flowers, 100, 200), BiomeKnob.Choice(BiomeKnobs.Grass, 1, "short", "long", "tall"), BiomeKnob.Slider(BiomeKnobs.Shrubs, 100, 200) },
             Flat = 0.9f, Slope = 0.2f, Hollow = 0.1f, NearPath = -0.1f, Steep = -0.3f,
             // P2-8 (the user: "even when I turn it to full meadow, I still get some trees"): a meadow is open grass, no trees or
@@ -356,12 +355,11 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 new BiomeDecal("lawnTonePatch", 0.35f, BiomeWhere.All, 0.35f, 0.6f, 8f, quiet: true),
                 new BiomeDecal("longGrass", 0.85f, BiomeWhere.Rim, 0.6f, 0.9f, 4f),
                 new BiomeDecal("animalTrail", 0.5f, BiomeWhere.Trails, 0.3f, 0.5f, 3f),   // faint trodden lines (wornPath read as orange dashes from 45°)
-                new BiomeDecal("trampledGrass", 0.12f, BiomeWhere.Core, 0.5f, 0.8f, 6f),
-                new BiomeDecal("barePatch", 0.035f, BiomeWhere.Core, 0.55f, 0.85f, 3f),
-                new BiomeDecal("daisyLawn", 0.1f, BiomeWhere.Drift, 0.45f, 0.7f, 6f),
-                new BiomeDecal("cloverPatch", 0.12f, BiomeWhere.All, 0.4f, 0.7f, 5f),
-                new BiomeDecal("molehills", 0.012f, BiomeWhere.All, 0.6f, 0.9f, 2f),
-                new BiomeDecal("dampPatch", 0.06f, BiomeWhere.Downhill, 0.3f, 0.55f, 3f),
+                // round 2 (the game: a field of spots): few, quiet, gathered in the heart where people play
+                new BiomeDecal("trampledGrass", 0.05f, BiomeWhere.Core, 0.3f, 0.5f, 12f, quiet: true),
+                new BiomeDecal("barePatch", 0.012f, BiomeWhere.Core, 0.45f, 0.7f, 8f),
+                new BiomeDecal("daisyLawn", 0.05f, BiomeWhere.Drift, 0.35f, 0.55f, 8f),
+                new BiomeDecal("molehills", 0.006f, BiomeWhere.All, 0.6f, 0.9f, 2f),
                 new BiomeDecal("leafLitterSummer", 0.14f, BiomeWhere.Rim, 0.4f, 0.7f, 3f, quiet: true),   // only with edge trees (BiomeKnobs.Apply)
             },
         };
@@ -378,8 +376,9 @@ namespace Placemaker.Core.Layers.Common.Biomes
             BushesPerHa = 0f, Bushes = Flowers,
             Plants = new[]
             {
-                new BiomePlants(420f, 0.4f, 0.75f, BiomeWhere.Drift, 8f, "FlowerBushCity01", "FlowerBushCity03", "FlowerBushCity02", "FlowerBushWildChild02"),
-                new BiomePlants(320f, 0.45f, 0.7f, BiomeWhere.All, 6f, "GreenBushWildChild01", "GreenBushWildTeen01"),
+                // P2-8 (the game: pastel teal and yellow balls everywhere, read as confetti): the flowers are the decals; only low green clumps in the drifts
+                new BiomePlants(60f, 0.35f, 0.55f, BiomeWhere.Drift, 8f, "GreenBushWildChild01", "GreenBushWildTeen01"),
+                new BiomePlants(70f, 0.4f, 0.6f, BiomeWhere.All, 6f, "GreenBushWildChild01", "GreenBushWildTeen01"),
             },
             Decals = new[]
             {

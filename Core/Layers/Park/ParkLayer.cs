@@ -212,9 +212,11 @@ namespace Placemaker.Core.Layers.Park
         {
             Preset("natural", BiomeMix.With(new (string, object)[] { ("style", "natural"), ("treeDensity", 26.0), ("bushDensity", 65.0), ("furniture", 4.0), ("pathStyle", "curvy"), ("desireLines", "worn") },
                 BiomeMix.Preset(Biomes, 74, ("lawn", 40), ("meadow", 16), ("glade", 10), ("forest", 18), ("rocky", 10), ("wetland", 6))));
-            Preset("formal", BiomeMix.With(new (string, object)[] { ("style", "formal"), ("pathWidth", "narrow"), ("curvedPaths", false), ("treeDensity", 30.0),
-                ("bushDensity", 60.0), ("furniture", 4.5), ("paths", "network"), ("pathStyle", "formal") },
-                BiomeMix.Preset(Biomes, 30, ("lawn", 70), ("flowers", 18), ("mulch", 12))));
+            // (P2-8) the formal city green (a London square, a Paris jardin): clipped lawn panels between straight walks, an avenue
+            // along each walk, a fountain plaza; no natural areas or places with moods (a flower field's drifts read as confetti)
+            Preset("formal", BiomeMix.With(new (string, object)[] { ("style", "formal"), ("pathWidth", "narrow"), ("curvedPaths", false), ("treeDensity", 16.0),
+                ("bushDensity", 40.0), ("furniture", 4.5), ("paths", "network"), ("pathStyle", "formal"), ("moods", false) },
+                BiomeMix.Preset(Biomes, 30, ("lawn", 100))));
             Preset("garden", BiomeMix.With(new (string, object)[] { ("style", "garden"), ("pathWidth", "narrow"), ("treeDensity", 22.0), ("bushDensity", 95.0),
                 ("furniture", 4.0), ("pathStyle", "garden"), ("naturalGround", true) },
                 BiomeMix.Preset(Biomes, 55, ("lawn", 46), ("flowers", 22), ("mulch", 20), ("rocky", 12))));

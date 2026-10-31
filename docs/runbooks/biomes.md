@@ -133,3 +133,72 @@ canals between paths; heath and glade not A. The user: B+; the yellow ground "li
   removal: 1 leftover, the street-joint node).
 - Still open: no boardwalk or bridge where a walk must cross water (at 100 % water a few walks keep a lawn causeway); heath's
   trails are faint at 45°; glade on narrow rooms is more woodland than clearing.
+
+## P2-8 (2026-10-31): full means full, per-biome settings, plain grass and the field
+
+The user: "even when I turn it to full meadow, I still get some trees"; "sometimes I just want a park to be a field ... even a
+field should have good looking decals"; "maybe one that is just simpler, literally grass with some leaves, more vanilla";
+"the zone tool is a much better one ... maybe each biome can be customized itself ... it needs to be really good UX".
+
+### Full means full (every source of the stray trees)
+
+`FullBiomeTests` (park, botanical garden, memorial park, adventure playground; every offered biome at 100 %, flat and hills)
+lists every tree of the plan; all must be the biome's own. Before: 100 % meadow, natural park, 216 x 196: 25 trees.
+
+| Source | Before | Now |
+|---|---|---|
+| the meadow's own solitary trees (3/ha) and the flower field's (2/ha) | 9 | 0 by default; the biome's **Trees** setting adds them |
+| the host's own planting on what the areas leave (verges, entrances, clearings) | 4 trees, ~90 bushes | scales with the lawn's share of the mix (`BiomeResult.HostShare`); 0 at 0 % lawn (park, botanical, memorial, adventure) |
+| Big trees (look setting) | 8 | keep off natural areas; none when the lawn has no share (`ReservedSpace.Natural`, `NaturalOnly`, filled by `Composition.Reserve`) |
+| a picnic's shade trees, flowerbeds | 4 | same rule |
+| memorial allées, a room's specimen tree | kept | the memorial's architecture: their own visible settings (Allées, Room content) |
+
+The rule for any new feature that plants something decorative: check `ctx.Input.Reserved.InNatural(p)`.
+
+### Per-biome settings (`BiomeKnobs.cs`)
+
+Each biome in the mix has 2-4 settings of its own (`BiomeDef.Knobs`, else made from what it has): control
+`biome<Biome><Knob>`, group `biome:<id>`, label `Placemaker.Biome.Knob.<key>` (shared). Read only while the biome is in the
+mix (otherwise "not used": greyed, skipped by `ControlEffectTests`). `BiomeKnobs.Apply` tunes a copy of the definition; the
+field, the builder and the decals (`BiomeGround` rebuilds it from the facts `biomeKnob.<id>.<key>`) all see it.
+
+| Biome | Settings |
+|---|---|
+| plain grass | Leaves, Trees |
+| field | Wear, Long edges, Daisies, Edge trees |
+| meadow | Trees, Wildflowers, Grass (short/long/tall), Shrubs |
+| flower field | Colours (mixed/warm/cool/purple/yellow/white), Wildflowers, Shrubs |
+| mulch | Beds, Trees, Shrubs |
+| glade | Trees, Wildflowers, Shrubs |
+| forest | Trees, Kind (mixed/broadleaf/conifers/birch), Undergrowth, Dead wood |
+| rocky | Rocks, Height, Trees |
+| heath | Heather, Trees, Height |
+| wetland | Open water, Reeds, Trees |
+| ponds | Reeds, Trees |
+| farm and beach biomes | made from their data (Trees, Shrubs, Rocks, Height as they have them) |
+
+The park's own planting (tree and bush density, species, the planted edge) is its lawn's: shown in the Lawn box
+(`BiomeOffer.LawnControls`), and it no longer scales or replaces the natural areas' trees (each biome plants its own species).
+
+### Plain grass and the field (`BiomeDef.Plain`)
+
+- **Plain grass** (`grass`): the game's own grass, a light scatter of summer leaves, a few lone trees if asked. Nothing else.
+- **Field** (`field`): a mown field, an unmown long-grass margin round its edge, faint trodden lines across it, trampled and
+  bald patches in its heart, daisies (new decal kind `daisyLawn`) and clover in drifts, molehills, damp on the slopes; leaves
+  only with edge trees. References: Clapham Common, the Sheep Meadow (Central Park), Tempelhofer Feld, a village rec ground.
+- Both are **Plain**: the shared lawn variation keeps off them (GroundWear's lush/dry paint patches read as dark green
+  blotches over half the park; Weathering's lawn tone, mottle, dry grass and clover decals).
+- Park styles: **Plain park** (plain grass 100 %, 4 lone trees/ha, no flowerbeds, big trees or picnic) and **Open field**
+  (field 100 %, a circuit walk, picnic tables).
+
+Biomes or styles: a biome is a kind of ground that can share a site with others (grass, field, meadow, forest ...); a style
+is a whole park (paths, furniture, features) plus a preset mix. Plain grass and the field are both: biomes to mix, and a
+style each that is 100 % of it.
+
+### The Landscape card (`UI/src/controls/BiomeMix.tsx`)
+
+The zone tool's bar: names inside the parts, or sticking out above/below on a line in the first free slot (two rows each
+side, so small neighbours never cover each other); the white lines between neighbours drag (each keeps 1 %); a click on a
+part or its label opens that biome's box (share, Only this, take out, its settings); Add shows the biomes not in the mix;
+"Whole place" holds Patch size. Mock-up shown to the user: https://claude.ai/artifact/YDbMHsGohWMLuRxSGKyuNN. Mock test:
+`UI/mock/tests/biomes.spec.ts`.
