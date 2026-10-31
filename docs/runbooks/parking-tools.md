@@ -23,6 +23,12 @@ Parking Lot Tool is in `docs/refactor/parking.md` ("P2-1 audit"). The general me
 | Picked edge | Hand edit "rows line up here" | Wins over every direction; the first band starts at that edge. |
 | Entrances | Marker mode | Snap to an aisle end (5 m along the edge, at least 30°), dashed guide, Shift = free; drag to move, right-click removes; red and refused when closer than PLT's spacing (aisle + 2 stalls) to another car entrance. |
 | Fee | Manage → group → "Parking fee" switch + slider 1–50 | Off keeps the lot free (the economy system no longer writes a fee back). |
+| Sketch lines | Hand edits "Draw aisle", "Draw walkway" | Click points (snapped; Shift free), right-click or the last point finishes, Esc drops the line, a click on a line removes it. A drive lane or a footpath through the rows; stalls in the way go. |
+| Zone grid | Row direction "Zone grid" | Rows follow the zoning blocks of the streets round the lot (then the grid turn). |
+| Space markings | Spaces, "Space markings" (More) | Off: invisible stalls (cars still park), no chargers. |
+| Slow lanes | Automatic | Every drive path is a 25 km/h copy that costs more to drive through: through traffic keeps to the streets (PLT values). |
+| Occupancy | Info panel, Manage | "x of y spaces taken"; Manage with nothing picked lists every car park with its fee. |
+| Edit | Shared | The old build's objects and areas hide while editing (nets stay); Cancel shows them. |
 | Preview strength | Settings, "Preview fill strength" 10–100 % | Makes the ground fills see-through. |
 | Existing buildings | Automatic | Stalls and lines that would touch a protected building lot are removed (0.5 m margin); the plan shows an info line. |
 
@@ -55,9 +61,7 @@ player; `{"do":"touch","kind":"grid.edge","side":"west"}` picks an edge. Read "N
 
 ## Open (for P2-5 and the lead)
 
-- Through traffic: PLT's slow internal paths (core request 2).
-- Old build visible under the Edit preview (core request 3).
-- Sketching aisles and walkways on the world (core request 1).
-- Occupancy and a fee column in Manage; zone-grid and guide snaps for the rows.
-- Looks (P2-5): the rebuilt vertical layout left a planted strip on the east and sparse median trees; a bay-markings
-  toggle.
+- Looks (P2-5): walkways are paved like the aisles (they need a look of their own: pavers, paint); sparse median trees.
+- A drawn aisle only cuts through; rows of new stalls along it are not made.
+- Outline corners do not snap to zone cells or guide lines (the rows follow the zone grid).
+- Through traffic was not watched with real traffic (the test world has none); the lanes carry PLT's speed and cost.

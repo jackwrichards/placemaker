@@ -228,6 +228,7 @@ namespace Placemaker.Game.Assets
             {
                 var names = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var kv in _allPrefabsByName) if (Usable(kv.Value)) names.Add(kv.Key);
+                foreach (var kv in s_ownByName) if (Usable(kv.Value)) names.Add(kv.Key);   // (P2-1) our copies registered after the scan
                 _usableNames = names;
                 _usableVersion = _version;
             }
@@ -386,7 +387,7 @@ namespace Placemaker.Game.Assets
 
         /// <summary>True when any loaded prefab has this name (missing-asset detection).</summary>
         public bool PrefabExists(string name) =>
-            !string.IsNullOrEmpty(name) && _allPrefabsByName.TryGetValue(name, out var e) && Usable(e);
+            !string.IsNullOrEmpty(name) && (_allPrefabsByName.TryGetValue(name, out var e) && Usable(e) || s_ownByName.TryGetValue(name, out e) && Usable(e));
 
         public bool TryGetItem(string name, out CatalogItem item) => _byName.TryGetValue(name ?? "", out item);
 
@@ -601,6 +602,7 @@ namespace Placemaker.Game.Assets
             _byCategory.Clear(); foreach (var kv in byCategory) _byCategory[kv.Key] = kv.Value;
             _byName.Clear(); foreach (var kv in byName) _byName[kv.Key] = kv.Value;
             _allPrefabsByName.Clear(); foreach (var kv in allByName) _allPrefabsByName[kv.Key] = kv.Value;
+            foreach (var kv in s_ownByName) if (!_allPrefabsByName.ContainsKey(kv.Key)) _allPrefabsByName[kv.Key] = kv.Value;   // (P2-1) our copies, also when registered after a scan
             _defaults.Clear(); foreach (var kv in defaults) _defaults[kv.Key] = kv.Value;
             _infoMap = info;
             if (changed || !_ready) _version++;

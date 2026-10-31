@@ -40,6 +40,29 @@ water, buildings, lots, my builds, and zoning as one choice (ignore / built / zo
 * **Legend** while choosing the area (`Core/Tool/AreaLegend`, `state.areaLegend`): the fill, closed gaps (amber), the
   reach, the stops (red), what Points left out, corners on road nodes.
 
+## Sketch lines: drawing on the world (P2-1, 2026-10-31)
+
+The outline tools make closed areas. A **sketch line** is an open polyline the player draws inside a design: "a drive aisle
+goes here", "a walkway runs here". It is a hand edit (docs/ARCHITECTURE.md, "Manual touches"), so it is kept in the design
+and survives Edit, rebuilds and reloads.
+
+* **Drawing** (`Game/Tool/PlacemakerToolSystem.Touches.cs`, `UpdateSketch`): pick a line kind in the panel (parking: "Draw
+  aisle", "Draw walkway"); each click adds a point, right-click or a click on the last point again finishes, Esc drops the
+  line being drawn (a second Esc leaves the mode), a click on a finished line of the same kind removes it, right-click with
+  nothing drawn takes back the last hand edit. Leaving the mode with two points or more keeps the line.
+* **Snapping** (`Core/Tool/LineSketch.Snap`, Shift = none): onto a point within reach (the line's own points, the outline's
+  corners, the ends of the plan's paths and roads); onto a segment within reach (the outline's sides, the plan's paths and
+  roads, the step's other lines); the direction parallel or square with the nearest of those lines within 6 degrees, else 15
+  degree steps. The reach grows with the camera distance (1.5 to 12 m).
+* **The overlay** (`PlacemakerOverlaySystem.DrawSketch`): the step's lines (this kind bright), the line being drawn, a dashed
+  rubber band to where the next point goes, a ring when it snapped.
+* **Saved form**: kind `line.<what>`, `Arg` = `"x,z;x,z;…"` (world metres, 2 decimals), `Position` = the first point.
+* **What it means is the layer's**. Parking (`LayoutEngine.ApplySketches`): each piece inside the lot becomes a drive aisle
+  (cross-lane width, the slow drive path) or a walkway (2 m, pedestrian path, paved); the stalls in its way go; a drive line
+  joins every lane it crosses (`PlanBuilder.SplitAtJunctions` splits both nets there) and counts as reachable.
+* **Testing**: `{"do":"sketch","kind":"line.aisle","points":[[0.12,0.25],[0.88,0.75]]}` (fractions of the outline's box; the
+  runner clicks like a player, snapping applies), `suite/scenarios/parking-tools.json`; unit tests `LineSketchTests`.
+
 ## Testing it in the game
 
 `suite/scenarios/area-tools.json`: dead ends, paths, a street that stops short of another (gap), open land (reach),

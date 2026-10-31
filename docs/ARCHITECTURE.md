@@ -116,7 +116,13 @@ Then strings in 12 languages, a test that a touch survives `RecipeJson` and `Rec
 Parking's kinds (`Core/Layers/Parking/StallTouches.cs`, `PlanBuilder.EmitTouchTargets`): `stall.accessible` (a group of wide
 stalls centred on the click, counted toward the accessible share), `stall.ev` (the stall and its neighbour get a charger),
 `stall.plain` (no automatic accessible or charger stall here), `stall.blank` (paved, no marking, no parking lane),
-`stall.island` (a planted island), `grid.edge` (the rows run along the clicked outline side and start at it; one per design).
+`stall.island` (a planted island), `grid.edge` (the rows run along the clicked outline side and start at it; one per design),
+`line.aisle` and `line.walk` (sketch lines: a drive aisle or a walkway drawn through the rows; below).
+
+**Sketch lines** (docs/AREA-TOOLS.md, "Sketch lines"): a touch kind in the group `line` is drawn, not clicked: the tool
+collects snapped points (`Core/Tool/LineSketch`) and saves the finished line as one touch, the points in `Arg`
+(`LineSketch.Encode/Decode`), the first point as `Position`. A layer that offers one reads `LineSketch.Decode(t.Arg)` and
+decides what it means; it needs no `TouchTargets` for it.
 
 ## Folder layout and ownership
 

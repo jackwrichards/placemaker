@@ -4,6 +4,10 @@ What a content agent needs from shared code that is bigger than a small general 
 
 ## P2-1 Parking tools (2026-10-31)
 
+All three were built by P2-1 itself on the lead's word (2026-10-31): sketch lines (`Core/Tool/LineSketch.cs`, docs/AREA-TOOLS.md),
+slow drive paths (`Game/Assets/SlowPathPrefabSystem.cs`), the old build hidden during Edit
+(`Game/Tool/PlacemakerToolSystem.EditHide.cs`). Kept below for the record.
+
 1. **Sketch lines on the world** (open polylines, snapped like the outline: kerbs, road nodes, the plan's own lines).
    - Why: the user's "letting them draw on the world": a player sketches where aisles, walkways or a row of islands go.
    - How it would fit: the area tools only make closed outlines (`Core/Tool/PolygonEditor.cs`); an open-line editor with the

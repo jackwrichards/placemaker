@@ -132,7 +132,7 @@ done yet, why), **declined** (deliberately not, why).
 | **Drawing and shape** ||||
 | 1 | Draw a polygon, click the first point to close | Points tool, block pick, paint bucket, paint area (`docs/AREA-TOOLS.md`) | have (more ways) |
 | 2 | Drag a corner, drag an edge (parallel), Shift slides along neighbours, Ctrl+click inserts, Alt+drag extrudes, right-click deletes | `Core/Tool/PolygonEditor.cs` (ported from PLT's EdgeDrag) | have |
-| 3 | Outline snapping (roads, building lots, other lots, zone grid, axis, guides), six toggles | `SnapResolver`/`SnapCollector`: kerbs, road nodes, other builds; no zone-grid or guide-line snap, no toggles | partial (open: zone-grid and guide snaps) |
+| 3 | Outline snapping (roads, building lots, other lots, zone grid, axis, guides), six toggles | `SnapResolver`/`SnapCollector`: kerbs, road nodes, other builds; **the rows can follow the zone grid** (row direction "Zone grid": the zoning blocks of the streets round the lot); sketch lines snap to corners, sides, the plan's lanes and square angles | partial (outline corners do not snap to zone cells or guide lines; the rows do) |
 | 4 | Undo/redo with named steps | one history for outline and design, named steps | have |
 | 5 | Split area into sub-areas, a reference line per sub-area | one grid per lot; two lots side by side give two grids | declined for now: per-lot alignment covers the common case; sub-areas need a split editor (core request if wanted) |
 | 6 | Large-lot warning | "too big" warning (`SizeGuide`) | have |
@@ -146,7 +146,7 @@ done yet, why), **declined** (deliberately not, why).
 | 13 | EV pairs with a charger, 4 % | share slider, charger asset; **plus the Charger hand edit** | new |
 | 14 | Result readout | summary: spaces, EV, accessible, area, aisle length, trees | have |
 | 15 | Save as my default / reset per control | presets, Save as default, reset | have |
-| 16 | Through traffic: internal paths at 25 km/h with a higher pathfind cost | vanilla invisible paths | open (needs cloned path prefabs with speed limit and pathfind cost: engine work, core request) |
+| 16 | Through traffic: internal paths at 25 km/h with a higher pathfind cost | **"Placemaker Slow …" copies of the five drive paths** (`Game/Assets/SlowPathPrefabSystem.cs`, PLT's whole-chain clone): 25 km/h, car cost 0 / 0.25 / 0.01 / 0.05 (time / behaviour / money / comfort), used by every car park and the malls' lot aisles | new (PLT parity: the same speed and cost; game runner `driveLanes` reads them off the built lanes) |
 | **Entrances** ||||
 | 17 | Seven kinds + bus stop, max 15, build needs two-way or in + out | same seven kinds, max 15, same rule; bus stop hidden (the user's call) | have |
 | 18 | Snap to the lot's own aisles within 5 m along the edge, oblique ≥ 30°, nearest line wins, Shift = freehand | **same rule** on the step's planned drive aisles (footpaths snap to paths), a dashed guide shows the aisle it joins, Shift = freehand | new |
@@ -161,7 +161,7 @@ done yet, why), **declined** (deliberately not, why).
 | 25 | Buildings: no check at all | always kept, the panel says how many; **the car park now plans round them** (no stall or aisle on a building lot, the rest reachable, a note with how many spaces were left out) instead of the safety pass cutting aisles after planning | new (beats PLT) |
 | **Editing after placement** ||||
 | 26 | Click selects the whole lot; Edit in the info panel and the list | click panel "Part of …": Edit, Rename, Ungroup, Remove; Manage list | have |
-| 27 | Edit restores everything, rebuilds, keeps the fee | Edit restores outline, design, entrances **and hand edits**; rebuild replaces; fee and name kept | have + new (open: while editing, the old lot still shows under the new preview; PLT hides it until Apply: core request 3) |
+| 27 | Edit restores everything, rebuilds, keeps the fee | Edit restores outline, design, entrances **and hand edits**; rebuild replaces; fee and name kept | have + new; **while editing, the old build's objects and areas are hidden** (nets stay live; Cancel shows them again; shared Edit path, every type) |
 | 28 | Unchanged road pieces keep their entities on edit | full rebuild | open (matters for grown buildings on PLT's zoning roads, which Placemaker does not build) |
 | 29 | Lost receipt restore from a build journal | receipts live on the group record in the save | declined |
 | **Management** ||||
@@ -169,12 +169,12 @@ done yet, why), **declined** (deliberately not, why).
 | 31 | Fee in the info panel: switch (off keeps the amount) + slider 1–50 | **same, on the click panel**, applies at once, no rebuild; the design's fee slider is now up front with 0 = free | new (the creator's main complaint) |
 | 32 | Default fee for new lots | `DefaultParkingFee` option; the design's fee wins | have |
 | 33 | Upkeep via a hidden companion building, 4 workers, noise | companion ported, experimental and off by default (it crashed natively during PLT's development) | partial (open: verify in the game, then default on) |
-| 34 | Capacity and occupancy in the vanilla panel | spaces on the click panel | partial (open: occupancy) |
-| 35 | Lot list: fee inline, filters, sort, insights | Manage list | partial (open: fee and occupancy columns; insights declined, out of scope for a placement tool) |
+| 34 | Capacity and occupancy in the vanilla panel | spaces **and "x of y spaces taken"** (parked cars on its stalls) on the click panel and in Manage | new |
+| 35 | Lot list: fee inline, filters, sort, insights | Manage with nothing picked: **every car park with spaces taken and its fee** (a click shows it and opens it); the picked car park: occupancy, the fee switch and slider | new (filters and sort declined for now: one list, few lots; insights declined) |
 | 36 | Economy master switch, upkeep scale | `ParkingEconomy` switch, upkeep factor | have |
 | 37 | Bulldoze confirmation | Remove asks; bulldoze question | have |
 | **Objects** ||||
-| 38 | Bay markings on/off | always marked; **Empty** hand edit for single spaces | partial (open for P2-5: a "no markings" look) |
+| 38 | Bay markings on/off | **"Space markings" switch** (off: every stall the invisible copy of the stall decal, `Game/Assets/InvisibleBayPrefabSystem.cs`; the parking lane stays; no chargers) and the **Empty** hand edit for single spaces | new (PLT parity) |
 | 39 | Road + decoration surface pickers | asphalt and green surface pickers | have |
 | 40 | Surface to road at entrances | kerb apron at entrances | have |
 | 41 | Lanterns: sets, spacing, light range display | lamp asset, spacing, on/off | have (light range display declined) |
@@ -190,13 +190,13 @@ done yet, why), **declined** (deliberately not, why).
 | 48 | Sync/repair, orphan and missing-asset repair, uninstall cleanup | missing-asset repair, prepare uninstall, old saves migrate | have |
 | 49 | Report a problem, dev tab | game runner, logs, build audits | declined (developer tooling) |
 | **Drawing on the world** ||||
-| 50 | (not in PLT) | hand edits draw on the world for single spaces (islands, empty spaces, accessible groups, chargers) and the grid's edge | partial (freehand aisle sketching: below) |
+| 50 | (not in PLT) | hand edits for single spaces (islands, empty spaces, accessible groups, chargers), the grid's edge, and **sketch lines: drive aisles and walkways drawn on the map** through the rows | new |
 
 ### Drawing aisles on the world (brief item 7)
 
-Clicking stalls and edges (hand edits) is the clean part: the planner keeps a layout that works (every stall reachable,
-entrances joined), and the player changes what they want. Freehand aisles would replace the band planner for that part of
-the lot (a sketched aisle defines its rows, cross lanes and reachability) and must survive outline changes; the area tools
-make only closed outlines (`PolygonEditor`), no open lines. Closest clean thing today: two lots side by side, each lined up
-with its own picked edge, plus islands and empty spaces by hand. A sketch tool (open polylines snapped like the outline, kept
-as hand edits of kind `aisle.line`) is proposed in `docs/refactor/PHASE2-CORE-REQUESTS.md`.
+Done (2026-10-31): **sketch lines** (`Core/Tool/LineSketch.cs`, docs/AREA-TOOLS.md "Sketch lines"), open polylines drawn on
+the map with snapping, kept as hand edits (`line.aisle`, `line.walk`), so they survive Edit, rebuilds and reloads. Parking
+lays them over its own layout: a drawn aisle is a drive lane through the rows (the stalls in its way go, it joins every lane
+it crosses), a drawn walkway a footpath with its paving. The band planner still plans the rows; the player cuts lanes and
+walkways where they want them. Not done: rows of new stalls along a drawn aisle (it only cuts through), and a look of its own
+for walkways (they are paved like the aisles: for P2-5).

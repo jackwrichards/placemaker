@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+2e06f174-dirty",
+  "assembly": "0.3.6+f9f1a2af-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -8806,6 +8806,7 @@
           "options": [
             "edge",
             "street",
+            "zones",
             "across",
             "fixed"
           ],
@@ -8924,8 +8925,15 @@
             "stall.plain",
             "stall.blank",
             "stall.island",
-            "grid.edge"
+            "grid.edge",
+            "line.aisle",
+            "line.walk"
           ]
+        },
+        {
+          "id": "markings",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "chargerAsset",
