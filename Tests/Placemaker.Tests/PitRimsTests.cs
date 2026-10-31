@@ -29,7 +29,7 @@ namespace Placemaker.Tests
         {
             var failures = new List<string>();
             var editor = new DesignEditor(GeneratorRegistry.Get);
-            foreach (var ground in new[] { "flat", "slope" })
+            foreach (var ground in new[] { "flat", "slope", "steep" })
                 foreach (var (id, preset) in Types)
                 {
                     var gen = GeneratorRegistry.Get(id);
@@ -37,6 +37,7 @@ namespace Placemaker.Tests
                     var ring = TestKit.Rect(220, 200);
                     var site = TestKit.RoadAlongBottom(220);
                     if (ground == "slope") site.HeightAt = p => 0.08f * p.y;
+                    if (ground == "steep") site.HeightAt = p => 0.15f * p.y;
                     ring = ring.Select(p => new float3(p.x, site.HeightAt(p.xz), p.z)).ToArray();
                     var recipe = editor.SingleLayerRecipe(gen, 7);
                     if (gen.Presets.Any(p => p.Id == preset)) editor.ApplyPreset(recipe, "0", preset);
@@ -54,12 +55,14 @@ namespace Placemaker.Tests
                             foreach (var o in l.Objects)
                             {
                                 if (Placemaker.Core.Layers.Common.Cutouts.IsBorder(o) && f.InFenceZone(o.Position.xz)) fences++;
-                                if (PitRims.IsPile(o) && PitRims.Straddles(f, o.Position.xz, SiteHarmony.FootprintRadius(o, site))) piles++;
+                                if (PitRims.IsPile(o) && PitRims.Straddles(f, site.HeightAt, o.Position.xz, SiteHarmony.FootprintRadius(o, site))) piles++;
                             }
                         }
                     double cut = plan.Layers.Count > 0 && plan.Layers[0].Facts.TryGetValue("pitFencesCut", out var c) ? c : 0;
                     double gone = plan.Layers.Count > 0 && plan.Layers[0].Facts.TryGetValue("pitPilesRemoved", out var g) ? g : 0;
                     _out.WriteLine($"{id}/{preset}/{ground}: dug cells {f?.Dug ?? 0}, fences cut {cut}, piles removed {gone}; left: {fences} fences, {piles} piles");
+                    // a level pit floor on a slope is no edge: its machines and stock stay (game runner: a foundation on 15 % lost them all)
+                    if (gone > 3) failures.Add($"{id}/{preset}/{ground}: {gone} piles removed (more than the edge has)");
                     if (fences > 0 || piles > 0) failures.Add($"{id}/{preset}/{ground}: {fences} fences, {piles} piles at the hole");
                 }
             Assert.True(failures.Count == 0, string.Join("\n", failures));

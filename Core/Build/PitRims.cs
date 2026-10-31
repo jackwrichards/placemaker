@@ -160,8 +160,8 @@ namespace Placemaker.Core.Build
             return f;
         }
 
-        /// <summary>Whether a pile at p with footprint radius r straddles the hole's edge (part dug, part not, or a step under it).</summary>
-        public static bool Straddles(Field f, float2 p, float r)
+        /// <summary>Whether a pile at p with footprint radius r straddles the hole's edge (part dug, part not, or a step of the final ground under it).</summary>
+        public static bool Straddles(Field f, Func<float2, float> ground, float2 p, float r)
         {
             if (f.DistanceAt(p) > r + Reach) return false;
             bool dug = false, dry = false;
@@ -169,9 +169,9 @@ namespace Placemaker.Core.Build
             for (int s = -1; s < 12; s++)
             {
                 float2 q = s < 0 ? p : p + r * new float2(math.cos(s * math.PI / 6f), math.sin(s * math.PI / 6f));
-                float d = f.DeltaAt(q);
+                float d = f.DeltaAt(q), after = ground(q) + d;   // the final ground: a level pit floor on a slope is no step
                 if (d <= -PitDepth) dug = true; else dry = true;
-                lo = math.min(lo, d); hi = math.max(hi, d);
+                lo = math.min(lo, after); hi = math.max(hi, after);
             }
             return (dug && dry) || hi - lo > PileStep;
         }
@@ -186,7 +186,7 @@ namespace Placemaker.Core.Build
             {
                 if (l == null) continue;
                 fences += l.Objects.RemoveAll(o => Layers.Common.Cutouts.IsBorder(o) && f.InFenceZone(o.Position.xz));
-                piles += l.Objects.RemoveAll(o => IsPile(o) && Straddles(f, o.Position.xz, SiteHarmony.FootprintRadius(o, site)));
+                piles += l.Objects.RemoveAll(o => IsPile(o) && Straddles(f, site.HeightAt, o.Position.xz, SiteHarmony.FootprintRadius(o, site)));
                 fences += Layers.Common.Cutouts.ClipBorderNets(l, (p, pad) => f.InFenceZone(p));
             }
             if (plan.Layers.Count > 0 && plan.Layers[0] != null && fences + piles > 0)
