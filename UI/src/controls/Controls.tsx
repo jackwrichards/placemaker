@@ -588,7 +588,9 @@ const TouchesEditor = ({ c, ctx }: { c: ControlEx; ctx: RowCtx }) => {
             </div>
             <div className={s.touchFoot}>
                 <div className={s.touchHint}>
-                    {activeKind
+                    {activeKind.startsWith("line.")
+                        ? t("Placemaker.UI.Touches.Drawing", "Click points on the map; right-click or click the last point again to finish. Shift: no snapping. Click a line to remove it.")
+                        : activeKind
                         ? t("Placemaker.UI.Touches.Active", "Click on the map. Click again to undo it; right-click takes back the last one.")
                         : total
                         ? t("Placemaker.UI.Touches.Count", "{0} hand edits, kept when you edit or rebuild.", [total])

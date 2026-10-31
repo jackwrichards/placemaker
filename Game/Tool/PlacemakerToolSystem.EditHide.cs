@@ -3,6 +3,9 @@
 // "edit-plan-touched": two car parks on top of each other). Nets stay: traffic keeps flowing and the roads stay pickable.
 // Cancel shows them again; a rebuild deletes them anyway. Parking Lot Tool does the same (ParkingLotEditAbriss.cs).
 // Game.Tools.Hidden is not saved, so a save made during an edit loads with the build visible.
+// The game shows a hidden object again while its owner is visible (Game.Objects.SubObjectHiddenSystem): the stalls, trees
+// and lamps are owned by the build's carrier, so the carrier (an owner of this build, never a net) is hidden with them
+// (game-runner run send-parking-touches-save-1031-020347: 650 objects hidden, 0 still hidden a second later).
 
 using System.Collections.Generic;
 using Game.Common;
@@ -38,7 +41,22 @@ namespace Placemaker.Game.Tool
                 _hiddenByEdit.Add(e);
                 if (area) areas++; else objects++;
             }
-            Mod.Log.Info($"Placemaker: editing group {groupId}: {objects} object(s) and {areas} area(s) of the old build hidden (nets stay).");
+            // their owners in this build (the carrier), so the game keeps them hidden; nets stay
+            int owners = 0;
+            for (int i = 0; i < _hiddenByEdit.Count; i++)
+            {
+                var e = _hiddenByEdit[i];
+                if (!EntityManager.HasComponent<Owner>(e)) continue;
+                var o = EntityManager.GetComponentData<Owner>(e).m_Owner;
+                if (o == Entity.Null || !EntityManager.Exists(o) || EntityManager.HasComponent<Hidden>(o) || EntityManager.HasComponent<Deleted>(o)) continue;
+                if (EntityManager.HasComponent<global::Game.Net.Edge>(o) || EntityManager.HasComponent<global::Game.Net.Node>(o)) continue;
+                if (Services.Groups == null || Services.Groups.GroupOf(o) != groupId) continue;
+                EntityManager.AddComponent<Hidden>(o);
+                if (!EntityManager.HasComponent<BatchesUpdated>(o)) EntityManager.AddComponent<BatchesUpdated>(o);
+                _hiddenByEdit.Add(o);
+                owners++;
+            }
+            Mod.Log.Info($"Placemaker: editing group {groupId}: {objects} object(s), {areas} area(s) and {owners} owner(s) of the old build hidden (nets stay).");
         }
 
         private void ShowEditedBuild()

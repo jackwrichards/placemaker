@@ -388,7 +388,7 @@ namespace Placemaker.Game.Tool
         {
             switch (StageMachine.Escape(_stage, Facts()))
             {
-                case EscapeAction.ExitMarkers: ExitMarkerMode(); ExitTouchMode(); break;
+                case EscapeAction.ExitMarkers: if (CancelSketchLine()) break; ExitMarkerMode(); ExitTouchMode(); break;
                 case EscapeAction.CancelGesture: CancelGesture(); break;
                 case EscapeAction.ToDesign: SetStage(ToolStage.Design); break;
                 case EscapeAction.ToArea: SetStage(ToolStage.Area); break;

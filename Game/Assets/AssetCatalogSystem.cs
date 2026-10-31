@@ -105,6 +105,9 @@ namespace Placemaker.Game.Assets
             if (prefab.Has<UIObject>()) prefab.Remove<UIObject>();
             bool ok = prefabs.AddPrefab(prefab);
             if (ok) FindItCompat.Track(prefabs, prefab);
+            // (P2-1) by name for plans that name one (the slow drive paths): a copy registered after the catalog's scan never
+            // triggers a rescan (above), so the scan's name list does not have it
+            if (ok) try { s_ownByName[prefab.name] = prefabs.GetEntity(prefab); } catch (Exception) { }
             try
             {
                 if (before >= 0) s_ownPrefabs += math.max(0, q.CalculateEntityCount() - before);
@@ -113,6 +116,8 @@ namespace Placemaker.Game.Assets
             catch (Exception) { }
             return ok;
         }
+
+        private static readonly Dictionary<string, Entity> s_ownByName = new Dictionary<string, Entity>(StringComparer.Ordinal);
 
         /// <summary>Our own prefab (registered by Placemaker): never a catalogue item.</summary>
         public static bool IsOwnPrefabName(string name) => name != null && name.StartsWith("Placemaker ", StringComparison.Ordinal);
@@ -485,6 +490,7 @@ namespace Placemaker.Game.Assets
             // Not catalogued (e.g. a prefab a layer names explicitly that our heuristics skip):
             // still honour it when it exists and is of a usable kind for the category.
             if (_allPrefabsByName.TryGetValue(name, out var e) && Usable(e) && KindMatches(e, category)) return e;
+            if (s_ownByName.TryGetValue(name, out e) && Usable(e) && KindMatches(e, category)) return e;
             return Entity.Null;
         }
 

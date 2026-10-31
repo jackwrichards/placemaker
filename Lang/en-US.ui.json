@@ -492,6 +492,7 @@
   "Placemaker.UI.Tool.PointsLine": "Click corners",
   "Placemaker.UI.Tool.PointsTip2": "Click corners, then the first one to close; right-click starts over. Snaps to curbs, right angles and road nodes: two corners on road nodes follow the road between them.",
   "Placemaker.UI.Touches.Active": "Click on the map. Click again to undo it; right-click takes back the last one.",
+  "Placemaker.UI.Touches.Drawing": "Click points on the map; right-click or click the last point again to finish. Shift: no snapping. Click a line to remove it.",
   "Placemaker.UI.Touches.Clear": "Undo all",
   "Placemaker.UI.Touches.Count": "{0} hand edits, kept when you edit or rebuild.",
   "Placemaker.UI.Touches.Hint": "Pick one, then click on the map.",

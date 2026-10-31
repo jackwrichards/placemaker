@@ -543,7 +543,9 @@ namespace Placemaker.Game.Overlay
         {
             var kind = _tool.TouchKind;
             var plan = _tool.Plan;
-            if (kind == null || plan == null) return;
+            if (kind == null) return;
+            if (PlacemakerToolSystem.IsLineKind(kind)) { DrawSketch(buffer, w, kind); return; }
+            if (plan == null) return;
             string group = Touches.GroupOf(kind);
             var hover = _tool.TouchHover;
             foreach (var layer in plan.Layers)
@@ -564,6 +566,32 @@ namespace Placemaker.Game.Overlay
                     }
                     if (hot) buffer.DrawCircle(HandleHot, TouchColor(t.State, 0.35f), w * 0.5f, 0, new float2(0, 1), t.Center, w * 6f);
                 }
+            }
+        }
+
+        /// <summary>(P2-1) Sketch lines: the step's finished lines (this kind bright), the line being drawn and where the next point goes.</summary>
+        private void DrawSketch(OverlayRenderSystem.Buffer buffer, float w, string kind)
+        {
+            var lineCol = kind.EndsWith(".walk", System.StringComparison.Ordinal) ? new Color(1f, 0.85f, 0.35f, 1f) : new Color(0.55f, 0.9f, 1f, 1f);
+            void Seg(float3 a, float3 b, Color c, float width, bool dashed = false) =>
+                buffer.DrawLine(c, c, 0f, OverlayRenderSystem.StyleFlags.Projected, new Line3.Segment(a, b), width, dashed ? new float2(w * 3f, w * 2f) : new float2(1, 1));
+            foreach (var t in _tool.TouchesOf(_tool.TouchPath))
+            {
+                if (!PlacemakerToolSystem.IsLineKind(t.Kind)) continue;
+                var pts = LineSketch.Decode(t.Arg);
+                var c = t.Kind == kind ? lineCol : new Color(1f, 1f, 1f, 0.45f);
+                for (int i = 0; i + 1 < pts.Length; i++)
+                    Seg(new float3(pts[i].x, t.Position.y, pts[i].y), new float3(pts[i + 1].x, t.Position.y, pts[i + 1].y), c, math.max(0.3f, w * 0.7f));
+            }
+            var drawing = _tool.SketchPoints;
+            for (int i = 0; i + 1 < drawing.Count; i++) Seg(drawing[i], drawing[i + 1], lineCol, math.max(0.35f, w * 0.9f));
+            foreach (var p in drawing) buffer.DrawCircle(HandleHot, lineCol, w * 0.4f, 0, new float2(0, 1), p, w * 3.5f);
+            if (_tool.SketchHover(out var at, out var how))
+            {
+                if (drawing.Count > 0) Seg(drawing[drawing.Count - 1], at, new Color(lineCol.r, lineCol.g, lineCol.b, 0.7f), math.max(0.25f, w * 0.6f), dashed: true);
+                // a ring when it snapped (to a point, a side or a square angle), a dot when free
+                var rc = how == SketchSnap.None ? new Color(1f, 1f, 1f, 0.6f) : lineCol;
+                buffer.DrawCircle(rc, new Color(rc.r, rc.g, rc.b, how == SketchSnap.None ? 0.6f : 0.15f), w * 0.4f, 0, new float2(0, 1), at, w * (how == SketchSnap.None ? 2.5f : 5f));
             }
         }
 

@@ -290,6 +290,7 @@ namespace Placemaker.Game.Suite
                 case "entrance": yield return StepEntrance(st, step, rec); break;
                 case "entrances": yield return StepEntrancesAuto(st, step, rec); break;
                 case "touch": yield return StepTouch(st, step, rec); break;
+                case "sketch": yield return StepSketch(st, step, rec); break;
                 case "moveEntrance": yield return StepMoveEntrance(st, step, rec, false); break;
                 case "removeEntrance": yield return StepMoveEntrance(st, step, rec, true); break;
                 case "preview": yield return StepPreview(st, step, rec); break;
