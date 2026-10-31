@@ -349,26 +349,23 @@ namespace Placemaker.Core.Layers.Types.ConstructionSite
             var rampTop = pit.Local(-pit.HalfLength, rampSide * (pit.HalfWidth - rampW * 0.5f));
             w.Entry = rampTop - pit.Axis * 3f; w.HasEntry = s.Region.ContainsDisc(w.Entry, 2f);
 
-            // Rim: barriers all round (gap at the ramp mouth), crane at the far corner, cones at the mouth.
+            // Rim: no ring round the hole (the user: "no fence going around the hole, it doesn't look good"; P2-4). A real site
+            // guards the drop where people come close: short barrier runs either side of the ramp mouth, cones across it.
             string barrier = ctx.B("barriers") ? SiteKit.Cat(ctx, s.Barriers, AssetCategories.ConstructionBarrier, AssetCategories.Fence) : null;
-            var corners = new OrientedRect { Center = pit.Center, Axis = pit.Axis, HalfLength = pit.HalfLength + 1.6f, HalfWidth = pit.HalfWidth + 1.6f }.Ring;
-            if (barrier != null)
-                for (int i = 0; i < 4; i++)
+            {
+                var mouth = pit.Local(-pit.HalfLength - 1.6f, rampSide * (pit.HalfWidth - rampW * 0.5f));
+                var along = pit.Side * rampSide;   // the mouth edge runs across the pit's width
+                float run = math.min(7f, pit.HalfWidth * 0.6f);
+                if (barrier != null)
                 {
-                    var a = corners[i]; var b = corners[(i + 1) % 4];
-                    // The short edge at u = -L holds the ramp mouth: leave the ramp half open.
-                    if (math.dot((a + b) * 0.5f - pit.Center, pit.Axis) < -pit.HalfLength)
-                    {
-                        var mouth = pit.Local(-pit.HalfLength - 1.6f, rampSide * (pit.HalfWidth - rampW * 0.5f));
-                        var dir = math.normalizesafe(b - a);
-                        float t = math.dot(mouth - a, dir);
-                        float len = math.distance(a, b);
-                        if (t - rampW * 0.6f > 1f) SiteKit.Row(ctx, s.Occ, a, a + dir * (t - rampW * 0.6f), 2.2f, barrier, s.Barriers, 0.8f, 0xBA00u + (uint)i * 97u);
-                        if (len - (t + rampW * 0.6f) > 1f) SiteKit.Row(ctx, s.Occ, a + dir * (t + rampW * 0.6f), b, 2.2f, barrier, s.Barriers, 0.8f, 0xBA40u + (uint)i * 97u);
-                        Cones(s, a + dir * (t - rampW * 0.6f) - pit.Axis * 1.5f, a + dir * (t + rampW * 0.6f) - pit.Axis * 1.5f);
-                    }
-                    else SiteKit.Row(ctx, s.Occ, a, b, 2.2f, barrier, s.Barriers, 0.8f, 0xBA80u + (uint)i * 97u);
+                    var inner = mouth - along * (rampW * 0.6f);
+                    SiteKit.Row(ctx, s.Occ, inner, inner - along * run, 2.2f, barrier, s.Barriers, 0.8f, 0xBA00u);
+                    var outer = mouth + along * (rampW * 0.6f);
+                    float room = pit.HalfWidth + 1.6f - math.dot(outer - pit.Center, along);
+                    if (room > 2.5f) SiteKit.Row(ctx, s.Occ, outer, outer + along * math.min(run * 0.5f, room - 0.5f), 2.2f, barrier, s.Barriers, 0.8f, 0xBA40u);
                 }
+                Cones(s, mouth - along * (rampW * 0.6f) - pit.Axis * 1.5f, mouth + along * (rampW * 0.6f) - pit.Axis * 1.5f);
+            }
             if (ctx.B("crane"))
             {
                 string crane = SiteKit.Cat(ctx, null, AssetCategories.ConstructionCrane, AssetCategories.ConstructionMachine);
