@@ -110,16 +110,16 @@ namespace Placemaker.Game.Suite
             rec["asked"] = asked;
             yield return Frames(20);
             JObject seen = null;
-            yield return UiRun("var b=[].slice.call(document.querySelectorAll('button'));var t=document.body.innerText;"
-                + "return {buttons:b.map(function(x){return (x.innerText||'').trim();}).filter(function(x){return x.length>0&&x.length<40;}).slice(-8),"
+            yield return UiRun("var b=[].slice.call(document.querySelectorAll('button,[role=button]'));var t=document.body.textContent||'';"
+                + "return {buttons:b.map(function(x){return (x.textContent||'').trim();}).filter(function(x){return x.length>0&&x.length<40;}).slice(-8),"
                 + "hasTitle:t.indexOf(" + SuiteUiSystem.Q(L("Placemaker.Bulldoze.Title")) + ")>=0,hasMessage:t.indexOf(" + SuiteUiSystem.Q(L("Placemaker.Bulldoze.Message")) + ")>=0};", r => seen = r);
-            rec["screen"] = seen?["value"];
-            if (step["picture"] != null) yield return StepShot(st, step, rec, (string)step["picture"]);
+            rec["screen"] = seen?["value"] ?? seen?["error"];
+            if (step["picture"] != null) yield return StepShot(st, new JObject { ["shotMode"] = "ui" }, rec, (string)step["picture"]);
             string label = answer == "ungroup" ? L("Placemaker.Bulldoze.Ungroup") : answer == "remove" ? L("Placemaker.Bulldoze.RemoveAll") : L("Placemaker.Bulldoze.Cancel");
             JObject click = null;
-            yield return UiRun("var b=[].slice.call(document.querySelectorAll('button')).filter(function(x){return (x.innerText||'').trim()===" + SuiteUiSystem.Q(label) + ";});"
+            yield return UiRun("var b=[].slice.call(document.querySelectorAll('button,[role=button]')).filter(function(x){return (x.textContent||'').trim()===" + SuiteUiSystem.Q(label) + ";});"
                 + "if(!b.length)return 'no button';b[b.length-1].click();return 'clicked';", r => click = r);
-            rec["click"] = click?["value"];
+            rec["click"] = click?["value"] ?? click?["error"];
             yield return Frames(30);
             rec["toolState"] = state.GetValue(dozer).ToString();
             bool ungrouped = (Services.Groups as GroupRegistrySystem)?.IsUngrouped(st.Group) ?? false;
@@ -177,6 +177,14 @@ namespace Placemaker.Game.Suite
                 if (em.HasComponent<global::Game.Tools.Hidden>(e)) flags.Add("hidden");
                 if (em.HasComponent<Overridden>(e)) flags.Add("overridden");
                 if (em.HasComponent<global::Game.Objects.Static>(e)) flags.Add("static");
+                if (em.HasBuffer<global::Game.Net.ConnectedEdge>(e))
+                {
+                    var ce = em.GetBuffer<global::Game.Net.ConnectedEdge>(e, true);
+                    var names = new List<string>();
+                    for (int i = 0; i < ce.Length; i++) names.Add(_lookup.PrefabName(ce[i].m_Edge));
+                    var p = em.GetComponentData<global::Game.Net.Node>(e).m_Position;
+                    flags.Add($"at ({p.x:F0}, {p.z:F0}), edges: " + (names.Count == 0 ? "none" : string.Join(" + ", names)));
+                }
                 lines.Add($"{e.Index} {_lookup.KindOf(e)} {_lookup.PrefabName(e)}: {owner}" + (flags.Count > 0 ? " [" + string.Join(", ", flags) + "]" : ""));
             }
             Mod.Log.Info($"Placemaker lab: leftovers ({label}): {n} new entit(ies) in the area; " + string.Join("; ", lines));
