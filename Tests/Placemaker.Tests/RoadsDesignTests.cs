@@ -63,6 +63,14 @@ namespace Placemaker.Tests
                     };
                 }
                 case "steep": return p => 0.13f * (p.y - zMin) + 0.02f * (p.x - xMin);
+                // the game runner's "hills" (egg crate, 4 m every 60 m: no main slope) and "mountains" (30 m over 320 m)
+                case "eggcrate": return p => 4f * math.sin(p.x * 2f * math.PI / 60f) * math.cos(p.y * 2f * math.PI / 60f);
+                case "mountains":
+                {
+                    float k = 2f * math.PI / 320f;
+                    return p => 30f * (0.55f * math.sin((p.x * 0.8f + p.y * 0.6f) * k) + 0.3f * math.sin((-p.x * 0.5f + p.y * 0.9f) * k * 2f + 1.3f)
+                        + 0.15f * math.sin((p.x * 0.3f - p.y) * k * 4f + 0.7f));
+                }
                 default: return _ => 0f;
             }
         }
@@ -135,6 +143,24 @@ namespace Placemaker.Tests
         }
 
         private static readonly string[] Kinds = { "flat", "hill", "valley", "steep" };
+
+        /// <summary>(p1-ground) Every preset builds roads on rough land with no main slope (egg-crate hills) and on mountains: the
+        /// game runner's hillside preset on its hills built nothing ("NothingToBuild").</summary>
+        [Fact]
+        public void EveryPresetBuildsOnHillsAndMountains()
+        {
+            var failures = new List<string>();
+            foreach (var p in new RoadsLayer().Presets)
+                foreach (var kind in new[] { "eggcrate", "mountains" })
+                {
+                    var input = SiteInput(p.Values.Clone(), kind, out _);
+                    var plan = Run(input);
+                    int roads = plan.Nets.Count(n => n.Role != NetRole.Pathway && n.Role != NetRole.PathwayWide);
+                    _out.WriteLine($"{p.Id}/{kind}: {plan.Nets.Count} nets, {roads} roads");
+                    if (roads == 0) failures.Add($"{p.Id}/{kind}: no roads");
+                }
+            Assert.True(failures.Count == 0, string.Join("\n", failures));
+        }
 
         // ───────────────────────── connectivity ─────────────────────────
 

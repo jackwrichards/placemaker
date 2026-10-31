@@ -206,6 +206,33 @@ namespace Placemaker.Core.Layers.Roads
         /// </summary>
         public static AreaPlan Plan(AreaInput input, IReadOnlyList<ControlSchema> controls, CancellationToken cancel)
         {
+            var plan = PlanBest(input, controls, cancel);
+            // (p1-ground) The contour pattern needs one main slope: on flat land, or rough land that falls every way (egg-crate
+            // hills), it found no line and built nothing ("NothingToBuild" in the game runner). Winding streets that settle into
+            // the ground are what a hillside design means there, so it falls back to them rather than to an empty plan.
+            var settings = input?.Settings;
+            if (plan.Nets.Count == 0 && settings != null && RoadsSchema.ParsePattern(settings.S(RoadsIds.Pattern, "grid")) == RoadPattern.Contour)
+            {
+                var s = settings.Clone();
+                s.Values[RoadsIds.Pattern] = "organic";
+                AreaPlan fallback;
+                input.Settings = s;
+                try { fallback = PlanBest(input, controls, cancel); }
+                finally { input.Settings = settings; }
+                if (fallback.Nets.Count > 0)
+                {
+                    fallback.Facts[FactContourFallback] = 1;
+                    return fallback;
+                }
+            }
+            return plan;
+        }
+
+        /// <summary>Plan fact: the contour pattern found no slope and the plan fell back to winding streets.</summary>
+        public const string FactContourFallback = "roads.contourFallback";
+
+        private static AreaPlan PlanBest(AreaInput input, IReadOnlyList<ControlSchema> controls, CancellationToken cancel)
+        {
             if (input?.Shape?.Ring == null || CleanRing(input.Shape.Ring).Length < 3) return PlanCore(input, controls, cancel, null);
             var variants = Variants(input, controls, cancel);
             if (variants.Count <= 1) return PlanCore(input, controls, cancel, variants.Count == 1 ? variants[0] : null);
