@@ -35,6 +35,8 @@ namespace Placemaker.Core.Layers.Parking
         public const string DisabledDecal = "ParkingLotDisabledDecal01";
         public const string ElectricDecal = "ParkingLotElectricDecal01";
         public const string Charger = "ParkingLotCharger01";
+        /// <summary>(P2-1) A copy of the stall decal without its mesh (Game/Assets/InvisibleBayPrefabSystem): no paint, the parking lane stays. Save format.</summary>
+        public const string InvisibleBay = "Placemaker Invisible Parking Bay";
         // Art pass (2026-10-13): a real asphalt texture first (EAI surface pack, already cloned as an
         // overlay in the player's setup), the vanilla pavement PLT used as the fallback.
         // s25: the lot read as pale concrete in game (EAI "Concrete Asphalt" is a light grey slab under CS2's sun). The

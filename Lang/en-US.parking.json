@@ -134,6 +134,8 @@
 
   "Placemaker.Parking.Control.Lanterns": "Street lights",
   "Placemaker.Parking.Control.Lanterns.Tip": "Places street lights along the rows; lit at night.",
+  "Placemaker.Parking.Control.Markings": "Space markings",
+  "Placemaker.Parking.Control.Markings.Tip": "Paints the lines of every space. Off: no lines and no chargers; cars still park there.",
   "Placemaker.Parking.Control.LanternAsset": "Light model",
   "Placemaker.Parking.Control.LanternAsset.Tip": "Which street light to use. Automatic picks single and double lights.",
   "Placemaker.Parking.Control.LanternSpacing": "Light spacing",

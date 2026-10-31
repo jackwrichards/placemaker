@@ -723,6 +723,8 @@ namespace Placemaker.Core.Layers.Parking
                     case BayRole.Electric: asset = new AssetRef(ParkingAssets.ElectricDecal, ParkingAssets.Decal); ev++; break;
                     default: asset = new AssetRef(ParkingAssets.Decal); break;
                 }
+                // (P2-1) markings off: every stall the invisible bay (the lane stays; the painted one when it is missing)
+                if (!s.Markings) asset = new AssetRef(ParkingAssets.InvisibleBay, asset.Id);
                 bays++;
                 plan.Objects.Add(new PlannedObject
                 {
@@ -731,8 +733,10 @@ namespace Placemaker.Core.Layers.Parking
                 });
             }
             var chargerAsset = ParkingAssets.Pick(s.ChargerAsset, ParkingAssets.Charger);
-            foreach (var c in layout.Chargers)
-                plan.Objects.Add(new PlannedObject { Position = P3(c.Position), Yaw = Yaw(f.DirToWorld(c.Facing)), Role = ObjectRole.Charger, Asset = chargerAsset });
+            // a charger points at its EV stalls: without the markings there is nothing for it to belong to (as PLT)
+            if (s.Markings)
+                foreach (var c in layout.Chargers)
+                    plan.Objects.Add(new PlannedObject { Position = P3(c.Position), Yaw = Yaw(f.DirToWorld(c.Facing)), Role = ObjectRole.Charger, Asset = chargerAsset });
             foreach (var l in layout.Lanterns)
             {
                 var asset = !string.IsNullOrEmpty(s.LanternAsset) ? new AssetRef(s.LanternAsset, ParkingAssets.LampSingle)

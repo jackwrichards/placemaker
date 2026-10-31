@@ -23,6 +23,8 @@ namespace Placemaker.Game.Build
             updateSystem.UpdateBefore<ParkCompanionPrefabSystem, global::Game.Prefabs.PrefabInitializeSystem>(SystemUpdatePhase.PrefabUpdate);
             // Slow drive paths inside car parks (25 km/h, dearer: through traffic keeps to the streets; PLT parity).
             updateSystem.UpdateBefore<Placemaker.Game.Assets.SlowPathPrefabSystem, global::Game.Prefabs.PrefabInitializeSystem>(SystemUpdatePhase.PrefabUpdate);
+            // Stalls without painted markings (the parking lane stays; "Space markings" off).
+            updateSystem.UpdateBefore<Placemaker.Game.Assets.InvisibleBayPrefabSystem, global::Game.Prefabs.PrefabInitializeSystem>(SystemUpdatePhase.PrefabUpdate);
             // "Placemaker Area" owner lot (US7): one selectable/bulldozable thing per build.
             updateSystem.UpdateBefore<OwnerAreaPrefabSystem, global::Game.Prefabs.PrefabInitializeSystem>(SystemUpdatePhase.PrefabUpdate);
 

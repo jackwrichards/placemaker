@@ -47,6 +47,8 @@ namespace Placemaker.Core.Layers.Parking
         public const string MedianDepth = "medianDepth";
         public const string EntranceStyle = "entranceStyle";    // "connect" | "alley"
         public const string Lanterns = "lanterns";
+        /// <summary>(P2-1) Painted space markings (off: invisible bays, cars still park; no chargers; PLT "Bay markings").</summary>
+        public const string Markings = "markings";
         public const string LanternAsset = "lanternAsset";
         public const string LanternSpacing = "lanternSpacing";
         public const string EvShare = "evShare";                // percent of stalls with a charger
@@ -130,7 +132,7 @@ namespace Placemaker.Core.Layers.Parking
         public readonly double RowAngleDeg;
         /// <summary>(P2-1) Turn of the grid against its reference (edge, street, picked edge), degrees.</summary>
         public readonly double GridTurnDeg;
-        public readonly bool PerimeterRoad, RowEndPlanting, Alleys, Lanterns, Grading;
+        public readonly bool PerimeterRoad, RowEndPlanting, Alleys, Lanterns, Grading, Markings;
         public readonly int CrossEvery;
         public readonly double LanternSpacing, EvShare, AccessibleShare, Fee, PlantingDensity;
         public readonly string AsphaltAsset, GreenAsset, LanternAsset, ChargerAsset;
@@ -176,6 +178,7 @@ namespace Placemaker.Core.Layers.Parking
             RowEndPlanting = bag.B(ParkingIds.RowEndPlanting, true) && Greenery != Greenery.None;
             Alleys = bag.S(ParkingIds.EntranceStyle, "connect") == "alley";
             Lanterns = bag.B(ParkingIds.Lanterns, true);
+            Markings = bag.B(ParkingIds.Markings, true);
             LanternSpacing = Clamp(bag.Num(ParkingIds.LanternSpacing, 30), 20, 40);
             EvShare = Clamp(bag.Num(ParkingIds.EvShare, 4), 0, 50);
             AccessibleShare = Clamp(bag.Num(ParkingIds.AccessibleShare, 2), 0, 20);

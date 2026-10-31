@@ -182,6 +182,7 @@ namespace Placemaker.Core.Layers.Parking
                 edits.Options.Add(new ControlOption { Value = k, LabelKey = K + "Touch." + name, TooltipKey = K + "Touch." + name + ".Tip", Icon = TouchIcon(k) });
             }
             l.Add(edits);
+            l.Add(C(ParkingIds.Markings, ControlKind.Toggle, ControlTier.More, "spaces", true));
             var ch = C(ParkingIds.ChargerAsset, ControlKind.Asset, ControlTier.More, "spaces", "");
             ch.AssetCategory = AssetCategories.Charger; ch.Cheap = true;
             l.Add(ch);

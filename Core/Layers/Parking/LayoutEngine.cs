@@ -486,22 +486,32 @@ namespace Placemaker.Core.Layers.Parking
                 if (full + halfCount == 0 || used > h + 1e-6) return;
                 double slack = h - used;
                 int steps = Math.Min(7, 1 + (int)Math.Floor(slack / 0.5));
-                var offsets = new List<double> { slack / 2 };
-                for (int j = 0; j < steps; j++) offsets.Add(steps == 1 ? 0 : slack * j / (steps - 1));
-                if (_flush != 0) { offsets.Clear(); offsets.Add(_flush < 0 ? 0 : slack); }
-                foreach (var off in offsets)
+                // (offset of the first module, extra width of every median)
+                var offsets = new List<(double Off, double Gap)> { (slack / 2, 0) };
+                for (int j = 0; j < steps; j++) offsets.Add((steps == 1 ? 0 : slack * j / (steps - 1), 0));
+                if (_flush != 0)
+                {
+                    // (P2-1) rows start at the picked edge. The spare width went to the far side as a leftover planted strip
+                    // (run send-parking-touches-save-1031-001049, rebuilt-top); spread over the medians it widens the planting
+                    // the player already has. Listed first: it wins a tie on stalls.
+                    offsets.Clear();
+                    int gaps = full + halfCount - 1;
+                    if (gaps > 0) offsets.Add((0, slack / gaps));
+                    offsets.Add((_flush < 0 ? 0 : slack, 0));
+                }
+                foreach (var (off, gap) in offsets)
                 {
                     var mods = new List<ModuleSpec>();
                     double y = minY + off;
                     if (halfCount > 0 && !halfOnTop)
                     {
                         mods.Add(new ModuleSpec { Y0 = y, Lower = halfLower, Upper = !halfLower });
-                        y += half + md;
+                        y += half + md + gap;
                     }
                     for (int i = 0; i < full; i++)
                     {
                         mods.Add(new ModuleSpec { Y0 = y, Lower = true, Upper = true });
-                        y += modH + md;
+                        y += modH + md + gap;
                     }
                     if (halfCount > 0 && halfOnTop)
                         mods.Add(new ModuleSpec { Y0 = y, Lower = halfLower, Upper = !halfLower });
