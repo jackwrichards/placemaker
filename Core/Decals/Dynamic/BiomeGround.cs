@@ -27,6 +27,49 @@ namespace Placemaker.Core.Decals.Dynamic
             return false;
         }
 
+        /// <summary>
+        /// (P2-8) Where a plain biome (BiomeDef.Plain: plain grass, the field) lies, by its regions in these layers; null when none
+        /// does. The shared lawn variation (paint and tone decals) keeps off it.
+        /// </summary>
+        public static Func<float2, bool> PlainAt(IEnumerable<AreaPlan> layers)
+        {
+            var outer = new List<(string id, float2[] r)>();
+            var holes = new List<(string id, float2[] r)>();
+            foreach (var l in layers)
+            {
+                if (l?.Regions == null) continue;
+                foreach (var r in l.Regions)
+                {
+                    if (r?.Tags == null || r.Ring == null || r.Ring.Length < 3) continue;
+                    foreach (var t in r.Tags)
+                    {
+                        if (t == null) continue;
+                        bool hole = t.StartsWith(BiomeBuilder.HolePrefix, StringComparison.Ordinal);
+                        if (!hole && !t.StartsWith(BiomeBuilder.RegionPrefix, StringComparison.Ordinal)) continue;
+                        string id = t.Substring(hole ? BiomeBuilder.HolePrefix.Length : BiomeBuilder.RegionPrefix.Length);
+                        var d = BiomeLibrary.Get(id);
+                        if (d != null && d.Plain) (hole ? holes : outer).Add((id, Poly.To2D(r.Ring)));
+                        break;
+                    }
+                }
+            }
+            if (outer.Count == 0) return null;
+            var boxes = new List<(float2 lo, float2 hi)>();
+            foreach (var (_, r) in outer) { Poly.Bounds(r, out var a, out var b); boxes.Add((a, b)); }
+            return p =>
+            {
+                for (int i = 0; i < outer.Count; i++)
+                {
+                    var (lo, hi) = boxes[i];
+                    if (p.x < lo.x || p.y < lo.y || p.x > hi.x || p.y > hi.y || !Poly.Contains(outer[i].r, p)) continue;
+                    bool inHole = false;
+                    foreach (var (hid, hr) in holes) if (hid == outer[i].id && Poly.Contains(hr, p)) { inHole = true; break; }
+                    if (!inHole) return true;
+                }
+                return false;
+            };
+        }
+
         /// <summary>Lays every biome area's decals. <paramref name="quiet"/>: formal types (quiet colours everywhere).</summary>
         public static void Run(Weathering.Scene sc, bool quiet = false)
         {

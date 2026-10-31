@@ -261,6 +261,17 @@ namespace Placemaker.Core.Layers.Park
             Preset("rocky", BiomeMix.With(new (string, object)[] { ("style", "natural"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 18.0), ("bushDensity", 50.0),
                 ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", false), ("curvedPaths", true), ("desireLines", "worn"), ("naturalGround", true) },
                 BiomeMix.Preset(Biomes, 74, ("lawn", 12), ("forest", 16), ("rocky", 56), ("heath", 16))));
+            // (P2-8, the user: "sometimes I just want a park to be a field ... maybe one that is just simpler, literally grass with
+            // some leaves, more vanilla") the plain park: the game's own grass with a scatter of leaves and a few lone trees, walks,
+            // benches; and the open field: a big mown field with long-grass edges, worn tracks and play wear, picnic tables
+            Preset("plain", BiomeMix.With(new (string, object)[] { ("style", "natural"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 10.0), ("bushDensity", 10.0),
+                ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", false), ("curvedPaths", true), ("desireLines", "none"), ("biomeGrassTrees", 4.0) },
+                BiomeMix.Preset(Biomes, 60, ("grass", 100))));
+            Preset("field", BiomeMix.With(new (string, object)[] { ("style", "picnic"), ("pathStyle", "circuit"), ("pathWidth", "narrow"), ("treeDensity", 10.0), ("bushDensity", 10.0),
+                ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", false), ("curvedPaths", true), ("desireLines", "none"), ("biomeFieldTrees", 4.0) },
+                BiomeMix.Preset(Biomes, 80, ("field", 100))));
+            PresetFeatures("plain", "-flowerbeds", "-bigtrees", "-picnic");
+            PresetFeatures("field", "-flowerbeds", "-bigtrees");
 
             // Playtest 4b: presets look complete. On top of the DefaultOn features (playground, picnic,
             // restrooms, big trees, flowerbeds, decals, shore) each idiom turns on what belongs to it.

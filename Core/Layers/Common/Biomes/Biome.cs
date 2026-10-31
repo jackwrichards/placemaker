@@ -97,6 +97,11 @@ namespace Placemaker.Core.Layers.Common.Biomes
         public bool Host;
         /// <summary>Facilities, play areas and clearings may stand here (lawn, meadow).</summary>
         public bool Open;
+        /// <summary>
+        /// (P2-8) Clean grass: the shared lawn variation (GroundWear's lush and dry paint patches, Weathering's lawn tone, mottle,
+        /// dry grass and clover decals) stays off it, so it reads as the game's own grass plus only its own decals.
+        /// </summary>
+        public bool Plain;
 
         // ── where it likes to be (added to its noise; about -2 .. 2) ──
         /// <summary>High ground: ridges, knolls, the top of a slope.</summary>
@@ -324,14 +329,13 @@ namespace Placemaker.Core.Layers.Common.Biomes
             // (P2-8, the user: "maybe one that is just simpler, literally grass with some leaves, more vanilla") the game's own
             // grass as it is: no paint, no wear, no flowers, no long edges; only a light scatter of summer leaves and a faint
             // tone so it is not a flat sheet. Trees only if the player adds a few (then they stand as solitary trees).
-            Id = "grass", Color = "#5fae6e", Open = true,
+            Id = "grass", Color = "#5fae6e", Open = true, Plain = true,
             Flat = 1f, Slope = 0.4f, NearPath = 0.3f, Steep = -0.4f,
             TreesPerHa = 0f, Trees = Solitary, GroveScale = 40f,
             Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Leaves, 100, 300), BiomeKnob.Slider(BiomeKnobs.Trees, 0, 20, "perHa") },
             Decals = new[]
             {
                 new BiomeDecal("leafLitterSummer", 0.16f, BiomeWhere.All, 0.35f, 0.65f, 5f, quiet: true),
-                new BiomeDecal("lawnTonePatch", 0.18f, BiomeWhere.All, 0.25f, 0.45f, 9f, quiet: true),
             },
         };
 
@@ -343,7 +347,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
             // low ground; no stripes (the shared rule: stripes only on bounded pitches), no trees unless the player wants a few
             // at its edge (Trees), and then leaves under them. Real fields: Clapham Common, Hampstead Heath's Parliament Hill
             // fields, the Sheep Meadow (Central Park), the Tempelhofer Feld, a village recreation ground.
-            Id = "field", Color = "#c3dc6c", Open = true,
+            Id = "field", Color = "#c3dc6c", Open = true, Plain = true,
             Flat = 1.3f, Slope = 0.2f, Steep = -0.9f, Hollow = 0.1f, Ridge = 0.05f, NearPath = 0.1f, NearEdge = -0.2f,
             TreesPerHa = 0f, Trees = Solitary, GroveScale = 40f, TreeRim = 7f,
             Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Wear, 100, 200), BiomeKnob.Slider(BiomeKnobs.Edges, 100, 200), BiomeKnob.Slider(BiomeKnobs.Flowers, 100, 200).Named("daisies"), BiomeKnob.Slider(BiomeKnobs.Trees, 0, 20, "perHa").Named("edgeTrees") },
@@ -351,10 +355,10 @@ namespace Placemaker.Core.Layers.Common.Biomes
             {
                 new BiomeDecal("lawnTonePatch", 0.35f, BiomeWhere.All, 0.35f, 0.6f, 8f, quiet: true),
                 new BiomeDecal("longGrass", 0.85f, BiomeWhere.Rim, 0.6f, 0.9f, 4f),
-                new BiomeDecal("wornPath", 0.6f, BiomeWhere.Trails, 0.55f, 0.85f, 3f),
+                new BiomeDecal("animalTrail", 0.5f, BiomeWhere.Trails, 0.3f, 0.5f, 3f),   // faint trodden lines (wornPath read as orange dashes from 45°)
                 new BiomeDecal("trampledGrass", 0.12f, BiomeWhere.Core, 0.5f, 0.8f, 6f),
                 new BiomeDecal("barePatch", 0.035f, BiomeWhere.Core, 0.55f, 0.85f, 3f),
-                new BiomeDecal("daisyLawn", 0.22f, BiomeWhere.Drift, 0.65f, 0.95f, 6f),
+                new BiomeDecal("daisyLawn", 0.1f, BiomeWhere.Drift, 0.45f, 0.7f, 6f),
                 new BiomeDecal("cloverPatch", 0.12f, BiomeWhere.All, 0.4f, 0.7f, 5f),
                 new BiomeDecal("molehills", 0.012f, BiomeWhere.All, 0.6f, 0.9f, 2f),
                 new BiomeDecal("dampPatch", 0.06f, BiomeWhere.Downhill, 0.3f, 0.55f, 3f),

@@ -172,7 +172,7 @@
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.55, "hi": 0.25 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
         { "op": "layer", "alpha": "cover", "alphaK": 0.14, "color": [92, 122, 58], "color2": [86, 116, 54], "tone": "n", "smooth": 0.2 },
-        { "op": "scatter", "stamp": "blob", "density": 70, "clusters": 22, "cluster": 0.8, "clusterRadius": [0.4, 1.4], "size": [0.05, 0.085], "palette": [[226, 224, 206], [216, 214, 196], [232, 228, 210]], "alpha": [0.8, 1], "height": 0.3, "smooth": 0.15, "max": 40000 },
+        { "op": "scatter", "stamp": "blob", "density": 70, "clusters": 22, "cluster": 0.8, "clusterRadius": [0.4, 1.4], "size": [0.05, 0.085], "palette": [[206, 206, 186], [198, 198, 178], [212, 210, 190]], "alpha": [0.8, 1], "height": 0.3, "smooth": 0.15, "max": 40000 },
         { "op": "scatter", "stamp": "blob", "density": 9, "clusters": 8, "cluster": 0.7, "clusterRadius": [0.4, 1.4], "size": [0.045, 0.075], "palette": [[214, 190, 70], [206, 182, 64]], "alpha": [0.7, 0.95], "height": 0.3, "smooth": 0.15, "max": 8000 }
       ]
     }

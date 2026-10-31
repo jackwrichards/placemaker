@@ -141,7 +141,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
 
         private static bool IsFlower(string kind) => kind.StartsWith("flowerDrift", StringComparison.Ordinal) || kind == "meadowFlowers" || kind == "wildflowerDrift" || kind == "daisyLawn" || kind == "cloverPatch";
         private static bool IsRock(string kind) => kind == "rockOutcrop" || kind == "stonesCarpet" || kind.StartsWith("scree", StringComparison.Ordinal) || kind == "pebbles" || kind == "gravelCarpet" || kind == "shinglePatch";
-        private static bool IsWear(string kind) => kind == "barePatch" || kind == "trampledGrass" || kind == "wornPath" || kind == "groundMottle" || kind == "goalmouthWear";
+        private static bool IsWear(string kind) => kind == "animalTrail" || kind == "barePatch" || kind == "trampledGrass" || kind == "wornPath" || kind == "groundMottle" || kind == "goalmouthWear";
         private static bool IsFlowerPlant(BiomePlants p) { foreach (var id in p.Ids) if (id.StartsWith("Flower", StringComparison.Ordinal)) return true; return false; }
 
         /// <summary>The biome with the knobs' values applied (a copy; the library's stays as it is).</summary>
