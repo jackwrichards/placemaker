@@ -303,3 +303,16 @@ add a biome (farms: orchard, field; beaches: dune, shingle; golf: rough, heath).
 - Lift a rocky area as knolls from a low swell, never as a plateau; plant trees before rocks.
 - Check every biome at 100 % in the game (`tools/suite/biome-scenario.js` writes the scenario; water builds `grow` so
   the ponds fill), then a mixed big site, a block and hills.
+
+## Lessons from farms (2026-10-31, docs/runbooks/farmstead.md)
+
+- Terrain paint over grass is weak. A growing crop painted with the forest-floor slot vanished from 45°: crops are the crop
+  surface, paint is for bare soil (ploughing, drilling, fallow, a worked yard edge).
+- The earth slot (3) reads as pale blotches at strength. Bare soil is forest floor (2) first with earth (3) under it at
+  0.3-0.55; a dirt yard is the Forestry surface with forest-floor paint 4 m round it, never earth paint alone.
+- Sculpted ground (terraces, channels, heaps) is smoothed away by the site harmony unless its regions are tagged
+  `shaped:*` and the layer sets `SiteHarmony.ShapedFact`.
+- Rows (orchards, vines, nursery beds) are a biome option: `BiomeDef.RowPitch` plants a grid of rows on the principal
+  axis (or the host's `rowAxis`), and `BiomeWhere.Rows` / `Alleys` lay decals down the rows and the wheel lines between.
+- Tracks of the path net come in pieces: chain `sc.Paths` into whole lines before laying ruts, or the wheel lines break
+  at every joint.

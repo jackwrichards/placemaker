@@ -224,6 +224,7 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             channels = 0;
             var keep = new List<float2[]>();
             string mode = ctx.S("drainage");
+            ctx.Plan.Facts["drainageMode"] = mode == "ravine" ? 2 : mode == "ditches" ? 1 : 0;
             if (mode == "none") return keep;
             var lines = new List<(List<float2> line, float depth, float floor, float top)>();
             if (mode == "ravine")
@@ -231,6 +232,7 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                 var line = FallLine(ctx, region, hard, side, Hashing.Mix(ctx.Seed, 0x4AF1u));
                 float len = 0f;
                 for (int i = 0; i + 1 < line.Count; i++) len += math.distance(line[i], line[i + 1]);
+                ctx.Plan.Facts["ravineLineLen"] = math.round(len);
                 if (line.Count >= 4 && len > 40f)
                 {
                     float depth = math.clamp(len / 40f, 2.5f, 5f);
@@ -274,6 +276,7 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             sc.LimitGrade(mode == "ravine" ? 0.45f : 0.5f, 14);
             sc.LimitGrade(mode == "ravine" ? 0.48f : 0.55f, 14, absolute: true);
             var res = sc.Emit(ctx, null);
+            ctx.Plan.Facts["drainageCells"] = res.Cells;
             if (res.Cells == 0) return keep;
             channels = lines.Count;
             Shaped(ctx, res.Cells);

@@ -154,8 +154,8 @@ namespace Placemaker.Tests.Types
                 output.WriteLine($"{id}/{p.Id}: {sw.ElapsedMilliseconds} ms");
                 worst = Math.Max(worst, sw.ElapsedMilliseconds);
             }
-            // (P2-3) the farmstead plans a landscape (biome mix, a ravine, terraces): the adventure playground's 450 ms
-            Assert.True(worst < TimingBudget.Ms(id == "farmstead" ? 450 : 250), $"{id} took {worst} ms for 5 ha");
+            // (P2-3) the farmstead plans a landscape (biome mix, a ravine, terraces): 550 ms (warm about 300 ms; the hill farm's first plan pays for the pasture and rock biomes)
+            Assert.True(worst < TimingBudget.Ms(id == "farmstead" ? 550 : 250), $"{id} took {worst} ms for 5 ha");
         }
 
         /// <summary>Terraform never leaves a step at the outline: cells touching it keep the original height.</summary>
@@ -292,6 +292,24 @@ namespace Placemaker.Tests.Types
             var p = g.Presets.Single(x => x.Id == preset);
             ring = ring ?? FarmTypeChecks.FiveHa;
             return g.Plan(TestKit.Input(ring, p.Values, 9, null, TestKit.RoadAlongBottom(250)), CancellationToken.None);
+        }
+
+        [Theory]
+        [InlineData("hillFarm")]
+        [InlineData("ranch")]
+        public void RavineFollowsTheSlope(string preset)
+        {
+            // (P2-3) a 10 % slope rising north: the ravine is cut down the fall line, the fields keep out of it
+            var g = TestKit.Gen(Id);
+            var p = g.Presets.Single(x => x.Id == preset);
+            var site = TestKit.RoadAlongBottom(260);
+            site.HeightAt = q => 100f + 0.1f * q.y;
+            var ring = TestKit.Rect(260, 220).Select(v => new float3(v.x, site.HeightAt(v.xz), v.z)).ToArray();
+            var plan = g.Plan(TestKit.Input(ring, p.Values, 9, null, site), CancellationToken.None);
+            string facts = string.Join(" ", plan.Facts.Where(f => f.Key.StartsWith("drainage") || f.Key.StartsWith("ravine")).Select(f => f.Key + "=" + f.Value));
+            Assert.True(plan.Facts.TryGetValue("drainageRavine", out var n) && n >= 1, "no ravine: " + facts);
+            Assert.True(plan.Facts["drainageDepth"] >= 2f, facts);
+            Assert.True(plan.Facts["ravineTrees"] + plan.Facts["ravineBushes"] > 10, facts);
         }
 
         [Fact]

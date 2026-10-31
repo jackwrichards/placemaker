@@ -59,12 +59,33 @@ strawLitter, dungPats, hoofChurn, tramline, manureHeap, mudTyreTrack, orchardStr
   lays Rows/Alleys passes from the row frame the builder writes into the plan's facts.
 - `Weathering.Designs` registers `FarmGround`.
 - `VehicleProps`: a `FarmTractor` slot (the game's field tractor; the `Tractor` slots keep the mining tractor).
+- `SiteHarmony`: regions tagged `shaped:*` are kept (not smoothed) when the layer sets the fact `shapedTerrainCells`
+  (terraces, the ravine, ditches, heaps). Any type that sculpts designed ground can use it.
 
 ## Runs
 
 | Run id | What it shows |
 |---|---|
+| `show-10-builds-1030-231154-0c65` | baseline before the overhaul (220x200 flat): crop surfaces, a beige slab yard, a dry pond, no life |
+| `show-7-builds-1031-000929-4a92` | round 2, every style flat: wooden fences, crop rows, woods, orchard rows; pale painted yards and blotchy ploughing |
+| `show-3-builds-1031-003306-233b` | slope 10 %: terraces smoothed away by the site harmony, no ravine (the walker stopped at the yard) |
+| `show-3-builds-1031-005331-af71` | slope 10 % after the shaped:* hook: terraces kept (benches on the terrain map), dark yards; the ravine still missing in game |
 
 ## Lessons
 
+- Terrain paint over grass is weak: a growing crop painted with the forest-floor slot is invisible from 45°. Growing crops
+  need the crop surface; paint is for bare soil only (ploughing, drilling, fallow).
+- The earth slot (3) reads as pale blotches at strength: bare soil is forest floor (2) first, earth (3) under it at
+  0.3-0.55. A dirt yard painted with earth reads as a beige slab; the Forestry surface plus forest-floor paint round it
+  reads as a worked yard.
+- The site harmony smooths every sculpted shape it is not told about. Tag the regions `shaped:*` and set
+  `shapedTerrainCells` (SiteHarmony.ShapedFact).
+- A fall-line walker must steer round obstacles, not stop at them: the yard sits right where water would go.
+- The paddock fence default is the wooden post-and-rail (AnimalParkArt.PenFence), never the urban railing.
+
 ## Open
+
+- Ponds stay dry in the runner (the water source may need a running simulation); big water tanks carry the water look meanwhile.
+- No vanilla farmhouse prop: the homestead is barns, the machinery shed, tanks and firewood. A low-density plot later.
+- Gates are decals (mud, tyre tread) not objects.
+- Shelterbelts: the forest biome gives woods; a straight belt along the windward edge is not built.
