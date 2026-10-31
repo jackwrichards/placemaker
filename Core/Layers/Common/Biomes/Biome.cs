@@ -349,17 +349,15 @@ namespace Placemaker.Core.Layers.Common.Biomes
             Id = "field", Color = "#c3dc6c", Open = true, Plain = true,
             Flat = 1.3f, Slope = 0.2f, Steep = -0.9f, Hollow = 0.1f, Ridge = 0.05f, NearPath = 0.1f, NearEdge = -0.2f,
             TreesPerHa = 0f, Trees = Solitary, GroveScale = 40f, TreeRim = 7f,
-            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Wear, 100, 200), BiomeKnob.Slider(BiomeKnobs.Edges, 100, 200), BiomeKnob.Slider(BiomeKnobs.Flowers, 100, 200).Named("daisies"), BiomeKnob.Slider(BiomeKnobs.Trees, 0, 20, "perHa").Named("edgeTrees") },
+            // round 3 (the user, 2026-10-31: on an open field the decal spots "look like a piss stain or a poop stain or smudge ...
+            // with the subtle terrain paint, it looks great"): the field's character is terrain paint only, soft and wide: a faint
+            // lush tone in big drifts, a worn heart (Wear) where people play; a long-grass band along its edge (a strip, not spots);
+            // no stamped spots on the open grass. Leaves only under edge trees.
+            PaintLayer = 2, PaintStrength = 0.22f, CorePaint = 3, CoreStrength = 0.14f,
+            Knobs = new[] { BiomeKnob.Slider(BiomeKnobs.Wear, 100, 200), BiomeKnob.Slider(BiomeKnobs.Edges, 100, 200), BiomeKnob.Slider(BiomeKnobs.Trees, 0, 20, "perHa").Named("edgeTrees") },
             Decals = new[]
             {
-                new BiomeDecal("lawnTonePatch", 0.35f, BiomeWhere.All, 0.35f, 0.6f, 8f, quiet: true),
-                new BiomeDecal("longGrass", 0.85f, BiomeWhere.Rim, 0.6f, 0.9f, 4f),
-                new BiomeDecal("animalTrail", 0.5f, BiomeWhere.Trails, 0.3f, 0.5f, 3f),   // faint trodden lines (wornPath read as orange dashes from 45°)
-                // round 2 (the game: a field of spots): few, quiet, gathered in the heart where people play
-                new BiomeDecal("trampledGrass", 0.05f, BiomeWhere.Core, 0.3f, 0.5f, 12f, quiet: true),
-                new BiomeDecal("barePatch", 0.012f, BiomeWhere.Core, 0.45f, 0.7f, 8f),
-                new BiomeDecal("daisyLawn", 0.05f, BiomeWhere.Drift, 0.35f, 0.55f, 8f),
-                new BiomeDecal("molehills", 0.006f, BiomeWhere.All, 0.6f, 0.9f, 2f),
+                new BiomeDecal("longGrass", 0.6f, BiomeWhere.Rim, 0.35f, 0.55f, 4f, quiet: true),
                 new BiomeDecal("leafLitterSummer", 0.14f, BiomeWhere.Rim, 0.4f, 0.7f, 3f, quiet: true),   // only with edge trees (BiomeKnobs.Apply)
             },
         };

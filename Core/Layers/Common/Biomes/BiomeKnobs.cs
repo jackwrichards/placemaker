@@ -142,7 +142,8 @@ namespace Placemaker.Core.Layers.Common.Biomes
         private static bool IsFlower(string kind) => kind.StartsWith("flowerDrift", StringComparison.Ordinal) || kind == "meadowFlowers" || kind == "wildflowerDrift" || kind == "daisyLawn" || kind == "cloverPatch";
         private static bool IsRock(string kind) => kind == "rockOutcrop" || kind == "stonesCarpet" || kind.StartsWith("scree", StringComparison.Ordinal) || kind == "pebbles" || kind == "gravelCarpet" || kind == "shinglePatch";
         private static bool IsWear(string kind) => kind == "animalTrail" || kind == "barePatch" || kind == "trampledGrass" || kind == "wornPath" || kind == "groundMottle" || kind == "goalmouthWear";
-        private static bool IsFlowerPlant(BiomePlants p) { foreach (var id in p.Ids) if (id.StartsWith("Flower", StringComparison.Ordinal)) return true; return false; }
+        /// <summary>A flowering layer: mostly flowering shrubs (a bed of green shrubs with a few in flower is shrubs).</summary>
+        private static bool IsFlowerPlant(BiomePlants p) { int n = 0; foreach (var id in p.Ids) if (id.StartsWith("Flower", StringComparison.Ordinal)) n++; return n * 2 > p.Ids.Length; }
 
         /// <summary>The biome with the knobs' values applied (a copy; the library's stays as it is).</summary>
         public static BiomeDef Apply(BiomeDef b, BiomeKnob[] knobs, Dictionary<string, double> v, Dictionary<string, string> c)
@@ -155,6 +156,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
             d.CrownsPerHa *= rocks; d.BouldersPerHa *= rocks; d.StonesPerHa *= rocks;
             d.Lift *= relief; d.Dip *= relief; d.Break *= math.sqrt(relief);
             d.Dead = math.min(0.6f, d.Dead * dead); d.LogsPerHa *= dead;
+            if (v.ContainsKey(Wear)) d.CoreStrength = math.min(1f, d.CoreStrength * wear);   // the field's worn heart is paint
             if (v.TryGetValue(Water, out var water)) d.Pools = (float)math.clamp(water / 100.0, 0, 0.8);
             if (v.TryGetValue(Beds, out var beds)) d.Beds = (float)math.clamp(beds / 100.0, 0.05, 0.8);
             if (c.TryGetValue(Kind, out var kind)) d.Trees = TreesOfKind(kind, d.Trees);
