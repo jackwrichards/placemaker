@@ -288,6 +288,9 @@ namespace Placemaker.Core
 
             AreaPlan plan;
             var layerClock = new PlanClock(result.Timings);
+            // (p1-ground) the ground for the park path planner's slope cost (every type that lays walks with it)
+            var keepHeight = Layers.Park.ParkPathPlanner.AmbientHeight;
+            Layers.Park.ParkPathPlanner.AmbientHeight = site?.HeightAt;
             try
             {
                 plan = gen.Plan(input, cancel) ?? new AreaPlan();
@@ -303,6 +306,7 @@ namespace Placemaker.Core
                 });
                 return;
             }
+            finally { Layers.Park.ParkPathPlanner.AmbientHeight = keepHeight; }
 
             plan.GeneratorId = gen.Id;
             plan.StepPath = path + "@" + regionKey;
