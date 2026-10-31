@@ -145,7 +145,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             Preset("resort", ("style", "sandy"), ("beachDepth", 52.0), ("sandBlend", 6.0), ("umbrellas", 150.0), ("layout", "rows"), ("backdrop", "lawn"), ("huts", "none"),
                 ("pathWidth", "wide"), ("benchSpacing", 15.0), ("kiosks", 2.0), ("lifeguards", 2.0), ("slope", 4.0), ("treeDensity", 30.0), ("accessSpacing", 45.0),
                 ("jetties", 1.0), ("jettyLength", 44.0), ("jettyHead", true), ("bay", 16.0), ("berm", 0.5),
-                ("biomeLawn", 30.0), ("biomeMeadow", 30.0), ("biomeForest", 25.0), ("biomeHeath", 15.0));   // the palm lawn along the promenade, then less park
+                ("biomeLawn", 0.0), ("biomeMeadow", 40.0), ("biomeForest", 35.0), ("biomeHeath", 25.0));   // the palm avenue along the promenade, then no park (a lawn share planted palms in grid rows)
             // Rocky cove: dirt texture with sand pockets, rocks along the waterline, tide pools, a wide rough blend.
             Preset("rocky", ("style", "rocky"), ("umbrellas", 5.0), ("sandSurface", false), ("paintLayer", (double)TerrainMaterials.Dirt), ("backdrop", "none"),
                 ("huts", "none"), ("lifeguards", 0.0), ("kiosks", 0.0), ("rockClusters", 8.0), ("tidePools", 5.0), ("beachDepth", 36.0), ("sandBlend", 20.0),

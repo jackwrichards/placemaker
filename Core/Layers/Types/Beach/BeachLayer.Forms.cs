@@ -77,7 +77,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                 ("benchSpacing", 40.0), ("bay", 0.0), ("landings", false), ("sandBlend", 8.0),
                 ("biomeLawn", 0.0), ("biomeRocky", 60.0), ("biomeHeath", 40.0));
             // Marsh shore: a saltmarsh flat with creeks and salt pans, reed beds, a boardwalk out to the open water, a strip of sand.
-            Preset("marsh", ("style", "marsh"), ("beachDepth", 36.0), ("wetBand", 2.0), ("slope", 2.0), ("channels", 4.0), ("boardwalk", true), ("umbrellas", 0.0),
+            Preset("marsh", ("style", "marsh"), ("beachDepth", 64.0), ("wetBand", 2.0), ("slope", 2.0), ("channels", 4.0), ("boardwalk", true), ("umbrellas", 0.0),
                 ("backdrop", "none"), ("treeDensity", 18.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("landings", false),
                 ("accessSpacing", 200.0), ("benchSpacing", 35.0), ("lamps", false), ("sandBlend", 4.0), ("bay", 0.0), ("islands", 1.0), ("paintLayer", (double)TerrainMaterials.Lush),
                 ("biomeLawn", 0.0), ("biomeMeadow", 70.0), ("biomeForest", 30.0));   // the shore is the marsh; a wetland biome behind it cost 300 ms more
