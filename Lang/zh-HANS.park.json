@@ -202,5 +202,7 @@
   "Placemaker.Park.carPark.Tooltip": "临街的一处小停车场，紧邻正门，四周种树（0.7 公顷以上的公园）。",
   "Placemaker.Park.communityGarden": "社区菜园",
   "Placemaker.Park.communityGarden.Tooltip": "一块草坪变成菜园：翻好的土地和作物垄组成的小块地，中间是草径，还有工具棚、水箱、温室和高床花坛。",
-  "Placemaker.Park.Preset.rocky": "岩石公园"
+  "Placemaker.Park.Preset.rocky": "岩石公园",
+  "Placemaker.Park.Preset.plain": "朴素公园",
+  "Placemaker.Park.Preset.field": "开阔草地"
 }

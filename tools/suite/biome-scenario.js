@@ -4,7 +4,7 @@
 //   mixes run the simulation 45 s after the build so the water fills
 //   mix: "rocky=100" or "lawn=40,forest=30,rocky=30" (every other offered biome 0), "-" = the style's own; land: flat|hills|mountains|slope
 const fs = require("fs");
-const ids = ["lawn", "meadow", "flowers", "mulch", "glade", "forest", "rocky", "heath", "wetland", "water"];
+const ids = ["lawn", "grass", "field", "meadow", "flowers", "mulch", "glade", "forest", "rocky", "heath", "wetland", "water"];
 const cap = (s) => "biome" + s[0].toUpperCase() + s.slice(1);
 const [, , out, ...specs] = process.argv;
 const scenarios = specs.map((spec) => {

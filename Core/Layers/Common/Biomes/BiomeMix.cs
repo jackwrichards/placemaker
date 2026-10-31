@@ -24,6 +24,12 @@ namespace Placemaker.Core.Layers.Common.Biomes
         }
 
         public bool Offers(string id) { foreach (var b in Biomes) if (b.id == id) return true; return false; }
+
+        /// <summary>
+        /// (P2-8) The type's own planting controls that only act on its lawn (the host biome): the panel shows them in the
+        /// lawn's box of the Landscape card instead of Parameters (group "biome:&lt;host id&gt;").
+        /// </summary>
+        public string[] LawnControls = Array.Empty<string>();
     }
 
     public static class BiomeMix
@@ -60,6 +66,13 @@ namespace Placemaker.Core.Layers.Common.Biomes
             var sc = c.Slider(ScaleId, offer.Scale, 0, 100, 1, "%", ControlTier.Essential, Group);
             sc.LabelKey = ScaleLabel; sc.TooltipKey = ScaleLabel + ".Tooltip";
             c.Fixed(ScaleId);
+            // (P2-8) each biome's own few settings (shown in its box when it is clicked on the bar)
+            BiomeKnobs.Define(c, offer);
+            string host = null;
+            foreach (var (id, _) in offer.Biomes) { var hb = BiomeLibrary.Get(id); if (hb != null && hb.Host) { host = hb.Id; break; } }
+            if (host != null)
+                foreach (var id in offer.LawnControls)
+                    foreach (var ctl in c.List) if (ctl.Id == id) ctl.Group = BiomeKnobs.GroupPrefix + host;
         }
 
         /// <summary>A style's mix: every offered biome gets a value (the ones not named: 0).</summary>
@@ -95,7 +108,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
                 var b = BiomeLibrary.Get(id);
                 double v = Math.Max(0, ctx.Settings.Num(b.ControlId, 0));
                 if (v <= 0) continue;
-                list.Add((b, (float)v));
+                list.Add((BiomeKnobs.Tuned(ctx.Settings, b), (float)v));   // (P2-8) as the player tuned it
                 sum += v;
             }
             if (sum <= 0)

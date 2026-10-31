@@ -102,7 +102,7 @@ namespace Placemaker.Core.Layers.Types.AdventurePlayground
         }
 
         /// <summary>(Biome mix) The wild ground between the play zones: a glade, a wood to build dens in, rocks to scramble, long grass, bark.</summary>
-        public static readonly BiomeOffer Biomes = new BiomeOffer(("lawn", 40), ("meadow", 10), ("mulch", 5), ("glade", 15), ("forest", 15), ("rocky", 15), ("wetland", 0)) { Scale = 45 };
+        public static readonly BiomeOffer Biomes = new BiomeOffer(("lawn", 40), ("grass", 0), ("field", 0), ("meadow", 10), ("mulch", 5), ("glade", 15), ("forest", 15), ("rocky", 15), ("wetland", 0)) { Scale = 45 };
 
         protected override void DefinePresets()
         {
@@ -285,7 +285,8 @@ namespace Placemaker.Core.Layers.Types.AdventurePlayground
                     if (SegmentIndex.DistSq(p, a, b) < 3.5f * 3.5f) return true;
                 return false;
             };
-            float ha = region.Area / 10000f;
+            // (P2-8) the playground's own planting is its lawn's: a biome at 100 % plants all of the natural ground
+            float ha = region.Area / 10000f * (biomes?.HostShare ?? 1f);
             int trees = math.min(4000, (int)(ha * ctx.F("treeDensity")));
             if (trees > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Tree, treeIds, Keys.Category(AssetCategories.Tree)))
                 LeisureKit.Plant(ctx, occ, region, trees, ObjectRole.Tree, treeIds, 2.4f, 18f, 0.4f, 0x7AD0u, blocksView, 1, 3);

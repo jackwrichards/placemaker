@@ -447,10 +447,20 @@ namespace Placemaker.Core.Decals.Dynamic
             private void Tone()
             {
                 // the lawn: big faint patches everywhere, mottled from above, drier toward the open edges and away from trees
-                Brushes.Tone(_b, _lawn, "lawnTonePatch", new float2(0.18f, 0.32f), 0.2f, ColourLevel.Quiet, "tone:lawn");
-                Brushes.Scatter(_b, _lawn, "groundMottle", 0.16f, new ScatterOptions { Weight = p => 0.35f + 0.65f * ValueNoise.Clumps(p, 30f, H(1)), Opacity = new float2(0.25f, 0.45f), Clump = 2.5f, Spill = 3f, Level = ColourLevel.Quiet, Cause = "tone:mottle" });
-                Brushes.Scatter(_b, _lawn, "dryGrass", 0.12f, new ScatterOptions { Weight = Dryness, Opacity = new float2(0.3f, 0.55f), Clump = 3f, Spill = 2f, Cause = "tone:dry" });
-                Brushes.Scatter(_b, _lawn, "cloverPatch", 0.05f, new ScatterOptions { Weight = p => 1f - Dryness(p), Opacity = new float2(0.4f, 0.7f), Clump = 3f, Loners = 0.2f, Cause = "tone:clover" });
+                // (P2-8) not on a plain biome (plain grass, the field): that is the game's own grass plus its own decals
+                var lawn = _lawn;
+                var plain = BiomeGround.PlainAt(Layers);
+                if (plain != null)
+                {
+                    lawn = new BrushArea { ClipLo = _lawn.ClipLo, ClipHi = _lawn.ClipHi };
+                    lawn.Outer.AddRange(_lawn.Outer); lawn.Holes.AddRange(_lawn.Holes);
+                    var keep = _lawn.Keep;
+                    lawn.Keep = p => (keep == null || keep(p)) && !plain(p);
+                }
+                Brushes.Tone(_b, lawn, "lawnTonePatch", new float2(0.18f, 0.32f), 0.2f, ColourLevel.Quiet, "tone:lawn");
+                Brushes.Scatter(_b, lawn, "groundMottle", 0.16f, new ScatterOptions { Weight = p => 0.35f + 0.65f * ValueNoise.Clumps(p, 30f, H(1)), Opacity = new float2(0.25f, 0.45f), Clump = 2.5f, Spill = 3f, Level = ColourLevel.Quiet, Cause = "tone:mottle" });
+                Brushes.Scatter(_b, lawn, "dryGrass", 0.12f, new ScatterOptions { Weight = Dryness, Opacity = new float2(0.3f, 0.55f), Clump = 3f, Spill = 2f, Cause = "tone:dry" });
+                Brushes.Scatter(_b, lawn, "cloverPatch", 0.05f, new ScatterOptions { Weight = p => 1f - Dryness(p), Opacity = new float2(0.4f, 0.7f), Clump = 3f, Loners = 0.2f, Cause = "tone:clover" });
                 // the pitches and turf: mowing stripes and fine clippings, no tone patches (the user, 2026-10-29: the big soft tone
                 // on the turf looked smudgy, "a waste of decals"; groundMottle there read as yellow blotches)
                 foreach (var t in Turf)

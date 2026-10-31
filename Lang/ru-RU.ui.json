@@ -528,8 +528,11 @@
   "Placemaker.UI.Polish.ResetAll.Title": "Вернуть всем зданиям тип их зоны?",
   "Placemaker.UI.BiomeMix.Title": "Ландшафт",
   "Placemaker.UI.BiomeMix.Remove": "Убрать из смеси",
-  "Placemaker.UI.BiomeMix.Add": "Добавить",
   "Placemaker.UI.BiomeMix.Small": "много мелких",
   "Placemaker.UI.BiomeMix.Big": "мало крупных",
-  "Placemaker.UI.BiomeMix.DragTip": "Перетащите, чтобы поделить землю"
+  "Placemaker.UI.BiomeMix.DragTip": "Перетащите, чтобы поделить землю",
+  "Placemaker.UI.BiomeMix.AddButton": "Добавить",
+  "Placemaker.UI.BiomeMix.Only": "Только это",
+  "Placemaker.UI.BiomeMix.OnlyTip": "Сделать весь ландшафт таким",
+  "Placemaker.UI.BiomeMix.Whole": "Вся площадь"
 }

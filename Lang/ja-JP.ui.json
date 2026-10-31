@@ -528,8 +528,11 @@
   "Placemaker.UI.Polish.ResetAll.Title": "全ての建物を区画の種類に戻しますか？",
   "Placemaker.UI.BiomeMix.Title": "景観",
   "Placemaker.UI.BiomeMix.Remove": "ミックスから外す",
-  "Placemaker.UI.BiomeMix.Add": "追加",
   "Placemaker.UI.BiomeMix.Small": "小さく多く",
   "Placemaker.UI.BiomeMix.Big": "大きく少なく",
-  "Placemaker.UI.BiomeMix.DragTip": "ドラッグして地面を分ける"
+  "Placemaker.UI.BiomeMix.DragTip": "ドラッグして地面を分ける",
+  "Placemaker.UI.BiomeMix.AddButton": "追加",
+  "Placemaker.UI.BiomeMix.Only": "これだけ",
+  "Placemaker.UI.BiomeMix.OnlyTip": "景観全体をこれにする",
+  "Placemaker.UI.BiomeMix.Whole": "全体"
 }

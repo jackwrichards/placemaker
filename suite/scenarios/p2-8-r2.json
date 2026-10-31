@@ -1,0 +1,580 @@
+{
+  "_about": "Biome mix check (tools/suite/biome-scenario.js)",
+  "scenarios": [
+    {
+      "id": "field",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "greenway"
+        },
+        {
+          "do": "value",
+          "id": "biomeLawn",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeGrass",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeField",
+          "json": "100"
+        },
+        {
+          "do": "value",
+          "id": "biomeMeadow",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeFlowers",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeMulch",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeGlade",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeForest",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeRocky",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeHeath",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeWetland",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeWater",
+          "json": "0"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "grass",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "greenway"
+        },
+        {
+          "do": "value",
+          "id": "biomeLawn",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeGrass",
+          "json": "100"
+        },
+        {
+          "do": "value",
+          "id": "biomeField",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeMeadow",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeFlowers",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeMulch",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeGlade",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeForest",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeRocky",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeHeath",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeWetland",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeWater",
+          "json": "0"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "meadow",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "greenway"
+        },
+        {
+          "do": "value",
+          "id": "biomeLawn",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeGrass",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeField",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeMeadow",
+          "json": "100"
+        },
+        {
+          "do": "value",
+          "id": "biomeFlowers",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeMulch",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeGlade",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeForest",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeRocky",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeHeath",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeWetland",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeWater",
+          "json": "0"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "field-lawn",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "picnic"
+        },
+        {
+          "do": "value",
+          "id": "biomeLawn",
+          "json": "30"
+        },
+        {
+          "do": "value",
+          "id": "biomeGrass",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeField",
+          "json": "70"
+        },
+        {
+          "do": "value",
+          "id": "biomeMeadow",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeFlowers",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeMulch",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeGlade",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeForest",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeRocky",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeHeath",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeWetland",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeWater",
+          "json": "0"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    },
+    {
+      "id": "forest-conifer",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "greenway"
+        },
+        {
+          "do": "value",
+          "id": "biomeLawn",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeGrass",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeField",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeMeadow",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeFlowers",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeMulch",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeGlade",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeForest",
+          "json": "100"
+        },
+        {
+          "do": "value",
+          "id": "biomeRocky",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeHeath",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeWetland",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeWater",
+          "json": "0"
+        },
+        {
+          "do": "value",
+          "id": "biomeForestKind",
+          "json": "\"conifer\""
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "terrain"
+        }
+      ]
+    }
+  ]
+}

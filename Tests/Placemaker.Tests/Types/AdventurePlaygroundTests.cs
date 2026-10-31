@@ -125,9 +125,9 @@ namespace Placemaker.Tests.Types
             foreach (var p in g.Presets) Need(p.LabelKey);
             foreach (var f in Features.Of(g)) { Need(f.LabelKey); Need(f.TooltipKey); }
             Assert.True(missing.Count == 0, "Missing en-US keys: " + string.Join(", ", missing));
-            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look") && c.Group != Placemaker.Core.Layers.Common.Biomes.BiomeMix.Group), 15, maxControls);   // (Phase 1) look settings not counted; (Biome mix) the mix is one control
+            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look") && c.Group != Placemaker.Core.Layers.Common.Biomes.BiomeMix.Group && !c.Group.StartsWith(Placemaker.Core.Layers.Common.Biomes.BiomeKnobs.GroupPrefix)), 15, maxControls);   // (Phase 1) look settings not counted; (Biome mix) the mix is one control
             Assert.InRange(g.Presets.Count, minPresets, 6);
-            var groups = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look") && c.Group != Placemaker.Core.Layers.Common.Biomes.BiomeMix.Group).Select(c => c.Group).Where(x => x != "entrances" && x != "shops").Distinct().Count();   // (Phase 1) look settings not counted
+            var groups = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look") && c.Group != Placemaker.Core.Layers.Common.Biomes.BiomeMix.Group && !c.Group.StartsWith(Placemaker.Core.Layers.Common.Biomes.BiomeKnobs.GroupPrefix)).Select(c => c.Group).Where(x => x != "entrances" && x != "shops").Distinct().Count();   // (Phase 1) look settings not counted
             Assert.InRange(groups, 4, 8);
             Assert.Equal("parks", GeneratorGroups.Of(g));
             Assert.Contains(g.Controls, c => c.Id == "style" && c.Kind == ControlKind.Choice && c.Tier == ControlTier.Essential);

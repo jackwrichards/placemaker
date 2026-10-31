@@ -51,6 +51,7 @@ namespace Placemaker.Core.Layers.AddOns
                 if (Hashing.Unit(Hashing.Mix(clump, (uint)anchors.Count)) < Scatter.Clustering(p, 25f, clump, 0.1f))
                     anchors.Add((p, BoundaryTangent(ctx.LayerRegion.Ring, p)));
 
+            var natural = ctx.Input.Reserved != null && (ctx.Input.Reserved.Natural.Count > 0 || ctx.Input.Reserved.NaturalOnly) ? ctx.Input.Reserved : null;
             int placedBeds = 0, placedItems = 0;
             var used = new List<float2>();
             float minGap = perBed * pitch * 0.5f + 10f;
@@ -68,7 +69,8 @@ namespace Placemaker.Core.Layers.AddOns
                     int k = (i & 1) == 0 ? i / 2 : -(i + 1) / 2;
                     if (k >= 0 ? !fwdOpen : !backOpen) continue;
                     var p = a + t * k * pitch;
-                    if (!occ.Free(p, half, 0.35f, 0.1f) || !ctx.LayerRegion.ContainsDisc(p, half + 0.3f))
+                    // (P2-8) a biome's natural ground gets no formal beds
+                    if (!occ.Free(p, half, 0.35f, 0.1f) || !ctx.LayerRegion.ContainsDisc(p, half + 0.3f) || natural != null && natural.InNatural(p))
                     {
                         // A row stays unbroken: the first blocked slot ends it on that side.
                         if (k >= 0) fwdOpen = false; else backOpen = false;
@@ -93,7 +95,7 @@ namespace Placemaker.Core.Layers.AddOns
                 placedBeds++;
                 placedItems += slots.Count;
             }
-            if (placedBeds == 0) NoSpace(ctx, "Placemaker.AddOn.Flowerbeds.Name");
+            if (placedBeds == 0 && natural == null) NoSpace(ctx, "Placemaker.AddOn.Flowerbeds.Name");
             ctx.Stat(Keys.StatFlowerbeds, placedBeds, Keys.UnitCount);
             ctx.Plan.Facts["flowerbedItems"] = placedItems;
         }

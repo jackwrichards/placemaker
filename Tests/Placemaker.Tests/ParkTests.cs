@@ -200,7 +200,8 @@ namespace Placemaker.Tests
         [Fact]
         public void ChosenSpeciesAreUsed()
         {
-            var s = new SettingsBag(); s.Values["treeSpecies"] = new[] { "OakTree01", "BirchTree01" };
+            // (P2-8) the park's species are its lawn's: each natural area plants its own, so the check is on a lawn-only park
+            var s = BiomeMixTests.LawnOnly(new SettingsBag()); s.Values["treeSpecies"] = new[] { "OakTree01", "BirchTree01" };
             var plan = TestKit.Plan("park", TestKit.Input(Hectare5, s));
             Assert.All(plan.Objects.Where(o => o.Role == ObjectRole.Tree), o => Assert.Contains(o.Asset.Id, new[] { "OakTree01", "BirchTree01" }));
             Assert.Contains(plan.Objects, o => o.Asset.Id == "OakTree01");

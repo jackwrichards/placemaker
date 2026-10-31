@@ -202,5 +202,7 @@
   "Placemaker.Park.carPark.Tooltip": "通り側、正面入口の隣にある木に縁取られた小さな駐車場です（0.7 ha 以上の公園）。",
   "Placemaker.Park.communityGarden": "コミュニティガーデン",
   "Placemaker.Park.communityGarden.Tooltip": "芝生の一区画が市民農園になります：耕した土と作物の畝の区画、その間の芝の通路、物置、貯水タンク、温室、レイズドベッド。",
-  "Placemaker.Park.Preset.rocky": "岩の公園"
+  "Placemaker.Park.Preset.rocky": "岩の公園",
+  "Placemaker.Park.Preset.plain": "シンプルな公園",
+  "Placemaker.Park.Preset.field": "大きな原っぱ"
 }

@@ -538,13 +538,13 @@ const GroundCard = ({ step, layer, state, scope }: { step: StepView; layer: Laye
  * (Biome mix) Landscape: the place's natural areas as one mix (a bar, a line per area, patch size), between Parameters and
  * Ground (the user: "biomes inside of a park that I can tweak ... percentages of each").
  */
-const BiomeCard = ({ step, layer }: { step: StepView; layer: LayerType }) => {
+const BiomeCard = ({ step, layer, state }: { step: StepView; layer: LayerType; state: ToolState }) => {
     const { t } = useT();
     return (
         <div className={s.ground} data-testid="biomes">
             <SubHead icon="leaf" title={t("Placemaker.UI.BiomeMix.Title", "Landscape")} testId="biomes-head" />
             <ErrorBoundary name="biomes">
-                <BiomeMix step={step} layer={layer} />
+                <BiomeMix step={step} layer={layer} state={state} />
             </ErrorBoundary>
         </div>
     );
@@ -666,7 +666,7 @@ const StepOptions = ({ catalog, design, state, step }: { catalog: Catalog; desig
                             <ControlList step={step} layer={layer} state={state} scope={scope} exclude={new Set([...featureOptionIds(step), ...(grounded ? groundIds(layer) : []), ...biomeIds(layer)])} />
                         </ErrorBoundary>
                     </div>
-                    {hasBiomeMix(layer) ? <BiomeCard step={step} layer={layer} /> : null}
+                    {hasBiomeMix(layer) ? <BiomeCard step={step} layer={layer} state={state} /> : null}
                     {grounded ? <GroundCard step={step} layer={layer} state={state} scope={scope} /> : null}
                 </>
             )}

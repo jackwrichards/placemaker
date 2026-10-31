@@ -528,8 +528,11 @@
   "Placemaker.UI.Polish.ResetAll.Title": "Alle Gebäude auf den Typ ihrer Zone zurücksetzen?",
   "Placemaker.UI.BiomeMix.Title": "Landschaft",
   "Placemaker.UI.BiomeMix.Remove": "Aus der Mischung nehmen",
-  "Placemaker.UI.BiomeMix.Add": "Hinzumischen",
   "Placemaker.UI.BiomeMix.Small": "viele kleine",
   "Placemaker.UI.BiomeMix.Big": "wenige große",
-  "Placemaker.UI.BiomeMix.DragTip": "Ziehen, um den Boden aufzuteilen"
+  "Placemaker.UI.BiomeMix.DragTip": "Ziehen, um den Boden aufzuteilen",
+  "Placemaker.UI.BiomeMix.AddButton": "Hinzufügen",
+  "Placemaker.UI.BiomeMix.Only": "Nur dies",
+  "Placemaker.UI.BiomeMix.OnlyTip": "Zur ganzen Landschaft machen",
+  "Placemaker.UI.BiomeMix.Whole": "Ganze Fläche"
 }

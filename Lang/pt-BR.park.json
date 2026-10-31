@@ -202,5 +202,7 @@
   "Placemaker.Park.carPark.Tooltip": "Um pequeno estacionamento do lado da rua, ao lado da entrada principal, com árvores nas bordas (parques de 0,7 ha ou mais).",
   "Placemaker.Park.communityGarden": "Horta comunitária",
   "Placemaker.Park.communityGarden.Tooltip": "Um gramado vira hortas: canteiros de terra trabalhada e fileiras de cultivo com caminhos de grama, galpões, caixas d'água, uma estufa e canteiros elevados.",
-  "Placemaker.Park.Preset.rocky": "Parque rochoso"
+  "Placemaker.Park.Preset.rocky": "Parque rochoso",
+  "Placemaker.Park.Preset.plain": "Parque simples",
+  "Placemaker.Park.Preset.field": "Campo aberto"
 }

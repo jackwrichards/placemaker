@@ -198,11 +198,14 @@ namespace Placemaker.Core.Decals
                     for (int x = 0; x < gw && flat; x += 2)
                         if (math.abs(HeightAt(origin + (new float2(x, y) + 0.5f) * cell) - h0) > 0.6f) flat = false;
                 bool water = Site?.WaterDepthAt != null;
+                // (P2-8) a plain biome (plain grass, the field) keeps the game's own grass: no lush or dry patches on it
+                var plain = Placemaker.Core.Decals.Dynamic.BiomeGround.PlainAt(new[] { Host });
                 for (int y = 0; y < gh; y++)
                     for (int x = 0; x < gw; x++)
                     {
                         var p = origin + (new float2(x, y) + 0.5f) * cell;
                         if (m.At(p) <= 0f) continue;
+                        if (plain != null && plain(p)) continue;
                         float moist = LawnMoisture(Seed, p);
                         if (!flat)
                         {

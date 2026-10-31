@@ -113,7 +113,7 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
         }
 
         /// <summary>(Biome mix) A memorial's side ground: mostly lawn (the axis stays solemn), a quiet glade, a meadow of remembrance, flowers.</summary>
-        public static readonly BiomeOffer Biomes = new BiomeOffer(("lawn", 70), ("meadow", 10), ("flowers", 8), ("glade", 12), ("forest", 0)) { Scale = 40 };
+        public static readonly BiomeOffer Biomes = new BiomeOffer(("lawn", 70), ("grass", 0), ("field", 0), ("meadow", 10), ("flowers", 8), ("glade", 12), ("forest", 0)) { Scale = 40 };
 
         protected override void DefinePresets()
         {
@@ -242,7 +242,8 @@ namespace Placemaker.Core.Layers.Types.MemorialPark
 
             // Lawn trees keep the vista along the axis open (areal count: 1/scale, see docs/proposals/size.md).
             var treeIds = Or(ctx.L("treeSpecies"), MemorialAssets.LawnTrees);
-            float ha = region.Area / 10000f;
+            // (P2-8) lawn trees are the lawn's: a biome at 100 % owns the ground (the axis rows are the memorial's design and stay)
+            float ha = region.Area / 10000f * (st.Biomes?.HostShare ?? 1f);
             int trees = math.min(3000, (int)(ha * ctx.F("lawnTrees") / ctx.Scale));
             if (trees > 0 && AssetAvailability.Require(ctx.Plan, AssetCategories.Tree, treeIds, Keys.Category(AssetCategories.Tree)))
                 LeisureKit.Plant(ctx, st.Occ, region, trees, ObjectRole.Tree, treeIds, 2.4f, 22f, 0.45f, 0x7E30u,

@@ -202,5 +202,7 @@
   "Placemaker.Park.carPark.Tooltip": "Un petit parking côté rue, à côté de l'entrée principale, bordé d'arbres (parcs de 0,7 ha ou plus).",
   "Placemaker.Park.communityGarden": "Jardin partagé",
   "Placemaker.Park.communityGarden.Tooltip": "Une pelouse devient des jardins familiaux : parcelles de terre travaillée et rangs de cultures séparés par des allées d'herbe, cabanes, cuves à eau, une serre et des bacs surélevés.",
-  "Placemaker.Park.Preset.rocky": "Parc rocheux"
+  "Placemaker.Park.Preset.rocky": "Parc rocheux",
+  "Placemaker.Park.Preset.plain": "Parc simple",
+  "Placemaker.Park.Preset.field": "Grand pré"
 }

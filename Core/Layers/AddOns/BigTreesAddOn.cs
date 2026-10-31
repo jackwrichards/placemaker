@@ -48,12 +48,14 @@ namespace Placemaker.Core.Layers.AddOns
                 bool tooClose = false;
                 foreach (var q in placed) if (math.distancesq(p, q) < spacing * spacing) { tooClose = true; break; }
                 if (tooClose || !occ.Free(p, clearance, clearance * 0.5f, 0f)) continue;
+                // (P2-8) specimen trees stand on the park's own lawn: a biome's ground is the biome's (100 % meadow has no trees)
+                if (ctx.Input.Reserved != null && ctx.Input.Reserved.InNatural(p)) continue;
                 uint v = Hashing.Mix(ctx.Seed, (uint)placed.Count + 1u);
                 ctx.Object(p, Hashing.Unit(v) * 2f * math.PI, ObjectRole.Tree, AssetMix.Pick(ids, v), v, 3);
                 occ.Take(p, 2.5f, 0);
                 placed.Add(p);
             }
-            if (placed.Count == 0) NoSpace(ctx, "Placemaker.AddOn.BigTrees.Name");
+            if (placed.Count == 0 && (ctx.Input.Reserved == null || ctx.Input.Reserved.Natural.Count == 0 && !ctx.Input.Reserved.NaturalOnly)) NoSpace(ctx, "Placemaker.AddOn.BigTrees.Name");
             ctx.Stat(Keys.StatTrees, placed.Count, Keys.UnitCount);
         }
     }

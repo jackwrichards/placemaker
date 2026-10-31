@@ -528,8 +528,11 @@
   "Placemaker.UI.Polish.ResetAll.Title": "將所有建築重設為其功能區的類型？",
   "Placemaker.UI.BiomeMix.Title": "景觀",
   "Placemaker.UI.BiomeMix.Remove": "移出混合",
-  "Placemaker.UI.BiomeMix.Add": "加入",
   "Placemaker.UI.BiomeMix.Small": "小而多",
   "Placemaker.UI.BiomeMix.Big": "大而少",
-  "Placemaker.UI.BiomeMix.DragTip": "拖動以劃分地面"
+  "Placemaker.UI.BiomeMix.DragTip": "拖動以劃分地面",
+  "Placemaker.UI.BiomeMix.AddButton": "新增",
+  "Placemaker.UI.BiomeMix.Only": "僅此",
+  "Placemaker.UI.BiomeMix.OnlyTip": "讓它成為整片景觀",
+  "Placemaker.UI.BiomeMix.Whole": "整個場地"
 }

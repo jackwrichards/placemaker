@@ -441,6 +441,25 @@ namespace Placemaker.Core
             }
             foreach (var o in plan.Objects)
                 if (o.Role != ObjectRole.Decal) reserved.AddDisc(o.Position.xz, DefaultRadius(o.Role), o.Role.ToString());
+            // (P2-8) the natural areas of a biome mix: later layers plant nothing decorative there
+            if (plan.Facts != null && plan.Facts.TryGetValue("biomeHostShare", out var hostShare) && hostShare <= 0) reserved.NaturalOnly = true;
+            foreach (var region in plan.Regions)
+            {
+                if (region?.Ring == null || region.Ring.Length < 3 || region.Tags == null) continue;
+                foreach (var t in region.Tags)
+                {
+                    if (t == null) continue;
+                    bool hole = t.StartsWith(Layers.Common.Biomes.BiomeBuilder.HolePrefix, StringComparison.Ordinal);
+                    if (!hole && !t.StartsWith(Layers.Common.Biomes.BiomeBuilder.RegionPrefix, StringComparison.Ordinal)) continue;
+                    string id = t.Substring(hole ? Layers.Common.Biomes.BiomeBuilder.HolePrefix.Length : Layers.Common.Biomes.BiomeBuilder.RegionPrefix.Length);
+                    var def = Layers.Common.Biomes.BiomeLibrary.Get(id);
+                    if (def == null || def.Host) break;
+                    var ring = new float2[region.Ring.Length];
+                    for (int i = 0; i < ring.Length; i++) ring[i] = region.Ring[i].xz;
+                    reserved.Natural.Add((id, ring, hole));
+                    break;
+                }
+            }
             foreach (var a in plan.Areas)
                 if (a.Role == AreaRole.Lot)
                 {

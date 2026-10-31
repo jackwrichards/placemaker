@@ -104,8 +104,8 @@ namespace Placemaker.Core.Layers.Park
         /// It replaces the places with moods and the rocky-areas setting (hidden; saved designs still build).
         /// </summary>
         public static readonly BiomeOffer Biomes = new BiomeOffer(
-            ("lawn", 45), ("meadow", 15), ("flowers", 0), ("mulch", 0), ("glade", 10), ("forest", 15), ("rocky", 9), ("heath", 0), ("wetland", 6), ("water", 0))
-        { Scale = 72 };
+            ("lawn", 45), ("grass", 0), ("field", 0), ("meadow", 15), ("flowers", 0), ("mulch", 0), ("glade", 10), ("forest", 15), ("rocky", 9), ("heath", 0), ("wetland", 6), ("water", 0))
+        { Scale = 72, LawnControls = new[] { "treeDensity", "bushDensity", "treeSpecies", "bushSpecies", "belt" } };
 
         internal static SettingsBag Bag(params (string key, object value)[] values)
         {
@@ -261,6 +261,17 @@ namespace Placemaker.Core.Layers.Park
             Preset("rocky", BiomeMix.With(new (string, object)[] { ("style", "natural"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 18.0), ("bushDensity", 50.0),
                 ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", false), ("curvedPaths", true), ("desireLines", "worn"), ("naturalGround", true) },
                 BiomeMix.Preset(Biomes, 74, ("lawn", 12), ("forest", 16), ("rocky", 56), ("heath", 16))));
+            // (P2-8, the user: "sometimes I just want a park to be a field ... maybe one that is just simpler, literally grass with
+            // some leaves, more vanilla") the plain park: the game's own grass with a scatter of leaves and a few lone trees, walks,
+            // benches; and the open field: a big mown field with long-grass edges, worn tracks and play wear, picnic tables
+            Preset("plain", BiomeMix.With(new (string, object)[] { ("style", "natural"), ("pathStyle", "curvy"), ("pathWidth", "narrow"), ("treeDensity", 10.0), ("bushDensity", 10.0),
+                ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", false), ("curvedPaths", true), ("desireLines", "none"), ("biomeGrassTrees", 4.0) },
+                BiomeMix.Preset(Biomes, 60, ("grass", 100))));
+            Preset("field", BiomeMix.With(new (string, object)[] { ("style", "picnic"), ("pathStyle", "circuit"), ("pathWidth", "narrow"), ("treeDensity", 10.0), ("bushDensity", 10.0),
+                ("furniture", 3.0), ("lamps", true), ("bins", true), ("belt", false), ("curvedPaths", true), ("desireLines", "none"), ("biomeFieldTrees", 4.0) },
+                BiomeMix.Preset(Biomes, 80, ("field", 100))));
+            PresetFeatures("plain", "-flowerbeds", "-bigtrees", "-picnic");
+            PresetFeatures("field", "-flowerbeds", "-bigtrees");
 
             // Playtest 4b: presets look complete. On top of the DefaultOn features (playground, picnic,
             // restrooms, big trees, flowerbeds, decals, shore) each idiom turns on what belongs to it.
@@ -643,6 +654,17 @@ namespace Placemaker.Core.Layers.Park
             // spacing, since the canopies are real size); tree-to-tree clearances stay footprint-based (PlantFits).
             float carved = (s.Lake.Length >= 3 ? Poly.Area(s.Lake) : 0f) + (plaza.Length >= 3 ? Poly.Area(plaza) : 0f) + ParkMoods.Area(moods) + (biomes?.Taken ?? 0f);   // the places and the natural areas plant their own
             float plantedHa = math.max(0f, region.Area - carved) / 10000f;
+            if (biomes != null)
+            {
+                // (P2-8 "full means full") the park's own planting is the lawn biome's: its share of the mix decides how much of the
+                // leftover ground (the walks' verges, the entrances, the clearings) it plants. 100 % meadow: no park trees at all.
+                float host = biomes.HostShare;
+                var f = biomes.Field;
+                float hostArea = 0f;
+                for (int bi = 0; bi < f.Biomes.Count; bi++) if (f.Biomes[bi].Host) hostArea += f.Got[bi] * f.NaturalCells * f.CellArea;
+                float rest = math.max(0f, region.Area - carved - hostArea);
+                plantedHa = (math.min(hostArea, math.max(0f, region.Area - carved)) + rest * host) / 10000f;
+            }
             int trees = math.min(4000, (int)math.round(plantedHa * ctx.F("treeDensity") / ctx.Scale));
             int bushes = math.min(6000, (int)math.round(plantedHa * ctx.F("bushDensity") / ctx.Scale));
             bool belt = ctx.B("belt");
@@ -731,9 +753,6 @@ namespace Placemaker.Core.Layers.Park
         private BiomeResult PlanBiomes(LayerContext ctx, ParkSite s, ParkStyle style, float2[] plaza, List<(BiomeDef biome, float share)> mix, BiomeField ahead)
         {
             var reserved = ctx.Input?.Reserved;
-            float td = ctx.F("treeDensity"), bd = ctx.F("bushDensity");
-            double styleTd = 26, styleBd = 65;
-            foreach (var p in Presets) if (p != null && p.Values.S("style", "") == style.Id) { styleTd = p.Values.Num("treeDensity", styleTd); styleBd = p.Values.Num("bushDensity", styleBd); break; }
             var site = new BiomeSite
             {
                 Ctx = ctx, Region = s.LayerRegion, Paths = s.Occ.Corridors, Occ = s.Occ,
@@ -741,9 +760,10 @@ namespace Placemaker.Core.Layers.Park
                 Blocked = p => s.InLake(p, 3f) || s.InClearing(p, 3f) || s.GateDistanceSq(p) < 144f
                     || plaza.Length >= 3 && (Poly.Contains(plaza, p) || ParkSite.MinDistToRing(plaza, p) < 3f)
                     || s.Occ.Discs.Overlaps(p, 2.5f) || s.Occ.HitsPolygon(p, 1.5f) || reserved != null && reserved.Blocks(p, 1.5f),
-                Trees = ctx.L("treeSpecies") ?? Array.Empty<string>(), Bushes = ctx.L("bushSpecies") ?? Array.Empty<string>(),
-                TreeAmount = td <= 0f ? 0f : math.clamp(td / (float)math.max(1.0, styleTd), 0.25f, 2f),
-                BushAmount = bd <= 0f ? 0f : math.clamp(bd / (float)math.max(1.0, styleBd), 0.25f, 2f),
+                // (P2-8) the park's species are its lawn's (Lawn box); each biome plants its own (a forest's Kind)
+                Trees = Array.Empty<string>(), Bushes = Array.Empty<string>(),
+                // (P2-8) each biome's own Trees and Shrubs decide its planting; the park's tree and bush density are its lawn's
+                TreeAmount = 1f, BushAmount = 1f,
                 // with the Terrain feature on, its landform is the park's character: the areas plant but leave the ground alone
                 Shape = !ctx.Input.HasChild("terrain"),
             };

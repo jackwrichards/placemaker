@@ -202,5 +202,7 @@
   "Placemaker.Park.carPark.Tooltip": "Un pequeño aparcamiento junto a la calle, al lado de la entrada principal, con árboles en sus bordes (parques de 0,7 ha o más).",
   "Placemaker.Park.communityGarden": "Huerto comunitario",
   "Placemaker.Park.communityGarden.Tooltip": "Un prado se convierte en huertos: parcelas de tierra trabajada e hileras de cultivo con caminos de hierba, casetas, depósitos de agua, un invernadero y bancales elevados.",
-  "Placemaker.Park.Preset.rocky": "Parque rocoso"
+  "Placemaker.Park.Preset.rocky": "Parque rocoso",
+  "Placemaker.Park.Preset.plain": "Parque sencillo",
+  "Placemaker.Park.Preset.field": "Campo abierto"
 }

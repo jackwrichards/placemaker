@@ -202,5 +202,7 @@
   "Placemaker.Park.carPark.Tooltip": "Небольшая парковка со стороны улицы рядом с главным входом, с деревьями по краям (парки от 0,7 га).",
   "Placemaker.Park.communityGarden": "Общественный огород",
   "Placemaker.Park.communityGarden.Tooltip": "Одна лужайка становится огородами: участки вскопанной земли и грядок с травяными дорожками, сараи, баки для воды, теплица и высокие грядки.",
-  "Placemaker.Park.Preset.rocky": "Каменистый парк"
+  "Placemaker.Park.Preset.rocky": "Каменистый парк",
+  "Placemaker.Park.Preset.plain": "Простой парк",
+  "Placemaker.Park.Preset.field": "Большая лужайка"
 }
