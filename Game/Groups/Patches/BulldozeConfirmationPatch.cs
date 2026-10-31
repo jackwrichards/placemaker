@@ -3,9 +3,13 @@
 // Adapted from ParkingLotTool's ParkingLotBulldozeConfirmationPatch (KruemelGames, GPL-3.0).
 //
 // Vanilla BulldozeToolSystem only asks for (non-spawnable) buildings. Our builds are lot areas, so
-// right before Apply we request the unchanged vanilla confirmation dialog (EventConfirmationRequested
-// → UI → ConfirmAction → State.Confirmed → Apply). The OnUpdate prefix remembers whether this update
-// is the confirmed one, so a confirmation never carries over to a later click.
+// right before Apply we put the tool in its Waiting state and ask in the game's own dialog, with three
+// answers (p1-bulldoze, the user: "do you want to bulldoze this or just ungroup it?"): Remove all
+// (ConfirmAction(true) → State.Confirmed → Apply), Ungroup (the bulldoze is cancelled and the builds
+// are ungrouped: their pieces stay) and Cancel. The game's ConfirmationDialog takes extra buttons
+// (otherActions; its UI answers 0 = confirm, 1 = cancel, 2 + i = the i-th extra button). The OnUpdate
+// prefix remembers whether this update is the confirmed one, so a confirmation never carries over to a
+// later click. Without the app bindings the unchanged vanilla question (Yes / No) is asked instead.
 //
 // Guarded: m_State (read and written), OnUpdate, Apply and the private applyMode setter. If any is
 // missing, Prepare returns false and only the question is skipped: the bulldozer still removes the
@@ -68,7 +72,8 @@ namespace Placemaker.Game.Groups.Patches
                 var registry = GroupRegistrySystem.Instance;
                 if (registry == null || registry.World != __instance.World) return true;
                 inputDeps.Complete();
-                if (!DeletesOwnerArea(__instance.EntityManager, registry)) return true;
+                var groups = BulldozedGroups(__instance.EntityManager, registry);
+                if (groups.Count == 0) return true;
                 __result = inputDeps;
                 ApplyModeSetter.Invoke(__instance, new object[] { ApplyMode.None });
                 if (__instance.EventConfirmationRequested == null)
@@ -79,7 +84,7 @@ namespace Placemaker.Game.Groups.Patches
                     return false;
                 }
                 StateField.SetValue(__instance, Enum.Parse(StateField.FieldType, "Waiting"));
-                __instance.EventConfirmationRequested();
+                if (!AskRemoveOrUngroup(__instance, registry, groups)) __instance.EventConfirmationRequested();
                 return false;
             }
             catch (Exception e)
@@ -90,21 +95,50 @@ namespace Placemaker.Game.Groups.Patches
             }
         }
 
-        private static bool DeletesOwnerArea(EntityManager em, GroupRegistrySystem registry)
+        /// <summary>
+        /// Remove all / Ungroup / Cancel in the game's dialog. False when it cannot be shown (the caller asks the vanilla way).
+        /// The answer comes on the main thread (the UI's bindings update); a tool that left its Waiting state meanwhile ignores it.
+        /// </summary>
+        private static bool AskRemoveOrUngroup(BulldozeToolSystem tool, GroupRegistrySystem registry, System.Collections.Generic.List<int> groups)
         {
+            var bindings = global::Game.SceneFlow.GameManager.instance?.userInterface?.appBindings;
+            if (bindings == null) return false;
+            var dialog = new global::Game.UI.ConfirmationDialog("Placemaker.Bulldoze.Title", "Placemaker.Bulldoze.Message",
+                "Placemaker.Bulldoze.RemoveAll", "Placemaker.Bulldoze.Cancel", "Placemaker.Bulldoze.Ungroup");
+            bindings.ShowConfirmationDialog(dialog, answer =>
+            {
+                try
+                {
+                    if (answer == 0) { tool.ConfirmAction(true); return; }
+                    tool.ConfirmAction(false);
+                    if (answer != 2) return;
+                    foreach (var id in groups)
+                        if (registry.Ungroup(id)) Mod.Log.Info($"Placemaker: group {id} ungrouped from the bulldozer's question; its pieces stay.");
+                }
+                catch (Exception e) { Mod.Log.Error(e, "Placemaker: the bulldozer's question failed"); }
+            });
+            return true;
+        }
+
+        /// <summary>The groups this bulldoze would remove whole: their owner lot, or a part of a group without one.</summary>
+        private static System.Collections.Generic.List<int> BulldozedGroups(EntityManager em, GroupRegistrySystem registry)
+        {
+            var groups = new System.Collections.Generic.List<int>();
             using var query = em.CreateEntityQuery(ComponentType.ReadOnly<Area>(), ComponentType.ReadOnly<Temp>());
             using var entities = query.ToEntityArray(Allocator.Temp);
             for (int i = 0; i < entities.Length; i++)
             {
                 var temp = em.GetComponentData<Temp>(entities[i]);
-                if ((temp.m_Flags & TempFlags.Delete) != 0 && registry.IsOwnerArea(temp.m_Original)) return true;
+                if ((temp.m_Flags & TempFlags.Delete) == 0 || !registry.IsOwnerArea(temp.m_Original)) continue;
+                int id = em.GetComponentData<PlacemakerMember>(temp.m_Original).GroupId;
+                if (!groups.Contains(id)) groups.Add(id);
             }
             // A group without owner lot: bulldozing any of its objects/areas removes the whole group, so ask too.
             using var parts = em.CreateEntityQuery(ComponentType.ReadOnly<Temp>());
             using var temps = parts.ToComponentDataArray<Temp>(Allocator.Temp);
             for (int i = 0; i < temps.Length; i++)
-                if ((temps[i].m_Flags & TempFlags.Delete) != 0 && registry.IsOwnerlessGroupPart(temps[i].m_Original, out _)) return true;
-            return false;
+                if ((temps[i].m_Flags & TempFlags.Delete) != 0 && registry.IsOwnerlessGroupPart(temps[i].m_Original, out int id) && !groups.Contains(id)) groups.Add(id);
+            return groups;
         }
     }
 }

@@ -32,8 +32,8 @@ namespace Placemaker.Game.Groups
         private ToolSystem _toolSystem;
         private EntityQuery _tempQuery;
         /// <summary>Per record being removed: when it started, its frames, its main-thread time (logged when it ends).</summary>
-        private readonly Dictionary<Entity, (System.Diagnostics.Stopwatch Wall, int Frames, double Ms, double MaxMs, int Members)> _timing
-            = new Dictionary<Entity, (System.Diagnostics.Stopwatch, int, double, double, int)>();
+        private readonly Dictionary<Entity, (System.Diagnostics.Stopwatch Wall, int Frames, double Ms, double MaxMs, int Members, float WorstFrame)> _timing
+            = new Dictionary<Entity, (System.Diagnostics.Stopwatch, int, double, double, int, float)>();
 
         [Preserve]
         protected override void OnCreate()
@@ -86,17 +86,18 @@ namespace Placemaker.Game.Groups
 
         private void Time(Entity record, double ms)
         {
-            if (!_timing.TryGetValue(record, out var t)) t = (System.Diagnostics.Stopwatch.StartNew(), 0, 0, 0, 0);
+            if (!_timing.TryGetValue(record, out var t)) t = (System.Diagnostics.Stopwatch.StartNew(), 0, 0, 0, 0, 0f);
             t.Frames++; t.Ms += ms; if (ms > t.MaxMs) t.MaxMs = ms;
+            if (t.Frames > 1) t.WorstFrame = Math.Max(t.WorstFrame, UnityEngine.Time.unscaledDeltaTime * 1000f);   // the game's whole previous frame
             if (EntityManager.Exists(record) && !EntityManager.HasComponent<Deleted>(record)) { _timing[record] = t; return; }
             _timing.Remove(record);
             Mod.Log.Info($"Placemaker removal timing: {t.Members} member(s) in {t.Frames} frame(s), {t.Wall.Elapsed.TotalMilliseconds:F0} ms from start to end, "
-                + $"{t.Ms:F1} ms of main-thread work, worst frame {t.MaxMs:F1} ms.");
+                + $"{t.Ms:F1} ms of main-thread work, worst frame {t.MaxMs:F1} ms (the game's longest frame meanwhile {t.WorstFrame:F0} ms).");
         }
 
         private void NoteMembers(Entity record, int members)
         {
-            if (!_timing.TryGetValue(record, out var t)) t = (System.Diagnostics.Stopwatch.StartNew(), 0, 0, 0, 0);
+            if (!_timing.TryGetValue(record, out var t)) t = (System.Diagnostics.Stopwatch.StartNew(), 0, 0, 0, 0, 0f);
             if (members > t.Members) t.Members = members;
             _timing[record] = t;
         }

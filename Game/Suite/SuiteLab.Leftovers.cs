@@ -23,11 +23,14 @@ namespace Placemaker.Game.Suite
     public sealed partial class SuiteRunner
     {
         private readonly Dictionary<string, SortedDictionary<string, int>> _leftoverBaselines = new Dictionary<string, SortedDictionary<string, int>>(StringComparer.Ordinal);
+        private readonly Dictionary<string, HashSet<Entity>> _leftoverBaseEntities = new Dictionary<string, HashSet<Entity>>(StringComparer.Ordinal);
+        private HashSet<Entity> _censusEntities;
 
         private void LabLeftovers(ScenarioState st, JObject step, JObject rec)
         {
             string label = (string)step["label"] ?? "";
             string key = st.S?.Id ?? "";
+            _censusEntities = new HashSet<Entity>();
             var counts = LeftoverCensus(st);
             var all = new JObject();
             foreach (var kv in counts) all[kv.Key] = kv.Value;
@@ -35,6 +38,7 @@ namespace Placemaker.Game.Suite
             if ((bool?)step["baseline"] == true || !_leftoverBaselines.ContainsKey(key))
             {
                 _leftoverBaselines[key] = counts;
+                _leftoverBaseEntities[key] = _censusEntities;
                 Mod.Log.Info($"Placemaker lab: leftovers ({label}): baseline taken, {counts.Count} kind(s): "
                     + string.Join(", ", counts.Select(kv => $"{kv.Value} {kv.Key}")) + ".");
                 return;
@@ -52,6 +56,41 @@ namespace Placemaker.Game.Suite
             rec["diff"] = jd;
             rec["leftovers"] = diff.Count;
             Mod.Log.Info($"Placemaker lab: leftovers ({label}), group {st.Group}: " + (diff.Count == 0 ? "none" : string.Join("; ", diff)) + ".");
+            if (diff.Count > 0 && _leftoverBaseEntities.TryGetValue(key, out var before)) ExplainLeftovers(before, label);
+        }
+
+        /// <summary>Entities in the area now that were not there at the baseline: who owns them, and in what state.</summary>
+        private void ExplainLeftovers(HashSet<Entity> before, string label)
+        {
+            var em = _world.EntityManager;
+            var lines = new List<string>();
+            int n = 0;
+            foreach (var e in _censusEntities)
+            {
+                if (before.Contains(e)) continue;
+                if (++n > 12) continue;
+                string owner = "no owner";
+                if (em.HasComponent<Owner>(e))
+                {
+                    var o = em.GetComponentData<Owner>(e).m_Owner;
+                    owner = o == Entity.Null ? "owner null" : !em.Exists(o) ? $"owner {o.Index} gone" : $"owner {o.Index} {_lookup.KindOf(o)} {_lookup.PrefabName(o)}"
+                        + (em.HasComponent<Deleted>(o) ? " (deleted)" : "") + (em.HasComponent<PlacemakerMember>(o) ? " (tagged)" : "");
+                    if (em.Exists(o) && em.HasBuffer<global::Game.Objects.SubObject>(o))
+                    {
+                        var buf = em.GetBuffer<global::Game.Objects.SubObject>(o, true);
+                        bool listed = false; for (int i = 0; i < buf.Length; i++) if (buf[i].m_SubObject == e) listed = true;
+                        owner += listed ? ", listed in its sub-objects" : ", NOT in its sub-objects";
+                    }
+                }
+                var flags = new List<string>();
+                if (em.HasComponent<global::Game.Objects.Secondary>(e)) flags.Add("secondary");
+                if (em.HasComponent<global::Game.Objects.Attached>(e)) { var p = em.GetComponentData<global::Game.Objects.Attached>(e).m_Parent; flags.Add("attached to " + (p == Entity.Null ? "null" : em.Exists(p) ? _lookup.PrefabName(p) : "gone")); }
+                if (em.HasComponent<global::Game.Tools.Hidden>(e)) flags.Add("hidden");
+                if (em.HasComponent<Overridden>(e)) flags.Add("overridden");
+                if (em.HasComponent<global::Game.Objects.Static>(e)) flags.Add("static");
+                lines.Add($"{e.Index} {_lookup.KindOf(e)} {_lookup.PrefabName(e)}: {owner}" + (flags.Count > 0 ? " [" + string.Join(", ", flags) + "]" : ""));
+            }
+            Mod.Log.Info($"Placemaker lab: leftovers ({label}): {n} new entit(ies) in the area; " + string.Join("; ", lines));
         }
 
         private SortedDictionary<string, int> LeftoverCensus(ScenarioState st)
@@ -98,6 +137,7 @@ namespace Placemaker.Game.Suite
                     if (own && (kind == "lot" || kind == "building" || kind == "surface")) Add("city-wide: own " + kind + " " + name);
                     if (!In(at)) continue;
                     Add(kind + " " + name);
+                    _censusEntities?.Add(e);
                     if (em.HasComponent<global::Game.Tools.Hidden>(e)) Add("hidden " + kind);
                     if (em.HasComponent<Overridden>(e)) Add("overridden " + kind);
                 }
