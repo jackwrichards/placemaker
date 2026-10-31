@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+77159ef6-dirty",
+  "assembly": "0.3.6+d9511334-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -22097,7 +22097,14 @@
         "rocky",
         "river",
         "cove",
-        "volleyball"
+        "volleyball",
+        "shingle",
+        "mulch",
+        "granite",
+        "ravine",
+        "marsh",
+        "harbour",
+        "wild"
       ],
       "options": [
         {
@@ -22108,7 +22115,14 @@
             "rocky",
             "river",
             "cove",
-            "volleyball"
+            "volleyball",
+            "shingle",
+            "mulch",
+            "granite",
+            "ravine",
+            "marsh",
+            "harbour",
+            "wild"
           ],
           "default": "sandy"
         },
@@ -22495,6 +22509,191 @@
           "step": 2.0,
           "unit": "m",
           "default": 0.0
+        },
+        {
+          "id": "berm",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 2.0,
+          "step": 0.1,
+          "unit": "m",
+          "default": 0.0
+        },
+        {
+          "id": "storms",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 3.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
+        },
+        {
+          "id": "headlands",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 50.0,
+          "step": 2.0,
+          "unit": "m",
+          "default": 0.0
+        },
+        {
+          "id": "platforms",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "bluff",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 8.0,
+          "step": 0.5,
+          "unit": "m",
+          "default": 0.0
+        },
+        {
+          "id": "ravines",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 3.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
+        },
+        {
+          "id": "knolls",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 12.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
+        },
+        {
+          "id": "boulders",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 300.0,
+          "step": 10.0,
+          "unit": "perHa",
+          "default": 0.0
+        },
+        {
+          "id": "channels",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 8.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
+        },
+        {
+          "id": "blowouts",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 6.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
+        },
+        {
+          "id": "hummocks",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 1.5,
+          "step": 0.1,
+          "unit": "m",
+          "default": 0.0
+        },
+        {
+          "id": "boardwalk",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "biomeLawn",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 100.0
+        },
+        {
+          "id": "biomeDunes",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeShingle",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeHeath",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeMeadow",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeForest",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeRocky",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeWetland",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeScale",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 60.0
         },
         {
           "id": "dressGroundDecals",
