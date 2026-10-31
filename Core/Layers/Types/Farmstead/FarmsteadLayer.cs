@@ -892,8 +892,8 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             else
             {
                 float mud = ctx.F("yardMud") / 100f;
-                TerrainPaint.Patch(ctx, yardRing, TerrainMaterials.Dirt, 1f, 3f);
-                TerrainPaint.Patch(ctx, yardRing, TerrainMaterials.Lush, ground == "dirt" ? 0.55f + 0.4f * mud : 0.25f + 0.4f * mud, 3f);
+                TerrainPaint.Patch(ctx, yardRing, TerrainMaterials.Dirt, ground == "dirt" ? 0.6f : 0.8f, 3f);
+                TerrainPaint.Patch(ctx, yardRing, TerrainMaterials.Lush, ground == "dirt" ? 0.75f + 0.25f * mud : 0.45f + 0.4f * mud, 3f);
             }
             var yardRegion = LayerRegion.From(yardRing);
             if (yardRegion == null) return;
