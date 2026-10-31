@@ -1,0 +1,45 @@
+{
+  "_about": "P2-1 parking tools: (1) a standard car park with a drive aisle and a walkway drawn on the map (sketch lines), built, the drive lanes read (slow 25 km/h copies), then Edit with the old build hidden; (2) rows on the zone grid and the space markings off. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/parking-tools.json -Who p2-parking-tools",
+  "scenarios": [
+    {
+      "id": "parking-sketch",
+      "site": "flat",
+      "pace": "settled",
+      "steps": [
+        { "do": "area", "tool": "bucket" },
+        { "do": "type", "layer": "parking", "preset": "standard" },
+        { "do": "entrance", "side": "south", "t": 0.42 },
+        { "do": "preview", "shot": "plan-before" },
+        { "do": "sketch", "kind": "line.aisle", "points": [[0.12, 0.25], [0.88, 0.75]] },
+        { "do": "sketch", "kind": "line.walk", "points": [[0.62, 0.03], [0.62, 0.97]] },
+        { "do": "preview", "shot": "plan-sketched" },
+        { "do": "build" },
+        { "do": "camera", "target": "build", "view": "top", "shot": "built-top", "shotMode": "render" },
+        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "built-45", "shotMode": "render" },
+        { "do": "lab", "op": "driveLanes", "label": "after the build" },
+        { "do": "edit", "build": true },
+        { "do": "lab", "op": "driveLanes", "label": "while editing" },
+        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "edit-old-hidden", "shotMode": "render" },
+        { "do": "lab", "op": "groupRecords", "label": "after the sketch build" }
+      ]
+    },
+    {
+      "id": "parking-zones-nomarks",
+      "site": "flat",
+      "pace": "settled",
+      "steps": [
+        { "do": "area", "tool": "bucket" },
+        { "do": "type", "layer": "parking", "preset": "standard" },
+        { "do": "entrance", "side": "south", "t": 0.42 },
+        { "do": "value", "id": "rowAngleMode", "value": "zones" },
+        { "do": "value", "id": "gridTurn", "value": "45" },
+        { "do": "value", "id": "markings", "value": false },
+        { "do": "preview", "shot": "plan-zones-45" },
+        { "do": "build" },
+        { "do": "camera", "target": "build", "view": "top", "shot": "built-nomarks-top", "shotMode": "render" },
+        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "built-nomarks-45", "shotMode": "render" },
+        { "do": "lab", "op": "driveLanes", "label": "no markings" }
+      ]
+    }
+  ]
+}
