@@ -19,22 +19,26 @@ namespace Placemaker.Game.Suite
             var ring = _tool.Shape?.Ring2D();
             if (ring == null || ring.Length < 3) { rec["error"] = "no outline"; return; }
             var em = _world.EntityManager;
-            var blocks = new System.Collections.Generic.List<global::Game.Zones.Block>();
-            using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<global::Game.Zones.Block>(), ComponentType.Exclude<global::Game.Common.Deleted>(), ComponentType.Exclude<global::Game.Tools.Temp>()))
-            using (var all = q.ToComponentDataArray<global::Game.Zones.Block>(Allocator.Temp))
-                foreach (var b in all) blocks.Add(b);
+            // (block, the cell nearest a corner is visible): the snap prefers a visible cell under the cursor, else the nearest block
+            var blocks = new System.Collections.Generic.List<(global::Game.Zones.Block B, Entity E)>();
+            using (var q = em.CreateEntityQuery(ComponentType.ReadOnly<global::Game.Zones.Block>(), ComponentType.ReadOnly<global::Game.Zones.Cell>(), ComponentType.Exclude<global::Game.Common.Deleted>(), ComponentType.Exclude<global::Game.Tools.Temp>()))
+            using (var all = q.ToEntityArray(Allocator.Temp))
+                foreach (var e in all) blocks.Add((em.GetComponentData<global::Game.Zones.Block>(e), e));
             var list = new JArray();
             float worst = 0; int near = 0;
             for (int i = 0; i < ring.Length; i++)
             {
                 var p = ring[i];
-                float best = float.MaxValue; global::Game.Zones.Block bb = default;
-                foreach (var b in blocks)
+                float best = float.MaxValue, bestVisible = float.MaxValue; global::Game.Zones.Block bb = default, bv = default;
+                foreach (var (b, e) in blocks)
                 {
                     var idx = math.clamp(global::Game.Zones.ZoneUtils.GetCellIndex(b, p), 0, b.m_Size - 1);
                     float d = math.distance(global::Game.Zones.ZoneUtils.GetCellPosition(b, idx).xz, p);
                     if (d < best) { best = d; bb = b; }
+                    var cells = em.GetBuffer<global::Game.Zones.Cell>(e, true);
+                    if ((cells[idx.x + idx.y * b.m_Size.x].m_State & global::Game.Zones.CellFlags.Visible) != 0 && d < bestVisible && d < 20f) { bestVisible = d; bv = b; }
                 }
+                if (bestVisible < float.MaxValue) { best = bestVisible; bb = bv; }
                 var o = new JObject { ["corner"] = new JArray(System.Math.Round(p.x, 2), System.Math.Round(p.y, 2)) };
                 if (best < float.MaxValue)
                 {
