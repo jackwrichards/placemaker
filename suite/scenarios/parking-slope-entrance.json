@@ -1,0 +1,21 @@
+{
+  "_about": "P2-5: the slope entrance (rf-parking open item: on a slope, a street more than 6 m beyond the lot's edge, the connector climbed a bank). An L on a 7 % slope with the road 10 m off the outline, the build checks on (net sag, pit check). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/parking-slope-entrance.json -Who p2-parking-looks",
+  "scenarios": [
+    {
+      "id": "slope-entrance",
+      "land": { "shape": "l", "size": [170, 130], "ground": "slope", "grade": 7, "toward": "east", "gap": 10 },
+      "steps": [
+        { "do": "setting", "name": "DebugBuildChecks", "value": true },
+        { "do": "area", "tool": "land" },
+        { "do": "type", "layer": "parking", "preset": "standard" },
+        { "do": "entrances" },
+        { "do": "preview" },
+        { "do": "build" },
+        { "do": "camera", "target": "entrance", "view": "low", "shot": "entrance-low", "shotMode": "render" },
+        { "do": "camera", "target": "entrance", "view": "oblique", "pitch": 40, "distance": 60, "shot": "entrance-45", "shotMode": "render" },
+        { "do": "terrain", "name": "terrain" },
+        { "do": "setting", "name": "DebugBuildChecks", "value": false }
+      ]
+    }
+  ]
+}

@@ -50,13 +50,13 @@ namespace Placemaker.Core.Layers.Parking
         public const string LampDouble = "StreetlightDouble02";
         public static readonly string[] Arrows = { "RoadArrow Forward Placeholder", "NA RoadArrow Forward", "EU RoadArrow Forward" };
         public static readonly string[] Trees = { "EU_AlderTree01", "BirchTree01", "NA_LondonPlaneTree01", "NA_LindenTree01", "OakTree01" };
-        public static readonly string[] Bushes = { "GreenBushWild02", "FlowerBushWild01", "FlowerBushWild02", "GreenBushWild01" };
+        public static readonly string[] Bushes = { "GreenBushWild02", "FlowerBushWild02", "GreenBushWild01" };
         /// <summary>
         /// Default planting when the player picked none (art pass): one shade tree species in formal rows
         /// (London plane, the classic car park tree) and a green + a flowering shrub mixed in the medians.
         /// </summary>
         public const string DefaultTree = "NA_LondonPlaneTree01";
-        public static readonly string[] DefaultBushes = { "GreenBushWild02", "FlowerBushWild01" };
+        public static readonly string[] DefaultBushes = { "GreenBushWild02", "FlowerBushWild02" };
 
         /// <summary>
         /// The widest two-way path whose core fits the requested width; 3 m when nothing fits

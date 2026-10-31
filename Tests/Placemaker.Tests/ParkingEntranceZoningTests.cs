@@ -88,7 +88,7 @@ namespace Placemaker.Tests
                 Assert.Equal("Placemaker.Parking.Marker." + Placemaker.Core.Tool.MarkerKinds.Pascal(o.Value) + ".Tip", o.TooltipKey);
                 Assert.False(string.IsNullOrEmpty(o.Icon), o.Value);
             }
-            var order = new[] { "entrances", "layout", "spaces", "planting", "lighting", "surfaces", "zoning", "fee" };
+            var order = new[] { "entrances", "layout", "look", "lines", "edge", "spaces", "planting", "lighting", "facilities", "extras", "surfaces", "zoning", "fee" };
             // s21: the shared decal dressing controls (own section / host sections) are not part of the lot's own order.
             var own = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).ToList();
             var idx = own.Select(c => Array.IndexOf(order, c.Group)).ToList();

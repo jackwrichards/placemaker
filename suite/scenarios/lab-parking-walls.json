@@ -1,0 +1,21 @@
+{
+  "_about": "Lab (P2-5 parking looks): the garden walls standing, close, to pick a solid retaining wall for terraced lots (EU_Wall01 drew as a white railing on a terrace). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-parking-walls.json -Who p2-parking-looks",
+  "scenarios": [
+    {
+      "id": "walls-close",
+      "land": { "shape": "rect", "size": [60, 50], "ground": "flat", "roads": "none" },
+      "steps": [
+        {
+          "do": "lab", "op": "lineup",
+          "names": [
+            "EU_Wall01", "EU_Wall02", "EU_Wall03", "EU_Wall04", "EU_Wall05", "EU_Wall06", "EU_Wall07", "EU_Wall08", "EU_Wall09",
+            "EU_WallLow01", "EU_WallLow02", "EU_WallLow05", "EU_WallPylon01", "EU_WallPylon05", "RetainingWall01", "ConcreteBarrier01"
+          ],
+          "perRow": 8, "gap": 1.5
+        },
+        { "do": "shot", "name": "low", "camera": { "target": "area", "view": "low", "distance": 28 }, "shotMode": "render" },
+        { "do": "shot", "name": "oblique", "camera": { "target": "area", "view": "oblique", "distance": 35 }, "shotMode": "render" }
+      ]
+    }
+  ]
+}
