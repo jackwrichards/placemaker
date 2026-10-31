@@ -6,9 +6,9 @@ styles near A+. This file is the brief for three new agents, each starting fresh
 the max, prove in the game, report format, rules) is part of this brief. Then read `docs/refactor/P2-5-PARKING-LOOKS.md`
 (the first brief), `docs/runbooks/parking-looks.md` (what P2-5 built and learned) and `docs/runbooks/parking-tools.md`.
 
-The user's screenshots (local, git-ignored): `C:SERSJACK2-AREA-TOOL.FORENSICSSER-SHOTSPARKING-ROUND2` (1 ROUND LOT ENTRANCES, 2 JAPANESE ON A HEXAGON, 3 GREEN CANOPY CIRCLES).
+The user's screenshots (local, git-ignored): `C:\Users\jack\cs2-area-tool\.forensics\user-shots\parking-round2` (1 round lot entrances, 2 Japanese on a hexagon, 3 green canopy circles).
 
-## THE USER'S GRADES AND NOTES, PER STYLE
+## The user's grades and notes, per style
 
 | Style | Grade | The user's notes |
 |---|---|---|
