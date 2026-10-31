@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+546dac64",
+  "assembly": "0.3.6+2b4d07c9-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -21920,6 +21920,11 @@
         },
         {
           "id": "machinery",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "farmhouse",
           "kind": "Toggle",
           "default": true
         },

@@ -29,6 +29,7 @@ woods and rough grazing where the land is poor, ditches or a ravine, heaps, bale
 | `season` | fields | the fields' paint: spring (drilled earth), summer (green crop, dark rows), harvest (pale stubble, straw windrows), autumn (dark ploughing) |
 | `terraces` | fields | steep fields (≥ 7 %) stepped into level benches (Sculpt, banks ≤ 34 %) |
 | `rowAngle` auto | fields | rows follow the contour on a slope (≥ 4 %) |
+| `farmhouse` | farmyard | the farmhouse beside the yard, facing the road: a house (HouseProps, made from the game's own low-density houses), a levelled lot, a low fence on the road, a hedged garden with a gate toward the yard, fruit trees, a tool shed |
 | `vehicles` | farmyard | machinery shed (carport) with the farm tractor, the pickup, a tractor in the yard, more along the barns |
 | `yardMud` | farmyard | how worked the yard is: churned mud, puddles, tyre tracks (decals; fact `farmMud`) |
 | `heaps` | farmyard | muck heap and compost windrow (low mounds, dark surface, straw), firewood |
@@ -59,6 +60,8 @@ strawLitter, dungPats, hoofChurn, tramline, manureHeap, mudTyreTrack, orchardStr
   lays Rows/Alleys passes from the row frame the builder writes into the plan's facts.
 - `Weathering.Designs` registers `FarmGround`.
 - `VehicleProps`: a `FarmTractor` slot (the game's field tractor; the `Tractor` slots keep the mining tractor).
+- `HouseProps` (IndustrialAssets.cs) and `VehiclePropSystem.MakeHouses`: "Placemaker House 1-4", static props of vanilla
+  low-density houses (EU first); `AutoAssets.IsOwn` lets them through like the vehicle props. Any type can use a house now.
 - `SiteHarmony`: regions tagged `shaped:*` are kept (not smoothed) when the layer sets the fact `shapedTerrainCells`
   (terraces, the ravine, ditches, heaps). Any type that sculpts designed ground can use it.
 
@@ -85,7 +88,6 @@ strawLitter, dungPats, hoofChurn, tramline, manureHeap, mudTyreTrack, orchardStr
 
 ## Open
 
-- Ponds stay dry in the runner (the water source may need a running simulation); big water tanks carry the water look meanwhile.
-- No vanilla farmhouse prop: the homestead is barns, the machinery shed, tanks and firewood. A low-density plot later.
-- Gates are decals (mud, tyre tread) not objects.
+- Ponds fill only while the simulation runs: judge them with `-Grow 45`. The farm pond lies on mud (the park lake's sand bed read as a sand pit).
+- Gates: the fence kind's own piece hung open in the gap (paddocks, ranch pastures, the garden); the game has no gate object.
 - Shelterbelts: the forest biome gives woods; a straight belt along the windward edge is not built.
