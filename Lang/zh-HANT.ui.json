@@ -514,5 +514,12 @@
   "Placemaker.UI.Polish.ApplyZone.Title": "給 {0} 此類型？",
   "Placemaker.UI.Polish.ResetAll.Message": "每棟建築重新獲得其功能區的外擴類型，包括你塗刷過的。大城市需要一些時間。",
   "Placemaker.UI.Polish.ResetAll.Ok": "全部重設",
-  "Placemaker.UI.Polish.ResetAll.Title": "將所有建築重設為其功能區的類型？"
+  "Placemaker.UI.Polish.ResetAll.Title": "將所有建築重設為其功能區的類型？",
+  "Placemaker.UI.BiomeMix.Title": "景觀",
+  "Placemaker.UI.BiomeMix.Remove": "移出混合",
+  "Placemaker.UI.BiomeMix.Add": "加入",
+  "Placemaker.UI.BiomeMix.Small": "小而多",
+  "Placemaker.UI.BiomeMix.Big": "大而少",
+  "Placemaker.UI.BiomeMix.DragTip": "拖動以劃分地面",
+  "Placemaker.UI.Group.biomes": "景觀"
 }

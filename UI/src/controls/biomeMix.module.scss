@@ -1,0 +1,109 @@
+@use "../styles/tokens" as *;
+
+// Biome mix (BiomeMix.tsx): the bar comes from zoneMix.module.scss; these are its lines, chips and patch size.
+
+.mix {
+    @include col;
+    min-width: 0;
+}
+
+.row {
+    @include row;
+    min-width: 0;
+    min-height: $row-h;
+}
+
+.label {
+    @include row;
+    width: 112rem;
+    flex: 0 0 auto;
+    min-width: 0;
+    padding-right: 6rem;
+}
+
+.swatch {
+    width: 10rem;
+    height: 10rem;
+    flex: 0 0 auto;
+    margin-right: 6rem;
+    border-radius: 2rem;
+    box-shadow: 0 0 0 1rem rgba(0, 0, 0, 0.35);
+}
+
+.name {
+    font-size: $fs;
+    @include ellipsis;
+}
+
+.slider {
+    @include col;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.remove {
+    @include row;
+    justify-content: center;
+    width: 20rem;
+    height: 20rem;
+    flex: 0 0 auto;
+    margin-left: 4rem;
+    border-radius: $radius-s;
+    cursor: pointer;
+    transition-property: background-color, opacity;
+    transition-duration: $t-fast;
+    &:hover {
+        background-color: $c-surface-hover;
+    }
+}
+
+.removeOff {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.chips {
+    @include row;
+    flex-wrap: wrap;
+    min-width: 0;
+    margin: 4rem 0 2rem 0;
+}
+
+.chipsLabel {
+    font-size: $fs-s;
+    color: $c-text-faint;
+    margin: 0 6rem 4rem 0;
+}
+
+.chip {
+    @include chip;
+    height: 20rem;
+    padding: 0 6rem;
+    margin: 0 4rem 4rem 0;
+    cursor: pointer;
+}
+
+.chipName {
+    font-size: $fs-s;
+    color: $c-text-dim;
+    white-space: nowrap;
+}
+
+.scaleRow {
+    margin-top: 4rem;
+    padding-top: 4rem;
+    border-top-width: 1rem;
+    border-top-style: solid;
+    border-top-color: $c-line;
+}
+
+.ends {
+    @include row;
+    justify-content: space-between;
+    margin-bottom: -2rem;
+}
+
+.end {
+    font-size: 10rem;
+    color: $c-text-faint;
+}

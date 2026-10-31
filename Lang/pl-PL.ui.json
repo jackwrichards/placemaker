@@ -514,5 +514,12 @@
   "Placemaker.UI.Polish.ApplyZone.Title": "Dać {0} ten typ?",
   "Placemaker.UI.Polish.ResetAll.Message": "Każdy budynek znów dostaje typ Outgrow swojej strefy, także pomalowane. W dużym mieście to chwilę potrwa.",
   "Placemaker.UI.Polish.ResetAll.Ok": "Przywróć wszystko",
-  "Placemaker.UI.Polish.ResetAll.Title": "Przywrócić wszystkim budynkom typ ich strefy?"
+  "Placemaker.UI.Polish.ResetAll.Title": "Przywrócić wszystkim budynkom typ ich strefy?",
+  "Placemaker.UI.BiomeMix.Title": "Krajobraz",
+  "Placemaker.UI.BiomeMix.Remove": "Usuń z mieszanki",
+  "Placemaker.UI.BiomeMix.Add": "Dodaj",
+  "Placemaker.UI.BiomeMix.Small": "wiele małych",
+  "Placemaker.UI.BiomeMix.Big": "kilka dużych",
+  "Placemaker.UI.BiomeMix.DragTip": "Przeciągnij, aby podzielić teren",
+  "Placemaker.UI.Group.biomes": "Krajobraz"
 }

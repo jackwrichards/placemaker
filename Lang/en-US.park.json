@@ -201,5 +201,6 @@
   "Placemaker.Park.carPark": "Car park",
   "Placemaker.Park.carPark.Tooltip": "A small car park on the street side, next to the main entrance, with trees along its edges (parks of 0.7 ha or more).",
   "Placemaker.Park.communityGarden": "Community garden",
-  "Placemaker.Park.communityGarden.Tooltip": "One lawn room becomes allotments: plots of worked soil and crop rows with grass walks between, sheds, water tanks, a greenhouse and raised beds."
+  "Placemaker.Park.communityGarden.Tooltip": "One lawn room becomes allotments: plots of worked soil and crop rows with grass walks between, sheds, water tanks, a greenhouse and raised beds.",
+  "Placemaker.Park.Preset.rocky": "Rocky park"
 }

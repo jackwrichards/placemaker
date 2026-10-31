@@ -201,5 +201,6 @@
   "Placemaker.Park.carPark": "停車場",
   "Placemaker.Park.carPark.Tooltip": "臨街的一處小停車場，緊鄰正門，四周種樹（0.7 公頃以上的公園）。",
   "Placemaker.Park.communityGarden": "社區菜園",
-  "Placemaker.Park.communityGarden.Tooltip": "一塊草坪變成菜園：翻好的土地和作物壟組成的小塊地，中間是草徑，還有工具棚、水箱、溫室和高床花壇。"
+  "Placemaker.Park.communityGarden.Tooltip": "一塊草坪變成菜園：翻好的土地和作物壟組成的小塊地，中間是草徑，還有工具棚、水箱、溫室和高床花壇。",
+  "Placemaker.Park.Preset.rocky": "岩石公園"
 }

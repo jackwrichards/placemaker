@@ -201,5 +201,6 @@
   "Placemaker.Park.carPark": "주차장",
   "Placemaker.Park.carPark.Tooltip": "정문 옆 길가에 가장자리를 나무로 두른 작은 주차장입니다(0.7ha 이상의 공원).",
   "Placemaker.Park.communityGarden": "공동체 텃밭",
-  "Placemaker.Park.communityGarden.Tooltip": "잔디밭 한 구역이 텃밭이 됩니다: 일군 흙과 작물 줄의 구획, 그 사이 잔디 길, 창고, 물탱크, 온실, 높은 화단."
+  "Placemaker.Park.communityGarden.Tooltip": "잔디밭 한 구역이 텃밭이 됩니다: 일군 흙과 작물 줄의 구획, 그 사이 잔디 길, 창고, 물탱크, 온실, 높은 화단.",
+  "Placemaker.Park.Preset.rocky": "바위 공원"
 }

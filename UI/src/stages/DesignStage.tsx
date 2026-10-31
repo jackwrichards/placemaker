@@ -28,6 +28,7 @@ import { Tip } from "../lib/tips";
 import { Btn, Icon, Section, Switch } from "../components/common";
 import { ControlList, controlsSummary } from "../controls/Controls";
 import { isZoneMix, ZoneMix, ZoneOutgrow, ZoningNotes } from "../controls/ZoneMix";
+import { BiomeMix, biomeIds, hasBiomeMix } from "../controls/BiomeMix";
 import { ValueSinkContext } from "../controls/Controls";
 import { SettingValue } from "../contract";
 import { ControlEx, valueOf } from "../lib/schema";
@@ -533,6 +534,22 @@ const GroundCard = ({ step, layer, state, scope }: { step: StepView; layer: Laye
     );
 };
 
+/**
+ * (Biome mix) Landscape: the place's natural areas as one mix (a bar, a line per area, patch size), between Parameters and
+ * Ground (the user: "biomes inside of a park that I can tweak ... percentages of each").
+ */
+const BiomeCard = ({ step, layer }: { step: StepView; layer: LayerType }) => {
+    const { t } = useT();
+    return (
+        <div className={s.ground} data-testid="biomes">
+            <SubHead icon="leaf" title={t("Placemaker.UI.BiomeMix.Title", "Landscape")} testId="biomes-head" />
+            <ErrorBoundary name="biomes">
+                <BiomeMix step={step} layer={layer} />
+            </ErrorBoundary>
+        </div>
+    );
+};
+
 /** Paths of children that are shown as features (not as separate steps). */
 function featurePaths(root: StepView | null, step: StepView): Set<string> {
     const out = new Set<string>();
@@ -646,9 +663,10 @@ const StepOptions = ({ catalog, design, state, step }: { catalog: Catalog; desig
                     <div className={s.shape} data-testid="shape">
                         {parent ? null : <SubHead icon="gear" title={t("Placemaker.UI.Parameters", "Parameters")} right={<ShuffleBtn step={step} />} />}
                         <ErrorBoundary name="controls">
-                            <ControlList step={step} layer={layer} state={state} scope={scope} exclude={new Set([...featureOptionIds(step), ...(grounded ? groundIds(layer) : [])])} />
+                            <ControlList step={step} layer={layer} state={state} scope={scope} exclude={new Set([...featureOptionIds(step), ...(grounded ? groundIds(layer) : []), ...biomeIds(layer)])} />
                         </ErrorBoundary>
                     </div>
+                    {hasBiomeMix(layer) ? <BiomeCard step={step} layer={layer} /> : null}
                     {grounded ? <GroundCard step={step} layer={layer} state={state} scope={scope} /> : null}
                 </>
             )}

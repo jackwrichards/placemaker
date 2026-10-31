@@ -201,5 +201,6 @@
   "Placemaker.Park.carPark": "Parcheggio",
   "Placemaker.Park.carPark.Tooltip": "Un piccolo parcheggio sul lato della strada, accanto all'ingresso principale, con alberi lungo i bordi (parchi da 0,7 ha in su).",
   "Placemaker.Park.communityGarden": "Orto comunitario",
-  "Placemaker.Park.communityGarden.Tooltip": "Un prato diventa orti: lotti di terra lavorata e filari con vialetti d'erba, capanni, cisterne d'acqua, una serra e aiuole rialzate."
+  "Placemaker.Park.communityGarden.Tooltip": "Un prato diventa orti: lotti di terra lavorata e filari con vialetti d'erba, capanni, cisterne d'acqua, una serra e aiuole rialzate.",
+  "Placemaker.Park.Preset.rocky": "Parco roccioso"
 }

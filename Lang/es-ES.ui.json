@@ -514,5 +514,12 @@
   "Placemaker.UI.Polish.ApplyZone.Title": "¿Dar este tipo a {0}?",
   "Placemaker.UI.Polish.ResetAll.Message": "Cada edificio vuelve a recibir el tipo de Outgrow de su zona, también los que pintaste. En una ciudad grande tarda un rato.",
   "Placemaker.UI.Polish.ResetAll.Ok": "Restablecer todo",
-  "Placemaker.UI.Polish.ResetAll.Title": "¿Restablecer todos los edificios al tipo de su zona?"
+  "Placemaker.UI.Polish.ResetAll.Title": "¿Restablecer todos los edificios al tipo de su zona?",
+  "Placemaker.UI.BiomeMix.Title": "Paisaje",
+  "Placemaker.UI.BiomeMix.Remove": "Quitar de la mezcla",
+  "Placemaker.UI.BiomeMix.Add": "Añadir",
+  "Placemaker.UI.BiomeMix.Small": "muchas pequeñas",
+  "Placemaker.UI.BiomeMix.Big": "pocas grandes",
+  "Placemaker.UI.BiomeMix.DragTip": "Arrastra para repartir el terreno",
+  "Placemaker.UI.Group.biomes": "Paisaje"
 }

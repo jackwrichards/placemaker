@@ -514,5 +514,12 @@
   "Placemaker.UI.Polish.ApplyZone.Title": "{0}에 이 유형을 적용할까요?",
   "Placemaker.UI.Polish.ResetAll.Message": "모든 건물이 구역의 확장 유형을 다시 받습니다(칠한 건물 포함). 큰 도시에서는 시간이 걸립니다.",
   "Placemaker.UI.Polish.ResetAll.Ok": "모두 초기화",
-  "Placemaker.UI.Polish.ResetAll.Title": "모든 건물을 구역 유형으로 되돌릴까요?"
+  "Placemaker.UI.Polish.ResetAll.Title": "모든 건물을 구역 유형으로 되돌릴까요?",
+  "Placemaker.UI.BiomeMix.Title": "경관",
+  "Placemaker.UI.BiomeMix.Remove": "혼합에서 빼기",
+  "Placemaker.UI.BiomeMix.Add": "추가",
+  "Placemaker.UI.BiomeMix.Small": "작게 많이",
+  "Placemaker.UI.BiomeMix.Big": "크게 적게",
+  "Placemaker.UI.BiomeMix.DragTip": "끌어서 땅을 나누기",
+  "Placemaker.UI.Group.biomes": "경관"
 }

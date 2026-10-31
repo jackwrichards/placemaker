@@ -514,5 +514,12 @@
   "Placemaker.UI.Polish.ApplyZone.Title": "Дать {0} этот тип?",
   "Placemaker.UI.Polish.ResetAll.Message": "Каждое здание снова получает тип Outgrow своей зоны, и закрашенные тоже. В большом городе это займёт время.",
   "Placemaker.UI.Polish.ResetAll.Ok": "Сбросить всё",
-  "Placemaker.UI.Polish.ResetAll.Title": "Вернуть всем зданиям тип их зоны?"
+  "Placemaker.UI.Polish.ResetAll.Title": "Вернуть всем зданиям тип их зоны?",
+  "Placemaker.UI.BiomeMix.Title": "Ландшафт",
+  "Placemaker.UI.BiomeMix.Remove": "Убрать из смеси",
+  "Placemaker.UI.BiomeMix.Add": "Добавить",
+  "Placemaker.UI.BiomeMix.Small": "много мелких",
+  "Placemaker.UI.BiomeMix.Big": "мало крупных",
+  "Placemaker.UI.BiomeMix.DragTip": "Перетащите, чтобы поделить землю",
+  "Placemaker.UI.Group.biomes": "Ландшафт"
 }
