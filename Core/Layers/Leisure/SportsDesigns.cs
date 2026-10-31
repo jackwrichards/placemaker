@@ -229,7 +229,8 @@ namespace Placemaker.Core.Layers.Leisure
             ctx.Plan.Objects.RemoveAll(o =>
             {
                 if (o.Role == ObjectRole.Decal || o.Role == ObjectRole.AccessPoint) return false;
-                float keep = hw + (o.Role == ObjectRole.Tree ? 2f : 0.7f);
+                // (P2-8) at least the walk's reserved half width + 0.4 m: a plinth or seating lip 1.1 m from a walk stood in it
+                float keep = math.max(hw + (o.Role == ObjectRole.Tree ? 2f : 0.7f), Composer.DefaultHalfWidth(NetRole.Pathway) + 0.4f);
                 foreach (var (a, b) in segs) if (SegmentIndex.DistSq(o.Position.xz, a, b) < keep * keep) return true;
                 return false;
             });
