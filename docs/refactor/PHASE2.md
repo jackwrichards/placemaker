@@ -5,7 +5,9 @@ its own session, reviews every report against the A+ bar below and sends it back
 
 ## The agents and the order
 
-Seven agents in two waves. One game serves every agent (the game queue), so at most four run at once.
+First a late foundation piece, **Biome mix**: noise-shaped areas of different character inside a site (rocky, forest, meadow, flower field, mulch, wetland, water and more), set as percentages per type and style. Farms, beaches, golf and the parks polish build on it, so wave A starts once it lands.
+
+Then seven agents in two waves. One game serves every agent (the game queue), so at most four run at once.
 
 | Wave | Agent | Owns | Why this order |
 |---|---|---|---|
@@ -207,7 +209,7 @@ Coordinate with P2-5, which starts after you. Write in your report exactly what 
 - **Sports parks:** some are great, but they lack **paths to the different facilities** (add a sensible path network). The **sports park's plaza doesn't grow** when the park is drawn very big (it must still look good at any size).
 - **Industrial:** quarries and holes have **no fence around the hole** and rubble **never sticks out over the edge**; Phase 1 fixed this, so verify it on every pit type. Construction-site barrier flags along pit edges: decide with the user. **Floating cars** in car parks (fixed in Phase 1; verify). The **active landfill** could be better in places.
 - **Rundown:** the same border-around-the-hole problem; verify it.
-- **Areas within a park:** "Rocky outcrops shouldn't just be rocks placed in places … I want a whole rocky area or a whole open clear area, like different biomes within a park if it's big enough … I want lake add-ons … more parameterized things rather than just switches." Phase 1 turned rocky outcrop, shore and pond into settings (rocky areas; water: none, pond or lake). Make them look great: real rock zones with outcrops, scree and boulders; open clearings; lakes with shaped shores. A big park becomes several areas, each with its own character, sized by the settings.
+- **Areas within a park:** now a foundation session of its own, **Biome mix** (`docs/runbooks/biomes.md` once it lands): build on it, don't redo it. The user's words, for context: "Rocky outcrops shouldn't just be rocks placed in places … I want a whole rocky area or a whole open clear area, like different biomes within a park if it's big enough … I want lake add-ons … more parameterized things rather than just switches." Phase 1 turned rocky outcrop, shore and pond into settings (rocky areas; water: none, pond or lake). Make them look great: real rock zones with outcrops, scree and boulders; open clearings; lakes with shaped shores. A big park becomes several areas, each with its own character, sized by the settings.
 - **The decal-memory budget** across categories (nature nearly filled it): measure with all categories at once, and slim it if needed.
 - **The three failing sports park tests** (`RespectsReservedSpace`, `EveryPresetPlansOneHectareAndSixHectareLCleanly`, `FieldsFillTheirSizedPlacesAndFaceTheTerrace`): fix the cause or the test, with a reason.
 
