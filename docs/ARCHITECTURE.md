@@ -55,6 +55,37 @@ saved values still load), or, when it only acts on some land (water, slopes), gr
 button leads there). Each Make-row group has a size its types are made for (`Core/Tool/SizeGuide.cs`, or
 `LayerBase.ComfortMaxArea`); past it the panel warns that it still works but bulldozing may be slow.
 
+## Biome mix: natural areas inside a place (2026-10-30, `docs/runbooks/biomes.md`)
+
+A type can split its natural ground into areas of different character (lawn, meadow, flower field, mulch beds, glade,
+forest, rocky ground, sand and heath, wetland, ponds, and whatever Phase 2 adds), set by the player as a mix of percentages
+plus a patch size. It replaces the parks' places with moods and the rocky-areas setting.
+
+| Piece | Where | Owner |
+|---|---|---|
+| The library (a biome = a ground design as numbers) | `Core/Layers/Common/Biomes/Biome.cs` | shared: add entries, never rename an id |
+| The split (warped fBm + the land, shares solved, rounded patches) | `BiomeField.cs` | core |
+| Building it (sculpt, ponds, pools, trees, rocks, bushes, logs, paint, regions `biome:<id>`) | `BiomeBuilder.cs` | core |
+| Decals per area (the biome's decal passes) | `Core/Decals/Dynamic/BiomeGround.cs` | core; your design calls `BiomeGround.Run(scene)` |
+| Controls (a slider per offered biome, group `biomes`, `biomeScale`) and the two-line hookup | `BiomeMix.cs`, `BiomeHost.cs` | core |
+| The panel's mix control (bar, lines that balance, "Mix in", patch size) | `UI/src/controls/BiomeMix.tsx` | core |
+
+**Offering biomes on your type** (3 steps):
+1. `public static readonly BiomeOffer Biomes = new BiomeOffer(("lawn", 50), ("forest", 30), ("rocky", 20)) { Scale = 50 };`
+   (the first id is the fallback when the player zeroes everything; a `Host` biome such as `lawn` is the type's own ground).
+2. `DefineControls`: `BiomeMix.Define(c, Biomes);`. `DefinePresets`: give every style its mix with
+   `BiomeMix.With(values, BiomeMix.Preset(Biomes, scale, ("forest", 60), ...))` (unnamed biomes get 0).
+3. `PlanCore`, after the paths and the facilities have taken their ground in your `Occupancy` and before your own planting:
+   `var biomes = BiomeHost.Plan(ctx, occ, Biomes, gatePositions);` (null: nothing natural in the mix). Your planting
+   afterwards stays off the areas (they are taken in `occ`). In your ground design call `BiomeGround.Run(sc)`.
+Every slider must change your plan (`ControlEffectTests`): offer only biomes that have room on your type.
+
+**Adding a biome**: one `BiomeDef` in `BiomeLibrary` (and in `All`), its colour in `BiomeMix.tsx` `BIOME_COLOR`, its
+name and tooltip in `Lang/<locale>.biomes.json` (12 languages), and new decal kinds in the shared library if it needs them.
+Everything else (where it goes, the sculpt, the planting, the paint, the decals) is read from its numbers. A biome that
+needs a new kind of thing (orchard rows, crop strips, dune ridges) adds one field to `BiomeDef` and one step to
+`BiomeBuilder`, used by any biome that sets it.
+
 ## Folder layout and ownership
 
 ```

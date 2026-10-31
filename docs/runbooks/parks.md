@@ -216,3 +216,11 @@ teal edge bushes from their own palette.
   show-7-builds-1030-051503-52b8 (final park).
 - Not there yet: park natural's knoll lands in the lawn room by the west belt of trees on the test block; its rocks and
   stand show from 45Â° but it is not yet a landmark from across the city.
+
+## Biome mix (2026-10-30, `docs/runbooks/biomes.md`)
+
+The places with moods are retired behind the Biome mix: every park style presets a mix of natural areas (lawn, meadow,
+flower field, mulch, glade, forest, rocky ground, heath, wetland, ponds) and the player tunes it in the Landscape card.
+`moods`, `moodGround` and `lookRockyAreas` are hidden on the park; a design whose mix is turned down to lawn alone still
+plans its moods as before (and the community garden's allotments always). New style: Rocky park; Woodland is shown again.
+Botanical garden, memorial park and adventure playground plan their mixes the same way (`BiomeHost.Plan`).

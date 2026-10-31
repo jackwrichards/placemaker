@@ -1,0 +1,80 @@
+# Runbook: Biome mix (natural areas inside a place)
+
+A shared core feature (2026-10-30): a site split into natural-looking areas of different character, tuned by the player as a
+mix of percentages. Parks first; Phase 2 agents (farms, beaches, golf, nature) offer it on their types and add biomes.
+
+## Status
+
+- Grade from the user: not yet.
+- Branch: `claude/biome-mix-206a9b`. In the user's game: no.
+
+## What the user asked (2026-10-30)
+
+> Parks are good, but even when I crank rocky outcrops up all the way, it's not as rocky as I want. I want almost biomes
+> inside of a park that I can tweak, or maybe just a spread … percentages of each … it would use Perlin noise or something …
+> a super rocky area or a super forest area or just a mulch or a flower field … each subtype could tweak them to their own
+> desire or be a split or just be one or the other.
+
+## The audit: what existed and why it fell short
+
+| Piece | Where | What it did | Why it fell short | Now |
+|---|---|---|---|---|
+| Places with moods | `Core/Layers/Park/ParkMoods.cs` | 1-14 places per park, one per lawn room: gully, rocky knoll, wet hollow, meadow, copse, standing stones, shaped and planted | fixed set picked by the land, no player control over how much of each; one mood per room at most; read as small accents from 45° | retired behind the mix: a park, botanical garden, memorial park or adventure playground with anything natural in its mix plans biomes instead; `moods` / `moodGround` hidden (still read: a mix turned down to lawn alone plans moods as before) |
+| Rocky areas (rocky outcrop) | `Core/Layers/AddOns/RocksAddOn.cs` via `LookSettings` `lookRockyAreas` | at "many": 8 clusters of up to 12 rocks on a painted patch | 2-3 % of a park; the before run `send-biomes-before-1030-211200` shows "many" as a handful of grey stones | hidden on the park (`ControlsShown`): the mix's Rocky ground does it (100 % = 40 outcrops, 400 boulders, 1500 stones, ground lifted 3.6 m on a 220 x 200 site). Saved designs keep their rocks child |
+| Water none / pond / lake | `LookSettings` `lookWater` | the park's designed lake (islands, boathouse, promenade) | a facility-like lake, not natural ponds | kept (it is the designed lake); the mix's Ponds are natural ponds in the low ground |
+| Nature groves, glades, rocks, logs | `Core/Layers/Common/NatureKit.cs` | clumped planting, boulder groups, fallen logs | nature types only | reused by every biome (`NatureKit.Plant` / `Fallen`) |
+| Ground shape and patches | `GroundSection`, `GroundPatchesAddOn`, `TerrainShaper` | whole-site landforms, painted patches | not areas of character | unchanged; with the Terrain feature on the biomes plant but leave the ground alone |
+
+## How it works
+
+- `Core/Layers/Common/Biomes/Biome.cs`: the library. A `BiomeDef` is a complete ground design as numbers (where it likes
+  to be, terrain lift/dip/roughness, paint, trees, bushes, outcrops, boulders, stones, logs, ponds, pools, decal passes).
+- `BiomeField.cs`: the split. Grid of 2.5-8 m cells over the natural ground (off the paths' 3 m verges, the lake, the plaza,
+  the facilities' clearings, the entrances). Per biome: domain-warped fBm (wavelength from Patch size: 18 m .. the site's
+  size) plus the land (ridge/hollow from the height against a 25 m mean, steep, slope, flat, near a path, near the outline).
+  Biases per biome are solved so each gets its share; a majority filter rounds the patches; specks under 250 m² join their
+  neighbour. Water and marsh keep off paths (a wandering distance) and steep ground.
+- `BiomeBuilder.cs`: lays each biome: one Sculpt (rocky knolls up to 3.6 m, marsh dips, roughness; every change fades
+  across the area's edge and off the paths, ≤ 28 % grade), ponds and marsh pools (terraform + water source), trees first,
+  then outcrops/boulders/stones (boulder fields gather by a clump field and on the knolls, thin to the edge: rock, scree,
+  grass), then bushes (the rim band gets more: forest edge scrub), logs. Paint as soft grid fields. Regions `biome:<id>`.
+  The host keeps off the areas (their coarse outlines are taken in its occupancy).
+- `Core/Decals/Dynamic/BiomeGround.cs`: each area's decal passes (All, Core, Rim, Downhill, Shade, Things, Spill; Fill).
+- `BiomeMix.cs` / `BiomeHost.cs`: the controls (a slider per offered biome, group `biomes`, + `biomeScale`) and the two-line
+  hookup for a type.
+- Panel: `UI/src/controls/BiomeMix.tsx`, the Landscape card between Parameters and Ground: a bar of the mix (drag the
+  dividers), a line per biome in the mix (slider; the others give or take in proportion), "Mix in" chips, Patch size.
+
+## Biomes (starters)
+
+| Biome | Where it likes | Ground | Paint | Planting and rocks (per ha) | Decals |
+|---|---|---|---|---|---|
+| lawn (host) | flat, by the paths | the type's own | the type's own | the type's own | the type's own |
+| meadow | flat | – | earth 0.22 | 6 solitary trees, 28 scrub (rim ×2.2) | longGrass (new), dryGrass, meadowFlowers, molehills |
+| flowers | flat, by paths | – | forest floor 0.4 | 2 trees, 45 low shrubs | wildflowerDrift (new), meadowFlowers |
+| mulch | by the paths | +0.25 m | forest floor 1.0 | 30 small trees, 230 shrubs | mulchBed (new), barkMulch |
+| glade | slopes, flat | – | forest floor 0.45 | 55 trees in groves (30 m clumps), 55 scrub, 3 logs | dryGrass, meadowFlowers, leaf litter at the rim |
+| forest | slopes, the outline | +0.45 m, rough | forest floor 1.0 | 260 trees (9 m clumps, 6 % dead), 150 undergrowth (rim ×2.6), 9 logs | woodlandFloorCarpet, leafLitterWild, twigs, moss, exposedRoots |
+| rocky | ridges, steep | knolls to 3.6 m, rough 0.6 m | earth 0.7, core 1.0 | 36 conifers (15 % dead), 12 outcrops of 5-9 boulders, 60 boulders, 200 stones | rockOutcrop, stonesCarpet, screeApron, screeFan, gravel spill, moss |
+| heath | ridges, slopes | +0.6 m | forest floor 0.6, sand speckle | 12 pines/birches, 230 heather | heathPatch, sandSpill, pebbles |
+| wetland | hollows | dips 0.55 m, pools of water (22 % of its heart) | forest floor 1.0 | 22 wet trees, 300 reeds | marshMud (fill), sedgeLitter, damp, puddles |
+| water | hollows, away from paths | ponds 1.2-2.4 m deep, banked | forest floor 0.9 | reeds 0.3-5 m and wet trees 2.5-9 m round the water | shoreMud, sedge on the bank |
+
+## Lessons (the pictures taught)
+
+- The terrain paint slots: 1 "dry grass" is invisible on vanilla maps; 3 earth reads light tan; 4 sand reads pale, near
+  white from 45° at strength. Dark grounds (mulch, marsh, heath) use slot 2 (forest floor).
+- Boulders spread evenly read as props on a lawn: gather them (a clump field, the knolls' tops) with open ground between.
+- Lifting a whole area reads as a plateau: a low swell (12 %) and knolls toward the heart.
+- Plant trees before rocks, or the rocks take all the ground (rocky: 39 of 100 trees before the reorder).
+- The style card keeps the player's edits on a style (like a file): a test that sets a mix on "natural" leaves the next
+  "natural" build with that mix. Runner checks put custom mixes on a hidden style (greenway).
+- A type's own ponds stay dry in the runner until the simulation runs: water checks `grow` 45 s after the build.
+
+## Runs
+
+| Run id | What it shows |
+|---|---|
+| `send-biomes-before-1030-211200` | BEFORE: natural default, rocky areas at "many" (barely different), wild, rocky max on hills |
+| `send-biomes-r1-1030-213254` | first look: 100 % rocky (even spread), forest (a real forest), flowers |
+| `send-biomes-r2-1030-213815` | every biome at 100 %, natural, wild, garden |

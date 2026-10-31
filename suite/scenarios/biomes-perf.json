@@ -1,0 +1,243 @@
+{
+  "_about": "Biome mix: frame time with and without the ground, decal counts and GPU memory, then bulldoze and count what is left (docs/runbooks/biomes.md). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/biomes-perf.json -Who biome-mix",
+  "scenarios": [
+    {
+      "id": "perf-natural-400x300",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          400,
+          300
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "before the build"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "natural"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "lab",
+          "op": "leftovers",
+          "label": "before",
+          "baseline": true
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "with the ground"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": false
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "ground switched off"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": true
+        },
+        {
+          "do": "lab",
+          "op": "leftovers",
+          "label": "built"
+        },
+        {
+          "do": "bulldoze"
+        },
+        {
+          "do": "wait",
+          "frames": 120
+        },
+        {
+          "do": "lab",
+          "op": "leftovers",
+          "label": "after bulldoze"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "after",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "perf-rocky-220x200",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "size": [
+          220,
+          200
+        ],
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "before the build"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "rocky"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "lab",
+          "op": "leftovers",
+          "label": "before",
+          "baseline": true
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "grime"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "with the ground"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": false
+        },
+        {
+          "do": "lab",
+          "op": "dynFrames",
+          "frames": 240,
+          "label": "ground switched off"
+        },
+        {
+          "do": "lab",
+          "op": "grime",
+          "on": true
+        },
+        {
+          "do": "lab",
+          "op": "leftovers",
+          "label": "built"
+        },
+        {
+          "do": "bulldoze"
+        },
+        {
+          "do": "wait",
+          "frames": 120
+        },
+        {
+          "do": "lab",
+          "op": "leftovers",
+          "label": "after bulldoze"
+        },
+        {
+          "do": "camera",
+          "target": "area",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "after",
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

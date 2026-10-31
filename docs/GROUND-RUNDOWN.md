@@ -285,3 +285,21 @@ Fixed once in shared code, for every type. Build on these; don't redo them per t
   own basins (wetland ponds) stay dry in the runner, so judge joints there by the deck ends, not the water.
 - **Mowing stripes** (`Weathering.Stripes`): only on bounded pitches up to 130 x 95 m and roughly rectangular, never on
   open turf or huge fields (e6b64d5b). Keep it that way: a big lawn's look comes from tone and wear, not stripes.
+
+## Biome mix (2026-10-30, `docs/runbooks/biomes.md`): areas of character, for any type
+
+Before you invent zones for your type (a rocky corner, a wood, a marsh, an orchard, dunes), use the shared Biome mix: the
+player sets percentages per biome and a patch size, the planner splits the site by noise shaped by the land (rock on
+ridges and steep ground, wetland in hollows, forest on slopes, meadow on the flats), and each biome lays its whole ground
+(sculpt, paint, planting, rocks, decals). `docs/ARCHITECTURE.md`, "Biome mix", has the three steps to offer it and how to
+add a biome (farms: orchard, field; beaches: dune, shingle; golf: rough, heath).
+
+- A biome is numbers in `Core/Layers/Common/Biomes/Biome.cs`; copy the closest one. Decal passes say where they go (All,
+  Core, Rim, Downhill, Shade, Things, Spill) so the ecotones come for free: scree spilling onto the grass, scrub at a
+  forest's edge, mud on a pond's bank.
+- Paint slots on vanilla maps: 1 "dry grass" is invisible, 3 earth reads light tan, 4 sand reads near white at strength;
+  dark grounds use 2 (forest floor).
+- Gather loose things (boulders, stones) by a clump field with open ground between: an even spread reads as props.
+- Lift a rocky area as knolls from a low swell, never as a plateau; plant trees before rocks.
+- Check every biome at 100 % in the game (`tools/suite/biome-scenario.js` writes the scenario; water builds `grow` so
+  the ponds fill), then a mixed big site, a block and hills.
