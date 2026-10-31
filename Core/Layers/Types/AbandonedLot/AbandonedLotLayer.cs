@@ -430,8 +430,23 @@ namespace Placemaker.Core.Layers.Types.Ruins
             // P2-4: the scrub of a rubble field, a wasteland or a burnt lot reaches well in, in thickets (the middle was bare)
             bool deep = sub == "rubbleField" || sub == "fencedWasteland" || sub == "burntOut";
             float edgeReach = sub == "overgrown" ? 22f : deep ? 30f : 14f;
-            var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, over, ctx.F("youngTrees"), weedIds, weedCat, Rundown.RundownPlants.Or(ctx.L("treeSpecies"), Rundown.RundownPlants.Trees), 0x0F6u,
-                p => zones.Inside(p, 0.8f), edgeReach, sub == "overgrown" ? 1f : sub == "squatterCamp" || sub == "brokenCarPark" || deep ? 0.55f : 0.3f);
+            // (P2-4) about 300 small bushes on 4 ha read as an empty lot from 45 degrees: the deep lots grow thickets, and a few
+            // birches and buddleia trees seed themselves in
+            var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, deep ? math.min(1f, over * (sub == "rubbleField" ? 1.3f : 2.4f)) : over, deep && sub != "rubbleField" ? math.max(ctx.F("youngTrees"), 4f) : ctx.F("youngTrees"), weedIds, weedCat, Rundown.RundownPlants.Or(ctx.L("treeSpecies"), Rundown.RundownPlants.Trees), 0x0F6u,
+                p => zones.Inside(p, 0.8f), edgeReach, sub == "overgrown" ? 1f : deep ? 0.75f : sub == "squatterCamp" || sub == "brokenCarPark" ? 0.5f : 0.3f);
+            // dumped cars, stripped and left (Placemaker's own car props; one tipped on its side)
+            int wrecks = 0;
+            if (deep && junkCat != null)
+                for (int i = 0, n = 2 + (int)math.min(3f, ha * 0.6f); i < n * 4 && wrecks < n; i++)
+                {
+                    uint v = Hashing.Mix(ctx.Seed, 0x3EC0u + (uint)i);
+                    if (!Spots.Find(occ, 3f, (i & 1) == 0 ? Spots.Preference.NearBoundary : Spots.Preference.Open, v, out var wp, null, 0f, 1.5f, 600)) break;
+                    var car = ctx.Object(wp, Hashing.Unit(Hashing.Mix(v, 1u)) * 6.283f, ObjectRole.Furniture, new AssetRef(Yards.VehicleProps.Car(1 + (int)(Hashing.Unit(Hashing.Mix(v, 2u)) * 9.99f))), v, -1, junkCat);
+                    if (wrecks == 1) car.Roll = 1.45f;
+                    occ.Take(wp, 3f, 2);
+                    wrecks++;
+                }
+            ctx.Plan.Facts["wrecks"] = wrecks;
             ctx.Check();
 
             // ── Ground decals: dirt and puddles across the open ground, graffiti on the fence line.

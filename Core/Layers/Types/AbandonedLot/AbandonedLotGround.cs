@@ -229,7 +229,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
             int painted = 0;
             foreach (var kv in cells)
             {
-                if (kv.Value.n < 2 || painted > 120) continue;
+                if (kv.Value.n < 2 || painted > 320) continue;
                 var c = kv.Value.sum / math.max(1, kv.Value.n);
                 var piece = LeisureKit.Intersect(region, LeisureKit.Blob(c, 4f + math.min(4f, kv.Value.n), Hashing.Mix(ctx.Seed, (uint)(kv.Key.x * 73856093) ^ (uint)(kv.Key.y * 19349663)), 10, 0.35f));
                 if (piece != null && piece.Area > 10f) { TerrainPaint.Patch(ctx, piece.Ring, 2, sub == "overgrown" ? 0.85f : 0.6f, 3f); painted++; }
