@@ -68,6 +68,8 @@
   "Placemaker.Sports.volleyballCount": "개수",
   "Placemaker.Sports.tableTennisCount": "개수",
   "Placemaker.Sports.fitnessCount": "개수",
+  "Placemaker.Sports.growWithSite": "부지에 맞춰 늘리기",
+  "Placemaker.Sports.growWithSite.Tooltip": "넓은 부지에서는 위의 개수가 늘어나 공원이 스포츠 단지로 채워집니다.",
   "Placemaker.Sports.changingHut": "클럽하우스",
   "Placemaker.Sports.changingHut.Tooltip": "주 경기장 옆, 관중 테라스 뒤의 화장실 딸린 탈의 건물입니다.",
   "Placemaker.Sports.terrace": "관중 테라스",

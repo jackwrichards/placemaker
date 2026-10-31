@@ -252,6 +252,34 @@ namespace Placemaker.Tests.Types
         }
 
         [Fact]
+        public void TheArenaOnAHillCutsItsSeatingIntoTheSlope()
+        {
+            // P2-4 (the lead: on a hill the arena stood on one big green plinth): the banks the hill rises behind become seating
+            var ring = TestKit.Rect(240, 200);
+            var site = TestKit.RoadAlongBottom(240);
+            site.HeightAt = q => 0.12f * q.y;
+            var host = Host(Compose(Preset("arena"), ring, site));
+            Assert.True(host.Facts.ContainsKey("sportsDesign"), "the arena falls back to the classic park on this site");
+            _out.WriteLine($"bank {host.Facts["bowlBank"]} m, terraced banks {host.Facts["bowlTerracedBanks"]}");
+            Assert.True(host.Facts["bowlTerracedBanks"] >= 1);
+        }
+
+        [Fact]
+        public void ABigSiteFillsAsASportsComplex()
+        {
+            // P2-4 (the lead: a 15 ha park was "a few pitches in a wood"): "Grow with the site" multiplies the counts on a big site
+            var big = TestKit.Rect(420, 360);
+            var on = Host(Compose(Preset("community"), big, TestKit.RoadAlongBottom(420)));
+            var offPreset = Preset("community");
+            offPreset.Root.Settings.Values["growWithSite"] = false;
+            var off = Host(Compose(offPreset, big, TestKit.RoadAlongBottom(420)));
+            var block = Host(Compose(Preset("community"), FiveHa, TestKit.RoadAlongBottom(250)));
+            _out.WriteLine($"15 ha: {on.Facts["facilities"]} facilities growing, {off.Facts["facilities"]} as set; 5 ha: {block.Facts["facilities"]}");
+            Assert.True(on.Facts["facilities"] >= off.Facts["facilities"] + 3, $"{on.Facts["facilities"]} vs {off.Facts["facilities"]}");
+            T04TypeTestBase.AssertNothingOnPaths(on);
+        }
+
+        [Fact]
         public void EntrancePlazaGrowsWithThePark()
         {
             // P2-4 (the user: the plaza doesn't grow when the park is drawn very big)

@@ -476,6 +476,16 @@ namespace Placemaker.Core.Layers.Leisure
             k.Lay(PFeature + 4, k.Pieces(k.Box(-fu, fu, -fv, fv).Ring, pitchCut, 4f), Concrete, SurfaceRole.Paving);
             k.Lay(PGreen - 5, k.Pieces(k.Box(-ru, ru, -rv, rv).Ring, new List<float2[]> { k.Box(-fu - 0.1f, fu + 0.1f, -fv - 0.1f, fv + 0.1f).Ring }, 4f),
                 k.Grass, SurfaceRole.Grass, AssetCategories.SurfaceGrass);
+            // P2-4 (the lead: on a hill the arena stood on one big green plinth): where the hill rises behind a bank, the bank is
+            // seating cut into the slope (terrace steps and benches looking down at the pitch), not a plain grass bank
+            int terraced = 0;
+            foreach (float sv in new[] { -1f, 1f })
+                if (s.Ctx.H(s.W(0f, sv * (rv + 2f))) - floorH > 1.5f && bank > 3f)
+                { SeatingSteps(s, s.W(-fu + 2f, sv * rv), s.W(fu - 2f, sv * rv), -s.S * sv, bank); terraced++; }
+            foreach (float su in new[] { -1f, 1f })
+                if (s.Ctx.H(s.W(su * (ru + 2f), 0f)) - floorH > 1.5f && bank > 3f)
+                { SeatingSteps(s, s.W(su * ru, -fv + 2f), s.W(su * ru, fv - 2f), -s.A * su, bank); terraced++; }
+            s.Ctx.Plan.Facts["bowlTerracedBanks"] = terraced;
             // Grandstands: the long sides, then the ends.
             int stands = 0;
             float2 centre = k.C;

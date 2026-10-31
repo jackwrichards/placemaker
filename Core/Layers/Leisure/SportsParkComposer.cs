@@ -467,7 +467,30 @@ namespace Placemaker.Core.Layers.Leisure
             switch (layer)
             {
                 case "runningTrack": case "cricketGround": case "skateBowl": return 1;
-                default: return math.max(1, _ctx.I(layer + "Count"));
+                default:
+                {
+                    int n = math.max(1, _ctx.I(layer + "Count"));
+                    // (P2-4) "Grow with the site": a big site multiplies the repeatable facilities (about 2.6 x on 15 ha), so it
+                    // fills as a sports complex instead of a few fields in a wood; a block-sized site keeps the counts as set
+                    if (_ctx.B("growWithSite")) n = math.min(GrowCap(layer), (int)math.round(n * GrowFactor));
+                    return n;
+                }
+            }
+        }
+
+        /// <summary>The site's area against a 4.5 ha park (a 220 x 200 m block), softened: 1 up to it, ~2.6 on 15 ha, at most 4.</summary>
+        private float GrowFactor => math.clamp(math.pow(_region.Area / 45000f, 0.8f), 1f, 4f);
+
+        private static int GrowCap(string layer)
+        {
+            switch (layer)
+            {
+                case "pitch": return 8;
+                case "baseballDiamond": return 4;
+                case "tennisCourts": return 6;
+                case "basketballCourt": return 8;
+                case "fitness": return 4;
+                default: return 8;
             }
         }
 

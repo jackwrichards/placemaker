@@ -68,6 +68,8 @@
   "Placemaker.Sports.volleyballCount": "Quantas",
   "Placemaker.Sports.tableTennisCount": "Quantas",
   "Placemaker.Sports.fitnessCount": "Quantas",
+  "Placemaker.Sports.growWithSite": "Crescer com a área",
+  "Placemaker.Sports.growWithSite.Tooltip": "Numa área grande, as quantidades acima se multiplicam e o parque se enche como um complexo esportivo.",
   "Placemaker.Sports.changingHut": "Sede do clube",
   "Placemaker.Sports.changingHut.Tooltip": "Um vestiário com banheiros atrás da arquibancada, ao lado do campo principal.",
   "Placemaker.Sports.terrace": "Arquibancada",

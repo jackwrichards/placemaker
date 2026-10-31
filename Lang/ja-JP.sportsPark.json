@@ -68,6 +68,8 @@
   "Placemaker.Sports.volleyballCount": "数",
   "Placemaker.Sports.tableTennisCount": "数",
   "Placemaker.Sports.fitnessCount": "数",
+  "Placemaker.Sports.growWithSite": "敷地に合わせて増やす",
+  "Placemaker.Sports.growWithSite.Tooltip": "広い敷地では上の数が増え、公園がスポーツ施設群として埋まります。",
   "Placemaker.Sports.changingHut": "クラブハウス",
   "Placemaker.Sports.changingHut.Tooltip": "メインフィールドの隣、観客テラスの後ろにあるトイレ付きの更衣棟です。",
   "Placemaker.Sports.terrace": "観客テラス",

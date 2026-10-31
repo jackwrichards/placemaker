@@ -68,6 +68,8 @@
   "Placemaker.Sports.volleyballCount": "数量",
   "Placemaker.Sports.tableTennisCount": "数量",
   "Placemaker.Sports.fitnessCount": "数量",
+  "Placemaker.Sports.growWithSite": "随场地扩大",
+  "Placemaker.Sports.growWithSite.Tooltip": "场地较大时，上面的数量会成倍增加，公园会排满成为体育综合区。",
   "Placemaker.Sports.changingHut": "俱乐部会所",
   "Placemaker.Sports.changingHut.Tooltip": "观众看台后、主场地旁带厕所的更衣楼。",
   "Placemaker.Sports.terrace": "观众看台",

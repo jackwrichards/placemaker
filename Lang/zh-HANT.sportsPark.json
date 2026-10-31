@@ -68,6 +68,8 @@
   "Placemaker.Sports.volleyballCount": "數量",
   "Placemaker.Sports.tableTennisCount": "數量",
   "Placemaker.Sports.fitnessCount": "數量",
+  "Placemaker.Sports.growWithSite": "隨場地擴大",
+  "Placemaker.Sports.growWithSite.Tooltip": "場地較大時，上面的數量會成倍增加，公園會排滿成為體育綜合區。",
   "Placemaker.Sports.changingHut": "會所",
   "Placemaker.Sports.changingHut.Tooltip": "觀眾看台後方、主場地旁附廁所的更衣館。",
   "Placemaker.Sports.terrace": "觀眾看台",
