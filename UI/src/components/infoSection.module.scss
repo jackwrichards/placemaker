@@ -79,8 +79,11 @@
 .fee {
     display: flex;
     flex-direction: column;
-    gap: 4rem;
     margin: 4rem 0;
+}
+
+.fee > * + * {
+    margin-top: 4rem;   // Gameface has no flex gap
 }
 
 .feeHead {
