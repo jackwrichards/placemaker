@@ -142,6 +142,8 @@ namespace Placemaker.Core.Layers.Parking
         public readonly EdgeZoningMode EdgeZoning;
         public readonly string ZoneType;
         public readonly int ZoningDepthCells, ZoningPatchCells;
+        /// <summary>(P2-5) The look: paving, lines, kerbs, wear, facilities (ParkingLook.cs).</summary>
+        public readonly ParkingLook Look;
 
         /// <summary>CS2 ZoneUtils.CELL_SIZE.</summary>
         public const double ZoneCell = 8.0;
@@ -197,6 +199,7 @@ namespace Placemaker.Core.Layers.Parking
             ZoneType = bag.S(ParkingIds.ZoneType, "");
             ZoningDepthCells = (int)Math.Round(Clamp(bag.Num(ParkingIds.ZoningDepth, 3), 1, MaxZoneDepthCells));
             ZoningPatchCells = (int)Math.Round(Clamp(bag.Num(ParkingIds.ZoningPatchWidth, 4), 1, 20));
+            Look = new ParkingLook(bag, Markings, Greenery != Greenery.None);
         }
 
         /// <summary>Depth of a stall row perpendicular to its aisle (rotated rectangle extent).</summary>

@@ -238,6 +238,9 @@ namespace Placemaker.Core.Layers.Parking
             l.Add(Slider(ParkingIds.ZoningDepth, ControlTier.More, "zoning", 3, 1, ParkingSettings.MaxZoneDepthCells, 1, "count"));
             // (ZoningPatchWidth has no slider: the building plot marker it sizes is not offered any more, ParkingIds.MarkerKinds.)
 
+            // ── (P2-5) the look: paving, lines, kerbs, wear, facilities, extras (ParkingLook.cs) ──
+            AddLookControls(l);
+
             // ── Fee ──
             // (P2-1) up front: the fee was hard to find (a creator turned fees off elsewhere); 0 = free. Changeable later on the click panel.
             l.Add(Slider(ParkingIds.Fee, ControlTier.Essential, "fee", 10, 0, 50, 1, "money", cheap: true));
@@ -249,6 +252,60 @@ namespace Placemaker.Core.Layers.Parking
             return l;
         }
 
+        private static ControlSchema Choice(string id, ControlTier tier, string group, string[] values, int def, string optionPrefix)
+        {
+            var c = C(id, ControlKind.Choice, tier, group, values[def]);
+            foreach (var v in values) c.Options.Add(Opt(v, optionPrefix + "." + char.ToUpperInvariant(v[0]) + v.Substring(1)));
+            return c;
+        }
+
+        /// <summary>(P2-5) The look settings every parking style is a preset of. Labels: Placemaker.Parking.Control.*.</summary>
+        private static void AddLookControls(List<ControlSchema> l)
+        {
+            // look: paving and wear
+            l.Add(Choice(LookIds.Paving, ControlTier.Essential, "look", ParkingLook.PavingValues, 0, "Paving"));
+            var sp = Choice(LookIds.StallPaving, ControlTier.More, "look", ParkingLook.StallPavingValues, 0, "StallPaving");
+            sp.VisibleWhen = LookIds.Paving + "!=gravel|dirt";
+            l.Add(sp);
+            var age = Slider(LookIds.PavingAge, ControlTier.More, "look", 45, 0, 100, 5, "%");
+            age.VisibleWhen = LookIds.Paving + "=asphalt|darkAsphalt";
+            l.Add(age);
+            l.Add(Slider(LookIds.Cleanliness, ControlTier.Essential, "look", 55, 0, 100, 5, "%"));
+            l.Add(Slider(LookIds.Wear, ControlTier.More, "look", 100, 0, 200, 10, "%"));
+            // lines
+            var ms = Choice(LookIds.MarkingStyle, ControlTier.Essential, "lines", ParkingLook.MarkingValues, 0, "MarkingStyle");
+            ms.VisibleWhen = ParkingIds.Markings + "=true";
+            l.Add(ms);
+            var pa = Slider(LookIds.PaintAge, ControlTier.More, "lines", 35, 0, 100, 5, "%");
+            pa.VisibleWhen = ParkingIds.Markings + "=true";
+            l.Add(pa);
+            l.Add(Choice(LookIds.Crossings, ControlTier.More, "lines", ParkingLook.CrossingValues, 1, "Crossings"));
+            l.Add(C(LookIds.AisleMarks, ControlKind.Toggle, ControlTier.More, "lines", true));
+            // edge
+            l.Add(Choice(LookIds.Kerbs, ControlTier.Essential, "edge", ParkingLook.KerbValues, 0, "Kerbs"));
+            var ws = C(LookIds.WheelStops, ControlKind.Toggle, ControlTier.More, "edge", false);
+            ws.VisibleWhen = ParkingIds.Markings + "=true";
+            l.Add(ws);
+            // planting
+            var isl = Choice(LookIds.IslandStyle, ControlTier.More, "planting", ParkingLook.IslandValues, 0, "IslandStyle");
+            isl.VisibleWhen = ParkingIds.Greenery + "!=none";
+            l.Add(isl);
+            // facilities
+            l.Add(C(LookIds.Signs, ControlKind.Toggle, ControlTier.More, "facilities", true));
+            l.Add(Choice(LookIds.Payment, ControlTier.More, "facilities", ParkingLook.PaymentValues, 0, "Payment"));
+            l.Add(C(LookIds.Barrier, ControlKind.Toggle, ControlTier.More, "facilities", false));
+            l.Add(C(LookIds.SolarCanopies, ControlKind.Toggle, ControlTier.More, "facilities", false));
+            l.Add(C(LookIds.CartCorrals, ControlKind.Toggle, ControlTier.More, "facilities", false));
+            l.Add(C(LookIds.BikeStands, ControlKind.Toggle, ControlTier.More, "facilities", false));
+            l.Add(C(LookIds.Bins, ControlKind.Toggle, ControlTier.More, "facilities", true));
+            l.Add(Choice(LookIds.Drainage, ControlTier.More, "facilities", ParkingLook.DrainageValues, 1, "Drainage"));
+            // extras: the character of a place
+            l.Add(Slider(LookIds.RundownCars, ControlTier.More, "extras", 0, 0, 100, 5, "%"));
+            l.Add(C(LookIds.Camp, ControlKind.Toggle, ControlTier.More, "extras", false));
+            l.Add(Slider(LookIds.Construction, ControlTier.More, "extras", 0, 0, 60, 5, "%"));
+            l.Add(C(LookIds.Kiosk, ControlKind.Toggle, ControlTier.More, "extras", false));
+        }
+
         private static IReadOnlyList<PresetInfo> BuildPresets()
         {
             PresetInfo P(string id, params (string Key, object Value)[] values)
@@ -258,13 +315,52 @@ namespace Placemaker.Core.Layers.Parking
                 p.Values.Values[Decals.DressingControls.StyleId] = Decals.DressingControls.Styles[(int)Decals.DressingProfiles.StyleFor(LayerId, id)];
                 return p;
             }
-            return new[]
+            var all = new[]
             {
                 P("standard", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (ParkingIds.PerimeterRoad, true)),
                 P("compact", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "edges"), (ParkingIds.PerimeterRoad, true), (ParkingIds.CrossEvery, 0.0)),
                 P("green", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (ParkingIds.MedianDepth, 4.0), (ParkingIds.PlantingDensity, 80.0), (ParkingIds.CrossEvery, 8.0)),
                 P("angled", (ParkingIds.StallAngle, "60"), (ParkingIds.Greenery, "medians"), (ParkingIds.PerimeterRoad, true)),
+                // (P2-5) car parks from around the world (docs/runbooks/parking-looks.md, "Styles"): each a whole look
+                P("japanese", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "none"), (ParkingIds.PerimeterRoad, false), (ParkingIds.CrossEvery, 0.0),
+                    (ParkingIds.StallWidth, 2.5), (ParkingIds.StallLength, 5.0), (ParkingIds.AisleWidth, 6.0), (ParkingIds.AccessibleShare, 0.0), (ParkingIds.EvShare, 0.0),
+                    (LookIds.MarkingStyle, "japan"), (LookIds.PaintAge, 10.0), (LookIds.Kerbs, "none"), (LookIds.WheelStops, true), (LookIds.Payment, "coin"),
+                    (LookIds.Cleanliness, 90.0), (LookIds.PavingAge, 25.0), (LookIds.Crossings, "none"), (LookIds.Bins, false)),
+                P("german", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (ParkingIds.MedianDepth, 3.0), (ParkingIds.PlantingDensity, 65.0),
+                    (ParkingIds.StallWidth, 2.5), (ParkingIds.StallLength, 5.0), (ParkingIds.AisleWidth, 6.5), (ParkingIds.Trees, new[] { "NA_LindenTree01" }),
+                    (LookIds.MarkingStyle, "boxes"), (LookIds.StallPaving, "pavers"), (LookIds.Kerbs, "granite"), (LookIds.IslandStyle, "hedge"),
+                    (LookIds.Payment, "rows"), (LookIds.BikeStands, true), (LookIds.Cleanliness, 75.0), (LookIds.PavingAge, 40.0), (LookIds.Crossings, "dashed")),
+                P("bigBox", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "edges"), (ParkingIds.CrossEvery, 0.0), (ParkingIds.RowEndPlanting, true),
+                    (ParkingIds.StallWidth, 2.8), (ParkingIds.StallLength, 5.5), (ParkingIds.AisleWidth, 7.5), (ParkingIds.LanternAsset, "LightpoleCommercial01"), (ParkingIds.LanternSpacing, 36.0),
+                    (LookIds.MarkingStyle, "yellow"), (LookIds.PaintAge, 50.0), (LookIds.CartCorrals, true), (LookIds.Cleanliness, 45.0), (LookIds.Wear, 130.0),
+                    (LookIds.PavingAge, 60.0), (LookIds.Crossings, "zebra"), (LookIds.Kerbs, "yellow")),
+                P("rich", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (ParkingIds.MedianDepth, 3.5), (ParkingIds.PlantingDensity, 85.0), (ParkingIds.EvShare, 15.0),
+                    (ParkingIds.StallWidth, 3.0), (ParkingIds.LanternAsset, "EU_LightpolePark01"),
+                    (LookIds.Paving, "concrete"), (LookIds.MarkingStyle, "double"), (LookIds.PaintAge, 5.0), (LookIds.Kerbs, "granite"),
+                    (LookIds.Cleanliness, 95.0), (LookIds.Wear, 45.0), (LookIds.Crossings, "zebra"), (LookIds.Signs, true)),
+                P("rundown", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (ParkingIds.PlantingDensity, 25.0), (ParkingIds.Lanterns, true),
+                    (LookIds.PaintAge, 85.0), (LookIds.Cleanliness, 8.0), (LookIds.Wear, 180.0), (LookIds.PavingAge, 95.0), (LookIds.Kerbs, "concrete"),
+                    (LookIds.RundownCars, 45.0), (LookIds.Camp, true), (LookIds.Crossings, "none"), (LookIds.Signs, false), (LookIds.Bins, false), (LookIds.MarkingStyle, "classic")),
+                P("gravel", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "edges"), (ParkingIds.Markings, false), (ParkingIds.CrossEvery, 0.0), (ParkingIds.AccessibleShare, 0.0), (ParkingIds.EvShare, 0.0),
+                    (LookIds.Paving, "gravel"), (LookIds.Kerbs, "none"), (LookIds.Crossings, "none"), (LookIds.Drainage, "none"), (LookIds.Cleanliness, 40.0), (LookIds.Wear, 140.0),
+                    (LookIds.AisleMarks, false), (LookIds.Bins, false)),
+                P("construction", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (LookIds.Construction, 35.0), (LookIds.Cleanliness, 35.0), (LookIds.Wear, 130.0)),
+                P("eco", (ParkingIds.StallAngle, "90"), (ParkingIds.Greenery, "medians"), (ParkingIds.MedianDepth, 4.0), (ParkingIds.PlantingDensity, 70.0), (ParkingIds.EvShare, 20.0),
+                    (LookIds.StallPaving, "grassPavers"), (LookIds.IslandStyle, "bioswale"), (LookIds.SolarCanopies, true), (LookIds.Kerbs, "flush"),
+                    (LookIds.BikeStands, true), (LookIds.Cleanliness, 80.0), (LookIds.PavingAge, 35.0), (LookIds.Crossings, "zebra")),
             };
+            // (P2-5) a preset lays its values over the current ones (DesignEditor.ApplyPreset): every style names every key any
+            // style sets, the rest at their defaults, so German then Classic is Classic again
+            var keys = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var p in all) foreach (var k in p.Values.Values.Keys) keys.Add(k);
+            foreach (var p in all)
+                foreach (var k in keys)
+                {
+                    if (p.Values.Values.ContainsKey(k)) continue;
+                    foreach (var c in _controls)
+                        if (c.Id == k && c.Default != null) { p.Values.Values[k] = c.Default is string[] a ? (string[])a.Clone() : c.Default; break; }
+                }
+            return all;
         }
 
         public SettingsBag Randomize(SettingsBag current, uint seed, ICollection<string> locked)

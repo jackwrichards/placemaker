@@ -297,7 +297,21 @@ namespace Placemaker.Core.Layers.Parking
                 }
             }
 
+            // (P2-5) the camp's corner and the works take their stalls; the islands' planting changes its kinds
+            var (camp, works) = Equipment.Reserve(layout, s.Look, input.Seed);
+            Islands.Before(layout, s.Look, s.Trees.Length == 0 ? 1 : s.Trees.Length);
             Emit(plan, layout, s, site, H, input, cancel, roads, zoning.MaxDepth);
+            Islands.After(plan, layout, s.Look, H, input.Seed);
+            if (s.Look.Drainage == Drainage.Barranca && s.Look.Paved) Islands.Ravine(plan, layout, H, input.Seed);
+            Equipment.Place(plan, layout, s, H, IsGreen, input.Seed, camp, works);
+            // (P2-5) kerbs, wheel stops and the designed ground (paint, wear, water)
+            var kerbRuns = Kerbs.Find(layout, IsGreen);
+            int kerbPieces = Kerbs.Emit(plan, kerbRuns, s.Look.Kerbs, H);
+            int stops = s.Look.WheelStops ? Kerbs.WheelStops(plan, layout, H) : 0;
+            plan.Facts["kerbPieces"] = kerbPieces;
+            if (stops > 0) plan.Facts["wheelStops"] = stops;
+            cancel.ThrowIfCancellationRequested();
+            ParkingGround.Lay(plan, layout, s, kerbRuns, H, IsGreen, input.Seed, input.Settings);
             EmitBusStops(plan, busStops, world, roads, site, H);
             EmitZoning(plan, layout, zoning, s, H);
             EmitTouchTargets(plan, layout, world, rq.ChosenEdge, H);
@@ -575,6 +589,15 @@ namespace Placemaker.Core.Layers.Parking
             // ── surfaces & regions ──
             var asphaltAsset = ParkingAssets.Pick(s.AsphaltAsset, ParkingAssets.Asphalt, ParkingAssets.AsphaltEai, ParkingAssets.AsphaltVanilla);
             var greenAsset = ParkingAssets.Pick(s.GreenAsset, ParkingAssets.Grass);
+            // (P2-5) gravel and swale islands are soil, not lawn; the lot's paving its own material
+            var soil = Islands.SurfaceFor(s.Look.Islands);
+            if (soil != null) greenAsset = new AssetRef(soil, ParkingAssets.Grass);
+            switch (s.Look.Paving)
+            {
+                case Paving.Concrete: asphaltAsset = new AssetRef("Concrete Surface 01", asphaltAsset.Id); break;
+                case Paving.Pavers: asphaltAsset = new AssetRef("Tiles Surface 01", asphaltAsset.Id); break;
+                case Paving.Gravel: case Paving.Dirt: asphaltAsset = new AssetRef(Islands.Soil, asphaltAsset.Id); break;
+            }
             double covered = 0;
             int lotRegion = 0, greenRegion = 0;
             foreach (var sp in layout.Surfaces)
@@ -742,6 +765,8 @@ namespace Placemaker.Core.Layers.Parking
                 }
                 // (P2-1) markings off: every stall the invisible bay (the lane stays; the painted one when it is missing)
                 if (!s.Markings) asset = new AssetRef(ParkingAssets.InvisibleBay, asset.Id);
+                // (P2-5) a country's own lines are painted by ParkingGround: plain stalls keep only their parking lane
+                else if (ParkingGround.OwnLines(s) && b.Role == BayRole.Normal) asset = new AssetRef(ParkingAssets.InvisibleBay, asset.Id);
                 bays++;
                 plan.Objects.Add(new PlannedObject
                 {

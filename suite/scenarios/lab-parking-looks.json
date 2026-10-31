@@ -1,0 +1,68 @@
+{
+  "_about": "Lab (P2-5 parking looks, docs/runbooks/parking-looks.md): kerb candidates (garden walls sunk until 0.15 m shows), the game's stall markings side by side, and equipment props. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-parking-looks.json -Who p2-parking-looks",
+  "scenarios": [
+    {
+      "id": "kerbs",
+      "land": { "shape": "rect", "size": [120, 100], "ground": "flat", "roads": "none" },
+      "steps": [
+        {
+          "do": "lab", "op": "lineup",
+          "names": [
+            "EU_Wall01", "EU_Wall01Long", "EU_Wall01Short", "EU_Wall05", "EU_Wall05Long", "EU_Wall08", "EU_Wall08Long",
+            "EU_Wall02", "EU_Wall04", "EU_Wall06", "EU_Wall07", "EU_Wall09"
+          ],
+          "perRow": 6, "gap": 4, "sink": 0.75
+        },
+        {
+          "do": "lab", "op": "lineup",
+          "names": [
+            "EU_WallLow01", "EU_WallLow05", "EU_WallLow08", "EU_WallLow02", "EU_WallLow04", "EU_WallLow06",
+            "ConcreteBarrier01", "ConcreteBarrier02", "ConcreteBarrier03", "SafetyBarrier01", "Bollard01", "Bollard02"
+          ],
+          "perRow": 6, "gap": 4, "sink": 0.45, "at": [0, 24]
+        },
+        { "do": "shot", "name": "oblique", "camera": { "target": "area", "view": "oblique" }, "shotMode": "render" },
+        { "do": "shot", "name": "low", "camera": { "target": "area", "view": "low" }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "markings",
+      "land": { "shape": "rect", "size": [120, 100], "ground": "flat", "roads": "none" },
+      "steps": [
+        {
+          "do": "lab", "op": "lineup",
+          "names": [
+            "ParkingLotDecal01", "ParkingLotDecal02", "ParkingLotDecal03", "ParkingLotDecal04", "ParkingLotDecal05",
+            "ParkingLotDoubleDecal01", "ParkingLotDoubleDecal02", "ParkingLotLongDecal01", "ParkingLotLongDecal02",
+            "ParkingLotDiagonalDecal01", "ParkingLotDiagonalDecal02", "ParkingLotDiagonalDecal03",
+            "ParkingLotServiceDecal01", "ParkingLotServiceDecal02", "ParkingLotServiceDecal03", "ParkingLotServiceDecal04", "ParkingLotServiceDecal05",
+            "ParkingLotDisabledDecal01", "ParkingLotDisabledDecal02", "ParkingLotElectricDecal01", "ParkingLotElectricDecal02",
+            "ParkingLotMotorbikeDecal01", "ParkingLotSidewaysDecal01", "ParkingLotDoubleServiceDecal01"
+          ],
+          "perRow": 6, "gap": 2
+        },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" },
+        { "do": "shot", "name": "oblique", "camera": { "target": "area", "view": "oblique" }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "equipment",
+      "land": { "shape": "rect", "size": [120, 100], "ground": "flat", "roads": "none" },
+      "steps": [
+        {
+          "do": "lab", "op": "lineup",
+          "names": [
+            "ParkingLotCharger01", "ParkingLotCharger02", "ParkingLotCharger03", "ParkingLotCharger04",
+            "LightpoleCommercial01", "LightpoleCommercial02", "LightpoleCommercial03", "LightpoleCommercial04",
+            "LightpoleIndustrial01", "LightpolePark01", "StreetlightSingle01", "StreetlightDouble01",
+            "ParkSignpost01", "ParkInfosign01", "BikeRack01", "CommercialBikeRack01", "BicycleShelter01", "Trashbin01",
+            "EU_BusStop02", "NA_TaxiStop02", "MakeshiftTent01", "MakeshiftTent03", "BarrelFire01", "PortableToilet01"
+          ],
+          "perRow": 6, "gap": 3
+        },
+        { "do": "shot", "name": "oblique", "camera": { "target": "area", "view": "oblique" }, "shotMode": "render" },
+        { "do": "shot", "name": "low", "camera": { "target": "area", "view": "low" }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

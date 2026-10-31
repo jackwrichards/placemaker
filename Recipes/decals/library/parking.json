@@ -1,0 +1,421 @@
+{
+  "_about": "Shared decal library, family 'parking' (P2-5 parking looks, docs/runbooks/parking-looks.md): the marks of a car park that the other families do not have. Paint (stall lines in each country's style, crossings, hatching, painted kerbs, tactile paving), the asphalt's record of use (oil centred in a stall, tyre polish down the aisles, sealed patches, fresh sealcoat) and its plumbing (storm grates).",
+  "family": "parking",
+  "saturations": [1, 0.8],
+  "kinds": [
+    {
+      "id": "stallOil", "name": "Stall oil", "tier": "macro",
+      "about": "The dark heart of a parking stall: an engine's drips gathered into one soft stain with a few fresh drops round it, longer along the stall. Busy stalls are darker.",
+      "texel": 0.03, "layers": "ground", "order": 3, "lod": 34, "maxTexels": 256, "opacity": 0.9,
+      "edge": { "feather": 0.7, "warp": 0.6, "warpScale": 0.9, "round": 1 },
+      "variants": { "count": 8, "size": [1.3, 2.2], "aspect": [0.5, 0.75], "strength": [0.55, 1], "fades": ["soft", "islands"] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 0.6, "octaves": 4, "warp": 0.6, "warpScale": 0.8 },
+        { "op": "remap", "in": "n", "out": "m", "lo": -0.35, "hi": 0.25 },
+        { "op": "remap", "in": "radial", "out": "core", "lo": 0.95, "hi": 0.15 },
+        { "op": "mul", "a": "m", "b": "core", "c": "shape", "out": "s" },
+        { "op": "layer", "alpha": "s", "alphaK": 0.7, "color": [26, 25, 24], "color2": [40, 38, 35], "tone": "n", "vary": 0.08, "smooth": 0.12 },
+        { "op": "scatter", "stamp": "blob", "density": 7, "clusters": 20, "cluster": 0.8, "clusterRadius": [0.15, 0.5], "size": [0.03, 0.12], "aspect": [0.6, 1], "palette": [[22, 21, 20], [36, 34, 31]], "alpha": [0.55, 0.95], "smooth": 0.15 }
+      ]
+    },
+    {
+      "id": "tyrePolish", "name": "Tyre polish", "tier": "macro",
+      "about": "Two dark rubbed lanes where every car's wheels run down an aisle, slightly glossy, broken and wavering. Repeats along +x; lay it down the middle of a drive lane.",
+      "texel": 0.05, "layers": "ground", "order": 1, "lod": 60, "maxTexels": 384, "opacity": 0.75,
+      "edge": { "feather": 0.25, "warp": 0.15, "warpScale": 3, "round": 1, "widthNoise": 0.2 },
+      "variants": { "count": 4, "size": [12, 16], "width": [2.4, 2.8], "tile": "x", "strength": [0.6, 1] },
+      "ops": [
+        { "op": "abs", "in": "across", "out": "ax" },
+        { "op": "band", "in": "ax", "out": "lanes", "at": 0.82, "width": 0.34 },
+        { "op": "fbm", "out": "n", "scale": 2.5, "octaves": 4, "stretch": [4, 1] },
+        { "op": "remap", "in": "n", "out": "runs", "lo": -0.55, "hi": 0.2 },
+        { "op": "mul", "a": "lanes", "b": "runs", "c": "shape", "out": "r" },
+        { "op": "layer", "alpha": "r", "alphaK": 0.36, "color": [32, 31, 29], "color2": [44, 42, 39], "tone": "n", "smooth": 0.08 }
+      ]
+    },
+    {
+      "id": "sealcoat", "name": "Sealcoat", "tier": "macro",
+      "about": "The black of fresh or newish sealcoat over a car park, with a faint broom texture and the odd lighter scuff: a band laid down each drive aisle with its rows of stalls (stretched across to the band width, its strength the coat age). Repeats along +x.",
+      "texel": 0.1, "layers": "ground", "order": -2, "lod": 90, "maxTexels": 256, "opacity": 0.92,
+      "edge": { "feather": 0.08, "warp": 0, "warpScale": 4, "round": 0 },
+      "variants": { "count": 3, "size": [16, 20], "width": [20, 20], "tile": "x", "strength": [0.85, 1] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 7, "octaves": 4, "warp": 2, "warpScale": 6 },
+        { "op": "fbm", "out": "g", "scale": 0.4, "octaves": 2, "stretch": [6, 1] },
+        { "op": "remap", "in": "n", "out": "a", "lo": -1.2, "hi": 0.6, "k": 0.78 },
+        { "op": "layer", "alpha": "a", "color": [38, 37, 34], "color2": [52, 51, 47], "tone": "g", "vary": 0.05, "smooth": 0.08 }
+      ]
+    },
+    {
+      "id": "paintLineWhite", "name": "White paint line", "tier": "macro",
+      "about": "A crisp white painted line, 12 cm wide, a little chipped: stall lines, stop bars and lane edges in any country's style. Repeats along +x.",
+      "texel": 0.016, "layers": "ground", "order": 6, "lod": 40, "maxTexels": 512, "opacity": 0.96,
+      "edge": { "feather": 0.04, "warp": 0.01, "warpScale": 1.5, "round": 1 },
+      "variants": { "count": 4, "size": [6, 8], "width": [0.3, 0.3], "tile": "x", "strength": [0.6, 1] },
+      "ops": [
+        { "op": "abs", "in": "across", "out": "ax" },
+        { "op": "remap", "in": "ax", "out": "line", "lo": 0.07, "hi": 0.05 },
+        { "op": "fbm", "out": "n", "scale": 0.9, "octaves": 4, "stretch": [3, 1] },
+        { "op": "remap", "in": "n", "out": "wear", "lo": -0.95, "hi": -0.45 },
+        { "op": "fbm", "out": "g", "scale": 0.04, "octaves": 2 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "mul", "a": "line", "b": "wear", "c": "shape", "out": "paint" },
+        { "op": "erode", "cover": "paint", "grain": "g01", "sharp": 3, "out": "chips" },
+        { "op": "layer", "alpha": "chips", "alphaK": 1, "color": [222, 220, 210], "color2": [200, 198, 188], "tone": "n", "smooth": 0.35 }
+      ]
+    },
+    {
+      "id": "paintLineYellow", "name": "Yellow paint line", "tier": "macro",
+      "about": "A crisp yellow painted line, 12 cm wide, a little chipped: American and Japanese stall lines, fire lanes, kerb-side no-stopping. Repeats along +x.",
+      "texel": 0.016, "layers": "ground", "order": 6, "lod": 40, "maxTexels": 512, "opacity": 0.96,
+      "edge": { "feather": 0.04, "warp": 0.01, "warpScale": 1.5, "round": 1 },
+      "variants": { "count": 4, "size": [6, 8], "width": [0.3, 0.3], "tile": "x", "strength": [0.6, 1] },
+      "ops": [
+        { "op": "abs", "in": "across", "out": "ax" },
+        { "op": "remap", "in": "ax", "out": "line", "lo": 0.07, "hi": 0.05 },
+        { "op": "fbm", "out": "n", "scale": 0.9, "octaves": 4, "stretch": [3, 1] },
+        { "op": "remap", "in": "n", "out": "wear", "lo": -0.95, "hi": -0.45 },
+        { "op": "fbm", "out": "g", "scale": 0.04, "octaves": 2 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "mul", "a": "line", "b": "wear", "c": "shape", "out": "paint" },
+        { "op": "erode", "cover": "paint", "grain": "g01", "sharp": 3, "out": "chips" },
+        { "op": "layer", "alpha": "chips", "alphaK": 1, "color": [216, 176, 48], "color2": [196, 160, 52], "tone": "n", "smooth": 0.35 }
+      ]
+    },
+    {
+      "id": "paintLineWorn", "name": "Worn paint line", "tier": "macro",
+      "about": "An old stall line worn to a broken chalky trace where tyres cross it: the line of a tired car park. Repeats along +x.",
+      "texel": 0.016, "layers": "ground", "order": 6, "lod": 40, "maxTexels": 512, "opacity": 0.85,
+      "edge": { "feather": 0.08, "warp": 0.02, "warpScale": 1.5, "round": 1 },
+      "variants": { "count": 4, "size": [6, 8], "width": [0.3, 0.3], "tile": "x", "strength": [0.6, 1] },
+      "ops": [
+        { "op": "abs", "in": "across", "out": "ax" },
+        { "op": "remap", "in": "ax", "out": "line", "lo": 0.075, "hi": 0.045 },
+        { "op": "fbm", "out": "n", "scale": 1.4, "octaves": 4, "stretch": [3, 1] },
+        { "op": "remap", "in": "n", "out": "wear", "lo": -0.55, "hi": 0.2 },
+        { "op": "fbm", "out": "g", "scale": 0.05, "octaves": 2 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "mul", "a": "line", "b": "wear", "c": "shape", "out": "paint" },
+        { "op": "erode", "cover": "paint", "grain": "g01", "sharp": 2, "out": "chips" },
+        { "op": "layer", "alpha": "chips", "alphaK": 0.85, "color": [184, 182, 172], "color2": [160, 158, 150], "tone": "n", "smooth": 0.3 }
+      ]
+    },
+    {
+      "id": "zebraCrossing", "name": "Zebra crossing", "tier": "macro",
+      "about": "White bars 0.5 m wide every metre across a drive aisle, 3 m long, scuffed where wheels cross: a walkway for people. Repeats along +x (lay it across the aisle).",
+      "texel": 0.03, "layers": "ground", "order": 6, "lod": 50, "maxTexels": 512, "opacity": 0.95,
+      "edge": { "feather": 0.04, "warp": 0.01, "warpScale": 2, "round": 0 },
+      "variants": { "count": 3, "size": [8, 8], "width": [3, 3], "tile": "x", "strength": [0.6, 1] },
+      "ops": [
+        { "op": "wave", "in": "along", "out": "w", "period": 1, "sharp": 1 },
+        { "op": "remap", "in": "w", "out": "bar", "lo": 0.45, "hi": 0.55 },
+        { "op": "abs", "in": "across", "out": "ax" },
+        { "op": "remap", "in": "ax", "out": "inside", "lo": 1.42, "hi": 1.36 },
+        { "op": "fbm", "out": "n", "scale": 1.2, "octaves": 4, "stretch": [1, 2] },
+        { "op": "remap", "in": "n", "out": "wear", "lo": -0.85, "hi": -0.2 },
+        { "op": "fbm", "out": "g", "scale": 0.05, "octaves": 2 },
+        { "op": "remap", "in": "g", "out": "g01", "lo": -0.9, "hi": 0.9 },
+        { "op": "mul", "a": "bar", "b": "inside", "c": "wear", "out": "p0" },
+        { "op": "mul", "a": "p0", "b": "shape", "out": "paint" },
+        { "op": "erode", "cover": "paint", "grain": "g01", "sharp": 3, "out": "chips" },
+        { "op": "layer", "alpha": "chips", "alphaK": 1, "color": [222, 220, 210], "color2": [196, 194, 186], "tone": "n", "smooth": 0.35 }
+      ]
+    },
+    {
+      "id": "dashedCrossing", "name": "Dashed crossing", "tier": "macro",
+      "about": "Two dashed white lines 2.4 m apart across an aisle, the quiet walkway of a car park. Repeats along +x (lay it across the aisle).",
+      "texel": 0.02, "layers": "ground", "order": 6, "lod": 50, "maxTexels": 512, "opacity": 0.95,
+      "edge": { "feather": 0.04, "warp": 0.01, "warpScale": 2, "round": 0 },
+      "variants": { "count": 3, "size": [8, 8], "width": [3, 3], "tile": "x", "strength": [0.6, 1] },
+      "ops": [
+        { "op": "wave", "in": "along", "out": "w", "period": 1.2, "sharp": 1 },
+        { "op": "remap", "in": "w", "out": "dash", "lo": 0.4, "hi": 0.5 },
+        { "op": "abs", "in": "across", "out": "ax" },
+        { "op": "band", "in": "ax", "out": "rails", "at": 1.2, "width": 0.09 },
+        { "op": "remap", "in": "rails", "out": "r2", "lo": 0.4, "hi": 0.6 },
+        { "op": "fbm", "out": "n", "scale": 1.2, "octaves": 4 },
+        { "op": "remap", "in": "n", "out": "wear", "lo": -0.9, "hi": -0.3 },
+        { "op": "mul", "a": "dash", "b": "r2", "c": "wear", "out": "p0" },
+        { "op": "mul", "a": "p0", "b": "shape", "out": "paint" },
+        { "op": "layer", "alpha": "paint", "alphaK": 1, "color": [222, 220, 210], "color2": [196, 194, 186], "tone": "n", "smooth": 0.35 }
+      ]
+    },
+    {
+      "id": "hatchWhite", "name": "Hatched no-parking", "tier": "macro",
+      "about": "Diagonal white hatching inside a painted frame: the no-parking corner, the access aisle beside an accessible stall, the end of a row.",
+      "texel": 0.025, "layers": "ground", "order": 6, "lod": 45, "maxTexels": 384, "opacity": 0.95,
+      "edge": { "feather": 0.03, "warp": 0.01, "warpScale": 2, "round": 0 },
+      "variants": { "count": 3, "size": [3, 5], "aspect": [0.5, 1], "strength": [0.6, 1] },
+      "ops": [
+        { "op": "add", "a": "along", "b": "across", "out": "diag" },
+        { "op": "wave", "in": "diag", "out": "w", "period": 0.9, "sharp": 1 },
+        { "op": "remap", "in": "w", "out": "bar", "lo": 0.7, "hi": 0.78 },
+        { "op": "band", "in": "edge", "out": "frame", "at": 0.07, "width": 0.06 },
+        { "op": "remap", "in": "frame", "out": "fr", "lo": 0.4, "hi": 0.6 },
+        { "op": "max", "a": "bar", "b": "fr", "out": "lines" },
+        { "op": "remap", "in": "edge", "out": "inside", "lo": -0.01, "hi": 0.01 },
+        { "op": "fbm", "out": "n", "scale": 1, "octaves": 4 },
+        { "op": "remap", "in": "n", "out": "wear", "lo": -0.95, "hi": -0.35 },
+        { "op": "mul", "a": "lines", "b": "inside", "c": "wear", "out": "paint" },
+        { "op": "layer", "alpha": "paint", "alphaK": 1, "color": [222, 220, 210], "color2": [196, 194, 186], "tone": "n", "smooth": 0.35 }
+      ]
+    },
+    {
+      "id": "hatchYellow", "name": "Hatched fire lane", "tier": "macro",
+      "about": "Diagonal yellow hatching inside a yellow frame: a fire lane, a loading bay, the no-stopping box by a pay station.",
+      "texel": 0.025, "layers": "ground", "order": 6, "lod": 45, "maxTexels": 384, "opacity": 0.95,
+      "edge": { "feather": 0.03, "warp": 0.01, "warpScale": 2, "round": 0 },
+      "variants": { "count": 3, "size": [3, 5], "aspect": [0.5, 1], "strength": [0.6, 1] },
+      "ops": [
+        { "op": "add", "a": "along", "b": "across", "out": "diag" },
+        { "op": "wave", "in": "diag", "out": "w", "period": 0.9, "sharp": 1 },
+        { "op": "remap", "in": "w", "out": "bar", "lo": 0.7, "hi": 0.78 },
+        { "op": "band", "in": "edge", "out": "frame", "at": 0.07, "width": 0.06 },
+        { "op": "remap", "in": "frame", "out": "fr", "lo": 0.4, "hi": 0.6 },
+        { "op": "max", "a": "bar", "b": "fr", "out": "lines" },
+        { "op": "remap", "in": "edge", "out": "inside", "lo": -0.01, "hi": 0.01 },
+        { "op": "fbm", "out": "n", "scale": 1, "octaves": 4 },
+        { "op": "remap", "in": "n", "out": "wear", "lo": -0.95, "hi": -0.35 },
+        { "op": "mul", "a": "lines", "b": "inside", "c": "wear", "out": "paint" },
+        { "op": "layer", "alpha": "paint", "alphaK": 1, "color": [216, 176, 48], "color2": [196, 160, 52], "tone": "n", "smooth": 0.35 }
+      ]
+    },
+    {
+      "id": "asphaltPatch", "name": "Asphalt patch", "tier": "macro",
+      "about": "A cut-and-filled repair: a darker, newer rectangle of asphalt with a black tar seal along its sawn edge. Crisp, square, never a smudge.",
+      "texel": 0.035, "layers": "ground", "order": 2, "lod": 40, "maxTexels": 384, "opacity": 0.9,
+      "edge": { "feather": 0.05, "warp": 0.04, "warpScale": 1.2, "round": 0.05 },
+      "variants": { "count": 6, "size": [2.5, 7], "aspect": [0.35, 0.9], "strength": [0.7, 1] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 0.9, "octaves": 3 },
+        { "op": "layer", "alpha": "shape", "alphaK": 0.72, "color": [38, 38, 40], "color2": [48, 48, 50], "tone": "n", "vary": 0.05, "smooth": 0.1 },
+        { "op": "band", "in": "edge", "out": "sealB", "at": 0.04, "width": 0.07 },
+        { "op": "remap", "in": "n", "out": "sealN", "lo": -0.8, "hi": 0.1 },
+        { "op": "mul", "a": "sealB", "b": "sealN", "out": "seal" },
+        { "op": "layer", "alpha": "seal", "alphaK": 0.9, "color": [20, 20, 21], "smooth": 0.2, "height": 0.4 }
+      ]
+    },
+    {
+      "id": "stormGrate", "name": "Storm grate", "tier": "detail",
+      "about": "A cast-iron drain grate at a low point of the car park: dark bars in a frame, a ring of silt and wet staining round it.",
+      "texel": 0.012, "layers": "ground", "order": 6, "lod": 30, "maxTexels": 256, "opacity": 1,
+      "edge": { "feather": 0.25, "warp": 0.15, "warpScale": 0.5, "round": 1 },
+      "variants": { "count": 3, "size": [1.6, 1.8], "aspect": [0.8, 1], "strength": [0.8, 1] },
+      "ops": [
+        { "op": "abs", "in": "along", "out": "ax" },
+        { "op": "abs", "in": "across", "out": "az" },
+        { "op": "remap", "in": "ax", "out": "inX", "lo": 0.36, "hi": 0.33 },
+        { "op": "remap", "in": "az", "out": "inZ", "lo": 0.24, "hi": 0.21 },
+        { "op": "mul", "a": "inX", "b": "inZ", "out": "box" },
+        { "op": "wave", "in": "along", "out": "w", "period": 0.07, "sharp": 1 },
+        { "op": "remap", "in": "w", "out": "slots", "lo": 0.55, "hi": 0.65 },
+        { "op": "remap", "in": "ax", "out": "fx", "lo": 0.31, "hi": 0.3 },
+        { "op": "remap", "in": "az", "out": "fz", "lo": 0.19, "hi": 0.18 },
+        { "op": "mul", "a": "fx", "b": "fz", "out": "inner" },
+        { "op": "mul", "a": "slots", "b": "inner", "out": "holes" },
+        { "op": "fbm", "out": "n", "scale": 0.5, "octaves": 4 },
+        { "op": "remap", "in": "n", "out": "silt", "lo": -0.6, "hi": 0.3 },
+        { "op": "mul", "a": "silt", "b": "shape", "out": "stain" },
+        { "op": "layer", "alpha": "stain", "alphaK": 0.55, "color": [40, 38, 34], "color2": [56, 50, 42], "tone": "n", "smooth": 0.6 },
+        { "op": "layer", "alpha": "box", "alphaK": 1, "color": [46, 44, 42], "smooth": 0.4, "height": 0.3 },
+        { "op": "layer", "alpha": "holes", "alphaK": 1, "color": [10, 10, 10], "smooth": 0.1, "height": -0.8, "ao": 0.8 }
+      ]
+    },
+    {
+      "id": "tactilePaving", "name": "Tactile paving", "tier": "detail",
+      "about": "Yellow blister paving at a dropped kerb: rows of raised dots so a cane finds the edge of the road.",
+      "texel": 0.012, "layers": "ground", "order": 6, "lod": 30, "maxTexels": 256, "opacity": 1,
+      "edge": { "feather": 0.02, "warp": 0, "warpScale": 1, "round": 0 },
+      "variants": { "count": 2, "size": [1.2, 1.2], "aspect": [0.5, 0.5], "strength": [0.85, 1] },
+      "ops": [
+        { "op": "wave", "in": "along", "out": "wx", "period": 0.066, "sharp": 1 },
+        { "op": "wave", "in": "across", "out": "wz", "period": 0.066, "sharp": 1 },
+        { "op": "mul", "a": "wx", "b": "wz", "out": "d" },
+        { "op": "remap", "in": "d", "out": "dots", "lo": 0.45, "hi": 0.7 },
+        { "op": "remap", "in": "edge", "out": "inside", "lo": -0.01, "hi": 0.01 },
+        { "op": "layer", "alpha": "inside", "alphaK": 1, "color": [200, 160, 44], "color2": [184, 148, 46], "smooth": 0.3 },
+        { "op": "mul", "a": "dots", "b": "inside", "out": "dd" },
+        { "op": "layer", "alpha": "dd", "alphaK": 0.6, "color": [226, 186, 64], "smooth": 0.35, "height": 0.6 }
+      ]
+    },
+    {
+      "id": "kerbPaintRedWhite", "name": "Red and white kerb", "tier": "macro",
+      "about": "Red and white blocks a metre long painted along the foot of a kerb (no parking, fire access), weathered. +z is the kerb.",
+      "texel": 0.02, "layers": "ground", "order": 6, "lod": 40, "maxTexels": 512, "opacity": 0.95,
+      "edge": { "feather": 0.03, "warp": 0.01, "warpScale": 1.5, "round": 0 },
+      "variants": { "count": 2, "size": [8, 8], "width": [0.3, 0.3], "tile": "x", "strength": [0.7, 1] },
+      "ops": [
+        { "op": "wave", "in": "along", "out": "w", "period": 2, "sharp": 1 },
+        { "op": "remap", "in": "w", "out": "red", "lo": 0.48, "hi": 0.52 },
+        { "op": "invert", "in": "red", "out": "white" },
+        { "op": "fbm", "out": "n", "scale": 0.8, "octaves": 4, "stretch": [3, 1] },
+        { "op": "remap", "in": "n", "out": "wear", "lo": -0.95, "hi": -0.4 },
+        { "op": "mul", "a": "red", "b": "wear", "c": "shape", "out": "pr" },
+        { "op": "mul", "a": "white", "b": "wear", "c": "shape", "out": "pw" },
+        { "op": "layer", "alpha": "pr", "alphaK": 1, "color": [170, 46, 38], "color2": [150, 50, 42], "tone": "n", "smooth": 0.35 },
+        { "op": "layer", "alpha": "pw", "alphaK": 1, "color": [218, 216, 206], "color2": [196, 194, 186], "tone": "n", "smooth": 0.35 }
+      ]
+    },
+    {
+      "id": "kerbPaintYellow", "name": "Yellow kerb", "tier": "macro",
+      "about": "A yellow stripe painted along the foot of a kerb (no stopping), worn in places. +z is the kerb.",
+      "texel": 0.02, "layers": "ground", "order": 6, "lod": 40, "maxTexels": 512, "opacity": 0.95,
+      "edge": { "feather": 0.03, "warp": 0.01, "warpScale": 1.5, "round": 0 },
+      "variants": { "count": 2, "size": [8, 8], "width": [0.3, 0.3], "tile": "x", "strength": [0.7, 1] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 0.8, "octaves": 4, "stretch": [3, 1] },
+        { "op": "remap", "in": "n", "out": "wear", "lo": -0.95, "hi": -0.4 },
+        { "op": "mul", "a": "wear", "b": "shape", "out": "p" },
+        { "op": "layer", "alpha": "p", "alphaK": 1, "color": [216, 176, 48], "color2": [196, 160, 52], "tone": "n", "smooth": 0.35 }
+      ]
+    },
+    {
+      "id": "flushKerb", "name": "Flush kerb", "tier": "macro",
+      "about": "A flat band of pale concrete kerbstones laid level with the asphalt, a dark joint every metre: the edge of a lot with no step. +z is the planting.",
+      "texel": 0.02, "layers": "ground", "order": 5, "lod": 40, "maxTexels": 512, "opacity": 0.95,
+      "edge": { "feather": 0.03, "warp": 0.01, "warpScale": 1.5, "round": 0 },
+      "variants": { "count": 2, "size": [8, 8], "width": [0.3, 0.3], "tile": "x", "strength": [0.8, 1] },
+      "ops": [
+        { "op": "wave", "in": "along", "out": "w", "period": 1, "sharp": 1 },
+        { "op": "remap", "in": "w", "out": "joint", "lo": 0.97, "hi": 0.995 },
+        { "op": "fbm", "out": "n", "scale": 0.6, "octaves": 4 },
+        { "op": "layer", "alpha": "shape", "alphaK": 0.9, "color": [128, 126, 120], "color2": [112, 110, 104], "tone": "n", "vary": 0.06, "smooth": 0.3 },
+        { "op": "mul", "a": "joint", "b": "shape", "out": "j" },
+        { "op": "layer", "alpha": "j", "alphaK": 0.9, "color": [52, 50, 46], "smooth": 0.3 }
+      ]
+    },
+    {
+      "id": "lockPlate", "name": "Lock plate", "tier": "detail",
+      "about": "The flap of a Japanese coin park (コインパーキング) under the middle of a car: a dark steel plate with yellow and black ends and its bolted frame.",
+      "texel": 0.012, "layers": "ground", "order": 6, "lod": 30, "maxTexels": 256, "opacity": 1,
+      "edge": { "feather": 0.02, "warp": 0, "warpScale": 1, "round": 0.1 },
+      "variants": { "count": 2, "size": [1.1, 1.1], "aspect": [0.45, 0.45], "strength": [0.85, 1] },
+      "ops": [
+        { "op": "abs", "in": "along", "out": "ax" },
+        { "op": "remap", "in": "ax", "out": "ends", "lo": 0.36, "hi": 0.38 },
+        { "op": "wave", "in": "across", "out": "w", "period": 0.12, "sharp": 1 },
+        { "op": "remap", "in": "w", "out": "stripe", "lo": 0.45, "hi": 0.55 },
+        { "op": "mul", "a": "ends", "b": "stripe", "out": "yel" },
+        { "op": "fbm", "out": "n", "scale": 0.3, "octaves": 3 },
+        { "op": "layer", "alpha": "shape", "alphaK": 1, "color": [58, 58, 60], "color2": [70, 70, 72], "tone": "n", "smooth": 0.5, "height": 0.4 },
+        { "op": "mul", "a": "yel", "b": "shape", "out": "y" },
+        { "op": "layer", "alpha": "y", "alphaK": 1, "color": [214, 176, 40], "smooth": 0.4 }
+      ]
+    },
+    {
+      "id": "gravelLot", "name": "Gravel lot", "tier": "macro",
+      "about": "Loose grey-brown gravel over packed earth, the surface of an overflow or event car park: a sheet that repeats both ways, with darker wheel-packed streaks.",
+      "texel": 0.04, "layers": "ground", "order": -1, "lod": 70, "maxTexels": 384, "opacity": 0.95,
+      "edge": { "feather": 0.9, "warp": 0.6, "warpScale": 3, "round": 0 },
+      "variants": { "count": 4, "size": [12, 14], "aspect": [1, 1], "tile": "xy", "strength": [0.85, 1] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 3, "octaves": 4, "warp": 1.5, "warpScale": 3 },
+        { "op": "remap", "in": "n", "out": "a", "lo": -1.4, "hi": 0.2, "k": 0.85 },
+        { "op": "layer", "alpha": "a", "color": [100, 98, 92], "color2": [82, 80, 74], "tone": "n", "vary": 0.12, "varyScale": 0.3, "smooth": 0.2 },
+        { "op": "scatter", "stamp": ["pebble", "rock"], "density": 120, "clusters": 30, "cluster": 0.3, "clusterRadius": [0.3, 1.2], "size": [0.012, 0.045], "palette": [[112, 106, 96], [92, 86, 78], [76, 72, 66], [104, 92, 76]], "alpha": [0.7, 1], "height": 0.5, "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "paverBand", "name": "Stall pavers", "tier": "macro",
+      "about": "Grey concrete block pavers in a running bond laid in a parking stall (German Parkplatz: pavers in the stalls, asphalt in the aisle), a dark joint round every block. Stretch it to the stall.",
+      "texel": 0.02, "layers": "ground", "order": 0, "lod": 50, "maxTexels": 384, "opacity": 0.97,
+      "edge": { "feather": 0.03, "warp": 0, "warpScale": 1, "round": 0 },
+      "variants": { "count": 3, "size": [3, 3], "aspect": [1, 1], "strength": [0.85, 1] },
+      "ops": [
+        { "op": "worley", "out": "c", "scale": 0.22, "mode": "id" },
+        { "op": "wave", "in": "along", "out": "wx", "period": 0.2, "sharp": 1 },
+        { "op": "wave", "in": "across", "out": "wz", "period": 0.1, "sharp": 1 },
+        { "op": "remap", "in": "wx", "out": "jx", "lo": 0.93, "hi": 0.985 },
+        { "op": "remap", "in": "wz", "out": "jz", "lo": 0.9, "hi": 0.98 },
+        { "op": "max", "a": "jx", "b": "jz", "out": "j" },
+        { "op": "fbm", "out": "n", "scale": 0.8, "octaves": 3 },
+        { "op": "layer", "alpha": "shape", "alphaK": 1, "color": [118, 116, 110], "color2": [96, 94, 90], "tone": "c", "vary": 0.08, "varyScale": 0.2, "smooth": 0.2 },
+        { "op": "mul", "a": "j", "b": "shape", "out": "jj" },
+        { "op": "layer", "alpha": "jj", "alphaK": 0.85, "color": [58, 56, 52], "smooth": 0.15, "height": -0.4 }
+      ]
+    },
+    {
+      "id": "grassPaverBand", "name": "Grass pavers", "tier": "macro",
+      "about": "Open concrete grid pavers with grass growing in the cells: a green, permeable parking stall. Stretch it to the stall.",
+      "texel": 0.02, "layers": "ground", "order": 0, "lod": 50, "maxTexels": 384, "opacity": 0.97,
+      "edge": { "feather": 0.03, "warp": 0, "warpScale": 1, "round": 0 },
+      "variants": { "count": 3, "size": [3, 3], "aspect": [1, 1], "strength": [0.85, 1] },
+      "ops": [
+        { "op": "wave", "in": "along", "out": "wx", "period": 0.4, "sharp": 1 },
+        { "op": "wave", "in": "across", "out": "wz", "period": 0.4, "sharp": 1 },
+        { "op": "mul", "a": "wx", "b": "wz", "out": "cells" },
+        { "op": "remap", "in": "cells", "out": "grass", "lo": 0.25, "hi": 0.45 },
+        { "op": "fbm", "out": "n", "scale": 0.6, "octaves": 4 },
+        { "op": "layer", "alpha": "shape", "alphaK": 1, "color": [124, 120, 110], "color2": [104, 100, 92], "tone": "n", "vary": 0.06, "smooth": 0.2 },
+        { "op": "mul", "a": "grass", "b": "shape", "out": "g" },
+        { "op": "layer", "alpha": "g", "alphaK": 0.95, "color": [78, 104, 46], "color2": [60, 84, 38], "tone": "n", "smooth": 0.15, "height": -0.3 }
+      ]
+    },
+    {
+      "id": "concreteBand", "name": "Stall concrete", "tier": "macro",
+      "about": "A smooth pale concrete slab in a parking stall, its saw-cut joint at the back and a faint trowel mottle. Stretch it to the stall.",
+      "texel": 0.02, "layers": "ground", "order": 0, "lod": 50, "maxTexels": 384, "opacity": 0.97,
+      "edge": { "feather": 0.03, "warp": 0, "warpScale": 1, "round": 0 },
+      "variants": { "count": 3, "size": [3, 3], "aspect": [1, 1], "strength": [0.85, 1] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 0.9, "octaves": 4 },
+        { "op": "band", "in": "edge", "out": "cut", "at": 0.05, "width": 0.025 },
+        { "op": "layer", "alpha": "shape", "alphaK": 1, "color": [124, 122, 116], "color2": [110, 108, 102], "tone": "n", "vary": 0.05, "smooth": 0.2 },
+        { "op": "mul", "a": "cut", "b": "shape", "out": "c" },
+        { "op": "layer", "alpha": "c", "alphaK": 0.7, "color": [64, 62, 58], "smooth": 0.2 }
+      ]
+    },
+    {
+      "id": "drainChannel", "name": "Drain channel", "tier": "macro",
+      "about": "A shallow concrete drainage channel 0.5 m wide down the middle of a lane, a slotted grate every few metres and a dark wet line in its bottom. Repeats along +x.",
+      "texel": 0.02, "layers": "ground", "order": 5, "lod": 45, "maxTexels": 512, "opacity": 0.97,
+      "edge": { "feather": 0.03, "warp": 0, "warpScale": 1, "round": 0 },
+      "variants": { "count": 2, "size": [6, 6], "width": [0.6, 0.6], "tile": "x", "strength": [0.8, 1] },
+      "ops": [
+        { "op": "abs", "in": "across", "out": "ax" },
+        { "op": "remap", "in": "ax", "out": "body", "lo": 0.27, "hi": 0.24 },
+        { "op": "remap", "in": "ax", "out": "slot", "lo": 0.08, "hi": 0.05 },
+        { "op": "wave", "in": "along", "out": "w", "period": 3, "sharp": 1 },
+        { "op": "remap", "in": "w", "out": "grate", "lo": 0.82, "hi": 0.9 },
+        { "op": "wave", "in": "along", "out": "bars", "period": 0.06, "sharp": 1 },
+        { "op": "remap", "in": "bars", "out": "b2", "lo": 0.5, "hi": 0.6 },
+        { "op": "fbm", "out": "n", "scale": 0.7, "octaves": 4 },
+        { "op": "layer", "alpha": "body", "alphaK": 1, "color": [118, 116, 110], "color2": [96, 94, 88], "tone": "n", "vary": 0.06, "smooth": 0.2 },
+        { "op": "mul", "a": "slot", "b": "shape", "out": "s" },
+        { "op": "layer", "alpha": "s", "alphaK": 0.9, "color": [40, 40, 38], "smooth": 0.6, "height": -0.6 },
+        { "op": "mul", "a": "grate", "b": "body", "c": "b2", "out": "g" },
+        { "op": "layer", "alpha": "g", "alphaK": 1, "color": [30, 30, 30], "smooth": 0.3, "height": -0.8 }
+      ]
+    },
+    {
+      "id": "concreteTone", "name": "Concrete tone", "tier": "macro",
+      "about": "The warm grey of real poured concrete over a pale slab, with faint trowel and weather mottle: a band laid down each drive aisle with its rows of stalls (stretched across to the band width) so a concrete lot never reads paper white.",
+      "texel": 0.1, "layers": "ground", "order": -2, "lod": 90, "maxTexels": 256, "opacity": 0.9,
+      "edge": { "feather": 0.08, "warp": 0, "warpScale": 4, "round": 0 },
+      "variants": { "count": 3, "size": [16, 20], "width": [20, 20], "tile": "x", "strength": [0.85, 1] },
+      "ops": [
+        { "op": "fbm", "out": "n", "scale": 6, "octaves": 4, "warp": 2, "warpScale": 5 },
+        { "op": "remap", "in": "n", "out": "a", "lo": -1.4, "hi": 0.8, "k": 0.6 },
+        { "op": "layer", "alpha": "a", "color": [150, 146, 138], "color2": [132, 128, 120], "tone": "n", "vary": 0.05, "smooth": 0.1 }
+      ]
+    },
+    {
+      "id": "sawCut", "name": "Saw cut joint", "tier": "macro",
+      "about": "The thin dark saw-cut joint between concrete slabs, a little chipped and dirty. Repeats along +x.",
+      "texel": 0.015, "layers": "ground", "order": 4, "lod": 40, "maxTexels": 512, "opacity": 0.9,
+      "edge": { "feather": 0.03, "warp": 0.01, "warpScale": 1.5, "round": 1 },
+      "variants": { "count": 3, "size": [6, 8], "width": [0.2, 0.2], "tile": "x", "strength": [0.7, 1] },
+      "ops": [
+        { "op": "abs", "in": "across", "out": "ax" },
+        { "op": "remap", "in": "ax", "out": "cut", "lo": 0.025, "hi": 0.01 },
+        { "op": "fbm", "out": "n", "scale": 0.5, "octaves": 4 },
+        { "op": "remap", "in": "n", "out": "dirt", "lo": -0.8, "hi": 0.6 },
+        { "op": "remap", "in": "ax", "out": "halo", "lo": 0.08, "hi": 0.02 },
+        { "op": "mul", "a": "halo", "b": "dirt", "c": "shape", "out": "h" },
+        { "op": "layer", "alpha": "h", "alphaK": 0.35, "color": [80, 76, 70], "smooth": 0.1 },
+        { "op": "mul", "a": "cut", "b": "shape", "out": "c" },
+        { "op": "layer", "alpha": "c", "alphaK": 0.95, "color": [44, 42, 40], "smooth": 0.1, "height": -0.5 }
+      ]
+    }
+  ]
+}

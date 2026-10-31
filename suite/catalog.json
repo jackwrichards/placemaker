@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+f9f1a2af-dirty",
+  "assembly": "0.3.6+3d104dc3-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -8774,7 +8774,15 @@
         "standard",
         "compact",
         "green",
-        "angled"
+        "angled",
+        "japanese",
+        "german",
+        "bigBox",
+        "rich",
+        "rundown",
+        "gravel",
+        "construction",
+        "eco"
       ],
       "options": [
         {
@@ -9035,6 +9043,204 @@
           "step": 1.0,
           "unit": "count",
           "default": 3.0
+        },
+        {
+          "id": "paving",
+          "kind": "Choice",
+          "options": [
+            "asphalt",
+            "darkAsphalt",
+            "concrete",
+            "pavers",
+            "gravel",
+            "dirt"
+          ],
+          "default": "asphalt"
+        },
+        {
+          "id": "stallPaving",
+          "kind": "Choice",
+          "options": [
+            "same",
+            "concrete",
+            "pavers",
+            "grassPavers"
+          ],
+          "default": "same"
+        },
+        {
+          "id": "pavingAge",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 45.0
+        },
+        {
+          "id": "cleanliness",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 55.0
+        },
+        {
+          "id": "wear",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 10.0,
+          "unit": "%",
+          "default": 100.0
+        },
+        {
+          "id": "markingStyle",
+          "kind": "Choice",
+          "options": [
+            "classic",
+            "double",
+            "tee",
+            "boxes",
+            "japan",
+            "yellow"
+          ],
+          "default": "classic"
+        },
+        {
+          "id": "paintAge",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 35.0
+        },
+        {
+          "id": "crossings",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "dashed",
+            "zebra"
+          ],
+          "default": "dashed"
+        },
+        {
+          "id": "aisleMarks",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "kerbs",
+          "kind": "Choice",
+          "options": [
+            "concrete",
+            "granite",
+            "redWhite",
+            "yellow",
+            "flush",
+            "none"
+          ],
+          "default": "concrete"
+        },
+        {
+          "id": "wheelStops",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "islandStyle",
+          "kind": "Choice",
+          "options": [
+            "grass",
+            "shrubs",
+            "hedge",
+            "bioswale",
+            "gravel"
+          ],
+          "default": "grass"
+        },
+        {
+          "id": "signs",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "payment",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "entrance",
+            "rows",
+            "coin"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "barrier",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "solarCanopies",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "cartCorrals",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "bikeStands",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "bins",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "drainage",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "grates",
+            "channel",
+            "barranca"
+          ],
+          "default": "grates"
+        },
+        {
+          "id": "rundownCars",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "camp",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "construction",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 60.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "kiosk",
+          "kind": "Toggle",
+          "default": false
         },
         {
           "id": "fee",
@@ -19328,6 +19534,11 @@
           "default": 1.0
         },
         {
+          "id": "growWithSite",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "changingHut",
           "kind": "Toggle",
           "default": true
@@ -21787,6 +21998,531 @@
       ]
     },
     {
+      "layer": "farmstead",
+      "group": "farms",
+      "category": "farms",
+      "presets": [
+        "mixed",
+        "arable",
+        "fruitFarm",
+        "hillFarm",
+        "dairy",
+        "hobby",
+        "ranch"
+      ],
+      "options": [
+        {
+          "id": "subtype",
+          "kind": "Choice",
+          "options": [
+            "dairy",
+            "arable",
+            "mixed",
+            "hobby",
+            "ranch"
+          ],
+          "default": "mixed"
+        },
+        {
+          "id": "yardAt",
+          "kind": "Choice",
+          "options": [
+            "road",
+            "centre",
+            "corner"
+          ],
+          "default": "road"
+        },
+        {
+          "id": "yardSize",
+          "kind": "Slider",
+          "min": 3.0,
+          "max": 25.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 5.0
+        },
+        {
+          "id": "tracks",
+          "kind": "Choice",
+          "options": [
+            "spine",
+            "grid",
+            "none"
+          ],
+          "default": "spine"
+        },
+        {
+          "id": "trackAsset",
+          "kind": "Asset",
+          "default": ""
+        },
+        {
+          "id": "fieldSize",
+          "kind": "Slider",
+          "min": 0.2,
+          "max": 5.0,
+          "step": 0.1,
+          "unit": "ha",
+          "default": 1.2
+        },
+        {
+          "id": "arablePct",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 60.0
+        },
+        {
+          "id": "rowAngle",
+          "kind": "Choice",
+          "options": [
+            "auto",
+            "along",
+            "across",
+            "alternate"
+          ],
+          "default": "auto"
+        },
+        {
+          "id": "rowSpacing",
+          "kind": "Slider",
+          "min": 2.0,
+          "max": 10.0,
+          "step": 0.5,
+          "unit": "m",
+          "default": 4.0
+        },
+        {
+          "id": "cropProps",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "edges",
+            "rows"
+          ],
+          "default": "edges"
+        },
+        {
+          "id": "season",
+          "kind": "Choice",
+          "options": [
+            "spring",
+            "summer",
+            "harvest",
+            "autumn"
+          ],
+          "default": "summer"
+        },
+        {
+          "id": "terraces",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "hayMeadows",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "fieldPaint",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "paintLayer",
+          "kind": "Slider",
+          "min": 1.0,
+          "max": 4.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 2.0
+        },
+        {
+          "id": "stripeLayer",
+          "kind": "Slider",
+          "min": 1.0,
+          "max": 4.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 3.0
+        },
+        {
+          "id": "cropAssets",
+          "kind": "AssetMulti",
+          "default": []
+        },
+        {
+          "id": "barns",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 6.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 2.0
+        },
+        {
+          "id": "silos",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 8.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 2.0
+        },
+        {
+          "id": "machinery",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "farmhouse",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "vehicles",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 6.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 2.0
+        },
+        {
+          "id": "yardMud",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 50.0
+        },
+        {
+          "id": "heaps",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "hayStacks",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "windpump",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "yardGround",
+          "kind": "Choice",
+          "options": [
+            "gravel",
+            "dirt",
+            "paved"
+          ],
+          "default": "gravel"
+        },
+        {
+          "id": "levelYard",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "barnAsset",
+          "kind": "Asset",
+          "default": ""
+        },
+        {
+          "id": "siloAsset",
+          "kind": "Asset",
+          "default": ""
+        },
+        {
+          "id": "paddocks",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 8.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 2.0
+        },
+        {
+          "id": "paddockSize",
+          "kind": "Slider",
+          "min": 20.0,
+          "max": 120.0,
+          "step": 5.0,
+          "unit": "m",
+          "default": 50.0
+        },
+        {
+          "id": "livestock",
+          "kind": "Choice",
+          "options": [
+            "cattle",
+            "sheep",
+            "horses",
+            "pigs",
+            "mixed"
+          ],
+          "default": "mixed"
+        },
+        {
+          "id": "animals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "shelters",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "edge",
+          "kind": "Choice",
+          "options": [
+            "hedgerow",
+            "fence",
+            "both",
+            "none"
+          ],
+          "default": "hedgerow"
+        },
+        {
+          "id": "fieldHedges",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "hedgeTrees",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 10.0,
+          "step": 1.0,
+          "unit": "per100m",
+          "default": 3.0
+        },
+        {
+          "id": "hedgeSpecies",
+          "kind": "AssetMulti",
+          "default": []
+        },
+        {
+          "id": "treeSpecies",
+          "kind": "AssetMulti",
+          "default": []
+        },
+        {
+          "id": "fenceAsset",
+          "kind": "Asset",
+          "default": ""
+        },
+        {
+          "id": "drainage",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "ditches",
+            "ravine"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "tanks",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 6.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 2.0
+        },
+        {
+          "id": "pond",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "pondSize",
+          "kind": "Slider",
+          "min": 12.0,
+          "max": 80.0,
+          "step": 2.0,
+          "unit": "m",
+          "default": 30.0
+        },
+        {
+          "id": "pondAt",
+          "kind": "Choice",
+          "options": [
+            "lowest",
+            "nearYard",
+            "far"
+          ],
+          "default": "lowest"
+        },
+        {
+          "id": "biomeFields",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 100.0
+        },
+        {
+          "id": "biomeOrchard",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomePasture",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeForest",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeWetland",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeWater",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeRocky",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeScale",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 70.0
+        },
+        {
+          "id": "entrances",
+          "kind": "Markers"
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "dressStyle",
+          "kind": "Choice",
+          "options": [
+            "clean",
+            "livedIn",
+            "gritty"
+          ],
+          "default": "livedIn"
+        },
+        {
+          "id": "dressPaintWear",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 300.0,
+          "step": 10.0,
+          "unit": "%",
+          "default": 100.0
+        },
+        {
+          "id": "dressDesirePaths",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "dressMulch",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "dressPaintClear",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "lookBigTrees",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookRockyAreas",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "few",
+            "some",
+            "many"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "lookTerrainShape",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "mounds",
+            "hills",
+            "terraces",
+            "terracedDown",
+            "sunken",
+            "raised",
+            "bowl",
+            "berms",
+            "flatten"
+          ],
+          "default": "none"
+        }
+      ],
+      "shelvedStyles": [
+        "hobby"
+      ]
+    },
+    {
       "layer": "urbanFarm",
       "group": "farms",
       "category": "farms",
@@ -22140,7 +22876,14 @@
         "rocky",
         "river",
         "cove",
-        "volleyball"
+        "volleyball",
+        "shingle",
+        "mulch",
+        "granite",
+        "ravine",
+        "marsh",
+        "harbour",
+        "wild"
       ],
       "options": [
         {
@@ -22151,7 +22894,14 @@
             "rocky",
             "river",
             "cove",
-            "volleyball"
+            "volleyball",
+            "shingle",
+            "mulch",
+            "granite",
+            "ravine",
+            "marsh",
+            "harbour",
+            "wild"
           ],
           "default": "sandy"
         },
@@ -22271,7 +23021,7 @@
           "id": "duneHeight",
           "kind": "Slider",
           "min": 0.5,
-          "max": 5.0,
+          "max": 10.0,
           "step": 0.5,
           "unit": "m",
           "default": 2.0
@@ -22280,7 +23030,7 @@
           "id": "duneDepth",
           "kind": "Slider",
           "min": 8.0,
-          "max": 50.0,
+          "max": 70.0,
           "step": 2.0,
           "unit": "m",
           "default": 20.0
@@ -22538,6 +23288,200 @@
           "step": 2.0,
           "unit": "m",
           "default": 0.0
+        },
+        {
+          "id": "berm",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 2.0,
+          "step": 0.1,
+          "unit": "m",
+          "default": 0.0
+        },
+        {
+          "id": "storms",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 3.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
+        },
+        {
+          "id": "headlands",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 50.0,
+          "step": 2.0,
+          "unit": "m",
+          "default": 0.0
+        },
+        {
+          "id": "platforms",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "bluff",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 12.0,
+          "step": 0.5,
+          "unit": "m",
+          "default": 0.0
+        },
+        {
+          "id": "ravines",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 3.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
+        },
+        {
+          "id": "knolls",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 12.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
+        },
+        {
+          "id": "boulders",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 300.0,
+          "step": 10.0,
+          "unit": "perHa",
+          "default": 0.0
+        },
+        {
+          "id": "channels",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 8.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
+        },
+        {
+          "id": "blowouts",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 6.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
+        },
+        {
+          "id": "hummocks",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 1.5,
+          "step": 0.1,
+          "unit": "m",
+          "default": 0.0
+        },
+        {
+          "id": "boardwalk",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "islands",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 2.0,
+          "step": 1.0,
+          "unit": "count",
+          "default": 0.0
+        },
+        {
+          "id": "biomeLawn",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 100.0
+        },
+        {
+          "id": "biomeDunes",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeShingle",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeHeath",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeMeadow",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeForest",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeRocky",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeWetland",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "biomeScale",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 1.0,
+          "unit": "%",
+          "default": 60.0
         },
         {
           "id": "dressGroundDecals",
@@ -25640,394 +26584,6 @@
           "kind": "Toggle",
           "default": true
         }
-      ]
-    },
-    {
-      "layer": "farmstead",
-      "group": "farms",
-      "category": "farms",
-      "presets": [
-        "dairy",
-        "arable",
-        "mixed",
-        "hobby",
-        "ranch"
-      ],
-      "options": [
-        {
-          "id": "subtype",
-          "kind": "Choice",
-          "options": [
-            "dairy",
-            "arable",
-            "mixed",
-            "hobby",
-            "ranch"
-          ],
-          "default": "mixed"
-        },
-        {
-          "id": "yardAt",
-          "kind": "Choice",
-          "options": [
-            "road",
-            "centre",
-            "corner"
-          ],
-          "default": "road"
-        },
-        {
-          "id": "yardSize",
-          "kind": "Slider",
-          "min": 3.0,
-          "max": 25.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 8.0
-        },
-        {
-          "id": "tracks",
-          "kind": "Choice",
-          "options": [
-            "spine",
-            "grid",
-            "none"
-          ],
-          "default": "spine"
-        },
-        {
-          "id": "trackAsset",
-          "kind": "Asset",
-          "default": ""
-        },
-        {
-          "id": "fieldSize",
-          "kind": "Slider",
-          "min": 0.2,
-          "max": 5.0,
-          "step": 0.1,
-          "unit": "ha",
-          "default": 1.2
-        },
-        {
-          "id": "arablePct",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 100.0,
-          "step": 5.0,
-          "unit": "%",
-          "default": 60.0
-        },
-        {
-          "id": "rowAngle",
-          "kind": "Choice",
-          "options": [
-            "auto",
-            "along",
-            "across",
-            "alternate"
-          ],
-          "default": "auto"
-        },
-        {
-          "id": "rowSpacing",
-          "kind": "Slider",
-          "min": 2.0,
-          "max": 10.0,
-          "step": 0.5,
-          "unit": "m",
-          "default": 4.0
-        },
-        {
-          "id": "cropProps",
-          "kind": "Choice",
-          "options": [
-            "none",
-            "edges",
-            "rows"
-          ],
-          "default": "edges"
-        },
-        {
-          "id": "hayMeadows",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "fieldPaint",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "paintLayer",
-          "kind": "Slider",
-          "min": 1.0,
-          "max": 4.0,
-          "step": 1.0,
-          "unit": "count",
-          "default": 2.0
-        },
-        {
-          "id": "stripeLayer",
-          "kind": "Slider",
-          "min": 1.0,
-          "max": 4.0,
-          "step": 1.0,
-          "unit": "count",
-          "default": 3.0
-        },
-        {
-          "id": "cropAssets",
-          "kind": "AssetMulti",
-          "default": []
-        },
-        {
-          "id": "barns",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 6.0,
-          "step": 1.0,
-          "unit": "count",
-          "default": 2.0
-        },
-        {
-          "id": "silos",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 8.0,
-          "step": 1.0,
-          "unit": "count",
-          "default": 2.0
-        },
-        {
-          "id": "machinery",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "hayStacks",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "windpump",
-          "kind": "Toggle",
-          "default": false
-        },
-        {
-          "id": "yardGround",
-          "kind": "Choice",
-          "options": [
-            "gravel",
-            "dirt",
-            "paved"
-          ],
-          "default": "gravel"
-        },
-        {
-          "id": "levelYard",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "barnAsset",
-          "kind": "Asset",
-          "default": ""
-        },
-        {
-          "id": "siloAsset",
-          "kind": "Asset",
-          "default": ""
-        },
-        {
-          "id": "paddocks",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 8.0,
-          "step": 1.0,
-          "unit": "count",
-          "default": 2.0
-        },
-        {
-          "id": "paddockSize",
-          "kind": "Slider",
-          "min": 20.0,
-          "max": 120.0,
-          "step": 5.0,
-          "unit": "m",
-          "default": 50.0
-        },
-        {
-          "id": "livestock",
-          "kind": "Choice",
-          "options": [
-            "cattle",
-            "sheep",
-            "horses",
-            "pigs",
-            "mixed"
-          ],
-          "default": "mixed"
-        },
-        {
-          "id": "animals",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "shelters",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "edge",
-          "kind": "Choice",
-          "options": [
-            "hedgerow",
-            "fence",
-            "both",
-            "none"
-          ],
-          "default": "hedgerow"
-        },
-        {
-          "id": "fieldHedges",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "hedgeTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 10.0,
-          "step": 1.0,
-          "unit": "per100m",
-          "default": 3.0
-        },
-        {
-          "id": "hedgeSpecies",
-          "kind": "AssetMulti",
-          "default": []
-        },
-        {
-          "id": "treeSpecies",
-          "kind": "AssetMulti",
-          "default": []
-        },
-        {
-          "id": "fenceAsset",
-          "kind": "Asset",
-          "default": ""
-        },
-        {
-          "id": "pond",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "pondSize",
-          "kind": "Slider",
-          "min": 12.0,
-          "max": 80.0,
-          "step": 2.0,
-          "unit": "m",
-          "default": 30.0
-        },
-        {
-          "id": "pondAt",
-          "kind": "Choice",
-          "options": [
-            "lowest",
-            "nearYard",
-            "far"
-          ],
-          "default": "lowest"
-        },
-        {
-          "id": "entrances",
-          "kind": "Markers"
-        },
-        {
-          "id": "dressGroundDecals",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "dressStyle",
-          "kind": "Choice",
-          "options": [
-            "clean",
-            "livedIn",
-            "gritty"
-          ],
-          "default": "livedIn"
-        },
-        {
-          "id": "dressPaintWear",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 300.0,
-          "step": 10.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "dressDesirePaths",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "dressMulch",
-          "kind": "Toggle",
-          "default": true
-        },
-        {
-          "id": "dressPaintClear",
-          "kind": "Toggle",
-          "default": false
-        },
-        {
-          "id": "lookBigTrees",
-          "kind": "Choice",
-          "options": [
-            "none",
-            "few",
-            "some",
-            "many"
-          ],
-          "default": "none"
-        },
-        {
-          "id": "lookRockyAreas",
-          "kind": "Choice",
-          "options": [
-            "none",
-            "few",
-            "some",
-            "many"
-          ],
-          "default": "none"
-        },
-        {
-          "id": "lookTerrainShape",
-          "kind": "Choice",
-          "options": [
-            "none",
-            "mounds",
-            "hills",
-            "terraces",
-            "terracedDown",
-            "sunken",
-            "raised",
-            "bowl",
-            "berms",
-            "flatten"
-          ],
-          "default": "none"
-        }
-      ],
-      "shelvedStyles": [
-        "hobby"
       ]
     },
     {
