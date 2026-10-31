@@ -131,6 +131,16 @@ namespace Placemaker.Core.Layers.Types.Beach
                     foreach (var (pc, pr) in f.Pans)
                         Paint(ctx, clip, LeisureKit.Blob(pc, pr, Hashing.Mix(f.Seed, (uint)(pc.y * 3f)), 12, 0.3f), TerrainMaterials.Dirt, 0.75f, 1.5f, 1f, null, 0f, 0f, 0f, 0x3A56u);
                     break;
+                case "shingle":
+                    // banded: fine sand in the troughs between the storm ridges, the crests left coarse grey shingle
+                    for (int i = 0; i < f.Ridges.Count; i++)
+                    {
+                        float t0 = i == 0 ? b.Wet : f.Ridges[i - 1] + 2.5f, t1 = f.Ridges[i] - 2f;
+                        if (t1 - t0 < 1.5f) continue;
+                        foreach (var strip in shore.StripFromWater(t0, t1))
+                            Paint(ctx, clip, strip, TerrainMaterials.Sand, 0.55f, 1.5f, 2f, null, 0f, 0f, 0f, 0x5B1Eu + (uint)i);
+                    }
+                    break;
                 case "granite":
                     // coarse grey-tan sand: earth through the sand away from the water
                     foreach (var strip in shore.StripFromWater(b.Wet + 2f, b.D + 6f))

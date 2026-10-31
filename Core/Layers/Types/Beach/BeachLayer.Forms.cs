@@ -57,7 +57,7 @@ namespace Placemaker.Core.Layers.Types.Beach
         {
             // Shingle beach: a steep pebble face with three storm ridges and cusps, a row of beach huts behind a wide promenade,
             // boats hauled up, no umbrellas (Brighton, Chesil Beach).
-            Preset("shingle", ("style", "shingle"), ("paintLayer", (double)TerrainMaterials.Dirt), ("beachDepth", 40.0), ("slope", 11.0), ("wetBand", 4.0), ("storms", 3.0),
+            Preset("shingle", ("style", "shingle"), ("paintLayer", (double)TerrainMaterials.Dirt), ("beachDepth", 60.0), ("slope", 11.0), ("wetBand", 4.0), ("storms", 3.0),
                 ("sandBlend", 6.0), ("umbrellas", 0.0), ("huts", "row"), ("boats", true), ("backdrop", "lawn"), ("treeDensity", 10.0), ("lifeguards", 0.0), ("kiosks", 2.0),
                 ("showers", false), ("pathWidth", "wide"), ("benchSpacing", 18.0), ("accessSpacing", 70.0), ("landings", false), ("bay", 0.0), ("rockClusters", 0.0),
                 ("biomeLawn", 0.0), ("biomeHeath", 45.0), ("biomeMeadow", 30.0), ("biomeRocky", 25.0));   // p2-beaches: coastal heath, not a park
@@ -75,7 +75,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             Preset("ravine", ("style", "ravine"), ("beachDepth", 20.0), ("wetBand", 3.0), ("slope", 7.0), ("bluff", 10.0), ("ravines", 2.0), ("boulders", 60.0), ("knolls", 0.0),
                 ("umbrellas", 0.0), ("backdrop", "none"), ("treeDensity", 10.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
                 ("benchSpacing", 40.0), ("bay", 0.0), ("landings", false), ("sandBlend", 8.0),
-                ("biomeLawn", 0.0), ("biomeRocky", 60.0), ("biomeHeath", 40.0));
+                ("biomeLawn", 0.0), ("biomeRocky", 35.0), ("biomeHeath", 40.0), ("biomeForest", 25.0));   // pines and heath on the bluff top, not bare
             // Marsh shore: a saltmarsh flat with creeks and salt pans, reed beds, a boardwalk out to the open water, a strip of sand.
             Preset("marsh", ("style", "marsh"), ("beachDepth", 64.0), ("wetBand", 2.0), ("slope", 2.0), ("channels", 4.0), ("boardwalk", true), ("umbrellas", 0.0),
                 ("backdrop", "none"), ("treeDensity", 18.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("landings", false),
@@ -86,9 +86,9 @@ namespace Placemaker.Core.Layers.Types.Beach
             Preset("harbour", ("style", "harbour"), ("headlands", 34.0), ("platforms", 40.0), ("bay", 0.0), ("beachDepth", 30.0), ("umbrellas", 35.0), ("boats", true),
                 ("jetties", 1.0), ("jettyLength", 30.0), ("backdrop", "none"), ("treeDensity", 15.0), ("lifeguards", 1.0), ("kiosks", 1.0), ("huts", "few"), ("boulders", 20.0),
                 ("berm", 0.4), ("tidePools", 0.0), ("rockClusters", 0.0), ("islands", 1.0),
-                ("biomeLawn", 0.0), ("biomeRocky", 35.0), ("biomeHeath", 30.0), ("biomeMeadow", 20.0), ("biomeForest", 15.0));   // p2-beaches: maquis, no palm lawn
+                ("biomeLawn", 0.0), ("biomeRocky", 20.0), ("biomeHeath", 35.0), ("biomeMeadow", 25.0), ("biomeForest", 20.0));   // p2-beaches: maquis, no palm lawn
             // Wild beach: low dunes with blowouts, wrack and driftwood, a fire ring, no facilities.
-            Preset("wild", ("style", "wild"), ("beachDepth", 46.0), ("umbrellas", 0.0), ("backdrop", "dunes"), ("duneHeight", 3.5), ("duneDepth", 48.0), ("blowouts", 2.0),
+            Preset("wild", ("style", "wild"), ("beachDepth", 46.0), ("umbrellas", 0.0), ("backdrop", "dunes"), ("duneHeight", 6.0), ("duneDepth", 48.0), ("blowouts", 2.0),
                 ("hummocks", 0.6), ("berm", 0.8), ("fires", true), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
                 ("benchSpacing", 0.0), ("accessSpacing", 120.0), ("landings", false), ("boats", false), ("treeDensity", 15.0), ("rockClusters", 2.0), ("bay", 20.0),
                 ("grassDensity", 75.0), ("biomeLawn", 0.0), ("biomeDunes", 50.0), ("biomeHeath", 25.0), ("biomeMeadow", 25.0));

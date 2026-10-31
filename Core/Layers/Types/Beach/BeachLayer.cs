@@ -71,7 +71,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             c.Slider("paintLayer", TerrainMaterials.Sand, 1, 4, 1, "count", ControlTier.More, "shore").When("paint=true").Tip();
 
             c.Choice("backdrop", "dunes", ControlTier.More, "backdrop", "dunes", "lawn", "woods", "none").Tip();
-            c.Slider("duneHeight", 2, 0.5, 5, 0.5, "m", ControlTier.More, "backdrop").When("backdrop=dunes");
+            c.Slider("duneHeight", 2, 0.5, 10, 0.5, "m", ControlTier.More, "backdrop").When("backdrop=dunes");
             c.Slider("duneDepth", 20, 8, 70, 2, "m", ControlTier.More, "backdrop").Layout(6).Tip();
             c.Toggle("duneFence", false, ControlTier.More, "backdrop").When("backdrop=dunes").Tip();
             c.Slider("grassDensity", 60, 0, 100, 5, "%", ControlTier.More, "backdrop").Tip();
@@ -137,7 +137,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             // Family beach: deep sand, loose umbrella groups, lifeguard posts, low dunes with marram grass and pines behind.
             // rf-beach: busier (umbrellas 70 -> 110 /ha), a swimming jetty with a T-head, boats pulled up, dunes a little higher.
             Preset("sandy", ("style", "sandy"), ("beachDepth", 56.0), ("sandBlend", 16.0), ("umbrellas", 110.0), ("layout", "scattered"), ("backdrop", "dunes"),
-                ("huts", "none"), ("lifeguards", 2.0), ("duneDepth", 26.0), ("duneHeight", 2.0), ("grassDensity", 70.0), ("treeDensity", 40.0), ("kiosks", 1.0),
+                ("huts", "none"), ("lifeguards", 2.0), ("duneDepth", 30.0), ("duneHeight", 3.0), ("grassDensity", 70.0), ("treeDensity", 40.0), ("kiosks", 1.0),
                 ("jetties", 1.0), ("jettyLength", 26.0), ("jettyHead", true), ("boats", true), ("bay", 24.0), ("berm", 0.7), ("hummocks", 0.4),
                 ("biomeLawn", 0.0), ("biomeDunes", 30.0), ("biomeForest", 30.0), ("biomeHeath", 25.0), ("biomeMeadow", 15.0));   // p2-beaches: grey dunes into pines, not a park
             // Promenade beach: tidy rows, one wide promenade on a level bench with benches and kiosks, palms on a lawn.
@@ -155,7 +155,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             // Wild dunes: no amenities, sand drifting up low, smooth dune ridges parallel to the shore, headlands, fire rings, pines.
             // rf-beach: real dunes (2 -> 3.5 m, deeper belt, thick marram grass; no sand fences: vanilla has no timber one), pines only far behind them.
             Preset("cove", ("style", "cove"), ("beachDepth", 44.0), ("sandBlend", 22.0), ("umbrellas", 6.0), ("backdrop", "dunes"), ("duneDepth", 60.0),
-                ("duneHeight", 5.0), ("treeDensity", 25.0), ("grassDensity", 90.0), ("fires", true), ("lifeguards", 0.0), ("huts", "none"), ("kiosks", 0.0),
+                ("duneHeight", 8.0), ("treeDensity", 25.0), ("grassDensity", 90.0), ("fires", true), ("lifeguards", 0.0), ("huts", "none"), ("kiosks", 0.0),
                 ("lamps", false), ("rockClusters", 3.0), ("boats", true), ("benchSpacing", 0.0), ("accessSpacing", 90.0), ("showers", false), ("bay", 32.0),
                 ("berm", 0.9), ("blowouts", 3.0), ("hummocks", 1.0), ("boardwalk", true),
                 ("biomeLawn", 0.0), ("biomeDunes", 50.0), ("biomeHeath", 30.0), ("biomeForest", 20.0));
@@ -447,9 +447,10 @@ namespace Placemaker.Core.Layers.Types.Beach
                     float peaks = 0.5f + 0.5f * ValueNoise.Sample(new float2(along / 32f, 0.5f), Hashing.Mix(seed, 3u))
                         + 0.12f * math.sin(along / 90f * 6.283f + phase1);
                     float lumps = 0.22f * (ValueNoise.Sample(p / 7f, Hashing.Mix(seed, 4u)) - 0.5f);
-                    // s30: dunes only where the ground is not cut deeply (a dune ridge on top of a cut bank made it a near-vertical sheet).
-                    float onCut = math.saturate(1f - math.max(0f, h0 - t - 0.3f) / 1.5f);
-                    t += duneH * math.max(0f, (math.max(fore, back) + lumps) * peaks) * ends * onCut;
+                    // p2-beaches: the dunes stand on the original ground, not on the bank the beach carve lowered (they came out
+                    // 1.5 m high in the game runner); the foredune's sea face takes up the rise from the beach.
+                    float baseH = math.lerp(t, math.max(t, h0), math.saturate(u * belt / 5f));
+                    t = baseH + duneH * math.max(0f, (math.max(fore, back) + lumps) * peaks) * ends;
                 }
                 return forms.Apply(t, dw, along, h0, p, g.Ref(along));
             });

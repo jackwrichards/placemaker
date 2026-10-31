@@ -63,9 +63,14 @@ namespace Placemaker.Core.Layers.Types.Beach
             f.Berm = ctx.F("berm");
             f.BermAt = wet + 2.5f;
             int storms = ctx.I("storms");
-            for (int i = 0; i < storms; i++) f.Ridges.Add(wet + 3f + i * math.max(5f, (depth - wet - 6f) / math.max(1, storms)));
+            for (int i = 0; i < storms; i++)
+            {
+                // p2-beaches: at least 7 m apart (5 m apart at the game's half layout size they merged into one smear)
+                float r = wet + 3f + i * math.max(7f, (depth - wet - 6f) / math.max(1, storms));
+                if (r < depth - 2f || i == 0) f.Ridges.Add(r);
+            }
             // storm ridges stand 1-1.6 m (at 0.5-1 m on a 5 m base the game runner's shingle read flat)
-            f.RidgeH = 1.1f;
+            f.RidgeH = 1.3f;
             f.Cusps = storms > 0;
             if (storms > 0) f.MaxFill = math.max(f.MaxFill, 2.2f);
             // headlands: one at each end of the shore (a cove between them), or one in the middle; inset from the outline's ends so
@@ -208,7 +213,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             if (Ridges.Count > 0 && dw > -1f)
                 for (int i = 0; i < Ridges.Count; i++)
                 {
-                    float x = (dw - Ridges[i]) / 3.2f;
+                    float x = (dw - Ridges[i]) / 3.6f;
                     t += RidgeH * (0.75f + 0.35f * i) * (x < 0f ? Bump(x * 1.3f) : Bump(x * 0.7f));
                 }
             if (Cusps && dw > -4f && dw < Ridges[0] + 2f)
