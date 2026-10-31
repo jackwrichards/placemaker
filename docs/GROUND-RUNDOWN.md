@@ -247,3 +247,41 @@ direction; marsh fills the real hollows; ruts follow the aisles; leaves follow t
   half their height on top hides them. Sink 0.35-0.55 × 1.6 m × scale for "coming up through the turf".
 - 2026-10-30: **A type with its own design needs its own budget.** The shared causes alone filled 320 a hectare and every
   cause was thinned to 40-60 %; parks use 700 a hectare (`ParkGround.PerHectare`).
+
+## Shared ground mechanics (p1-ground, 2026-10-30): what every type now gets for free
+
+Fixed once in shared code, for every type. Build on these; don't redo them per type.
+
+- **Walks on hills** (`Core/Layers/Park/ParkPathPlanner.cs`, every type that lays walks with it: parks, gardens, leisure,
+  nature, campground, memorial, beach, wetland, waterfront). Each roadmap link costs more the steeper it climbs past the
+  walk grade (8 %, `TerrainSurvey.WalkGrade`), measured over 20 m stretches, so walks run across the slope and zig-zag
+  where they must climb. It switches on only where the land really climbs (6 m or more and a stretch steeper than the walk
+  grade); flat, rolling and bumpy land plans exactly as before. The composer sets the ground (`AmbientHeight`) per layer,
+  so a new type gets it by calling `PlanBest`. Game runner, 260 x 220 m mountains: steep path pieces 348 -> 108,
+  379 -> 142, 447 -> 202 (natural, garden, wild). Paths drawn by other code (trails, desire lines, your own spurs) don't
+  get it: route long climbs through `PlanBest` or the hiking trail's `TrailGrid`. Vanilla has no stair net; where a walk
+  must be steeper, accept the site harmony's "steep path" warning rather than a straight line up the fall line.
+- **Roads**: the contour ("hillside") preset falls back to winding streets where the land has no main slope (flat, or hills
+  that fall every way); it built nothing there. Strict grid and superblocks build on open hills (seen 600 x 500 m).
+- **Holes** (`Core/Build/PitRims.cs`, after the site harmony): wherever your plan lowers the ground by 1.5 m or more is a
+  hole; fences, walls, hedges and bollards within its edge zone (the build's 4 m bank + a cell + 3 m) are clipped away,
+  and piles (rubble, spoil, gravel, sand, ore, debris, skips) and vehicle props that straddle the edge (part dug, part
+  not, or a 1.2 m step under them) are removed. Facts `pitFencesCut`, `pitPilesRemoved`. So: don't plan a rim fence (it
+  goes), and put spoil heaps a footprint clear of the bank if you want them kept. Barrier props (jersey barriers, cones)
+  are not borders and stay.
+- **Parked vehicles** (`BuildService.Emit OnWheels`): Placemaker's vehicle props stand on the live ground under their four
+  wheels, tilted to it (up to 14°); one height at the middle left 5-9 m cars hanging over slopes and terrace steps. Log
+  line "set on its wheels ... would have left a wheel X m over the ground". Wrecks you roll or pitch, and stacked cars
+  (Elevation), are placed as you plan them.
+- **Bridges, piers and boardwalks meeting a ground path** (`BuildService.Emit`, `CourseFitting.JoinEnds`): CS2 joins two
+  net ends into one node only when their positions are bit-identical, y included. A deck end within 0.15 m of a
+  ground-following path end now takes that end exactly (x, z and the ground height assigned), with no elevation, so the
+  game makes one node. Before, the deck kept its planned height (or was raised by a difference one float step off) and each
+  side ended in its own dead end: the bridge's end cap showed as an overhang next to the path.
+  **For the beach / water agents:** end every deck on a path end (same x, z), not beside it; let the deck ramp down to the
+  bank over its first piece (the build does it); don't leave a deliberate step between the land stub and the deck
+  (`ShoreTreatments` pier root, wetland `Y()`, lake bridge `landY` used to); and give the landing ground the deck can
+  meet (a levelled pad at the bank) where the deck must stay high. The runner's own water (land `water`) fills; a type's
+  own basins (wetland ponds) stay dry in the runner, so judge joints there by the deck ends, not the water.
+- **Mowing stripes** (`Weathering.Stripes`): only on bounded pitches up to 130 x 95 m and roughly rectangular, never on
+  open turf or huge fields (e6b64d5b). Keep it that way: a big lawn's look comes from tone and wear, not stripes.
