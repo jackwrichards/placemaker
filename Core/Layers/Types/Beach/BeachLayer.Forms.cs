@@ -40,7 +40,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             c.Slider("storms", 0, 0, 3, 1, "count", ControlTier.More, "shore").Tip();
             c.Slider("headlands", 0, 0, 50, 2, "m", ControlTier.More, "shore").Tip();
             c.Slider("platforms", 0, 0, 100, 5, "%", ControlTier.More, "rocks").Tip();
-            c.Slider("bluff", 0, 0, 8, 0.5, "m", ControlTier.More, "shore").Tip();
+            c.Slider("bluff", 0, 0, 12, 0.5, "m", ControlTier.More, "shore").Tip();
             c.Slider("ravines", 0, 0, 3, 1, "count", ControlTier.More, "shore").Tip();
             c.Slider("knolls", 0, 0, 12, 1, "count", ControlTier.More, "rocks").Tip();
             c.Slider("boulders", 0, 0, 300, 10, "perHa", ControlTier.More, "rocks").Tip();
@@ -71,7 +71,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                 ("boats", true), ("sandBlend", 12.0), ("bay", 0.0), ("lamps", false), ("landings", false), ("underwater", 30.0), ("islands", 1.0),
                 ("biomeLawn", 0.0), ("biomeRocky", 50.0), ("biomeForest", 30.0), ("biomeHeath", 20.0));
             // Rocky ravine: a high rocky bank behind a pocket beach, cut by two boulder-choked barrancas down to the water.
-            Preset("ravine", ("style", "ravine"), ("beachDepth", 20.0), ("wetBand", 3.0), ("slope", 7.0), ("bluff", 6.0), ("ravines", 2.0), ("boulders", 60.0), ("knolls", 0.0),
+            Preset("ravine", ("style", "ravine"), ("beachDepth", 20.0), ("wetBand", 3.0), ("slope", 7.0), ("bluff", 10.0), ("ravines", 2.0), ("boulders", 60.0), ("knolls", 0.0),
                 ("umbrellas", 0.0), ("backdrop", "none"), ("treeDensity", 10.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
                 ("benchSpacing", 40.0), ("bay", 0.0), ("landings", false), ("sandBlend", 8.0),
                 ("biomeLawn", 0.0), ("biomeRocky", 60.0), ("biomeHeath", 40.0));

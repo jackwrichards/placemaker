@@ -301,7 +301,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             ctx.Plan.Facts["msDecals"] = sw2.ElapsedMilliseconds;
             sw2.Restart();
             // s30: banks ≤ 33 % (45 % read as a near-vertical sheet over a 3.5 m heightmap texel once the walk bench was re-laid).
-            g.Finish(b.Forms.MaxCut, b.Forms.MaxFill, b.Forms.MaxGrade);
+            g.Finish(b.Forms.MaxCut, b.Forms.MaxFill, b.Forms.MaxGrade, b.Forms.BorderGrade);
             ctx.Plan.Facts["msFinish"] = sw2.ElapsedMilliseconds;
             EmitGreenRegions(ctx, b.Occ, g);
             CommonStats(ctx);

@@ -582,16 +582,16 @@ namespace Placemaker.Core.Layers.Types.Beach
         /// Emits the sculpt: earthwork limits (an Info issue when they bound the design), grade relaxation, the sloped
         /// patches clipped to land ∪ foreshore, then every object/net/surface of the plan onto the new ground.
         /// </summary>
-        public TerrainResult Finish(float maxCut, float maxFill, float maxGrade)
+        public TerrainResult Finish(float maxCut, float maxFill, float maxGrade, float borderGrade = 0.25f)
         {
             // Round the creases where pads, benches and ramps meet the slope (a 4 m bilinear mesh kinks at cell edges),
             // relax grades, then hold the earthwork limits (last, so nothing pushes past them).
             Sculpt.Smooth(2, 0.3f);
-            Sculpt.CapToBorder(0.25f);
+            Sculpt.CapToBorder(borderGrade);
             Sculpt.LimitGrade(maxGrade);
             if (Sculpt.LimitEarthwork(maxCut, maxFill)) Ctx.Issue(IssueSeverity.Info, EarthworkKey, (int)math.round(maxCut), (int)math.round(maxFill));
             ReapplyBenches();
-            Sculpt.CapToBorder(0.25f);
+            Sculpt.CapToBorder(borderGrade);
             var e = Sculpt.Measure();
             Ctx.Plan.Facts["earthMaxCut"] = e.MaxCut;
             Ctx.Plan.Facts["earthMaxFill"] = e.MaxFill;

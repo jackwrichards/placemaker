@@ -47,6 +47,8 @@ namespace Placemaker.Core.Layers.Types.Beach
         public uint Seed;
 
         public float MaxFill = 1.5f, MaxCut = 5f, MaxGrade = 0.33f;
+        /// <summary>Grade the shaped ground may climb from the outline's fixed border (a 10 m bluff at 25 % lost 40 m each side).</summary>
+        public float BorderGrade = 0.25f;
         /// <summary>How far past the waterline the sculpt must reach (headlands and knolls out in the water).</summary>
         public float Reach;
 
@@ -97,15 +99,21 @@ namespace Placemaker.Core.Layers.Types.Beach
                 f.MaxFill = math.max(f.MaxFill, 3f);
             }
             f.Bluff = ctx.F("bluff");
-            f.BluffAt = depth;
+            // the foot of the bluff behind the promenade's bench (on it, the walk's level climbed the face and lifted the sand 3 m)
+            f.BluffAt = depth + 7f;
             int ravines = ctx.I("ravines");
             if (ravines > 0 && len > 50f)
                 for (int i = 0; i < ravines; i++)
                 {
-                    float s = len * (i + 0.5f) / ravines + (Hashing.Unit(Hashing.Mix(seed, 0x2A71u + (uint)i)) - 0.5f) * len * 0.12f / ravines;
+                    // spread over the middle 40 %: towards the ends the bluff tapers down to the border and the walls lose their height
+                    float s = len * (ravines == 1 ? 0.5f : 0.3f + 0.4f * i / (ravines - 1)) + (Hashing.Unit(Hashing.Mix(seed, 0x2A71u + (uint)i)) - 0.5f) * len * 0.06f;
                     f.Ravines.Add((s, 10f + 4f * Hashing.Unit(Hashing.Mix(seed, 0x2A72u + (uint)i)), 200f));
                 }
             if (f.Bluff > 0f || f.Ravines.Count > 0) { f.MaxFill = math.max(f.MaxFill, f.Bluff + 1.5f); f.MaxCut = math.max(f.MaxCut, 8f); f.MaxGrade = math.max(f.MaxGrade, 0.75f); }
+            // p2-beaches: a bluff cut by ravines is a rock face (~110 %), and the ravine walls near-vertical rock: at 45-75 % both
+            // read as brown slopes (the game runner's rocky ravine)
+            if (f.Ravines.Count > 0) { f.BluffW = 5f; f.MaxGrade = math.max(f.MaxGrade, 1.8f); }
+            if (f.Bluff >= 6f) f.BorderGrade = 0.5f;
             // islands: a low rocky islet off the beach, reached by a footbridge (the user: bridges out to an island must join)
             int islands = ctx.I("islands");
             for (int i = 0; i < islands && len > 50f; i++)
@@ -229,11 +237,13 @@ namespace Placemaker.Core.Layers.Types.Beach
                 float top = rw * (0.75f + 0.35f * math.saturate(dw / 40f));
                 if (cross > top + 4f) continue;
                 float floor = level + 0.25f + 0.045f * math.max(0f, dw);
-                float half = 2.2f + 0.04f * math.max(0f, dw);
+                // p2-beaches: a flat boulder floor and walls climbing over the last 4 m (they spread over the whole width and read as a
+                // shallow brown dip, the game runner's rocky ravine)
+                float half = math.max(2.2f + 0.04f * math.max(0f, dw), top - 4.5f);
                 float w = math.saturate((cross - half) / math.max(1f, top - half));
-                float wall = math.lerp(floor, t, math.pow(Sculpt.Smooth01(w), 0.7f));
-                // rough walls: ledges every metre and a half
-                if (w > 0.05f && w < 0.95f) wall -= 0.35f * (ValueNoise.Sample(p / 3f, Hashing.Mix(Seed, 0x7u)) - 0.3f);
+                float wall = math.lerp(floor, t, Sculpt.Smooth01(w));
+                // rough walls: ledges and buttresses
+                if (w > 0.05f && w < 0.95f) wall -= 0.7f * (ValueNoise.Sample(p / 3f, Hashing.Mix(Seed, 0x7u)) - 0.3f);
                 t = math.min(t, wall);
             }
             // platforms: rock shelves just above the water, a step up behind
