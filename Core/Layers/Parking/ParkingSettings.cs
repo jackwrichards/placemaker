@@ -24,7 +24,7 @@ namespace Placemaker.Core.Layers.Parking
         public const string StallWidth = "stallWidth";
         public const string StallLength = "stallLength";
         public const string Setback = "setback";
-        public const string RowAngleMode = "rowAngleMode";      // "edge" | "street" | "across" | "fixed"
+        public const string RowAngleMode = "rowAngleMode";      // "edge" | "street" | "zones" | "across" | "fixed"
         public const string RowAngle = "rowAngle";
         /// <summary>(P2-1) Turn of the grid against what it lines up with: "0" | "30" | "45" | "60" | "90" | "free".</summary>
         public const string GridTurn = "gridTurn";
@@ -95,7 +95,7 @@ namespace Placemaker.Core.Layers.Parking
 
     internal enum Greenery { None = 0, Edges = 1, Medians = 2 }
 
-    internal enum RowAngleMode { Edge = 0, Across = 1, Fixed = 2, Street = 3 }
+    internal enum RowAngleMode { Edge = 0, Across = 1, Fixed = 2, Street = 3, ZoneGrid = 4 }
 
     internal enum EdgeZoningMode { None = 0, OneSide = 1, All = 2 }
 
@@ -159,7 +159,7 @@ namespace Placemaker.Core.Layers.Parking
             Median = Greenery == Greenery.Medians ? Clamp(bag.Num(ParkingIds.MedianDepth, DefaultMedian), 0, 12) : 0;
             Cross = CrossWidth;
             var m = bag.S(ParkingIds.RowAngleMode, "edge");
-            AngleMode = m == "across" ? RowAngleMode.Across : m == "fixed" ? RowAngleMode.Fixed : m == "street" ? RowAngleMode.Street : RowAngleMode.Edge;
+            AngleMode = m == "across" ? RowAngleMode.Across : m == "fixed" ? RowAngleMode.Fixed : m == "street" ? RowAngleMode.Street : m == "zones" ? RowAngleMode.ZoneGrid : RowAngleMode.Edge;
             // read only where they act (the panel greys unread controls: SettingsBag.Reads)
             RowAngleDeg = AngleMode == RowAngleMode.Fixed ? bag.Num(ParkingIds.RowAngle, 0) : 0;
             if (double.IsNaN(RowAngleDeg) || double.IsInfinity(RowAngleDeg)) RowAngleDeg = 0;

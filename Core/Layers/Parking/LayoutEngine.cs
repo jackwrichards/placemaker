@@ -36,6 +36,8 @@ namespace Placemaker.Core.Layers.Parking
         public Func<double2, double, bool> Blocked = (p, r) => false;
         /// <summary>(P2-1) Streets near the lot, for rows that follow the street (RowAngleMode.Street).</summary>
         public List<RoadLine> Roads = new List<RoadLine>();
+        /// <summary>(P2-1) Zone blocks round the lot, for rows on the zone grid (RowAngleMode.ZoneGrid).</summary>
+        public List<ZoneGrid> ZoneGrids = new List<ZoneGrid>();
         /// <summary>(P2-1) An edge the player picked (hand edit "grid.edge"): the rows run along it and start at it. Null = none.</summary>
         public double2[] ChosenEdge;
         /// <summary>
@@ -184,6 +186,7 @@ namespace Placemaker.Core.Layers.Parking
                 dir = new double2(Math.Cos(r), Math.Sin(r));
             }
             else if (_s.AngleMode == RowAngleMode.Street) dir = StreetEdge(w, _rq.Roads) ?? LongestStraight(w);
+            else if (_s.AngleMode == RowAngleMode.ZoneGrid) dir = ZoneGridEdge(w, _rq.ZoneGrids) ?? StreetEdge(w, _rq.Roads) ?? LongestStraight(w);
             else
             {
                 dir = LongestStraight(w);
@@ -231,6 +234,28 @@ namespace Placemaker.Core.Layers.Parking
                     if (Roads.Nearest(roads, q, 16, out _)) along += len / n;
                 }
                 if (along > best + 1e-6) { best = along; dir = PGeo.Norm(b - a); }
+            }
+            return dir;
+        }
+
+        /// <summary>
+        /// (P2-1) The direction of the zone grid round the lot: the zone blocks of the streets near it (8 m cells along their
+        /// road), each weighted by its cells and how close it is; the grid runs along the road of the strongest. Null = no block
+        /// within 40 m of the outline (then the street, then the longest side).
+        /// </summary>
+        internal static double2? ZoneGridEdge(IReadOnlyList<double2> pts, List<ZoneGrid> zones)
+        {
+            if (zones == null || zones.Count == 0 || pts == null || pts.Count < 3) return null;
+            double best = 0; double2? dir = null;
+            foreach (var z in zones)
+            {
+                var d = new double2(z.Direction.x, z.Direction.y);
+                if (PGeo.Len(d) < 1e-6 || z.Size.x <= 0 || z.Size.y <= 0) continue;
+                var c = new double2(z.Position.x, z.Position.y);
+                double gap = PGeo.Contains(pts, c) ? 0 : Math.Max(0, PGeo.DistToBoundary(pts, c) - Math.Max(z.Size.x, z.Size.y) * 4);
+                if (gap > 40) continue;
+                double score = z.Size.x * z.Size.y / (1 + gap / 8);
+                if (score > best + 1e-9) { best = score; dir = PGeo.Perp(PGeo.Norm(d)); }
             }
             return dir;
         }

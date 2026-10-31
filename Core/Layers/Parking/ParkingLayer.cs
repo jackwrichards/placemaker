@@ -147,6 +147,7 @@ namespace Placemaker.Core.Layers.Parking
             var mode = C(ParkingIds.RowAngleMode, ControlKind.Choice, ControlTier.Essential, "layout", "edge");
             mode.Options.Add(Opt("edge", "RowAngleMode.Edge"));
             mode.Options.Add(Opt("street", "RowAngleMode.Street"));
+            mode.Options.Add(Opt("zones", "RowAngleMode.Zones"));
             mode.Options.Add(Opt("across", "RowAngleMode.Across"));
             mode.Options.Add(Opt("fixed", "RowAngleMode.Fixed"));
             l.Add(mode);

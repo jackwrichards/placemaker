@@ -81,6 +81,8 @@
   "Placemaker.Parking.RowAngleMode.Edge.Tip": "Rows run parallel to the longest straight side of the outline.",
   "Placemaker.Parking.RowAngleMode.Street": "Along the street",
   "Placemaker.Parking.RowAngleMode.Street.Tip": "Rows run parallel to the side of the outline that runs longest along a street.",
+  "Placemaker.Parking.RowAngleMode.Zones": "Zone grid",
+  "Placemaker.Parking.RowAngleMode.Zones.Tip": "Rows line up with the zoning grid of the streets around the lot, like the buildings next to it.",
   "Placemaker.Parking.RowAngleMode.Across": "Across the longest side",
   "Placemaker.Parking.RowAngleMode.Across.Tip": "Rows run at right angles to the longest side.",
   "Placemaker.Parking.RowAngleMode.Fixed": "Custom",

@@ -177,5 +177,21 @@ namespace Placemaker.Tests
             Assert.Single(list);
             Assert.Equal(50, list[0].Position.x);
         }
+
+        [Fact]
+        public void ZoneGridLinesTheRowsUpWithTheBlocksNearby()
+        {
+            var lot = new List<double2> { new double2(0, 0), new double2(100, 0), new double2(100, 60), new double2(0, 60) };
+            // a block of a street turned 30 degrees, just north of the lot (Direction points to its road), and a far one
+            float r = math.radians(30);
+            var along = new float2(math.cos(r), math.sin(r));
+            var near = new ZoneGrid { Position = new float2(50, 80), Direction = new float2(-along.y, along.x), Size = new int2(10, 4) };
+            var far = new ZoneGrid { Position = new float2(500, 500), Direction = new float2(1, 0), Size = new int2(20, 6) };
+            var dir = LayoutEngine.ZoneGridEdge(lot, new List<ZoneGrid> { far, near });
+            Assert.True(dir.HasValue);
+            double deg = (System.Math.Atan2(dir.Value.y, dir.Value.x) * 180 / System.Math.PI + 360) % 180;
+            Assert.True(System.Math.Abs(deg - 30) < 0.5 || System.Math.Abs(deg - 210 % 180) < 0.5, "rows at " + deg);
+            Assert.Null(LayoutEngine.ZoneGridEdge(lot, new List<ZoneGrid> { far }));
+        }
     }
 }

@@ -110,6 +110,7 @@ namespace Placemaker.Core.Layers.Parking
                 rq.Blocked = (p, r) => reserved.Blocks(new float2((float)p.x, (float)p.y), (float)r);
             rq.Entrances.AddRange(entrances);
             rq.Roads = roads;
+            if (site.ZoneGrids != null) rq.ZoneGrids.AddRange(site.ZoneGrids);
             // (P2-1) existing buildings inside or at the outline: the layout works round their lots
             foreach (var b in Placemaker.Core.Build.SiteSafety.Protected(site))
             {
