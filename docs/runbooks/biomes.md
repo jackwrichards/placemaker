@@ -78,3 +78,26 @@ mix of percentages. Parks first; Phase 2 agents (farms, beaches, golf, nature) o
 | `send-biomes-before-1030-211200` | BEFORE: natural default, rocky areas at "many" (barely different), wild, rocky max on hills |
 | `send-biomes-r1-1030-213254` | first look: 100 % rocky (even spread), forest (a real forest), flowers |
 | `send-biomes-r2-1030-213815` | every biome at 100 %, natural, wild, garden |
+| `send-biomes-r3-1030-214510` | ponds fill (grow 45 s), meadow with long grass, mulch, heath; botanical, memorial, adventure (nature), woodland |
+| `send-biomes-r4-1030-215002` | 400 x 300 natural, city block, hills (natural, wild), mountains (rocky park), marsh pools hold water |
+| `send-biomes-perf-1030-215319` | frame time and removal (below) |
+| `send-biomes-r5-1030-222507` | after the speed-ups: 400 x 300, wetland, rocky, rocky park on hills; the Landscape card in the panel |
+
+## Frame time, memory, planning, removal
+
+- `send-biomes-perf-1030-215319`, natural park 400 x 300 (5 854 decals; 25 800 city-wide with the earlier builds): median
+  frame 8.89 ms with the ground, 8.72 ms switched off (+0.17 ms). GPU: 429 variants, 96.5 MiB of the 200 MiB budget.
+- Removal: 2 934 pieces built, 1 left after bulldozing (the entrance path's node at the street, the same joint every type
+  leaves; not a biome piece). Rocky park 220 x 200: the same.
+- Planning in the game (220 x 200): 0.7-1.7 s on the worker, the biomes 90-440 ms of it. 400 x 300: 2.5-2.9 s.
+  Tests: 36 ha park compose 3.7 s (was 11.2 s before `BrushArea.Contains` checked Keep and ring boxes first); adventure
+  playground 5 ha 200-390 ms (budget raised to 450 ms: it plans a landscape now).
+
+## Open
+
+- Not graded by the user yet. Wetland pools read grey-blue from 45° (shallow water over dug ground); a darker marsh water
+  decal could help.
+- Mulch reads warm orange-brown; flower field reads mostly yellow (purple/red drifts are small at 45°).
+- Paths are planned before the split: the areas adapt to the paths (verges, water keeps off), the paths do not route
+  round the areas yet.
+- Zen garden and amphitheatre have no mix (their grounds are designed: raked gravel, terraces).
