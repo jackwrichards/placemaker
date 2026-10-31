@@ -407,5 +407,6 @@
   "Placemaker.Settings.SketchStyle.Classic": "Klasyczny",
   "Placemaker.Settings.SketchStyle.Desc": "Plan sytuacyjny rysuje z góry to, co zostanie zbudowane: drogi, ścieżki, trawnik, drzewa, miejsca parkingowe i każdy obiekt w przybliżeniu. Klasyczny rysuje kolory ról i linie przerywane.",
   "Placemaker.Issue.UngroupedNoPark": "Niezgrupowane w jeden obiekt, więc nie działa jak park: brak utrzymania, ale też brak turystyki, wypoczynku i dobrostanu. Włącz „Grupuj jako jeden zasób”, aby był parkiem.",
-  "Placemaker.Issue.UngroupedNoPark.Short": "Niezgrupowane w jeden obiekt"
+  "Placemaker.Issue.UngroupedNoPark.Short": "Niezgrupowane w jeden obiekt",
+  "Placemaker.Problem.TooBigFor": "Bardzo duży jak na ten typ (przewidziany do {0} ha). Zadziała, ale nie jest przewidziany na ten rozmiar, a wyburzanie może być wolne."
 }

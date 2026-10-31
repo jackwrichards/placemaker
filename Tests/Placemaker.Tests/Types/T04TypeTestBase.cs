@@ -116,7 +116,7 @@ namespace Placemaker.Tests.Types.T04
         public void HasFourToSixPresetsAndTidyControls()
         {
             Assert.InRange(Gen.Presets.Count, 4, 6);
-            var real = Gen.Controls.Where(c => c.Kind != ControlKind.Markers && !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).ToList();
+            var real = Gen.Controls.Where(c => c.Kind != ControlKind.Markers && !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).ToList();
             Assert.InRange(real.Count, 15, 40);
             Assert.InRange(real.Select(c => c.Group).Distinct().Count(), 4, 8);
             Assert.Contains(Gen.Controls, c => c.Id == "subtype" && c.Kind == ControlKind.Choice);

@@ -10,12 +10,12 @@
   "Placemaker.Dress.dressStyle.livedIn.Tooltip": "Everyday use: worn verges and paths.",
   "Placemaker.Dress.dressStyle.gritty": "Gritty",
   "Placemaker.Dress.dressStyle.gritty.Tooltip": "Neglected: heavy wear and bare ground.",
-  "Placemaker.Dress.dressPaintWear": "Ground paint",
+  "Placemaker.Dress.dressPaintWear": "Wear paint",
   "Placemaker.Dress.dressPaintWear.Tooltip": "How much is painted into the ground texture as dressing: lawn variation, mulch under trees, worn path edges, worn patches at benches, play items and entrances, soft edges, pitch and pitch-site wear. Only where the bare ground shows (never under a surface, path or water). Permanent, like all ground paint; 0 paints nothing.",
   "Placemaker.Dress.dressDesirePaths": "Desire paths",
   "Placemaker.Dress.dressDesirePaths.Tooltip": "Faint trodden lines where people cut corners between paths and walk across the lawn to benches and play items (painted into the ground texture).",
-  "Placemaker.Dress.dressDesirePaths.Off": "Only when Ground paint is on",
-  "Placemaker.UI.Group.groundPaint": "Ground paint",
+  "Placemaker.Dress.dressDesirePaths.Off": "Only when Wear paint is on",
+  "Placemaker.UI.Group.groundPaint": "Terrain paint",
   "Placemaker.Dress.dressLawn": "Lawn",
   "Placemaker.Dress.dressLawn.Tooltip": "Painted terrain: the map's own grass with lush and dry patches, mulch and wear painted in (natural, lived-in). Grass surface: one even, manicured grass texture that hides the ground (formal; also the choice on desert or rocky maps).",
   "Placemaker.Dress.dressLawn.painted": "Painted terrain",
@@ -66,6 +66,6 @@
   "Placemaker.Category.decal.glass": "broken glass decals",
   "Placemaker.Category.decal.beach": "beach wrack decals",
   "Placemaker.Category.decal.footprints": "footprint decals",
-  "Placemaker.Dress.dressGroundDecals": "Ground decals",
+  "Placemaker.Dress.dressGroundDecals": "Decals",
   "Placemaker.Dress.dressGroundDecals.Tooltip": "Cracks, grime, leaves, puddles and wear drawn on the ground. Off: none at all."
 }

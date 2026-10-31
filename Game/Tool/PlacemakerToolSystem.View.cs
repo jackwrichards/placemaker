@@ -157,6 +157,8 @@ namespace Placemaker.Game.Tool
                 AreaM2 = AreaM2,
                 PerimeterM = PerimeterM,
                 AreaProblem = facts.AreaProblem,
+                AreaWarning = facts.AreaProblem == null && _shape != null && _recipe != null && !_painter
+                    ? SizeGuide.Warning(Placemaker.Core.GeneratorRegistry.Get(_recipe.Root.Layer), AreaM2) : null,
                 Primary = StageMachine.Primary(_stage, facts),
                 CanUndo = CanUndo,
                 CanRedo = CanRedo,

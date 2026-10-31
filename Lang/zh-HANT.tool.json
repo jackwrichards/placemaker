@@ -407,5 +407,6 @@
   "Placemaker.Settings.SketchStyle.Classic": "經典",
   "Placemaker.Settings.SketchStyle.Desc": "總平面圖從上方繪製將要建造的內容：道路、小徑、草坪、樹木、停車位以及每個物件的大致形狀。經典樣式以功能顏色和虛線繪製。",
   "Placemaker.Issue.UngroupedNoPark": "未群組為一個素材，所以不會作為公園運作：沒有維護費，但也沒有觀光、休閒與幸福度。開啟「群組為一個素材」即可成為公園。",
-  "Placemaker.Issue.UngroupedNoPark.Short": "未組合為一個資產"
+  "Placemaker.Issue.UngroupedNoPark.Short": "未組合為一個資產",
+  "Placemaker.Problem.TooBigFor": "對此類型來說非常大（設計上限為 {0} 公頃）。可以使用，但並非為此尺寸設計，拆除可能較慢。"
 }

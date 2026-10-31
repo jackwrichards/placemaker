@@ -18,17 +18,22 @@ namespace Placemaker.Core.Tool
         {
             if (gen == null || gen.Kind != LayerKind.Fill || !(gen is IHasFeatures hf)) return Array.Empty<FeatureInfo>();
             // (issue #2) the Decals feature placed only decals from decal packs, which plans no longer keep (PackDecals)
-            try { return hf.Features == null ? (IReadOnlyList<FeatureInfo>)Array.Empty<FeatureInfo>() : Visible(hf.Features); }
+            try { return hf.Features == null ? (IReadOnlyList<FeatureInfo>)Array.Empty<FeatureInfo>() : Visible(gen, hf.Features); }
             catch (Exception) { return Array.Empty<FeatureInfo>(); }
         }
 
-        private static IReadOnlyList<FeatureInfo> Visible(IReadOnlyList<FeatureInfo> all)
+        // (Phase 1) Look features (big trees, rocky areas, water…) are settings of the type, not add-ons (Layers/Common/LookSettings),
+        // and retired ones (wildlife) are offered by no type.
+        private static bool Hidden(IAreaGenerator gen, FeatureInfo f) =>
+            f != null && (Decals.PackDecals.IsHiddenFeature(f.Layer) || Layers.Common.LookSettings.IsLookOf(gen, f.Layer) || Layers.Common.LookSettings.IsRetired(f.Layer));
+
+        private static IReadOnlyList<FeatureInfo> Visible(IAreaGenerator gen, IReadOnlyList<FeatureInfo> all)
         {
             foreach (var f in all)
-                if (f != null && Decals.PackDecals.IsHiddenFeature(f.Layer))
+                if (Hidden(gen, f))
                 {
                     var list = new List<FeatureInfo>(all.Count);
-                    foreach (var g in all) if (g == null || !Decals.PackDecals.IsHiddenFeature(g.Layer)) list.Add(g);
+                    foreach (var g in all) if (g == null || !Hidden(gen, g)) list.Add(g);
                     return list;
                 }
             return all;

@@ -10,12 +10,12 @@
   "Placemaker.Dress.dressStyle.livedIn.Tooltip": "Codzienne użytkowanie: wydeptane pobocza i ścieżki.",
   "Placemaker.Dress.dressStyle.gritty": "Zaniedbany",
   "Placemaker.Dress.dressStyle.gritty.Tooltip": "Zaniedbany: mocne zużycie i goły grunt.",
-  "Placemaker.Dress.dressPaintWear": "Malowanie gruntu",
+  "Placemaker.Dress.dressPaintWear": "Malowanie zużycia",
   "Placemaker.Dress.dressPaintWear.Tooltip": "Ile jest malowane w teksturze gruntu jako wystrój: zróżnicowanie trawnika, ściółka pod drzewami, wydeptane krawędzie ścieżek, wydeptane łaty przy ławkach, sprzęcie do zabawy i wejściach, miękkie krawędzie, zużycie boisk i stanowisk. Tylko tam, gdzie widać goły grunt (nigdy pod powierzchnią, ścieżką ani wodą). Trwałe, jak każde malowanie gruntu; 0 nic nie maluje.",
   "Placemaker.Dress.dressDesirePaths": "Wydeptane ścieżki",
   "Placemaker.Dress.dressDesirePaths.Tooltip": "Słabe wydeptane linie tam, gdzie ludzie chodzą na skróty między ścieżkami i przez trawnik do ławek i sprzętu do zabawy (malowane w teksturze gruntu).",
-  "Placemaker.Dress.dressDesirePaths.Off": "Tylko gdy Malowanie gruntu jest włączone",
-  "Placemaker.UI.Group.groundPaint": "Malowanie gruntu",
+  "Placemaker.Dress.dressDesirePaths.Off": "Tylko przy włączonym Malowaniu zużycia",
+  "Placemaker.UI.Group.groundPaint": "Malowanie terenu",
   "Placemaker.Dress.dressLawn": "Trawnik",
   "Placemaker.Dress.dressLawn.Tooltip": "Malowany teren: własna trawa mapy z bujnymi i suchymi łatami, wmalowaną ściółką i zużyciem (naturalny, zamieszkany). Powierzchnia trawy: jedna równa, wypielęgnowana tekstura trawy zakrywająca grunt (formalnie; też wybór na mapach pustynnych lub skalistych).",
   "Placemaker.Dress.dressLawn.painted": "Malowany teren",
@@ -66,6 +66,6 @@
   "Placemaker.Category.decal.glass": "naklejki potłuczonego szkła",
   "Placemaker.Category.decal.beach": "naklejki wyrzutów morskich",
   "Placemaker.Category.decal.footprints": "naklejki śladów stóp",
-  "Placemaker.Dress.dressGroundDecals": "Kalkomanie podłoża",
+  "Placemaker.Dress.dressGroundDecals": "Kalkomanie",
   "Placemaker.Dress.dressGroundDecals.Tooltip": "Pęknięcia, brud, liście, kałuże i zużycie rysowane na podłożu. Wyłączone: żadnych."
 }

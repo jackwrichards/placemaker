@@ -10,12 +10,12 @@
   "Placemaker.Dress.dressStyle.livedIn.Tooltip": "Usage quotidien : bas-côtés et chemins usés.",
   "Placemaker.Dress.dressStyle.gritty": "Négligé",
   "Placemaker.Dress.dressStyle.gritty.Tooltip": "À l'abandon : forte usure et sol nu.",
-  "Placemaker.Dress.dressPaintWear": "Peinture du sol",
+  "Placemaker.Dress.dressPaintWear": "Peinture d'usure",
   "Placemaker.Dress.dressPaintWear.Tooltip": "Quantité d'habillage peinte dans la texture du sol : variations de la pelouse, paillis sous les arbres, bords de chemins usés, zones usées près des bancs, des jeux et des entrées, bords doux, usure des terrains de sport. Seulement là où le sol nu est visible (jamais sous une surface, un chemin ou de l'eau). Permanente, comme toute peinture du sol ; 0 ne peint rien.",
   "Placemaker.Dress.dressDesirePaths": "Lignes de désir",
   "Placemaker.Dress.dressDesirePaths.Tooltip": "Fines traces piétinées là où les gens coupent les virages entre les chemins et traversent la pelouse vers les bancs et les jeux (peintes dans la texture du sol).",
-  "Placemaker.Dress.dressDesirePaths.Off": "Seulement si la peinture du sol est activée",
-  "Placemaker.UI.Group.groundPaint": "Peinture du sol",
+  "Placemaker.Dress.dressDesirePaths.Off": "Seulement si Peinture d'usure est activée",
+  "Placemaker.UI.Group.groundPaint": "Peinture du terrain",
   "Placemaker.Dress.dressLawn": "Pelouse",
   "Placemaker.Dress.dressLawn.Tooltip": "Terrain peint : l'herbe de la carte avec des zones luxuriantes et sèches, du paillis et de l'usure peints (naturel, vécu). Surface d'herbe : une texture d'herbe uniforme et soignée qui cache le sol (formel ; aussi le bon choix sur les cartes désertiques ou rocheuses).",
   "Placemaker.Dress.dressLawn.painted": "Terrain peint",
@@ -66,6 +66,6 @@
   "Placemaker.Category.decal.glass": "décalcomanies de verre brisé",
   "Placemaker.Category.decal.beach": "décalcomanies de laisse de mer",
   "Placemaker.Category.decal.footprints": "décalcomanies d'empreintes de pas",
-  "Placemaker.Dress.dressGroundDecals": "Décalcomanies au sol",
+  "Placemaker.Dress.dressGroundDecals": "Décalcomanies",
   "Placemaker.Dress.dressGroundDecals.Tooltip": "Fissures, saleté, feuilles, flaques et usure dessinées au sol. Désactivé : aucune."
 }

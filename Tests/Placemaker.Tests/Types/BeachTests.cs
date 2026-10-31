@@ -28,8 +28,8 @@ namespace Placemaker.Tests.Types
         {
             var g = TestKit.Gen("beach");
             Assert.InRange(g.Presets.Count, 4, 6);
-            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, 54);   // s13: sand blend, sand to water, landings, lifeguard/landing assets; rf-beach: jetties
-            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).Select(c => c.Group).Distinct().Count(), 4, 10);
+            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, 54);   // s13: sand blend, sand to water, landings, lifeguard/landing assets; rf-beach: jetties
+            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Distinct().Count(), 4, 10);
             Assert.Equal("water", GeneratorGroups.Of(g));
             Assert.Contains(g.Controls, c => c.Id == "style" && c.Kind == ControlKind.Choice);
         }

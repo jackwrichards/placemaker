@@ -20,6 +20,22 @@ using Xunit;
 
 namespace Placemaker.Tests.Types
 {
+    /// <summary>
+    /// (Phase 1) Add-ons that became settings of their host (LookSettings: big trees, rocky areas, water, shore, the neglect
+    /// clutter…) are no longer in Features.Of; a type still offers them, as its look control. DesignEditor.SetFeature on a
+    /// look sets the setting, and the composer makes the feature child from it, so the feature layer is still planned.
+    /// </summary>
+    public static class Phase1Looks
+    {
+        /// <summary>The real add-ons (Features.Of) and the features the type's look settings drive.</summary>
+        public static string[] AllFeatures(IAreaGenerator gen) =>
+            Features.Of(gen).Select(f => f.Layer).Concat(LookSettings.Of(gen).Select(x => x.feature.Layer)).Distinct().ToArray();
+
+        /// <summary>The type offers the feature: as an add-on, or as its look setting (the control is there).</summary>
+        public static bool Offers(IAreaGenerator gen, string layer) =>
+            Features.Of(gen).Any(f => f.Layer == layer) || LookSettings.IsLookOf(gen, layer);
+    }
+
     public static class TypeWaveKit06
     {
         public static readonly float3[] OneHa = TestKit.Rect(100, 100);
@@ -199,8 +215,8 @@ namespace Placemaker.Tests.Types
         public static void AssertSchemaShape(string id, string subtypeControl, string group)
         {
             var g = TestKit.Gen(id);
-            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, 40);
-            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).Select(c => c.Group).Distinct().Count(), 4, 8);
+            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, 40);   // (Phase 1) look settings not counted
+            Assert.InRange(g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Where(x => !Placemaker.Core.Layers.Common.GroundSection.IsGround(x)).Distinct().Count(), 4, 8);   // (Phase 1) look settings and the shared Ground section (terrain paint, ground cover, shape) not counted
             var sub = g.Controls.First();
             Assert.Equal(subtypeControl, sub.Id);
             Assert.Equal(ControlKind.Choice, sub.Kind);

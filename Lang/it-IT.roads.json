@@ -265,7 +265,7 @@
   "Placemaker.EdgeZoning.Stat.Area": "Area zonizzata",
   "Placemaker.EdgeZoning.Issue.NoFrontage": "Nessuna strada costeggia quest'area, quindi non è stato zonizzato nulla.",
   "Placemaker.UI.Group.walkways": "Passaggi e vicoli",
-  "Placemaker.UI.Group.terrain": "Terreno",
+  "Placemaker.UI.Group.terrain": "Forma",
   "Placemaker.Roads.Role.lane": "Vicolo",
   "Placemaker.Roads.Control.junctionSpacing": "Distanza incroci",
   "Placemaker.Roads.Control.junctionSpacing.Tooltip": "Sulle strade principali (viali): le vie laterali si innestano al massimo ogni tanti metri. Le vie laterali più vicine finiscono in un vicolo cieco prima del viale (con un percorso pedonale fino a esso) o si uniscono alle vicine. 0 = ogni via laterale si innesta.",

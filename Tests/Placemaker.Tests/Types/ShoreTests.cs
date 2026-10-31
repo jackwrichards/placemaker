@@ -56,9 +56,13 @@ namespace Placemaker.Tests.Types
         {
             foreach (var host in new[] { "park", "plaza" })
             {
-                var f = Features.Of(TestKit.Gen(host)).Single(x => x.Layer == ShoreKit.LayerId);
-                Assert.True(f.DefaultOn);
-                Assert.Equal(ShoreKit.Place, f.Target);
+                // (Phase 1) the shore is a setting of the host now (lookShore), "auto" by default, not a default-on add-on.
+                var gen = TestKit.Gen(host);
+                Assert.DoesNotContain(Features.Of(gen), x => x.Layer == ShoreKit.LayerId);
+                Assert.Equal("auto", gen.Controls.Single(c => c.Id == "lookShore").Default);
+                var (look, f) = LookSettings.Find(gen, "lookShore");
+                Assert.Equal(ShoreKit.LayerId, look.Feature);
+                Assert.Equal(ShoreKit.Place, f.Target ?? "");
                 Assert.Contains(ShoreKit.Place, TestKit.Gen(host).Emits);
             }
         }
@@ -292,9 +296,10 @@ namespace Placemaker.Tests.Types
         [Fact]
         public void ParkWithUpgradedPondComposes()
         {
+            // (Phase 1) the pond is the park's water setting (lookWater); its upgrade is the "lake" level, not a child edited by hand.
             var r = With("park", "pond");
-            var pondStep = r.Root.Children.Single(c => c.Layer == "pond");
-            foreach (var kv in Preset("pond", "grandLake").Values.Values) pondStep.Settings.Values[kv.Key] = kv.Value;
+            Assert.Equal("pond", r.Root.Settings.Values["lookWater"]);
+            r.Root.Settings.Values["lookWater"] = "lake";
             var plan = Compose(r, TestKit.Rect(320, 260));
             Assert.True(string.IsNullOrEmpty(Errors(plan)), Errors(plan));
             var pond = plan.Layers.Single(l => l.GeneratorId == "pond");

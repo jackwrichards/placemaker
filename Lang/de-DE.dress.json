@@ -10,12 +10,12 @@
   "Placemaker.Dress.dressStyle.livedIn.Tooltip": "Alltäglicher Gebrauch: abgenutzte Ränder und Wege.",
   "Placemaker.Dress.dressStyle.gritty": "Rau",
   "Placemaker.Dress.dressStyle.gritty.Tooltip": "Vernachlässigt: starke Abnutzung und nackter Boden.",
-  "Placemaker.Dress.dressPaintWear": "Bodenfarbe",
+  "Placemaker.Dress.dressPaintWear": "Abnutzungsfarbe",
   "Placemaker.Dress.dressPaintWear.Tooltip": "Wie viel als Ausgestaltung in die Bodentextur gemalt wird: Rasenvariation, Mulch unter Bäumen, abgenutzte Wegränder, abgetretene Stellen an Bänken, Spielgeräten und Eingängen, weiche Ränder, Abnutzung an Spielfeldern. Nur wo der nackte Boden sichtbar ist (nie unter einer Oberfläche, einem Weg oder Wasser). Dauerhaft wie jede Bodenfarbe; 0 malt nichts.",
   "Placemaker.Dress.dressDesirePaths": "Trampelpfade",
   "Placemaker.Dress.dressDesirePaths.Tooltip": "Schwache ausgetretene Linien, wo Leute zwischen Wegen Ecken abkürzen und über den Rasen zu Bänken und Spielgeräten gehen (in die Bodentextur gemalt).",
-  "Placemaker.Dress.dressDesirePaths.Off": "Nur bei eingeschalteter Bodenfarbe",
-  "Placemaker.UI.Group.groundPaint": "Bodenfarbe",
+  "Placemaker.Dress.dressDesirePaths.Off": "Nur bei eingeschalteter Abnutzungsfarbe",
+  "Placemaker.UI.Group.groundPaint": "Terrainfarbe",
   "Placemaker.Dress.dressLawn": "Rasen",
   "Placemaker.Dress.dressLawn.Tooltip": "Bemaltes Terrain: das eigene Gras der Karte mit üppigen und trockenen Stellen, Mulch und Abnutzung eingemalt (natürlich, belebt). Gras-Oberfläche: eine gleichmäßige, gepflegte Grastextur, die den Boden verdeckt (formell; auch die Wahl auf Wüsten- oder Felskarten).",
   "Placemaker.Dress.dressLawn.painted": "Bemaltes Terrain",
@@ -66,6 +66,6 @@
   "Placemaker.Category.decal.glass": "Glasscherben-Markierungen",
   "Placemaker.Category.decal.beach": "Treibgut-Markierungen",
   "Placemaker.Category.decal.footprints": "Fußspur-Markierungen",
-  "Placemaker.Dress.dressGroundDecals": "Bodendecals",
+  "Placemaker.Dress.dressGroundDecals": "Decals",
   "Placemaker.Dress.dressGroundDecals.Tooltip": "Risse, Schmutz, Laub, Pfützen und Abnutzung auf dem Boden. Aus: gar keine."
 }

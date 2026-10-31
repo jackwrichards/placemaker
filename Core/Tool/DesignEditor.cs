@@ -132,6 +132,13 @@ namespace Placemaker.Core.Tool
         {
             var step = RecipePaths.Resolve(recipe, path);
             if (step == null) return false;
+            // (Phase 1) A look feature (big trees, water…) is a setting now: on / off sets it (its "on" level / none).
+            foreach (var (look, lf) in Layers.Common.LookSettings.Of(Generator(step.Layer)))
+            {
+                if (lf.Layer != featureLayer) continue;
+                step.Settings.Values[look.ControlId] = Layers.Common.LookSettings.ToControl(look, enabled ? look.On(lf) : Layers.Common.LookSettings.Off);
+                return true;
+            }
             var f = Features.Find(Generator(step.Layer), featureLayer);
             if (f == null) return false;
             int idx = Features.ChildIndex(step, f);
@@ -214,6 +221,8 @@ namespace Placemaker.Core.Tool
             foreach (var kv in new List<KeyValuePair<string, RecipeStep>>(RecipePaths.Walk(recipe)))
             {
                 var step = kv.Value;
+                // (Phase 1) a type just picked gets its look settings (its recipe's feature child, else their default)
+                if (Layers.Common.LookSettings.Migrate(Generator(step.Layer), step, true)) changed = true;
                 foreach (var f in Features.Of(Generator(step.Layer)))
                 {
                     if (f == null || !f.DefaultOn || Features.ChildIndex(step, f) >= 0) continue;

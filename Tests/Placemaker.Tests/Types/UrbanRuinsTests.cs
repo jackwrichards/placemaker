@@ -23,13 +23,13 @@ namespace Placemaker.Tests.Types
             var gen = TestKit.Gen(Id);
             Assert.Equal("sports", GeneratorGroups.Of(gen));
             Assert.InRange(gen.Presets.Count, 4, 6);
-            Assert.InRange(gen.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, 40);
+            Assert.InRange(gen.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, 40);   // (Phase 1) look settings not counted
             var subtype = gen.Controls.Single(c => c.Id == "subtype");
             Assert.Equal(gen.Presets.Select(p => p.Id), subtype.Options.Select(o => o.Value));
             foreach (var p in gen.Presets) Assert.Equal(p.Id, p.Values.S("subtype", ""));
-            Assert.InRange(gen.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).Select(c => c.Group).Distinct().Count(g => g != "entrances" && g != "shops"), 4, 8);
+            Assert.InRange(gen.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Distinct().Count(g => g != "entrances" && g != "shops"), 4, 8);   // (Phase 1) look settings not counted
             Assert.Contains(Features.Of(gen), f => f.Layer == "dirtJumps");
-            Assert.Contains(Features.Of(gen), f => f.Layer == "debris");
+            Assert.True(Phase1Looks.Offers(gen, "debris"));   // (Phase 1) a look setting now (lookDebris)
             Assert.Contains(Features.Of(gen), f => f.Layer == "restrooms");
         }
 

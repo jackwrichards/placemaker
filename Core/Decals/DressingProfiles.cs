@@ -289,9 +289,6 @@ namespace Placemaker.Core.Decals
             s.Style = ParseStyle(values?.S(StyleId, null), p.Style);
             foreach (var f in p.Families) s.Amount[(int)f] = Pct(values, FamilyId(f));
             s.PaintWear = Pct(values, PaintWearId);
-            s.DesirePaths = values == null ? p.Style != DressStyle.Clean : values.B(DesirePathsId, p.Style != DressStyle.Clean);
-            s.Mulch = values == null || values.B(MulchId, true);
-            s.LawnTint = values == null || values.B(LawnTintId, true);
             s.ClearFirst = values != null && values.B(ClearPaintId, false);
             s.Weathering = Dynamic.Weathering.Wants(gen.Id, values) && GroundDecalsOn(values);
             s.Grime = Dynamic.Weathering.Amount(values);
@@ -300,6 +297,11 @@ namespace Placemaker.Core.Decals
             // The park's older "Grass surface" toggle off also leaves a bare lawn.
             if (lawn != null && !s.LawnPainted && values != null && values.Values.ContainsKey(Layers.Common.Lawn.LegacyToggle)
                 && !values.B(Layers.Common.Lawn.LegacyToggle, true)) s.LawnPainted = true;
+            // (Phase 1) Read only what GroundWear will use, so the panel greys out the rest (SettingsBag.Reads): with decals the
+            // paint keeps only the tone and the lived-in mulch (no desire paths), lawn variation needs a painted lawn.
+            s.DesirePaths = !s.Weathering && (values == null ? p.Style != DressStyle.Clean : values.B(DesirePathsId, p.Style != DressStyle.Clean));
+            s.Mulch = (!s.Weathering || s.Style != DressStyle.Clean) && (values == null || values.B(MulchId, true));
+            s.LawnTint = s.LawnPainted && (values == null || values.B(LawnTintId, true));
             return s;
         }
 

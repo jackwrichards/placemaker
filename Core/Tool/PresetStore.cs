@@ -222,6 +222,8 @@ namespace Placemaker.Core.Tool
             {
                 step.Settings = Overlay(_editor.DefaultsFor(layer), gen, user.Step.Settings, null);
                 foreach (var id in user.Step.Locked) if (step.Settings.Values.ContainsKey(id)) step.Locked.Add(id);
+                // (Phase 1) a style saved before the look settings: its look features' children become their values
+                Layers.Common.LookSettings.MigrateFrom(gen, user.Step, step.Settings, false);
                 foreach (var c in user.Step.Children)
                 {
                     if (c == null || !c.Enabled) continue;
@@ -263,6 +265,7 @@ namespace Placemaker.Core.Tool
             if (b != null && b.Layer != layer) b = null;
             step.Settings = b?.Settings != null ? b.Settings.Clone() : _editor.DefaultsFor(layer);
             if (b != null) foreach (var id in b.Locked) if (step.Settings.Values.ContainsKey(id)) step.Locked.Add(id);
+            if (b != null) Layers.Common.LookSettings.MigrateFrom(gen, b, step.Settings, true);
             if (b != null)
                 foreach (var c in b.Children)
                 {

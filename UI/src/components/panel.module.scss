@@ -517,9 +517,20 @@
     }
 }
 
-// Disabled, but pressing it leads to what is missing (the Entrances section).
-.primaryOff.primaryLead {
+// (Phase 1) Something is missing (an entrance): a yellow button that leads there, plainly clickable (the user: "it just
+// doesn't look like a button right now"). Pressing it scrolls to Entrances and starts placing a walk-in entrance.
+.primaryLead {
+    background-color: #f5c542;
+    color: #2a1f00;
+    box-shadow: 0 1rem 6rem rgba(245, 197, 66, 0.35);
     cursor: pointer;
+    &:hover {
+        background-color: #ffd866;
+    }
+    .primaryLabel {
+        margin-left: 6rem;
+        font-weight: bold;
+    }
 }
 
 .primaryCancel {
@@ -661,6 +672,58 @@
     @include row;
     flex-shrink: 0;
     padding: 6rem 8rem 0 8rem;
+}
+
+// (Phase 1) under Sketch | Real while Real is shown: what Real cannot show yet, key words underlined
+.realNote {
+    @include row;
+    align-items: flex-start;
+    flex-shrink: 0;
+    padding: 5rem 10rem 0 10rem;
+}
+
+.realNoteText {
+    @include row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 5rem;
+    font-size: $fs-s;
+    line-height: 1.35;
+    color: $c-text-dim;
+}
+
+.word {
+    margin-right: 3rem;
+}
+
+// underlined by a border (Gameface draws no text-decoration)
+.u {
+    border-bottom-width: 1rem;
+    border-bottom-style: solid;
+    border-bottom-color: var(--menuText1Normal);
+    color: var(--menuText1Normal);
+}
+
+// (Phase 1) "too big": a plain warning above the button (it still builds)
+.sizeWarn {
+    @include row;
+    align-items: flex-start;
+    min-width: 0;
+    margin-bottom: 6rem;
+    padding: 5rem 8rem;
+    border-radius: $radius;
+    background-color: rgba(255, 181, 71, 0.12);
+}
+
+.sizeWarnText {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 6rem;
+    font-size: $fs-s;
+    line-height: 1.35;
+    color: #ffd59a;
 }
 
 .subRow .previewToggle {

@@ -407,5 +407,6 @@
   "Placemaker.Settings.AreaReach": "Paint bucket reach (m)",
   "Placemaker.Settings.AreaReach.Desc": "How far the Paint bucket spreads from where you click. In open land it fills a circle this size.",
   "Placemaker.Issue.UngroupedNoPark": "Not grouped as one asset, so it won't work as a park: no upkeep, but no tourism, leisure or wellbeing either. Turn on \"Group as one asset\" to make it a park.",
-  "Placemaker.Issue.UngroupedNoPark.Short": "Not grouped as one asset"
+  "Placemaker.Issue.UngroupedNoPark.Short": "Not grouped as one asset",
+  "Placemaker.Problem.TooBigFor": "Very big for this type (made for up to {0} ha). It will work, but it isn't made for this size, and bulldozing it may be slow."
 }

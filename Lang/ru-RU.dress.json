@@ -10,12 +10,12 @@
   "Placemaker.Dress.dressStyle.livedIn.Tooltip": "Повседневное использование: вытоптанные обочины и дорожки.",
   "Placemaker.Dress.dressStyle.gritty": "Запущенный",
   "Placemaker.Dress.dressStyle.gritty.Tooltip": "Заброшено: сильный износ и голая земля.",
-  "Placemaker.Dress.dressPaintWear": "Окраска земли",
+  "Placemaker.Dress.dressPaintWear": "Окраска износа",
   "Placemaker.Dress.dressPaintWear.Tooltip": "Сколько оформления окрашивается в текстуру земли: разнообразие газона, мульча под деревьями, вытоптанные края дорожек, вытоптанные пятна у скамеек, игровых элементов и входов, мягкие края, износ полей и площадок. Только там, где видна голая земля (никогда под покрытием, дорожкой или водой). Постоянно, как любая окраска земли; 0 ничего не окрашивает.",
   "Placemaker.Dress.dressDesirePaths": "Натоптанные тропинки",
   "Placemaker.Dress.dressDesirePaths.Tooltip": "Слабые протоптанные линии там, где люди срезают углы между дорожками и идут по газону к скамейкам и игровым элементам (окрашиваются в текстуру земли).",
-  "Placemaker.Dress.dressDesirePaths.Off": "Только при включенной «Окраске земли»",
-  "Placemaker.UI.Group.groundPaint": "Окраска земли",
+  "Placemaker.Dress.dressDesirePaths.Off": "Только при включённой окраске износа",
+  "Placemaker.UI.Group.groundPaint": "Окраска рельефа",
   "Placemaker.Dress.dressLawn": "Газон",
   "Placemaker.Dress.dressLawn.Tooltip": "«Окрашенный рельеф»: собственная трава карты с пышными и сухими пятнами, мульчей и износом (естественно, обжито). «Травяное покрытие»: одна ровная ухоженная текстура травы, скрывающая землю (регулярно; также выбор для пустынных или каменистых карт).",
   "Placemaker.Dress.dressLawn.painted": "Окрашенный рельеф",
@@ -66,6 +66,6 @@
   "Placemaker.Category.decal.glass": "декали битого стекла",
   "Placemaker.Category.decal.beach": "декали береговых выбросов",
   "Placemaker.Category.decal.footprints": "декали следов ног",
-  "Placemaker.Dress.dressGroundDecals": "Декали на земле",
+  "Placemaker.Dress.dressGroundDecals": "Декали",
   "Placemaker.Dress.dressGroundDecals.Tooltip": "Трещины, грязь, листья, лужи и износ на земле. Выкл.: никаких."
 }

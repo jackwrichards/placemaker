@@ -48,7 +48,7 @@ export interface ComposeResult {
     ms: number;
     source: "core" | "fake";
     /** s16: per UI step path, what Automatic became and the roads by role. */
-    steps?: Record<string, { resolvedAssets?: Record<string, ResolvedAsset>; netLegend?: NetLegendEntry[] }>;
+    steps?: Record<string, { resolvedAssets?: Record<string, ResolvedAsset>; netLegend?: NetLegendEntry[]; unused?: string[] }>;
     /** s17: park stats from the real Core estimator (host only). */
     parkStats?: import("../../src/contract").ParkStatsView | null;
     /** s45: cost by friendly category (host: Core CostBuckets with the stand-in prices). */

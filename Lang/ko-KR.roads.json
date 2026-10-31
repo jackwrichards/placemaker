@@ -265,7 +265,7 @@
   "Placemaker.EdgeZoning.Stat.Area": "구역 지정 면적",
   "Placemaker.EdgeZoning.Issue.NoFrontage": "이 구역을 따라 지나는 도로가 없어 아무것도 지정하지 않았습니다.",
   "Placemaker.UI.Group.walkways": "산책로와 골목",
-  "Placemaker.UI.Group.terrain": "지형",
+  "Placemaker.UI.Group.terrain": "모양",
   "Placemaker.Roads.Role.lane": "골목",
   "Placemaker.Roads.Control.junctionSpacing": "교차로 간격",
   "Placemaker.Roads.Control.junctionSpacing.Tooltip": "주 도로(대로)에서는 옆 거리가 최대 이 간격(m)으로만 합류합니다. 더 가까운 옆 거리는 대로 앞에서 막다른 길로 끝나거나(보행로로 이어짐) 이웃 거리와 합쳐집니다. 0 = 모든 옆 거리가 합류.",

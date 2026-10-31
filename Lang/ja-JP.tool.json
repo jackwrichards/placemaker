@@ -407,5 +407,6 @@
   "Placemaker.Settings.SketchStyle.Classic": "クラシック",
   "Placemaker.Settings.SketchStyle.Desc": "配置図は建設されるものを上から描きます。道路、小道、芝生、木、駐車スペース、すべてのオブジェクトを大まかに表示します。クラシックは役割ごとの色と破線で描きます。",
   "Placemaker.Issue.UngroupedNoPark": "1つのアセットにまとめていないため公園として働きません。維持費はかかりませんが、観光・レジャー・幸福度もありません。公園にするには「1つのアセットとしてまとめる」をオンにしてください。",
-  "Placemaker.Issue.UngroupedNoPark.Short": "1つのアセットにまとめていない"
+  "Placemaker.Issue.UngroupedNoPark.Short": "1つのアセットにまとめていない",
+  "Placemaker.Problem.TooBigFor": "このタイプには非常に大きいです（{0} ha までを想定）。動作はしますが、このサイズ向けではなく、取り壊しに時間がかかることがあります。"
 }

@@ -265,7 +265,7 @@
   "Placemaker.EdgeZoning.Stat.Area": "Área zonificada",
   "Placemaker.EdgeZoning.Issue.NoFrontage": "No hay ninguna calle a lo largo de esta zona, así que no se zonificó nada.",
   "Placemaker.UI.Group.walkways": "Paseos y vías",
-  "Placemaker.UI.Group.terrain": "Terreno",
+  "Placemaker.UI.Group.terrain": "Forma",
   "Placemaker.Roads.Role.lane": "Vía",
   "Placemaker.Roads.Control.junctionSpacing": "Separación cruces",
   "Placemaker.Roads.Control.junctionSpacing.Tooltip": "En las carreteras principales (avenidas): las calles laterales se unen como mucho cada tantos metros. Las calles laterales más cercanas terminan en una vía sin salida antes de la avenida (con un camino peatonal hasta ella) o se unen a sus vecinas. 0 = se unen todas las calles laterales.",

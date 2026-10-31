@@ -39,11 +39,15 @@ namespace Placemaker.Game.Tool
         public double PlanCost => _planCost;
         public double PlanUpkeep => _planUpkeep;
 
+        /// <summary>(Phase 1) A type that needs an entrance has none yet: it plans nothing until one is placed.</summary>
+        public bool WaitsForEntrance => _shape != null && _recipe != null && !string.IsNullOrEmpty(Unready()?.MarkerKind);
+
         public bool Planning
         {
             get
             {
                 if (_shape == null || _recipe == null || _painter || _stage == ToolStage.Building) return false;
+                if (WaitsForEntrance) return _worker.Busy;   // (Phase 1) nothing is planned until there is an entrance
                 return _worker.Busy || _planRevision != _inputRevision;
             }
         }
@@ -219,6 +223,9 @@ namespace Placemaker.Game.Tool
         private void UpdatePlanning()
         {
             bool canPlan = _shape != null && _recipe != null && _stage != ToolStage.Building && !_painter;   // the painter plans nothing
+            // (Phase 1) A type that needs an entrance plans nothing until it has one: no long load that ends in "add an entrance"
+            // (the user: "we shouldn't start to build it before it has those requirements"). The panel's yellow button leads there.
+            if (canPlan && WaitsForEntrance) canPlan = false;
             if (!canPlan)
             {
                 if (_plan != null || _requestedRevision >= 0)

@@ -407,5 +407,6 @@
   "Placemaker.Settings.SketchStyle.Classic": "Classico",
   "Placemaker.Settings.SketchStyle.Desc": "La planimetria disegna dall'alto ciò che verrà costruito: strade, sentieri, prato, alberi, posti auto e ogni oggetto, a grandi linee. Classico disegna colori per ruolo e linee tratteggiate.",
   "Placemaker.Issue.UngroupedNoPark": "Non raggruppato come un unico elemento, quindi non funziona come parco: niente manutenzione, ma neanche turismo, svago o benessere. Attiva «Raggruppa come un elemento» per farne un parco.",
-  "Placemaker.Issue.UngroupedNoPark.Short": "Non raggruppato"
+  "Placemaker.Issue.UngroupedNoPark.Short": "Non raggruppato",
+  "Placemaker.Problem.TooBigFor": "Molto grande per questo tipo (pensato fino a {0} ha). Funzionerà, ma non è pensato per questa dimensione, e demolirlo può essere lento."
 }

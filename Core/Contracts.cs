@@ -370,13 +370,24 @@ namespace Placemaker.Core
     {
         public readonly Dictionary<string, object> Values = new Dictionary<string, object>(StringComparer.Ordinal);
 
-        public double Num(string id, double fallback) =>
-            Values.TryGetValue(id, out var v) && v is IConvertible c ? c.ToDouble(System.Globalization.CultureInfo.InvariantCulture) : fallback;
+        /// <summary>
+        /// (Phase 1) While planning, the ids read through Num/F/I/B/S/L (null = not recorded). A control the plan never read does
+        /// nothing in this style here: the panel greys it out with a reason (Tool/ControlsShown.Unused). Never cloned.
+        /// </summary>
+        public HashSet<string> Reads;
+
+        private void Note(string id) { var r = Reads; if (r != null && id != null) r.Add(id); }
+
+        public double Num(string id, double fallback)
+        {
+            Note(id);
+            return Values.TryGetValue(id, out var v) && v is IConvertible c ? c.ToDouble(System.Globalization.CultureInfo.InvariantCulture) : fallback;
+        }
         public float F(string id, float fallback) => (float)Num(id, fallback);
         public int I(string id, int fallback) => (int)Math.Round(Num(id, fallback));
-        public bool B(string id, bool fallback) => Values.TryGetValue(id, out var v) && v is bool b ? b : fallback;
-        public string S(string id, string fallback) => Values.TryGetValue(id, out var v) && v is string s ? s : fallback;
-        public string[] L(string id) => Values.TryGetValue(id, out var v) && v is string[] a ? a : Array.Empty<string>();
+        public bool B(string id, bool fallback) { Note(id); return Values.TryGetValue(id, out var v) && v is bool b ? b : fallback; }
+        public string S(string id, string fallback) { Note(id); return Values.TryGetValue(id, out var v) && v is string s ? s : fallback; }
+        public string[] L(string id) { Note(id); return Values.TryGetValue(id, out var v) && v is string[] a ? a : Array.Empty<string>(); }
 
         public SettingsBag Clone()
         {
@@ -972,6 +983,8 @@ namespace Placemaker.Core
         public List<Decals.Dynamic.DecalInstance> DecalInstances = new List<Decals.Dynamic.DecalInstance>();
         public List<PlanStat> Stats = new List<PlanStat>();
         public List<PlanIssue> Issues = new List<PlanIssue>();
+        /// <summary>(Phase 1) Setting ids the layer read while planning (SettingsBag.Reads); null = not recorded.</summary>
+        public HashSet<string> SettingsRead;
         /// <summary>Generator-specific facts the game layer needs (e.g. parking capacity for the economy companion).</summary>
         public Dictionary<string, double> Facts = new Dictionary<string, double>(StringComparer.Ordinal);
 

@@ -168,8 +168,8 @@ namespace Placemaker.Tests.Types
             var g = TestKit.Gen(id);
             Assert.Equal(group, GeneratorGroups.Of(g));
             Assert.Equal(LayerKind.Fill, g.Kind);
-            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, 40);
-            int groups = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).Select(c => c.Group).Distinct().Count();
+            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, 40);   // (Phase 1) look settings not counted
+            int groups = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Where(x => !Placemaker.Core.Layers.Common.GroundSection.IsGround(x)).Distinct().Count();   // (Phase 1) look settings and the shared Ground section (terrain paint, ground cover, shape) not counted
             Assert.InRange(groups, 4, 8);
             Assert.InRange(g.Presets.Count, 4, 6);
             Assert.Equal(g.Controls.Count, g.Controls.Select(c => c.Id).Distinct().Count());
@@ -271,7 +271,7 @@ namespace Placemaker.Tests.Types
         public void EveryFeatureComposes()
         {
             var gen = TestKit.Gen(Id);
-            var features = Features.Of(gen).Select(f => f.Layer).ToArray();
+            var features = Phase1Looks.AllFeatures(gen);   // (Phase 1) add-ons and look settings
             Assert.Contains("junkPiles", features);
             Assert.Contains("skipRow", features);
             var plan = YardTestKit.Compose(YardTestKit.With(Id, features), YardTestKit.FiveHa, TestKit.RoadAlongBottom(250));

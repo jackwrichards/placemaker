@@ -339,6 +339,14 @@ export class MockBackend {
         return this.closed && this.ring.length >= 3 && !this.problem();
     }
 
+    /** (Phase 1) as C# SizeGuide.Warning: bigger than the type is made for (the host sends comfortMaxArea). */
+    sizeWarning(): LocText | undefined {
+        if (!this.closed || this.ring.length < 3 || !this.root || this.problem()) return undefined;
+        const max = (this.layer(this.root.layer) as any)?.comfortMaxArea as number | undefined;
+        if (!max || area(this.ring) <= max) return undefined;
+        return { key: "Placemaker.Problem.TooBigFor", args: [Math.round(max / 1000) / 10] };
+    }
+
     problem(): LocText | undefined {
         if (!this.closed || this.ring.length < 3) return undefined;
         if (selfIntersects(this.ring)) return { key: "Placemaker.Problem.Crossing" };
@@ -571,6 +579,25 @@ export class MockBackend {
         const walks = !!this.markerKindsOf(step)?.find((k) => k.kind === kind && k.crosswalk);
         const stored = this.entranceCrosswalk && walks ? kind + "+crosswalk" : kind;
         this.edit({ key: "Placemaker.Undo.AddMarker", args: [en(`Placemaker.Marker.${kind}`, kind)] }, () => step.markers.push({ kind: stored, p: q.q }));
+    }
+
+    /** Tests only: the steps that still need entrances get one on the outline's first edge (as a player places it). */
+    needsEntrances(): boolean {
+        return this.allSteps().some((s) => s.enabled && this.markersRequiredOf(s) > s.markers.length);
+    }
+
+    autoEntrances() {
+        if (this.ring.length < 3) return;
+        const a = this.ring[0], b = this.ring[1];
+        const mid: V2 = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+        for (const s of this.allSteps()) {
+            const need = this.markersRequiredOf(s) - s.markers.length;
+            if (!s.enabled || need <= 0) continue;
+            const kind = this.markerKindsOf(s)?.[0]?.kind ?? s.markers[0]?.kind ?? "entrance";
+            for (let i = 0; i < need; i++) s.markers.push({ kind, p: [mid[0], mid[1]] });
+        }
+        this.modified = true;
+        this.changed(true);
     }
 
     removeMarkerNear(p: V2) {
@@ -1090,6 +1117,8 @@ export class MockBackend {
         if (!res) return undefined;
         const out: Record<string, LocText> = {};
         for (const [id, r] of Object.entries(res)) if (r.unused && !s.values[id]) out[id] = { key: "Placemaker.UI.Why.NotInLayout" };
+        // (Phase 1) as C# ControlsShown.Unused: controls the plan never read change nothing in this style here
+        for (const id of this.plan?.steps?.[path]?.unused ?? []) if (!out[id]) out[id] = { key: "Placemaker.UI.Why.NotUsed" };
         return Object.keys(out).length ? out : undefined;
     }
 
@@ -1471,7 +1500,9 @@ export class MockBackend {
 
     async runPlan(version: number) {
         const root = this.effectiveRoot();
-        if (!root || !this.areaValid()) {
+        // (Phase 1) as C#: a type that still needs an entrance plans nothing until it has one
+        const needsMarkers = this.needsEntrances();
+        if (!root || !this.areaValid() || needsMarkers) {
             this.plan = null;
             this.planning = false;
             this.stale = false;
@@ -1583,6 +1614,7 @@ export class MockBackend {
                 areaM2: this.closed && this.ring.length >= 3 ? Math.round(area(this.ring)) : 0,
                 perimeterM: this.ring.length >= 2 ? Math.round(perimeter(this.ring)) : 0,
                 problem: this.problem(),
+                warning: this.sizeWarning(),
             },
             primary: this.primary(),
             canUndo: this.undoStack.length > 0 && this.stage !== "building",

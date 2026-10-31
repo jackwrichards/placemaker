@@ -38,9 +38,8 @@ namespace Placemaker.Tests.Types
                 Assert.True(pens.Count >= System.Math.Min(2, (double)p.Values.Num("pens", 1)), p.Id + " has " + pens.Count + " pens");
                 Assert.True(plan.Nets.Count(n => n.Role == NetRole.Fence) >= pens.Count * 3, p.Id + ": pens are not fenced");
                 Assert.Contains(plan.Nets, n => n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide);
-                var spawners = plan.Objects.Where(o => o.Role == ObjectRole.AnimalSpawner).ToList();
-                Assert.NotEmpty(spawners);
-                Assert.All(spawners, s => Assert.Contains(pens, pen => Poly.Contains(pen, s.Position.xz)));
+                // (Phase 1) no animal spawns in any place (the user, 2026-10-30)
+                Assert.DoesNotContain(plan.Objects, o => o.Role == ObjectRole.AnimalSpawner);
                 // No walk runs through a pen.
                 foreach (var n in plan.Nets.Where(n => n.Role == NetRole.Pathway))
                     foreach (var pen in pens)

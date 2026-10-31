@@ -265,7 +265,7 @@
   "Placemaker.EdgeZoning.Stat.Area": "Obszar strefy",
   "Placemaker.EdgeZoning.Issue.NoFrontage": "Wzdłuż tego obszaru nie biegnie żadna droga, więc nie wyznaczono stref.",
   "Placemaker.UI.Group.walkways": "Przejścia i uliczki",
-  "Placemaker.UI.Group.terrain": "Teren",
+  "Placemaker.UI.Group.terrain": "Kształt",
   "Placemaker.Roads.Role.lane": "Uliczka",
   "Placemaker.Roads.Control.junctionSpacing": "Odstęp skrzyżowań",
   "Placemaker.Roads.Control.junctionSpacing.Tooltip": "Na drogach głównych (alejach): boczne ulice dochodzą najwyżej co tyle metrów. Bliższe boczne ulice kończą się ślepą uliczką przed aleją (ze ścieżką do niej) albo łączą się z sąsiednimi. 0 = każda boczna ulica się łączy.",

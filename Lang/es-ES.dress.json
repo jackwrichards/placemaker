@@ -10,12 +10,12 @@
   "Placemaker.Dress.dressStyle.livedIn.Tooltip": "Uso diario: bordes y caminos desgastados.",
   "Placemaker.Dress.dressStyle.gritty": "Descuidado",
   "Placemaker.Dress.dressStyle.gritty.Tooltip": "Abandonado: mucho desgaste y suelo pelado.",
-  "Placemaker.Dress.dressPaintWear": "Pintar suelo",
+  "Placemaker.Dress.dressPaintWear": "Pintura de desgaste",
   "Placemaker.Dress.dressPaintWear.Tooltip": "Cuánto se pinta en la textura del suelo como decoración: variación del césped, mantillo bajo los árboles, bordes de camino gastados, zonas gastadas junto a bancos, juegos y entradas, bordes suaves y desgaste en campos y parcelas. Solo donde se ve el suelo desnudo (nunca bajo una superficie, un camino o el agua). Permanente, como toda la pintura del suelo; 0 no pinta nada.",
   "Placemaker.Dress.dressDesirePaths": "Líneas de deseo",
   "Placemaker.Dress.dressDesirePaths.Tooltip": "Tenues líneas pisadas donde la gente acorta entre caminos y cruza el césped hasta bancos y juegos (pintadas en la textura del suelo).",
-  "Placemaker.Dress.dressDesirePaths.Off": "Solo con Pintar suelo activado",
-  "Placemaker.UI.Group.groundPaint": "Pintar suelo",
+  "Placemaker.Dress.dressDesirePaths.Off": "Solo con Pintura de desgaste activada",
+  "Placemaker.UI.Group.groundPaint": "Pintar terreno",
   "Placemaker.Dress.dressLawn": "Césped",
   "Placemaker.Dress.dressLawn.Tooltip": "Terreno pintado: la hierba del propio mapa con manchas frondosas y secas, mantillo y desgaste pintados (natural, usado). Superficie de césped: una textura de césped uniforme y cuidada que tapa el suelo (formal; también la opción en mapas desérticos o rocosos).",
   "Placemaker.Dress.dressLawn.painted": "Terreno pintado",
@@ -66,6 +66,6 @@
   "Placemaker.Category.decal.glass": "calcomanías de cristales rotos",
   "Placemaker.Category.decal.beach": "calcomanías de restos de playa",
   "Placemaker.Category.decal.footprints": "calcomanías de huellas",
-  "Placemaker.Dress.dressGroundDecals": "Calcomanías del suelo",
+  "Placemaker.Dress.dressGroundDecals": "Calcomanías",
   "Placemaker.Dress.dressGroundDecals.Tooltip": "Grietas, suciedad, hojas, charcos y desgaste dibujados en el suelo. Desactivado: ninguno."
 }

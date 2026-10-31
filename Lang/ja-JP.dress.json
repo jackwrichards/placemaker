@@ -10,12 +10,12 @@
   "Placemaker.Dress.dressStyle.livedIn.Tooltip": "日常的な利用: すり減った路肩や小道。",
   "Placemaker.Dress.dressStyle.gritty": "荒れた",
   "Placemaker.Dress.dressStyle.gritty.Tooltip": "放置された状態: ひどいすり減りとむき出しの地面。",
-  "Placemaker.Dress.dressPaintWear": "地面のペイント",
+  "Placemaker.Dress.dressPaintWear": "摩耗ペイント",
   "Placemaker.Dress.dressPaintWear.Tooltip": "装飾として地面のテクスチャに塗る量です: 芝生の変化、木の下のマルチ、すり減った小道の縁、ベンチ・遊具・出入口のすり減り、柔らかな縁、競技場とその周辺のすり減り。むき出しの地面が見える所だけです（地表、小道、水の下には塗りません）。地面のペイントはすべて元に戻せません。0 で何も塗りません。",
   "Placemaker.Dress.dressDesirePaths": "けもの道",
   "Placemaker.Dress.dressDesirePaths.Tooltip": "人が小道の角を近道したり、芝生を横切ってベンチや遊具へ歩いたりしてできる、かすかな踏み跡です（地面のテクスチャに塗ります）。",
-  "Placemaker.Dress.dressDesirePaths.Off": "地面のペイントがオンのときのみ",
-  "Placemaker.UI.Group.groundPaint": "地面のペイント",
+  "Placemaker.Dress.dressDesirePaths.Off": "摩耗ペイントがオンのときのみ",
+  "Placemaker.UI.Group.groundPaint": "地形ペイント",
   "Placemaker.Dress.dressLawn": "芝生",
   "Placemaker.Dress.dressLawn.Tooltip": "地形ペイント: マップ本来の草に、青々とした所と乾いた所、マルチやすり減りを塗ります（自然で生活感のある見た目）。草地の地表: 地面を隠す均一で手入れされた草のテクスチャです（整形的。砂漠や岩場のマップにも向いています）。",
   "Placemaker.Dress.dressLawn.painted": "地形ペイント",
@@ -66,6 +66,6 @@
   "Placemaker.Category.decal.glass": "割れたガラスのデカル",
   "Placemaker.Category.decal.beach": "浜の漂着物のデカル",
   "Placemaker.Category.decal.footprints": "足跡のデカル",
-  "Placemaker.Dress.dressGroundDecals": "地面デカール",
+  "Placemaker.Dress.dressGroundDecals": "デカール",
   "Placemaker.Dress.dressGroundDecals.Tooltip": "地面に描くひび割れ、汚れ、落ち葉、水たまり、摩耗です。オフ: 一切描きません。"
 }

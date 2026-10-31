@@ -125,9 +125,9 @@ namespace Placemaker.Tests.Types
             foreach (var p in g.Presets) Need(p.LabelKey);
             foreach (var f in Features.Of(g)) { Need(f.LabelKey); Need(f.TooltipKey); }
             Assert.True(missing.Count == 0, "Missing en-US keys: " + string.Join(", ", missing));
-            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)), 15, maxControls);
+            Assert.InRange(g.Controls.Count(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")), 15, maxControls);   // (Phase 1) look settings not counted
             Assert.InRange(g.Presets.Count, minPresets, 6);
-            var groups = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id)).Select(c => c.Group).Where(x => x != "entrances" && x != "shops").Distinct().Count();
+            var groups = g.Controls.Where(c => !Placemaker.Core.Decals.DressingControls.IsDressingId(c.Id) && !c.Id.StartsWith("look")).Select(c => c.Group).Where(x => x != "entrances" && x != "shops").Distinct().Count();   // (Phase 1) look settings not counted
             Assert.InRange(groups, 4, 8);
             Assert.Equal("parks", GeneratorGroups.Of(g));
             Assert.Contains(g.Controls, c => c.Id == "style" && c.Kind == ControlKind.Choice && c.Tier == ControlTier.Essential);

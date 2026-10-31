@@ -10,12 +10,12 @@
   "Placemaker.Dress.dressStyle.livedIn.Tooltip": "Uso diário: margens e caminhos gastos.",
   "Placemaker.Dress.dressStyle.gritty": "Largado",
   "Placemaker.Dress.dressStyle.gritty.Tooltip": "Abandonado: muito desgaste e chão nu.",
-  "Placemaker.Dress.dressPaintWear": "Pintura do solo",
+  "Placemaker.Dress.dressPaintWear": "Pintura de desgaste",
   "Placemaker.Dress.dressPaintWear.Tooltip": "Quanto é pintado na textura do solo como enfeite: variação do gramado, cobertura morta sob as árvores, bordas de caminho gastas, manchas gastas junto a bancos, brinquedos e entradas, bordas suaves, desgaste de campos e de locais de quadra. Só onde o chão nu aparece (nunca sob uma superfície, caminho ou água). Permanente, como toda pintura do solo; 0 não pinta nada.",
   "Placemaker.Dress.dressDesirePaths": "Caminhos de desejo",
   "Placemaker.Dress.dressDesirePaths.Tooltip": "Linhas pisadas e discretas onde as pessoas cortam caminho entre trilhas e atravessam o gramado até bancos e brinquedos (pintadas na textura do solo).",
-  "Placemaker.Dress.dressDesirePaths.Off": "Só com a pintura do solo ligada",
-  "Placemaker.UI.Group.groundPaint": "Pintura do solo",
+  "Placemaker.Dress.dressDesirePaths.Off": "Só com Pintura de desgaste ligada",
+  "Placemaker.UI.Group.groundPaint": "Pintura do terreno",
   "Placemaker.Dress.dressLawn": "Gramado",
   "Placemaker.Dress.dressLawn.Tooltip": "Terreno pintado: a grama do próprio mapa com manchas viçosas e secas, cobertura morta e desgaste pintados (natural, usado). Superfície de grama: uma textura de grama uniforme e bem aparada que esconde o solo (formal; também a escolha em mapas desérticos ou rochosos).",
   "Placemaker.Dress.dressLawn.painted": "Terreno pintado",
@@ -66,6 +66,6 @@
   "Placemaker.Category.decal.glass": "decalques de vidro quebrado",
   "Placemaker.Category.decal.beach": "decalques de restos de praia",
   "Placemaker.Category.decal.footprints": "decalques de pegadas",
-  "Placemaker.Dress.dressGroundDecals": "Decalques do chão",
+  "Placemaker.Dress.dressGroundDecals": "Decalques",
   "Placemaker.Dress.dressGroundDecals.Tooltip": "Rachaduras, sujeira, folhas, poças e desgaste desenhados no chão. Desligado: nenhum."
 }

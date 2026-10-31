@@ -51,16 +51,17 @@ namespace Placemaker.Tests
                     foreach (var kv in f.Preset.Values) Assert.Contains(fg.Controls, c => c.Id == kv.Key);
                     if (f.Target.Length > 0) Assert.Contains(f.Target, g.Emits);
                 }
-            Assert.Equal(new[] { "plaza", "playground", "pond", "picnic", "restrooms", "fountain", "bigtrees", "flowerbeds", "shops", "edgeZoning", "rocks", "ground", "terrain", "shore",
+            // (Phase 1) pond, big trees, flowerbeds, rocks, ground, terrain, shore and the terrace garden are settings of the park now
+            Assert.Equal(new[] { "plaza", "playground", "picnic", "restrooms", "fountain", "shops", "edgeZoning",
                     "runningTrack", "cricketGround", "pitch", "baseballDiamond", "tennisCourts", "basketballCourt", "skateBowl",
                     "volleyball", "basketball", "tableTennis", "chess", "fitness", "splashPad", "bandstand", "dogRun", "noticeboard",
-                    "bigStatue", "folly", "obelisk", "triumphalArch", "sculptureWalk", "terraceGarden" },
+                    "bigStatue", "folly", "obelisk", "triumphalArch", "sculptureWalk" },
                 Features.Of(GeneratorRegistry.Get("park")).Select(f => f.Layer).ToArray());
-            Assert.Contains(Features.Of(GeneratorRegistry.Get("plaza")), f => f.Layer == "plazatrees");
+            Assert.Contains(GeneratorRegistry.Get("plaza").Controls, c => c.Id == "lookPlazaTrees");
             Assert.Contains(Features.Of(GeneratorRegistry.Get("plaza")), f => f.Layer == "kiosk");
             // s34: the roads type pre-zones its roads itself (control "preZone"); no edge-zoning feature any more.
             Assert.Empty(Features.Of(GeneratorRegistry.Get("roads")));
-            Assert.Equal(7, Features.Of(GeneratorRegistry.Get("campground")).Count);   // issue #2: the Decals feature is gone
+            Assert.Equal(5, Features.Of(GeneratorRegistry.Get("campground")).Count);   // issue #2: the Decals feature is gone; (Phase 1) rocks and terrain are settings
         }
 
         [Fact]
@@ -244,9 +245,9 @@ namespace Placemaker.Tests
         [InlineData("islands")]
         public void PlazaWithTrees(string layout)
         {
-            var r = With("plaza", "plazatrees");
+            var r = With("plaza");
             r.Root.Settings.Values["treeLayout"] = "none";   // the square's own allée off: the feature's trees alone
-            r.Root.Children[0].Settings.Values["layout"] = layout;
+            r.Root.Settings.Values["lookPlazaTrees"] = layout;   // (Phase 1) plaza trees are a setting: none / grid / islands
             var plan = Compose(r, TestKit.Rect(90, 70));
             Assert.False(plan.HasErrors, Errors(plan));
             var trees = plan.Layers.Single(l => l.GeneratorId == "plazatrees");

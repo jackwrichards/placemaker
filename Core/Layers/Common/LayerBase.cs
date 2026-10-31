@@ -207,6 +207,8 @@ namespace Placemaker.Core.Layers.Common
         public PlannedObject Object(float2 p, float yaw, ObjectRole role, AssetRef asset, uint variation, int age = -1, string category = null)
         {
             var o = new PlannedObject { Position = P3(p), Yaw = yaw, Role = role, Asset = asset, Variation = variation, Age = age, Category = category };
+            // (Phase 1) No animal spawners in any place (the user, 2026-10-30: "completely remove animal spawns as a feature").
+            if (role == ObjectRole.AnimalSpawner) return o;
             Plan.Objects.Add(o);
             return o;
         }
@@ -275,14 +277,64 @@ namespace Placemaker.Core.Layers.Common
         private readonly List<ControlSchema> _controls;
         private readonly List<PresetInfo> _presets = new List<PresetInfo>();
         private readonly ControlSet _set;
+        /// <summary>"preset|lookControl" pairs a style set itself (PresetLooks keeps them).</summary>
+        private readonly HashSet<string> _explicitLooks = new HashSet<string>(StringComparer.Ordinal);
 
         protected LayerBase()
         {
             _set = new ControlSet(Area);
             DefineControls(_set);
             AddDressingControls(_set);
+            AddLookControls(_set);
+            GroundSection.Normalize(Id, Kind, _set.List);
             _controls = _set.List;
             DefinePresets();
+            PresetLooks();
+        }
+
+        /// <summary>
+        /// (Phase 1) The type's look features as settings (LookSettings): one control per look feature it offers, the feature's
+        /// own options (FeatureInfo.Options) shown under it while it is on.
+        /// </summary>
+        private void AddLookControls(ControlSet c)
+        {
+            List<(LookSetting look, FeatureInfo feature)> looks;
+            try { looks = LookSettings.Of(this, building: true); } catch (Exception) { return; }
+            if (looks.Count == 0) return;
+            var groups = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var x in c.List) if (!string.IsNullOrEmpty(x.Group)) groups.Add(x.Group);
+            foreach (var (l, f) in looks)
+            {
+                if (c.List.Exists(x => x.Id == l.ControlId)) continue;
+                var control = LookSettings.Control(l, f, groups.Contains);
+                c.List.Add(control);
+                c.Fixed(l.ControlId);
+                foreach (var id in f.Options ?? Array.Empty<string>())
+                {
+                    var o = c.List.Find(x => x.Id == id);
+                    if (o == null) continue;
+                    o.Group = control.Group;
+                    o.VisibleWhen = string.IsNullOrEmpty(o.VisibleWhen) ? LookSettings.OnCondition(l) : LookSettings.OnCondition(l) + "&" + o.VisibleWhen;
+                    o.HideWhenOff = true;
+                }
+            }
+        }
+
+        /// <summary>(Phase 1) A style's look features become its look settings' values (and leave its feature list).</summary>
+        private void PresetLooks()
+        {
+            List<(LookSetting look, FeatureInfo feature)> looks;
+            try { looks = LookSettings.Of(this); } catch (Exception) { return; }
+            if (looks.Count == 0) return;
+            foreach (var p in _presets)
+            {
+                foreach (var (l, f) in looks)
+                    if (!_explicitLooks.Contains(p.Id + "|" + l.ControlId))   // a style may name its level itself (a landscape park: a lake)
+                        p.Values.Values[l.ControlId] = LookSettings.ToControl(l, p.FeatureOn(f) ? l.On(f) : LookSettings.Off);
+                var kept = new List<string>();
+                foreach (var x in p.Features) if (x != null && !LookSettings.IsLook(x.TrimStart('-'))) kept.Add(x);
+                p.Features = kept.ToArray();
+            }
         }
 
         /// <summary>Localisation area ("Park", "Plaza", "AddOn.Fountain"…).</summary>
@@ -296,6 +348,8 @@ namespace Placemaker.Core.Layers.Common
         public virtual int Version => 1;
         public virtual float MinArea => 50f;
         public virtual float MaxArea => 4_000_000f;
+        /// <summary>(Phase 1) The area (m²) the type is made for at most: past it the panel warns (it still builds). 0 = its group's (Tool/SizeGuide).</summary>
+        public virtual float ComfortMaxArea => 0f;
 
         public IReadOnlyList<ControlSchema> Controls => _controls;
         public IReadOnlyList<PresetInfo> Presets => _presets;
@@ -331,7 +385,7 @@ namespace Placemaker.Core.Layers.Common
             // s33: and its lawn (a formal park keeps the grass surface, a natural one paints the bare terrain).
             if (Control(Decals.DressingControls.LawnId) != null && Lawn.DefaultFor(Id, id) is string lawn)
                 p.Values.Values[Decals.DressingControls.LawnId] = lawn;
-            foreach (var (k, v) in values) p.Values.Values[k] = v;
+            foreach (var (k, v) in values) { p.Values.Values[k] = v; if (k.StartsWith("look", StringComparison.Ordinal)) _explicitLooks.Add(p.Id + "|" + k); }
             _presets.Add(p);
         }
 
@@ -503,6 +557,8 @@ namespace Placemaker.Core.Layers.Common
                 Cancel = cancel, Seed = Hashing.Mix(input.Seed == 0 ? 1u : input.Seed, Seeds.Hash(Id)),
                 ControlOf = Control,
             };
+            // (Phase 1) what this plan reads: a control it never reads does nothing in this style here (ControlsShown.Unused)
+            ctx.Settings.Reads = plan.SettingsRead ??= new HashSet<string>(StringComparer.Ordinal);
             float unplacedInset;
             using (Common.Layout.Use(input.Site))
             {

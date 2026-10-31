@@ -377,7 +377,10 @@ namespace Placemaker.Tests
             foreach (var host in new[] { "park", "plaza", "memorialPark", "formalGarden" })
             {
                 var features = Features.Of(GeneratorRegistry.Get(host)).Select(f => f.Layer).ToList();
-                foreach (var id in Ids) Assert.Contains(id, features);
+                // (Phase 1) the terrace garden is a setting of its hosts, the other monuments add-ons
+                foreach (var id in Ids)
+                    if (Placemaker.Core.Layers.Common.LookSettings.IsLook(id)) Assert.Contains(GeneratorRegistry.Get(host).Controls, c => c.Id == Placemaker.Core.Layers.Common.LookSettings.ForFeature(id).ControlId);
+                    else Assert.Contains(id, features);
             }
             foreach (var id in Ids) Assert.Contains(id, PlazaLayer.Hosted);
         }

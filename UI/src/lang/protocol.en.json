@@ -18,5 +18,6 @@
   "Placemaker.UI.Group.edge": "Edge",
   "Placemaker.UI.Group.layout": "Layout",
   "Placemaker.UI.Group.extras": "Extras",
-  "Placemaker.UI.Why.NotInLayout": "Not used by this layout"
+  "Placemaker.UI.Why.NotInLayout": "Not used by this layout",
+  "Placemaker.UI.Why.NotUsed": "Not used by this style here"
 }

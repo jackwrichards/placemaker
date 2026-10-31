@@ -92,6 +92,8 @@ export interface AreaInfo {
   perimeterM: number;
   /** Problem with the current shape, e.g. self-intersection or too small for the recipe. */
   problem?: LocText;
+  /** (Phase 1, additive) Not a problem: bigger than the type is made for (C# Core/Tool/SizeGuide). It still builds. */
+  warning?: LocText;
 }
 
 export interface Hint { text: LocText; keys?: string[] }   // e.g. keys ["Ctrl","Z"]

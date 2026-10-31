@@ -1,5 +1,6 @@
 // Section in the vanilla selected-info panel for anything built by Placemaker:
-//   "Part of <name>" — Edit / Rename / Remove.
+//   "Part of <name>" — Edit · Rename · Ungroup · Remove. (Phase 1: Edit is back; it opens Placemaker on the build, C#
+//   PlacemakerToolSystem.EditGroup, so the next build can never replace it unseen as on 22 Oct.)
 // Registered for the C# InfoSectionBase `Placemaker.Game.Groups.PlacemakerGroupSection` (the key is the
 // full .NET class name: InfoSectionBase writes GetType().FullName as __Type — ParkingLotTool learned
 // that the hard way). Props = what Game/Groups/PlacemakerGroupSection.OnWriteProperties writes:
@@ -104,6 +105,16 @@ const Inner = (p: Props) => {
             ) : null}
             {!renaming && !busy && !asking ? (
                 <div className={s.actions}>
+                    <Btn
+                        variant="accent"
+                        icon="draw"
+                        iconSize={14}
+                        label={t("Placemaker.UI.Manage.Edit", "Edit")}
+                        description={t("Placemaker.UI.Info.EditTip", "Opens Placemaker on it: change the design, then build again to replace it.")}
+                        disabled={id < 0 || p.canEdit === false}
+                        onClick={() => act.editGroup(id)}
+                        testId="info-edit"
+                    />
                     <Btn variant="solid" icon="edit" iconSize={14} label={t("Placemaker.UI.Manage.Rename", "Rename")} disabled={id < 0} onClick={() => setRenaming(true)} testId="info-rename" />
                     <Btn variant="solid" icon="ungroup" iconSize={14} label={t("Placemaker.UI.Manage.Ungroup", "Ungroup")} description={t("Placemaker.UI.Manage.UngroupTip", "Make its pieces separate for good, as if you placed them yourself. This can't be undone.")} disabled={id < 0} onClick={() => setAsking("ungroup")} testId="info-ungroup" />
                     <div className={s.flex} />

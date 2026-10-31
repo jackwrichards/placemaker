@@ -265,7 +265,7 @@
   "Placemaker.EdgeZoning.Stat.Area": "已劃設面積",
   "Placemaker.EdgeZoning.Issue.NoFrontage": "這個區域沿線沒有道路，因此沒有劃設任何功能區。",
   "Placemaker.UI.Group.walkways": "步道與巷道",
-  "Placemaker.UI.Group.terrain": "地形",
+  "Placemaker.UI.Group.terrain": "形狀",
   "Placemaker.Roads.Role.lane": "巷道",
   "Placemaker.Roads.Control.junctionSpacing": "路口間距",
   "Placemaker.Roads.Control.junctionSpacing.Tooltip": "在主要道路（大道）上：支街最多每隔這麼遠（m）才接入。更近的支街會在大道前以死巷結束（並有步道通往大道），或改接鄰近街道。0 = 每條支街都接入。",

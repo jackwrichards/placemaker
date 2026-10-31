@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
 import { clickWorld, drawPolygon, FIELD, open, panelShot, shot, waitPlanned, pickType, unfoldSections } from "./helpers";
 
-async function design(page: import("@playwright/test").Page, recipe: string) {
+async function design(page: import("@playwright/test").Page, recipe: string, entrances = true) {
     await drawPolygon(page, FIELD);
     await page.getByTestId("primary").click();
     await pickType(page, recipe);
-    await waitPlanned(page);
+    await waitPlanned(page, entrances);
 }
 
 /** Unfold a control group of the root step (groups are folded by default, round 3). */
@@ -155,14 +155,15 @@ test("asset picker: search, thumbnails, automatic; closes with X, Esc and a clic
 test("entrances: none placed automatically; disabled primary leads to the Entrances section and starts placement; typed list with remove", async ({ page }) => {
     const errors = await open(page);
     const primary = page.getByTestId("primary");
-    await design(page, "parking");
+    await design(page, "parking", false);
     // FEEDBACK-4b: no suggested entrance is placed for the player
     await expect(page.getByTestId("marker-list")).toHaveCount(0);
     expect(await page.evaluate(() => (window as any).pm.backend.root.markers.length)).toBe(0);
     await expect(page.getByTestId("entrance-required")).toContainText("Add one to build");
     await expect(primary).toHaveAttribute("aria-disabled", "true");
     await expect(primary).toHaveAttribute("data-action", "placeMarkers");
-    await expect(page.getByTestId("primary-reason")).toContainText("Add an entrance to build");
+    await expect(page.getByTestId("primary-reason")).toContainText("Add an entrance");
+    await expect(primary).toHaveAttribute("data-lead", "true");   // (Phase 1) yellow, plainly clickable
     // five typed buttons, each with an icon
     for (const k of ["entrance", "entry", "exit", "alley", "footpath"]) await expect(page.getByTestId(`marker-kind-${k}`).locator("img")).toHaveCount(1);
     await panelShot(page, "panel-entrance-required");
@@ -216,7 +217,7 @@ test("entrances: none placed automatically; disabled primary leads to the Entran
 
 test("footpath entrances come with or without a crosswalk; car entrances never offer one", async ({ page }) => {
     const errors = await open(page);
-    await design(page, "parking");
+    await design(page, "parking", false);
     const toggle = page.getByTestId("marker-crosswalk");
     await expect(toggle).toBeVisible();
     await expect(toggle).toHaveAttribute("aria-checked", "false");

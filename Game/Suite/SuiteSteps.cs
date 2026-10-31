@@ -349,7 +349,7 @@ namespace Placemaker.Game.Suite
 
         // No type chosen (d4467e3: none until the player picks one; an area drawn first or after a build) plans nothing:
         // nothing to wait for (it waited 240 s).
-        private bool PlanReady() => _tool.Shape == null || string.IsNullOrEmpty(_tool.RecipeId) || _tool.CurrentRecipe == null
+        private bool PlanReady() => _tool.Shape == null || string.IsNullOrEmpty(_tool.RecipeId) || _tool.CurrentRecipe == null || (_tool.WaitsForEntrance && !_tool.Planning)
             || (!_tool.Planning && _tool.Plan != null && _tool.PlanRevision == _tool.InputRevision);
 
         /// <summary>The plan for the current input revision is finished. At "user" pace a person does not wait: a few frames only.</summary>

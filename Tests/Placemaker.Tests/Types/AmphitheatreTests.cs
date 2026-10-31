@@ -90,7 +90,7 @@ namespace Placemaker.Tests.Types
         public void EveryFeatureComposesAndKeepsOutOfTheBowl()
         {
             var gen = GeneratorRegistry.Get(Id);
-            var features = Features.Of(gen).Select(f => f.Layer).ToArray();
+            var features = Phase1Looks.AllFeatures(gen);   // (Phase 1) add-ons and look settings
             Assert.Contains("lightTowers", features);
             foreach (var preset in new[] { "classic", "bandstand" })
             {

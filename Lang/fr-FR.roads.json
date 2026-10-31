@@ -265,7 +265,7 @@
   "Placemaker.EdgeZoning.Stat.Area": "Surface zonée",
   "Placemaker.EdgeZoning.Issue.NoFrontage": "Aucune route ne longe cette zone : rien n'a été zoné.",
   "Placemaker.UI.Group.walkways": "Passages et ruelles",
-  "Placemaker.UI.Group.terrain": "Terrain",
+  "Placemaker.UI.Group.terrain": "Forme",
   "Placemaker.Roads.Role.lane": "Ruelle",
   "Placemaker.Roads.Control.junctionSpacing": "Écart des carrefours",
   "Placemaker.Roads.Control.junctionSpacing.Tooltip": "Sur les routes principales (avenues) : les rues secondaires s'y raccordent au plus souvent à cette distance (m). Les rues plus proches finissent en cul-de-sac avant l'avenue (avec un chemin piéton jusqu'à elle) ou rejoignent leurs voisines. 0 = chaque rue secondaire se raccorde.",

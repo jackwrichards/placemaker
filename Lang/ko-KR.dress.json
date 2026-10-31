@@ -10,12 +10,12 @@
   "Placemaker.Dress.dressStyle.livedIn.Tooltip": "일상적 사용: 갓길과 길이 닳았습니다.",
   "Placemaker.Dress.dressStyle.gritty": "거침",
   "Placemaker.Dress.dressStyle.gritty.Tooltip": "방치됨: 심하게 닳고 맨땅이 드러납니다.",
-  "Placemaker.Dress.dressPaintWear": "지면 칠하기",
+  "Placemaker.Dress.dressPaintWear": "마모 칠하기",
   "Placemaker.Dress.dressPaintWear.Tooltip": "꾸미기로 지면 텍스처에 칠하는 양: 잔디 변화, 나무 밑 멀칭, 닳은 길 가장자리, 벤치·놀이기구·입구의 닳은 자리, 부드러운 가장자리, 경기장과 그 주변의 닳음. 맨땅이 보이는 곳에만 칠합니다(표면, 길, 물 아래는 제외). 모든 지면 칠하기처럼 영구적이며, 0이면 칠하지 않습니다.",
   "Placemaker.Dress.dressDesirePaths": "희망선",
   "Placemaker.Dress.dressDesirePaths.Tooltip": "사람들이 길 사이 모퉁이를 질러가거나 잔디밭을 가로질러 벤치와 놀이기구로 가며 생긴 희미한 발자국 길입니다(지면 텍스처에 칠함).",
-  "Placemaker.Dress.dressDesirePaths.Off": "지면 칠하기가 켜져 있을 때만",
-  "Placemaker.UI.Group.groundPaint": "지면 칠하기",
+  "Placemaker.Dress.dressDesirePaths.Off": "마모 칠하기가 켜져 있을 때만",
+  "Placemaker.UI.Group.groundPaint": "지형 칠하기",
   "Placemaker.Dress.dressLawn": "잔디밭",
   "Placemaker.Dress.dressLawn.Tooltip": "지형 칠하기: 지도 자체의 잔디에 무성하고 마른 부분, 멀칭, 닳음을 칠합니다(자연스럽고 생활감 있음). 잔디 표면: 땅을 가리는 고르고 손질된 잔디 텍스처 하나(정형적, 사막이나 바위 지도에도 알맞음).",
   "Placemaker.Dress.dressLawn.painted": "지형 칠하기",
@@ -66,6 +66,6 @@
   "Placemaker.Category.decal.glass": "깨진 유리 데칼",
   "Placemaker.Category.decal.beach": "해변 표착물 데칼",
   "Placemaker.Category.decal.footprints": "발자국 데칼",
-  "Placemaker.Dress.dressGroundDecals": "지면 데칼",
+  "Placemaker.Dress.dressGroundDecals": "데칼",
   "Placemaker.Dress.dressGroundDecals.Tooltip": "지면에 그리는 균열, 때, 낙엽, 웅덩이, 마모입니다. 끄기: 전혀 그리지 않습니다."
 }
