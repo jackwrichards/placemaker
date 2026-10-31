@@ -1,0 +1,257 @@
+{
+  "_about": "Beach styles on real shores (tools/suite/beach-scenario.js)",
+  "scenarios": [
+    {
+      "id": "beach-wild-lake",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "wild"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "low",
+          "shot": "low",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "beach-cove-lake",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "cove"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "low",
+          "shot": "low",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "beach-shingle-lake",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "shingle"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "low",
+          "shot": "low",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "beach-ravine-lake",
+      "site": "flat",
+      "pace": "settled",
+      "land": {
+        "gap": 10,
+        "roads": "around",
+        "size": [
+          200,
+          110
+        ],
+        "water": {
+          "side": "north",
+          "width": 90
+        }
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "beach",
+          "preset": "ravine"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 30
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "45",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "closeup",
+          "shot": "close",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "low",
+          "shot": "low",
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}
