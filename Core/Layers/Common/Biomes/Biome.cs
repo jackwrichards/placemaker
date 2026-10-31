@@ -281,7 +281,7 @@ namespace Placemaker.Core.Layers.Common.Biomes
             Decals = new[]
             {
                 // the sward carries the look; long grass under it only faintly (at full strength its pale tufts read as white blotches)
-                new BiomeDecal("meadowSward", 1.1f, BiomeWhere.All, 0.8f, 1f, 6f),
+                new BiomeDecal("meadowSward", 1.1f, BiomeWhere.All, 0.65f, 0.85f, 6f),
                 new BiomeDecal("longGrass", 0.45f, BiomeWhere.Core, 0.4f, 0.65f, 6f, quiet: true),
                 new BiomeDecal("flowerDriftCream", 0.14f, BiomeWhere.Drift, 0.6f, 0.9f, 4f),
                 new BiomeDecal("flowerDriftPurple", 0.1f, BiomeWhere.Drift, 0.6f, 0.9f, 4f),
