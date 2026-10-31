@@ -60,18 +60,18 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             switch (kind)
             {
                 case "Grain":
-                    if (season == 0) { TerrainPaint.Patch(ctx, ring, Dirt, 0.8f, 3f); n += Stripes(ctx, ring, rows, spacing, Lush, 0.45f, budget); }
+                    if (season == 0) { TerrainPaint.Patch(ctx, ring, Dirt, 1f, 2.5f); n += Stripes(ctx, ring, rows, spacing, Lush, 0.7f, budget); }
                     else if (season == 1) { TerrainPaint.Patch(ctx, ring, Lush, 0.35f, 3f); n += Stripes(ctx, ring, rows, spacing, Lush, 0.55f, budget); }
                     else if (season == 2) { TerrainPaint.Patch(ctx, ring, Dirt, 0.7f, 3f); TerrainPaint.Patch(ctx, ring, Sand, 0.28f, 3f); n += Stripes(ctx, ring, rows, spacing * 1.5f, Dirt, 0.95f, budget); }
-                    else { TerrainPaint.Patch(ctx, ring, Lush, 0.75f, 3f); TerrainPaint.Patch(ctx, ring, Dirt, 0.55f, 3f); n += Stripes(ctx, ring, rows, spacing, Lush, 1f, budget); }
+                    else { TerrainPaint.Patch(ctx, ring, Lush, 1f, 2.5f); TerrainPaint.Patch(ctx, ring, Dirt, 0.9f, 2.5f); n += Stripes(ctx, ring, rows, spacing, Dirt, 0.6f, budget); }
                     break;
                 case "Veg":
                     TerrainPaint.Patch(ctx, ring, Dirt, 0.9f, 2f);
                     n += Stripes(ctx, ring, rows, math.max(2f, spacing * 0.6f), Lush, season == 3 ? 0.4f : 0.85f, budget);
                     break;
                 case "Fallow":
-                    TerrainPaint.Patch(ctx, ring, Lush, 0.6f, 3f); TerrainPaint.Patch(ctx, ring, Dirt, 0.6f, 3f);
-                    n += Stripes(ctx, ring, rows, spacing, Lush, 0.9f, budget);
+                    TerrainPaint.Patch(ctx, ring, Lush, 0.9f, 2.5f); TerrainPaint.Patch(ctx, ring, Dirt, 0.8f, 2.5f);
+                    n += Stripes(ctx, ring, rows, spacing, Dirt, 0.5f, budget);
                     break;
                 case "Hay":
                     // mown swaths: the cut rows a little paler, the uncut green between

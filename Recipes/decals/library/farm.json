@@ -13,8 +13,8 @@
         { "op": "fbm", "out": "n", "scale": 2.4, "octaves": 4, "warp": 1, "warpScale": 3 },
         { "op": "remap", "in": "n", "out": "macro", "lo": -0.5, "hi": 0.4 },
         { "op": "mul", "a": "shape", "b": "macro", "out": "cover" },
-        { "op": "layer", "alpha": "cover", "alphaK": 0.4, "color": [132, 114, 72], "smooth": 0.2 },
-        { "op": "scatter", "stamp": "twig", "density": 110, "clusters": 7, "cluster": 0.55, "clusterRadius": [0.7, 2.4], "noise": { "scale": 2.2, "lo": -1, "hi": 0.3 }, "size": [0.25, 0.6], "aspect": [0.06, 0.1], "palette": [[164, 140, 86], [146, 124, 74], [128, 108, 66], [176, 152, 98]], "alpha": [0.9, 1], "value": 0.1, "height": 0.6, "smooth": 0.25, "max": 40000 }
+        { "op": "layer", "alpha": "cover", "alphaK": 0.1, "color": [132, 114, 72], "smooth": 0.2 },
+        { "op": "scatter", "stamp": "twig", "density": 110, "clusters": 7, "cluster": 0.55, "clusterRadius": [0.7, 2.4], "noise": { "scale": 2.2, "lo": -1, "hi": 0.3 }, "size": [0.25, 0.6], "aspect": [0.06, 0.1], "palette": [[150, 130, 86], [134, 116, 76], [118, 102, 68], [160, 140, 96]], "alpha": [0.9, 1], "value": 0.1, "height": 0.6, "smooth": 0.25, "max": 40000 }
       ]
     },
     {
@@ -56,14 +56,14 @@
       "variants": { "count": 6, "size": [14, 20], "width": [2.4, 2.6], "tile": "x", "strength": [0.7, 1] },
       "ops": [
         { "op": "abs", "in": "across", "out": "ax" },
-        { "op": "band", "in": "ax", "out": "wheel", "at": 0.9, "width": 0.17 },
-        { "op": "band", "in": "ax", "out": "flat", "at": 0.9, "width": 0.38 },
+        { "op": "band", "in": "ax", "out": "wheel", "at": 0.9, "width": 0.24 },
+        { "op": "band", "in": "ax", "out": "flat", "at": 0.9, "width": 0.45 },
         { "op": "fbm", "out": "n", "scale": 1.6, "octaves": 3, "stretch": [3, 1] },
         { "op": "remap", "in": "n", "out": "broken", "lo": -0.7, "hi": 0.1 },
         { "op": "mul", "a": "flat", "b": "broken", "c": "shape", "out": "flatC" },
-        { "op": "layer", "alpha": "flatC", "alphaK": 0.35, "color": [118, 106, 74], "smooth": 0.15 },
+        { "op": "layer", "alpha": "flatC", "alphaK": 0.3, "color": [96, 90, 70], "smooth": 0.15 },
         { "op": "mul", "a": "wheel", "b": "broken", "c": "shape", "out": "soil" },
-        { "op": "layer", "alpha": "soil", "alphaK": 0.85, "color": [98, 82, 62], "color2": [84, 70, 54], "tone": "n", "smooth": 0.2, "height": -0.5 }
+        { "op": "layer", "alpha": "soil", "alphaK": 0.85, "color": [82, 70, 56], "color2": [70, 60, 48], "tone": "n", "smooth": 0.2, "height": -0.5 }
       ]
     },
     {

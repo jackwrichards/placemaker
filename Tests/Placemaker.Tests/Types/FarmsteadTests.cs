@@ -305,9 +305,9 @@ namespace Placemaker.Tests.Types
             Assert.Contains(plan.Objects, o => o.Category == AssetCategories.FarmSilo);
             Assert.True(plan.Facts["hedgeItems"] > 50, "hedge items " + plan.Facts["hedgeItems"]);
             Assert.Contains(plan.Nets, n => n.Role == NetRole.Pathway);
-            // (P2-3) Ground before props: fields are terrain paint in their season (rows as stripes), never crop surface carpets.
-            Assert.True(plan.Facts["stripes"] >= 10, "paint stripes " + plan.Facts["stripes"]);
-            Assert.DoesNotContain(plan.Surfaces, s => (s.Category ?? "").StartsWith(AssetCategories.SurfaceCrop));
+            // (P2-3) A summer farm: growing crops are the crop surface; bare soil (spring, autumn, fallow) is paint.
+            Assert.True(plan.Facts["fieldSurfaces"] >= 2, "field surfaces " + plan.Facts["fieldSurfaces"]);
+            Assert.Contains(plan.Surfaces, s => (s.Category ?? "").StartsWith(AssetCategories.SurfaceCrop));
             Assert.True(plan.Facts["cropItems"] <= 600, "crop accents " + plan.Facts["cropItems"]);
             Assert.Contains(plan.Regions, r => r.Tags.Contains(RegionTags.Core));
             // Fields are places: features keep out.

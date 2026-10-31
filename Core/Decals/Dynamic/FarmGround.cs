@@ -121,7 +121,7 @@ namespace Placemaker.Core.Decals.Dynamic
                         Opacity = Op(0.55f, 0.9f), Scale = new float2(0.5f, 1f), Clump = 2.5f, Loners = 0.4f, Cause = "farm:yardPuddles",
                     });
                     // grit and straw over the whole yard, a mottle so the surface never reads as one tile
-                    Brushes.Scatter(_b, area, "strawLitter", 0.18f * _a, new ScatterOptions { Weight = p => 0.3f + 0.7f * ValueNoise.Clumps(p, 9f, H(3)), Opacity = Op(0.6f, 1f), Clump = 3f, Loners = 0.4f, Cause = "farm:yardStraw" });
+                    Brushes.Scatter(_b, area, "strawLitter", 0.1f * _a, new ScatterOptions { Weight = p => 0.3f + 0.7f * ValueNoise.Clumps(p, 9f, H(3)), Opacity = Op(0.6f, 1f), Clump = 3f, Loners = 0.4f, Cause = "farm:yardStraw" });
                     Brushes.Scatter(_b, area, "groundMottle", 0.25f, new ScatterOptions { Weight = p => 0.4f + 0.6f * ValueNoise.Clumps(p, 18f, H(4)), Opacity = Op(0.25f, 0.45f), Clump = 3f, Level = ColourLevel.Quiet, Cause = "farm:yardTone" });
                     // tractor tracks: from each gate in the yard's direction, curving into the sheds' side
                     int k = 0;

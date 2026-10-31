@@ -336,7 +336,8 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             var trackAsset = AssetMix.One(ctx.S("trackAsset"));
             var treeIds = ctx.L("treeSpecies");
             var hedgeIds = ctx.L("hedgeSpecies");
-            var fenceAsset = AssetMix.One(ctx.S("fenceAsset"));
+            // (P2-3) a farm's fences are wooden post-and-rail (the animal park's paddock fence), never the city's railings
+            var fenceAsset = string.IsNullOrEmpty(ctx.S("fenceAsset")) ? AnimalPark.AnimalParkArt.PenFence("", "paddocks") : AssetMix.One(ctx.S("fenceAsset"));
             int dirtLayer = ctx.I("paintLayer");
             bool paint = ctx.B("fieldPaint");
 
@@ -479,8 +480,15 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             {
                 var f = fields[i];
                 uint v = Hashing.Mix(ctx.Seed, 0xF1E1u + (uint)i);
-                // the ground is terrain paint in the farm's season (the brief: paint for fields, surfaces only for yards)
-                if (paint) stripes += PaintField(ctx, f.Ring, f.Kind.ToString(), f.RowDir, rs, season, MaxStripes - stripes);
+                // A growing crop and its stubble are the crop surface (the vanilla field rows read as a crop from 45°; a green crop
+                // painted on grass did not show at all: run show-5-builds-1030-233210-474c). The bare soil of spring drilling,
+                // autumn ploughing and fallow is terrain paint at full strength, with the rows striped in.
+                bool bare = f.Kind == FieldKind.Fallow || (f.Kind == FieldKind.Grain || f.Kind == FieldKind.Veg) && (season == 0 || season == 3);
+                if (bare && paint) stripes += PaintField(ctx, f.Ring, f.Kind == FieldKind.Fallow ? "Fallow" : "Grain", f.RowDir, rs, season, MaxStripes - stripes);
+                else if (f.Kind == FieldKind.Grain && GroundCover.Field(ctx, f.Ring, GroundCover.Straw)) fieldSurfaces++;
+                else if (f.Kind == FieldKind.Veg && GroundCover.Field(ctx, f.Ring, GroundCover.Rows)) fieldSurfaces++;
+                else if (f.Kind == FieldKind.Hay && GroundCover.Field(ctx, f.Ring, GroundCover.Green)) fieldSurfaces++;
+                else if (paint && f.Kind != FieldKind.Pasture) stripes += PaintField(ctx, f.Ring, f.Kind.ToString(), f.RowDir, rs, season, MaxStripes - stripes);
                 switch (f.Kind)
                 {
                     case FieldKind.Grain:
@@ -877,8 +885,16 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             string ground = ctx.S("yardGround");
             string groundCat = ground == "paved" ? AssetCategories.SurfacePaving
                 : LeisureKit.Category(ctx, "", ground == "dirt" ? AssetCategories.SurfaceDirt : AssetCategories.SurfaceNatural, AssetCategories.SurfaceNatural);
-            if (groundCat != null) ctx.Surface(yardRing, ground == "paved" ? SurfaceRole.Paving : SurfaceRole.Ground, AssetMix.One(""), groundCat);
-            if (ctx.B("fieldPaint") && ground != "paved") TerrainPaint.Patch(ctx, yardRing, ctx.I("paintLayer"), 0.7f, 2f);
+            // (P2-3) A dirt or gravel yard is the ground itself, worked to earth: painted (earth, and the dark forest floor for mud),
+            // its mud, puddles and tyre tracks laid by the ground design. The beige sand surface read as a slab dropped on the lawn
+            // (run show-10-builds-1030-231154-0c65). Only a paved yard keeps a surface.
+            if (ground == "paved" && groundCat != null) ctx.Surface(yardRing, SurfaceRole.Paving, AssetMix.One(""), groundCat);
+            else
+            {
+                float mud = ctx.F("yardMud") / 100f;
+                TerrainPaint.Patch(ctx, yardRing, TerrainMaterials.Dirt, 1f, 3f);
+                TerrainPaint.Patch(ctx, yardRing, TerrainMaterials.Lush, ground == "dirt" ? 0.55f + 0.4f * mud : 0.25f + 0.4f * mud, 3f);
+            }
             var yardRegion = LayerRegion.From(yardRing);
             if (yardRegion == null) return;
             if (ctx.B("levelYard"))
