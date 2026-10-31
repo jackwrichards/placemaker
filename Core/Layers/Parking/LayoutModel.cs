@@ -9,7 +9,8 @@ namespace Placemaker.Core.Layers.Parking
 {
     internal enum BayKind { Perimeter = 0, Inner = 1, InnerPerimeter = 2 }
 
-    internal enum BayRole { Normal = 0, Disabled = 1, Electric = 2 }
+    /// <summary>Blank (P2-1): an empty paved space the player asked for (hand edit "stall.blank"): paved, no marking, no parking.</summary>
+    internal enum BayRole { Normal = 0, Disabled = 1, Electric = 2, Blank = 3 }
 
     /// <summary>
     /// Entrance kinds = PLT's seven Zufahrtsarten (Geometry/ParkingGeometry.Types.cs): Zufahrt,
@@ -81,6 +82,13 @@ namespace Placemaker.Core.Layers.Parking
         /// <summary>Drive line serving this stall.</summary>
         public int Line;
         public bool Removed;
+        /// <summary>(P2-1) Its role was decided by hand: the automatic accessible and charger stalls leave it alone.</summary>
+        public bool Pinned;
+        /// <summary>(P2-1) Removed by hand to make a planted island (still offered to the hand-edit tool, to take it back).</summary>
+        public bool Island;
+        /// <summary>(P2-1) The hand edit applied to it ("" = none) and where that touch is.</summary>
+        public string TouchedBy = "";
+        public float3 TouchAt;
     }
 
     internal sealed class DriveLine
@@ -193,9 +201,12 @@ namespace Placemaker.Core.Layers.Parking
         public IEnumerable<Bay> LiveBays { get { foreach (var b in Bays) if (!b.Removed) yield return b; } }
         public IEnumerable<DriveLine> LiveLines { get { foreach (var l in Lines) if (!l.Removed) yield return l; } }
 
+        /// <summary>(P2-1) Hand edits that found nothing to apply to (left out of this plan, kept in the design).</summary>
+        public int TouchesDropped;
+
         public int StallCount
         {
-            get { int n = 0; foreach (var b in Bays) if (!b.Removed) n++; return n; }
+            get { int n = 0; foreach (var b in Bays) if (!b.Removed && b.Role != BayRole.Blank) n++; return n; }
         }
 
         public int CountRole(BayRole r)

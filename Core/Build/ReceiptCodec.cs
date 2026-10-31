@@ -17,7 +17,7 @@ namespace Placemaker.Core.Build
         /// <summary>"PMGR" little-endian.</summary>
         public const uint Magic = 0x52474D50;
         /// <summary>Bump when appending fields. v1 = initial layout; v2 (s17) = park stats block after the area block.</summary>
-        public const int CurrentVersion = 2;
+        public const int CurrentVersion = 3;
 
         // Corrupt data must never make us allocate gigabytes or recurse forever.
         private const int MaxCount = 1_000_000;
@@ -61,6 +61,8 @@ namespace Placemaker.Core.Build
                 var parkStats = r.ParkStats ?? (r.Recipe?.ParkStats != null && !r.Recipe.ParkStats.IsDefault
                     ? new ParkStatsRecord { Settings = r.Recipe.ParkStats.Clone() } : null);
                 Block(w, bw => { bw.Write(parkStats != null); if (parkStats != null) WriteParkStats(bw, parkStats); });
+                // v3 (P2-1): the hand edits of every step, by step path, in a block of their own (older readers stop before it)
+                Block(w, bw => WriteTouches(bw, r.Recipe?.Root));
                 w.Flush();
                 return ms.ToArray();
             }
@@ -103,13 +105,74 @@ namespace Placemaker.Core.Build
                         r.ParkStats = ReadBlock(rd, br => br.ReadBoolean() ? ReadParkStats(br) : null);
                         if (r.ParkStats?.Settings != null && r.Recipe != null) r.Recipe.ParkStats = r.ParkStats.Settings.Clone();
                     }
-                    // version >= 3 fields would be read here, guarded by `version`.
+                    if (version >= 3 && ms.Position < ms.Length)
+                        ReadBlock(rd, br => { ReadTouches(br, r.Recipe?.Root); return (object)null; });
+                    // version >= 4 fields would be read here, guarded by `version`.
                     return r;
                 }
             }
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        // ───────────── hand edits (v3, Core/Touches.cs) ─────────────
+
+        private static void StepsWithTouches(RecipeStep s, string path, int depth, List<KeyValuePair<string, RecipeStep>> into)
+        {
+            if (s == null || depth > MaxStepDepth) return;
+            if (s.Touches != null && s.Touches.Count > 0) into.Add(new KeyValuePair<string, RecipeStep>(path, s));
+            for (int i = 0; i < (s.Children?.Count ?? 0); i++) StepsWithTouches(s.Children[i], path + "/" + i, depth + 1, into);
+            if (s.RegionOverrides != null)
+            {
+                var keys = new List<string>(s.RegionOverrides.Keys);
+                keys.Sort(StringComparer.Ordinal);
+                foreach (var k in keys) StepsWithTouches(s.RegionOverrides[k], path + "/@" + k, depth + 1, into);
+            }
+        }
+
+        private static RecipeStep StepAt(RecipeStep root, string path)
+        {
+            if (root == null || string.IsNullOrEmpty(path)) return null;
+            var s = root;
+            var parts = path.Split('/');
+            for (int i = 1; i < parts.Length && s != null; i++)
+            {
+                var p = parts[i];
+                if (p.StartsWith("@", StringComparison.Ordinal)) s = s.RegionOverrides != null && s.RegionOverrides.TryGetValue(p.Substring(1), out var o) ? o : null;
+                else if (int.TryParse(p, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int idx)) s = idx >= 0 && idx < s.Children.Count ? s.Children[idx] : null;
+                else s = null;
+            }
+            return s;
+        }
+
+        private static void WriteTouches(BinaryWriter w, RecipeStep root)
+        {
+            var steps = new List<KeyValuePair<string, RecipeStep>>();
+            StepsWithTouches(root, "r", 0, steps);
+            w.Write(steps.Count);
+            foreach (var kv in steps)
+            {
+                Str(w, kv.Key);
+                w.Write(kv.Value.Touches.Count);
+                foreach (var t in kv.Value.Touches) { w.Write(t.Version); Str(w, t.Kind); F3(w, t.Position); w.Write(t.Yaw); Str(w, t.Arg ?? ""); }
+            }
+        }
+
+        private static void ReadTouches(BinaryReader rd, RecipeStep root)
+        {
+            int n = Count(rd);
+            for (int i = 0; i < n; i++)
+            {
+                var step = StepAt(root, Str(rd));
+                int m = Count(rd);
+                for (int k = 0; k < m; k++)
+                {
+                    int v = rd.ReadInt32();
+                    var t = new HandTouch(Str(rd), F3(rd), rd.ReadSingle(), Str(rd)) { Version = v };
+                    if (step != null && !string.IsNullOrEmpty(t.Kind)) step.Touches.Add(t);
+                }
             }
         }
 

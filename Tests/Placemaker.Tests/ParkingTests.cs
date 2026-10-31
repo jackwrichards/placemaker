@@ -57,14 +57,14 @@ namespace Placemaker.Tests
             var ids = g.Controls.Select(c => c.Id).ToList();
             Assert.Equal(ids.Count, ids.Distinct().Count());
             var d = g.Defaults();
-            foreach (var c in g.Controls.Where(c => c.Kind != ControlKind.Markers)) Assert.True(d.Values.ContainsKey(c.Id), c.Id);
+            foreach (var c in g.Controls.Where(c => c.Kind != ControlKind.Markers && c.Kind != ControlKind.Touches)) Assert.True(d.Values.ContainsKey(c.Id), c.Id);
             foreach (var c in g.Controls.Where(c => c.Kind == ControlKind.Slider))
             {
                 double v = d.Num(c.Id, double.NaN);
                 Assert.InRange(v, c.Min, c.Max);
             }
             Assert.Contains(g.Controls, c => c.Kind == ControlKind.Markers && c.MarkerKinds.SequenceEqual(new[] { "entrance", "entry", "exit", "alley", "alleyIn", "alleyOut", "footpath" }));
-            Assert.Equal(4, g.Controls.Count(c => c.Tier == ControlTier.Essential));
+            Assert.Equal(7, g.Controls.Count(c => c.Tier == ControlTier.Essential));
             Assert.Equal("rowAngleMode=fixed", g.Controls.Single(c => c.Id == "rowAngle").VisibleWhen);
         }
 

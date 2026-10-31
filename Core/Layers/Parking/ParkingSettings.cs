@@ -24,8 +24,23 @@ namespace Placemaker.Core.Layers.Parking
         public const string StallWidth = "stallWidth";
         public const string StallLength = "stallLength";
         public const string Setback = "setback";
-        public const string RowAngleMode = "rowAngleMode";      // "edge" | "across" | "fixed"
+        public const string RowAngleMode = "rowAngleMode";      // "edge" | "street" | "across" | "fixed"
         public const string RowAngle = "rowAngle";
+        /// <summary>(P2-1) Turn of the grid against what it lines up with: "0" | "30" | "45" | "60" | "90" | "free".</summary>
+        public const string GridTurn = "gridTurn";
+        /// <summary>(P2-1) The free turn in degrees (gridTurn = "free").</summary>
+        public const string GridTurnFree = "gridTurnFree";
+        /// <summary>(P2-1) Hand-edit tool (ControlKind.Touches): the touch kinds below.</summary>
+        public const string HandEdits = "handEdits";
+
+        // Touch kinds (save format, Core/Touches.cs).
+        public const string TouchAccessible = "stall.accessible";
+        public const string TouchCharger = "stall.ev";
+        public const string TouchPlain = "stall.plain";     // a plain stall: no automatic accessible or charger stall here
+        public const string TouchBlank = "stall.blank";     // no stall: empty paved space
+        public const string TouchIsland = "stall.island";   // no stall: a planted island
+        public const string TouchEdge = "grid.edge";        // the rows line up with (and start at) this edge
+        public static readonly string[] TouchKinds = { TouchAccessible, TouchCharger, TouchPlain, TouchBlank, TouchIsland, TouchEdge };
         public const string PerimeterRoad = "perimeterRoad";
         public const string CrossEvery = "crossEvery";          // stalls between cross lanes, 0 = none
         public const string RowEndPlanting = "rowEndPlanting";
@@ -80,7 +95,7 @@ namespace Placemaker.Core.Layers.Parking
 
     internal enum Greenery { None = 0, Edges = 1, Medians = 2 }
 
-    internal enum RowAngleMode { Edge = 0, Across = 1, Fixed = 2 }
+    internal enum RowAngleMode { Edge = 0, Across = 1, Fixed = 2, Street = 3 }
 
     internal enum EdgeZoningMode { None = 0, OneSide = 1, All = 2 }
 
@@ -113,6 +128,8 @@ namespace Placemaker.Core.Layers.Parking
         public readonly Greenery Greenery;
         public readonly RowAngleMode AngleMode;
         public readonly double RowAngleDeg;
+        /// <summary>(P2-1) Turn of the grid against its reference (edge, street, picked edge), degrees.</summary>
+        public readonly double GridTurnDeg;
         public readonly bool PerimeterRoad, RowEndPlanting, Alleys, Lanterns, Grading;
         public readonly int CrossEvery;
         public readonly double LanternSpacing, EvShare, AccessibleShare, Fee, PlantingDensity;
@@ -142,9 +159,17 @@ namespace Placemaker.Core.Layers.Parking
             Median = Greenery == Greenery.Medians ? Clamp(bag.Num(ParkingIds.MedianDepth, DefaultMedian), 0, 12) : 0;
             Cross = CrossWidth;
             var m = bag.S(ParkingIds.RowAngleMode, "edge");
-            AngleMode = m == "across" ? RowAngleMode.Across : m == "fixed" ? RowAngleMode.Fixed : RowAngleMode.Edge;
-            RowAngleDeg = bag.Num(ParkingIds.RowAngle, 0);
+            AngleMode = m == "across" ? RowAngleMode.Across : m == "fixed" ? RowAngleMode.Fixed : m == "street" ? RowAngleMode.Street : RowAngleMode.Edge;
+            // read only where they act (the panel greys unread controls: SettingsBag.Reads)
+            RowAngleDeg = AngleMode == RowAngleMode.Fixed ? bag.Num(ParkingIds.RowAngle, 0) : 0;
             if (double.IsNaN(RowAngleDeg) || double.IsInfinity(RowAngleDeg)) RowAngleDeg = 0;
+            GridTurnDeg = 0;
+            if (AngleMode != RowAngleMode.Fixed)
+            {
+                var turn = bag.S(ParkingIds.GridTurn, "0");
+                if (turn == "free") GridTurnDeg = Clamp(bag.Num(ParkingIds.GridTurnFree, 0), 0, 179);
+                else if (double.TryParse(turn, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var t)) GridTurnDeg = Clamp(t, 0, 179);
+            }
             PerimeterRoad = bag.B(ParkingIds.PerimeterRoad, true);
             Grading = bag.B(ParkingIds.Grading, true);
             CrossEvery = (int)Math.Round(Clamp(bag.Num(ParkingIds.CrossEvery, DefaultCrossEvery), 0, 60));

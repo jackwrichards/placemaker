@@ -322,6 +322,7 @@ namespace Placemaker.Core.Tool
                     if (!prev.Enabled || !SameSettings(prev.Settings, r.Settings)) changed = true;
                     r.Seed = prev.Seed;
                     r.Markers = new List<EdgeMarker>(prev.Markers);
+                    r.Touches = new List<HandTouch>(prev.Touches);
                     r.Children = prev.Children;
                     r.RegionOverrides = prev.RegionOverrides;
                 }
@@ -578,6 +579,7 @@ namespace Placemaker.Core.Tool
         {
             s.Seed = 0;
             s.Markers.Clear();
+            s.Touches.Clear();
             s.RegionOverrides.Clear();
             s.Enabled = true;
             if (depth > 0) { s.Children.Clear(); return; }

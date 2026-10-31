@@ -109,6 +109,20 @@ namespace Placemaker.Core.Layers.Parking
             if (reserved != null && (reserved.Discs.Count > 0 || reserved.Corridors.Count > 0 || reserved.Polygons.Count > 0))
                 rq.Blocked = (p, r) => reserved.Blocks(new float2((float)p.x, (float)p.y), (float)r);
             rq.Entrances.AddRange(entrances);
+            rq.Roads = roads;
+            // (P2-1) hand edits: the picked edge (the last one placed wins) and the stall touches
+            int edgeDropped = 0;
+            if (input.Touches != null)
+                foreach (var t in input.Touches)
+                {
+                    if (t.Kind == ParkingIds.TouchEdge)
+                    {
+                        int e = PickedEdge(world, new double2(t.Position.x, t.Position.z));
+                        if (e < 0) { edgeDropped++; continue; }
+                        rq.ChosenEdge = new[] { world[e], world[(e + 1) % world.Count] };
+                    }
+                    else if (t.Kind.StartsWith("stall.", StringComparison.Ordinal)) rq.Touches.Add(t);
+                }
 
             // ── layout ──
             cancel.ThrowIfCancellationRequested();
@@ -268,6 +282,8 @@ namespace Placemaker.Core.Layers.Parking
             Emit(plan, layout, s, site, H, input, cancel, roads, zoning.MaxDepth);
             EmitBusStops(plan, busStops, world, roads, site, H);
             EmitZoning(plan, layout, zoning, s, H);
+            EmitTouchTargets(plan, layout, world, rq.ChosenEdge, H);
+            Touches.ReportDropped(plan, layout.TouchesDropped + edgeDropped);
             Issues(plan, layout);
             inspect?.Invoke(layout);
             return plan;
@@ -399,6 +415,62 @@ namespace Placemaker.Core.Layers.Parking
             foreach (var i in plan.Issues) if (i.Key == Layers.Common.TerrainShaper.PermanentKey) { has = true; break; }
             if (!has) plan.Issues.Add(new PlanIssue { Severity = IssueSeverity.Warning, Key = Layers.Common.TerrainShaper.PermanentKey });
         }
+
+        /// <summary>(P2-1) The outline edge a "grid.edge" touch was made on: within 3 m of the edge and not past its ends; -1 = none.</summary>
+        internal static int PickedEdge(List<double2> world, double2 p)
+        {
+            int best = -1; double bestD = 3;
+            for (int i = 0; i < world.Count; i++)
+            {
+                var a = world[i]; var b = world[(i + 1) % world.Count];
+                if (PGeo.Len(b - a) < 2) continue;
+                var q = PGeo.ClosestOnSeg(p, a, b, out double u);
+                if (u < 0.02 || u > 0.98) continue;
+                double d = PGeo.Len(q - p);
+                if (d < bestD) { bestD = d; best = i; }
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// (P2-1) What the hand-edit tool can touch: every stall (also those made into islands, to take them back) with its state,
+        /// and every outline edge long enough to line the rows up with.
+        /// </summary>
+        private static void EmitTouchTargets(AreaPlan plan, Layout layout, List<double2> world, double2[] chosen, Func<double2, float> H)
+        {
+            var f = layout.Frame;
+            foreach (var b in layout.Bays)
+            {
+                if (b.Quad == null || b.Quad.Length < 4 || (b.Removed && !b.Island)) continue;
+                var outline = new float2[4];
+                for (int k = 0; k < 4; k++) { var w = f.ToWorld(b.Quad[k]); outline[k] = new float2((float)w.x, (float)w.y); }
+                var c = f.ToWorld(b.Center);
+                string state = b.Island ? "island" : b.Role == BayRole.Blank ? "blank" : b.Role == BayRole.Disabled ? "accessible"
+                    : b.Role == BayRole.Electric ? "ev" : "normal";
+                plan.TouchTargets.Add(new TouchTarget
+                {
+                    Group = "stall", Center = new float3((float)c.x, H(c), (float)c.y), Outline = outline, State = state,
+                    Touched = b.TouchedBy ?? "", TouchAt = b.TouchAt,
+                });
+            }
+            for (int i = 0; i < world.Count; i++)
+            {
+                var a = world[i]; var b = world[(i + 1) % world.Count];
+                double len = PGeo.Len(b - a);
+                if (len < 2) continue;
+                var d = (b - a) / len; var n = PGeo.Perp(d);   // the outline is CCW: n points inward
+                var mid = (a + b) * 0.5;
+                bool picked = chosen != null && PGeo.Len(chosen[0] - a) < 1e-6 && PGeo.Len(chosen[1] - b) < 1e-6;
+                plan.TouchTargets.Add(new TouchTarget
+                {
+                    Group = "grid", Center = new float3((float)mid.x, H(mid), (float)mid.y), State = picked ? "picked" : "edge",
+                    Outline = new[] { F2(a), F2(b), F2(b + n * 1.5), F2(a + n * 1.5) },
+                    Touched = picked ? ParkingIds.TouchEdge : "", TouchAt = new float3((float)mid.x, H(mid), (float)mid.y),
+                });
+            }
+        }
+
+        private static float2 F2(double2 p) => new float2((float)p.x, (float)p.y);
 
         private static float3 P3(double2 p, Func<double2, float> H) => new float3((float)p.x, H(p), (float)p.y);
 
@@ -635,6 +707,7 @@ namespace Placemaker.Core.Layers.Parking
             int bays = 0, ev = 0, acc = 0;
             foreach (var b in layout.LiveBays)
             {
+                if (b.Role == BayRole.Blank) continue;   // (P2-1) an empty paved space: no marking, no parking lane
                 AssetRef asset;
                 switch (b.Role)
                 {

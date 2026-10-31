@@ -513,7 +513,7 @@ namespace Placemaker.Game.Tool
             CancelEdit("the area was cleared", false);   // a new area is a new build, never the edited one again
             ClearSelectionState();
             // Markers belong to the old outline.
-            if (_recipe != null) foreach (var kv in RecipePaths.Walk(_recipe)) kv.Value.Markers.Clear();
+            if (_recipe != null) foreach (var kv in RecipePaths.Walk(_recipe)) { kv.Value.Markers.Clear(); kv.Value.Touches.Clear(); }
             _markersEdited.Clear();
             DesignChanged();
             Commit("Placemaker.Undo.ClearArea");

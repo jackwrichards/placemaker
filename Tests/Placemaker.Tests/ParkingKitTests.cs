@@ -68,7 +68,7 @@ namespace Placemaker.Tests
         }
 
         public static ParkingRun Run(float3[] ring, SettingsBag settings = null, List<EdgeMarker> markers = null,
-            SiteContext site = null, CancellationToken cancel = default, uint seed = 7, ReservedSpace reserved = null)
+            SiteContext site = null, CancellationToken cancel = default, uint seed = 7, ReservedSpace reserved = null, List<HandTouch> touches = null)
         {
             var gen = new ParkingLayer();
             var input = new AreaInput
@@ -79,6 +79,7 @@ namespace Placemaker.Tests
                 Markers = markers ?? new List<EdgeMarker>(),
                 Seed = seed,
                 Reserved = reserved ?? new ReservedSpace(),
+                Touches = touches ?? new List<HandTouch>(),
             };
             var r = new ParkingRun { Input = input };
             var sw = Stopwatch.StartNew();

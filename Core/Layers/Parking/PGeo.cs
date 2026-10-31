@@ -21,6 +21,8 @@ namespace Placemaker.Core.Layers.Parking
         public static double2 Norm(double2 a) { var l = Len(a); return l > 1e-12 ? a / l : new double2(1, 0); }
         /// <summary>Left normal (CCW rotation by 90°).</summary>
         public static double2 Perp(double2 a) => new double2(-a.y, a.x);
+        /// <summary>Turned counter-clockwise by <paramref name="rad"/>.</summary>
+        public static double2 Rotate(double2 a, double rad) { double c = Math.Cos(rad), s = Math.Sin(rad); return new double2(a.x * c - a.y * s, a.x * s + a.y * c); }
         public static int Mod(int v, int m) { int r = v % m; return r < 0 ? r + m : r; }
 
         public static double SignedArea(IReadOnlyList<double2> ring)

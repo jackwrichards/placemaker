@@ -34,6 +34,12 @@ namespace Placemaker.Core.Layers.Parking
         public bool LeftHandTraffic;
         /// <summary>World point + radius → true when reserved by an earlier layer.</summary>
         public Func<double2, double, bool> Blocked = (p, r) => false;
+        /// <summary>(P2-1) Streets near the lot, for rows that follow the street (RowAngleMode.Street).</summary>
+        public List<RoadLine> Roads = new List<RoadLine>();
+        /// <summary>(P2-1) An edge the player picked (hand edit "grid.edge"): the rows run along it and start at it. Null = none.</summary>
+        public double2[] ChosenEdge;
+        /// <summary>(P2-1) The stall hand edits (StallTouches).</summary>
+        public List<HandTouch> Touches = new List<HandTouch>();
     }
 
     /// <summary>Convex asphalt piece with the zones it may pave (bit mask of Zone).</summary>
@@ -57,6 +63,8 @@ namespace Placemaker.Core.Layers.Parking
         private List<double2> _lot;
         private double2[] _c1Raw, _c2Raw, _caRaw, _c3Raw;
         private List<double2> _c1, _c2, _ca, _g;
+        /// <summary>(P2-1) -1 / +1: the band plan starts flush with the bottom / top of the grid (the picked edge's side); 0 = free.</summary>
+        private int _flush;
         private bool _ring;
         private readonly List<int> _ringLines = new List<int>();
         private List<double> _crossCenters = new List<double>();
@@ -140,7 +148,8 @@ namespace Placemaker.Core.Layers.Parking
             CheckReachability();
             _cancel.ThrowIfCancellationRequested();
 
-            SpecialStalls.Assign(_out, _s, ChargerSpotOk);
+            StallTouches.Apply(_out, _s, _rq.Touches, ChargerSpotOk, out int handGroups, out int handPairs);
+            SpecialStalls.Assign(_out, _s, ChargerSpotOk, handGroups, handPairs);
             AssignChargers();
             BuildPieces();
 
@@ -159,17 +168,27 @@ namespace Placemaker.Core.Layers.Parking
             var w = _rq.LotWorld;
             if (w == null || w.Count < 3) { Issue(IssueSeverity.Error, "Placemaker.Parking.Issue.BadShape"); return false; }
             double2 dir;
-            if (_s.AngleMode == RowAngleMode.Fixed)
+            var chosen = _rq.ChosenEdge;
+            bool picked = chosen != null && chosen.Length == 2 && PGeo.Len(chosen[1] - chosen[0]) > 0.5;
+            if (picked) dir = PGeo.Norm(chosen[1] - chosen[0]);
+            else if (_s.AngleMode == RowAngleMode.Fixed)
             {
                 double r = _s.RowAngleDeg * Math.PI / 180;
                 dir = new double2(Math.Cos(r), Math.Sin(r));
             }
+            else if (_s.AngleMode == RowAngleMode.Street) dir = StreetEdge(w, _rq.Roads) ?? LongestStraight(w);
             else
             {
                 dir = LongestStraight(w);
                 if (_s.AngleMode == RowAngleMode.Across) dir = PGeo.Perp(dir);
             }
+            // (P2-1) the player's turn of the grid against what it lines up with (0, 30, 45, 60, 90 degrees or free)
+            if (_s.AngleMode != RowAngleMode.Fixed || picked) dir = PGeo.Rotate(dir, _s.GridTurnDeg * Math.PI / 180);
             _out.Frame = new Frame(PGeo.Centroid(w), dir);
+            // rows start at the picked edge when the grid runs along it (no turn): the first module is flush with it
+            _flush = 0;
+            if (picked && Math.Abs(_s.GridTurnDeg) < 1e-6)
+                _flush = _out.Frame.ToLocal((chosen[0] + chosen[1]) * 0.5).y < 0 ? -1 : 1;
             _out.RowAngleDeg = (Math.Atan2(dir.y, dir.x) * 180 / Math.PI + 360) % 180;
             _lot = new List<double2>(w.Count);
             foreach (var p in w) _lot.Add(_out.Frame.ToLocal(p));
@@ -184,6 +203,31 @@ namespace Placemaker.Core.Layers.Parking
         /// Direction of the longest straight run of the outline, tolerating vertices up to 5 cm off
         /// the line (PLT Geometrie.LaengsteGerade; GeradeToleranz = 0.05). Ties → smaller angle.
         /// </summary>
+        /// <summary>
+        /// (P2-1) Direction of the outline edge that runs longest along a street (within 16 m of a street centreline, sampled
+        /// every 2 m), or null when no edge is near a street.
+        /// </summary>
+        internal static double2? StreetEdge(IReadOnlyList<double2> pts, List<RoadLine> roads)
+        {
+            if (roads == null || roads.Count == 0 || pts == null || pts.Count < 3) return null;
+            double best = 4; double2? dir = null;
+            for (int i = 0; i < pts.Count; i++)
+            {
+                var a = pts[i]; var b = pts[(i + 1) % pts.Count];
+                double len = PGeo.Len(b - a);
+                if (len < 4) continue;
+                int n = Math.Max(2, (int)Math.Ceiling(len / 2));
+                double along = 0;
+                for (int k = 0; k < n; k++)
+                {
+                    var q = a + (b - a) * ((k + 0.5) / n);
+                    if (Roads.Nearest(roads, q, 16, out _)) along += len / n;
+                }
+                if (along > best + 1e-6) { best = along; dir = PGeo.Norm(b - a); }
+            }
+            return dir;
+        }
+
         internal static double2 LongestStraight(IReadOnlyList<double2> pts)
         {
             const double tol = 0.05;
@@ -412,6 +456,7 @@ namespace Placemaker.Core.Layers.Parking
                 int steps = Math.Min(7, 1 + (int)Math.Floor(slack / 0.5));
                 var offsets = new List<double> { slack / 2 };
                 for (int j = 0; j < steps; j++) offsets.Add(steps == 1 ? 0 : slack * j / (steps - 1));
+                if (_flush != 0) { offsets.Clear(); offsets.Add(_flush < 0 ? 0 : slack); }
                 foreach (var off in offsets)
                 {
                     var mods = new List<ModuleSpec>();

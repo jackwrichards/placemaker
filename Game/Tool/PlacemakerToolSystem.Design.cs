@@ -78,7 +78,7 @@ namespace Placemaker.Game.Tool
         private static string Fingerprint(Recipe r)
         {
             var c = r.Root.Clone();
-            foreach (var kv in RecipePaths.Walk(new Recipe { Root = c })) { kv.Value.Markers.Clear(); kv.Value.Seed = 0; }
+            foreach (var kv in RecipePaths.Walk(new Recipe { Root = c })) { kv.Value.Markers.Clear(); kv.Value.Touches.Clear(); kv.Value.Seed = 0; }
             return RecipeJson.WriteStep(c).ToString();
         }
 
@@ -107,7 +107,7 @@ namespace Placemaker.Game.Tool
             if (_lastDesigns.TryGetValue(id, out var last))
             {
                 r = last.Recipe.Clone();
-                foreach (var kv in RecipePaths.Walk(r)) { kv.Value.Markers.Clear(); kv.Value.Seed = NewSeed(); }
+                foreach (var kv in RecipePaths.Walk(r)) { kv.Value.Markers.Clear(); kv.Value.Touches.Clear(); kv.Value.Seed = NewSeed(); }
                 presetLayer = last.PresetLayer;
                 presetId = last.PresetId;
             }
