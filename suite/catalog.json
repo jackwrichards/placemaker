@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+77159ef6-dirty",
+  "assembly": "0.3.6+f2915592",
   "categories": [
     {
       "id": "zoning",
@@ -19283,6 +19283,11 @@
           "step": 1.0,
           "unit": "count",
           "default": 1.0
+        },
+        {
+          "id": "growWithSite",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "changingHut",
