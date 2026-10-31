@@ -12,6 +12,13 @@ Parking Lot Tool is in `docs/refactor/parking.md` ("P2-1 audit"). The general me
     receipt kept 4 then 5.
   - `send-parking-touches-load-1031-003505`: a fresh game loads that city and the group record still has 5 hand edits.
     Player.log has 0 exceptions.
+  -  (): a drawn aisle with 23 stalls along it (49 planned
+    stalls cut), a walkway; Manage shows "0 of 319 spaces taken" and the fee, the car park list with nothing picked; Edit hides
+    632 of 632 objects and 51 of 51 areas; every drive lane 25 km/h at cost 0 / 0.25 / 0.01 / 0.05. 0 exceptions.
+  - : the same four corners on a 320 m plot, 60 m from the nearest zoned cell: up to 1.35 m off the
+    zone grid with the rows on the longest side, 0.00 m with the rows on Zone grid (lab ).
+  - Note: a scenario's values carry over to the next scenario in the same game (the panel keeps the last choices); set
+    every value a picture depends on.
 
 ## What the player has
 
