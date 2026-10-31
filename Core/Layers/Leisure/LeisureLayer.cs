@@ -227,6 +227,9 @@ namespace Placemaker.Core.Layers.Leisure
             var graph = ParkPathPlanner.PlanBest(region, pts, new ParkPathPlanner.Options { Loops = loops, StretchLoop = stretch }, seed, ctx.Cancel);
             float keep = math.max(math.max(ctx.M(3f), ctx.EdgeMargin + 1f), PathQuality.Band + 1.5f);   // s9: bends never hug the outline
             if (amplitude > 0f) graph = ParkPathStyles.Meander(graph, pts, ctx.M(amplitude), ctx.M(wavelength), seed, p => region.ContainsDisc(p, keep) && !occ.HitsPolygon(p, 2f));
+            // P2-4 round 3: runs that climb faster than a walk may are traced as switchbacks along the contour
+            graph = ParkPathStyles.Switchbacks(graph, pts, ParkPathPlanner.AmbientHeight, p => region.ContainsDisc(p, keep) && !occ.HitsPolygon(p, 2f), out int switchbacks, out int hairpins);
+            if (switchbacks > 0) { ctx.Plan.Facts["switchbacks"] = switchbacks; ctx.Plan.Facts["hairpins"] = hairpins; }
             var curves = ParkPaths.Build(graph, region, true, width);
             ParkPaths.Index(curves, occ.Corridors, 100);
             ParkPaths.Index(curves, occ.Paths, 100);

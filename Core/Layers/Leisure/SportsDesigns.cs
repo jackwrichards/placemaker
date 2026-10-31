@@ -24,6 +24,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Placemaker.Core.Geometry;
 using Placemaker.Core.Layers.AddOns;
 using Placemaker.Core.Layers.AddOns.Fields;
@@ -44,6 +45,7 @@ namespace Placemaker.Core.Layers.Leisure
         private static readonly AssetRef Asphalt = new AssetRef("", "Asphalt Surface 01", "Pavement Surface 01");
         private static readonly AssetRef Concrete = new AssetRef("", "Concrete Surface 01", "Pavement Surface 01");
         private static readonly AssetRef Sand = new AssetRef("", "Sand Surface 01", "Sand Surface 02");
+        private static readonly string[] HillTrees = { "OakTree01", "BirchTree01", "EU_ChestnutTree01", "EU_AlderTree01" };
 
         /// <summary>The design's working frame: the kit, the ground, the box inside the perimeter promenade.</summary>
         private sealed class Site
@@ -312,7 +314,7 @@ namespace Placemaker.Core.Layers.Leisure
         }
 
         /// <summary>Seating steps down a bank from its top (<paramref name="top"/> line) to its foot: a stone lip every tread, rows of benches.</summary>
-        private static void SeatingSteps(Site s, float2 topA, float2 topB, float2 down, float width, float pitch = 1.1f)
+        private static void SeatingSteps(Site s, float2 topA, float2 topB, float2 down, float width, float pitch = 1.1f, float benchPitch = 3.4f)
         {
             var k = s.K;
             var d = math.normalizesafe(topB - topA);
@@ -324,7 +326,7 @@ namespace Placemaker.Core.Layers.Leisure
             }
             int row = 0;
             for (float t = pitch * 1.7f; t < width - 0.8f; t += pitch * 2f, row++)
-                foreach (var p in LeisureKit.Along(topA + down * t + d * 2f, topB + down * t - d * 2f, 3.4f))
+                foreach (var p in LeisureKit.Along(topA + down * t + d * 2f, topB + down * t - d * 2f, benchPitch))
                     k.Seat(p + d * ((row & 1) * 1.7f), down, PlazaArt.ModernBenches);
         }
 
@@ -352,9 +354,11 @@ namespace Placemaker.Core.Layers.Leisure
         }
 
         /// <summary>A walled bank line: the stone plinth at its foot, a railing on its top edge.</summary>
-        private static void BankEdge(Site s, float2 footA, float2 footB, float2 topA, float2 topB, IEnumerable<(float at, float half)> gaps = null)
+        private static void BankEdge(Site s, float2 footA, float2 footB, float2 topA, float2 topB, IEnumerable<(float at, float half)> gaps = null,
+            IEnumerable<(float at, float half)> topGaps = null)
         {
             s.K.WallWithGaps(footA, footB, gaps, 1);
+            gaps = topGaps ?? gaps;
             if (gaps == null) { s.K.Railing(topA, topB); return; }
             float len = math.distance(topA, topB);
             var d = (topB - topA) / math.max(1e-3f, len);
@@ -428,14 +432,21 @@ namespace Placemaker.Core.Layers.Leisure
             return st.Id == SportsProps.BenchRow.Id ? (SportsProps.Stand?)null : st;
         }
 
-        private static bool Arena(Site s)
+        /// <summary>The cross slope (m/m) from which the arena is laid as a hillside stadium.</summary>
+        private const float HillGrade = 0.06f;
+
+        /// <summary>
+        /// The largest pitch and stands the box takes. On a hillside (<paramref name="gv"/>: the slope across the pitch) only the
+        /// downhill long side has a grandstand (the uphill side is seating on the hill), and a format fits only when the banks
+        /// the hill leaves can stay near the seating rake; the smallest format that fits the box is the last resort.
+        /// </summary>
+        private static bool ArenaFit(Site s, float2 g, out float hu, out float hv, out float D, out SportsProps.Stand side, out SportsProps.Stand? end, out bool hillOk)
         {
-            if (!Wants(s, "pitch")) return false;
-            var k = s.K;
             const float concV = 5f;
             float slack = math.max(0f, s.Edge - s.Lv.Skirt - 0.5f);     // the ends' banks may climb into the perimeter band (no concourse there)
-            float hu = 0f, hv = 0f, D = 0f;
-            SportsProps.Stand side = default; SportsProps.Stand? end = null;
+            float gv = g.y;
+            bool hill = math.abs(gv) >= HillGrade;
+            hu = hv = D = 0f; side = default; end = null; hillOk = false;
             bool found = false;
             foreach (var f in FieldSpecs.Pitch)
             {
@@ -452,83 +463,256 @@ namespace Placemaker.Core.Layers.Leisure
                     SportsProps.Stand? ed = grand && roomU >= SportsProps.Large03.Depth ? SportsProps.Large03 : SmallStand(roomU);
                     if (ed == null && roomU < 3f) continue;
                     hu = fh; hv = fw; D = d; side = sd.Value; end = ed; found = true;
-                    break;
+                    if (!hill) { hillOk = true; return true; }
+                    if (HillFloor(s, gv > 0f ? 1 : 0, fw, sd.Value.Depth + 0.8f, fh + (ed.HasValue ? ed.Value.Depth + 0.8f : 3f), d).Ok) { hillOk = true; return true; }
                 }
-                if (found) break;
             }
-            if (!found) return false;
+            return found;
+        }
+
+        private const float TopBank = 3f;      // a hill stand's seating ends this far under the top concourse
+
+        /// <summary>A hillside stadium's ground: the floor's height, the bank widths (uphill: the seating and the top bank).</summary>
+        private struct HillCut { public float FloorH, BUp, BDn, BU, SeatMax; public bool Ok; }
+
+        /// <summary>
+        /// The seating rake up the hill at a local point: level on the floor, from its edge (<paramref name="foot"/>) up to the top
+        /// line it climbs to meet the hill's plane there, at 40 % at most (steeper only on a hill too steep for the box) (it leans with a slope corner to corner; where the plane there
+        /// lies under the floor it runs down to it rather than end in a cliff).
+        /// </summary>
+        private static float Rake(PlazaDesigns.Levels lv, float floorH, float su, float foot, float top, float u, float v, float gmax = 0.40f) =>
+            floorH + math.clamp((lv.Base(u, su * (top + TopBank)) - floorH) / (top - foot), -gmax, gmax) * (math.clamp(v * su, foot, top) - foot);
+
+        /// <summary>
+        /// The hillside stadium's ground for a pitch hv wide with a stand <paramref name="sdep"/> deep on the downhill side and a floor
+        /// fu long: every bank as wide as the box allows (the seating climbs to the top concourse, the downhill bank and the ends
+        /// run out to the perimeter band); the floor as deep in the hill as the seating rake lets the uphill side climb, sunk under
+        /// the downhill edge where the hill is gentle, never so high the downhill bank passes 40 %. Ok: every bank near the rake.
+        /// </summary>
+        private static HillCut HillFloor(Site s, int up, float hv, float sdep, float fu, float D)
+        {
+            const float concV = 5f;
+            var lv = s.Lv;
+            float slack = math.max(0f, s.Edge - lv.Skirt - 0.5f), su = up == 1 ? 1f : -1f;
+            float fvUp = hv + 3f, fvDn = hv + sdep;
+            var c = new HillCut { BUp = math.max(TopBank + 4f, s.IB - concV - fvUp), BDn = math.max(2f, s.IB - concV - fvDn), BU = math.max(2f, s.IA + slack - fu) };
+            float hiUp = float.MinValue, loDn = float.MaxValue, loOut = float.MaxValue;
+            for (int i = 0; i <= 12; i++)
+            {
+                float u = math.lerp(-fu, fu, i / 12f);
+                hiUp = math.max(hiUp, lv.H(u, su * (fvUp + c.BUp)));
+                loDn = math.min(loDn, lv.H(u, -su * fvDn));
+                // the downhill bank's outer foot to its corners: the floor's corner falls to the lowest of the hill there
+                loOut = math.min(loOut, lv.H(u * (fu + c.BU) / fu, -su * (fvDn + c.BDn)));
+            }
+            float seatW = c.BUp - TopBank;
+            // (the seating at the rake, the plain banks at the plaza kit's steepest: they are planted)
+            float lo = hiUp - seatW * 0.40f, hi = loOut + c.BDn * PlazaDesigns.BankGrade;
+            c.FloorH = lo <= hi ? math.clamp(math.max(lo, loDn - D), lo, hi) : (hiUp * c.BDn + loOut * seatW) / (seatW + c.BDn);
+            c.SeatMax = math.max(0.40f, (hiUp - c.FloorH) / seatW);
+            // the ends: from the core's own height (the floor, the seating; the floor's corners on the downhill bank) out to the hill
+            float worst = 0f;
+            for (int i = 0; i <= 16; i++)
+            {
+                float v = su * math.lerp(-fvDn - c.BDn * 0.5f, fvUp + seatW, i / 16f);   // into the downhill corners (a slope corner to corner)
+                foreach (float e in new[] { -1f, 1f })
+                    worst = math.max(worst, math.abs(lv.H(e * (fu + c.BU), v) - Rake(lv, c.FloorH, su, fvUp, fvUp + seatW, e * fu, v, c.SeatMax)));
+            }
+            // and the top line: the rake reaches the hill's plane all along it (no stretch running down)
+            float under = 0f;
+            for (int i = 0; i <= 12; i++) under = math.max(under, c.FloorH - lv.Base(math.lerp(-fu, fu, i / 12f), su * (fvUp + c.BUp)));
+            c.Ok = lo <= hi + 0.3f && worst <= 0.45f * c.BU && under <= 0.5f;
+            return c;
+        }
+
+        /// <summary>Turns the design a quarter (or back: three more quarters) with its ground frame.</summary>
+        private static void Turn(Site s, bool back = false)
+        {
+            for (int i = back ? 3 : 1; i > 0; i--) s.K.TurnQuarter();
+            float ia = s.IA; s.IA = s.IB; s.IB = ia;
+            var k = s.K;
+            s.Lv = new PlazaDesigns.Levels(k, k.EA - 0.3f, k.EB - 0.3f) { Skirt = s.Lv.Skirt, FineCorners = s.Lv.FineCorners };
+            s.Ctx.Plan.Facts["designBoxA"] = Math.Round(s.IA * 2f);
+            s.Ctx.Plan.Facts["designBoxB"] = Math.Round(s.IB * 2f);
+        }
+
+        private static bool Arena(Site s)
+        {
+            if (!Wants(s, "pitch")) return false;
+            // P2-4 round 3 (the lead: "step it into the hill like a real stadium, with stands on the slope"): on a hillside the pitch
+            // lies along the contour, so one long side faces up the hill; that side's stand is seating cut into the hill.
+            // A slope corner to corner: whichever way round lets every bank stay near the rake.
+            var g = s.Lv.Grad;
+            if (math.abs(g.x) >= HillGrade && math.abs(g.x) > math.abs(g.y) * 1.25f)
+            {
+                Turn(s);
+                if (!ArenaFit(s, s.Lv.Grad, out _, out _, out _, out _, out _, out _)) Turn(s, true);
+            }
+            else if (math.abs(g.x) >= HillGrade && ArenaFit(s, g, out _, out _, out _, out _, out _, out bool asIs) && !asIs)
+            {
+                Turn(s);
+                if (!ArenaFit(s, s.Lv.Grad, out _, out _, out _, out _, out _, out bool turned) || !turned) Turn(s, true);
+            }
+            float gv = s.Lv.Grad.y;
+            if (!ArenaFit(s, s.Lv.Grad, out float hu, out float hv, out float D, out var side, out var end, out _)) return false;
+            var k = s.K;
+            const float concV = 5f;
+            float slack = math.max(0f, s.Edge - s.Lv.Skirt - 0.5f);
+            bool hill = math.abs(gv) >= HillGrade;
             bool grandSides = side.Height > 10f;
             float sdep = side.Depth + 0.8f, edep = end.HasValue ? end.Value.Depth + 0.8f : 3f;
-            float fu = hu + edep, fv = hv + sdep;
-            float maxBank = math.min(s.IA + slack - fu, s.IB - concV - fv);
-            float floorH = Dig(s, 0f, fu, fv, D, maxBank, out float bank);
-            float ru = fu + bank, rv = fv + bank;
+            float fu = hu + edep;
+            // Per long side (0: −S, 1: +S): the floor's edge, the bank's width, a grandstand or seating on the hill.
+            int up = gv > 0f ? 1 : 0, dn = 1 - up;
+            float[] fv = { hv + sdep, hv + sdep }, bv = new float[2];
+            float floorH, bu, seatMax = 0.40f;
             var lv = s.Lv;
-            lv.AddFloor(-ru, ru, -rv, rv, floorH, new float4(bank));
+            if (!hill)
+            {
+                float maxBank = math.min(s.IA + slack - fu, s.IB - concV - fv[0]);
+                floorH = Dig(s, 0f, fu, fv[0], D, maxBank, out float bank);
+                bv[0] = bv[1] = bu = bank;
+            }
+            else
+            {
+                var cut = HillFloor(s, up, hv, sdep, fu, D);
+                fv[up] = hv + 3f;
+                bv[up] = cut.BUp; bv[dn] = cut.BDn; bu = cut.BU; floorH = cut.FloorH; seatMax = cut.SeatMax;
+                s.Ctx.Plan.Facts["bowlHillFits"] = cut.Ok ? 1 : 0;
+            }
+            float[] rv = { fv[0] + bv[0], fv[1] + bv[1] };
+            float ru = fu + bu;
+            if (!hill) lv.AddFloor(-ru, ru, -rv[0], rv[1], floorH, new float4(bu, bu, bv[0], bv[1]));
+            else
+            {
+                // The core: the level floor, and up the hill from its edge the seating rake to the top concourse; every bank runs at
+                // one grade from the core out to the hill (the ends from the seating's own height, so a hill stand's corners
+                // are no cliffs).
+                float su = up == 1 ? 1f : -1f, foot = fv[up], top = rv[up] - TopBank, t0 = floorH, gmax = seatMax;
+                var plane = lv;
+                lv.AddCore(-ru, ru, -rv[0], rv[1], new float4(bu, bu, up == 0 ? TopBank : bv[0], up == 1 ? TopBank : bv[1]),
+                    (u, v) => Rake(plane, t0, su, foot, top, u, v, gmax));
+                lv.AddBreak(false, su * foot);
+            }
             lv.Emit();
             s.Ctx.Plan.Facts["bowlDepth"] = Math.Round(D, 2);
-            s.Ctx.Plan.Facts["bowlBank"] = Math.Round(bank, 2);
+            s.Ctx.Plan.Facts["bowlBank"] = Math.Round(math.max(bv[0], bv[1]), 2);
             s.Ctx.Plan.Facts["bowlStands"] = grandSides ? 2 : 1;
+            s.Ctx.Plan.Facts["bowlHillside"] = hill ? 1 : 0;
+            float SV(int i) => i == 1 ? 1f : -1f;
 
-            // The pitch (its place is the field add-on's own format), the stand ring floor in concrete, the bank in grass.
+            // The pitch (its place is the field add-on's own format), the stand ring floor in concrete, the banks in grass.
             Place(s, "pitch", k.Box(-hu, hu, -hv, hv));
             var pitchCut = new List<float2[]> { k.Box(-hu - 0.2f, hu + 0.2f, -hv - 0.2f, hv + 0.2f).Ring };
-            k.Lay(PFeature + 4, k.Pieces(k.Box(-fu, fu, -fv, fv).Ring, pitchCut, 4f), Concrete, SurfaceRole.Paving);
-            k.Lay(PGreen - 5, k.Pieces(k.Box(-ru, ru, -rv, rv).Ring, new List<float2[]> { k.Box(-fu - 0.1f, fu + 0.1f, -fv - 0.1f, fv + 0.1f).Ring }, 4f),
+            k.Lay(PFeature + 4, k.Pieces(k.Box(-fu, fu, -fv[0], fv[1]).Ring, pitchCut, 4f), Concrete, SurfaceRole.Paving);
+            k.Lay(PGreen - 5, k.Pieces(k.Box(-ru, ru, -rv[0], rv[1]).Ring, new List<float2[]> { k.Box(-fu - 0.1f, fu + 0.1f, -fv[0] - 0.1f, fv[1] + 0.1f).Ring }, 4f),
                 k.Grass, SurfaceRole.Grass, AssetCategories.SurfaceGrass);
-            // P2-4 (the lead: on a hill the arena stood on one big green plinth): where the hill rises behind a bank, the bank is
-            // seating cut into the slope (terrace steps and benches looking down at the pitch), not a plain grass bank
-            int terraced = 0;
-            foreach (float sv in new[] { -1f, 1f })
-                if (s.Ctx.H(s.W(0f, sv * (rv + 2f))) - floorH > 1.5f && bank > 3f)
-                { SeatingSteps(s, s.W(-fu + 2f, sv * rv), s.W(fu - 2f, sv * rv), -s.S * sv, bank); terraced++; }
-            foreach (float su in new[] { -1f, 1f })
-                if (s.Ctx.H(s.W(su * (ru + 2f), 0f)) - floorH > 1.5f && bank > 3f)
-                { SeatingSteps(s, s.W(su * ru, -fv + 2f), s.W(su * ru, fv - 2f), -s.A * su, bank); terraced++; }
+            float cu = hu + edep * 0.5f;
+            int terraced = 0, seatRows = 0;
+            if (hill)
+            {
+                // The hill stand: seating steps from the top concourse down to the pitch apron, cut by aisles (stairs) at the corners
+                // and the quarter points, a plinth at its foot and a railing along its top.
+                float sv = SV(up);
+                float pitch = math.max(1.1f, (bv[up] - TopBank) / 24f);
+                var aisles = new[] { -cu, -hu * 0.5f, hu * 0.5f, cu };
+                float a0 = -fu + 1.5f;
+                foreach (float au in aisles.Concat(new[] { fu - 1.5f + 2.2f }))
+                {
+                    float a1 = au - 2.2f;
+                    if (a1 - a0 > 6f) SeatingSteps(s, s.W(a0, sv * (rv[up] - TopBank)), s.W(a1, sv * (rv[up] - TopBank)), -s.S * sv, bv[up] - TopBank, pitch, 3f);
+                    a0 = au + 2.2f;
+                }
+                foreach (float au in aisles) k.Flight(s.W(au, sv * (fv[up] + 0.2f)), s.W(au, sv * (rv[up] + 0.4f)), 3.2f);
+                var footGaps = aisles.Select(au => (au + fu, 2.2f)).ToList();
+                BankEdge(s, s.W(-fu, sv * (fv[up] + 0.15f)), s.W(fu, sv * (fv[up] + 0.15f)), s.W(-fu, sv * (rv[up] - TopBank + 0.3f)), s.W(fu, sv * (rv[up] - TopBank + 0.3f)), footGaps);
+                // the stand reads as one: concrete terraces from the apron to the top
+                k.Lay(PGreen - 4, k.Box(-fu, fu, sv > 0 ? fv[up] : -(rv[up] - TopBank), sv > 0 ? rv[up] - TopBank : -fv[up]).Ring, Concrete, SurfaceRole.Paving);
+                terraced = 1;
+                seatRows = (int)((bv[up] - TopBank) / pitch);
+            }
+            else
+            {
+                // P2-4 (the lead: on a hill the arena stood on one big green plinth): where the hill rises behind a bank, the bank is
+                // seating cut into the slope (terrace steps and benches looking down at the pitch), not a plain grass bank
+                foreach (float sv in new[] { -1f, 1f })
+                    if (s.Ctx.H(s.W(0f, sv * (rv[0] + 2f))) - floorH > 1.5f && bv[0] > 3f)
+                    { SeatingSteps(s, s.W(-fu + 2f, sv * rv[0]), s.W(fu - 2f, sv * rv[0]), -s.S * sv, bv[0]); terraced++; }
+                foreach (float su in new[] { -1f, 1f })
+                    if (s.Ctx.H(s.W(su * (ru + 2f), 0f)) - floorH > 1.5f && bu > 3f)
+                    { SeatingSteps(s, s.W(su * ru, -fv[0] + 2f), s.W(su * ru, fv[0] - 2f), -s.A * su, bu); terraced++; }
+            }
             s.Ctx.Plan.Facts["bowlTerracedBanks"] = terraced;
-            // Grandstands: the long sides, then the ends.
+            s.Ctx.Plan.Facts["bowlSeatingRows"] = seatRows;
+            // Grandstands: the long sides (the downhill one only on a hillside), then the ends.
             int stands = 0;
             float2 centre = k.C;
-            foreach (float sv in new[] { -1f, 1f })
-                stands += Stands(s, s.W(-hu + 0.5f, sv * (hv + 0.6f)), s.W(hu - 0.5f, sv * (hv + 0.6f)), centre, sdep - 0.6f, grandSides);
+            for (int i = 0; i < 2; i++)
+                if (!hill || i == dn)
+                    stands += Stands(s, s.W(-hu + 0.5f, SV(i) * (hv + 0.6f)), s.W(hu - 0.5f, SV(i) * (hv + 0.6f)), centre, sdep - 0.6f, grandSides);
             if (end.HasValue)
                 foreach (float su in new[] { -1f, 1f })
                     stands += Stands(s, s.W(su * (hu + 0.6f), -hv + 0.5f), s.W(su * (hu + 0.6f), hv - 0.5f), centre, edep - 0.6f, end.Value.Height > 10f);
             s.Ctx.Plan.Facts["stands"] = stands;
-            // The corners: a light mast each, a stair from the floor up the side bank to the concourse.
-            float cu = hu + edep * 0.5f;
-            foreach (float su in new[] { -1f, 1f })
-                foreach (float sv in new[] { -1f, 1f })
+            // The corners: a light mast each (on the apron below the hill stand), a stair up (down) the stand side's bank.
+            for (int i = 0; i < 2; i++)
+                foreach (float su in new[] { -1f, 1f })
                 {
-                    Mast(s, s.W(su * cu, sv * (hv + sdep * 0.35f)), centre, true);
-                    k.Flight(s.W(su * cu, sv * (fv - 0.3f)), s.W(su * cu, sv * (rv + 0.4f)), 3.2f);
+                    bool seats = hill && i == up;
+                    Mast(s, s.W(su * cu, SV(i) * (seats ? hv + 1.5f : hv + sdep * 0.35f)), centre, true);
+                    if (seats) continue;
+                    var inner = s.W(su * cu, SV(i) * (fv[i] - 0.3f)); var outer = s.W(su * cu, SV(i) * (rv[i] + 0.4f));
+                    // a bank down from a floor above the ground (a stand on fill) is climbed from its outer foot
+                    if (floorH > s.Ctx.H(outer) + 0.5f) k.Flight(outer, inner, 3.2f); else k.Flight(inner, outer, 3.2f);
                 }
-            // Scoreboards on the end banks' tops, looking down the pitch.
-            foreach (float su in new[] { -1f, 1f })
-                SportsProps.Prop(s.Ctx, k.Occ, s.W(su * (ru + 1.2f), 0f), -s.A * su, SportsProps.Scoreboard, ObjectRole.Furniture, 1.3f, s.V(0x5C0Bu), AssetCategories.SportsStand, true);
-            // The bank: a plinth at its foot, a railing on the rim (open at the stairs).
-            foreach (float sv in new[] { -1f, 1f })
+            // Scoreboards on the end banks' tops looking down the pitch (on a hillside one over the hill stand).
+            if (hill)
+                SportsProps.Prop(s.Ctx, k.Occ, s.W(0f, SV(up) * (rv[up] + 2.6f)), -s.S * SV(up), SportsProps.Scoreboard, ObjectRole.Furniture, 1.3f, s.V(0x5C0Bu), AssetCategories.SportsStand, true);
+            else
+                foreach (float su in new[] { -1f, 1f })
+                    SportsProps.Prop(s.Ctx, k.Occ, s.W(su * (ru + 1.2f), 0f), -s.A * su, SportsProps.Scoreboard, ObjectRole.Furniture, 1.3f, s.V(0x5C0Bu), AssetCategories.SportsStand, true);
+            // The banks: a plinth at the foot, a railing on the top (open at the stairs). Over a floor on fill the railing runs along
+            // the floor's edge and the plinth along the bank's outer foot.
+            for (int i = 0; i < 2; i++)
             {
+                if (hill && i == up) continue;
+                float sv = SV(i);
                 var gaps = new List<(float, float)> { (ru - cu, 2.2f), (ru + cu, 2.2f) };
-                BankEdge(s, s.W(-fu, sv * (fv + 0.15f)), s.W(fu, sv * (fv + 0.15f)), s.W(-ru, sv * (rv + 0.3f)), s.W(ru, sv * (rv + 0.3f)), gaps);
+                bool fill = floorH > s.Ctx.H(s.W(0f, sv * (rv[i] + 1f))) + 0.5f;
+                if (fill) BankEdge(s, s.W(-ru, sv * (rv[i] + 0.3f)), s.W(ru, sv * (rv[i] + 0.3f)), s.W(-fu, sv * (fv[i] + 0.15f)), s.W(fu, sv * (fv[i] + 0.15f)), gaps,
+                    new List<(float, float)> { (fu - cu, 2.2f), (fu + cu, 2.2f) });
+                else BankEdge(s, s.W(-fu, sv * (fv[i] + 0.15f)), s.W(fu, sv * (fv[i] + 0.15f)), s.W(-ru, sv * (rv[i] + 0.3f)), s.W(ru, sv * (rv[i] + 0.3f)), gaps);
             }
             foreach (float su in new[] { -1f, 1f })
-                BankEdge(s, s.W(su * (fu + 0.15f), -fv), s.W(su * (fu + 0.15f), fv), s.W(su * (ru + 0.3f), -rv), s.W(su * (ru + 0.3f), rv));
+                BankEdge(s, s.W(su * (fu + 0.15f), -fv[0]), s.W(su * (fu + 0.15f), fv[1]), s.W(su * (ru + 0.3f), -rv[0]), s.W(su * (ru + 0.3f), rv[1]));
             // The concourses along the long sides: paved, food stalls, kiosks and vending machines facing the rim; flags.
             float es = EntrySide(s);
-            float cv = rv + concV;
-            foreach (float sv in new[] { -1f, 1f })
+            float[] cv = { rv[0] + concV, rv[1] + concV };
+            for (int i = 0; i < 2; i++)
             {
-                k.Lay(PWalk, k.Box(-ru, ru, sv > 0 ? rv + 0.2f : -cv, sv > 0 ? cv : -rv - 0.2f).Ring, k.P.Path);
-                if (sv == es) Flags(s, s.W(-ru + 4f, sv * (cv - 1.1f)), s.W(ru - 4f, sv * (cv - 1.1f)), 6f, true);
-                else Concourse(s, s.W(-ru + 5f, sv * (cv - 1.6f)), s.W(ru - 5f, sv * (cv - 1.6f)), -s.S * sv, 8f);
+                float sv = SV(i);
+                k.Lay(PWalk, k.Box(-ru, ru, sv > 0 ? rv[i] + 0.2f : -cv[i], sv > 0 ? cv[i] : -rv[i] - 0.2f).Ring, k.P.Path);
+                if (sv == es) Flags(s, s.W(-ru + 4f, sv * (cv[i] - 1.1f)), s.W(ru - 4f, sv * (cv[i] - 1.1f)), 6f, true);
+                else Concourse(s, s.W(-ru + 5f, sv * (cv[i] - 1.6f)), s.W(ru - 5f, sv * (cv[i] - 1.6f)), -s.S * sv, 8f);
             }
-            if (end.HasValue == false || s.IB - cv > 6f)
-                Concourse(s, s.W(-ru * 0.4f, es * (cv - 3.6f)), s.W(ru * 0.4f, es * (cv - 3.6f)), -s.S * es, 9f);
+            int ei = es > 0 ? 1 : 0;
+            if (end.HasValue == false || s.IB - cv[ei] > 6f)
+                Concourse(s, s.W(-ru * 0.4f, es * (cv[ei] - 3.6f)), s.W(ru * 0.4f, es * (cv[ei] - 3.6f)), -s.S * es, 9f);
+            // On a hillside the plain banks (downhill, the ends) are wooded slopes round the bowl.
+            if (hill)
+            {
+                float sd = SV(dn);
+                float d0 = fv[dn] + 4f, d1 = rv[dn] - 1f;
+                if (d1 - d0 > 6f) Grove(s, -ru + 2f, ru - 2f, sd > 0 ? d0 : -d1, sd > 0 ? d1 : -d0, 8f, HillTrees);
+                float vLo = sd > 0 ? -(rv[up] - TopBank) : -fv[dn], vHi = sd > 0 ? fv[dn] : rv[up] - TopBank;
+                Grove(s, fu + 4f, ru - 1f, vLo, vHi, 8f, HillTrees);
+                Grove(s, -ru + 1f, -fu - 4f, vLo, vHi, 8f, HillTrees);
+            }
             // Trees beyond the concourses and the ends.
-            foreach (float sv in new[] { -1f, 1f }) Grove(s, -s.IA, s.IA, sv > 0 ? cv + 2f : -s.IB, sv > 0 ? s.IB : -cv - 2f, 9f);
-            Grove(s, -s.IA, -ru - 2.5f, -cv, cv, 9f);
-            Grove(s, ru + 2.5f, s.IA, -cv, cv, 9f);
+            Grove(s, -s.IA, s.IA, cv[1] + 2f, s.IB, 9f);
+            Grove(s, -s.IA, s.IA, -s.IB, -cv[0] - 2f, 9f);
+            Grove(s, -s.IA, -ru - 2.5f, -cv[0], cv[1], 9f);
+            Grove(s, ru + 2.5f, s.IA, -cv[0], cv[1], 9f);
             return true;
         }
 

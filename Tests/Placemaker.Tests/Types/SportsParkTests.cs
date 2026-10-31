@@ -264,6 +264,29 @@ namespace Placemaker.Tests.Types
             Assert.True(host.Facts["bowlTerracedBanks"] >= 1);
         }
 
+        [Theory]
+        [InlineData(0.22f, 0f)]
+        [InlineData(0f, 0.22f)]
+        [InlineData(0.15f, 0.15f)]
+        public void TheArenaOnAMountainIsAHillsideStadium(float gx, float gy)
+        {
+            // P2-4 round 3 (the lead: "step it into the hill like a real stadium, with stands on the slope"): the pitch lies along
+            // the contour, the uphill long side is seating on the hill, and the pitch is not raised on a plinth over the hill below
+            var ring = TestKit.Rect(220, 200);
+            var site = TestKit.RoadAlongBottom(220);
+            site.HeightAt = q => gx * q.x + gy * q.y;
+            var host = Host(Compose(Preset("arena"), ring, site));
+            Assert.True(host.Facts.ContainsKey("sportsDesign"), "the arena falls back to the classic park on this site");
+            string f(string key) => host.Facts.TryGetValue(key, out var v) ? v.ToString("0.#") : "-";
+            _out.WriteLine($"hillside {f("bowlHillside")}, seating rows {f("bowlSeatingRows")}, rise {f("designRise")} m, drop {f("designDrop")} m, " +
+                $"pitch {f("pitchLength")}, stands {f("stands")}, banks {f("bowlBank")} m");
+            Assert.Equal(1, host.Facts["bowlHillside"]);
+            Assert.True(host.Facts["bowlSeatingRows"] >= 15, "the hill stand has " + host.Facts["bowlSeatingRows"] + " rows");
+            // the floor sits in the hill: it is cut in deeper than it is raised over the hill's own plane
+            Assert.True(host.Facts["designDrop"] > host.Facts["designRise"], $"rise {host.Facts["designRise"]} m, drop {host.Facts["designDrop"]} m");
+            T04TypeTestBase.AssertNothingOnPaths(host);
+        }
+
         [Fact]
         public void ABigSiteFillsAsASportsComplex()
         {

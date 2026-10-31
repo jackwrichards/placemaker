@@ -42,6 +42,15 @@ meadow, mulch beds and heath all read as scattered bushes. Colours: leafy greens
 | Hairpins (tried, reverted) | `ParkPathStyles.WidenTurns` | arcs at turns over 80 degrees pushed walks onto steeper ground (wild on mountains 164 -> 325 steep pieces) and still read as Vs from above |
 | Tried, reverted | `ParkPathPlanner.SlopeFactor` | a stiffer climb penalty (6 -> 14) made natural walks more convoluted (112 -> 179 steep pieces): the roadmap limits it |
 
+## Round 3 (the lead: the mountain arena and real switchbacks)
+
+| Piece | Where | Now |
+|---|---|---|
+| Arena on a hillside (cross slope 6 % and up) | `SportsDesigns.Arena`, `ArenaFit`, `HillFloor`, `Rake`; `PlazaDesigns.Levels.AddCore` (planar banks) | the pitch lies along the contour (the design turns a quarter when the hill runs along it); the uphill long side has no grandstand: it is seating cut into the hill (concrete terraces, benches, four aisles of stairs, a plinth at the foot, a railing on top), the floor as deep as the 40 % rake lets it go; the other banks run at one grade out to the hill and are wooded. Banks on a 22 % mountain 237-331 % before (cliffs) -> 42-50 %; the pitch format shrinks until the banks fit |
+| Switchbacks | `ParkPathStyles.Switchbacks` (`ParkPathSwitchbacks.cs`), called by `ParkLayer` and `LeisureLayer` | every run of a walk that climbs over 3 m with a 12 m stretch steeper than 10 % is retraced: legs at 6.5 % along the contour, a round hairpin (5.5 m) at the corridor's side or an obstacle, straight to the end only where the ground on the way is gentle. Four tries per run (up or down, first leg either way), the shortest kept; a trace that would cross a walk, come within 7 m of one, or split the network is dropped (the run stays as it was) |
+
+Open: on the game runner's mountains only 1-3 runs per park trace (the others dead-end in the corridor); the walks that are not traced still climb as the router laid them.
+
 ## Verified in the game (pit checks)
 
 Run `show-56-builds-1030-232328-ebb3` (every industrial and rundown style, 220 x 200 flat and a 12 % slope; before the ruins

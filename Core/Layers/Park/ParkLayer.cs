@@ -509,6 +509,9 @@ namespace Placemaker.Core.Layers.Park
                 if (style.Grid) curved = false;
                 if (pathStyle == "garden") { graph = ParkPathStyles.Meander(graph, gatePoints, ctx.M(6.5f), ctx.M(18f), pathSeed, okPoint); curved = true; }
                 else if (pathStyle == "curvy") { graph = ParkPathStyles.Meander(graph, gatePoints, ctx.M(5f), ctx.M(34f), pathSeed, okPoint); curved = true; }
+                // P2-4 round 3: runs that climb faster than a walk may are traced as switchbacks along the contour
+                graph = ParkPathStyles.Switchbacks(graph, gatePoints, ParkPathPlanner.AmbientHeight, okPoint, out int switchbacks, out int hairpins);
+                if (switchbacks > 0) { ctx.Plan.Facts["switchbacks"] = switchbacks; ctx.Plan.Facts["hairpins"] = hairpins; }
                 s.Graph = graph;
                 ctx.Plan.Facts["graphLength"] = graph?.TotalLength ?? 0;
                 s.Curves = ParkPaths.Build(s.Graph, region, curved, widthMode);

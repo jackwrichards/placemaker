@@ -97,6 +97,9 @@ namespace Placemaker.Tests
                 System.IO.Directory.CreateDirectory(System.IO.Path.Combine(TestKit.RepoRoot(), ".forensics", "paths"));
                 System.IO.File.WriteAllText(System.IO.Path.Combine(TestKit.RepoRoot(), ".forensics", "paths", id + "-" + preset + "-" + land + ".txt"), sb.ToString());
             }
+            // a switchback's hairpin is a designed half turn, not a kink (P2-4 round 3)
+            double pins = plan.Layers.Sum(l => l.Facts.TryGetValue("hairpins", out var hp) ? hp : 0);
+            turn = Math.Max(0, turn - pins * 180.0);
             double per100 = total > 1 ? turn / total * 100.0 : 0;
             _out.WriteLine($"{id}/{preset} on {land}: {nets.Count} path pieces, {total:F0} m, turning {per100:F0}° per 100 m");
             // before P2-4: botanical gardens 246-271° per 100 m (a kink every 10 m), garden park 160-195; after: 46-133
@@ -161,6 +164,73 @@ namespace Placemaker.Tests
             _out.WriteLine($"{preset} on rugged land: {len:F0} m of walks climb {walk / len * 100:F1} m per 100 m over ground that climbs {ground / len * 100:F1}");
             Assert.True(walk < ground * 0.6, $"walks climb {walk / len * 100:F1} m per 100 m, the ground {ground / len * 100:F1}");
         }
+        /// <summary>
+        /// (P2-4 round 3; the lead: "real switchbacks that follow the contour, with no wavy grading") On the runner's mountains the
+        /// walks that must gain height are traced: long legs at one gentle grade along the contour, round hairpins between them.
+        /// Measured on the ground as it is (before any grading): the share of the walks steeper than 10 %.
+        /// </summary>
+        [Theory]
+        [InlineData("park", "natural")]
+        [InlineData("park", "woodland")]
+        [InlineData("park", "wild")]
+        [InlineData("park", "garden")]
+        [InlineData("botanicalGarden", "flowerShow")]
+        [InlineData("adventurePlayground", "adventure")]
+        public void MountainWalksClimbBySwitchbacks(string id, string preset)
+        {
+            (double steep, double len, int sb, int pins, float cut, float edges) Run(bool off)
+            {
+                Placemaker.Core.Layers.Park.ParkPathStyles.SwitchbacksOff = off;
+                try
+                {
+                    var gen = GeneratorRegistry.Get(id);
+                    var editor = new DesignEditor(GeneratorRegistry.Get);
+                    var site = DynamicDecalsTests.Streets(220, 200, Mountains);
+                    var ring = DynamicDecalsTests.Block(220, 200).Select(p => new float3(p.x, Mountains(p.xz), p.z)).ToArray();
+                    var recipe = editor.SingleLayerRecipe(gen, 3);
+                    editor.ApplyPreset(recipe, "0", preset);
+                    TestKit.Entered(recipe, ring, site);
+                    var plan = Composer.Compose(recipe, new AreaShape { Ring = ring, Source = AreaSource.Drawn }, site, CancellationToken.None);
+                    var nets = plan.Layers.SelectMany(l => l.Nets).Where(n => n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide).ToList();
+                    double steep = 0, len = 0;
+                    foreach (var n in nets)
+                    {
+                        int m = math.max(2, (int)(math.distance(n.A.xz, n.D.xz) / 4f));
+                        for (int k = 0; k < m; k++)
+                        {
+                            var a = Composer.Bezier(n.A, n.B, n.C, n.D, k / (float)m).xz; var b = Composer.Bezier(n.A, n.B, n.C, n.D, (k + 1) / (float)m).xz;
+                            float d = math.distance(a, b);
+                            len += d;
+                            if (d > 0.5f && math.abs(Mountains(b) - Mountains(a)) / d > 0.10f) steep += d;
+                        }
+                    }
+                    var f = plan.Layers[0].Facts;
+                    float F(string k) => f.TryGetValue(k, out var v) ? (float)v : 0f;
+                    var dump = Environment.GetEnvironmentVariable("PM_DUMP_PATHS");
+                    if (!string.IsNullOrEmpty(dump) && (id + "/" + preset).Contains(dump))
+                    {
+                        var sb = new System.Text.StringBuilder();
+                        foreach (var n in nets)
+                        { for (int k = 0; k <= 8; k++) { var q = Composer.Bezier(n.A, n.B, n.C, n.D, k / 8f).xz; sb.Append(q.x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)).Append(",").Append(q.y.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)).Append(" "); } sb.AppendLine(); }
+                        System.IO.Directory.CreateDirectory(System.IO.Path.Combine(TestKit.RepoRoot(), ".forensics", "paths"));
+                        System.IO.File.WriteAllText(System.IO.Path.Combine(TestKit.RepoRoot(), ".forensics", "paths", id + "-" + preset + "-mountains" + (off ? "-before" : "") + ".txt"), sb.ToString());
+                    }
+                    return (steep, len, (int)F("switchbacks"), (int)F("hairpins"), F("harmonyMaxCut"), F("harmonySteepEdges"));
+                }
+                finally { Placemaker.Core.Layers.Park.ParkPathStyles.SwitchbacksOff = false; }
+            }
+            var before = Run(true);
+            Placemaker.Core.Layers.Park.ParkPathStyles.TraceLog = new List<string>();
+            var after = Run(false);
+            foreach (var l in Placemaker.Core.Layers.Park.ParkPathStyles.TraceLog) _out.WriteLine("  trace: " + l);
+            Placemaker.Core.Layers.Park.ParkPathStyles.TraceLog = null;
+            _out.WriteLine($"{id}/{preset} before: {before.len:F0} m, {before.steep / before.len * 100:F0} % steeper than 10 %, cut {before.cut} m, steep pieces {before.edges}");
+            _out.WriteLine($"{id}/{preset} after:  {after.len:F0} m, {after.steep / after.len * 100:F0} % steeper than 10 %, cut {after.cut} m, steep pieces {after.edges}; {after.sb} runs traced, {after.pins} hairpins");
+            Assert.True(after.sb >= 1, "no run traced");
+            // (round 3: 57-71 % -> 41-57 %; the runs that dead-end in their corridor stay as the router laid them)
+            Assert.True(after.steep / after.len < before.steep / before.len, $"{after.steep / after.len * 100:F0} % of the walks steeper than 10 % (before {before.steep / before.len * 100:F0} %)");
+        }
+
         [Fact]
         public void TheCarParkNeverCutsIntoAMountain()
         {

@@ -51,7 +51,7 @@ namespace Placemaker.Core.Layers.Plaza
         internal sealed class Levels
         {
             // Abs: a level floor at height T (sports grounds, 2026-10-29), its banks blending from the ground under it.
-            private struct Plat { public float U0, U1, V0, V1, Dh, T; public float4 B; public bool Abs; }
+            private struct Plat { public float U0, U1, V0, V1, Dh, T; public float4 B; public bool Abs, Planar; public Func<float, float, float> Inner; }
             private readonly Kit _k;
             private readonly List<Plat> _p = new List<Plat>();
             public readonly float IA, IB;
@@ -89,10 +89,39 @@ namespace Placemaker.Core.Layers.Plaza
             /// (2026-10-29) A level floor at the absolute <paramref name="height"/> (a pitch, a court, a terrace of a sports
             /// ground on a slope), its banks inside it blending from whatever ground lies under it. Later floors win.
             /// </summary>
-            public void AddFloor(float u0, float u1, float v0, float v1, float height, float4 bank)
+            public void AddFloor(float u0, float u1, float v0, float v1, float height, float4 bank, bool planar = false)
             {
                 if (u1 - u0 < 1f || v1 - v0 < 1f || !math.isfinite(height)) return;
-                _p.Add(new Plat { U0 = u0, U1 = u1, V0 = v0, V1 = v1, T = height, Abs = true, B = math.max(bank, 0f) });
+                _p.Add(new Plat { U0 = u0, U1 = u1, V0 = v0, V1 = v1, T = height, Abs = true, Planar = planar, B = math.max(bank, 0f) });
+            }
+
+            /// <summary>
+            /// (P2-4 round 3) A planar bank on a tilted base: the share of the way from the bank's outer edge (height
+            /// <paramref name="edge"/>) to the floor, remapped so the bank runs at one grade from its foot to its top (a plain lerp
+            /// toward the tilted plane is steepest at the top: a hill stadium's seating would bulge). Falls back to the plain share
+            /// where the floor crosses the plane.
+            /// </summary>
+            /// <summary>
+            /// (P2-4 round 3) A designed core (a floor and a rake: a hill stadium's pitch and the seating up the hill) over the
+            /// rectangle inside its banks, <paramref name="inner"/> giving its height at a local point; the banks run at one grade
+            /// from the core's edge out to the ground (planar). Later floors win.
+            /// </summary>
+            public void AddCore(float u0, float u1, float v0, float v1, float4 bank, Func<float, float, float> inner)
+            {
+                if (u1 - u0 < 1f || v1 - v0 < 1f || inner == null) return;
+                _p.Add(new Plat { U0 = u0, U1 = u1, V0 = v0, V1 = v1, Abs = true, Planar = true, Inner = inner, B = math.max(bank, 0f) });
+            }
+
+            private readonly List<float> _breakU = new List<float>(), _breakV = new List<float>();
+
+            /// <summary>A line the terrain patches break on (a fold inside a core).</summary>
+            public void AddBreak(bool u, float at) => (u ? _breakU : _breakV).Add(at);
+
+            private static float PlanarShare(float r, float h, float edge, float t)
+            {
+                float a = h - t, e = edge - t;
+                if (a * e <= 0f || math.abs(a) < 0.3f) return r;
+                return math.saturate(1f - e * (1f - r) / a);
             }
 
             /// <summary>The bank a floor at <paramref name="height"/> over (u0..u1, v0..v1) needs to stay at or under 45 % against the ground beneath it.</summary>
@@ -146,12 +175,24 @@ namespace Placemaker.Core.Layers.Plaza
                 foreach (var q in _p)
                 {
                     if (u < q.U0 || u > q.U1 || v < q.V0 || v > q.V1) continue;
-                    float r = 1f;
-                    r = math.min(r, Side(u - q.U0, q.B.x));
-                    r = math.min(r, Side(q.U1 - u, q.B.y));
-                    r = math.min(r, Side(v - q.V0, q.B.z));
-                    r = math.min(r, Side(q.V1 - v, q.B.w));
-                    h = q.Abs ? math.lerp(h, q.T, r) : h + q.Dh * r;
+                    float r = 1f, t = q.T;
+                    if (q.Inner != null)
+                        t = q.Inner(math.clamp(u, q.U0 + q.B.x, q.U1 - q.B.y), math.clamp(v, q.V0 + q.B.z, q.V1 - q.B.w));
+                    if (q.Planar)
+                    {
+                        r = math.min(r, PlanarShare(Side(u - q.U0, q.B.x), h, Base(q.U0, v), t));
+                        r = math.min(r, PlanarShare(Side(q.U1 - u, q.B.y), h, Base(q.U1, v), t));
+                        r = math.min(r, PlanarShare(Side(v - q.V0, q.B.z), h, Base(u, q.V0), t));
+                        r = math.min(r, PlanarShare(Side(q.V1 - v, q.B.w), h, Base(u, q.V1), t));
+                    }
+                    else
+                    {
+                        r = math.min(r, Side(u - q.U0, q.B.x));
+                        r = math.min(r, Side(q.U1 - u, q.B.y));
+                        r = math.min(r, Side(v - q.V0, q.B.z));
+                        r = math.min(r, Side(q.V1 - v, q.B.w));
+                    }
+                    h = q.Abs ? math.lerp(h, t, r) : h + q.Dh * r;
                 }
                 if (Skirt > 0.01f)
                 {
@@ -244,6 +285,7 @@ namespace Placemaker.Core.Layers.Plaza
                     foreach (var x in new[] { lo, lo + b0, hi - b1, hi })
                         if (x > -ext && x < ext) l.Add(x);
                 }
+                l.AddRange(u ? _breakU : _breakV);
                 if (Skirt > 0.01f)
                     for (float x = 0f; x <= Skirt + 0.01f; x += math.max(2f, Skirt / 3f)) { l.Add(-ext + x); l.Add(ext - x); }
                 // (2026-10-29) Sports grounds: a cut every 8 m as well, so the skirt follows a hill and no patch spans a whole site.
