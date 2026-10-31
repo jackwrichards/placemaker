@@ -40,7 +40,7 @@ namespace Placemaker.Core.Layers.Parking
         /// <summary>(s29) Outline points tied to an existing road's height, and the largest correction the blend applied.</summary>
         public int Ties;
         public float MaxTie;
-        /// <summary>(P2-5) Terraced: the retaining walls between tiers (frame-local y, x from/to, the lower and upper heights).</summary>
+        /// <summary>(P2-5) Terraced: the retaining walls between tiers (frame-local y, x from/to, the heights of the tier below y and of the one above it).</summary>
         public readonly List<(double Y, double X0, double X1, double Low, double High)> Walls = new List<(double, double, double, double, double)>();
     }
 
@@ -304,7 +304,7 @@ namespace Placemaker.Core.Layers.Parking
                     var a = tiers[i]; var b = tiers[i + 1];
                     double y = a.Y1 + Math.Max(WallSet, (b.Y0 - a.Y1) * 0.5), x0 = Math.Max(ra, Math.Max(a.X0, b.X0)), x1 = Math.Min(rb, Math.Min(a.X1, b.X1));
                     double ha = a.At((x0 + x1) * 0.5, a.Y1, bx), hb = b.At((x0 + x1) * 0.5, b.Y0, bx);
-                    if (Math.Abs(hb - ha) >= 0.3 && x1 - x0 > 3) res.Walls.Add((y, x0, x1, Math.Min(ha, hb), Math.Max(ha, hb)));
+                    if (Math.Abs(hb - ha) >= 0.3 && x1 - x0 > 3) res.Walls.Add((y, x0, x1, ha, hb));
                 }
             double W(double x) => x < ra ? Math.Min(1, (ra - x) / Transition) : x > rb ? Math.Min(1, (x - rb) / Transition) : 0;
 

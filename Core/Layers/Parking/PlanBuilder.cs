@@ -522,13 +522,16 @@ namespace Placemaker.Core.Layers.Parking
             int n = 0;
             foreach (var w in walls)
             {
-                double step = w.High - w.Low;
-                int courses = Math.Max(1, (int)Math.Ceiling(step / Kerbs.WallH));
-                float sink = (float)(courses * Kerbs.WallH - step);
+                // a parapet 0.25 m above the upper tier, so the wall reads as a wall and not as a buried ledge
+                // Low/High: the tiers before and after the wall line (along +y); the wall stands on whichever is lower
+                double lowH = Math.Min(w.Low, w.High), step = Math.Abs(w.High - w.Low), rise = step + 0.25, side = w.Low < w.High ? -1 : 1;
+                int courses = Math.Max(1, (int)Math.Ceiling(rise / Kerbs.WallH));
+                float sink = (float)(courses * Kerbs.WallH - rise);
                 var dir = f.DirToWorld(new double2(1, 0));
                 float yaw = (float)Math.Atan2(dir.x, dir.y);
-                // stand just on the lower side of the step, on the lower tier's ground
-                double y = w.Y - 0.15;
+                // stand a metre in front of the step on the lower tier's ground: the terrain raster smears the step over a cell or
+                // two, and a wall at the step itself was buried to its top (game runner 1031-133315)
+                double y = w.Y + side * 1.0;
                 for (double x = w.X0 + 1.5; x + 1.5 <= w.X1 + 1e-6; x += 3)
                 {
                     var p = f.ToWorld(new double2(x, y));
@@ -539,7 +542,7 @@ namespace Placemaker.Core.Layers.Parking
                         {
                             Position = new float3((float)p.x, g, (float)p.y), Yaw = yaw, Role = ObjectRole.Furniture,
                             Asset = new AssetRef("EU_Wall08", "EU_Wall01"), Category = AssetCategories.RuinsWall, Variation = (uint)n,
-                            Elevation = (float)(w.Low - g) + c * Kerbs.WallH - sink,
+                            Elevation = (float)(lowH - g) + c * Kerbs.WallH - sink,
                         });
                         n++;
                     }
