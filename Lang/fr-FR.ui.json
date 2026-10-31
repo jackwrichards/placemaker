@@ -528,8 +528,11 @@
   "Placemaker.UI.Polish.ResetAll.Title": "Remettre tous les bâtiments au type de leur zone ?",
   "Placemaker.UI.BiomeMix.Title": "Paysage",
   "Placemaker.UI.BiomeMix.Remove": "Retirer du mélange",
-  "Placemaker.UI.BiomeMix.Add": "Ajouter",
   "Placemaker.UI.BiomeMix.Small": "nombreuses petites",
   "Placemaker.UI.BiomeMix.Big": "quelques grandes",
-  "Placemaker.UI.BiomeMix.DragTip": "Faites glisser pour partager le terrain"
+  "Placemaker.UI.BiomeMix.DragTip": "Faites glisser pour partager le terrain",
+  "Placemaker.UI.BiomeMix.AddButton": "Ajouter",
+  "Placemaker.UI.BiomeMix.Only": "Seul",
+  "Placemaker.UI.BiomeMix.OnlyTip": "En faire tout le paysage",
+  "Placemaker.UI.BiomeMix.Whole": "Tout le site"
 }
