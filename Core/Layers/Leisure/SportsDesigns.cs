@@ -77,6 +77,9 @@ namespace Placemaker.Core.Layers.Leisure
             float edge = math.max(treeRow + 1.8f, math.clamp(span * 0.04f, 7f, 9f));
             var s = new Site { K = k, Ctx = ctx, IA = k.EA - edge, IB = k.EB - edge, Edge = edge };
             if (s.IA < 30f || s.IB < 24f) return false;
+            // A design is one composed piece: space reserved inside it (a monument, a kept path) sends the site to the classic park,
+            // which plans round it.
+            if (Reserved(s, -s.IA, s.IA, -s.IB, s.IB)) return false;
             s.Entry = MainGate(k, gates);
             ctx.Plan.Facts["sportsDesign"] = Array.IndexOf(Ids, design);
             ctx.Plan.Facts["designBoxA"] = Math.Round(s.IA * 2f);
@@ -160,6 +163,20 @@ namespace Placemaker.Core.Layers.Leisure
         /// slope's plane comes out a few points steeper than its run).
         /// </summary>
         private static float SBank(float h) => math.max(2f, math.abs(h) / 0.40f);
+
+        /// <summary>True when space the recipe reserved (a disc, a corridor, a polygon) reaches into the box u0..u1 × v0..v1.</summary>
+        private static bool Reserved(Site s, float u0, float u1, float v0, float v1)
+        {
+            var occ = s.K.Occ;
+            int nu = math.max(1, (int)math.ceil((u1 - u0) / 2.5f)), nv = math.max(1, (int)math.ceil((v1 - v0) / 2.5f));
+            for (int i = 0; i <= nu; i++)
+                for (int j = 0; j <= nv; j++)
+                {
+                    var p = s.W(math.lerp(u0, u1, i / (float)nu), math.lerp(v0, v1, j / (float)nv));
+                    if (occ.Discs.Overlaps(p, 1.3f, 0f) || occ.Corridors.Overlaps(p, 1.3f, 0f) || occ.HitsPolygon(p, 1.3f)) return true;
+                }
+            return false;
+        }
 
         private static bool Wants(Site s, string layer) => s.Ctx.Input.HasChildTarget(Amenities.Place(layer));
 
@@ -782,7 +799,8 @@ namespace Placemaker.Core.Layers.Leisure
         {
             if (!Wants(s, "runningTrack")) return false;
             var k = s.K;
-            var ladder = new List<FieldFormat>(FieldSpecs.Track) { new FieldFormat("compact", 84f, 50f) };
+            // compact and training (a 150 m loop with a sprint straight) keep a hectare-sized block an athletics ground
+            var ladder = new List<FieldFormat>(FieldSpecs.Track) { new FieldFormat("compact", 84f, 50f), new FieldFormat("training", 70f, 40f) };
             float es = EntrySide(s);
             FieldFormat f = null; float sdMain = 0f, sdBack = 0f; bool grand = false;
             foreach (var t in ladder)

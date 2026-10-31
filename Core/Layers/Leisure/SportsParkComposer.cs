@@ -1266,6 +1266,8 @@ namespace Placemaker.Core.Layers.Leisure
             if (!AssetAvailability.Has(AssetCategories.Tree) && (ids == null || ids.Length == 0)) return false;
             uint v = Hashing.Mix(_ctx.Seed, salt * 31u + 7u);
             if (!_occ.Free(p, radius, 1.5f, 0.4f)) return false;
+            // grove trees stand close (radius 1.6) but a crown never hangs over space the recipe reserved
+            if (_ctx.Input.Reserved != null && _ctx.Input.Reserved.Blocks(p, 2.4f)) return false;
             // (2026-10-29, the user: "maybe the trees need more variety") No species chosen: the game's own broadleaf trees in
             // clumps of one species (about 28 m), the odd one mixed in, instead of one automatic species for the whole park.
             // The designed ground drops each tree's own leaves (Decals/Dynamic/Weathering).

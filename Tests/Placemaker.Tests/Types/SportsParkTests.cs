@@ -106,15 +106,18 @@ namespace Placemaker.Tests.Types
             Assert.False(pitch.Facts.ContainsKey("fieldSpur"));
             Assert.Equal(1, host.Facts["terrace"]);
             Assert.Equal(1, host.Facts["clubhouse"]);
-            // Stands are on the terrace side of the pitch.
-            var stands = pitch.Objects.Where(o => o.Category == AssetCategories.SportsStand || o.Role == ObjectRole.Bench).ToList();
-            Assert.NotEmpty(stands);
+            // Stands are on the terrace side of the pitch. Since 2026-10-29 the terrace seats the spectators itself (the pitch
+            // place carries FieldAddOn.HostStandsTag and the field lays only its dugouts, on the far touchline).
             var terrace = new float2((float)host.Facts["terraceX"], (float)host.Facts["terraceZ"]);
             float side(float2 p) => math.dot(p - pitchPlace.Center, pitchPlace.Side);
-            // Stands (bleachers, or benches when none are installed) on the terrace side; team benches face them.
-            var standSide = math.sign(stands.Where(o => o.Category == AssetCategories.SportsStand || o.Category == AssetCategories.Bench || o.Category == null)
-                .Select(o => side(o.Position.xz)).OrderBy(x => -math.abs(x)).Take(3).Average());
-            Assert.Equal(math.sign(side(terrace)), standSide);
+            bool hosted = host.Facts.TryGetValue("terraceStands", out var ts) && ts > 0;
+            var stands = (hosted ? host.Objects : pitch.Objects).Where(o => o.Category == AssetCategories.SportsStand).ToList();
+            Assert.NotEmpty(stands);
+            float tSide = math.sign(side(terrace));
+            Assert.Equal(tSide, math.sign(stands.Select(o => side(o.Position.xz)).OrderBy(x => -math.abs(x)).Take(3).Average()));
+            // The team benches (dugouts) sit on the far touchline, facing the stands across the field.
+            var dugouts = pitch.Objects.Where(o => o.Role == ObjectRole.Bench).ToList();
+            Assert.All(dugouts, d => Assert.Equal(-tSide, math.sign(side(d.Position.xz))));
             // Every place is inside the area and the places never overlap.
             var places = Places(host);
             for (int i = 0; i < places.Count; i++)
@@ -199,7 +202,9 @@ namespace Placemaker.Tests.Types
                 var kinds = host.Regions.Where(r => r.Tags.Contains(SportsParkLayer.SizedTag))
                     .Select(r => r.Tags.First(t => t.StartsWith(Composer.PlacePrefix, StringComparison.Ordinal))).GroupBy(t => t).OrderBy(g => g.Key)
                     .Select(g => g.Key + "×" + g.Count());
-                sig[p.Id] = string.Join(",", kinds) + "|hero=" + host.Facts["hero"] + "|loop=" + host.Facts["loop"];
+                // The designed grounds (SportsDesigns) have no hero or loop: their design id tells them apart.
+                string fact(string key) => host.Facts.TryGetValue(key, out var v) ? v.ToString() : "-";
+                sig[p.Id] = string.Join(",", kinds) + "|hero=" + fact("hero") + "|loop=" + fact("loop") + "|design=" + fact("sportsDesign");
                 _out.WriteLine(p.Id + ": " + sig[p.Id]);
             }
             Assert.Equal(sig.Count, sig.Values.Distinct().Count());
@@ -269,7 +274,7 @@ namespace Placemaker.Tests.Types
                 input.Reserved.AddDisc(new float2(110, 90), 14f, "monument");
                 var plan = Gen.Plan(input, CancellationToken.None);
                 Assert.False(plan.HasErrors, p.Id);
-                TestKit.AssertClearOfReserved(plan, input.Reserved);
+                try { TestKit.AssertClearOfReserved(plan, input.Reserved); } catch (Exception e) { throw new Exception(p.Id + ": " + e.Message); }
                 foreach (var n in plan.Nets.Where(n => n.Role != NetRole.Fence))
                     for (int k = 0; k <= 8; k++)
                     {
