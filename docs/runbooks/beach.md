@@ -115,3 +115,17 @@ runner's camera target `joint` (index `all`) frames each joint for a close-up (`
   real ones: a path climbing 23-25 % on a steep bank (resort, granite), a bush on a cliff face (marsh headland), a rock
   planned below the ground (ravine curved).
 - Runner: later cliff blocks in a long run had no lake (shoreMode 2).
+
+## Final state (round 14, 2026-10-31)
+
+Grades (game runner, run `20261031-111826-beach-r14` plus `20261031-102457-beach-r9` and `20261031-100835-beach-r8-grade`):
+ravine A-, family B, promenade B, harbour B, cliff pocket B-, marsh B-, pine lake B-, granite B-, wild beach B-,
+wild dunes B-, shingle B-. The pines-behind-the-beach change (round 15) was never seen in the game and was reverted.
+
+Left for later:
+- Dunes are built 4-5 m high (terrain map) but the game's light barely shades sand: they read flat from 45°.
+- Shingle reads tan, not grey; the vanilla beach huts are small white boxes.
+- Pine lake and granite: mixed broadleaf woods behind instead of pines (a treeSpecies preset change, untested).
+- Shore sculpt strict tests still failing (pre-existing class): entrance paths on the 6.5 m bank climb 20-25 %, a bush on a
+  cliff face (marsh headland), a boulder sunk 0.31 m (ravine), stepped samples on the steep dunes and ravine walls (by design).
+- BeachTests 37/38 (`CarvesAGentleSlopeIntoABankAndRaisesDunes` also fails on master).
