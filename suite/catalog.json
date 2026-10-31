@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+09af870c-dirty",
+  "assembly": "0.3.6+77159ef6-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -17870,7 +17870,7 @@
           "max": 100.0,
           "step": 1.0,
           "unit": "%",
-          "default": 55.0
+          "default": 72.0
         },
         {
           "id": "carPark",
