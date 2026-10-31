@@ -144,7 +144,10 @@ namespace Placemaker.Core.Layers.Parking
 
             // ── layout ──
             cancel.ThrowIfCancellationRequested();
-            var layout = LayoutEngine.Build(rq, cancel, out var pieces, out var zones);
+            // (P2-5) a round lot has its own layout (rings round a planted island); the rest works on it unchanged
+            bool round = s.Look.Shape == LotShape.Round;
+            List<AsphaltPiece> pieces = null; List<(List<double2> Ring, int Zone)> zones = null;
+            var layout = round ? RoundLayout.Build(rq, cancel) : LayoutEngine.Build(rq, cancel, out pieces, out zones);
             var f = layout.Frame;
             if (layout.Lot.Count < 3)
             {
@@ -152,7 +155,7 @@ namespace Placemaker.Core.Layers.Parking
                 return plan;
             }
             cancel.ThrowIfCancellationRequested();
-            layout.Surfaces = SurfaceCells.Build(layout.Lot, zones, pieces, s.Greenery == Greenery.None, cancel, layout.ZoneChain, layout.ZoneChainZones);
+            if (!round) layout.Surfaces = SurfaceCells.Build(layout.Lot, zones, pieces, s.Greenery == Greenery.None, cancel, layout.ZoneChain, layout.ZoneChainZones);
             cancel.ThrowIfCancellationRequested();
 
             var greens = new List<List<double2>>();
@@ -271,13 +274,18 @@ namespace Placemaker.Core.Layers.Parking
                 }
                 var rows = Vegetation.PlanRows(edges, species, density, input.Seed, layout.Lanterns, IsGreen, PlantBlocked);
                 layout.Plants = Vegetation.Plan(greens, species, density, input.Seed, layout.Lanterns, PlantBlocked, rows);
+                // (P2-5) angled rows leave small wedge islands at their ends: the loose fill put stray shrubs in them (rf-parking open
+                // item). Only the planting lines plant shrubs there; a wedge gets a tree when it has room for one.
+                if (s.StallAngleDeg != 90) layout.Plants.RemoveAll(p => !p.Tree && !p.Row);
+                if (round) RoundLayout.RingTrees(layout, species, input.Seed);
             }
             cancel.ThrowIfCancellationRequested();
 
             // ── grading (s25): level tiers with ramps between them; everything below stands on the graded ground ──
-            if (s.Grading)
+            bool terraced = s.Look.Shape == LotShape.Terraced;
+            if ((s.Grading || terraced) && !round)
             {
-                var grading = LotGrading.Grade(layout, ground, cancel, zoning.Quads.Count == 0 ? world : null, roads);
+                var grading = LotGrading.Grade(layout, ground, cancel, zoning.Quads.Count == 0 ? world : null, roads, terraced);
                 plan.Facts["gradeTiers"] = grading.Tiers;
                 if (grading.Height != null)
                 {
@@ -291,13 +299,29 @@ namespace Placemaker.Core.Layers.Parking
                     plan.Facts["gradeMaxStep"] = grading.MaxStep;
                     plan.Facts["gradeTies"] = grading.Ties;
                     plan.Facts["gradeMaxTie"] = grading.MaxTie;
+                    if (grading.Walls.Count > 0) plan.Facts["terraceWalls"] = RetainingWalls(plan, layout, grading.Walls, H);
                     plan.Issues.Add(new PlanIssue { Severity = IssueSeverity.Warning, Key = Layers.Common.TerrainShaper.PermanentKey });
                     if (Math.Max(grading.MaxCut, grading.MaxFill) > 2.5f)
                         plan.Issues.Add(new PlanIssue { Severity = IssueSeverity.Info, Key = K + "Issue.SteepGrade", Args = new object[] { Math.Round(Math.Max(grading.MaxCut, grading.MaxFill), 1) } });
                 }
             }
 
+            // (P2-5) the camp's corner and the works take their stalls; the islands' planting changes its kinds
+            var (camp, works) = Equipment.Reserve(layout, s.Look, input.Seed);
+            Islands.Before(layout, s.Look, s.Trees.Length == 0 ? 1 : s.Trees.Length);
             Emit(plan, layout, s, site, H, input, cancel, roads, zoning.MaxDepth);
+            Islands.After(plan, layout, s.Look, H, input.Seed);
+            if (s.Look.Drainage == Drainage.Barranca && s.Look.Paved) Islands.Ravine(plan, layout, H, input.Seed);
+            Equipment.Place(plan, layout, s, H, IsGreen, input.Seed, camp, works);
+            // (P2-5) kerbs, wheel stops and the designed ground (paint, wear, water)
+            var kerbRuns = Kerbs.Find(layout, IsGreen);
+            if (layout.Works != null) kerbRuns.RemoveAll(r => { var m = layout.Frame.ToLocal((r.A + r.B) * 0.5); return m.x >= layout.Works.MinX && m.x <= layout.Works.MaxX; });
+            int kerbPieces = Kerbs.Emit(plan, kerbRuns, s.Look.Kerbs, H);
+            int stops = s.Look.WheelStops ? Kerbs.WheelStops(plan, layout, H) : 0;
+            plan.Facts["kerbPieces"] = kerbPieces;
+            if (stops > 0) plan.Facts["wheelStops"] = stops;
+            cancel.ThrowIfCancellationRequested();
+            ParkingGround.Lay(plan, layout, s, kerbRuns, H, IsGreen, input.Seed, input.Settings);
             EmitBusStops(plan, busStops, world, roads, site, H);
             EmitZoning(plan, layout, zoning, s, H);
             EmitTouchTargets(plan, layout, world, rq.ChosenEdge, H);
@@ -488,6 +512,45 @@ namespace Placemaker.Core.Layers.Parking
             }
         }
 
+        /// <summary>
+        /// (P2-5) Terraced: a dark masonry retaining wall along every tier step (the game's garden walls in courses of 0.9 m), its foot
+        /// on the lower tier and its top flush with the upper one. Returns the pieces made.
+        /// </summary>
+        private static int RetainingWalls(AreaPlan plan, Layout layout, List<(double Y, double X0, double X1, double Low, double High)> walls, Func<double2, float> H)
+        {
+            var f = layout.Frame;
+            int n = 0;
+            foreach (var w in walls)
+            {
+                // a parapet 0.25 m above the upper tier, so the wall reads as a wall and not as a buried ledge
+                // Low/High: the tiers before and after the wall line (along +y); the wall stands on whichever is lower
+                double lowH = Math.Min(w.Low, w.High), step = Math.Abs(w.High - w.Low), rise = step + 0.25, side = w.Low < w.High ? -1 : 1;
+                int courses = Math.Max(1, (int)Math.Ceiling(rise / Kerbs.WallH));
+                float sink = (float)(courses * Kerbs.WallH - rise);
+                var dir = f.DirToWorld(new double2(1, 0));
+                float yaw = (float)Math.Atan2(dir.x, dir.y);
+                // stand a metre in front of the step on the lower tier's ground: the terrain raster smears the step over a cell or
+                // two, and a wall at the step itself was buried to its top (game runner 1031-133315)
+                double y = w.Y + side * 1.0;
+                for (double x = w.X0 + 1.5; x + 1.5 <= w.X1 + 1e-6; x += 3)
+                {
+                    var p = f.ToWorld(new double2(x, y));
+                    float g = H(p);
+                    for (int c = 0; c < courses; c++)
+                    {
+                        plan.Objects.Add(new PlannedObject
+                        {
+                            Position = new float3((float)p.x, g, (float)p.y), Yaw = yaw, Role = ObjectRole.Furniture,
+                            Asset = new AssetRef("EU_Wall08", "EU_Wall01"), Category = AssetCategories.RuinsWall, Variation = (uint)n,
+                            Elevation = (float)(lowH - g) + c * Kerbs.WallH - sink,
+                        });
+                        n++;
+                    }
+                }
+            }
+            return n;
+        }
+
         private static float2 F2(double2 p) => new float2((float)p.x, (float)p.y);
 
         private static float3 P3(double2 p, Func<double2, float> H) => new float3((float)p.x, H(p), (float)p.y);
@@ -575,6 +638,15 @@ namespace Placemaker.Core.Layers.Parking
             // ── surfaces & regions ──
             var asphaltAsset = ParkingAssets.Pick(s.AsphaltAsset, ParkingAssets.Asphalt, ParkingAssets.AsphaltEai, ParkingAssets.AsphaltVanilla);
             var greenAsset = ParkingAssets.Pick(s.GreenAsset, ParkingAssets.Grass);
+            // (P2-5) gravel and swale islands are soil, not lawn; the lot's paving its own material
+            var soil = Islands.SurfaceFor(s.Look.Islands);
+            if (soil != null) greenAsset = new AssetRef(soil, ParkingAssets.Grass);
+            switch (s.Look.Paving)
+            {
+                case Paving.Concrete: asphaltAsset = new AssetRef("Concrete Surface 01", asphaltAsset.Id); break;
+                case Paving.Pavers: asphaltAsset = new AssetRef("Tiles Surface 01", asphaltAsset.Id); break;
+                case Paving.Gravel: case Paving.Dirt: asphaltAsset = new AssetRef(Islands.Soil, asphaltAsset.Id); break;
+            }
             double covered = 0;
             int lotRegion = 0, greenRegion = 0;
             foreach (var sp in layout.Surfaces)
@@ -742,6 +814,8 @@ namespace Placemaker.Core.Layers.Parking
                 }
                 // (P2-1) markings off: every stall the invisible bay (the lane stays; the painted one when it is missing)
                 if (!s.Markings) asset = new AssetRef(ParkingAssets.InvisibleBay, asset.Id);
+                // (P2-5) a country's own lines are painted by ParkingGround: plain stalls keep only their parking lane
+                else if (ParkingGround.OwnLines(s) && b.Role == BayRole.Normal) asset = new AssetRef(ParkingAssets.InvisibleBay, asset.Id);
                 bays++;
                 plan.Objects.Add(new PlannedObject
                 {

@@ -11,8 +11,9 @@
   "hiddenTypes": [],
   "hiddenStyles": {
     "parking": [
-      "green"
+      "green",
+      "compact"
     ]
   },
-  "_why": "rf-parking (docs/refactor/parking.md): green is standard with wider medians and denser planting, a near-duplicate now that every style plants its medians in tidy lines; the planting density slider gives the same look."
+  "_why": "rf-parking (docs/refactor/parking.md): green is standard with wider medians and denser planting, a near-duplicate now that every style plants its medians in tidy lines; the planting density slider gives the same look. P2-5 (docs/runbooks/parking-looks.md): compact is hidden too, the big-box style is the open field of spaces done properly (yellow lines, light poles in a grid, cart corrals); the world styles are shown."
 }

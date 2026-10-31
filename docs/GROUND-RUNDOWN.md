@@ -328,3 +328,16 @@ add a biome (farms: orchard, field; beaches: dune, shingle; golf: rough, heath).
 - Strip kinds on long thin lines (`wornPath`) read as orange dashes from 45° on open grass; faint `animalTrail` at 0.3-0.5
   opacity reads as trodden lines. Pale flower dots in a lawn (daisies) at full white and cover 0.2 read as snow patches:
   keep them under 210 grey and cover about 0.1.
+
+## Lessons from parking looks (2026-10-31, docs/runbooks/parking-looks.md)
+
+- **Dark near-neutral greys draw purple.** Decal colours between about 32 and 42 (sRGB) came out violet in the game: the
+  albedo is linear and in BC3 their red and blue round up to the next 5-bit step while green (6 bits) rounds down. Use
+  0-12 or 50 and above (50, 72, 87 are exact neutral steps) and darken with alpha. Smoothness was not the cause (tried).
+- **Raised edges without a kerb prop:** the game's garden walls (`EU_Wall02` pale, `EU_Wall05`, `EU_Wall01` dark; 0.2 x 0.9 m,
+  along local Z) sunk until 0.14-0.16 m shows make real kerbs with a shadow; set into the ground they collide with nothing.
+  Shorter pieces on slopes. `Core/Layers/Parking/Kerbs.cs` finds the edges of any layout (green against paving, paving
+  against bare ground, the paved outline); any type with islands can reuse it.
+- **Seamless sheets:** `xy` tiles edge to edge on a grid, no feather, one variant, never turned. Overlapping or turning
+  them shows every seam.
+- **Paint is not wear:** count lines and markings outside the wear budget, or a lot of many stalls thins its wear to nothing.

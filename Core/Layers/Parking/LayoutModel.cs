@@ -205,6 +205,8 @@ namespace Placemaker.Core.Layers.Parking
 
         /// <summary>(P2-1) Hand edits that found nothing to apply to (left out of this plan, kept in the design).</summary>
         public int TouchesDropped;
+        /// <summary>(P2-5) The corners given over to the camp and the works (Equipment.Reserve), null when none.</summary>
+        public LotCorner Camp, Works;
         /// <summary>(P2-1) Stalls taken out by the lines the player drew.</summary>
         public int SketchCut;
         /// <summary>(P2-1) Stalls in the rows along drawn aisles.</summary>

@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+358b5c1b-dirty",
+  "assembly": "0.3.6+d0714786-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -8774,7 +8774,17 @@
         "standard",
         "compact",
         "green",
-        "angled"
+        "angled",
+        "japanese",
+        "german",
+        "bigBox",
+        "rich",
+        "rundown",
+        "gravel",
+        "construction",
+        "eco",
+        "terraced",
+        "round"
       ],
       "options": [
         {
@@ -9037,6 +9047,214 @@
           "default": 3.0
         },
         {
+          "id": "lotShape",
+          "kind": "Choice",
+          "options": [
+            "rows",
+            "round",
+            "terraced"
+          ],
+          "default": "rows"
+        },
+        {
+          "id": "paving",
+          "kind": "Choice",
+          "options": [
+            "asphalt",
+            "darkAsphalt",
+            "concrete",
+            "pavers",
+            "gravel",
+            "dirt"
+          ],
+          "default": "asphalt"
+        },
+        {
+          "id": "stallPaving",
+          "kind": "Choice",
+          "options": [
+            "same",
+            "concrete",
+            "pavers",
+            "grassPavers"
+          ],
+          "default": "same"
+        },
+        {
+          "id": "pavingAge",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 45.0
+        },
+        {
+          "id": "cleanliness",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 55.0
+        },
+        {
+          "id": "wear",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 10.0,
+          "unit": "%",
+          "default": 100.0
+        },
+        {
+          "id": "markingStyle",
+          "kind": "Choice",
+          "options": [
+            "classic",
+            "double",
+            "tee",
+            "boxes",
+            "japan",
+            "yellow"
+          ],
+          "default": "classic"
+        },
+        {
+          "id": "paintAge",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 35.0
+        },
+        {
+          "id": "crossings",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "dashed",
+            "zebra"
+          ],
+          "default": "dashed"
+        },
+        {
+          "id": "aisleMarks",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "kerbs",
+          "kind": "Choice",
+          "options": [
+            "concrete",
+            "granite",
+            "redWhite",
+            "yellow",
+            "flush",
+            "none"
+          ],
+          "default": "concrete"
+        },
+        {
+          "id": "wheelStops",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "islandStyle",
+          "kind": "Choice",
+          "options": [
+            "grass",
+            "shrubs",
+            "hedge",
+            "bioswale",
+            "gravel"
+          ],
+          "default": "grass"
+        },
+        {
+          "id": "signs",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "payment",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "entrance",
+            "rows",
+            "coin"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "barrier",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "solarCanopies",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "cartCorrals",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "bikeStands",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "bins",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "drainage",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "grates",
+            "channel",
+            "barranca"
+          ],
+          "default": "grates"
+        },
+        {
+          "id": "rundownCars",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "camp",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "construction",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 60.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "kiosk",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
           "id": "fee",
           "kind": "Slider",
           "min": 0.0,
@@ -9081,6 +9299,7 @@
         }
       ],
       "shelvedStyles": [
+        "compact",
         "green"
       ]
     },
@@ -17826,24 +18045,6 @@
           "default": 45.0
         },
         {
-          "id": "biomeGrass",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 100.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 0.0
-        },
-        {
-          "id": "biomeField",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 100.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 0.0
-        },
-        {
           "id": "biomeMeadow",
           "kind": "Slider",
           "min": 0.0,
@@ -17932,319 +18133,6 @@
           "step": 1.0,
           "unit": "%",
           "default": 72.0
-        },
-        {
-          "id": "biomeGrassLeaves",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 300.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeGrassTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 20.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 0.0
-        },
-        {
-          "id": "biomeFieldWear",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFieldEdges",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFieldFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFieldTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 20.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 0.0
-        },
-        {
-          "id": "biomeMeadowTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 20.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 0.0
-        },
-        {
-          "id": "biomeMeadowFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeMeadowGrass",
-          "kind": "Choice",
-          "options": [
-            "short",
-            "long",
-            "tall"
-          ],
-          "default": "long"
-        },
-        {
-          "id": "biomeMeadowShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFlowersColours",
-          "kind": "Choice",
-          "options": [
-            "mixed",
-            "warm",
-            "cool",
-            "purple",
-            "yellow",
-            "white"
-          ],
-          "default": "mixed"
-        },
-        {
-          "id": "biomeFlowersFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFlowersShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeMulchBeds",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 80.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 36.0
-        },
-        {
-          "id": "biomeMulchTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 60.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 22.0
-        },
-        {
-          "id": "biomeMulchShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeGladeTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 150.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 70.0
-        },
-        {
-          "id": "biomeGladeFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeGladeShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 400.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 260.0
-        },
-        {
-          "id": "biomeForestKind",
-          "kind": "Choice",
-          "options": [
-            "mixed",
-            "broadleaf",
-            "conifer",
-            "birch"
-          ],
-          "default": "mixed"
-        },
-        {
-          "id": "biomeForestShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestDeadWood",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyRocks",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyRelief",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 120.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 36.0
-        },
-        {
-          "id": "biomeHeathShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeHeathTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 60.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 16.0
-        },
-        {
-          "id": "biomeHeathRelief",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeWetlandWater",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 70.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 30.0
-        },
-        {
-          "id": "biomeWetlandShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeWetlandTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 80.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 30.0
-        },
-        {
-          "id": "biomeWaterShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeWaterTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 80.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 30.0
         },
         {
           "id": "carPark",
@@ -19249,228 +19137,6 @@
           "step": 1.0,
           "unit": "%",
           "default": 35.0
-        },
-        {
-          "id": "biomeFlowersColours",
-          "kind": "Choice",
-          "options": [
-            "mixed",
-            "warm",
-            "cool",
-            "purple",
-            "yellow",
-            "white"
-          ],
-          "default": "mixed"
-        },
-        {
-          "id": "biomeFlowersFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFlowersShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeMulchBeds",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 80.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 36.0
-        },
-        {
-          "id": "biomeMulchTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 60.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 22.0
-        },
-        {
-          "id": "biomeMulchShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeGladeTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 150.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 70.0
-        },
-        {
-          "id": "biomeGladeFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeGladeShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 400.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 260.0
-        },
-        {
-          "id": "biomeForestKind",
-          "kind": "Choice",
-          "options": [
-            "mixed",
-            "broadleaf",
-            "conifer",
-            "birch"
-          ],
-          "default": "mixed"
-        },
-        {
-          "id": "biomeForestShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestDeadWood",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyRocks",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyRelief",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 120.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 36.0
-        },
-        {
-          "id": "biomeHeathShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeHeathTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 60.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 16.0
-        },
-        {
-          "id": "biomeHeathRelief",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeWetlandWater",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 70.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 30.0
-        },
-        {
-          "id": "biomeWetlandShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeWetlandTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 80.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 30.0
-        },
-        {
-          "id": "biomeWaterShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeWaterTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 80.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 30.0
         },
         {
           "id": "benches",
@@ -22783,143 +22449,6 @@
           "default": 70.0
         },
         {
-          "id": "biomePastureTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 60.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 4.0
-        },
-        {
-          "id": "biomePastureShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomePastureRocks",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 400.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 260.0
-        },
-        {
-          "id": "biomeForestKind",
-          "kind": "Choice",
-          "options": [
-            "mixed",
-            "broadleaf",
-            "conifer",
-            "birch"
-          ],
-          "default": "mixed"
-        },
-        {
-          "id": "biomeForestShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestDeadWood",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeWetlandWater",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 70.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 30.0
-        },
-        {
-          "id": "biomeWetlandShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeWetlandTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 80.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 30.0
-        },
-        {
-          "id": "biomeWaterShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeWaterTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 80.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 30.0
-        },
-        {
-          "id": "biomeRockyRocks",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyRelief",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 120.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 36.0
-        },
-        {
           "id": "entrances",
           "kind": "Markers"
         },
@@ -23966,216 +23495,6 @@
           "step": 1.0,
           "unit": "%",
           "default": 60.0
-        },
-        {
-          "id": "biomeDunesTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 60.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 4.0
-        },
-        {
-          "id": "biomeDunesShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeDunesRelief",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeShingleShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeShingleRocks",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeShingleRelief",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeHeathShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeHeathTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 60.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 16.0
-        },
-        {
-          "id": "biomeHeathRelief",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeMeadowTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 20.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 0.0
-        },
-        {
-          "id": "biomeMeadowFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeMeadowGrass",
-          "kind": "Choice",
-          "options": [
-            "short",
-            "long",
-            "tall"
-          ],
-          "default": "long"
-        },
-        {
-          "id": "biomeMeadowShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 400.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 260.0
-        },
-        {
-          "id": "biomeForestKind",
-          "kind": "Choice",
-          "options": [
-            "mixed",
-            "broadleaf",
-            "conifer",
-            "birch"
-          ],
-          "default": "mixed"
-        },
-        {
-          "id": "biomeForestShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestDeadWood",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyRocks",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyRelief",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 120.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 36.0
-        },
-        {
-          "id": "biomeWetlandWater",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 70.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 30.0
-        },
-        {
-          "id": "biomeWetlandShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeWetlandTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 80.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 30.0
         },
         {
           "id": "dressGroundDecals",
@@ -28406,24 +27725,6 @@
           "default": 40.0
         },
         {
-          "id": "biomeGrass",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 100.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 0.0
-        },
-        {
-          "id": "biomeField",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 100.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 0.0
-        },
-        {
           "id": "biomeMeadow",
           "kind": "Slider",
           "min": 0.0,
@@ -28485,243 +27786,6 @@
           "step": 1.0,
           "unit": "%",
           "default": 45.0
-        },
-        {
-          "id": "biomeGrassLeaves",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 300.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeGrassTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 20.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 0.0
-        },
-        {
-          "id": "biomeFieldWear",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFieldEdges",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFieldFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFieldTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 20.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 0.0
-        },
-        {
-          "id": "biomeMeadowTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 20.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 0.0
-        },
-        {
-          "id": "biomeMeadowFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeMeadowGrass",
-          "kind": "Choice",
-          "options": [
-            "short",
-            "long",
-            "tall"
-          ],
-          "default": "long"
-        },
-        {
-          "id": "biomeMeadowShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeMulchBeds",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 80.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 36.0
-        },
-        {
-          "id": "biomeMulchTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 60.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 22.0
-        },
-        {
-          "id": "biomeMulchShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeGladeTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 150.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 70.0
-        },
-        {
-          "id": "biomeGladeFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeGladeShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 400.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 260.0
-        },
-        {
-          "id": "biomeForestKind",
-          "kind": "Choice",
-          "options": [
-            "mixed",
-            "broadleaf",
-            "conifer",
-            "birch"
-          ],
-          "default": "mixed"
-        },
-        {
-          "id": "biomeForestShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestDeadWood",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyRocks",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyRelief",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeRockyTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 120.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 36.0
-        },
-        {
-          "id": "biomeWetlandWater",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 70.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 30.0
-        },
-        {
-          "id": "biomeWetlandShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeWetlandTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 80.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 30.0
         },
         {
           "id": "logs",
@@ -29235,24 +28299,6 @@
           "default": 70.0
         },
         {
-          "id": "biomeGrass",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 100.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 0.0
-        },
-        {
-          "id": "biomeField",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 100.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 0.0
-        },
-        {
           "id": "biomeMeadow",
           "kind": "Slider",
           "min": 0.0,
@@ -29296,193 +28342,6 @@
           "step": 1.0,
           "unit": "%",
           "default": 40.0
-        },
-        {
-          "id": "biomeGrassLeaves",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 300.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeGrassTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 20.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 0.0
-        },
-        {
-          "id": "biomeFieldWear",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFieldEdges",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFieldFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFieldTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 20.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 0.0
-        },
-        {
-          "id": "biomeMeadowTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 20.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 0.0
-        },
-        {
-          "id": "biomeMeadowFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeMeadowGrass",
-          "kind": "Choice",
-          "options": [
-            "short",
-            "long",
-            "tall"
-          ],
-          "default": "long"
-        },
-        {
-          "id": "biomeMeadowShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFlowersColours",
-          "kind": "Choice",
-          "options": [
-            "mixed",
-            "warm",
-            "cool",
-            "purple",
-            "yellow",
-            "white"
-          ],
-          "default": "mixed"
-        },
-        {
-          "id": "biomeFlowersFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeFlowersShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeGladeTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 150.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 70.0
-        },
-        {
-          "id": "biomeGladeFlowers",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeGladeShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestTrees",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 400.0,
-          "step": 1.0,
-          "unit": "perHa",
-          "default": 260.0
-        },
-        {
-          "id": "biomeForestKind",
-          "kind": "Choice",
-          "options": [
-            "mixed",
-            "broadleaf",
-            "conifer",
-            "birch"
-          ],
-          "default": "mixed"
-        },
-        {
-          "id": "biomeForestShrubs",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
-        },
-        {
-          "id": "biomeForestDeadWood",
-          "kind": "Slider",
-          "min": 0.0,
-          "max": 200.0,
-          "step": 1.0,
-          "unit": "%",
-          "default": 100.0
         },
         {
           "id": "treeSpecies",

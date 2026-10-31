@@ -1,0 +1,25 @@
+{
+  "_about": "P2-5: the parking upkeep companion (ParkingCompanionSystem, experimental and off by default since PLT's native crashes). Switch it on, build two car parks with the new looks, let the city run, remove everything, count what is left. Read 'companion' lines in Placemaker.log and Player.log for exceptions. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/parking-companion.json -Who p2-parking-looks",
+  "scenarios": [
+    {
+      "id": "companion",
+      "site": "flat",
+      "pace": "settled",
+      "steps": [
+        { "do": "setting", "name": "ExperimentalParkingCompanion", "value": true },
+        { "do": "lab", "op": "leftovers", "label": "before", "baseline": true },
+        { "do": "area", "tool": "bucket" },
+        { "do": "type", "layer": "parking", "preset": "german" },
+        { "do": "entrance", "side": "south", "t": 0.42 },
+        { "do": "build" },
+        { "do": "wait", "seconds": 20 },
+        { "do": "lab", "op": "groupRecords", "label": "after the build" },
+        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "companion-built", "shotMode": "render" },
+        { "do": "lab", "op": "removeGroups", "which": "all", "label": "remove all" },
+        { "do": "wait", "seconds": 8 },
+        { "do": "lab", "op": "leftovers", "label": "after removing" },
+        { "do": "setting", "name": "ExperimentalParkingCompanion", "value": false }
+      ]
+    }
+  ]
+}

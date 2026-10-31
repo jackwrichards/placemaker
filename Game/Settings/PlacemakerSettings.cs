@@ -662,7 +662,7 @@ namespace Placemaker.Game.Settings
             TexturedPreviewSurfaces = false;
             ParkingEconomy = true;
             DefaultParkingFee = 0;
-            ExperimentalParkingCompanion = false;
+            ExperimentalParkingCompanion = true;   // P2-5: verified in the game runner (send-parking-companion-1031-132310: made, no exception, removed clean)
             CompanionUpkeepFactor = 1f;
             // Snap mask and bindings are intentionally not reset here: the snap mask keeps the
             // player's last choice, bindings have their own reset button.
