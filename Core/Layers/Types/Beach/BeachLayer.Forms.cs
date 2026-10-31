@@ -65,13 +65,12 @@ namespace Placemaker.Core.Layers.Types.Beach
             Preset("mulch", ("style", "mulch"), ("beachDepth", 22.0), ("wetBand", 3.0), ("slope", 4.0), ("sandBlend", 10.0), ("umbrellas", 0.0), ("backdrop", "woods"),
                 ("treeDensity", 60.0), ("grassDensity", 40.0), ("jetties", 1.0), ("jettyLength", 22.0), ("boats", true), ("fires", true), ("lifeguards", 0.0), ("kiosks", 0.0),
                 ("huts", "none"), ("lamps", false), ("benchSpacing", 30.0), ("bay", 12.0), ("berm", 0.25), ("knolls", 2.0), ("boulders", 20.0), ("landings", false),
-                ("biomeLawn", 0.0), ("biomeForest", 70.0), ("biomeHeath", 30.0), ("treeSpecies", new[] { "PineTree01", "PineTree01", "EuropeanSpruce01", "PineTree01", "SpruceTree01" }));
+                ("biomeLawn", 0.0), ("biomeForest", 70.0), ("biomeHeath", 30.0));
             // Granite shore: rounded granite domes and boulders on the beach and out in clear shallows, coarse sand between, pines.
             Preset("granite", ("style", "granite"), ("beachDepth", 34.0), ("wetBand", 4.0), ("slope", 6.0), ("knolls", 7.0), ("boulders", 55.0), ("umbrellas", 12.0),
                 ("backdrop", "woods"), ("treeDensity", 25.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("jetties", 1.0), ("jettyLength", 30.0),
                 ("boats", true), ("sandBlend", 12.0), ("bay", 0.0), ("lamps", false), ("landings", false), ("underwater", 30.0), ("islands", 1.0),
-                ("biomeLawn", 0.0), ("biomeRocky", 25.0), ("biomeForest", 55.0), ("biomeHeath", 20.0),
-                ("treeSpecies", new[] { "PineTree01", "PineTree01", "EuropeanSpruce01", "PineTree01", "SpruceTree01" }));   // p2-beaches: pines on granite (the mixed broadleaf wood and loose boulders read generic)
+                ("biomeLawn", 0.0), ("biomeRocky", 50.0), ("biomeForest", 30.0), ("biomeHeath", 20.0));
             // Rocky ravine: a high rocky bank behind a pocket beach, cut by two boulder-choked barrancas down to the water.
             Preset("ravine", ("style", "ravine"), ("beachDepth", 20.0), ("wetBand", 3.0), ("slope", 7.0), ("bluff", 10.0), ("ravines", 2.0), ("boulders", 60.0), ("knolls", 0.0),
                 ("umbrellas", 0.0), ("backdrop", "none"), ("treeDensity", 16.0), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
@@ -92,7 +91,7 @@ namespace Placemaker.Core.Layers.Types.Beach
             Preset("wild", ("style", "wild"), ("beachDepth", 46.0), ("umbrellas", 0.0), ("backdrop", "dunes"), ("duneHeight", 6.0), ("duneDepth", 48.0), ("blowouts", 2.0),
                 ("hummocks", 0.6), ("berm", 0.8), ("fires", true), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
                 ("benchSpacing", 0.0), ("accessSpacing", 120.0), ("landings", false), ("boats", false), ("treeDensity", 15.0), ("rockClusters", 2.0), ("bay", 20.0),
-                ("grassDensity", 75.0), ("biomeLawn", 0.0), ("biomeDunes", 60.0), ("biomeHeath", 40.0), ("treeSpecies", new[] { "PineTree01", "PineTree01", "EuropeanSpruce01", "PineTree01", "SpruceTree01" }));
+                ("grassDensity", 75.0), ("biomeLawn", 0.0), ("biomeDunes", 50.0), ("biomeHeath", 25.0), ("biomeMeadow", 25.0));
         }
 
         // ───────────── advice ─────────────

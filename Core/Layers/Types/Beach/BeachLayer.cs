@@ -158,7 +158,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                 ("duneHeight", 8.0), ("treeDensity", 25.0), ("grassDensity", 90.0), ("fires", true), ("lifeguards", 0.0), ("huts", "none"), ("kiosks", 0.0),
                 ("lamps", false), ("rockClusters", 3.0), ("boats", true), ("benchSpacing", 0.0), ("accessSpacing", 90.0), ("showers", false), ("bay", 32.0),
                 ("berm", 0.9), ("blowouts", 3.0), ("hummocks", 1.0), ("boardwalk", true),
-                ("biomeLawn", 0.0), ("biomeDunes", 50.0), ("biomeHeath", 30.0), ("biomeForest", 20.0), ("treeSpecies", new[] { "PineTree01", "PineTree01", "EuropeanSpruce01", "PineTree01", "SpruceTree01" }));
+                ("biomeLawn", 0.0), ("biomeDunes", 50.0), ("biomeHeath", 30.0), ("biomeForest", 20.0));
             Preset("volleyball", ("style", "volleyball"), ("beachDepth", 66.0), ("sandBlend", 10.0), ("courts", 4.0), ("umbrellas", 25.0), ("accessSpacing", 120.0),
                 ("lifeguards", 1.0), ("kiosks", 2.0), ("huts", "none"), ("pathWidth", "wide"), ("backdrop", "lawn"), ("treeDensity", 30.0), ("slope", 3.0));
             DefineFormPresets();
