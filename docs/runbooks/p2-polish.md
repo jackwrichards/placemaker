@@ -32,15 +32,15 @@ meadow, mulch beds and heath all read as scattered bushes. Colours: leafy greens
 
 | Piece | Where | Now |
 |---|---|---|
-| Construction pit barriers |  foundation | no ring round the hole (the user's rule); short runs either side of the ramp mouth, cones across it |
-| Park car park on steep land |  | the flattest spot on any frontage; none (panel note, 12 languages) where even that climbs over 4 m. Wild park on mountains: cut 11.5 -> 3.5 m |
-| Ruins' walls |  | stubs of every height (0.5-1.2x, corners to 2x), some leaning, broken masonry heaped at their feet with rubble decals |
-| Rundown lots | ,  | twice the dumped heaps; scrub thickets reaching 30 m in on the wasteland and burnt lot (rubble field stays rubble-led), self-seeded trees, 2-5 dumped car wrecks, scorches beside rubbish, more puddles, ruts on the burnt lot |
-| Landfill |  | loaders and refuse lorries on the face and queuing on the haul road (our own vehicle props: the clean game has no machine pool), a ragged working face |
-| Sports park on a big site | , new control  (12 languages) | the repeatable facilities multiply with the site (x(area/4.5 ha)^0.8, at most 4): community on 15 ha 4 -> 12 facilities |
-| Arena on a hill |  | banks the hill rises behind become seating terraces with benches |
-| Hairpins |  | turns over 80 degrees become arcs up to 6 m radius |
-| Tried, reverted |  | a stiffer climb penalty (6 -> 14) made natural walks more convoluted (112 -> 179 steep pieces): the roadmap limits it |
+| Construction pit barriers | `ConstructionSiteLayer` foundation | no ring round the hole (the user's rule); short runs either side of the ramp mouth, cones across it |
+| Park car park on steep land | `ParkCarPark` | the flattest spot on any frontage; none (panel note, 12 languages) where even that climbs over 4 m. Wild park on mountains: cut 11.5 -> 3.5 m |
+| Ruins' walls | `BuildingRuins` | stubs of every height (0.5-1.2x, corners to 2x), some leaning, broken masonry heaped at their feet with rubble decals |
+| Rundown lots | `AbandonedLotLayer`, `AbandonedLotGround` | twice the dumped heaps; scrub thickets reaching 30 m in on the wasteland and burnt lot (rubble field stays rubble-led), self-seeded trees, 2-5 dumped car wrecks, scorches beside rubbish, more puddles, ruts on the burnt lot |
+| Landfill | `LandfillLayer` | loaders and refuse lorries on the face and queuing on the haul road (our own vehicle props: the clean game has no machine pool), a ragged working face |
+| Sports park on a big site | `SportsParkComposer.Count`, new control `growWithSite` (12 languages) | the repeatable facilities multiply with the site (x(area/4.5 ha)^0.8, at most 4): community on 15 ha 4 -> 12 facilities |
+| Arena on a hill | `SportsDesigns.Arena` | banks the hill rises behind become seating terraces with benches |
+| Hairpins | `ParkPathStyles.WidenTurns` | turns over 80 degrees become arcs up to 6 m radius |
+| Tried, reverted | `ParkPathPlanner.SlopeFactor` | a stiffer climb penalty (6 -> 14) made natural walks more convoluted (112 -> 179 steep pieces): the roadmap limits it |
 
 ## Verified in the game (pit checks)
 
