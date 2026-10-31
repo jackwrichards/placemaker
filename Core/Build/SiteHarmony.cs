@@ -730,13 +730,15 @@ namespace Placemaker.Core.Build
             var list = new List<float2[]>();
             for (int li = 0; li < plan.Layers.Count; li++)
             {
-                // only a layer whose places shaped their own ground ("moodTerrainCells", ParkMoods)
-                if (!c.Part[li] || plan.Layers[li] == null || !plan.Layers[li].Facts.ContainsKey("moodTerrainCells")) continue;
+                // only a layer whose places shaped their own ground ("moodTerrainCells", ParkMoods; "biomeTerrainCells", Biome mix)
+                if (!c.Part[li] || plan.Layers[li] == null) continue;
+                bool moods = plan.Layers[li].Facts.ContainsKey("moodTerrainCells"), biomes = plan.Layers[li].Facts.ContainsKey("biomeTerrainCells");
+                if (!moods && !biomes) continue;
                 foreach (var rg in plan.Layers[li].Regions)
                 {
                     if (rg?.Tags == null || rg.Ring == null || rg.Ring.Length < 3) continue;
                     foreach (var t in rg.Tags)
-                        if (t != null && t.StartsWith("mood:", StringComparison.Ordinal) && t != "mood:gullyFloor") { list.Add(Poly.To2D(rg.Ring)); break; }
+                        if (t != null && (moods && t.StartsWith("mood:", StringComparison.Ordinal) && t != "mood:gullyFloor" || biomes && Layers.Common.Biomes.BiomeBuilder.Shaped(t))) { list.Add(Poly.To2D(rg.Ring)); break; }
                 }
             }
             return list;

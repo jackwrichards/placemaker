@@ -73,11 +73,26 @@ namespace Placemaker.Core.Decals.Dynamic
         public bool Contains(float2 p)
         {
             if (math.any(p < ClipLo) || math.any(p > ClipHi)) return false;
+            // (perf, Biome mix) Keep first: the brushes' own Keep is a cheap local test (near a crown), the rings may be a whole
+            // lawn with every path as a hole (a 36 ha park with forests: weathering 8 s, most of it here). Same answer.
+            if (Keep != null && !Keep(p)) return false;
+            // (perf) each ring's box first: a lawn's holes are every surface of the site (dozens of pools, pads, courts)
+            if (_ob == null || _ob.Length != Outer.Count) _ob = Boxes(Outer);
+            if (_hb == null || _hb.Length != Holes.Count) _hb = Boxes(Holes);
             bool inside = false;
-            foreach (var r in Outer) if (Poly.Contains(r, p)) { inside = true; break; }
+            for (int i = 0; i < Outer.Count; i++) if (In(_ob[i], p) && Poly.Contains(Outer[i], p)) { inside = true; break; }
             if (!inside) return false;
-            foreach (var h in Holes) if (Poly.Contains(h, p)) return false;
-            return Keep == null || Keep(p);
+            for (int i = 0; i < Holes.Count; i++) if (In(_hb[i], p) && Poly.Contains(Holes[i], p)) return false;
+            return true;
+        }
+
+        private float4[] _ob, _hb;
+        private static bool In(float4 b, float2 p) => p.x >= b.x && p.y >= b.y && p.x <= b.z && p.y <= b.w;
+        private static float4[] Boxes(List<float2[]> rings)
+        {
+            var o = new float4[rings.Count];
+            for (int i = 0; i < rings.Count; i++) { Poly.Bounds(rings[i], out var a, out var b); o[i] = new float4(a, b); }
+            return o;
         }
 
         /// <summary>Metres from p to the nearest edge (outer or hole).</summary>
