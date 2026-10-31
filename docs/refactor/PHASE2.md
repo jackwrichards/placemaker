@@ -224,7 +224,7 @@ Coordinate with P2-5, which starts after you. Write in your report exactly what 
 
 ## P2-5 Parking looks: every kind of car park
 
-**Starts after P2-1 lands** (read its report and `docs/refactor/parking.md` first).
+**Starts after P2-1 lands** (read its report and `docs/refactor/parking.md` first). **The full brief is `docs/refactor/P2-5-PARKING-LOOKS.md`** (2026-10-31; it replaces this section).
 
 **Goal:** car parks that are a joy to look at. "We need to go completely all out on parking lots." A plain lot stays an option, but it is detailed and looks good.
 
