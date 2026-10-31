@@ -105,7 +105,8 @@ namespace Placemaker.Game.Build
             return math.isfinite(h) ? h : 0f;
         }
 
-        private int _sagNotes, _splitNotes;
+        private int _sagNotes, _splitNotes, _deckJoins;
+        private float _deckJoinMove;
 
         /// <summary>The curve parameter of a planned net nearest a point (16 samples).</summary>
         private static float ClosestT(PlannedNet n, float2 p)
@@ -128,6 +129,7 @@ namespace Placemaker.Game.Build
         {
             _heightsValid = false;
             _sagNotes = _splitNotes = _wheelNotes = 0;
+            _deckJoins = 0; _deckJoinMove = 0f;
             // (2026-10-30) room in the terrain's road cull list before our nets come: TerrainCullGuard.cs (the CullForCascades crash)
             TerrainCullGuard.Reserve(_terrain, _work.Nets.Count);
             if (!_gEmission) ScanLivePits("before the nets");
@@ -179,7 +181,13 @@ namespace Placemaker.Game.Build
                 if (elevated) course = CourseFitting.LandEnds(course, GroundHeight);
                 // (p1-ground) a deck end on a ground path's end becomes that end exactly (one node, no overhang): see JoinEnds
                 float2? joinA = elevated ? groundEnds.Find(net.A.xz) : null, joinD = elevated ? groundEnds.Find(net.D.xz) : null;
-                if (joinA != null || joinD != null) course = CourseFitting.JoinEnds(course, GroundHeight, joinA, joinD);
+                if (joinA != null || joinD != null)
+                {
+                    var before = course;
+                    course = CourseFitting.JoinEnds(course, GroundHeight, joinA, joinD);
+                    _deckJoins += (joinA != null ? 1 : 0) + (joinD != null ? 1 : 0);
+                    _deckJoinMove = math.max(_deckJoinMove, math.max(joinA != null ? math.distance(before.A, course.A) : 0f, joinD != null ? math.distance(before.D, course.D) : 0f));
+                }
                 var pieces = elevated
                     ? CourseFitting.FitElevated(course, settings.MaxLength > 1f ? math.min(ElevatedPieceLength, settings.MaxLength) : ElevatedPieceLength)
                     : CourseFitting.Fit(course, GroundHeight, settings);
@@ -243,6 +251,8 @@ namespace Placemaker.Game.Build
                     NoteUsed(prefab);
                 }
             }
+            if (_deckJoins > 0 && !_gEmission)
+                Mod.Log.Info($"Placemaker: {_deckJoins} bridge/boardwalk end(s) joined to the ground path they meet (one node each; the farthest moved {_deckJoinMove:F2} m).");
         }
 
         /// <summary>Every planned net end, to tell a dead end from an end other nets of the build join.</summary>
