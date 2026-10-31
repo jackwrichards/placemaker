@@ -118,6 +118,7 @@ namespace Placemaker.Game.Assets
         }
 
         private static readonly Dictionary<string, Entity> s_ownByName = new Dictionary<string, Entity>(StringComparer.Ordinal);
+        public static int OwnCount => s_ownByName.Count;
 
         /// <summary>Our own prefab (registered by Placemaker): never a catalogue item.</summary>
         public static bool IsOwnPrefabName(string name) => name != null && name.StartsWith("Placemaker ", StringComparison.Ordinal);

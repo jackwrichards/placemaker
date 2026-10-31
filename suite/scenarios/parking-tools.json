@@ -6,21 +6,101 @@
       "site": "flat",
       "pace": "settled",
       "steps": [
-        { "do": "area", "tool": "bucket" },
-        { "do": "type", "layer": "parking", "preset": "standard" },
-        { "do": "entrance", "side": "south", "t": 0.42 },
-        { "do": "preview", "shot": "plan-before" },
-        { "do": "sketch", "kind": "line.aisle", "points": [[0.12, 0.25], [0.88, 0.75]] },
-        { "do": "sketch", "kind": "line.walk", "points": [[0.62, 0.03], [0.62, 0.97]] },
-        { "do": "preview", "shot": "plan-sketched" },
-        { "do": "build" },
-        { "do": "camera", "target": "build", "view": "top", "shot": "built-top", "shotMode": "render" },
-        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "built-45", "shotMode": "render" },
-        { "do": "lab", "op": "driveLanes", "label": "after the build" },
-        { "do": "edit", "build": true },
-        { "do": "lab", "op": "driveLanes", "label": "while editing" },
-        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "edit-old-hidden", "shotMode": "render" },
-        { "do": "lab", "op": "groupRecords", "label": "after the sketch build" }
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.42
+        },
+        {
+          "do": "preview",
+          "shot": "plan-before"
+        },
+        {
+          "do": "sketch",
+          "kind": "line.aisle",
+          "points": [
+            [
+              0.12,
+              0.25
+            ],
+            [
+              0.88,
+              0.75
+            ]
+          ]
+        },
+        {
+          "do": "sketch",
+          "kind": "line.walk",
+          "points": [
+            [
+              0.62,
+              0.03
+            ],
+            [
+              0.62,
+              0.97
+            ]
+          ]
+        },
+        {
+          "do": "preview",
+          "shot": "plan-sketched"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "built-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "built-45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "driveLanes",
+          "label": "after the build"
+        },
+        {
+          "do": "edit",
+          "build": true
+        },
+        {
+          "do": "lab",
+          "op": "driveLanes",
+          "label": "while editing"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "edit-old-hidden",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "groupRecords",
+          "label": "after the sketch build"
+        }
       ]
     },
     {
@@ -28,17 +108,71 @@
       "site": "flat",
       "pace": "settled",
       "steps": [
-        { "do": "area", "tool": "bucket" },
-        { "do": "type", "layer": "parking", "preset": "standard" },
-        { "do": "entrance", "side": "south", "t": 0.42 },
-        { "do": "value", "id": "rowAngleMode", "value": "zones" },
-        { "do": "value", "id": "gridTurn", "value": "45" },
-        { "do": "value", "id": "markings", "value": false },
-        { "do": "preview", "shot": "plan-zones-45" },
-        { "do": "build" },
-        { "do": "camera", "target": "build", "view": "top", "shot": "built-nomarks-top", "shotMode": "render" },
-        { "do": "camera", "target": "build", "view": "oblique", "pitch": 45, "shot": "built-nomarks-45", "shotMode": "render" },
-        { "do": "lab", "op": "driveLanes", "label": "no markings" }
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.42
+        },
+        {
+          "do": "value",
+          "id": "rowAngleMode",
+          "value": "zones"
+        },
+        {
+          "do": "value",
+          "id": "gridTurn",
+          "value": "45"
+        },
+        {
+          "do": "value",
+          "id": "markings",
+          "value": false
+        },
+        {
+          "do": "preview",
+          "shot": "plan-zones-45"
+        },
+        {
+          "do": "lab",
+          "op": "assetCheck",
+          "names": [
+            "Placemaker Slow Invisible Road Path - 2xTwoway",
+            "Placemaker Invisible Parking Bay",
+            "Invisible Road Path - 2xTwoway"
+          ]
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "built-nomarks-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "pitch": 45,
+          "shot": "built-nomarks-45",
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "driveLanes",
+          "label": "no markings"
+        }
       ]
     }
   ]
