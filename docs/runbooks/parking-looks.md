@@ -113,8 +113,18 @@ leaves one style's look behind (`ParkingLayer.BuildPresets`).
 | `send-lab-parking-looks-1031-123914` | lab: kerb walls sunk, the game's stall markings, equipment |
 | `show-9-builds-1031-125942-543c` | first pass of every new style |
 | `show-8-builds-1031-131417-0724` | round 2: purple fixed, round lot, gravel tiles, works ground |
+| `show-4-builds-1031-133403-6a9e` | Japanese (neutral black coat), round, eco, Classic on a block |
+| `show-parking-terraced-1031-134658-ddfe` | terraced on a 12 % slope: level tiers, masonry retaining walls on the lower tier with a parapet |
+| `show-2-builds-1031-133756-2efd` | German on a 12 % slope |
+| `show-2-builds-1031-133756-e217` | Japanese and run-down on a 70 x 60 L |
+| `show-stripMall-default-1031-133402-7ee5`, `show-mallDistrict-default-1031-133404-d9d9` | the shops lots on the shared planner: kerbed, coated, unchanged otherwise |
+| `send-parking-slope-entrance-1031-133537` | the slope entrance (L on 7 %, street 10 m off, build checks on): no net sag, no pit; the inherited item does not reproduce |
+| `send-parking-companion-1031-132310` | the upkeep companion: made, city ran, removed clean, no exception (now on by default) |
 
 ## Open
+
+- Terraced: the retaining walls read as stacked courses; a single taller wall piece would be cleaner.
+- The upkeep companion default is on for new settings; a player whose settings file already holds the old off keeps it (no migration).
 
 - Timber edges for the gravel lot (log and fence piece sizes need a lab).
 - A tall price sign and P sign pole: no such props in the game.
