@@ -38,6 +38,8 @@ namespace Placemaker.Game.Groups
         /// <see cref="RescanPasses"/> passes.
         /// </summary>
         private readonly Dictionary<Entity, List<Entity>> _members = new Dictionary<Entity, List<Entity>>();
+        /// <summary>The end nodes of every edge a removal deleted (for <see cref="DeleteOrphanNodes"/>).</summary>
+        private readonly Dictionary<Entity, HashSet<Entity>> _edgeEnds = new Dictionary<Entity, HashSet<Entity>>();
         private const int RescanPasses = 60;
         private readonly Dictionary<Entity, (System.Diagnostics.Stopwatch Wall, int Frames, double Ms, double MaxMs, int Members, float WorstFrame)> _timing
             = new Dictionary<Entity, (System.Diagnostics.Stopwatch, int, double, double, int, float)>();
@@ -70,6 +72,7 @@ namespace Placemaker.Game.Groups
             base.OnGameLoadingComplete(purpose, mode);
             // keyed by entity: a load reuses entity ids, so nothing carries over (a removal saved half done starts afresh)
             _members.Clear();
+            _edgeEnds.Clear();
             _timing.Clear();
         }
 
@@ -108,6 +111,7 @@ namespace Placemaker.Game.Groups
             if (EntityManager.Exists(record) && !EntityManager.HasComponent<Deleted>(record)) { _timing[record] = t; return; }
             _timing.Remove(record);
             _members.Remove(record);
+            _edgeEnds.Remove(record);
             Mod.Log.Info($"Placemaker removal timing: {t.Members} member(s) in {t.Frames} frame(s), {t.Wall.Elapsed.TotalMilliseconds:F0} ms from start to end, "
                 + $"{t.Ms:F1} ms of main-thread work, worst frame {t.MaxMs:F1} ms (the game's longest frame meanwhile {t.WorstFrame:F0} ms).");
         }
@@ -196,6 +200,9 @@ namespace Placemaker.Game.Groups
                     var edge = EntityManager.GetComponentData<Edge>(e);
                     refresh.Add(edge.m_Start);
                     refresh.Add(edge.m_End);
+                    if (!_edgeEnds.TryGetValue(record, out var ends)) _edgeEnds[record] = ends = new HashSet<Entity>();
+                    ends.Add(edge.m_Start);
+                    ends.Add(edge.m_End);
                 }
                 PrepareDelete(e);
                 if (seen.Add(e)) doomed.Add(e);
@@ -230,6 +237,7 @@ namespace Placemaker.Game.Groups
                         EntityManager.SetComponentData(record, removal);
                         return;
                     }
+                    DeleteOrphanNodes(record);
                     EntityManager.AddComponent<Deleted>(record);
                     Mod.Log.Info($"Placemaker removed group {group.GroupId}.");
                     ReportLeftovers(group.GroupId);
@@ -240,6 +248,32 @@ namespace Placemaker.Game.Groups
             if (removal.Passes > MaxPassesWithoutProgress) { GiveUp(record); return; }
             EntityManager.SetComponentData(record, removal);
             _registry.MarkDirty();
+        }
+
+        /// <summary>
+        /// (p1-bulldoze) A node the removed edges ended on that has no edge left and no owner: untagged, so the plan never saw
+        /// it (a split node the game made during the build; greenway park left one on its bike path). Nothing uses it.
+        /// </summary>
+        private void DeleteOrphanNodes(Entity record)
+        {
+            if (!_edgeEnds.TryGetValue(record, out var ends)) return;
+            int n = 0;
+            foreach (var node in ends)
+            {
+                if (node == Entity.Null || !EntityManager.Exists(node) || EntityManager.HasComponent<Deleted>(node) || EntityManager.HasComponent<Temp>(node)
+                    || !EntityManager.HasComponent<global::Game.Net.Node>(node) || EntityManager.HasComponent<Owner>(node)) continue;
+                bool used = false;
+                if (EntityManager.HasBuffer<ConnectedEdge>(node))
+                {
+                    var buf = EntityManager.GetBuffer<ConnectedEdge>(node, true);
+                    for (int i = 0; i < buf.Length && !used; i++)
+                        if (buf[i].m_Edge != Entity.Null && EntityManager.Exists(buf[i].m_Edge) && !EntityManager.HasComponent<Deleted>(buf[i].m_Edge)) used = true;
+                }
+                if (used || ReferencedByTemporaries(new List<Entity> { node })) continue;
+                EntityManager.AddComponent<Deleted>(node);
+                n++;
+            }
+            if (n > 0) Mod.Log.Info($"Placemaker: {n} node(s) the removal left without any edge deleted too.");
         }
 
         /// <summary>True when the group's ground paint is wiped, or it had none (only builds that painted or terraformed carry PermanentTerrain).</summary>
