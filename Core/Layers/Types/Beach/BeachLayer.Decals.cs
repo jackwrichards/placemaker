@@ -229,7 +229,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                     foreach (float rd in f.Ridges) w = math.max(w, math.exp(-(dw - rd) * (dw - rd) / 9f));
                     return 0.15f + 0.85f * w;
                 }
-                Brushes.Scatter(B, Band(-1f, b.D + 1f), "shinglePatch", 1.3f, new ScatterOptions { Weight = Crest, Opacity = new float2(0.85f, 1f), Clump = 2.5f, Loners = 0.5f, Spill = 1.5f, Cause = "shingle:ground" });
+                Brushes.Scatter(B, Band(-1f, b.D + 1f), "shinglePatch", 2f, new ScatterOptions { Weight = Crest, Opacity = new float2(0.85f, 1f), Clump = 2.5f, Loners = 0.5f, Spill = 1.5f, Cause = "shingle:ground" });
                 foreach (float rd in f.Ridges)
                 {
                     foreach (var line in Along(rd))

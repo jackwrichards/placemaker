@@ -1233,7 +1233,13 @@ namespace Placemaker.Core.Layers.Types.Beach
                 float len = Shoreline.LengthOf(line);
                 var places = new List<float>();
                 if (mode == "row")
-                    for (float s = 4f; s < len - 4f; s += 3.6f) places.Add(s);
+                    // p2-beaches: terraces of four to seven with a gap between (one unbroken 3.6 m row read as a fence of boxes)
+                    for (float s = 4f; s < len - 4f; )
+                    {
+                        int run = 4 + (int)(Hashing.Unit(Hashing.Mix(ctx.Seed, 0x4071u + (uint)places.Count)) * 4f);
+                        for (int k = 0; k < run && s < len - 4f; k++, s += 3.6f) places.Add(s);
+                        s += 9f;
+                    }
                 else
                 {
                     int groups = math.max(1, (int)(len / 70f));

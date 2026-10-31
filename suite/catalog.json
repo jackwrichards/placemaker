@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+a42cee05",
+  "assembly": "0.3.6+8b446f19-dirty",
   "categories": [
     {
       "id": "zoning",
@@ -22242,7 +22242,7 @@
           "id": "duneHeight",
           "kind": "Slider",
           "min": 0.5,
-          "max": 5.0,
+          "max": 10.0,
           "step": 0.5,
           "unit": "m",
           "default": 2.0
@@ -22251,7 +22251,7 @@
           "id": "duneDepth",
           "kind": "Slider",
           "min": 8.0,
-          "max": 50.0,
+          "max": 70.0,
           "step": 2.0,
           "unit": "m",
           "default": 20.0
