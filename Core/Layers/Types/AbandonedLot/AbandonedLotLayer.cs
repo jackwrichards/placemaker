@@ -231,7 +231,7 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 DecayKit.DesirePath(ctx, occ, region, gates[0].Position, far, paintLayer, 0xD353u, st.Shortcuts);
             }
             // ── Tyre ruts: cars that park on the empty lot, the demolition machines, the lorries that graded the pad.
-            if (gates.Count > 0 && (sub == "emptyLot" || sub == "demolished" || sub == "fencedWasteland"))
+            if (gates.Count > 0 && (sub == "emptyLot" || sub == "demolished" || sub == "fencedWasteland" || sub == "burntOut"))
             {
                 var g0 = gates[0].Position; var inw = region.InwardNormal(gates[0].Segment);
                 float reach = math.min(minor * (sub == "emptyLot" ? 0.4f : 0.65f), 60f);
@@ -410,7 +410,8 @@ namespace Placemaker.Core.Layers.Types.Ruins
             int junkItems = 0;
             if (junkCat != null)
             {
-                int heaps = (int)math.round(junk * (1.5f + ha * 3f));
+                // P2-4 (the lead: rundown lots read sparse): about twice the dumped heaps, more on a big lot
+                int heaps = math.min(40, (int)math.round(junk * (2f + ha * 6f)));
                 float2 street = gates.Count > 0 ? gates[0].Position : region.Ring[0];
                 var spots = new List<float2>();
                 for (int i = 0; i < heaps; i++)
@@ -426,9 +427,11 @@ namespace Placemaker.Core.Layers.Types.Ruins
             if (ctx.B("crackWeeds"))
                 foreach (var (r, slab) in slabs)
                     crackWeeds += DecayKit.CrackWeeds(ctx, occ, slab.Cracks, math.saturate(over * 0.9f + 0.05f) * (sub == "brokenCarPark" ? 0.3f : 1f), weedIds, weedCat, 0xC3Au + (uint)(r.Center.x * 3f));
-            float edgeReach = sub == "overgrown" ? 22f : 14f;
+            // P2-4: the scrub of a rubble field, a wasteland or a burnt lot reaches well in, in thickets (the middle was bare)
+            bool deep = sub == "rubbleField" || sub == "fencedWasteland" || sub == "burntOut";
+            float edgeReach = sub == "overgrown" ? 22f : deep ? 30f : 14f;
             var (weeds, trees) = DecayKit.Overgrowth(ctx, occ, region, over, ctx.F("youngTrees"), weedIds, weedCat, Rundown.RundownPlants.Or(ctx.L("treeSpecies"), Rundown.RundownPlants.Trees), 0x0F6u,
-                p => zones.Inside(p, 0.8f), edgeReach, sub == "overgrown" ? 1f : sub == "squatterCamp" || sub == "brokenCarPark" ? 0.5f : 0.3f);
+                p => zones.Inside(p, 0.8f), edgeReach, sub == "overgrown" ? 1f : sub == "squatterCamp" || sub == "brokenCarPark" || deep ? 0.55f : 0.3f);
             ctx.Check();
 
             // ── Ground decals: dirt and puddles across the open ground, graffiti on the fence line.

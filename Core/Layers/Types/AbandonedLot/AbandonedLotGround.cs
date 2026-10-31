@@ -116,14 +116,19 @@ namespace Placemaker.Core.Layers.Types.Ruins
                 string cat = o.Category ?? "", id = o.Asset.Id ?? "";
                 var p = o.Position.xz;
                 if (cat == AssetCategories.RuinsRubble) { if (sub == "burntOut") { gr.Fire(p, 4f * o.Scale); gr.Fire(p + new float2(1.5f, -1f), 3f); } else if (o.Scale >= 0.9f) gr.Rubble(p, 4.2f * o.Scale, st.Rubble + 0.4f); }
-                else if (cat == AssetCategories.RuinsJunk) gr.Junk(p, 1.4f);
+                else if (cat == AssetCategories.RuinsJunk)
+                {
+                    gr.Junk(p, 1.4f);
+                    // P2-4: now and then the rubbish was set alight: a scorch beside the heap
+                    if (sub != "burntOut" && Hashing.Unit(Hashing.Mix(o.Variation, 0xF1E5u)) < 0.12f) gr.Fire(p + new float2(1.6f, 0.8f), 2.4f);
+                }
                 else if (cat == AssetCategories.CampingFire || id.StartsWith("BarrelFire", System.StringComparison.Ordinal)) gr.Fire(p, 1.8f);
                 else if (cat == AssetCategories.RuinsShelter) Brushes.At(gr.B, p, new float2(0.3f, 1f), "litterMix", 4.5f, new float2(0.7f, 1f), 1, ColourLevel.Any, "camp:litter");
             }
             foreach (var run in FenceRuns(ctx)) gr.FenceLine(run, false, weeds);
 
             // water: puddles in the soft and sunken places (the gravel pad and the car park hold the most)
-            int puddles = sub == "fencedWasteland" || sub == "brokenCarPark" ? 7 : sub == "demolished" ? 4 : sub == "overgrown" ? 2 : 3;
+            int puddles = sub == "fencedWasteland" || sub == "brokenCarPark" ? 7 : sub == "demolished" || sub == "rubbleField" ? 5 : sub == "overgrown" ? 2 : 3;
             puddles = (int)math.ceil(puddles * math.min(2.5f, ctx.LayerRegion.Area / 12000f));
             var rng = new BrushRng(Hashing.Mix(ctx.Seed, 0x9DDu));
             var region = ctx.LayerRegion;
