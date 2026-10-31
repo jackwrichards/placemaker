@@ -86,6 +86,38 @@ Everything else (where it goes, the sculpt, the planting, the paint, the decals)
 needs a new kind of thing (orchard rows, crop strips, dune ridges) adds one field to `BiomeDef` and one step to
 `BiomeBuilder`, used by any biome that sets it.
 
+## Manual touches: hand edits that survive Edit, rebuilds and reloads (P2-1, 2026-10-31)
+
+A player can change single things in a plan by clicking them on the map ("these stalls are accessible", "no stall here",
+"the rows line up with this kerb"). The edits are data in the design, applied by the layer after its own layout, so they
+come back on every re-plan, after Edit, after a rebuild and after loading the city. Parking uses it first; any type can.
+
+| Piece | Where | What |
+|---|---|---|
+| The edit | `Core/Touches.cs` `HandTouch` | kind (the layer's own, `group.what`: `stall.accessible`), world position, optional yaw and arg, a format version |
+| Where it lives | `RecipeStep.Touches` (beside `Markers`) | saved in recipe JSON (`"touches"`) and the build receipt (`ReceiptCodec` v3: a block of its own, keyed by step path; older readers stop before it). Like markers, never in a preset or a shipped recipe |
+| What the layer gets | `AreaInput.Touches` | only readable ones (`Touches.Valid`: a known version, a kind, a finite position); a touch from a newer Placemaker is carried and written back, never applied |
+| What can be touched | `AreaPlan.TouchTargets` (`TouchTarget`) | the layer lists them on every plan: group (`stall`, `grid`), centre, outline to draw, state (`normal`, `accessible`, `island`…) and the touch already applied there (`Touched`, `TouchAt`) |
+| The panel | a control of kind `ControlKind.Touches` (`"touches"`), its `Options` = the kinds | `UI/src/controls/Controls.tsx` `TouchesEditor`: a chip per kind, the count, "Undo all" |
+| The tool | `Game/Tool/PlacemakerToolSystem.Touches.cs` | a picked kind: hover shows the target under the cursor (`DrawTouches`, coloured by state), left-click applies it, the same kind again takes it off (`Touches.Toggle`), right-click takes back the last one, Esc ends. Undoable like any design change |
+| Left out | `Touches.ReportDropped` | a touch whose thing is not there any more (the outline moved, a setting removed the row) is left out of that plan with one note (`Placemaker.Touch.Dropped`) and stays in the design: it comes back when the spot does |
+| The game runner | `{"do":"touch","kind":"stall.island","pick":"middle"}` (`Game/Suite/SuiteSteps.Touches.cs`) | clicks like a player; `lab groupRecords` lists the hand edits each receipt keeps (proof after a load) |
+
+**Offering hand edits on your type** (4 steps):
+1. Name the kinds (`"tree.keep"`, `"bench.remove"`): the part before the dot is the target group. Never rename one (save format).
+2. `DefineControls`: one `ControlKind.Touches` control with an option per kind (label, tooltip, icon), in the section it belongs to.
+3. After your own layout, apply `input.Touches`: find each touch's thing (`Touches.Nearest`, within `Touches.Reach`, 1.6 m), change
+   it, count the ones that found nothing and call `Touches.ReportDropped(plan, n)`. Things decided by hand must be left alone by
+   your automatic passes (parking pins them: `Bay.Pinned`), and a hand-placed thing that the player's share also counts should
+   reduce the automatic ones (a hand-placed accessible group moves the automatic one).
+4. List `plan.TouchTargets` for every thing that can be touched, also the ones a touch removed (so it can be taken back).
+Then strings in 12 languages, a test that a touch survives `RecipeJson` and `ReceiptCodec`, and a game-runner proof.
+
+Parking's kinds (`Core/Layers/Parking/StallTouches.cs`, `PlanBuilder.EmitTouchTargets`): `stall.accessible` (a group of wide
+stalls centred on the click, counted toward the accessible share), `stall.ev` (the stall and its neighbour get a charger),
+`stall.plain` (no automatic accessible or charger stall here), `stall.blank` (paved, no marking, no parking lane),
+`stall.island` (a planted island), `grid.edge` (the rows run along the clicked outline side and start at it; one per design).
+
 ## Folder layout and ownership
 
 ```
