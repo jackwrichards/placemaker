@@ -236,6 +236,20 @@ namespace Placemaker.Tests.Types
         }
 
         [Fact]
+        public void EntrancePlazaGrowsWithThePark()
+        {
+            // P2-4 (the user: the plaza doesn't grow when the park is drawn very big)
+            var small = Host(Compose(Preset("community"), FiveHa, TestKit.RoadAlongBottom(250)));
+            var big = Host(Compose(Preset("community"), TestKit.Rect(420, 360), TestKit.RoadAlongBottom(420)));
+            _out.WriteLine($"5 ha: {small.Facts["plazaWidth"]} x {small.Facts["plazaDepth"]}; 15 ha: {big.Facts["plazaWidth"]} x {big.Facts["plazaDepth"]}, " +
+                $"{big.Facts["plazaTrees"]} trees, {big.Facts["plazaBenches"]} benches");
+            Assert.True(big.Facts["plazaWidth"] > small.Facts["plazaWidth"] * 1.6f);
+            Assert.True(big.Facts["plazaDepth"] > small.Facts["plazaDepth"] * 1.3f);
+            Assert.True(big.Facts["plazaTrees"] >= 8);
+            T04TypeTestBase.AssertNothingOnPaths(big);
+        }
+
+        [Fact]
         public void DeterministicAndFastOnFiveHectares()
         {
             foreach (var p in Gen.Presets)

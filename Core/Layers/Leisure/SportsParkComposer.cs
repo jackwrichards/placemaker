@@ -534,10 +534,31 @@ namespace Placemaker.Core.Layers.Leisure
             var n = _region.Ring.Length;
             var tangent = math.normalizesafe(_region.Ring[(seg + 1) % n] - _region.Ring[seg]);
             float depth = math.clamp(_belt + 2f * _hw + S(10f, 6f), 10f, 30f), width = S(28f, 14f) * math.lerp(1f, _breath, 0.3f);
-            _plaza = new OrientedRect { Center = g + inward * (depth * 0.5f + 0.6f), Axis = tangent, HalfLength = width * 0.5f, HalfWidth = depth * 0.5f };
-            foreach (var q in _plaza.Ring) if (!_region.Contains(q)) return;
-            _hasPlaza = true;
-            _plazaCentre = _plaza.Center;
+            // P2-4 (the user: the plaza doesn't grow when the park is drawn very big): the square grows with the park, up to a
+            // grand forecourt of about 75 x 45 m on a 450 m site; it gives back size where the outline will not take it.
+            float grow = math.clamp(_span / 150f, 1f, 2.7f);
+            float bigW = math.min(width * grow, 76f), bigD = math.min(depth * math.pow(grow, 0.75f), 46f);
+            foreach (float f in new[] { 1f, 0.82f, 0.66f, 0.5f, 0f })
+            {
+                float w = math.lerp(width, bigW, f), d = math.lerp(depth, bigD, f);
+                // slid along the edge where a corner is near: the gate stays on the square's front, 4 m or more from its end
+                OrientedRect r = default; bool inside = false;
+                foreach (float t in new[] { 0f, 0.25f, -0.25f, 0.5f, -0.5f })
+                {
+                    float shift = math.clamp(t * w, -(w * 0.5f - 4f), w * 0.5f - 4f);
+                    r = new OrientedRect { Center = g + tangent * shift + inward * (d * 0.5f + 0.6f), Axis = tangent, HalfLength = w * 0.5f, HalfWidth = d * 0.5f };
+                    inside = true;
+                    foreach (var q in r.Ring) if (!_region.Contains(q)) { inside = false; break; }
+                    if (inside) break;
+                }
+                if (!inside) continue;
+                _plaza = r;
+                _hasPlaza = true;
+                _plazaCentre = _plaza.Center;
+                _ctx.Plan.Facts["plazaWidth"] = Math.Round(w, 1);
+                _ctx.Plan.Facts["plazaDepth"] = Math.Round(d, 1);
+                return;
+            }
         }
 
         // ───────────────────────── hierarchy ─────────────────────────
@@ -1215,10 +1236,55 @@ namespace Placemaker.Core.Layers.Leisure
                 Bins(r.Local(-r.HalfLength + 1.5f, r.HalfWidth - 1.5f), 0xB11u);
                 foreach (var (u, w) in new[] { (-1f, -1f), (1f, -1f), (1f, 1f), (-1f, 1f) })
                     Tree(r.Local(u * (r.HalfLength + 3f), w * (r.HalfWidth - 1f)), 0x9A0u + (uint)(u * 3 + w + 5), 2);
+                if (r.HalfLength >= 19f && r.HalfWidth >= 10f) GrandPlaza(r, seed);
             }
 
 
 
+        }
+
+        /// <summary>
+        /// A big park's forecourt (P2-4): the walks cross its middle, so each flank becomes a grove of trees in a grid (benches
+        /// between them facing the middle), with a fountain in each flank on the biggest squares and lamps round the edge.
+        /// Everything goes through the occupancy, so nothing lands on a walk.
+        /// </summary>
+        private void GrandPlaza(OrientedRect r, uint seed)
+        {
+            var ctx = _ctx;
+            float mid = math.max(7f, r.HalfLength * 0.18f);   // the clear middle the walks cross
+            float u0 = mid + 2.5f, u1 = r.HalfLength - 3f, v0 = -r.HalfWidth + 4.5f, v1 = r.HalfWidth - 3f;
+            if (u1 - u0 < 6f) return;
+            bool fountains = r.HalfLength >= 30f && r.HalfWidth >= 15f && AssetAvailability.Has(AssetCategories.CenterpieceFountain);
+            float fu = (u0 + u1) * 0.5f, fv = (v0 + v1) * 0.5f;
+            int trees = 0, benches = 0;
+            for (int side = -1; side <= 1; side += 2)
+            {
+                if (fountains)
+                {
+                    var c = r.Local(side * fu, fv);
+                    if (LeisureKit.Put(ctx, _occ, c, r.Yaw, ObjectRole.Centerpiece, AssetMix.One("", "LargeFountain01", "LargeFountain03"), AssetCategories.CenterpieceFountain, 5.2f, Hashing.Mix(seed, 0xF0A0u + (uint)(side + 1)), 0.5f, 0.3f))
+                        ctx.Plan.Facts["plazaFountains"] = (ctx.Plan.Facts.TryGetValue("plazaFountains", out var nf) ? nf : 0) + 1;
+                }
+                const float step = 8f;
+                for (float v = v0; v <= v1 + 0.1f; v += step)
+                    for (float u = u0; u <= u1 + 0.1f; u += step)
+                    {
+                        var p = r.Local(side * u, v);
+                        if (fountains && math.distance(p, r.Local(side * fu, fv)) < 8.5f) continue;
+                        if (Tree(p, 0x9B00u + (uint)(trees * 7 + side + 3), 2)) trees++;
+                        // a bench between this tree and the next one toward the middle, looking at the walks
+                        var b = r.Local(side * (u - step * 0.5f), v);
+                        if (u - step * 0.5f > mid + 1f && LeisureKit.Put(ctx, _occ, b, LeisureKit.Yaw(b, r.Local(0f, v)), ObjectRole.Bench, _bench, null, 1.1f, Hashing.Mix(seed, 0xBE70u + (uint)benches), 0.3f, 0.3f))
+                            benches++;
+                    }
+            }
+            string lamp = LeisureKit.Category(ctx, "", AssetCategories.Lamp);
+            if (lamp != null)
+                foreach (var (u, v) in new[] { (-mid, -r.HalfWidth + 1.2f), (mid, -r.HalfWidth + 1.2f), (-mid, r.HalfWidth - 1.2f), (mid, r.HalfWidth - 1.2f),
+                    (-r.HalfLength + 1.2f, 0f), (r.HalfLength - 1.2f, 0f) })
+                    LeisureKit.Put(ctx, _occ, r.Local(u, v), r.Yaw, ObjectRole.Lamp, AssetMix.One(""), lamp, 0.4f, Hashing.Mix(seed, 0x1A40u + (uint)(u * 3f + v)), 0.2f, 0.2f);
+            ctx.Plan.Facts["plazaTrees"] = trees;
+            ctx.Plan.Facts["plazaBenches"] = benches;
         }
 
         private void PathFurniture()
