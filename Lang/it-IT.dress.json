@@ -10,11 +10,11 @@
   "Placemaker.Dress.dressStyle.livedIn.Tooltip": "Uso quotidiano: bordi e sentieri consumati.",
   "Placemaker.Dress.dressStyle.gritty": "Trascurato",
   "Placemaker.Dress.dressStyle.gritty.Tooltip": "Abbandonato: forte usura e terreno nudo.",
-  "Placemaker.Dress.dressPaintWear": "Pittura terreno",
+  "Placemaker.Dress.dressPaintWear": "Pittura usura",
   "Placemaker.Dress.dressPaintWear.Tooltip": "Quanto viene dipinto nella texture del terreno come dettaglio: variazioni del prato, pacciame sotto gli alberi, bordi dei sentieri consumati, chiazze consumate vicino a panchine, giochi e ingressi, bordi morbidi, usura dei campi sportivi. Solo dove si vede il terreno nudo (mai sotto una superficie, un sentiero o l'acqua). Permanente, come ogni pittura del terreno; 0 non dipinge nulla.",
   "Placemaker.Dress.dressDesirePaths": "Linee di desiderio",
   "Placemaker.Dress.dressDesirePaths.Tooltip": "Tenui tracce calpestate dove le persone tagliano gli angoli tra i sentieri e attraversano il prato verso panchine e giochi (dipinte nella texture del terreno).",
-  "Placemaker.Dress.dressDesirePaths.Off": "Solo con la pittura del terreno attiva",
+  "Placemaker.Dress.dressDesirePaths.Off": "Solo con Pittura usura attiva",
   "Placemaker.UI.Group.groundPaint": "Pittura terreno",
   "Placemaker.Dress.dressLawn": "Prato",
   "Placemaker.Dress.dressLawn.Tooltip": "Terreno dipinto: l'erba della mappa con chiazze rigogliose e secche, pacciame e usura dipinti (naturale, vissuto). Superficie erbosa: un'unica texture d'erba uniforme e curata che copre il terreno (formale; anche la scelta giusta su mappe desertiche o rocciose).",
@@ -66,6 +66,6 @@
   "Placemaker.Category.decal.glass": "decalcomanie di vetri rotti",
   "Placemaker.Category.decal.beach": "decalcomanie di detriti da spiaggia",
   "Placemaker.Category.decal.footprints": "decalcomanie di impronte",
-  "Placemaker.Dress.dressGroundDecals": "Decalcomanie del suolo",
+  "Placemaker.Dress.dressGroundDecals": "Decalcomanie",
   "Placemaker.Dress.dressGroundDecals.Tooltip": "Crepe, sporco, foglie, pozzanghere e usura disegnati sul terreno. Disattivato: nessuna."
 }

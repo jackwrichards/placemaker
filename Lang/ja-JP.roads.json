@@ -265,7 +265,7 @@
   "Placemaker.EdgeZoning.Stat.Area": "区画の面積",
   "Placemaker.EdgeZoning.Issue.NoFrontage": "この範囲に沿う道路がないため、区画を指定しませんでした。",
   "Placemaker.UI.Group.walkways": "散歩道と路地",
-  "Placemaker.UI.Group.terrain": "地形",
+  "Placemaker.UI.Group.terrain": "形状",
   "Placemaker.Roads.Role.lane": "路地",
   "Placemaker.Roads.Control.junctionSpacing": "交差点の間隔",
   "Placemaker.Roads.Control.junctionSpacing.Tooltip": "メインの道路（大通り）では、脇道は最大でもこの間隔でしかつながりません（m）。それより近い脇道は、大通りの手前で袋小路（歩道付き）にするか、隣とつなぎます。0 = すべての脇道がつながります。",

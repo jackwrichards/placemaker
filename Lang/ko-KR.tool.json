@@ -399,5 +399,6 @@
   "Placemaker.Settings.SketchStyle.Classic": "클래식",
   "Placemaker.Settings.SketchStyle.Desc": "배치도는 지어질 것을 위에서 그립니다. 도로, 길, 잔디, 나무, 주차 공간과 모든 오브젝트를 대략적으로 보여줍니다. 클래식은 역할별 색과 점선으로 그립니다.",
   "Placemaker.Issue.UngroupedNoPark": "하나의 에셋으로 묶지 않아 공원으로 작동하지 않습니다. 유지비는 없지만 관광·여가·행복도도 없습니다. 공원으로 만들려면 \"하나의 에셋으로 묶기\"를 켜세요.",
-  "Placemaker.Issue.UngroupedNoPark.Short": "하나의 에셋으로 묶지 않음"
+  "Placemaker.Issue.UngroupedNoPark.Short": "하나의 에셋으로 묶지 않음",
+  "Placemaker.Problem.TooBigFor": "이 유형에는 매우 큽니다({0} ha까지 고려됨). 작동은 하지만 이 크기에 맞게 만들어지지 않았고, 철거가 느릴 수 있습니다."
 }

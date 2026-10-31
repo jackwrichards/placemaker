@@ -399,5 +399,6 @@
   "Placemaker.Settings.SketchStyle.Classic": "Clássico",
   "Placemaker.Settings.SketchStyle.Desc": "A planta do local desenha de cima o que será construído: ruas, caminhos, gramado, árvores, vagas e cada objeto, de forma aproximada. Clássico desenha cores por função e linhas tracejadas.",
   "Placemaker.Issue.UngroupedNoPark": "Não agrupado como um único item, então não funciona como parque: sem manutenção, mas também sem turismo, lazer ou bem-estar. Ative \"Agrupar como um elemento\" para ser um parque.",
-  "Placemaker.Issue.UngroupedNoPark.Short": "Não agrupado como um item"
+  "Placemaker.Issue.UngroupedNoPark.Short": "Não agrupado como um item",
+  "Placemaker.Problem.TooBigFor": "Muito grande para este tipo (feito para até {0} ha). Vai funcionar, mas não foi feito para este tamanho, e demolir pode ser lento."
 }

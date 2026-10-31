@@ -265,7 +265,7 @@
   "Placemaker.EdgeZoning.Stat.Area": "Zonierte Fläche",
   "Placemaker.EdgeZoning.Issue.NoFrontage": "Entlang dieser Fläche verläuft keine Straße, daher wurde nichts zoniert.",
   "Placemaker.UI.Group.walkways": "Fußwege und Gassen",
-  "Placemaker.UI.Group.terrain": "Terrain",
+  "Placemaker.UI.Group.terrain": "Form",
   "Placemaker.Roads.Role.lane": "Gasse",
   "Placemaker.Roads.Control.junctionSpacing": "Kreuzungsabstand",
   "Placemaker.Roads.Control.junctionSpacing.Tooltip": "An Hauptstraßen (Alleen): Seitenstraßen schließen höchstens so oft an (m). Nähere Seitenstraßen enden vor der Allee in einer Sackgasse (mit einem Fußweg dorthin) oder schließen an ihre Nachbarn an. 0 = jede Seitenstraße schließt an.",

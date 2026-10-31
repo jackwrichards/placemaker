@@ -399,5 +399,6 @@
   "Placemaker.Settings.SketchStyle.Classic": "Clásico",
   "Placemaker.Settings.SketchStyle.Desc": "El plano del sitio dibuja desde arriba lo que se construirá: calles, caminos, césped, árboles, plazas de aparcamiento y cada objeto, a grandes rasgos. Clásico dibuja colores por función y líneas discontinuas.",
   "Placemaker.Issue.UngroupedNoPark": "No está agrupado como un recurso, así que no funciona como parque: sin mantenimiento, pero tampoco turismo, ocio ni bienestar. Activa «Agrupar como un solo recurso» para que sea un parque.",
-  "Placemaker.Issue.UngroupedNoPark.Short": "No agrupado como un recurso"
+  "Placemaker.Issue.UngroupedNoPark.Short": "No agrupado como un recurso",
+  "Placemaker.Problem.TooBigFor": "Muy grande para este tipo (pensado para hasta {0} ha). Funcionará, pero no está pensado para este tamaño, y demolerlo puede ser lento."
 }

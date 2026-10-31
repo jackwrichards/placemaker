@@ -265,7 +265,7 @@
   "Placemaker.EdgeZoning.Stat.Area": "Área zoneada",
   "Placemaker.EdgeZoning.Issue.NoFrontage": "Nenhuma via passa ao longo desta área, então nada foi zoneado.",
   "Placemaker.UI.Group.walkways": "Passagens e becos",
-  "Placemaker.UI.Group.terrain": "Terreno",
+  "Placemaker.UI.Group.terrain": "Forma",
   "Placemaker.Roads.Role.lane": "Beco",
   "Placemaker.Roads.Control.junctionSpacing": "Vão cruzamentos",
   "Placemaker.Roads.Control.junctionSpacing.Tooltip": "Nas vias principais (avenidas): ruas laterais se ligam no máximo com esta frequência (m). Ruas laterais mais próximas terminam num balão de retorno antes da avenida (com uma passagem a pé até ela) ou se ligam às vizinhas. 0 = todas as ruas laterais se ligam.",

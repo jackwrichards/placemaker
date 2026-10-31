@@ -399,5 +399,6 @@
   "Placemaker.Settings.SketchStyle.Classic": "Klassisch",
   "Placemaker.Settings.SketchStyle.Desc": "Lageplan zeichnet von oben, was gebaut wird: Straßen, Wege, Rasen, Bäume, Parkplätze und jedes Objekt in groben Formen. Klassisch zeichnet Rollenfarben und gestrichelte Linien.",
   "Placemaker.Issue.UngroupedNoPark": "Nicht als ein Objekt gruppiert, also kein Park: keine Unterhaltskosten, aber auch kein Tourismus, keine Freizeit, kein Wohlbefinden. Schalte „Als ein Asset gruppieren“ ein, damit es ein Park wird.",
-  "Placemaker.Issue.UngroupedNoPark.Short": "Nicht als ein Objekt gruppiert"
+  "Placemaker.Issue.UngroupedNoPark.Short": "Nicht als ein Objekt gruppiert",
+  "Placemaker.Problem.TooBigFor": "Sehr groß für diesen Typ (gemacht für bis zu {0} ha). Es funktioniert, ist aber nicht für diese Größe gemacht, und der Abriss kann langsam sein."
 }

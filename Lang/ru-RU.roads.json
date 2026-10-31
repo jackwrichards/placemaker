@@ -265,7 +265,7 @@
   "Placemaker.EdgeZoning.Stat.Area": "Зонированная площадь",
   "Placemaker.EdgeZoning.Issue.NoFrontage": "Вдоль этой области не проходит ни одной дороги, поэтому ничего не зонировано.",
   "Placemaker.UI.Group.walkways": "Проходы и проезды",
-  "Placemaker.UI.Group.terrain": "Рельеф",
+  "Placemaker.UI.Group.terrain": "Форма",
   "Placemaker.Roads.Role.lane": "Проезд",
   "Placemaker.Roads.Control.junctionSpacing": "Шаг перекрестков",
   "Placemaker.Roads.Control.junctionSpacing.Tooltip": "На главных дорогах (проспектах): боковые улицы примыкают не чаще этого расстояния (m). Более частые боковые улицы заканчиваются тупиком перед проспектом (с пешеходной дорожкой к нему) или соединяются с соседними. 0 = примыкает каждая боковая улица.",

@@ -10,12 +10,12 @@
   "Placemaker.Dress.dressStyle.livedIn.Tooltip": "日常使用：磨损的路边和小径。",
   "Placemaker.Dress.dressStyle.gritty": "粗犷",
   "Placemaker.Dress.dressStyle.gritty.Tooltip": "无人打理：严重磨损和裸露地面。",
-  "Placemaker.Dress.dressPaintWear": "地面涂刷",
+  "Placemaker.Dress.dressPaintWear": "磨损涂刷",
   "Placemaker.Dress.dressPaintWear.Tooltip": "作为装饰涂刷进地面纹理的程度：草坪变化、树下覆盖物、磨损的小径边缘、长椅、游乐设施和入口处的磨损斑块、柔和边缘、球场和场地磨损。只在露出裸地的地方（绝不在表面、小径或水下）。与所有地面涂刷一样是永久性的；0 不涂刷任何东西。",
   "Placemaker.Dress.dressDesirePaths": "近路",
   "Placemaker.Dress.dressDesirePaths.Tooltip": "人们在小径之间抄近路、穿过草坪走向长椅和游乐设施时踩出的淡淡痕迹（涂刷进地面纹理）。",
-  "Placemaker.Dress.dressDesirePaths.Off": "仅在开启地面涂刷时",
-  "Placemaker.UI.Group.groundPaint": "地面涂刷",
+  "Placemaker.Dress.dressDesirePaths.Off": "仅在磨损涂刷开启时",
+  "Placemaker.UI.Group.groundPaint": "地形涂刷",
   "Placemaker.Dress.dressLawn": "草坪",
   "Placemaker.Dress.dressLawn.Tooltip": "涂刷地形：地图自带的草地，涂上茂盛和干燥斑块、覆盖物和磨损（自然、有生活气息）。草地表面：一种均匀、修剪整齐、遮住地面的草地纹理（规整；也适合沙漠或岩石地图）。",
   "Placemaker.Dress.dressLawn.painted": "涂刷地形",
@@ -66,6 +66,6 @@
   "Placemaker.Category.decal.glass": "碎玻璃贴花",
   "Placemaker.Category.decal.beach": "海滩漂积物贴花",
   "Placemaker.Category.decal.footprints": "脚印贴花",
-  "Placemaker.Dress.dressGroundDecals": "地面贴花",
+  "Placemaker.Dress.dressGroundDecals": "贴花",
   "Placemaker.Dress.dressGroundDecals.Tooltip": "在地面上绘制的裂缝、污渍、落叶、水坑和磨损。关闭：完全不绘制。"
 }
