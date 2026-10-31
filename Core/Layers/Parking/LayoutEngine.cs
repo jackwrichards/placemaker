@@ -48,6 +48,8 @@ namespace Placemaker.Core.Layers.Parking
         public List<double2[]> Buildings = new List<double2[]>();
         /// <summary>(P2-1) The stall hand edits (StallTouches).</summary>
         public List<HandTouch> Touches = new List<HandTouch>();
+        /// <summary>(P2-1) Lines the player drew (world XZ): a drive aisle (Drive) or a walkway through the rows.</summary>
+        public List<(bool Drive, double2[] Points)> Sketches = new List<(bool, double2[])>();
     }
 
     /// <summary>Convex asphalt piece with the zones it may pave (bit mask of Zone).</summary>
@@ -154,6 +156,7 @@ namespace Placemaker.Core.Layers.Parking
             ClearCorridors();
             RemoveReserved();
             AvoidBuildings();
+            ApplySketches();
             CheckReachability();
             _cancel.ThrowIfCancellationRequested();
 
@@ -164,7 +167,7 @@ namespace Placemaker.Core.Layers.Parking
 
             double len = 0;
             foreach (var l in _out.LiveLines)
-                if (l.Kind == LineKind.Aisle || l.Kind == LineKind.Ring || l.Kind == LineKind.Cross) len += l.Length;
+                if (l.Kind == LineKind.Aisle || l.Kind == LineKind.Ring || l.Kind == LineKind.Cross || l.Kind == LineKind.Sketch) len += l.Length;
             _out.AisleLength = len;
             if (_out.StallCount == 0)
                 Issue(IssueSeverity.Warning, "Placemaker.Parking.Issue.NoStalls");
@@ -1185,13 +1188,15 @@ namespace Placemaker.Core.Layers.Parking
             for (int i = 0; i < ls.Count; i++)
             {
                 var a = ls[i];
-                if (a.Removed || a.Kind == LineKind.Footpath || (!includeConnectors && a.Kind == LineKind.Connector)) continue;
+                if (a.Removed || a.Kind == LineKind.Footpath || a.Kind == LineKind.Walk || (!includeConnectors && a.Kind == LineKind.Connector)) continue;
                 for (int j = 0; j < ls.Count; j++)
                 {
                     if (i == j) continue;
                     var b = ls[j];
-                    if (b.Removed || b.Kind == LineKind.Footpath || (!includeConnectors && b.Kind == LineKind.Connector)) continue;
+                    if (b.Removed || b.Kind == LineKind.Footpath || b.Kind == LineKind.Walk || (!includeConnectors && b.Kind == LineKind.Connector)) continue;
                     if (PGeo.DistPointSeg(a.A, b.A, b.B) < 1e-3 || PGeo.DistPointSeg(a.B, b.A, b.B) < 1e-3) uf.Union(i, j);
+                    // (P2-1) a drawn aisle joins every lane it crosses (the nets are split there: PlanBuilder.SplitAtJunctions)
+                    else if ((a.Kind == LineKind.Sketch || b.Kind == LineKind.Sketch) && PGeo.SegmentsIntersect(a.A, a.B, b.A, b.B)) uf.Union(i, j);
                 }
             }
             return uf;
@@ -1209,7 +1214,7 @@ namespace Placemaker.Core.Layers.Parking
                 if (e.Connected && e.ConnectorLine >= 0) good.Add(uf.Find(e.ConnectorLine));
             if (good.Count == 0) return;
             foreach (var l in _out.Lines)
-                if (!l.Removed && l.Kind != LineKind.Footpath && !good.Contains(uf.Find(l.Id))) l.Removed = true;
+                if (!l.Removed && l.Kind != LineKind.Footpath && l.Kind != LineKind.Walk && l.Kind != LineKind.Sketch && !good.Contains(uf.Find(l.Id))) l.Removed = true;
             int lost = 0;
             foreach (var b in _out.Bays)
             {
@@ -1237,6 +1242,50 @@ namespace Placemaker.Core.Layers.Parking
         }
 
         /// <summary>(P2-1) Stalls and drive lines touching an existing building lot (0.5 m clearance, SiteSafety.Margin) go.</summary>
+        /// <summary>
+        /// (P2-1) The lines the player drew: each piece inside the lot becomes a drive aisle (a lane through the rows, joined to
+        /// the aisles it crosses: PlanBuilder splits the nets where they cross) or a walkway (a footpath with its paving); the
+        /// stalls in its way go. They count as reachable: the player put them there.
+        /// </summary>
+        private void ApplySketches()
+        {
+            if (_rq.Sketches == null || _rq.Sketches.Count == 0) return;
+            var f = _out.Frame;
+            int cut = 0;
+            foreach (var (drive, pts) in _rq.Sketches)
+            {
+                if (pts == null || pts.Length < 2) continue;
+                double width = drive ? _s.Cross : ParkingSettings.FootpathWidth;
+                for (int i = 0; i + 1 < pts.Length; i++)
+                    foreach (var (a, b) in ClipToLot(f.ToLocal(pts[i]), f.ToLocal(pts[i + 1])))
+                    {
+                        if (PGeo.Len(b - a) < 1) continue;
+                        var corridor = PGeo.Corridor(a, b, width / 2 + 0.1);
+                        foreach (var bay in _out.Bays)
+                            if (!bay.Removed && bay.Quad != null && PGeo.ConvexOverlap(bay.Quad, corridor)) { bay.Removed = true; cut++; }
+                        AddLine(a, b, drive ? LineKind.Sketch : LineKind.Walk, width);
+                    }
+            }
+            _out.SketchCut = cut;
+        }
+
+        /// <summary>The pieces of segment a–b inside the lot.</summary>
+        private List<(double2, double2)> ClipToLot(double2 a, double2 b)
+        {
+            var ts = new List<double> { 0, 1 };
+            for (int i = 0; i < _lot.Count; i++)
+                if (PGeo.LineLine(a, b, _lot[i], _lot[(i + 1) % _lot.Count], out double t, out double u) && t > 0 && t < 1 && u >= 0 && u <= 1) ts.Add(t);
+            ts.Sort();
+            var r = new List<(double2, double2)>();
+            for (int i = 0; i + 1 < ts.Count; i++)
+            {
+                if (ts[i + 1] - ts[i] < 1e-6) continue;
+                var p = a + (b - a) * ts[i]; var q = a + (b - a) * ts[i + 1];
+                if (PGeo.Contains(_lot, (p + q) * 0.5)) r.Add((p, q));
+            }
+            return r;
+        }
+
         private void AvoidBuildings()
         {
             if (_rq.Buildings == null || _rq.Buildings.Count == 0) return;
@@ -1268,7 +1317,7 @@ namespace Placemaker.Core.Layers.Parking
                 if (!b.Removed && b.Quad != null && Touches(b.Quad)) { b.Removed = true; stalls++; }
             foreach (var l in _out.Lines)
             {
-                if (l.Removed || l.Kind == LineKind.Footpath || l.Length < 1e-3) continue;
+                if (l.Removed || l.Kind == LineKind.Footpath || l.Kind == LineKind.Walk || l.Length < 1e-3) continue;
                 if (Touches(PGeo.Corridor(l.A, l.B, l.Width / 2))) { l.Removed = true; lines++; }
             }
             if (stalls + lines > 0) Issue(IssueSeverity.Info, "Placemaker.Parking.Issue.AroundBuildings", null, stalls);
@@ -1320,7 +1369,7 @@ namespace Placemaker.Core.Layers.Parking
             foreach (var l in _out.Lines)
             {
                 if (l.Removed) continue;
-                if (l.Kind == LineKind.Cross)
+                if (l.Kind == LineKind.Cross || l.Kind == LineKind.Sketch || l.Kind == LineKind.Walk)
                     Pieces.Add(new AsphaltPiece { Poly = new List<double2>(PGeo.Corridor(l.A, l.B, l.Width / 2)), ZoneMask = ZGrid | ZRing });
                 else if (l.Kind == LineKind.Connector)
                 {

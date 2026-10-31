@@ -63,7 +63,7 @@ namespace Placemaker.Core.Layers.Parking
         }
     }
 
-    internal enum LineKind { Ring = 0, Aisle = 1, Cross = 2, Connector = 3, Footpath = 4 }
+    internal enum LineKind { Ring = 0, Aisle = 1, Cross = 2, Connector = 3, Footpath = 4, Sketch = 5, Walk = 6 }   // Sketch/Walk: lines the player drew (P2-1)
 
     internal sealed class Bay
     {
@@ -203,6 +203,8 @@ namespace Placemaker.Core.Layers.Parking
 
         /// <summary>(P2-1) Hand edits that found nothing to apply to (left out of this plan, kept in the design).</summary>
         public int TouchesDropped;
+        /// <summary>(P2-1) Stalls taken out by the lines the player drew.</summary>
+        public int SketchCut;
 
         public int StallCount
         {

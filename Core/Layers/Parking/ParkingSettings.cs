@@ -40,7 +40,9 @@ namespace Placemaker.Core.Layers.Parking
         public const string TouchBlank = "stall.blank";     // no stall: empty paved space
         public const string TouchIsland = "stall.island";   // no stall: a planted island
         public const string TouchEdge = "grid.edge";        // the rows line up with (and start at) this edge
-        public static readonly string[] TouchKinds = { TouchAccessible, TouchCharger, TouchPlain, TouchBlank, TouchIsland, TouchEdge };
+        public const string LineAisle = "line.aisle";       // a sketch line (Core/Tool/LineSketch): a drive aisle through the rows
+        public const string LineWalk = "line.walk";         // a sketch line: a walkway through the rows
+        public static readonly string[] TouchKinds = { TouchAccessible, TouchCharger, TouchPlain, TouchBlank, TouchIsland, TouchEdge, LineAisle, LineWalk };
         public const string PerimeterRoad = "perimeterRoad";
         public const string CrossEvery = "crossEvery";          // stalls between cross lanes, 0 = none
         public const string RowEndPlanting = "rowEndPlanting";

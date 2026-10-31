@@ -103,6 +103,8 @@ namespace Placemaker.Core.Layers.Parking
                 case ParkingIds.TouchBlank: return "Blank";
                 case ParkingIds.TouchIsland: return "Island";
                 case ParkingIds.TouchEdge: return "Edge";
+                case ParkingIds.LineAisle: return "LineAisle";
+                case ParkingIds.LineWalk: return "LineWalk";
                 default: return "Other";
             }
         }
@@ -118,6 +120,8 @@ namespace Placemaker.Core.Layers.Parking
                 case ParkingIds.TouchBlank: return "zoneEmpty";
                 case ParkingIds.TouchIsland: return "shrub";
                 case ParkingIds.TouchEdge: return "angle";
+                case ParkingIds.LineAisle: return "roads";
+                case ParkingIds.LineWalk: return "path";
                 default: return "";
             }
         }

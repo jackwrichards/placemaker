@@ -27,6 +27,8 @@ namespace Placemaker.Core.Layers.Parking
             public AssetRef Asset;
             public long StartAttach = -1, EndAttach = -1;
             public float StartT, EndT;
+            /// <summary>(P2-1) A line the player drew: split where it crosses another.</summary>
+            public bool Sketch;
         }
 
         public static AreaPlan Build(AreaInput input, ParkingSettings s, ParkingLayer gen, CancellationToken cancel, Action<Layout> inspect = null)
@@ -130,6 +132,14 @@ namespace Placemaker.Core.Layers.Parking
                         rq.ChosenEdge = new[] { world[e], world[(e + 1) % world.Count] };
                     }
                     else if (t.Kind.StartsWith("stall.", StringComparison.Ordinal)) rq.Touches.Add(t);
+                    else if (t.Kind == ParkingIds.LineAisle || t.Kind == ParkingIds.LineWalk)
+                    {
+                        var pts = Placemaker.Core.Tool.LineSketch.Decode(t.Arg);
+                        if (pts.Length < 2) { edgeDropped++; continue; }
+                        var w = new double2[pts.Length];
+                        for (int i = 0; i < pts.Length; i++) w[i] = new double2(pts[i].x, pts[i].y);
+                        rq.Sketches.Add((t.Kind == ParkingIds.LineAisle, w));
+                    }
                 }
 
             // ── layout ──
@@ -617,6 +627,13 @@ namespace Placemaker.Core.Layers.Parking
                     case LineKind.Footpath:
                         segs.Add(new Seg { A = f.ToWorld(l.A), B = f.ToWorld(l.B), Role = NetRole.Pathway, Asset = new AssetRef(ParkingAssets.PedestrianPath) });
                         break;
+                    // (P2-1) lines the player drew: split where they cross the other lines (a junction, not an overlap)
+                    case LineKind.Sketch:
+                        segs.Add(new Seg { A = f.ToWorld(l.A), B = f.ToWorld(l.B), Role = NetRole.DriveAisle, Asset = ParkingAssets.Drive(l.Width), Sketch = true });
+                        break;
+                    case LineKind.Walk:
+                        segs.Add(new Seg { A = f.ToWorld(l.A), B = f.ToWorld(l.B), Role = NetRole.Pathway, Asset = new AssetRef(ParkingAssets.PedestrianPath), Sketch = true });
+                        break;
                 }
             }
             var kerbs = new List<(double2 at, float h)>();   // s58: dead-end connector ends take the street's own height
@@ -863,6 +880,15 @@ namespace Placemaker.Core.Layers.Parking
                 if (sg.StartAttach < 0) sg.A = Weld(sg.A);
                 if (sg.EndAttach < 0) sg.B = Weld(sg.B);
             }
+            // (P2-1) a drawn line crossing another line gets a junction there (both are split): nets must not overlap
+            for (int i = 0; i < segs.Count; i++)
+                for (int j = i + 1; j < segs.Count; j++)
+                {
+                    var p = segs[i]; var q = segs[j];
+                    if (!p.Sketch && !q.Sketch) continue;
+                    if (!PGeo.LineLine(p.A, p.B, q.A, q.B, out double t, out double u) || t < 0 || t > 1 || u < 0 || u > 1) continue;
+                    Weld(p.A + (p.B - p.A) * t);
+                }
             var outList = new List<Seg>();
             foreach (var sg in segs)
             {
