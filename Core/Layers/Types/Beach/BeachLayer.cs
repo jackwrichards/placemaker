@@ -72,7 +72,7 @@ namespace Placemaker.Core.Layers.Types.Beach
 
             c.Choice("backdrop", "dunes", ControlTier.More, "backdrop", "dunes", "lawn", "woods", "none").Tip();
             c.Slider("duneHeight", 2, 0.5, 5, 0.5, "m", ControlTier.More, "backdrop").When("backdrop=dunes");
-            c.Slider("duneDepth", 20, 8, 50, 2, "m", ControlTier.More, "backdrop").Layout(6).Tip();
+            c.Slider("duneDepth", 20, 8, 70, 2, "m", ControlTier.More, "backdrop").Layout(6).Tip();
             c.Toggle("duneFence", false, ControlTier.More, "backdrop").When("backdrop=dunes").Tip();
             c.Slider("grassDensity", 60, 0, 100, 5, "%", ControlTier.More, "backdrop").Tip();
             c.Slider("treeDensity", 15, 0, 100, 5, "perHa", ControlTier.More, "backdrop");
@@ -154,7 +154,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                 ("treeDensity", 35.0), ("boats", true), ("lifeguards", 0.0), ("huts", "none"), ("accessSpacing", 40.0), ("underwater", 12.0));
             // Wild dunes: no amenities, sand drifting up low, smooth dune ridges parallel to the shore, headlands, fire rings, pines.
             // rf-beach: real dunes (2 -> 3.5 m, deeper belt, thick marram grass; no sand fences: vanilla has no timber one), pines only far behind them.
-            Preset("cove", ("style", "cove"), ("beachDepth", 44.0), ("sandBlend", 22.0), ("umbrellas", 6.0), ("backdrop", "dunes"), ("duneDepth", 36.0),
+            Preset("cove", ("style", "cove"), ("beachDepth", 44.0), ("sandBlend", 22.0), ("umbrellas", 6.0), ("backdrop", "dunes"), ("duneDepth", 60.0),
                 ("duneHeight", 5.0), ("treeDensity", 25.0), ("grassDensity", 90.0), ("fires", true), ("lifeguards", 0.0), ("huts", "none"), ("kiosks", 0.0),
                 ("lamps", false), ("rockClusters", 3.0), ("boats", true), ("benchSpacing", 0.0), ("accessSpacing", 90.0), ("showers", false), ("bay", 32.0),
                 ("berm", 0.9), ("blowouts", 3.0), ("hummocks", 1.0), ("boardwalk", true),

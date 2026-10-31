@@ -88,7 +88,7 @@ namespace Placemaker.Core.Layers.Types.Beach
                 ("berm", 0.4), ("tidePools", 0.0), ("rockClusters", 0.0), ("islands", 1.0),
                 ("biomeLawn", 0.0), ("biomeRocky", 35.0), ("biomeHeath", 30.0), ("biomeMeadow", 20.0), ("biomeForest", 15.0));   // p2-beaches: maquis, no palm lawn
             // Wild beach: low dunes with blowouts, wrack and driftwood, a fire ring, no facilities.
-            Preset("wild", ("style", "wild"), ("beachDepth", 46.0), ("umbrellas", 0.0), ("backdrop", "dunes"), ("duneHeight", 3.0), ("duneDepth", 26.0), ("blowouts", 2.0),
+            Preset("wild", ("style", "wild"), ("beachDepth", 46.0), ("umbrellas", 0.0), ("backdrop", "dunes"), ("duneHeight", 3.5), ("duneDepth", 48.0), ("blowouts", 2.0),
                 ("hummocks", 0.6), ("berm", 0.8), ("fires", true), ("lifeguards", 0.0), ("kiosks", 0.0), ("huts", "none"), ("showers", false), ("lamps", false),
                 ("benchSpacing", 0.0), ("accessSpacing", 120.0), ("landings", false), ("boats", false), ("treeDensity", 15.0), ("rockClusters", 2.0), ("bay", 20.0),
                 ("grassDensity", 75.0), ("biomeLawn", 0.0), ("biomeDunes", 50.0), ("biomeHeath", 25.0), ("biomeMeadow", 25.0));
