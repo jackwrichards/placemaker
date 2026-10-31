@@ -95,5 +95,14 @@ namespace Placemaker.Tests
             // and it survives the build receipt like every hand edit
             Assert.False(r.Plan.Facts.ContainsKey("touches.dropped"));
         }
+
+        [Fact]
+        public void SlowPathsAndTheInvisibleStallCountAsOwn()
+        {
+            // the vanilla-only rule for automatic assets must not swap them for their vanilla fallbacks
+            Assert.True(Placemaker.Core.Build.AutoAssets.IsOwn(ParkingAssets.Drive(7).Id));
+            Assert.True(Placemaker.Core.Build.AutoAssets.IsOwn(ParkingAssets.OneWay(4).Id));
+            Assert.True(Placemaker.Core.Build.AutoAssets.IsOwn(ParkingAssets.InvisibleBay));
+        }
     }
 }
