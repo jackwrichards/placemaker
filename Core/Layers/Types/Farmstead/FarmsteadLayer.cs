@@ -78,7 +78,7 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             c.Choice("subtype", "mixed", ControlTier.Essential, "identity", "dairy", "arable", "mixed", "hobby", "ranch").Tip();
 
             c.Choice("yardAt", "road", ControlTier.Essential, "layout", "road", "centre", "corner").Tip();
-            c.Slider("yardSize", 8, 3, 25, 1, "%", ControlTier.Essential, "layout").Tip();
+            c.Slider("yardSize", 5, 3, 25, 1, "%", ControlTier.Essential, "layout").Tip();   // (P2-3) 8 % left half the yard empty earth
             c.Choice("tracks", "spine", ControlTier.Essential, "layout", "spine", "grid", "none").Tip();
             c.Asset("trackAsset", AssetCategories.Pathway, ControlTier.More, "layout");
 
@@ -143,7 +143,7 @@ namespace Placemaker.Core.Layers.Types.Farmstead
         protected override void DefinePresets()
         {
             // traditional farms first (the user: "more traditional farms should be the first options"), then the animal steads
-            Preset("mixed", BiomeMix.With(new (string, object)[] { ("subtype", "mixed"), ("arablePct", 60.0), ("paddocks", 2.0), ("livestock", "mixed"), ("fieldSize", 1.2),
+            Preset("mixed", BiomeMix.With(new (string, object)[] { ("subtype", "mixed"), ("arablePct", 60.0), ("paddocks", 2.0), ("barns", 3.0), ("livestock", "mixed"), ("fieldSize", 1.2),
                 ("rowAngle", "alternate"), ("pond", true), ("season", "summer"), ("vehicles", 3.0), ("yardMud", 55.0), ("drainage", "ditches"), ("tanks", 2.0) },
                 BiomeMix.Preset(Biomes, 70, ("fields", 78), ("orchard", 8), ("forest", 10), ("wetland", 4))));
             Preset("arable", BiomeMix.With(new (string, object)[] { ("subtype", "arable"), ("arablePct", 100.0), ("paddocks", 0.0), ("silos", 5.0), ("barns", 2.0), ("fieldSize", 3.0),

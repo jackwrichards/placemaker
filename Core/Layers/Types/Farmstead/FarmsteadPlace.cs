@@ -559,6 +559,10 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             LeisureKit.Put(ctx, occ, shedAt, yaw, ObjectRole.Furniture, new AssetRef("ToolShed01", "ToolShed02", "ToolShed03"), null, 2f, Hashing.Mix(v, 30u), 0.2f, 0.2f);
             ctx.AddRegion(ring, HouseTag, HouseTag);
             ctx.Plan.Facts["farmHouse"] = 1;
+            // where it stands from the outline's box centre (the game runner frames a close look there: camera target point)
+            var box = (ctx.LayerRegion.Min + ctx.LayerRegion.Max) * 0.5f;
+            ctx.Plan.Facts["farmHouseX"] = math.round(lot.Center.x - box.x);
+            ctx.Plan.Facts["farmHouseZ"] = math.round(lot.Center.y - box.y);
         }
 
         /// <summary>The 4 m (or 2 m) piece of a fence kind ("FenceIndustrialLow01" → "FenceIndustrialPieceLow01"), null for hedges.</summary>
