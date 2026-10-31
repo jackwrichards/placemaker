@@ -35,7 +35,7 @@ namespace Placemaker.Core.Layers.Park
             int ci = 0;
             foreach (var chain in Chains(g))
             {
-                var legs = Straighten(chain, h, ok);
+                var legs = WidenTurns(Straighten(chain, h, ok), ok);
                 for (int i = 1; i < legs.Count; i++)
                 {
                     var a = legs[i - 1]; var b = legs[i];
@@ -49,6 +49,35 @@ namespace Placemaker.Core.Layers.Park
             }
             var r = ParkPathGraph.FromSegments(segs, gates);
             return r.IsEmpty ? g : r;
+        }
+
+        /// <summary>
+        /// (P2-4, the lead: soften the hairpins) A turn sharper than 80 degrees becomes a wide bend: the corner is replaced by an
+        /// arc of up to 6 m radius (a third of the shorter leg at most), so a switchback turns on a broad curve instead of a V.
+        /// </summary>
+        private static List<float2> WidenTurns(List<float2> pts, Func<float2, bool> ok)
+        {
+            if (pts.Count < 3) return pts;
+            var o = new List<float2> { pts[0] };
+            for (int i = 1; i < pts.Count - 1; i++)
+            {
+                var p = pts[i]; var a = pts[i - 1]; var b = pts[i + 1];
+                var din = math.normalizesafe(p - a); var dout = math.normalizesafe(b - p);
+                float turn = math.degrees(math.acos(math.clamp(math.dot(din, dout), -1f, 1f)));
+                float r = math.min(6f, math.min(math.distance(a, p), math.distance(p, b)) / 3f);
+                if (turn < 80f || r < 1.5f) { o.Add(p); continue; }
+                // the arc's ends on each leg, its middle pushed out to the turn's outside
+                var p0 = p - din * r; var p1 = p + dout * r;
+                var bis = math.normalizesafe(din - dout);
+                var mid = p + bis * (r * 0.35f);
+                var arc = new[] { p0, math.lerp(math.lerp(p0, mid, 0.5f), p, 0.15f), mid, math.lerp(math.lerp(mid, p1, 0.5f), p, 0.15f), p1 };
+                bool fine = true;
+                if (ok != null) foreach (var q in arc) if (!ok(q)) { fine = false; break; }
+                if (!fine) { o.Add(p); continue; }
+                o.AddRange(arc);
+            }
+            o.Add(pts[pts.Count - 1]);
+            return o;
         }
 
         /// <summary>The graph's runs between junctions, gates and dead ends, each as its points in order.</summary>
