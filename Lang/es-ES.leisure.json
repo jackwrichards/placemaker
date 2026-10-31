@@ -183,6 +183,7 @@
   "Placemaker.Park.Preset.garden": "Paseo de jardín",
   "Placemaker.Park.Issue.PathStyleFallback": "Este estilo de caminos no encaja en esta zona (o necesita un estanque o elementos); se usaron caminos automáticos.",
   "Placemaker.Park.Issue.PathStyleSteep": "Este terreno es demasiado empinado para el trazado de este estilo de caminos; los caminos siguen la pendiente.",
+  "Placemaker.Park.Issue.LotTooSteep": "El lado de la calle de este terreno es demasiado empinado para un aparcamiento; el parque no tendrá.",
   "Placemaker.Plaza.centerKind": "Tipo de centro",
   "Placemaker.Plaza.centerKind.Tooltip": "Qué tipo de elemento central usa la elección automática.",
   "Placemaker.Plaza.centerKind.any": "Cualquiera",

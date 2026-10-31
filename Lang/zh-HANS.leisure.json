@@ -183,6 +183,7 @@
   "Placemaker.Park.Preset.garden": "花园漫步",
   "Placemaker.Park.Issue.PathStyleFallback": "此小径风格不适合此区域（或需要池塘或景物）；已改用自动小径。",
   "Placemaker.Park.Issue.PathStyleSteep": "此地形太陡，无法采用此小径风格的布局；小径改为顺着坡势铺设。",
+  "Placemaker.Park.Issue.LotTooSteep": "此地临街一侧太陡，无法设停车场；公园不设停车场。",
   "Placemaker.Plaza.centerKind": "中心类型",
   "Placemaker.Plaza.centerKind.Tooltip": "自动选择时使用哪种中心景物。",
   "Placemaker.Plaza.centerKind.any": "任意",

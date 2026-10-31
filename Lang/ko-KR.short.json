@@ -138,6 +138,7 @@
   "Placemaker.Park.Issue.NoRoomForTrails.Short": "흙길 없음",
   "Placemaker.Park.Issue.PathStyleFallback.Short": "자동 길 사용",
   "Placemaker.Park.Issue.PathStyleSteep.Short": "길이 경사를 따름",
+  "Placemaker.Park.Issue.LotTooSteep.Short": "주차장 없음: 너무 가파름",
   "Placemaker.Park.Issue.PlazaSmaller.Short": "광장 축소",
   "Placemaker.Parking.Issue.BadShape.Short": "변이 교차함",
   "Placemaker.Parking.Issue.BusStopNoRoad.Short": "정류장이 거리 밖",

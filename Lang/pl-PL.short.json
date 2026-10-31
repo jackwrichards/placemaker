@@ -138,6 +138,7 @@
   "Placemaker.Park.Issue.NoRoomForTrails.Short": "Brak ścieżek gruntowych",
   "Placemaker.Park.Issue.PathStyleFallback.Short": "Ścieżki autom.",
   "Placemaker.Park.Issue.PathStyleSteep.Short": "Ścieżki wzdłuż zbocza",
+  "Placemaker.Park.Issue.LotTooSteep.Short": "Bez parkingu: zbyt stromo",
   "Placemaker.Park.Issue.PlazaSmaller.Short": "Mniejszy plac",
   "Placemaker.Parking.Issue.BadShape.Short": "Krawędzie się przecinają",
   "Placemaker.Parking.Issue.BusStopNoRoad.Short": "Przystanek bez ulicy",

@@ -161,5 +161,23 @@ namespace Placemaker.Tests
             _out.WriteLine($"{preset} on rugged land: {len:F0} m of walks climb {walk / len * 100:F1} m per 100 m over ground that climbs {ground / len * 100:F1}");
             Assert.True(walk < ground * 0.6, $"walks climb {walk / len * 100:F1} m per 100 m, the ground {ground / len * 100:F1}");
         }
+        [Fact]
+        public void TheCarParkNeverCutsIntoAMountain()
+        {
+            // (P2-4) the wild park on the runner's mountains cut its 46-stall lot 11.5 m into the hill
+            var gen = GeneratorRegistry.Get("park");
+            var editor = new DesignEditor(GeneratorRegistry.Get);
+            var site = DynamicDecalsTests.Streets(220, 200, Mountains);
+            var ring = DynamicDecalsTests.Block(220, 200).Select(p => new float3(p.x, Mountains(p.xz), p.z)).ToArray();
+            var recipe = editor.SingleLayerRecipe(gen, 3);
+            editor.ApplyPreset(recipe, "0", "wild");
+            TestKit.Entered(recipe, ring, site);
+            var plan = Composer.Compose(recipe, new AreaShape { Ring = ring, Source = AreaSource.Drawn }, site, CancellationToken.None);
+            var f = plan.Layers[0].Facts;
+            f.TryGetValue("lotRelief", out var relief); f.TryGetValue("lotStalls", out var stalls); f.TryGetValue("harmonyMaxCut", out var cut);
+            _out.WriteLine($"lot relief {relief} m, {stalls} stalls, deepest cut {cut} m");
+            Assert.True(stalls == 0 || relief <= 4f);
+            Assert.True(cut <= 4.5f, $"cut {cut} m");
+        }
     }
 }
