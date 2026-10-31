@@ -17,6 +17,10 @@ namespace Placemaker.Core.Layers.Park
         /// <summary>The grade a traced leg climbs at (under the walk grade, so the leg's own bumps stay under it).</summary>
         public const float SwitchbackGrade = 0.065f;
         private const float HairpinRadius = 5.5f, TraceStep = 2f;
+        private static readonly (float grade, float legMax)[] Tries =
+            { (SwitchbackGrade, float.MaxValue), (SwitchbackGrade, 30f), (SwitchbackGrade, 18f), (TerrainSurvey.WalkGrade, 26f), (TerrainSurvey.WalkGrade, 14f) };
+        [ThreadStatic] private static float _g, _legMax;
+        [ThreadStatic] private static IReadOnlyList<float2> _gates;
         /// <summary>Tests: the walks as the styles laid them, to compare.</summary>
         [ThreadStatic] public static bool SwitchbacksOff;
         [ThreadStatic] public static List<string> TraceLog;
@@ -31,6 +35,7 @@ namespace Placemaker.Core.Layers.Park
         {
             traced = hairpins = 0;
             if (g == null || g.IsEmpty || h == null || SwitchbacksOff) return g;
+            _gates = gates;
             var chains = Chains(g);
             var runs = new List<List<float2>>();
             foreach (var c in chains) runs.AddRange(SplitAtCrests(c, h));
@@ -39,28 +44,44 @@ namespace Placemaker.Core.Layers.Park
             for (int r = 0; r < runs.Count; r++)
                 for (int i = 1; i < runs[r].Count; i++) others.Add((runs[r][i - 1], runs[r][i], r));
             var lines = new List<List<float2>>(runs);
-            int baseParts = Components(g);
             bool any = false;
             for (int r = 0; r < runs.Count; r++)
             {
                 var run = runs[r];
                 List<float2> line = null;
+                if (!NeedsTrace(run, h)) TraceLog?.Add($"RUN {r} len {Length(run):0} dh {math.abs(h(run[run.Count - 1]) - h(run[0])):0.0} skip");
                 if (NeedsTrace(run, h))
                 {
-                    // up from the bottom or down from the top, first leg either way: the shortest trace that reaches the other end
+                    // up from the bottom or down from the top, first leg either way: the shortest trace that reaches the other end.
+                    // Long legs across the whole corridor first; where those dead-end, a tighter ladder of shorter legs, then the
+                    // walk grade itself.
                     int turns = 0;
-                    foreach (bool down in new[] { false, true })
-                        foreach (bool flip in new[] { false, true })
-                        {
-                            var t = TraceRun(run, h, ok, others, r, down, flip, out int tt);
-                            if (t != null && (line == null || Length(t) < Length(line))) { line = t; turns = tt; }
-                        }
+                    foreach (var (grade, legMax) in Tries)
+                    {
+                        _g = grade; _legMax = legMax;
+                        foreach (bool down in new[] { false, true })
+                            foreach (bool flip in new[] { false, true })
+                            {
+                                var t = TraceRun(run, h, ok, others, r, down, flip, out int tt);
+                                if (t != null && (line == null || Length(t) < Length(line))) { line = t; turns = tt; }
+                            }
+                        if (line != null) break;
+                    }
                     if (line != null)
                     {
                         // never at the cost of the network: every walk still joined (and every entrance on it)
                         lines[r] = line;
-                        if (Components(Build(lines, gates)) > baseParts) { lines[r] = run; line = null; }
+                        if (math.distancesq(line[0], run[0]) > 1e-4f || math.distancesq(line[line.Count - 1], run[run.Count - 1]) > 1e-4f
+                            || !KeepsJunctions(g, Build(lines, gates))) { lines[r] = run; line = null; }
                     }
+                    if (TraceLog != null && line != null)
+                    {
+                        float st = 0f, all = 0f;
+                        var rs = Resample(line, 4f);
+                        for (int i = 1; i < rs.Count; i++) { float d = math.distance(rs[i - 1], rs[i]); all += d; if (d > 0.5f && math.abs(h(rs[i]) - h(rs[i - 1])) / d > 0.10f) st += d; }
+                        TraceLog.Add($"  traced line {all:0} m, steep {st:0} m");
+                    }
+                    if (TraceLog != null) TraceLog.Add($"RUN {r} len {Length(run):0} dh {math.abs(h(run[run.Count - 1]) - h(run[0])):0.0} {(line != null ? "TRACED" : "failed")} {run[0]}->{run[run.Count - 1]}");
                     if (line != null)
                     {
                         traced++; hairpins += turns; any = true;
@@ -82,11 +103,11 @@ namespace Placemaker.Core.Layers.Park
             return ParkPathGraph.FromSegments(segs, gates);
         }
 
-        /// <summary>A run that climbs more than 3 m and has a 12 m stretch steeper than the walk grade.</summary>
+        /// <summary>A run that climbs more than 5 m and has a 12 m stretch steeper than the walk grade.</summary>
         private static bool NeedsTrace(List<float2> run, Func<float2, float> h)
         {
             if (run.Count < 2) return false;
-            if (math.abs(h(run[run.Count - 1]) - h(run[0])) < 3f) return false;
+            if (math.abs(h(run[run.Count - 1]) - h(run[0])) < 5f) return false;   // a bump (rugged land) is graded, not wound
             var p = Resample(run, 12f);
             for (int i = 1; i < p.Count; i++)
             {
@@ -96,19 +117,30 @@ namespace Placemaker.Core.Layers.Park
             return false;
         }
 
-        /// <summary>Splits a run where it tops a crest or bottoms a dip (over 3 m either way), so each piece only climbs.</summary>
+        /// <summary>
+        /// Splits a run where it tops a crest or bottoms a dip (over 3 m either way; a straight link across a valley is first
+        /// given a point every 4 m), so each piece only climbs.
+        /// </summary>
         private static List<List<float2>> SplitAtCrests(List<float2> pts, Func<float2, float> h)
         {
             var res = new List<List<float2>>();
+            var dense = new List<float2> { pts[0] };
+            for (int i = 1; i < pts.Count; i++)
+            {
+                int n = math.max(1, (int)(math.distance(pts[i - 1], pts[i]) / 4f));
+                for (int k = 1; k <= n; k++) dense.Add(math.lerp(pts[i - 1], pts[i], k / (float)n));
+            }
+            pts = dense;
             if (pts.Count < 3) { res.Add(pts); return res; }
             int start = 0, ext = 0; float hs = h(pts[0]); int dir = 0; float he = hs;
             for (int i = 1; i < pts.Count; i++)
             {
                 float hi = h(pts[i]);
-                if (dir == 0) { if (math.abs(hi - hs) > 1f) { dir = hi > hs ? 1 : -1; ext = i; he = hi; } continue; }
+                if (dir == 0) { if (math.abs(hi - hs) > 0.5f) { dir = hi > hs ? 1 : -1; ext = i; he = hi; } continue; }
                 if ((hi - he) * dir > 0f) { ext = i; he = hi; continue; }
                 // turned back by more than 3 m from the extreme: cut there
-                if ((he - hi) * dir > 3f && ext > start && ext < pts.Count - 1)
+                // (never into a piece too short to wind: a crest near a junction stays inside the run)
+                if ((he - hi) * dir > 3f && ext - start >= 6 && pts.Count - 1 - ext >= 6)
                 {
                     res.Add(pts.GetRange(start, ext - start + 1));
                     start = ext; hs = he; dir = -dir; ext = i; he = hi;
@@ -122,7 +154,7 @@ namespace Placemaker.Core.Layers.Park
         /// Moves a run's end <paramref name="i"/> along the run (<paramref name="step"/>: +1 from the start, -1 from the end) to the
         /// first point a walk may take, at least 6 m in (an entrance on the outline), inserting it into the run.
         /// </summary>
-        private static bool Inward(List<float2> pts, ref int i, int step, Func<float2, bool> ok)
+        private static bool Inward(List<float2> pts, ref int i, int step, Func<float2, bool> ok, float minIn = 6f)
         {
             float walked = 0f;
             for (int k = i; k + step >= 0 && k + step < pts.Count; k += step)
@@ -132,7 +164,7 @@ namespace Placemaker.Core.Layers.Park
                 for (float t = 1f; t <= len; t += 1f)
                 {
                     var p = math.lerp(a, b, t / len);
-                    if (walked + t < 6f || !ok(p)) continue;
+                    if (walked + t < minIn || ok != null && !ok(p)) continue;
                     if (step > 0) { pts.Insert(k + 1, p); i = k + 1; }
                     else { pts.Insert(k, p); i = k; }
                     return true;
@@ -140,6 +172,25 @@ namespace Placemaker.Core.Layers.Park
                 walked += len;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Every junction, entrance and end of the walks as it was (same place, same number of walks meeting): a trace never drops a
+        /// piece of the network (a dead end the graph prunes) or splits it.
+        /// </summary>
+        private static bool KeepsJunctions(ParkPathGraph before, ParkPathGraph after)
+        {
+            if (after.IsEmpty || Components(after) > Components(before)) return false;
+            var adjB = before.Adjacency(); var adjA = after.Adjacency();
+            for (int i = 0; i < before.Nodes.Count; i++)
+            {
+                if (adjB[i].Count == 2 && before.Nodes[i].Kind != PathNodeKind.Gate) continue;
+                var p = before.Nodes[i].Position;
+                int found = -1;
+                for (int j = 0; j < after.Nodes.Count; j++) if (math.distancesq(after.Nodes[j].Position, p) < 0.25f) { found = j; break; }
+                if (found < 0 || adjA[found].Count != adjB[i].Count) return false;
+            }
+            return true;
         }
 
         private static int Components(ParkPathGraph g)
@@ -183,7 +234,7 @@ namespace Placemaker.Core.Layers.Park
         }
 
         /// <summary>
-        /// Traces a climbing run from its low end to its high end: legs at <see cref="SwitchbackGrade"/> across the slope (the
+        /// Traces a climbing run from its low end to its high end: legs at <see cref="SwitchbackGrade"/> (or the retry grade) across the slope (the
         /// contour direction tilted uphill just enough), each ending at the corridor's side, a wall of what it may not cross or a
         /// path, then a hairpin round to the uphill side and back; straight to the top once the top is within the grade. A run that
         /// starts or ends at an entrance keeps its straight approach. Null when the trace cannot reach the top.
@@ -197,16 +248,21 @@ namespace Placemaker.Core.Layers.Park
             var pts = new List<float2>(run);
             if (rev) pts.Reverse();
             // the fixed ends: a junction, or an entrance's approach (its first leg); a trace starts and ends where a walk may go
-            int i0 = 0, i1 = pts.Count - 1;
-            if (pts.Count > 2 && math.distance(pts[0], pts[1]) < 14f) i0 = 1;
-            if (pts.Count > 3 && i1 - 1 > i0 && math.distance(pts[i1], pts[i1 - 1]) < 14f) i1--;
+            // (an entrance keeps its first 16 m straight in: the entrance's own approach, which later steps square up to the street)
+            bool AtGate(float2 p) { if (_gates != null) foreach (var gp in _gates) if (math.distancesq(gp, p) < 1f) return true; return false; }
+            int i0 = 0;
+            if (AtGate(pts[0])) { if (!Inward(pts, ref i0, 1, null, 16f)) return null; }
+            else if (pts.Count > 2 && math.distance(pts[0], pts[1]) < 14f) i0 = 1;
+            int i1 = pts.Count - 1;
+            if (AtGate(pts[i1])) { if (!Inward(pts, ref i1, -1, null, 16f)) return null; }
+            else if (pts.Count > 3 && i1 - 1 > i0 && math.distance(pts[i1], pts[i1 - 1]) < 14f) i1--;
             if (ok != null && !ok(pts[i0])) { if (!Inward(pts, ref i0, 1, ok)) { TraceLog?.Add("start"); return null; } i1++; }
             if (ok != null && !ok(pts[i1]) && !Inward(pts, ref i1, -1, ok)) { TraceLog?.Add("end"); return null; }
             if (i1 <= i0) return null;
             float2 P = pts[i0], Q = pts[i1];
             float hq = h(Q);
             var axis = Q - P; float span = math.length(axis);
-            if (span < 6f) { TraceLog?.Add("short"); return null; }
+            if (span < 16f) { TraceLog?.Add("short"); return null; }   // a short piece is graded, not wound into a curl
             axis /= span;
             var side = new float2(-axis.y, axis.x);
             // the corridor: wide enough for real legs, never wider than the run is long
@@ -270,7 +326,7 @@ namespace Placemaker.Core.Layers.Park
             {
                 float dq = math.distance(x, Q), rise = hq - h(x);
                 // the top within reach (or reached): straight there when the ground on the way is never steeper than a walk
-                if (dq < 4f || math.abs(rise) <= SwitchbackGrade * 1.15f * dq && Gentle(x, Q))
+                if (dq < 4f || math.abs(rise) <= _g * 1.15f * dq && Gentle(x, Q))
                 {
                     line.Add(Q);
                     for (int i = i1 + 1; i < pts.Count; i++) line.Add(pts[i]);
@@ -279,16 +335,16 @@ namespace Placemaker.Core.Layers.Park
                 }
                 var gr = Grad(x); float m = math.length(gr);
                 float2 dir;
-                if (m <= SwitchbackGrade && Gentle(x, x + math.normalizesafe(Q - x) * math.min(dq, 12f))) dir = math.normalizesafe(Q - x);
+                if (m <= _g && Gentle(x, x + math.normalizesafe(Q - x) * math.min(dq, 12f))) dir = math.normalizesafe(Q - x);
                 else
                 {
                     // climb at the leg grade while the top is above; at its height run level along the contour toward it
                     var f = gr / math.max(m, 1e-4f);
-                    float want = rise > 1f ? SwitchbackGrade : rise < -1f ? -SwitchbackGrade : 0f;
+                    float want = rise > 1f ? _g : rise < -1f ? -_g : 0f;
                     var c0n = new float2(-f.y, f.x);
                     if (math.abs(rise) <= 1f) sigma = math.dot(c0n, Q - x) >= 0f ? 1f : -1f;
                     var c = c0n * sigma;
-                    float s = math.clamp(want / math.max(m, SwitchbackGrade), -1f, 1f);
+                    float s = math.clamp(want / math.max(m, _g), -1f, 1f);
                     dir = c * math.sqrt(1f - s * s) + f * s;
                 }
                 var nx = x + dir * TraceStep;
@@ -297,13 +353,13 @@ namespace Placemaker.Core.Layers.Park
                 float lat0 = math.dot(x - P, side), along0 = math.dot(x - P, axis);
                 bool outside = math.abs(lat) > half && math.abs(lat) > math.abs(lat0) + 0.2f
                     || along < -half * 0.5f && along < along0 || along > span + half * 0.5f && along > along0;
-                if (!outside && Clear(x, nx))
+                if (!outside && legSteps * TraceStep < _legMax && Clear(x, nx))
                 {
                     x = nx; line.Add(x); legSteps++;
                     continue;
                 }
                 // the leg ends: a hairpin round to the uphill side, unless the leg was too short to turn (a dead end)
-                if (legSteps < 6 || m <= SwitchbackGrade) { TraceLog?.Add($"dead end at {x} legSteps {legSteps} m {m:0.00} outside {outside} turns {turns} from {P} to {Q}"); return null; }
+                if (legSteps < 6 || m <= _g) { TraceLog?.Add($"dead end at {x} legSteps {legSteps} m {m:0.00} outside {outside} turns {turns} from {P} to {Q}"); return null; }
                 // the turn bulges ahead of the leg: it starts a few steps back from what ended it
                 int back = math.min(3, legSteps - 4);
                 if (back > 0) { line.RemoveRange(line.Count - back, back); x = line[line.Count - 1]; legSteps -= back; }

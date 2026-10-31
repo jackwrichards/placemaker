@@ -616,18 +616,21 @@ namespace Placemaker.Core.Layers.Leisure
                 float sv = SV(up);
                 float pitch = math.max(1.1f, (bv[up] - TopBank) / 24f);
                 var aisles = new[] { -cu, -hu * 0.5f, hu * 0.5f, cu };
-                float a0 = -fu + 1.5f;
-                foreach (float au in aisles.Concat(new[] { fu - 1.5f + 2.2f }))
+                // the stand's two ends are stairs too: a finished edge (stepped cheek walls) where the seating meets the end banks
+                float flank = fu - 1.9f;
+                float a0 = -flank + 2.2f;
+                foreach (float au in aisles.Concat(new[] { flank }))
                 {
                     float a1 = au - 2.2f;
                     if (a1 - a0 > 6f) SeatingSteps(s, s.W(a0, sv * (rv[up] - TopBank)), s.W(a1, sv * (rv[up] - TopBank)), -s.S * sv, bv[up] - TopBank, pitch, 3f);
                     a0 = au + 2.2f;
                 }
                 foreach (float au in aisles) k.Flight(s.W(au, sv * (fv[up] + 0.2f)), s.W(au, sv * (rv[up] + 0.4f)), 3.2f);
-                var footGaps = aisles.Select(au => (au + fu, 2.2f)).ToList();
+                foreach (float e in new[] { -flank, flank }) k.Flight(s.W(e, sv * (fv[up] + 0.2f)), s.W(e, sv * (rv[up] + 0.4f)), 2.6f);
+                var footGaps = aisles.Concat(new[] { -flank, flank }).Select(au => (au + fu, 2.2f)).ToList();
                 BankEdge(s, s.W(-fu, sv * (fv[up] + 0.15f)), s.W(fu, sv * (fv[up] + 0.15f)), s.W(-fu, sv * (rv[up] - TopBank + 0.3f)), s.W(fu, sv * (rv[up] - TopBank + 0.3f)), footGaps);
                 // the stand reads as one: concrete terraces from the apron to the top
-                k.Lay(PGreen - 4, k.Box(-fu, fu, sv > 0 ? fv[up] : -(rv[up] - TopBank), sv > 0 ? rv[up] - TopBank : -fv[up]).Ring, Concrete, SurfaceRole.Paving);
+                k.Lay(PFeature + 4, k.Box(-fu, fu, sv > 0 ? fv[up] : -(rv[up] - TopBank), sv > 0 ? rv[up] - TopBank : -fv[up]).Ring, Concrete, SurfaceRole.Paving);
                 terraced = 1;
                 seatRows = (int)((bv[up] - TopBank) / pitch);
             }

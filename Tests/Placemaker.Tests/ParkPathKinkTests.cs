@@ -178,7 +178,7 @@ namespace Placemaker.Tests
         [InlineData("adventurePlayground", "adventure")]
         public void MountainWalksClimbBySwitchbacks(string id, string preset)
         {
-            (double steep, double len, int sb, int pins, float cut, float edges) Run(bool off)
+            (double steep, double len, int sb, int pins, float cut, float edges, double built) Run(bool off)
             {
                 Placemaker.Core.Layers.Park.ParkPathStyles.SwitchbacksOff = off;
                 try
@@ -192,17 +192,37 @@ namespace Placemaker.Tests
                     TestKit.Entered(recipe, ring, site);
                     var plan = Composer.Compose(recipe, new AreaShape { Ring = ring, Source = AreaSource.Drawn }, site, CancellationToken.None);
                     var nets = plan.Layers.SelectMany(l => l.Nets).Where(n => n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide).ToList();
-                    double steep = 0, len = 0;
+                    double steep = 0, len = 0, built = 0;
                     foreach (var n in nets)
                     {
                         int m = math.max(2, (int)(math.distance(n.A.xz, n.D.xz) / 4f));
                         for (int k = 0; k < m; k++)
                         {
-                            var a = Composer.Bezier(n.A, n.B, n.C, n.D, k / (float)m).xz; var b = Composer.Bezier(n.A, n.B, n.C, n.D, (k + 1) / (float)m).xz;
+                            var a3 = Composer.Bezier(n.A, n.B, n.C, n.D, k / (float)m); var b3 = Composer.Bezier(n.A, n.B, n.C, n.D, (k + 1) / (float)m);
+                            var a = a3.xz; var b = b3.xz;
                             float d = math.distance(a, b);
                             len += d;
                             if (d > 0.5f && math.abs(Mountains(b) - Mountains(a)) / d > 0.10f) steep += d;
+                            if (d > 0.5f && math.abs(b3.y - a3.y) / d > 0.10f) built += d;
                         }
+                    }
+                    if (!off && Environment.GetEnvironmentVariable("PM_STEEP_NETS") != null)
+                    {
+                        var byKey = new Dictionary<string, (double steep, double len)>();
+                        foreach (var n in nets)
+                        {
+                            double sl = 0, ll = 0;
+                            int m = math.max(2, (int)(math.distance(n.A.xz, n.D.xz) / 4f));
+                            for (int k = 0; k < m; k++)
+                            {
+                                var a = Composer.Bezier(n.A, n.B, n.C, n.D, k / (float)m).xz; var b = Composer.Bezier(n.A, n.B, n.C, n.D, (k + 1) / (float)m).xz;
+                                float d = math.distance(a, b); ll += d;
+                                if (d > 0.5f && math.abs(Mountains(b) - Mountains(a)) / d > 0.10f) sl += d;
+                            }
+                            string key = (n.Asset.Id ?? "") + "/" + n.Role;
+                            byKey.TryGetValue(key, out var v); byKey[key] = (v.steep + sl, v.len + ll);
+                        }
+                        foreach (var kv in byKey) _out.WriteLine($"  nets {kv.Key}: {kv.Value.len:F0} m, steep {kv.Value.steep:F0} m");
                     }
                     var f = plan.Layers[0].Facts;
                     float F(string k) => f.TryGetValue(k, out var v) ? (float)v : 0f;
@@ -215,7 +235,7 @@ namespace Placemaker.Tests
                         System.IO.Directory.CreateDirectory(System.IO.Path.Combine(TestKit.RepoRoot(), ".forensics", "paths"));
                         System.IO.File.WriteAllText(System.IO.Path.Combine(TestKit.RepoRoot(), ".forensics", "paths", id + "-" + preset + "-mountains" + (off ? "-before" : "") + ".txt"), sb.ToString());
                     }
-                    return (steep, len, (int)F("switchbacks"), (int)F("hairpins"), F("harmonyMaxCut"), F("harmonySteepEdges"));
+                    return (steep, len, (int)F("switchbacks"), (int)F("hairpins"), F("harmonyMaxCut"), F("harmonySteepEdges"), built);
                 }
                 finally { Placemaker.Core.Layers.Park.ParkPathStyles.SwitchbacksOff = false; }
             }
@@ -224,8 +244,8 @@ namespace Placemaker.Tests
             var after = Run(false);
             foreach (var l in Placemaker.Core.Layers.Park.ParkPathStyles.TraceLog) _out.WriteLine("  trace: " + l);
             Placemaker.Core.Layers.Park.ParkPathStyles.TraceLog = null;
-            _out.WriteLine($"{id}/{preset} before: {before.len:F0} m, {before.steep / before.len * 100:F0} % steeper than 10 %, cut {before.cut} m, steep pieces {before.edges}");
-            _out.WriteLine($"{id}/{preset} after:  {after.len:F0} m, {after.steep / after.len * 100:F0} % steeper than 10 %, cut {after.cut} m, steep pieces {after.edges}; {after.sb} runs traced, {after.pins} hairpins");
+            _out.WriteLine($"{id}/{preset} before: {before.len:F0} m, {before.steep / before.len * 100:F0} % steeper than 10 % ({before.built / before.len * 100:F0} % as graded), cut {before.cut} m, steep pieces {before.edges}");
+            _out.WriteLine($"{id}/{preset} after:  {after.len:F0} m, {after.steep / after.len * 100:F0} % steeper than 10 % ({after.built / after.len * 100:F0} % as graded), cut {after.cut} m, steep pieces {after.edges}; {after.sb} runs traced, {after.pins} hairpins");
             Assert.True(after.sb >= 1, "no run traced");
             // (round 3: 57-71 % -> 41-57 %; the runs that dead-end in their corridor stay as the router laid them)
             Assert.True(after.steep / after.len < before.steep / before.len, $"{after.steep / after.len * 100:F0} % of the walks steeper than 10 % (before {before.steep / before.len * 100:F0} %)");
