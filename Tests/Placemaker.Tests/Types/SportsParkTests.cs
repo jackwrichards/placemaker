@@ -88,7 +88,8 @@ namespace Placemaker.Tests.Types
             }
             Assert.Contains(features, f => f.Layer == "pitch" && f.Options.Contains("pitchCount") && f.Options.Contains("pitchSize"));
             Assert.Contains(features, f => f.Layer == "tennisCourts" && f.Options.Contains("tennisCourtsCount"));
-            Assert.InRange(Gen.Presets.Count, 5, 6);
+            // (the five designed grounds of sports parks round 2: SportsDesigns)
+            Assert.InRange(Gen.Presets.Count, 10, 11);
             foreach (var p in new[] { "community", "stadium", "tennisClub", "campus", "neighbourhood" }) Assert.Contains(Gen.Presets, x => x.Id == p);
         }
 
