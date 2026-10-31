@@ -77,12 +77,27 @@ runner's camera target `joint` (index `all`) frames each joint for a close-up (`
 | Run id | What it shows |
 |---|---|
 | `show-12-builds-1030-231137-c657` | BEFORE: the six old styles on a lake and a cliff |
+| `20261031-003718-beach-r2-lake` | round 1/2 code on the lake: headlands show, boulders white popcorn, marsh without boardwalk |
+| `20261031-015913-beach-r2-hard` | every style on a 7 m cliff and a 3 m steep bank: cliff-top walk only, no beach (advice now a warning) |
+| `20261031-023318-beach-r3-lakein` | outline over the water: islands with footbridges (harbour, granite, marsh), headlands, marsh boardwalk |
 
 ## What failed and why
 
 - Baseline: the family beach's carved bay left a band of grass under the shallow water (sand stopped 20 m out from the new
   waterline); fixed by covering the whole bay floor.
 
+- Headlands were absent in the game: the setting `headlandLength` no longer existed, so every headland was 0 m long; the
+  carved bay also swallowed them (harbour has no bay now).
+- Boulders read as white popcorn: `Boulder01-08` were sunk only 0.3 x scale; they now sink 0.4-0.6 of their 1.6 m.
+- Islands and rocks in the water landed outside the drawn outline; they now need the outline drawn over the water (an
+  island only appears where its disc fits inside it).
+- The marsh read as a sandy beach with bushes: its base paint is now Lush (marsh), not sand.
+- Joint close-ups: the runner schema did not know the `joint` target, and after a build the tool has no plan; the runner
+  now keeps the built nets.
+
 ## Left to do
 
-- see the report.
+- Ravine: the barranca reads as boulder streams on brown ground from 45°; steeper ravine walls and a visible bluff face.
+- Hinterland: lawn with palms behind family and harbour looks like a park; dunes biome patches read as sand blobs.
+- A hint when Islands is set but the outline does not reach over the water (12 languages).
+- Cliff: the beach could cut a pocket beach into a cliff instead of only a cliff-top walk.
