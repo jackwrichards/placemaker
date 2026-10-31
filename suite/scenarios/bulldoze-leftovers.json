@@ -1,0 +1,965 @@
+{
+ "_about": "Bulldoze leftovers (p1-bulldoze): build, remove (bulldoze), count what is left in the area against the count before.",
+ "scenarios": [
+  {
+   "id": "bz-fairground-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "fairground"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-park-bulldoze-500",
+   "land": {
+    "shape": "rect",
+    "size": [
+     500,
+     400
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "park"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-parking-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "parking"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-sportsPark-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "sportsPark"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-beach-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "beach"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-natureReserve-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "natureReserve"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-marketSquare-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "marketSquare"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-shopsPark-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "shopsPark"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-junkYard-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "junkYard"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-farmstead-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "farmstead"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-quarry-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "quarry"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-wetland-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "wetland"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-abandonedLot-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "abandonedLot"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-zoningSuburb-bulldoze-120",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "zoningSuburb"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-roads-bulldoze-250",
+   "land": {
+    "shape": "rect",
+    "size": [
+     250,
+     200
+    ],
+    "gap": 10,
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "roads"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  },
+  {
+   "id": "bz-golf-bulldoze-300",
+   "land": {
+    "shape": "rect",
+    "size": [
+     300,
+     250
+    ],
+    "gap": 10,
+    "roads": "around"
+   },
+   "steps": [
+    {
+     "do": "area",
+     "tool": "land"
+    },
+    {
+     "do": "type",
+     "layer": "golf"
+    },
+    {
+     "do": "entrances"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "before",
+     "baseline": true
+    },
+    {
+     "do": "preview"
+    },
+    {
+     "do": "build",
+     "shot": "built"
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "built"
+    },
+    {
+     "do": "bulldoze"
+    },
+    {
+     "do": "wait",
+     "frames": 90
+    },
+    {
+     "do": "lab",
+     "op": "leftovers",
+     "label": "after bulldoze"
+    },
+    {
+     "do": "camera",
+     "target": "area",
+     "shot": "after"
+    }
+   ]
+  }
+ ]
+}

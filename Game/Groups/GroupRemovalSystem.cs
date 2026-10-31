@@ -31,6 +31,9 @@ namespace Placemaker.Game.Groups
         private GroupRegistrySystem _registry;
         private ToolSystem _toolSystem;
         private EntityQuery _tempQuery;
+        /// <summary>Per record being removed: when it started, its frames, its main-thread time (logged when it ends).</summary>
+        private readonly Dictionary<Entity, (System.Diagnostics.Stopwatch Wall, int Frames, double Ms, double MaxMs, int Members)> _timing
+            = new Dictionary<Entity, (System.Diagnostics.Stopwatch, int, double, double, int)>();
 
         [Preserve]
         protected override void OnCreate()
@@ -65,6 +68,7 @@ namespace Placemaker.Game.Groups
             if (requests.Length == 0) return;
             // One group per frame keeps each pass ≤ 32 parts in total.
             var record = requests[0];
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 ProcessGroup(record);
@@ -77,6 +81,24 @@ namespace Placemaker.Game.Groups
                 EntityManager.SetComponentData(record, r);
                 if (r.Passes > MaxPassesWithoutProgress) GiveUp(record);
             }
+            Time(record, sw.Elapsed.TotalMilliseconds);
+        }
+
+        private void Time(Entity record, double ms)
+        {
+            if (!_timing.TryGetValue(record, out var t)) t = (System.Diagnostics.Stopwatch.StartNew(), 0, 0, 0, 0);
+            t.Frames++; t.Ms += ms; if (ms > t.MaxMs) t.MaxMs = ms;
+            if (EntityManager.Exists(record) && !EntityManager.HasComponent<Deleted>(record)) { _timing[record] = t; return; }
+            _timing.Remove(record);
+            Mod.Log.Info($"Placemaker removal timing: {t.Members} member(s) in {t.Frames} frame(s), {t.Wall.Elapsed.TotalMilliseconds:F0} ms from start to end, "
+                + $"{t.Ms:F1} ms of main-thread work, worst frame {t.MaxMs:F1} ms.");
+        }
+
+        private void NoteMembers(Entity record, int members)
+        {
+            if (!_timing.TryGetValue(record, out var t)) t = (System.Diagnostics.Stopwatch.StartNew(), 0, 0, 0, 0);
+            if (members > t.Members) t.Members = members;
+            _timing[record] = t;
         }
 
         private void ProcessGroup(Entity record)
@@ -96,6 +118,7 @@ namespace Placemaker.Game.Groups
                     entities.Add(all[i]);
                 }
             if (anyTemp && entities.Count == 0) return;
+            NoteMembers(record, entities.Count);
 
             // Crash guard (playtest 4b: native crash right after bulldozing a group): a tool's temporary
             // copy (Temp.m_Original) of a member — e.g. the bulldozer still hovering a path, or a node
