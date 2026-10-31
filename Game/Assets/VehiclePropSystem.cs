@@ -102,7 +102,30 @@ namespace Placemaker.Game.Assets
                 summary.Add($"{kind}: {string.Join(", ", names)}");
             }
             Mod.Log.Info($"Placemaker made {made} vehicle props from the vanilla vehicles ({string.Join("; ", summary)}).");
+            made += MakeHouses();
             if (made > 0) World.GetExistingSystemManaged<AssetCatalogSystem>()?.RequestRescan();
+        }
+
+        /// <summary>(P2-3) The farmhouses: a static prop of a vanilla low-density house's meshes per HouseProps slot.</summary>
+        private int MakeHouses()
+        {
+            int made = 0;
+            var names = new List<string>();
+            for (int i = 0; i < HouseProps.Sources.Length; i++)
+                foreach (var src in HouseProps.Sources[i])
+                {
+                    if (!_prefabs.TryGetPrefab(new PrefabID(nameof(BuildingPrefab), src), out var p) || !(p is ObjectGeometryPrefab g) || !p.isBuiltin
+                        || g.m_Meshes == null || g.m_Meshes.Length == 0) continue;
+                    string slot = HouseProps.House(i + 1);
+                    if (!Make(slot, g)) continue;
+                    made++; Made[slot] = src;
+                    var e = _prefabs.GetEntity(p);
+                    names.Add(EntityManager.HasComponent<ObjectGeometryData>(e)
+                        ? $"{slot} = {src} {EntityManager.GetComponentData<ObjectGeometryData>(e).m_Size.x:0.0}x{EntityManager.GetComponentData<ObjectGeometryData>(e).m_Size.z:0.0} m" : $"{slot} = {src}");
+                    break;
+                }
+            Mod.Log.Info($"Placemaker made {made} house props from the vanilla houses ({string.Join("; ", names)}).");
+            return made;
         }
 
         /// <summary>What a vehicle is for the yards (null = not wanted): by its data first, then by its name.</summary>

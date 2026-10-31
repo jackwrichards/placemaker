@@ -185,6 +185,8 @@
   "Placemaker.Farmstead.terraces.Tooltip": "Divide i campi ripidi in terrazze piane con brevi scarpate. Permanente: modifica il terreno.",
   "Placemaker.Farmstead.vehicles": "Veicoli",
   "Placemaker.Farmstead.vehicles.Tooltip": "Trattori e pick-up della fattoria, parcheggiati dove starebbero: nella rimessa, accanto ai fienili, nell’aia.",
+  "Placemaker.Farmstead.farmhouse": "Casale",
+  "Placemaker.Farmstead.farmhouse.Tooltip": "La casa colonica accanto all'aia, rivolta alla strada: un giardino con siepe, un cancello verso l'aia, alberi da frutto e un capanno.",
   "Placemaker.Farmstead.yardMud": "Aia fangosa",
   "Placemaker.Farmstead.yardMud.Tooltip": "Quanto è usata l’aia: basso è ordinata, alto è fango rimestato, pozzanghere e tracce di pneumatici.",
   "Placemaker.Farmstead.heaps": "Cumuli",

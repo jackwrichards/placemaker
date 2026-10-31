@@ -130,6 +130,25 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             sc.LimitGrade(0.34f, 14, absolute: true);
             var res = sc.Emit(ctx, null);
             ctx.Plan.Facts["terracedFields"] = steep.Count;
+            // (P2-3) the banks: a broken line of scrub along each riser (the Welsh hedge bank, the Mediterranean terrace's rough
+            // edge). Stepped ground alone read as a lawn from 45° (run show-3-builds-1031-005331-af71: benches only on the terrain map).
+            var bankIds = new AssetRef("GreenBushWild01", "GreenBushWildTeen01", "GreenBushWild02");
+            int banks = 0;
+            uint bv = Hashing.Mix(ctx.Seed, 0xBA9Cu);
+            for (float y = mn.y + 1.25f; y < mx.y && banks < 600; y += 2.5f)
+                for (float x = mn.x + 1.25f; x < mx.x && banks < 600; x += 2.5f)
+                {
+                    var q = new float2(x, y);
+                    LayerRegion home = null;
+                    foreach (var f in steep) if (f.Contains(q)) { home = f; break; }
+                    if (home == null || home.BoundaryDistance(q, 6f) < 4f) continue;
+                    float fr = ctx.H(q) / step; fr -= math.floor(fr);
+                    if (fr < 0.82f || fr > 0.94f) continue;
+                    uint h = Hashing.Mix(bv, (int)x, (int)y);
+                    if (Hashing.Unit(h) < 0.25f) continue;
+                    if (LeisureKit.Put(ctx, occ, q, Hashing.Unit(h ^ 0x55u) * 6.28f, ObjectRole.Bush, bankIds, null, 0.9f, h, 0.5f, 0.2f, 4)) banks++;
+                }
+            ctx.Plan.Facts["terraceBankBushes"] = banks;
             Shaped(ctx, res.Cells);
             for (int i = 0; i < steep.Count; i++) ctx.AddRegion(steep[i].Ring, "shaped:terrace:" + i, Build.SiteHarmony.ShapedTag + "terrace");
             return res.Cells;
@@ -442,6 +461,128 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             }
             ctx.Plan.Facts["farmHeaps"] = made;
             return made;
+        }
+
+        // ───────────── the farmhouse and the gates ─────────────
+
+        public const string HouseTag = "farmHouse";
+
+        /// <summary>The farmhouse plot (32 × 34 m: the house's 24 m lot at the front, a garden behind) beside the yard, its front on
+        /// the yard's front line (the road side): the -u end first, else the +u end. Taken into the hard footprints.</summary>
+        private static bool HousePlot(LayerContext ctx, LayerRegion region, ReservedSpace res, Footprints hard, OrientedRect yard, float frontSign, out OrientedRect plot)
+        {
+            plot = default;
+            if (!ctx.B("farmhouse")) return false;
+            const float hl = 16f, hw = 17f;
+            var reserved = new Footprints();
+            if (res != null) foreach (var pg in res.Polygons) if (pg != null && pg.Length >= 3) reserved.Add(pg);
+            foreach (float end in new[] { -1f, 1f })
+                foreach (float gap in new[] { 3f, 10f })
+                {
+                    var r = new OrientedRect { Center = yard.Local(end * (yard.HalfLength + gap + hl), frontSign * (yard.HalfWidth - hw)), Axis = yard.Axis, HalfLength = hl, HalfWidth = hw };
+                    bool ok = true;
+                    foreach (var q in r.Ring) if (!region.ContainsDisc(q, 1f)) { ok = false; break; }
+                    if (!ok || hard.HitsRect(r, 1f) || reserved.HitsRect(r, 0.5f)) continue;
+                    // reserved paths and discs (a path the player keeps through the farm): a 4 m grid over the plot
+                    if (res != null)
+                        for (float a = -hl; a <= hl && ok; a += 4f)
+                            for (float b = -hw; b <= hw && ok; b += 4f)
+                                if (res.Blocks(r.Local(a, b), 1.5f)) ok = false;
+                    if (!ok) continue;
+                    plot = r;
+                    hard.Add(r.Ring);
+                    return true;
+                }
+            return false;
+        }
+
+        /// <summary>
+        /// The farmhouse: a house (HouseProps: the game's own low-density houses as props) on a levelled lot facing the road, a
+        /// low wooden fence along the road, a hedge round the garden with a gate toward the yard, fruit trees and a tool shed
+        /// at the back. The game has no farmhouse prop; without the house the farm read as a barn yard in a field.
+        /// </summary>
+        private static void DressHouse(LayerContext ctx, Occupancy occ, OrientedRect plot, OrientedRect yard, float frontSign, string[] treeIds)
+        {
+            var face = plot.Side * frontSign;
+            float yaw = math.atan2(face.x, face.y);
+            uint v = Hashing.Mix(ctx.Seed, 0x40E5u);
+            var lot = new OrientedRect { Center = plot.Local(0f, frontSign * (plot.HalfWidth - 12.5f)), Axis = plot.Axis, HalfLength = 12f, HalfWidth = 12f };
+            var lr = LayerRegion.From(lot.Ring);
+            if (lr != null) TerrainShaper.Shape(ctx, lr, new TerrainSpec { Mode = TerrainMode.Flatten, MaxSlopePct = 20f, Falloff = 6f, Seed = ctx.Seed });
+            // the house: a slot by the seed, the others after it (the first the game has is built), a barn when none is
+            int slots = Yards.HouseProps.Sources.Length;
+            int k0 = (int)(v % (uint)slots);
+            var ids = new List<string>();
+            for (int k = 0; k < slots; k++) ids.Add(Yards.HouseProps.House((k0 + k) % slots + 1));
+            ids.Add("Barn02");
+            ctx.Object(lot.Center, yaw, ObjectRole.Furniture, new AssetRef(ids[0], ids.GetRange(1, ids.Count - 1).ToArray()), v);
+            occ.Take(lot.Center, 11f, 1);
+            // a low wooden fence along the road, the garden hedge round the other three sides with a gate toward the yard
+            var ring = plot.Ring;
+            var inner = LayerRegion.From(ring)?.InsetVertices(0.8f) ?? ring;
+            float2 yardDir = math.normalizesafe(yard.Center - plot.Center);
+            var fence = AssetMix.One("FenceResidentialLow01", "FenceIndustrialLow01");
+            var line = new HedgeLine(ctx, occ);
+            for (int e = 0; e < 4; e++)
+            {
+                var a = inner[e]; var b = inner[(e + 1) % 4];
+                var mid = (a + b) * 0.5f; var d = math.normalizesafe(b - a);
+                var outward = math.normalizesafe(mid - plot.Center);
+                if (math.dot(outward, face) > 0.7f) { ctx.StraightNet(a, b, NetRole.Fence, fence); occ.TakeCorridor(a, b, 0.4f, 5); continue; }
+                bool gateSide = math.dot(outward, yardDir) > 0.7f;
+                // the garden gate toward the yard, in the back half (the house fills the front)
+                var gateAt = mid - face * (plot.HalfWidth * 0.55f);
+                float len = math.distance(a, b);
+                for (float s = 1.2f; s < len; s += 2.4f)
+                {
+                    var p = a + d * s;
+                    line.Add(p, d, !(gateSide && math.distance(p, gateAt) < 1.6f));
+                }
+                line.Add(b, d, false);
+                if (gateSide)
+                {
+                    var hinge = gateAt + face * 1.1f;
+                    GateLeaf(ctx, fence, hinge, -face, -outward, 2f, Hashing.Mix(v, 7u));
+                    GateMark(ctx, gateAt, "house", 0);
+                }
+            }
+            line.Flush();
+            // fruit trees and the tool shed in the back garden
+            var backward = -face;
+            var trees = new AssetRef("AppleTree01", treeIds != null && treeIds.Length > 0 ? treeIds[0] : "OakTree01");
+            for (int t = 0; t < 2; t++)
+            {
+                var p = plot.Center + plot.Axis * ((t == 0 ? -1f : 1f) * (plot.HalfLength - 4.5f)) + backward * (plot.HalfWidth - 4.5f);
+                LeisureKit.Put(ctx, occ, p, Hashing.Unit(Hashing.Mix(v, 20u + (uint)t)) * 6.28f, ObjectRole.Tree, trees, null, 2.2f, Hashing.Mix(v, 20u + (uint)t), 0.3f, 0.2f, 3, 2);
+            }
+            var shedAt = plot.Center + plot.Axis * (plot.HalfLength * 0.15f) + backward * (plot.HalfWidth - 3.2f);
+            LeisureKit.Put(ctx, occ, shedAt, yaw, ObjectRole.Furniture, new AssetRef("ToolShed01", "ToolShed02", "ToolShed03"), null, 2f, Hashing.Mix(v, 30u), 0.2f, 0.2f);
+            ctx.AddRegion(ring, HouseTag, HouseTag);
+            ctx.Plan.Facts["farmHouse"] = 1;
+        }
+
+        /// <summary>The 4 m (or 2 m) piece of a fence kind ("FenceIndustrialLow01" → "FenceIndustrialPieceLow01"), null for hedges.</summary>
+        private static string GatePiece(AssetRef fence, float len)
+        {
+            string id = string.IsNullOrEmpty(fence.Id) && fence.Fallbacks != null && fence.Fallbacks.Length > 0 ? fence.Fallbacks[0] : fence.Id ?? "";
+            var m = System.Text.RegularExpressions.Regex.Match(id, @"^(.*Fence[A-Za-z]*?)(High|Low)(\d+)$");
+            if (!m.Success) return null;
+            return m.Groups[1].Value + "Piece" + m.Groups[2].Value + (len < 3f ? "Short" : "") + m.Groups[3].Value;
+        }
+
+        /// <summary>A gate hung in a fence gap: the fence kind's own piece, swung open 35-85° from its hinge into the field (the
+        /// game has no gate object; a fence piece standing open reads as the gate).</summary>
+        private static bool GateLeaf(LayerContext ctx, AssetRef fence, float2 hinge, float2 along, float2 inward, float len, uint v)
+        {
+            string piece = GatePiece(fence, len);
+            if (piece == null) return false;
+            float ang = math.radians(35f + Hashing.Unit(v) * 50f);
+            var dir = math.normalizesafe(along * math.cos(ang) + inward * math.sin(ang));
+            if (ctx.Input.Reserved != null && ctx.Input.Reserved.Blocks(hinge + dir * len * 0.5f, len * 0.5f)) return false;
+            string fallback = len < 3f ? "FenceIndustrialPieceLowShort01" : "FenceIndustrialPieceLow01";
+            ctx.Object(hinge + dir * len * 0.5f, math.atan2(dir.x, dir.y), ObjectRole.Furniture, new AssetRef(piece, fallback), v);
+            ctx.Plan.Facts["farmGates"] = (ctx.Plan.Facts.TryGetValue("farmGates", out var n) ? n : 0) + 1;
+            return true;
         }
     }
 }

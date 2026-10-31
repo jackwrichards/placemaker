@@ -185,6 +185,8 @@
   "Placemaker.Farmstead.terraces.Tooltip": "Dzieli strome pola na płaskie tarasy z krótkimi skarpami. Trwałe: zmienia teren.",
   "Placemaker.Farmstead.vehicles": "Pojazdy",
   "Placemaker.Farmstead.vehicles.Tooltip": "Ciągniki i pikap gospodarstwa, zaparkowane tam, gdzie by stały: w wiacie, przy stodołach, na podwórzu.",
+  "Placemaker.Farmstead.farmhouse": "Dom",
+  "Placemaker.Farmstead.farmhouse.Tooltip": "Dom gospodarza obok podwórza, frontem do drogi: ogród z żywopłotem, furtka na podwórze, drzewa owocowe i szopa.",
   "Placemaker.Farmstead.yardMud": "Błotniste podwórze",
   "Placemaker.Farmstead.yardMud.Tooltip": "Jak mocno używane jest podwórze: nisko – porządek, wysoko – rozjeżdżone błoto, kałuże i ślady opon.",
   "Placemaker.Farmstead.heaps": "Pryzmy",

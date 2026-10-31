@@ -185,6 +185,8 @@
   "Placemaker.Farmstead.terraces.Tooltip": "Escalona os campos íngremes em terraços planos com taludes curtos. Permanente: altera o terreno.",
   "Placemaker.Farmstead.vehicles": "Veículos",
   "Placemaker.Farmstead.vehicles.Tooltip": "Tratores e a caminhonete da fazenda, estacionados onde estariam: no galpão, junto aos celeiros, no pátio.",
+  "Placemaker.Farmstead.farmhouse": "Casa",
+  "Placemaker.Farmstead.farmhouse.Tooltip": "A casa ao lado do pátio, de frente para a estrada: um jardim com cerca viva, um portão para o pátio, árvores frutíferas e um galpão.",
   "Placemaker.Farmstead.yardMud": "Pátio enlameado",
   "Placemaker.Farmstead.yardMud.Tooltip": "Quanto o pátio é usado: baixo é arrumado, alto é lama revirada, poças e marcas de pneus.",
   "Placemaker.Farmstead.heaps": "Montes",

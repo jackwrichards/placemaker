@@ -185,6 +185,8 @@
   "Placemaker.Farmstead.terraces.Tooltip": "Делит крутые поля на ровные террасы с короткими откосами. Навсегда: меняет рельеф.",
   "Placemaker.Farmstead.vehicles": "Техника",
   "Placemaker.Farmstead.vehicles.Tooltip": "Тракторы и пикап фермы стоят там, где им место: под навесом, у сараев, во дворе.",
+  "Placemaker.Farmstead.farmhouse": "Дом",
+  "Placemaker.Farmstead.farmhouse.Tooltip": "Жилой дом рядом с двором, фасадом к дороге: сад с живой изгородью, калитка во двор, фруктовые деревья и сарай.",
   "Placemaker.Farmstead.yardMud": "Грязный двор",
   "Placemaker.Farmstead.yardMud.Tooltip": "Насколько двор в работе: мало — порядок, много — разбитая грязь, лужи и следы шин.",
   "Placemaker.Farmstead.heaps": "Кучи",

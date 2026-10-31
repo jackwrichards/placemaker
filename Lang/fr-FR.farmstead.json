@@ -185,6 +185,8 @@
   "Placemaker.Farmstead.terraces.Tooltip": "Découpe les champs en pente en terrasses planes aux talus courts. Permanent : modifie le terrain.",
   "Placemaker.Farmstead.vehicles": "Véhicules",
   "Placemaker.Farmstead.vehicles.Tooltip": "Tracteurs et pick-up de la ferme, garés où ils seraient : sous le hangar, près des granges, dans la cour.",
+  "Placemaker.Farmstead.farmhouse": "Maison",
+  "Placemaker.Farmstead.farmhouse.Tooltip": "La maison de ferme à côté de la cour, face à la route : un jardin avec une haie, un portail vers la cour, des arbres fruitiers et une remise.",
   "Placemaker.Farmstead.yardMud": "Cour boueuse",
   "Placemaker.Farmstead.yardMud.Tooltip": "L’usage de la cour : bas, elle est rangée ; haut, boue retournée, flaques et traces de pneus.",
   "Placemaker.Farmstead.heaps": "Tas",

@@ -185,6 +185,8 @@
   "Placemaker.Farmstead.terraces.Tooltip": "Steps the steep fields into level terraces with short banks. Permanent: changes the terrain.",
   "Placemaker.Farmstead.vehicles": "Vehicles",
   "Placemaker.Farmstead.vehicles.Tooltip": "Tractors and the farm pickup, parked where they would be: in the machinery shed, by the sheds, out in the yard.",
+  "Placemaker.Farmstead.farmhouse": "Farmhouse",
+  "Placemaker.Farmstead.farmhouse.Tooltip": "The farmhouse beside the yard, facing the road: a garden with a hedge, a gate to the yard, fruit trees and a shed.",
   "Placemaker.Farmstead.yardMud": "Muddy yard",
   "Placemaker.Farmstead.yardMud.Tooltip": "How worked the farmyard is: low is tidy, high is churned mud, puddles and tyre tracks.",
   "Placemaker.Farmstead.heaps": "Heaps",

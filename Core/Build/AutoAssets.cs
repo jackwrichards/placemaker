@@ -95,7 +95,8 @@ namespace Placemaker.Core.Build
         /// without this the car yards built their fallbacks (trailer loads of boxes, cable reels, generators) instead of cars
         /// (industrial makeover, 2026-10-30).
         /// </summary>
-        public static bool IsOwn(string id) => id != null && id.StartsWith(Layers.Types.Yards.VehicleProps.Prefix, StringComparison.Ordinal);
+        public static bool IsOwn(string id) => id != null && (id.StartsWith(Layers.Types.Yards.VehicleProps.Prefix, StringComparison.Ordinal)
+            || id.StartsWith(Layers.Types.Yards.HouseProps.Prefix, StringComparison.Ordinal));   // (P2-3) the farmhouses, from vanilla houses
 
         public static int Resolve(ComposedPlan plan, AutoAssetSource source)
         {

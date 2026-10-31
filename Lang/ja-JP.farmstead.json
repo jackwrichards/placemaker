@@ -185,6 +185,8 @@
   "Placemaker.Farmstead.terraces.Tooltip": "急な畑を短い土手のある平らな段に切ります。永続：地形を変えます。",
   "Placemaker.Farmstead.vehicles": "車両",
   "Placemaker.Farmstead.vehicles.Tooltip": "トラクターと農場のピックアップ。機械小屋、納屋のそば、庭先など、ありそうな場所に停めます。",
+  "Placemaker.Farmstead.farmhouse": "農家の家",
+  "Placemaker.Farmstead.farmhouse.Tooltip": "庭の横で道路に面した農家の家。生け垣のある庭、庭先への門、果樹と物置。",
   "Placemaker.Farmstead.yardMud": "ぬかるんだ庭",
   "Placemaker.Farmstead.yardMud.Tooltip": "農場の庭の使われ具合：低いと整然、高いと泥、水たまり、タイヤ跡。",
   "Placemaker.Farmstead.heaps": "堆積物",

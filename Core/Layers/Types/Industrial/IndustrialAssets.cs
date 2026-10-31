@@ -69,6 +69,26 @@ namespace Placemaker.Core.Layers.Types.Yards
         };
     }
 
+    /// <summary>
+    /// (P2-3) Houses as static props: the meshes of the game's own low-density houses (Game/Assets/VehiclePropSystem makes
+    /// them with the vehicle props). Vanilla has no house prop at all; a farm without its farmhouse read as a barn yard.
+    /// Each slot takes the first of its sources the game has (EU first: the rural look), so a slot keeps its house.
+    /// </summary>
+    public static class HouseProps
+    {
+        public const string Prefix = "Placemaker House ";
+        public static string House(int i) => Prefix + i;
+
+        /// <summary>Slot → the vanilla buildings it may copy, in order (lot cells in the name: 3x3 = 24 × 24 m).</summary>
+        public static readonly string[][] Sources =
+        {
+            new[] { "EU_ResidentialLow01_L1_3x3", "EU_ResidentialLow03_L1_3x3", "NA_ResidentialLow01_L1_3x3" },
+            new[] { "EU_ResidentialLow03_L1_3x3", "EU_ResidentialLow01_L1_3x4", "NA_ResidentialLow01_L1_3x2" },
+            new[] { "EU_ResidentialLow01_L1_2x3", "EU_ResidentialLow03_L1_2x3", "NA_ResidentialLow01_L1_2x3" },
+            new[] { "NA_ResidentialLow01_L1_3x3", "EU_ResidentialLow01_L1_3x2", "EU_ResidentialLow03_L1_3x2" },
+        };
+    }
+
     public static class IndustrialAssets
     {
         // ───────────── containers ─────────────

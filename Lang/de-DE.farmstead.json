@@ -185,6 +185,8 @@
   "Placemaker.Farmstead.terraces.Tooltip": "Stuft steile Felder in ebene Terrassen mit kurzen Böschungen. Dauerhaft: verändert das Gelände.",
   "Placemaker.Farmstead.vehicles": "Fahrzeuge",
   "Placemaker.Farmstead.vehicles.Tooltip": "Traktoren und der Hof-Pick-up, dort abgestellt, wo sie hingehören: im Maschinenschuppen, an den Scheunen, auf dem Hof.",
+  "Placemaker.Farmstead.farmhouse": "Bauernhaus",
+  "Placemaker.Farmstead.farmhouse.Tooltip": "Das Bauernhaus neben dem Hof, zur Straße hin: ein Garten mit Hecke, ein Tor zum Hof, Obstbäume und ein Schuppen.",
   "Placemaker.Farmstead.yardMud": "Matschiger Hof",
   "Placemaker.Farmstead.yardMud.Tooltip": "Wie stark der Hof genutzt wird: niedrig ist aufgeräumt, hoch ist zerfahrener Matsch mit Pfützen und Reifenspuren.",
   "Placemaker.Farmstead.heaps": "Haufen",

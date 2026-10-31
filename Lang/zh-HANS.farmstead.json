@@ -185,6 +185,8 @@
   "Placemaker.Farmstead.terraces.Tooltip": "把陡峭的田地修成带短坡坎的平整台地。永久：会改变地形。",
   "Placemaker.Farmstead.vehicles": "车辆",
   "Placemaker.Farmstead.vehicles.Tooltip": "拖拉机和农场皮卡停在该停的地方：农机棚里、谷仓旁、院子里。",
+  "Placemaker.Farmstead.farmhouse": "农舍",
+  "Placemaker.Farmstead.farmhouse.Tooltip": "院子旁面向道路的农舍：带树篱的花园、通往院子的门、果树和工具棚。",
   "Placemaker.Farmstead.yardMud": "泥泞院子",
   "Placemaker.Farmstead.yardMud.Tooltip": "农家院子的使用程度：低为整洁，高为翻起的泥地、水洼和轮胎印。",
   "Placemaker.Farmstead.heaps": "堆肥",

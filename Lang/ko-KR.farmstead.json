@@ -185,6 +185,8 @@
   "Placemaker.Farmstead.terraces.Tooltip": "가파른 밭을 짧은 둑이 있는 평평한 계단으로 만듭니다. 영구: 지형을 바꿉니다.",
   "Placemaker.Farmstead.vehicles": "차량",
   "Placemaker.Farmstead.vehicles.Tooltip": "트랙터와 농장 픽업트럭을 있을 법한 곳에 세웁니다: 농기계 창고, 헛간 옆, 마당.",
+  "Placemaker.Farmstead.farmhouse": "농가 주택",
+  "Placemaker.Farmstead.farmhouse.Tooltip": "마당 옆에서 도로를 향한 농가 주택: 산울타리가 있는 정원, 마당으로 가는 문, 과일나무와 창고.",
   "Placemaker.Farmstead.yardMud": "진흙 마당",
   "Placemaker.Farmstead.yardMud.Tooltip": "농장 마당이 얼마나 쓰이는지: 낮으면 깔끔, 높으면 진흙, 웅덩이, 바퀴 자국.",
   "Placemaker.Farmstead.heaps": "더미",

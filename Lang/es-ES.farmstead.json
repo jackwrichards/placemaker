@@ -185,6 +185,8 @@
   "Placemaker.Farmstead.terraces.Tooltip": "Escalona los campos empinados en bancales llanos con taludes cortos. Permanente: cambia el terreno.",
   "Placemaker.Farmstead.vehicles": "Vehículos",
   "Placemaker.Farmstead.vehicles.Tooltip": "Tractores y la camioneta de la granja, aparcados donde estarían: en el cobertizo, junto a los establos, en el patio.",
+  "Placemaker.Farmstead.farmhouse": "Casa",
+  "Placemaker.Farmstead.farmhouse.Tooltip": "La casa junto al patio, mirando a la carretera: un jardín con seto, una puerta al patio, frutales y un cobertizo.",
   "Placemaker.Farmstead.yardMud": "Patio embarrado",
   "Placemaker.Farmstead.yardMud.Tooltip": "Cuánto se trabaja el patio: bajo es ordenado, alto es barro removido, charcos y rodadas.",
   "Placemaker.Farmstead.heaps": "Montones",
