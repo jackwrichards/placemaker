@@ -258,6 +258,8 @@ namespace Placemaker.Core.Layers.Types.Beach
                 var flat = Band(b.Wet * 0.5f, f.MarshTo);
                 Brushes.Scatter(B, flat, "marshMud", 0.28f, new ScatterOptions { Weight = p => math.saturate(1f - f.ChannelDistance(p, out _) / 12f), Opacity = new float2(0.6f, 0.95f), Clump = 3f, Cause = "marsh:mud" });
                 Brushes.Scatter(B, flat, "sedgeLitter", 0.32f, new ScatterOptions { Opacity = new float2(0.6f, 0.9f), Clump = 3f, Cause = "marsh:sedge" });
+                // long marsh grass in drifts over the flat (from above the reed bushes alone read as scattered shrubs)
+                Brushes.Scatter(B, flat, "longGrass", 0.3f, new ScatterOptions { Opacity = new float2(0.6f, 0.95f), Clump = 5f, Loners = 0.2f, Cause = "marsh:grass" });
             }
             foreach (var c in b.FirePlaces) Brushes.At(B, c, new float2(1f, 0f), "ashScorch", 3.2f, new float2(0.85f, 1f), 1, cause: "fire:ash");
 
