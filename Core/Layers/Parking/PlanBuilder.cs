@@ -538,7 +538,7 @@ namespace Placemaker.Core.Layers.Parking
                         plan.Objects.Add(new PlannedObject
                         {
                             Position = new float3((float)p.x, g, (float)p.y), Yaw = yaw, Role = ObjectRole.Furniture,
-                            Asset = new AssetRef("EU_Wall01", "EU_Wall05"), Category = AssetCategories.RuinsWall, Variation = (uint)n,
+                            Asset = new AssetRef("EU_Wall08", "EU_Wall01"), Category = AssetCategories.RuinsWall, Variation = (uint)n,
                             Elevation = (float)(w.Low - g) + c * Kerbs.WallH - sink,
                         });
                         n++;

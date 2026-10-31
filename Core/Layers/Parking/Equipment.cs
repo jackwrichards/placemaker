@@ -121,7 +121,9 @@ namespace Placemaker.Core.Layers.Parking
                 if (k.Signs)
                 {
                     var p = Beside(1.2, 1.4);
-                    Obj(plan, f.ToWorld(p), f.DirToWorld(-e.Inward), Hgt, new AssetRef("ParkInfosign01", "ParkInfosign02", "ParkSignpost01"), AssetCategories.TrailSign, (uint)n++);
+                    // a coin park announces itself with a tall price pylon (the game has no parking sign pole: its pylon sign stands in)
+                    if (k.Payment == Payment.Coin) Obj(plan, f.ToWorld(p), f.DirToWorld(-e.Inward), Hgt, new AssetRef("GasStationPylon01 - SpinningSpool", "GasStationPylon02 - SpinningSpool", "ParkInfosign01"), AssetCategories.TrailSign, (uint)n++);
+                    else Obj(plan, f.ToWorld(p), f.DirToWorld(-e.Inward), Hgt, new AssetRef("ParkInfosign01", "ParkInfosign02", "ParkSignpost01"), AssetCategories.TrailSign, (uint)n++);
                     // the painted P in the lane just inside
                     if (k.Paved) Obj(plan, f.ToWorld(e.Point + e.Inward * 7.5), f.DirToWorld(-e.Inward), Hgt, new AssetRef("ParkingIconDecal01", "ParkingTextDecal01"), AssetCategories.DecalMarkings, (uint)n++, ObjectRole.Decal);
                 }

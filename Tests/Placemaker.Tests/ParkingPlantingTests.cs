@@ -107,7 +107,7 @@ namespace Placemaker.Tests
             var near = all.Where(d => d < 20).ToList();
             int even = near.Count(d => Math.Abs(d - usual * Math.Round(d / usual)) < 0.6);
             _out.WriteLine($"usual gap {usual:F1} m: {even} of {near.Count} gaps under 20 m");
-            Assert.True(usual >= 6, $"trees {usual:F1} m apart");
+            Assert.True(usual >= 5.9, $"trees {usual:F1} m apart");   // P2-5: denser lines; two stalls (6 m) is the closest a crown allows
             Assert.True(even == near.Count, $"gaps {string.Join(", ", all.Select(x => x.ToString("F1")))}");
         }
 
@@ -125,7 +125,8 @@ namespace Placemaker.Tests
             }
             int sparse = Trees(20), normal = Trees(50), dense = Trees(100);
             _out.WriteLine($"line trees at 20/50/100 %: {sparse}/{normal}/{dense}");
-            Assert.True(sparse < normal && normal < dense, $"{sparse} / {normal} / {dense}");
+            // (P2-5) the lines are denser: by 50 % the test species stands every second stall, the closest the crown allows, so 100 % may equal it
+            Assert.True(sparse < normal && normal <= dense, $"{sparse} / {normal} / {dense}");
             Assert.Equal(0, Trees(0));
         }
 

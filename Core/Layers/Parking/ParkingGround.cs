@@ -208,6 +208,19 @@ namespace Placemaker.Core.Layers.Parking
                         Brushes.EdgeStrip(B, new[] { W(a), W(b) }, "mudTyreTrack", new StripOptions { Side = 1, Gaps = 0.1f, Cause = "works:ruts" });
                     }
                 }
+                // walkways (drawn by the player, footpath entrances): their own paving, grey block pavers in 2 m squares
+                // (P2-1 hand-over: drawn walkways were paved like the aisles)
+                foreach (var ln in _l.LiveLines)
+                {
+                    if (ln.Kind != LineKind.Walk && ln.Kind != LineKind.Footpath) continue;
+                    double len = ln.Length;
+                    if (len < 1) continue;
+                    var d = PGeo.Norm(ln.B - ln.A);
+                    double w = Math.Max(2.0, ln.Width + 0.4);
+                    int n = Math.Max(1, (int)Math.Round(len / w));
+                    for (int i = 0; i < n; i++)
+                        Put("paverBand", W(ln.A + d * (len * (i + 0.5) / n)), Dir(d), (float)(len / n) + 0.05f, 1f, "coat:walk", (float)(w / (len / n)));
+                }
                 // stalls on their own material (pavers in the stalls, asphalt in the aisles): one slab per stall
                 if (_k.StallPaving != StallPaving.Same)
                 {

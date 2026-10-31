@@ -41,6 +41,9 @@ namespace Placemaker.Core.Layers.Parking
         public float MinArea => 400f;
         public float MaxArea => 300000f;
 
+        // Groups in display order (declared before the controls: static fields initialise in order) — the UI shows every control, so the
+        // most used come first.
+        private static readonly string[] _groupOrder = { "entrances", "layout", "look", "lines", "edge", "spaces", "planting", "lighting", "facilities", "extras", "surfaces", "zoning", "fee", "decals" };
         private static readonly IReadOnlyList<ControlSchema> _controls = BuildControls();
         private static readonly IReadOnlyList<PresetInfo> _presets = BuildPresets();
 
@@ -126,8 +129,7 @@ namespace Placemaker.Core.Layers.Parking
             }
         }
 
-        // Groups in display order — the UI shows every control, so the most used come first.
-        internal static readonly string[] GroupOrder = { "entrances", "layout", "spaces", "planting", "lighting", "surfaces", "zoning", "fee", "decals" };
+        internal static string[] GroupOrder => _groupOrder;
 
         private static IReadOnlyList<ControlSchema> BuildControls()
         {
@@ -250,6 +252,12 @@ namespace Placemaker.Core.Layers.Parking
             var groups = new HashSet<string>(StringComparer.Ordinal);
             foreach (var c in l) groups.Add(c.Group);
             l.AddRange(Decals.DressingControls.For(LayerId, groups.Contains));
+            // (P2-5) the sections in GroupOrder, each contiguous (the look controls are added together, their shape in Layout); sections
+            // not in the order (the shared Ground section) keep their place after them
+            var sorted = new List<ControlSchema>();
+            foreach (var gname in GroupOrder) foreach (var c in l) if (c.Group == gname) sorted.Add(c);
+            foreach (var c in l) if (Array.IndexOf(GroupOrder, c.Group) < 0) sorted.Add(c);
+            l = sorted;
             return l;
         }
 
@@ -273,7 +281,7 @@ namespace Placemaker.Core.Layers.Parking
             var age = Slider(LookIds.PavingAge, ControlTier.More, "look", 45, 0, 100, 5, "%");
             age.VisibleWhen = LookIds.Paving + "=asphalt|darkAsphalt";
             l.Add(age);
-            l.Add(Slider(LookIds.Cleanliness, ControlTier.Essential, "look", 55, 0, 100, 5, "%"));
+            l.Add(Slider(LookIds.Cleanliness, ControlTier.More, "look", 55, 0, 100, 5, "%"));
             l.Add(Slider(LookIds.Wear, ControlTier.More, "look", 100, 0, 200, 10, "%"));
             // lines
             var ms = Choice(LookIds.MarkingStyle, ControlTier.Essential, "lines", ParkingLook.MarkingValues, 0, "MarkingStyle");

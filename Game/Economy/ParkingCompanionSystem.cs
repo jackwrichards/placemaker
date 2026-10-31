@@ -2,7 +2,8 @@
 // Port of ParkingLotTool's "Wirtschaftsbegleiter" (ParkingLotBuildingEconomy*, ParkingLotEmployee-
 // System, ParkingLotEconomySystem — KruemelGames, GPL-3.0), reduced to the measured recipe.
 //
-// EXPERIMENTAL and OFF by default (CompanionEnabled): the recipe crashed natively several times
+// ON by default since P2-5 (2026-10-31, game runner send-parking-companion-1031-132310: made for a German lot, the city ran,
+// removed with nothing left, no exception). Before: EXPERIMENTAL and OFF (CompanionEnabled): the recipe crashed natively several times
 // during PLT's development before it settled; it needs in-game verification on 1.6.2f1 before it
 // may default on. Fees/comfort/capacity (ParkingEconomySystem) work without it.
 //
@@ -130,7 +131,7 @@ namespace Placemaker.Game.Economy
     /// </summary>
     public sealed partial class ParkingCompanionSystem : GameSystemBase
     {
-        public static bool CompanionEnabled = false;
+        public static bool CompanionEnabled = true;
         private const int ReadyDelayFrames = 3;
 
         private ParkingCompanionPrefabSystem _prefabSystem;
