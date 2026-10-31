@@ -127,7 +127,7 @@ namespace Placemaker.Game.Build
         private void EmitNets()
         {
             _heightsValid = false;
-            _sagNotes = _splitNotes = 0;
+            _sagNotes = _splitNotes = _wheelNotes = 0;
             // (2026-10-30) room in the terrain's road cull list before our nets come: TerrainCullGuard.cs (the CullForCascades crash)
             TerrainCullGuard.Reserve(_terrain, _work.Nets.Count);
             if (!_gEmission) ScanLivePits("before the nets");
@@ -489,6 +489,7 @@ namespace Placemaker.Game.Build
 
         /// <summary>Most a parked vehicle tilts to its ground (rad, about 14 degrees): steeper ground is a step, and the car sits low.</summary>
         private const float MaxVehicleTilt = 0.25f;
+        private int _wheelNotes;
 
         /// <summary>
         /// Height, pitch and roll that put a vehicle on its wheels: the ground under the four wheels (live terrain: the build has
@@ -510,6 +511,10 @@ namespace Placemaker.Game.Build
             roll = math.clamp(math.atan(((fr + br) - (fl + bl)) * 0.5f / (2f * w)), -MaxVehicleTilt, MaxVehicleTilt);
             float mean = (fl + fr + bl + br) * 0.25f, low = math.min(math.min(fl, fr), math.min(bl, br));
             pos.y = math.max(low, mean - 0.06f);
+            // the old way stood it at one height at its middle (the terraform target there): how far its lowest wheel hung over the ground
+            float gap = GroundHeight(c) - low;
+            if (gap > 0.15f && _wheelNotes++ < 10 && !_gEmission)
+                Mod.Log.Info($"Placemaker: vehicle prop at ({c.x:F0}, {c.y:F0}) set on its wheels: one height at its middle would have left a wheel {gap:F2} m over the ground (tilt {math.degrees(pitch):F1} / {math.degrees(roll):F1} degrees).");
             if (pitch == 0f) pitch = 1e-6f;   // a non-zero tilt is what makes the emit tilt the body
             return true;
         }

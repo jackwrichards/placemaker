@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+b5796d19",
+  "assembly": "0.3.6+dcf1913b",
   "categories": [
     {
       "id": "zoning",
@@ -999,6 +999,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -1856,6 +1861,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -2713,6 +2723,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -3570,6 +3585,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -4427,6 +4447,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -5284,6 +5309,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -6141,6 +6171,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -6998,6 +7033,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -7855,6 +7895,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -8712,6 +8757,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelved": true
@@ -9845,6 +9895,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelved": true
@@ -10703,6 +10758,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelved": true
@@ -11561,6 +11621,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelved": true
@@ -12419,6 +12484,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelved": true
@@ -13277,6 +13347,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelved": true
@@ -13503,6 +13578,11 @@
           "step": 0.5,
           "unit": "m",
           "default": 2.5
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -14400,6 +14480,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelved": true
@@ -14531,6 +14616,11 @@
           "id": "extraGreen",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -15423,6 +15513,11 @@
           "step": 5.0,
           "unit": "%",
           "default": 45.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelved": true
@@ -15583,6 +15678,11 @@
           "default": false
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -15740,6 +15840,11 @@
         },
         {
           "id": "lamps",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "dressGroundDecals",
           "kind": "Toggle",
           "default": true
         },
@@ -15993,6 +16098,11 @@
           "step": 0.5,
           "unit": "m",
           "default": 2.5
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelved": true,
@@ -16672,6 +16782,11 @@
           "default": "centre"
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -16897,6 +17012,11 @@
           "id": "extraGreen",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelved": true,
@@ -17028,6 +17148,11 @@
           "id": "extraGreen",
           "kind": "Toggle",
           "default": false
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelved": true,
@@ -17280,6 +17405,11 @@
           "step": 0.5,
           "unit": "m",
           "default": 2.5
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelvedStyles": [
@@ -18055,6 +18185,11 @@
           "default": true
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -18265,6 +18400,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -18481,6 +18621,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -18896,6 +19041,11 @@
           "default": 24.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -19078,6 +19228,11 @@
           "default": 24.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -19255,6 +19410,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -19436,6 +19596,11 @@
           "default": 24.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -19611,6 +19776,11 @@
           "default": 24.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -19781,6 +19951,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -20055,6 +20230,11 @@
           "default": 24.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -20188,6 +20368,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -20328,6 +20513,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -20523,6 +20713,11 @@
         {
           "id": "entrances",
           "kind": "Markers"
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -20667,6 +20862,11 @@
         {
           "id": "entrances",
           "kind": "Markers"
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -20811,6 +21011,11 @@
         {
           "id": "entrances",
           "kind": "Markers"
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelvedStyles": [
@@ -20959,6 +21164,11 @@
         {
           "id": "entrances",
           "kind": "Markers"
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ],
       "shelvedStyles": [
@@ -21252,6 +21462,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -21714,6 +21929,11 @@
           "default": 0.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -22039,6 +22259,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -22462,6 +22687,11 @@
           "default": 0.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -22727,6 +22957,11 @@
         {
           "id": "entrances",
           "kind": "Markers"
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -23023,6 +23258,11 @@
         {
           "id": "entrances",
           "kind": "Markers"
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -23439,6 +23679,11 @@
           "default": 24.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -23819,6 +24064,11 @@
           "default": 24.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -24138,6 +24388,11 @@
         {
           "id": "entrances",
           "kind": "Markers"
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -24460,6 +24715,11 @@
           "kind": "Markers"
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -24518,6 +24778,11 @@
             "exit",
             "alley"
           ]
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         }
       ]
     },
@@ -24827,6 +25092,11 @@
           "kind": "Markers"
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -25090,6 +25360,11 @@
             "bike",
             "main"
           ]
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -25431,6 +25706,11 @@
           "default": 24.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -25741,6 +26021,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -26065,6 +26350,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -26436,6 +26726,11 @@
           "default": 24.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -26731,6 +27026,11 @@
         {
           "id": "entrances",
           "kind": "Markers"
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -27030,6 +27330,11 @@
           ]
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -27320,6 +27625,11 @@
           "default": 24.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -27607,6 +27917,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -27960,6 +28275,11 @@
           "default": 24.0
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -28266,6 +28586,11 @@
           "step": 8.0,
           "unit": "m",
           "default": 24.0
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
@@ -29324,6 +29649,11 @@
           ]
         },
         {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
           "id": "dressStyle",
           "kind": "Choice",
           "options": [
@@ -29646,6 +29976,11 @@
             "bike",
             "main"
           ]
+        },
+        {
+          "id": "dressGroundDecals",
+          "kind": "Toggle",
+          "default": true
         },
         {
           "id": "dressStyle",
