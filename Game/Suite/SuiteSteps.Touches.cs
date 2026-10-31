@@ -30,9 +30,9 @@ namespace Placemaker.Game.Suite
             string kind = (string)step["kind"] ?? "stall.accessible";
             string group = Touches.GroupOf(kind);
             var plan = _tool.Plan;
-            var layer = plan?.Layers.FirstOrDefault(l => l != null && ((string)step["path"] == null || l.StepPath == (string)step["path"]) && l.TouchTargets.Any(t => t.Group == group));
+            var layer = plan?.Layers.FirstOrDefault(l => l != null && ((string)step["path"] == null || Touches.StepOf(l.StepPath) == (string)step["path"]) && l.TouchTargets.Any(t => t.Group == group));
             if (layer == null) { rec["error"] = "the plan offers nothing to touch for " + kind; yield break; }
-            string path = layer.StepPath;
+            string path = Touches.StepOf(layer.StepPath);
             rec["path"] = path;
             yield return UiAct(st, rec, "hand edit " + kind, "touch-" + kind, "setTouchKind", new object[] { path, kind }, () => _tool.TouchKind == kind, () => _tool.SetTouchKind(path, kind));
             if (_tool.TouchKind != kind) { rec["error"] = "the hand-edit kind did not take"; yield break; }
@@ -75,12 +75,12 @@ namespace Placemaker.Game.Suite
             stepObj = RecipePaths.Resolve(_tool.CurrentRecipe, path);
             rec["touchesAfter"] = stepObj?.Touches.Count ?? 0;
             yield return WaitPlan(st, rec);
-            var now = _tool.Plan?.Layers.FirstOrDefault(l => l != null && l.StepPath == path)?.TouchTargets
+            var now = _tool.Plan?.Layers.FirstOrDefault(l => l != null && Touches.StepOf(l.StepPath) == path)?.TouchTargets
                 .Where(t => t.Group == group).OrderBy(t => math.distance(t.Center.xz, pick.Center.xz)).FirstOrDefault();
             if (now != null) { rec["stateAfter"] = now.State; rec["touched"] = now.Touched; }
             if (_tool.Plan != null)
                 foreach (var l in _tool.Plan.Layers)
-                    if (l != null && l.StepPath == path && l.Facts.TryGetValue("touches.dropped", out var dr)) rec["dropped"] = dr;
+                    if (l != null && Touches.StepOf(l.StepPath) == path && l.Facts.TryGetValue("touches.dropped", out var dr)) rec["dropped"] = dr;
             Mod.Log.Info($"Placemaker suite touch: {kind} at ({pick.Center.x:F1}, {pick.Center.z:F1}) {pick.State} -> {now?.State ?? "?"}; hand edits {before} -> {stepObj?.Touches.Count ?? 0}");
         }
     }

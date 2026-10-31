@@ -548,7 +548,7 @@ namespace Placemaker.Game.Overlay
             var hover = _tool.TouchHover;
             foreach (var layer in plan.Layers)
             {
-                if (layer?.TouchTargets == null || layer.StepPath != _tool.TouchPath) continue;
+                if (layer?.TouchTargets == null || Touches.StepOf(layer.StepPath) != _tool.TouchPath) continue;
                 foreach (var t in layer.TouchTargets)
                 {
                     if (t == null || t.Group != group || t.Outline == null || t.Outline.Length < 2) continue;

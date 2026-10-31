@@ -145,7 +145,7 @@ namespace Placemaker.Game.Tool
             float bestD = float.MaxValue; float bestT = 0; float3 bestTo = default;
             foreach (var layer in _plan.Layers)
             {
-                if (layer == null || layer.StepPath != _markerPath) continue;
+                if (layer == null || Touches.StepOf(layer.StepPath) != _markerPath) continue;
                 foreach (var n in layer.Nets)
                 {
                     if (foot ? n.Role != NetRole.Pathway : n.Role != NetRole.DriveAisle) continue;

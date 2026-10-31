@@ -63,6 +63,14 @@ namespace Placemaker.Core
 
         public const string DroppedKey = "Placemaker.Touch.Dropped";
 
+        /// <summary>The recipe step a plan layer came from: its StepPath without the region ("0@root" → "0").</summary>
+        public static string StepOf(string planPath)
+        {
+            if (string.IsNullOrEmpty(planPath)) return planPath ?? "";
+            int at = planPath.LastIndexOf('@');
+            return at < 0 ? planPath : planPath.Substring(0, at);
+        }
+
         /// <summary>Group of a kind: "stall.accessible" → "stall".</summary>
         public static string GroupOf(string kind)
         {

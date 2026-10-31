@@ -63,7 +63,7 @@ namespace Placemaker.Game.Tool
             string group = Touches.GroupOf(kind);
             foreach (var layer in plan.Layers)
             {
-                if (layer == null || layer.StepPath != path || layer.TouchTargets == null) continue;
+                if (layer == null || Touches.StepOf(layer.StepPath) != path || layer.TouchTargets == null) continue;
                 foreach (var t in layer.TouchTargets) if (t != null && t.Group == group) yield return t;
             }
         }
