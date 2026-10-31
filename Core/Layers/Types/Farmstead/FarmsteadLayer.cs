@@ -888,12 +888,13 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             // (P2-3) A dirt or gravel yard is the ground itself, worked to earth: painted (earth, and the dark forest floor for mud),
             // its mud, puddles and tyre tracks laid by the ground design. The beige sand surface read as a slab dropped on the lawn
             // (run show-10-builds-1030-231154-0c65). Only a paved yard keeps a surface.
+            // Painted earth read as pale blotches (the dither of the light earth slot, runs show-7-builds-1031-000929-4a92 and
+            // show-3-builds-1031-003306-233b): a dirt or gravel yard is the dark forestry ground surface, worked by the decals.
             if (ground == "paved" && groundCat != null) ctx.Surface(yardRing, SurfaceRole.Paving, AssetMix.One(""), groundCat);
             else
             {
-                float mud = ctx.F("yardMud") / 100f;
-                TerrainPaint.Patch(ctx, yardRing, TerrainMaterials.Dirt, ground == "dirt" ? 0.6f : 0.8f, 3f);
-                TerrainPaint.Patch(ctx, yardRing, TerrainMaterials.Lush, ground == "dirt" ? 0.75f + 0.25f * mud : 0.45f + 0.4f * mud, 3f);
+                ctx.Surface(yardRing, SurfaceRole.Ground, new AssetRef("Forestry Surface 01", "Forestry Surface 01"), AssetCategories.SurfaceNatural);
+                TerrainPaint.Patch(ctx, LayerRegion.From(yardRing)?.InsetVertices(-4f) ?? yardRing, TerrainMaterials.Lush, 0.7f, 4f);
             }
             var yardRegion = LayerRegion.From(yardRing);
             if (yardRegion == null) return;

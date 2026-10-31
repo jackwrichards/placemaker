@@ -27,6 +27,14 @@ namespace Placemaker.Core.Layers.Types.Farmstead
         public static readonly BiomeOffer Biomes = new BiomeOffer(
             ("fields", 100), ("orchard", 0), ("pasture", 0), ("forest", 0), ("wetland", 0), ("water", 0), ("rocky", 0)) { Scale = 70 };
 
+        /// <summary>Tells the site harmony this plan shaped its own landforms (its regions "shaped:*" keep their shape).</summary>
+        private static void Shaped(LayerContext ctx, int cells)
+        {
+            if (cells <= 0) return;
+            ctx.Plan.Facts.TryGetValue(Build.SiteHarmony.ShapedFact, out var had);
+            ctx.Plan.Facts[Build.SiteHarmony.ShapedFact] = had + cells;
+        }
+
         private static int SeasonIndex(string s) => s == "spring" ? 0 : s == "harvest" ? 2 : s == "autumn" ? 3 : 1;
 
         private static void GateMark(LayerContext ctx, float2 p, string kind, int i) =>
@@ -122,6 +130,8 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             sc.LimitGrade(0.34f, 14, absolute: true);
             var res = sc.Emit(ctx, null);
             ctx.Plan.Facts["terracedFields"] = steep.Count;
+            Shaped(ctx, res.Cells);
+            for (int i = 0; i < steep.Count; i++) ctx.AddRegion(steep[i].Ring, "shaped:terrace:" + i, Build.SiteHarmony.ShapedTag + "terrace");
             return res.Cells;
         }
 
@@ -165,7 +175,19 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                 var want = math.normalizesafe(down + nrm * wob);
                 dir = math.lengthsq(dir) > 0 ? math.normalizesafe(dir * 0.6f + want * 0.4f) : want;
                 var next = p0 + dir * 4f;
-                if (hard.Hits(next, 5f)) { dir = math.normalizesafe(dir + nrm * 1.2f); next = p0 + dir * 4f; if (hard.Hits(next, 5f)) break; }
+                if (hard.Hits(next, 5f))
+                {
+                    // steer round the yard and the paddocks: the nearest free heading, turning further each try
+                    bool found = false;
+                    foreach (float ang in new[] { 0.5f, -0.5f, 1f, -1f, 1.5f, -1.5f })
+                    {
+                        float cs = math.cos(ang), sn = math.sin(ang);
+                        var d2 = new float2(dir.x * cs - dir.y * sn, dir.x * sn + dir.y * cs);
+                        if (hard.Hits(p0 + d2 * 4f, 5f)) continue;
+                        dir = d2; next = p0 + d2 * 4f; found = true; break;
+                    }
+                    if (!found) break;
+                }
                 if (!region.Contains(next)) { line.Add(region.ClosestOnBoundary(next, out _, out _)); break; }
                 line.Add(next);
                 p0 = next;
@@ -254,6 +276,7 @@ namespace Placemaker.Core.Layers.Types.Farmstead
             var res = sc.Emit(ctx, null);
             if (res.Cells == 0) return keep;
             channels = lines.Count;
+            Shaped(ctx, res.Cells);
             ctx.Plan.Facts["drainage" + (mode == "ravine" ? "Ravine" : "Ditches")] = lines.Count;
             ctx.Plan.Facts["drainageDepth"] = math.round(-res.MinOffset * 10f) / 10f;
             int ri = 0;
@@ -263,7 +286,7 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                 var band = Band(l.line, l.top + 0.5f);
                 if (band != null)
                 {
-                    ctx.AddRegion(band, "farmChannel:" + ri, "farmChannel:" + mode);
+                    ctx.AddRegion(band, "farmChannel:" + ri, "farmChannel:" + mode, Build.SiteHarmony.ShapedTag + "channel");
                     if (mode == "ravine") { keep.Add(band); hard.Add(band); }
                 }
                 for (int i = 0; i + 1 < l.line.Count; i++) occ.TakeCorridor(l.line[i], l.line[i + 1], mode == "ravine" ? l.floor + 1f : 0.8f, 6);
@@ -411,7 +434,8 @@ namespace Placemaker.Core.Layers.Types.Farmstead
                     }
                     return b + off;
                 });
-                sc.Emit(ctx, null);
+                Shaped(ctx, sc.Emit(ctx, null).Cells);
+                foreach (var s in sculptSpots) ctx.AddRegion(LayerRegion.Circle(s.c, s.hl + 1.5f, 12), "shaped:heap", Build.SiteHarmony.ShapedTag + "heap");
             }
             ctx.Plan.Facts["farmHeaps"] = made;
             return made;

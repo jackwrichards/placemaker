@@ -93,6 +93,8 @@ namespace Placemaker.Core.Build
         public const float MinChange = 0.12f;
         /// <summary>Under paths, pads and graded surfaces: emitted from this change on.</summary>
         public const float MinProtectedChange = 0.02f;
+        /// <summary>Region tag prefix and plan fact of designed landforms the smoothing keeps (MoodRings).</summary>
+        public const string ShapedTag = "shaped:", ShapedFact = "shapedTerrainCells";
         /// <summary>Cut / fill limit of the pass (m).</summary>
         public const float MaxEarthwork = 3.5f;
         /// <summary>Furniture ground (TerrainSurvey.FurnitureGrade) and pad tilt limits.</summary>
@@ -733,12 +735,14 @@ namespace Placemaker.Core.Build
                 // only a layer whose places shaped their own ground ("moodTerrainCells", ParkMoods; "biomeTerrainCells", Biome mix)
                 if (!c.Part[li] || plan.Layers[li] == null) continue;
                 bool moods = plan.Layers[li].Facts.ContainsKey("moodTerrainCells"), biomes = plan.Layers[li].Facts.ContainsKey("biomeTerrainCells");
-                if (!moods && !biomes) continue;
+                // (P2-3) any type's designed landforms: regions tagged "shaped:*" with the fact "shapedTerrainCells" (a farm's terraces, ravine, heaps)
+                bool shaped = plan.Layers[li].Facts.ContainsKey(ShapedFact);
+                if (!moods && !biomes && !shaped) continue;
                 foreach (var rg in plan.Layers[li].Regions)
                 {
                     if (rg?.Tags == null || rg.Ring == null || rg.Ring.Length < 3) continue;
                     foreach (var t in rg.Tags)
-                        if (t != null && (moods && t.StartsWith("mood:", StringComparison.Ordinal) && t != "mood:gullyFloor" || biomes && Layers.Common.Biomes.BiomeBuilder.Shaped(t))) { list.Add(Poly.To2D(rg.Ring)); break; }
+                        if (t != null && (moods && t.StartsWith("mood:", StringComparison.Ordinal) && t != "mood:gullyFloor" || biomes && Layers.Common.Biomes.BiomeBuilder.Shaped(t) || shaped && t.StartsWith(ShapedTag, StringComparison.Ordinal))) { list.Add(Poly.To2D(rg.Ring)); break; }
                 }
             }
             return list;
