@@ -1,6 +1,6 @@
 {
   "generatedBy": "the in-game suite from GeneratorRegistry",
-  "assembly": "0.3.6+4fc1c877-dirty",
+  "assembly": "0.3.6+48255419",
   "categories": [
     {
       "id": "zoning",
@@ -8774,7 +8774,17 @@
         "standard",
         "compact",
         "green",
-        "angled"
+        "angled",
+        "japanese",
+        "german",
+        "bigBox",
+        "rich",
+        "rundown",
+        "gravel",
+        "construction",
+        "eco",
+        "terraced",
+        "round"
       ],
       "options": [
         {
@@ -8881,6 +8891,122 @@
           "default": true
         },
         {
+          "id": "lotShape",
+          "kind": "Choice",
+          "options": [
+            "rows",
+            "round",
+            "terraced"
+          ],
+          "default": "rows"
+        },
+        {
+          "id": "paving",
+          "kind": "Choice",
+          "options": [
+            "asphalt",
+            "darkAsphalt",
+            "concrete",
+            "pavers",
+            "gravel",
+            "dirt"
+          ],
+          "default": "asphalt"
+        },
+        {
+          "id": "stallPaving",
+          "kind": "Choice",
+          "options": [
+            "same",
+            "concrete",
+            "pavers",
+            "grassPavers"
+          ],
+          "default": "same"
+        },
+        {
+          "id": "pavingAge",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 45.0
+        },
+        {
+          "id": "cleanliness",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 55.0
+        },
+        {
+          "id": "wear",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 200.0,
+          "step": 10.0,
+          "unit": "%",
+          "default": 100.0
+        },
+        {
+          "id": "markingStyle",
+          "kind": "Choice",
+          "options": [
+            "classic",
+            "double",
+            "tee",
+            "boxes",
+            "japan",
+            "yellow"
+          ],
+          "default": "classic"
+        },
+        {
+          "id": "paintAge",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 35.0
+        },
+        {
+          "id": "crossings",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "dashed",
+            "zebra"
+          ],
+          "default": "dashed"
+        },
+        {
+          "id": "aisleMarks",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "kerbs",
+          "kind": "Choice",
+          "options": [
+            "concrete",
+            "granite",
+            "redWhite",
+            "yellow",
+            "flush",
+            "none"
+          ],
+          "default": "concrete"
+        },
+        {
+          "id": "wheelStops",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
           "id": "stallWidth",
           "kind": "Slider",
           "min": 2.5,
@@ -8984,6 +9110,18 @@
           "default": []
         },
         {
+          "id": "islandStyle",
+          "kind": "Choice",
+          "options": [
+            "grass",
+            "shrubs",
+            "hedge",
+            "bioswale",
+            "gravel"
+          ],
+          "default": "grass"
+        },
+        {
           "id": "lanterns",
           "kind": "Toggle",
           "default": true
@@ -9001,6 +9139,86 @@
           "step": 1.0,
           "unit": "m",
           "default": 30.0
+        },
+        {
+          "id": "signs",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "payment",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "entrance",
+            "rows",
+            "coin"
+          ],
+          "default": "none"
+        },
+        {
+          "id": "barrier",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "solarCanopies",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "cartCorrals",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "bikeStands",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "bins",
+          "kind": "Toggle",
+          "default": true
+        },
+        {
+          "id": "drainage",
+          "kind": "Choice",
+          "options": [
+            "none",
+            "grates",
+            "channel",
+            "barranca"
+          ],
+          "default": "grates"
+        },
+        {
+          "id": "rundownCars",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 100.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "camp",
+          "kind": "Toggle",
+          "default": false
+        },
+        {
+          "id": "construction",
+          "kind": "Slider",
+          "min": 0.0,
+          "max": 60.0,
+          "step": 5.0,
+          "unit": "%",
+          "default": 0.0
+        },
+        {
+          "id": "kiosk",
+          "kind": "Toggle",
+          "default": false
         },
         {
           "id": "asphaltSurface",
@@ -9081,6 +9299,7 @@
         }
       ],
       "shelvedStyles": [
+        "compact",
         "green"
       ]
     },
@@ -18855,13 +19074,11 @@
         }
       ],
       "shelvedStyles": [
-        "formal",
         "meadow",
         "pocket",
         "victorian",
         "landscape",
         "modern",
-        "wildflower",
         "riverside",
         "greenway"
       ]
