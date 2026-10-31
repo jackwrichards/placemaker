@@ -137,6 +137,7 @@
   "Placemaker.Park.Issue.NoRoomForPlaza.Short": "无广场",
   "Placemaker.Park.Issue.NoRoomForTrails.Short": "无土路",
   "Placemaker.Park.Issue.PathStyleFallback.Short": "已用自动小径",
+  "Placemaker.Park.Issue.PathStyleSteep.Short": "小径顺坡铺设",
   "Placemaker.Park.Issue.PlazaSmaller.Short": "广场缩小",
   "Placemaker.Parking.Issue.BadShape.Short": "边相交",
   "Placemaker.Parking.Issue.BusStopNoRoad.Short": "公交站不在街边",

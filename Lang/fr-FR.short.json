@@ -137,6 +137,7 @@
   "Placemaker.Park.Issue.NoRoomForPlaza.Short": "Pas de place",
   "Placemaker.Park.Issue.NoRoomForTrails.Short": "Pas de sentiers",
   "Placemaker.Park.Issue.PathStyleFallback.Short": "Chemins auto utilisés",
+  "Placemaker.Park.Issue.PathStyleSteep.Short": "Chemins selon la pente",
   "Placemaker.Park.Issue.PlazaSmaller.Short": "Place réduite",
   "Placemaker.Parking.Issue.BadShape.Short": "Bords croisés",
   "Placemaker.Parking.Issue.BusStopNoRoad.Short": "Arrêt loin de la rue",

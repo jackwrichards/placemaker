@@ -182,6 +182,7 @@
   "Placemaker.Park.fountainPath.Tooltip": "Aggiunge un breve sentiero dal sentiero più vicino alla fontana.",
   "Placemaker.Park.Preset.garden": "Passeggiata in giardino",
   "Placemaker.Park.Issue.PathStyleFallback": "Questo stile di sentieri non si adatta a quest'area (o richiede un laghetto o degli elementi); sono stati usati sentieri automatici.",
+  "Placemaker.Park.Issue.PathStyleSteep": "Questo terreno è troppo ripido per il tracciato di questo stile di sentieri; i sentieri seguono il pendio.",
   "Placemaker.Plaza.centerKind": "Tipo di centro",
   "Placemaker.Plaza.centerKind.Tooltip": "Quale tipo di elemento centrale usa la scelta automatica.",
   "Placemaker.Plaza.centerKind.any": "Qualsiasi",

@@ -95,5 +95,29 @@ namespace Placemaker.Tests
             // before P2-4: botanical gardens 246-271° per 100 m (a kink every 10 m), garden park 160-195; after: 46-133
             Assert.True(per100 <= 180, $"walks turn {per100:F0}° per 100 m (sawtooth)");
         }
+        [Theory]
+        [InlineData("urban")]
+        [InlineData("picnic")]
+        public void DrawnPathStylesFollowTheSlopeOnSteepLand(string preset)
+        {
+            // (P2-4) the urban spokes made 408 steep path pieces on the runner's mountains, the picnic circuit 322
+            foreach (var land in new[] { "slope", "mountains" })
+            {
+                Func<float2, float> h = land == "slope" ? p => 0.10f * p.y : Mountains;
+                var gen = GeneratorRegistry.Get("park");
+                var editor = new DesignEditor(GeneratorRegistry.Get);
+                var site = DynamicDecalsTests.Streets(220, 200, h);
+                var ring = DynamicDecalsTests.Block(220, 200).Select(p => new float3(p.x, h(p.xz), p.z)).ToArray();
+                var recipe = editor.SingleLayerRecipe(gen, 3);
+                editor.ApplyPreset(recipe, "0", preset);
+                TestKit.Entered(recipe, ring, site);
+                var plan = Composer.Compose(recipe, new AreaShape { Ring = ring, Source = AreaSource.Drawn }, site, CancellationToken.None);
+                var f = plan.Layers[0].Facts;
+                bool switched = f.ContainsKey("pathStyleSteep");
+                _out.WriteLine($"{preset} on {land}: switched {switched}, steep path pieces {(f.TryGetValue("harmonySteepEdges", out var st) ? st : -1)}");
+                Assert.Equal(land == "mountains", switched);
+                if (switched) Assert.Contains(plan.Layers[0].Issues, i => i.Key == "Placemaker.Park.Issue.PathStyleSteep");
+            }
+        }
     }
 }

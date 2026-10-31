@@ -182,6 +182,7 @@
   "Placemaker.Park.fountainPath.Tooltip": "從最近的小徑加一條短小徑通往噴泉。",
   "Placemaker.Park.Preset.garden": "花園步道",
   "Placemaker.Park.Issue.PathStyleFallback": "此小徑樣式不適合這個區域（或需要池塘或景點）；已改用自動小徑。",
+  "Placemaker.Park.Issue.PathStyleSteep": "此地形太陡，無法採用此小徑樣式的布局；小徑改為順著坡勢鋪設。",
   "Placemaker.Plaza.centerKind": "中央種類",
   "Placemaker.Plaza.centerKind.Tooltip": "自動選擇時使用哪一種中央景觀。",
   "Placemaker.Plaza.centerKind.any": "不限",

@@ -137,6 +137,7 @@
   "Placemaker.Park.Issue.NoRoomForPlaza.Short": "Нет площади",
   "Placemaker.Park.Issue.NoRoomForTrails.Short": "Нет грунтовых троп",
   "Placemaker.Park.Issue.PathStyleFallback.Short": "Авто-дорожки",
+  "Placemaker.Park.Issue.PathStyleSteep.Short": "Дорожки по склону",
   "Placemaker.Park.Issue.PlazaSmaller.Short": "Площадь меньше",
   "Placemaker.Parking.Issue.BadShape.Short": "Края пересекаются",
   "Placemaker.Parking.Issue.BusStopNoRoad.Short": "Остановка не у улицы",

@@ -182,6 +182,7 @@
   "Placemaker.Park.fountainPath.Tooltip": "가장 가까운 길에서 분수까지 짧은 길을 냅니다.",
   "Placemaker.Park.Preset.garden": "정원 산책",
   "Placemaker.Park.Issue.PathStyleFallback": "이 길 스타일이 이 구역에 맞지 않아(또는 연못이나 시설이 필요해) 대신 자동 길을 썼습니다.",
+  "Placemaker.Park.Issue.PathStyleSteep": "이 땅은 이 길 스타일의 배치에는 너무 가팔라서 길이 경사를 따라가게 했습니다.",
   "Placemaker.Plaza.centerKind": "중심 종류",
   "Placemaker.Plaza.centerKind.Tooltip": "자동 선택이 쓰는 중심 조형물의 종류입니다.",
   "Placemaker.Plaza.centerKind.any": "아무거나",

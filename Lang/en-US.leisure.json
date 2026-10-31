@@ -182,6 +182,7 @@
   "Placemaker.Park.fountainPath.Tooltip": "Adds a short path from the nearest path to the fountain.",
   "Placemaker.Park.Preset.garden": "Garden walk",
   "Placemaker.Park.Issue.PathStyleFallback": "This path style does not fit this area (or needs a pond or features); automatic paths were used instead.",
+  "Placemaker.Park.Issue.PathStyleSteep": "This land is too steep for this path style's layout; the paths follow the slope instead.",
   "Placemaker.Plaza.centerKind": "Centre kind",
   "Placemaker.Plaza.centerKind.Tooltip": "Which kind of centrepiece the automatic choice uses.",
   "Placemaker.Plaza.centerKind.any": "Any",
