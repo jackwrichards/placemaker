@@ -42,13 +42,19 @@ test("full flow: draw → design → review → build, then manage the result", 
     await panelShot(page, "panel-review");
 
     await expect(primary).toContainText("Build");
+    // Keep area off: Build builds, then Placemaker closes (Keep area on, the default, has its own test)
+    await page.getByTestId("build-keep").click();
+    await expect(page.getByTestId("build-keep")).toHaveAttribute("aria-checked", "false");
     await primary.click();
     await expect(page.getByTestId("stage-building")).toBeVisible();
     await panelShot(page, "panel-building");
-    await expect(page.getByTestId("stage-area")).toBeVisible({ timeout: 10000 });
-    // built: area cleared, design kept, group on the map
+    await expect(page.getByTestId("launcher")).toHaveAttribute("data-open", "false", { timeout: 10000 });
+    // built: area cleared, no type kept, group on the map
     expect(await page.evaluate(() => (window as any).pm.backend.groups.length)).toBe(1);
     expect(await page.evaluate(() => (window as any).pm.backend.ring.length)).toBe(0);
+    expect(await page.evaluate(() => (window as any).pm.backend.root)).toBeNull();
+    await page.getByTestId("launcher").locator("button").click();
+    await expect(page.getByTestId("stage-area")).toBeVisible();
     await shot(page, "06-built");
 
     // manage: click the built group
@@ -65,6 +71,64 @@ test("full flow: draw → design → review → build, then manage the result", 
     await page.getByTestId("confirm-ok").click();
     expect(await page.evaluate(() => (window as any).pm.backend.groups.length)).toBe(0);
 
+    expect(errors).toEqual([]);
+});
+
+test("Build & keep area: the area stays, back to Design with no type chosen", async ({ page }) => {
+    const errors = await open(page);
+    await drawPolygon(page, FIELD);
+    await page.getByTestId("primary").click();
+    expect(await stage(page)).toBe("design");
+    await waitPlanned(page);
+    await page.keyboard.press("Enter");
+    expect(await stage(page)).toBe("review");
+    await waitPlanned(page);
+    await expect(page.getByTestId("primary")).toContainText("Build");
+    await expect(page.getByTestId("build-keep")).toHaveAttribute("aria-checked", "true");
+    await page.getByTestId("primary").click();
+    await expect(page.getByTestId("stage-building")).toBeVisible();
+    await expect(page.getByTestId("stage-design")).toBeVisible({ timeout: 10000 });
+    expect(await page.evaluate(() => (window as any).pm.backend.groups.length)).toBe(1);
+    expect(await page.evaluate(() => (window as any).pm.backend.ring.length)).toBe(4);
+    expect(await page.evaluate(() => (window as any).pm.backend.root)).toBeNull();
+    await expect(page.getByTestId("primary")).toHaveAttribute("aria-disabled", "true");
+    await expect(page.getByTestId("launcher")).toHaveAttribute("data-open", "true");
+    expect(errors).toEqual([]);
+});
+
+test("Review's One group switch; Ungroup (asks first) and Group again in Manage", async ({ page }) => {
+    const errors = await open(page);
+    await drawPolygon(page, FIELD);
+    await page.getByTestId("primary").click();
+    await waitPlanned(page);
+    await page.keyboard.press("Enter");
+    expect(await stage(page)).toBe("review");
+    await waitPlanned(page);
+    // One group is on by default; off = built as separate pieces
+    await expect(page.getByTestId("build-group")).toHaveAttribute("aria-checked", "true");
+    await page.getByTestId("build-group").click();
+    await expect(page.getByTestId("build-group")).toHaveAttribute("aria-checked", "false");
+    expect(await page.evaluate(() => (window as any).pm.backend.buildSeparate)).toBe(true);
+    await panelShot(page, "panel-review-separate");
+    await page.getByTestId("build-group").click();
+    await page.getByTestId("build-keep").click();
+    await page.getByTestId("primary").click();
+    await expect(page.getByTestId("launcher")).toHaveAttribute("data-open", "false", { timeout: 10000 });
+    await page.getByTestId("launcher").locator("button").click();
+    await expect(page.getByTestId("stage-area")).toBeVisible();
+    await clickWorld(page, 650, 380);
+    await expect(page.getByTestId("stage-manage")).toBeVisible();
+    // Ungroup asks first (its pieces are then picked one by one); Group again does not
+    await page.getByTestId("manage-ungroup").click();
+    await expect(page.getByTestId("confirm-dialog")).toBeVisible();
+    await expect(page.getByTestId("confirm-dialog")).toContainText("bulldozer");
+    await panelShot(page, "panel-ungroup-confirm");
+    await page.getByTestId("confirm-ok").click();
+    await expect(page.getByTestId("manage-ungroup")).toContainText("Group again");
+    expect(await page.evaluate(() => [...(window as any).pm.backend.ungrouped])).toHaveLength(1);
+    await page.getByTestId("manage-ungroup").click();
+    await expect(page.getByTestId("manage-ungroup")).toContainText("Ungroup");
+    expect(await page.evaluate(() => [...(window as any).pm.backend.ungrouped])).toHaveLength(0);
     expect(errors).toEqual([]);
 });
 

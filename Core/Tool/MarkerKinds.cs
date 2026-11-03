@@ -16,6 +16,8 @@ namespace Placemaker.Core.Tool
         public string LabelKey = "";
         public string TooltipKey = "";
         public string Icon = "";
+        /// <summary>People walk in here: the entrance can come with or without a crosswalk (MarkerVariants.Walks).</summary>
+        public bool Crosswalk;
     }
 
     public static class MarkerKinds
@@ -41,7 +43,7 @@ namespace Placemaker.Core.Tool
         /// <summary>Overlay colour (r, g, b) per kind: two-way yellow, entry green, exit orange-red, alley grey, footpath sand, access blue.</summary>
         public static (float r, float g, float b) ColorFor(string kind)
         {
-            switch (kind)
+            switch (MarkerVariants.BaseKind(kind))
             {
                 case "entry": return (0.35f, 0.9f, 0.4f);
                 case "exit": return (1f, 0.45f, 0.25f);
@@ -80,6 +82,9 @@ namespace Placemaker.Core.Tool
             IReadOnlyList<ControlSchema> controls;
             try { controls = gen.Controls; } catch (Exception) { return list; }
             if (controls == null) return list;
+            var all = new List<string>();
+            foreach (var c in controls)
+                if (c != null && c.Kind == ControlKind.Markers && c.MarkerKinds != null) all.AddRange(c.MarkerKinds);
             foreach (var c in controls)
             {
                 if (c == null || c.Kind != ControlKind.Markers || c.MarkerKinds == null) continue;
@@ -91,6 +96,7 @@ namespace Placemaker.Core.Tool
                         Kind = kind,
                         LabelKey = "Placemaker." + Pascal(gen.Id) + ".Marker." + Pascal(kind),
                         Icon = IconFor(kind),
+                        Crosswalk = MarkerVariants.Walks(kind, all),
                     };
                     if (c.Options != null)
                         foreach (var o in c.Options)

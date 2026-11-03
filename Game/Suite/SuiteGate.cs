@@ -55,6 +55,7 @@ namespace Placemaker.Game.Suite
             Directory.CreateDirectory(cfg.outDir);
             updateSystem.UpdateAt<SuiteFixtureToolSystem>(SystemUpdatePhase.ToolUpdate);
             updateSystem.UpdateAt<SuiteUiSystem>(SystemUpdatePhase.UIUpdate);
+            updateSystem.UpdateBefore<SuiteLabShapeSystem, global::Game.Prefabs.PrefabInitializeSystem>(SystemUpdatePhase.PrefabUpdate);
             UnityEngine.Application.runInBackground = true;
             var go = new UnityEngine.GameObject("Placemaker Suite Runner");
             UnityEngine.Object.DontDestroyOnLoad(go);

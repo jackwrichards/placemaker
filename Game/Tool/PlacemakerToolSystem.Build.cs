@@ -20,6 +20,17 @@ namespace Placemaker.Game.Tool
         private readonly List<Entity> _members = new List<Entity>();
         private int _membersGroup = -1;
 
+        /// <summary>
+        /// What a finished build leaves. KeepArea (Build & keep area, Enter): the area stays and the tool goes back to Design
+        /// with no type chosen. Close (Build & close): Placemaker closes. Fresh (an edit applied, the game runner): the area
+        /// is cleared and the tool stays open. No type stays chosen after any of them.
+        /// </summary>
+        public enum AfterBuild { Fresh, KeepArea, Close }
+        private AfterBuild _afterBuild;
+        private bool _closeAfterBuild;
+        /// <summary>The game runner: what its next build leaves (its scenarios expect a fresh tool after a build).</summary>
+        public AfterBuild? SuiteNextAfterBuild;
+
         public bool Building => _building;
         public float BuildProgress => _building ? math.saturate(_buildStatus.Progress) : 0f;
         public PlanIssue BuildFailure => _feedback.Failure;
@@ -42,8 +53,18 @@ namespace Placemaker.Game.Tool
         public int HoverGroup => _hoverGroup;
         public int ManagedGroup => _managedGroup;
 
-        private void StartBuild()
+        /// <summary>UI: the "Build & close" button.</summary>
+        public void BuildAndClose()
         {
+            var p = StageMachine.Primary(_stage, Facts());
+            if (!p.Enabled) { Flash(p.Reason); return; }
+            if (p.Kind == PrimaryKind.Build || p.Kind == PrimaryKind.FinishEdit) StartBuild(AfterBuild.Close);
+        }
+
+        private void StartBuild(AfterBuild after)
+        {
+            // a Zoning type (a look): its buildings polished, nothing built
+            if (BuildPolish()) return;
             var svc = Services.Build;
             if (svc == null) { Flash(new LocText("Placemaker.Reason.BuildUnavailable")); return; }
             if (_plan == null || _shape == null || _recipe == null) return;
@@ -57,6 +78,7 @@ namespace Placemaker.Game.Tool
                 Recipe = _recipe.Clone(),
                 Area = _shape,
                 ReplaceGroup = _editingGroup,
+                Ungrouped = _buildUngrouped,
             };
             bool started;
             // Instant Build from the ghost when it shows exactly this plan; otherwise the ghost is hidden first.
@@ -77,6 +99,8 @@ namespace Placemaker.Game.Tool
                 return;
             }
             SuiteLastBuildPath = instant ? "instant" : "start";
+            _afterBuild = SuiteNextAfterBuild ?? after;
+            SuiteNextAfterBuild = null;
             _building = true;
             _buildStatus = default;
             CancelGesture();
@@ -178,22 +202,36 @@ namespace Placemaker.Game.Tool
             try { svc.Acknowledge(); } catch (Exception e) { Mod.Log.Warn("Placemaker: acknowledge failed: " + e.Message); }
         }
 
-        /// <summary>Built: the tool stays open with a fresh selection; design and recipe stay for the next one.</summary>
+        /// <summary>
+        /// Built: the area kept (back to Design) or cleared (the Area step), or the tool closes (_afterBuild). No type stays
+        /// chosen: a kept one planned itself on the next area, often a big one meant for something else, and lagged.
+        /// </summary>
         private void OnBuilt(int groupId, List<PlanIssue> warnings, Placemaker.Core.Build.BuildAudit audit = null)
         {
+            var after = _afterBuild;
+            _afterBuild = AfterBuild.Fresh;
+            RememberDesign();   // picking the type again brings these choices back
             _markersEdited.Clear();
             _permanentAck = null;
             _worker.Cancel();
-            ClearSelectionState();
+            if (after == AfterBuild.KeepArea) ShapeChanged(alreadyBuilt: true);   // the area stays; what was built is in its site now
+            else ClearSelectionState();
             _roads.InvalidateGraph();   // the new roads must be pickable right away
-            if (_recipe != null) foreach (var kv in RecipePaths.Walk(_recipe)) kv.Value.Markers.Clear();
+            InvalidateFills();          // and stop the area tools at once
+            _recipe = null;
+            _recipeId = "";
+            _presetLayer = ""; _presetId = "";
+            _focus = RecipePaths.Root;
+            if (_editingGroup != 0) _buildUngrouped = false;   // the edited build's choice was for that build only
+            _markerCrosswalk = false;   // the Crosswalk switch is for the entrances of one build: off again for the next
             _editingGroup = 0;
             _plan = null;
             _planRevision = -1;
             _requestedRevision = -1;
             DesignChanged();
             _history.Reset(Capture());
-            SetStage(ToolStage.Area);
+            SetStage(after == AfterBuild.KeepArea && _shape != null ? ToolStage.Design : ToolStage.Area);
+            if (after == AfterBuild.Close) _closeAfterBuild = true;
             // After the stage change and the cleared selection (both clear feedback): what the build service
             // repaired, skipped or cleared stays in the summary until the next change, and the toast says it.
             _feedback.Succeeded(warnings, audit);
@@ -282,10 +320,11 @@ namespace Placemaker.Game.Tool
             foreach (var kv in RecipePaths.Walk(_recipe)) if (kv.Value.Markers.Count > 0) _markersEdited.Add(kv.Key);
             _permanentAck = null;
             _recipeId = _recipes.Find(receipt.Recipe.Id) != null ? receipt.Recipe.Id : "";
-            _presetLayer = ""; _presetId = "";
+            _presetLayer = ""; _presetId = "";   // a receipt names no style: the panel shows the type's Standard (changed if it differs)
             _focus = RecipePaths.Root;
             _editingGroup = groupId;
             _managedGroup = 0;
+            _buildUngrouped = groups.IsUngrouped(groupId);   // a rebuild stays as it was: grouped or in pieces
             DesignChanged();
             _history.Reset(Capture());
             SetStage(ToolStage.Design);
@@ -304,6 +343,43 @@ namespace Placemaker.Game.Tool
             if (_editingGroup == groupId) _editingGroup = 0;
             _membersGroup = -1;
             Flash(new LocText("Placemaker.Hint.Removed"));
+            Touch();
+        }
+
+        /// <summary>
+        /// Review switch "One group" off: the next build is born ungrouped (separate pieces). Off by default; Edit restores
+        /// the edited build's own choice.
+        /// </summary>
+        private bool _buildUngrouped;
+        public bool BuildUngrouped => _buildUngrouped;
+
+        /// <summary>Review's "Keep area" switch (on by default): Build keeps the area and the panel open; off, Build closes Placemaker.</summary>
+        private bool _keepArea = true;
+        public bool KeepArea => _keepArea;
+
+        public void SetKeepArea(bool on)
+        {
+            if (_keepArea == on) return;
+            _keepArea = on;
+            Touch();
+        }
+
+        public void SetBuildUngrouped(bool on)
+        {
+            if (_buildUngrouped == on) return;
+            _buildUngrouped = on;
+            Touch();
+        }
+
+        /// <summary>Info panel / Manage: ungroup a finished build (its parts picked one by one), or group it again.</summary>
+        public void UngroupGroup(int groupId, bool ungroup)
+        {
+            bool ok;
+            try { ok = Services.Groups?.SetUngrouped(groupId, ungroup) ?? false; }
+            catch (Exception e) { Mod.Log.Warn("Placemaker: ungroup failed: " + e.Message); ok = false; }
+            if (!ok) { Flash(new LocText("Placemaker.Problem.UngroupFailed")); return; }
+            _membersGroup = -1;
+            Flash(new LocText(ungroup ? "Placemaker.Hint.Ungrouped" : "Placemaker.Hint.Grouped"));
             Touch();
         }
 

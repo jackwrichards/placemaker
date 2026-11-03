@@ -1,0 +1,517 @@
+{
+  "_about": "Footpath entrances and crosswalks, and Ungroup (the user, 22 Oct: every pedestrian entrance made a crosswalk across the street; let the game join the path; a build should be ungroupable). Footpaths without a crosswalk stop at the kerb and the game joins them (lab streetJoins: 'kerb'); entrances placed with the Crosswalk switch split the street and get one ('split', crosswalk). Parks on a city block and on land drawn up to the street, a car park's footpath, a strip mall's footpath, a plaza and a hiking trail; then a park ungrouped and grouped again from its info panel, and one built with 'One group' off, each time clicking a tree with the game's own tool (lab pickPart). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/entrance-crosswalks.json -Build -Who <you>",
+  "scenarios": [
+    {
+      "id": "xw-park-block",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "natural"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.5,
+          "kind": "pedestrian",
+          "crosswalk": false
+        },
+        {
+          "do": "entrance",
+          "side": "east",
+          "t": 0.5,
+          "kind": "pedestrian",
+          "crosswalk": true
+        },
+        {
+          "do": "preview",
+          "shot": "plan"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "streetJoins",
+          "label": "park on a block: south no crosswalk, east crosswalk"
+        },
+        {
+          "do": "camera",
+          "target": "entrance",
+          "index": "all",
+          "view": "top",
+          "distance": 60,
+          "shot": "entrance-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "entrance",
+          "index": "all",
+          "view": "closeup",
+          "shot": "entrance-45",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "xw-park-land",
+      "land": {
+        "shape": "rect",
+        "size": [
+          120,
+          100
+        ],
+        "ground": "flat",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "natural"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.5,
+          "kind": "pedestrian",
+          "crosswalk": false
+        },
+        {
+          "do": "entrance",
+          "side": "west",
+          "t": 0.5,
+          "kind": "main",
+          "crosswalk": false
+        },
+        {
+          "do": "entrance",
+          "side": "north",
+          "t": 0.5,
+          "kind": "pedestrian",
+          "crosswalk": true
+        },
+        {
+          "do": "preview",
+          "shot": "plan"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "streetJoins",
+          "label": "park on land 2 m off the kerb: south, west no crosswalk; north crosswalk"
+        },
+        {
+          "do": "camera",
+          "target": "entrance",
+          "index": "all",
+          "view": "top",
+          "distance": 60,
+          "shot": "entrance-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "entrance",
+          "index": "all",
+          "view": "closeup",
+          "shot": "entrance-45",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "xw-parking-footpath",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "parking",
+          "preset": "standard"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.3,
+          "kind": "entrance"
+        },
+        {
+          "do": "entrance",
+          "side": "north",
+          "t": 0.5,
+          "kind": "footpath",
+          "crosswalk": false
+        },
+        {
+          "do": "preview",
+          "shot": "plan"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "streetJoins",
+          "label": "car park footpath, no crosswalk"
+        },
+        {
+          "do": "camera",
+          "target": "entrance",
+          "index": 1,
+          "view": "top",
+          "distance": 60,
+          "shot": "footpath-top",
+          "shotMode": "render"
+        },
+        {
+          "do": "camera",
+          "target": "entrance",
+          "index": 1,
+          "view": "closeup",
+          "shot": "footpath-45",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "xw-stripmall-footpath",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "stripMall",
+          "preset": "classic"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "entrance",
+          "side": "north",
+          "t": 0.5,
+          "kind": "footpath",
+          "crosswalk": false
+        },
+        {
+          "do": "preview",
+          "shot": "plan"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "streetJoins",
+          "label": "strip mall footpath, no crosswalk"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "top",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "xw-plaza",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "plaza",
+          "preset": "civic"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.5,
+          "kind": "access",
+          "crosswalk": false
+        },
+        {
+          "do": "entrance",
+          "side": "west",
+          "t": 0.5,
+          "kind": "access",
+          "crosswalk": true
+        },
+        {
+          "do": "preview",
+          "shot": "plan"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "streetJoins",
+          "label": "plaza: south no crosswalk, west crosswalk"
+        },
+        {
+          "do": "camera",
+          "target": "entrance",
+          "index": "all",
+          "view": "closeup",
+          "shot": "entrance-45",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "xw-hiking",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "hikingTrail",
+          "preset": "forestTrail"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview",
+          "shot": "plan"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "streetJoins",
+          "label": "hiking trail, default entrances"
+        },
+        {
+          "do": "camera",
+          "target": "entrance",
+          "index": "all",
+          "view": "closeup",
+          "shot": "entrance-45",
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "xw-ungroup",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "natural"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.5,
+          "kind": "pedestrian",
+          "crosswalk": false
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "pickPart",
+          "label": "grouped"
+        },
+        {
+          "do": "infoUngroup",
+          "ungroup": true
+        },
+        {
+          "do": "lab",
+          "op": "pickPart",
+          "label": "after Ungroup",
+          "bulldoze": true
+        },
+        {
+          "do": "infoUngroup",
+          "ungroup": false
+        },
+        {
+          "do": "lab",
+          "op": "pickPart",
+          "label": "after Group again"
+        }
+      ]
+    },
+    {
+      "id": "xw-build-separate",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "garden"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.5,
+          "kind": "pedestrian",
+          "crosswalk": false
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "group",
+          "on": false,
+          "shot": "review-switch",
+          "shotMode": "ui"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "pickPart",
+          "label": "built with One group off"
+        }
+      ]
+    },
+    {
+      "id": "xw-plan-sketch",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "natural"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.5,
+          "kind": "pedestrian",
+          "crosswalk": true
+        },
+        {
+          "do": "entrance",
+          "side": "east",
+          "t": 0.5,
+          "kind": "pedestrian",
+          "crosswalk": false
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "camera",
+          "target": "entrance",
+          "index": 0,
+          "view": "top",
+          "distance": 70,
+          "shot": "crosswalk-sketch",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "camera",
+          "target": "entrance",
+          "index": 1,
+          "view": "top",
+          "distance": 70,
+          "shot": "kerb-sketch",
+          "shotMode": "overlay"
+        }
+      ]
+    },
+    {
+      "id": "xw-edit-cancel",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "natural"
+        },
+        {
+          "do": "entrance",
+          "side": "south",
+          "t": 0.5,
+          "kind": "pedestrian"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "infoEdit"
+        },
+        {
+          "do": "lab",
+          "op": "toolState",
+          "label": "after Edit"
+        },
+        {
+          "do": "clear"
+        },
+        {
+          "do": "lab",
+          "op": "toolState",
+          "label": "after Clear area"
+        },
+        {
+          "do": "lab",
+          "op": "groupRecords",
+          "label": "the edited park still there"
+        }
+      ]
+    }
+  ]
+}

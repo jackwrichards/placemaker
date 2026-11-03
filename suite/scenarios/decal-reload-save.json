@@ -1,0 +1,15 @@
+{
+  "_about": "GitHub issue #2 (white boxes after loading), part 1 of 2. Puts objects into the city the way builds up to 0.1.1 left decorative decals (runtime copies named 'Placemaker Decal <tier> - <decal>', which only this game has) and saves the city. Part 2 (decal-reload-load.json) loads that save in a fresh game: Send-Suite -Fresh. suite/README.md, 'Save and reload'.",
+  "scenarios": [
+    {
+      "id": "old-decals",
+      "site": "flat",
+      "steps": [
+        { "do": "lab", "op": "oldDecal", "decal": "ChirperDecalLarge01", "tier": 25, "at": [-12, 0] },
+        { "do": "lab", "op": "oldDecal", "decal": "ParkingLotDecal01", "tier": 10, "at": [12, 0] },
+        { "do": "camera", "target": "build", "view": "oblique", "shot": "placed" },
+        { "do": "lab", "op": "saveCity", "name": "PlacemakerSuiteReload" }
+      ]
+    }
+  ]
+}

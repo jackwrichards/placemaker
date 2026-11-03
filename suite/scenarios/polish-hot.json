@@ -1,0 +1,45 @@
+{
+  "_about": "Fast loop for the neighbourhood-polish planner (tools/hot/Send-Hot.ps1 fills {hot}): a curved street grows, before pictures, the hot planner is loaded, after pictures. About 30 s in an open game.",
+  "scenarios": [
+    {
+      "id": "polish-hot",
+      "land": {
+        "shape": "rect",
+        "size": [
+          380,
+          300
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 90, "from": 0, "to": 180 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "lab", "op": "hotload", "path": "{hot}" },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 2 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-inner", "camera": { "target": "point", "at": [ 0, 20 ], "view": "oblique", "pitch": 50, "distance": 80 },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-outer", "camera": { "target": "point", "at": [ 0, 80 ], "view": "oblique", "pitch": 45, "distance": 85 },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-left", "camera": { "target": "point", "at": [ -85, 45 ], "view": "oblique", "pitch": 50, "distance": 90 },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-right", "camera": { "target": "point", "at": [ 85, 45 ], "view": "oblique", "pitch": 50, "distance": 90 },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

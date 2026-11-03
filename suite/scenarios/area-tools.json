@@ -1,0 +1,536 @@
+{
+  "_note": "The area tools (Points, Paint bucket, Paint area) on land made for them: dead ends with turning circles, footpaths into a block, a street that stops short of another, open land, a zoned block. No builds: each picks an area and takes top-down overlay shots; 'hover' shots show what the tool shows under the cursor in the Area stage (fill, closed gaps, reach, stops).",
+  "scenarios": [
+    {
+      "id": "area-culdesac",
+      "note": "Two dead ends with turning circles inside a ring block: the bucket and Paint area keep off the circles.",
+      "land": {
+        "size": [
+          200,
+          160
+        ],
+        "nets": [
+          {
+            "prefab": "Small Road",
+            "points": [
+              [
+                0,
+                -96
+              ],
+              [
+                0,
+                -30
+              ]
+            ]
+          },
+          {
+            "prefab": "Small Road",
+            "points": [
+              [
+                116,
+                0
+              ],
+              [
+                55,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "steps": [
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "land",
+          "shotMode": "render"
+        },
+        {
+          "do": "hover",
+          "tool": "bucket",
+          "at": [
+            -50,
+            -50
+          ],
+          "camera": {
+            "target": "block",
+            "view": "top"
+          },
+          "shot": "bucket-hover",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "area",
+          "tool": "bucket",
+          "at": [
+            -50,
+            -50
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "bucket",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "area",
+          "tool": "paint",
+          "size": 40,
+          "cameraDistance": 520,
+          "stroke": [
+            [
+              -40,
+              -60
+            ],
+            [
+              -20,
+              -40
+            ],
+            [
+              20,
+              -40
+            ],
+            [
+              40,
+              -60
+            ],
+            [
+              40,
+              -15
+            ],
+            [
+              80,
+              20
+            ],
+            [
+              30,
+              25
+            ],
+            [
+              -40,
+              -15
+            ]
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "paint",
+          "shotMode": "overlay"
+        }
+      ]
+    },
+    {
+      "id": "area-paths",
+      "note": "A footpath from the south street's node to a dead end inside the block, and one from the middle of the west street (splits it). The bucket left and right of them; corners where a path meets a road.",
+      "land": {
+        "size": [
+          200,
+          160
+        ],
+        "nets": [
+          {
+            "prefab": "Pavement Path",
+            "points": [
+              [
+                0,
+                -96
+              ],
+              [
+                50,
+                30
+              ]
+            ]
+          },
+          {
+            "prefab": "Pavement Path",
+            "points": [
+              [
+                -116,
+                45
+              ],
+              [
+                -40,
+                45
+              ]
+            ]
+          }
+        ]
+      },
+      "steps": [
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "land",
+          "shotMode": "render"
+        },
+        {
+          "do": "hover",
+          "tool": "bucket",
+          "at": [
+            -50,
+            -50
+          ],
+          "camera": {
+            "target": "block",
+            "view": "top"
+          },
+          "shot": "hover-left",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "hover",
+          "tool": "bucket",
+          "at": [
+            60,
+            -50
+          ],
+          "camera": {
+            "target": "block",
+            "view": "top"
+          },
+          "shot": "hover-right",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "area",
+          "tool": "bucket",
+          "at": [
+            60,
+            -50
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "bucket-right",
+          "shotMode": "overlay"
+        }
+      ]
+    },
+    {
+      "id": "area-gap",
+      "note": "A street from the west side that stops about 8 m short of the east street: with Gaps 10 m the bucket fills only the south half; with Gaps 0 it goes round the dead end.",
+      "land": {
+        "size": [
+          240,
+          160
+        ],
+        "nets": [
+          {
+            "prefab": "Small Road",
+            "points": [
+              [
+                -136,
+                0
+              ],
+              [
+                112,
+                0
+              ]
+            ]
+          }
+        ]
+      },
+      "steps": [
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "land",
+          "shotMode": "render"
+        },
+        {
+          "do": "hover",
+          "tool": "bucket",
+          "at": [
+            -50,
+            -50
+          ],
+          "camera": {
+            "target": "block",
+            "view": "top"
+          },
+          "shot": "hover-gap10",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "setting",
+          "name": "AreaGap",
+          "value": 0
+        },
+        {
+          "do": "hover",
+          "tool": "bucket",
+          "at": [
+            -50,
+            -45
+          ],
+          "camera": {
+            "target": "block",
+            "view": "top"
+          },
+          "shot": "hover-gap0",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "setting",
+          "name": "AreaGap",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "area-open",
+      "note": "Open land without roads: the bucket fills its reach (a circle), here set to 80 m.",
+      "land": {
+        "size": [
+          320,
+          320
+        ],
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "AreaReach",
+          "value": 80
+        },
+        {
+          "do": "hover",
+          "tool": "bucket",
+          "at": [
+            0,
+            0
+          ],
+          "camera": {
+            "target": "block",
+            "view": "top"
+          },
+          "shot": "hover-reach80",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "area",
+          "tool": "bucket",
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "bucket",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "setting",
+          "name": "AreaReach",
+          "value": 500
+        }
+      ]
+    },
+    {
+      "id": "area-nodes",
+      "note": "Points on road nodes (Road nodes folded into Points): a street splits the land; clicking the west half's four junctions gives the west block at its curbs.",
+      "land": {
+        "size": [
+          200,
+          160
+        ],
+        "nets": [
+          {
+            "prefab": "Small Road",
+            "points": [
+              [
+                0,
+                -96
+              ],
+              [
+                0,
+                96
+              ]
+            ]
+          }
+        ]
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "nodes",
+          "nodes": [
+            [
+              -116,
+              -96
+            ],
+            [
+              0,
+              -96
+            ],
+            [
+              0,
+              96
+            ],
+            [
+              -116,
+              96
+            ]
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "points-nodes",
+          "shotMode": "overlay"
+        }
+      ]
+    },
+    {
+      "id": "area-join",
+      "note": "Shift+click: two blocks either side of a street become one area, the street between them taken along.",
+      "land": {
+        "size": [
+          200,
+          160
+        ],
+        "nets": [
+          {
+            "prefab": "Small Road",
+            "points": [
+              [
+                0,
+                -96
+              ],
+              [
+                0,
+                96
+              ]
+            ]
+          }
+        ]
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket",
+          "at": [
+            -50,
+            0
+          ],
+          "shift": [
+            [
+              50,
+              0
+            ]
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "joined",
+          "shotMode": "overlay"
+        }
+      ]
+    },
+    {
+      "id": "area-zoned",
+      "site": "zoned",
+      "note": "A grown housing block: the bucket, Points and Paint area keep off the houses and their zoning.",
+      "steps": [
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "land",
+          "shotMode": "render",
+          "zones": true
+        },
+        {
+          "do": "hover",
+          "tool": "bucket",
+          "at": [
+            0,
+            20
+          ],
+          "camera": {
+            "target": "block",
+            "view": "top"
+          },
+          "shot": "bucket-hover",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "area",
+          "tool": "bucket",
+          "at": [
+            0,
+            20
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "bucket",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "area",
+          "tool": "points",
+          "rect": [
+            120,
+            110
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "points",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "area",
+          "tool": "paint",
+          "size": 50,
+          "cameraDistance": 420,
+          "stroke": [
+            [
+              -40,
+              -40
+            ],
+            [
+              40,
+              -40
+            ],
+            [
+              40,
+              30
+            ],
+            [
+              -40,
+              30
+            ]
+          ]
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "paint",
+          "shotMode": "overlay"
+        }
+      ]
+    }
+  ]
+}

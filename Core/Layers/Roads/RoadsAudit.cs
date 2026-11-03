@@ -59,7 +59,8 @@ namespace Placemaker.Core.Layers.Roads
             var ends = new List<(int a, int d, PlannedNet n)>();
             foreach (var n in plan.Nets)
             {
-                if (n == null) continue;
+                // a retaining wall's quay (terraced blocks) stands on its own: not part of the street network
+                if (n == null || n.Category == AssetCategories.NetQuay) continue;
                 ends.Add((Node(n.A), Node(n.D), n));
             }
             int count = pos.Count;

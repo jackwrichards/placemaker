@@ -1428,6 +1428,14 @@ namespace Placemaker.Core.Build
         public static bool CellOpen(ZoneGrid g, int x, int y, IReadOnlyList<float2[]> feet, IReadOnlyList<NearbyNet> nets) =>
             CellOpen(g, x, y, new List<float2[]>(feet ?? new float2[0][]), RoadBands(nets, new float2(float.MinValue), new float2(float.MaxValue)));
 
+        /// <summary>CellOpen for many cells (no footprints): the road bands near min–max worked out once.</summary>
+        public static Func<ZoneGrid, int, int, bool> CellOpener(IReadOnlyList<NearbyNet> nets, float2 min, float2 max)
+        {
+            var roads = RoadBands(nets, min, max);
+            var feet = new List<float2[]>();
+            return (g, x, y) => CellOpen(g, x, y, feet, roads);
+        }
+
         private static bool CellOpen(ZoneGrid g, int x, int y, List<float2[]> feet, List<RoadBand> roads)
         {
             var c = CellCentre(g, x, y);

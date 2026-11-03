@@ -51,16 +51,19 @@ namespace Placemaker.Core.Layers.Roads
         {
             if (step == null || step.Layer != LayerId) return 0;
             int n = 0;
+            // the retaining walls (quays) are gone: a design saved with them gets banks
+            if (step.Settings.S(RoadsIds.TerraceBank, "") == "retaining") { step.Settings.Values[RoadsIds.TerraceBank] = "bank"; n++; }
             for (int i = step.Children.Count - 1; i >= 0; i--)
             {
                 var c = step.Children[i];
                 if (c == null || c.Layer != AddOns.EdgeZoningAddOn.LayerId || (c.Target ?? "") != RegionTags.Edge) continue;
-                string current = step.Settings.S(RoadsIds.PreZone, RoadPreZone.None);
-                if (c.Enabled && current == RoadPreZone.None)
+                // the old feature predates the control: it decides (on: its zone; off: no zoning, not the new default)
+                if (c.Enabled)
                 {
                     string kind = c.Settings?.S(AddOns.EdgeZoningAddOn.KindControl, Common.ZoneKinds.Default) ?? Common.ZoneKinds.Default;
                     step.Settings.Values[RoadsIds.PreZone] = Array.IndexOf(Common.ZoneKinds.All, kind) >= 0 ? kind : Common.ZoneKinds.Default;
                 }
+                else step.Settings.Values[RoadsIds.PreZone] = RoadPreZone.None;
                 step.Children.RemoveAt(i);
                 n++;
             }
@@ -166,6 +169,8 @@ namespace Placemaker.Core.Layers.Roads
         /// <summary>
         /// (s34) Presets are whole designs: pattern, road mix, terrain fit, junction spacing on the main roads, walkways,
         /// lanes, cul-de-sac tips. Ids are save format (downtown, suburb, village, hillside, garden-city stay).
+        /// (Smarter roads) No preset terraces the land except the four terrace designs, whose look is the terraces; the winding
+        /// styles round the perimeter's corners more (SoftCorner), the straight ones hug the selection (TightCorner).
         /// </summary>
         private List<PresetInfo> BuildPresets()
         {
@@ -184,17 +189,17 @@ namespace Placemaker.Core.Layers.Roads
                     (RoadsIds.AvenueColumnIndex, 2.0), (RoadsIds.AvenueRowIndex, 2.0), (RoadsIds.JunctionSpacing, 0.0), (RoadsIds.BackLanes, 60.0),
                     (RoadsIds.Walkways, 20.0), (RoadsIds.TerrainFit, "ignore")),
                 // Cul-de-sac branches off a collector, footpaths between the bulbs.
-                P("suburb", "quiet", (RoadsIds.Pattern, "tree"), (RoadsIds.CapStyle, "grass"), (RoadsIds.Walkways, 75.0), (RoadsIds.JunctionSpacing, 150.0),
+                P("suburb", "quiet", (RoadsIds.PerimeterCornerRadius, (double)RoadsSchema.SoftCorner), (RoadsIds.Pattern, "tree"), (RoadsIds.CapStyle, "grass"), (RoadsIds.Walkways, 75.0), (RoadsIds.JunctionSpacing, 150.0),
                     (RoadsIds.TerrainFit, "follow")),
                 // Winding lanes that settle into the hill, a quiet main street, gravel at some tips, paths and trails everywhere.
-                P("village", "quiet", (RoadsIds.Pattern, "organic"), (RoadsIds.OrganicSpacing, 75.0), (RoadsIds.OrganicCurviness, 55.0),
+                P("village", "quiet", (RoadsIds.PerimeterCornerRadius, (double)RoadsSchema.SoftCorner), (RoadsIds.Pattern, "organic"), (RoadsIds.OrganicSpacing, 75.0), (RoadsIds.OrganicCurviness, 55.0),
                     (RoadsIds.OrganicLoops, 50.0), (RoadsIds.TerrainFit, "follow"), (RoadsIds.JunctionSpacing, 140.0), (RoadsIds.Walkways, 70.0),
                     (RoadsIds.WalkwayStyle, "mixed"), (RoadsIds.TipStyle, "mixed"), (RoadsIds.CapStyle, "grass"), (RoadsIds.MaxGrade, 9.0)),
                 // Streets along the contour lines, gentle climbs between them, dirt trails straight up the slope where it is walkable.
-                P("hillside", "quiet", (RoadsIds.Pattern, "contour"), (RoadsIds.TerrainFit, "follow"), (RoadsIds.Walkways, 60.0),
+                P("hillside", "quiet", (RoadsIds.PerimeterCornerRadius, (double)RoadsSchema.SoftCorner), (RoadsIds.Pattern, "contour"), (RoadsIds.TerrainFit, "follow"), (RoadsIds.Walkways, 60.0),
                     (RoadsIds.WalkwayStyle, "mixed"), (RoadsIds.MaxGrade, 9.0)),
                 // A planted centre: avenues with trees around a roundabout, ring streets, footpaths.
-                P("garden-city", "boulevards", (RoadsIds.Pattern, "radial"), (RoadsIds.RadialRings, 2.0), (RoadsIds.RadialAvenues, 6.0),
+                P("garden-city", "boulevards", (RoadsIds.PerimeterCornerRadius, (double)RoadsSchema.SoftCorner), (RoadsIds.Pattern, "radial"), (RoadsIds.RadialRings, 2.0), (RoadsIds.RadialAvenues, 6.0),
                     (RoadsIds.Walkways, 60.0), (RoadsIds.CapStyle, "trees"), (RoadsIds.JunctionSpacing, 0.0), (RoadsIds.TerrainFit, "ignore")),
                 // Small blocks, paths through the long ones, lanes behind: everything a short walk away.
                 P("walkable-grid", "bike", (RoadsIds.Pattern, "grid"), (RoadsIds.GridSpacing, 80.0), (RoadsIds.Walkways, 100.0), (RoadsIds.BackLanes, 40.0),
@@ -203,17 +208,17 @@ namespace Placemaker.Core.Layers.Roads
                 P("terraced-grid", "quiet", (RoadsIds.Pattern, "grid"), (RoadsIds.GridSpacing, 90.0), (RoadsIds.TerrainFit, "follow"),
                     (RoadsIds.Walkways, 60.0), (RoadsIds.WalkwayStyle, "mixed"), (RoadsIds.JunctionSpacing, 0.0)),
                 // Collector loops with cul-de-sacs inside, footpath greenways linking every close to the next.
-                P("suburban-loops", "quiet", (RoadsIds.Pattern, "loop"), (RoadsIds.LoopCollectorSpacing, 260.0), (RoadsIds.LoopCulDeSacRatio, 70.0),
+                P("suburban-loops", "quiet", (RoadsIds.PerimeterCornerRadius, (double)RoadsSchema.SoftCorner), (RoadsIds.Pattern, "loop"), (RoadsIds.LoopCollectorSpacing, 260.0), (RoadsIds.LoopCulDeSacRatio, 70.0),
                     (RoadsIds.Walkways, 90.0), (RoadsIds.CapStyle, "trees"), (RoadsIds.JunctionSpacing, 150.0), (RoadsIds.TerrainFit, "follow")),
                 // A loose hamlet: gravel lanes, a paved through road, trails.
-                P("rural-village", "country", (RoadsIds.Pattern, "organic"), (RoadsIds.OrganicSpacing, 100.0), (RoadsIds.OrganicCurviness, 45.0),
+                P("rural-village", "country", (RoadsIds.PerimeterCornerRadius, (double)RoadsSchema.SoftCorner), (RoadsIds.Pattern, "organic"), (RoadsIds.OrganicSpacing, 100.0), (RoadsIds.OrganicCurviness, 45.0),
                     (RoadsIds.OrganicLoops, 20.0), (RoadsIds.TerrainFit, "follow"), (RoadsIds.TipStyle, "gravel"), (RoadsIds.Walkways, 40.0),
                     (RoadsIds.WalkwayStyle, "trail"), (RoadsIds.CapStyle, "grass"), (RoadsIds.JunctionSpacing, 160.0), (RoadsIds.MaxGrade, 10.0)),
                 // Collectors around groups of blocks, car-free streets inside.
                 P("superblocks", null, (RoadsIds.Pattern, "superblock"), (RoadsIds.SuperblockZone, 100.0), (RoadsIds.Walkways, 60.0),
                     (RoadsIds.JunctionSpacing, 0.0), (RoadsIds.TerrainFit, "ignore")),
                 // Lanes radiating from a small central circus, crooked narrow streets around it, paths through everything.
-                P("old-town", "alleys", (RoadsIds.Pattern, "mixed"), (RoadsIds.MixedCoreRadius, 110.0), (RoadsIds.MixedAvenues, 6.0),
+                P("old-town", "alleys", (RoadsIds.PerimeterCornerRadius, (double)RoadsSchema.SoftCorner), (RoadsIds.Pattern, "mixed"), (RoadsIds.MixedCoreRadius, 110.0), (RoadsIds.MixedAvenues, 6.0),
                     (RoadsIds.MixedSpacing, 60.0), (RoadsIds.MixedCurviness, 85.0), (RoadsIds.Walkways, 80.0), (RoadsIds.JunctionSpacing, 0.0),
                     (RoadsIds.TerrainFit, "follow"), (RoadsIds.CapStyle, "none")),
                 // The straight grid, whatever the ground does.
@@ -221,19 +226,19 @@ namespace Placemaker.Core.Layers.Roads
                     (RoadsIds.Walkways, 30.0), (RoadsIds.JunctionSpacing, 0.0)),
                 // (s52) Hillside terraces. Contour streets on level terraces four cells deep, graded banks, links straight up or
                 // diagonal, stair-free bank walks, houses pre-zoned on the level cells.
-                P("terraced-hillside", "quiet", (RoadsIds.Pattern, "terraces"), (RoadsIds.TerraceCells, 4.0), (RoadsIds.TerraceLinks, "direct"),
+                P("terraced-hillside", "quiet", (RoadsIds.LandShape, "terrace"), (RoadsIds.Pattern, "terraces"), (RoadsIds.TerraceCells, 4.0), (RoadsIds.TerraceLinks, "direct"),
                     (RoadsIds.TerraceLinkSpacing, 300.0), (RoadsIds.Walkways, 60.0), (RoadsIds.WalkwayStyle, "mixed"), (RoadsIds.MaxGrade, 9.0),
                     (RoadsIds.PreZone, Common.ZoneKinds.ResidentialLow)),
                 // Narrower terraces climbed by switchbacks, dirt trails down the banks, grassy turning circles.
-                P("serpentine-village", "quiet", (RoadsIds.Pattern, "terraces"), (RoadsIds.TerraceCells, 3.0), (RoadsIds.TerraceLinks, "serpentine"),
+                P("serpentine-village", "quiet", (RoadsIds.LandShape, "terrace"), (RoadsIds.Pattern, "terraces"), (RoadsIds.TerraceCells, 3.0), (RoadsIds.TerraceLinks, "serpentine"),
                     (RoadsIds.TerraceLinkSpacing, 260.0), (RoadsIds.Walkways, 70.0), (RoadsIds.WalkwayStyle, "trail"), (RoadsIds.MaxGrade, 8.0),
                     (RoadsIds.CapStyle, "grass")),
                 // Many narrow terraces on gravel lanes, steep worn faces, switchbacks: the hill reads as a vineyard.
-                P("vineyard-terraces", "country", (RoadsIds.Pattern, "terraces"), (RoadsIds.TerraceCells, 2.0), (RoadsIds.TerraceLinks, "serpentine"),
+                P("vineyard-terraces", "country", (RoadsIds.LandShape, "terrace"), (RoadsIds.Pattern, "terraces"), (RoadsIds.TerraceCells, 2.0), (RoadsIds.TerraceLinks, "serpentine"),
                     (RoadsIds.TerraceBank, "wall"), (RoadsIds.TerraceBankSlope, 50.0), (RoadsIds.TerraceFall, 0.5), (RoadsIds.Walkways, 40.0),
                     (RoadsIds.WalkwayStyle, "trail"), (RoadsIds.TerraceTrees, false), (RoadsIds.MaxGrade, 10.0)),
                 // Deep terraces for apartments, one tree-lined avenue winding up round the hill, paved walks everywhere.
-                P("hill-town", "boulevards", (RoadsIds.Pattern, "terraces"), (RoadsIds.TerraceCells, 5.0), (RoadsIds.TerraceLinks, "spiral"),
+                P("hill-town", "boulevards", (RoadsIds.LandShape, "terrace"), (RoadsIds.Pattern, "terraces"), (RoadsIds.TerraceCells, 5.0), (RoadsIds.TerraceLinks, "spiral"),
                     (RoadsIds.TerraceAvenues, true), (RoadsIds.TerraceLinkSpacing, 240.0), (RoadsIds.Walkways, 80.0), (RoadsIds.WalkwayStyle, "paved"),
                     (RoadsIds.MaxGrade, 8.0), (RoadsIds.PreZone, Common.ZoneKinds.ResidentialMedium)),
             };

@@ -1,0 +1,50 @@
+{
+  "_about": "Outgrow looks on any zone (the user: a high rise or a suburb with parking, mix and match). Each scenario gives one zone type a look made for another (Global outgrow's zone looks, saved in PolishZoneLooks) and grows a street of it: towers with a car park yard, a suburb with car park yards (only bins in the corner, no shop stock), shops with gardens. The last step puts the zone looks back. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-mix.json -Who outgrow-mix",
+  "scenarios": [
+    {
+      "id": "mix-towers-carpark",
+      "land": { "shape": "rect", "size": [ 300, 280 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "setting", "name": "PolishZoneLooks", "value": "{\"EU Residential High\":\"shops\",\"NA Residential High\":\"shops\"}" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 200, "zone": "NA Residential High" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "outgrowCheck", "closeups": 0 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" },
+        { "do": "shot", "name": "45-north", "camera": { "target": "point", "at": [ 0, 45 ], "view": "oblique", "pitch": 45, "yaw": 180, "distance": 130 }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "mix-suburb-carpark",
+      "land": { "shape": "rect", "size": [ 300, 280 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "PolishZoneLooks", "value": "{\"EU Residential Low\":\"offices\",\"NA Residential Low\":\"offices\"}" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 200, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "outgrowCheck", "closeups": 0 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" },
+        { "do": "shot", "name": "45-north", "camera": { "target": "point", "at": [ 0, 45 ], "view": "oblique", "pitch": 45, "yaw": 180, "distance": 110 }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "mix-shops-garden",
+      "land": { "shape": "rect", "size": [ 300, 280 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "PolishZoneLooks", "value": "{\"NA Commercial Low\":\"houses\",\"EU Commercial Low\":\"houses\"}" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 200, "zone": "NA Commercial Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "outgrowCheck", "closeups": 0 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" },
+        { "do": "shot", "name": "45-north", "camera": { "target": "point", "at": [ 0, 45 ], "view": "oblique", "pitch": 45, "yaw": 180, "distance": 110 }, "shotMode": "render" },
+        { "do": "setting", "name": "PolishZoneLooks", "value": "" }
+      ]
+    }
+  ]
+}

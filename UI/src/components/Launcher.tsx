@@ -22,11 +22,35 @@ const LauncherInner = () => {
             footer={<Keys keys={["Ctrl", "Shift", "A"]} />}
         >
             <div className={s.wrap} data-testid="launcher" data-open={state.open ? "true" : "false"}>
-                <SafeFloatingButton src={icon("logo")} selected={state.open} onSelect={act.toggleTool} className={s.button} />
+                <SafeFloatingButton src={icon("logo")} selected={state.open && !state.painter?.tool && !state.painter?.outgrowMode} onSelect={act.toggleTool} className={s.button} />
             </div>
         </Tip>
     );
 };
+
+/** The neighbourhood-polish tool's own button (same mod, same tool underneath, its own small panel). */
+const PolishLauncherInner = () => {
+    const { t } = useT();
+    const state = useToolState();
+    const on = state.open && (!!state.painter?.tool || !!state.painter?.outgrowMode);
+    return (
+        <Tip
+            direction="down"
+            title={t("Placemaker.UI.Polish.Name", "Outgrow")}
+            description={t("Placemaker.UI.Polish.LauncherTip", "Pick buildings and outgrow their gardens: shared fences and hedges, lawns or painted ground, planting, by theme.")}
+        >
+            <div className={s.wrap} data-testid="polish-launcher" data-open={on ? "true" : "false"}>
+                <SafeFloatingButton src={icon("shrub")} selected={on} onSelect={act.togglePolish} className={s.button} />
+            </div>
+        </Tip>
+    );
+};
+
+export const PolishLauncher = () => (
+    <ErrorBoundary name="polish-launcher" fallback={null}>
+        <PolishLauncherInner />
+    </ErrorBoundary>
+);
 
 export const Launcher = () => (
     <ErrorBoundary name="launcher" fallback={null}>

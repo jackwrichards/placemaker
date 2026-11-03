@@ -1,0 +1,243 @@
+{
+  "_about": "Neighbourhood polish pushed to its limit, as the player tested it: houses far apart (every third kept) on a straight street, a curve and a cul-de-sac, polished with every reach setting at its maximum (500 m). The gardens must close all round with fence and hedge pieces, never cross a road, and look finished. Send with tools/hot/Send-Hot.ps1 -Build -File suite/scenarios/polish-extreme.json.",
+  "scenarios": [
+    {
+      "id": "polish-extreme",
+      "land": {
+        "shape": "rect",
+        "size": [
+          620,
+          520
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": false
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "length": 260,
+          "at": [
+            -120,
+            -150
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "arc",
+          "radius": 110,
+          "from": 40,
+          "to": 140,
+          "at": [
+            120,
+            0
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "culdesac",
+          "length": 110,
+          "cross": 180,
+          "yaw": 90,
+          "at": [
+            -150,
+            120
+          ]
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "keep": 3
+        },
+        {
+          "do": "wait",
+          "seconds": 4
+        },
+        {
+          "do": "shot",
+          "name": "before-top",
+          "camera": {
+            "target": "area",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "polish",
+          "theme": "garden"
+        },
+        {
+          "do": "polish",
+          "knob": "sideReach",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxFrontGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxBackGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxRearGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxFacingGap",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "maxDeepen",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "hugReach",
+          "value": 500
+        },
+        {
+          "do": "polish",
+          "knob": "openReach",
+          "value": 500
+        },
+        {
+          "do": "lab",
+          "op": "polishStamp",
+          "yes": true,
+          "theme": "painter"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 300
+        },
+        {
+          "do": "lab",
+          "op": "polishStats"
+        },
+        {
+          "do": "shot",
+          "name": "after-top",
+          "camera": {
+            "target": "area",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "straight-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              -120,
+              -150
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 200
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "curve-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              120,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 200
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "culdesac-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              -150,
+              120
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 200
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "close-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              -120,
+              -150
+            ],
+            "view": "oblique",
+            "pitch": 45,
+            "distance": 90
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "polish",
+          "theme": "coastal"
+        },
+        {
+          "do": "lab",
+          "op": "polishStamp",
+          "yes": true,
+          "theme": "painter"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 300
+        },
+        {
+          "do": "shot",
+          "name": "coastal-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              -120,
+              -150
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 160
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        }
+      ]
+    }
+  ]
+}

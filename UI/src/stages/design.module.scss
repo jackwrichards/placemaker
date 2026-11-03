@@ -35,48 +35,7 @@
     @include col;
 }
 
-// ── section heading: "SHAPE  how it's built ─────" ──
-.heading {
-    @include row;
-    min-width: 0;
-    height: 20rem;
-    margin: 8rem 0 3rem 0;
-}
-
-.headingTitle {
-    flex-shrink: 0;
-    font-size: 11rem;
-    font-weight: bold;
-    letter-spacing: 0.6rem;
-    text-transform: uppercase;
-    color: #ffffff;
-}
-
-.headingCount {
-    flex-shrink: 0;
-    margin-left: 5rem;
-    padding: 0 4rem;
-    border-radius: 6rem;
-    background-color: rgba(143, 209, 255, 0.2);
-    font-size: 10rem;
-    color: #dff1ff;
-}
-
-.headingSub {
-    flex-shrink: 0;
-    margin-left: 6rem;
-    font-size: 11rem;
-    color: $c-text-faint;
-    white-space: nowrap;
-}
-
-.headingRule {
-    flex: 1 1 auto;
-    height: 1rem;
-    margin-left: 8rem;
-    margin-right: 4rem;
-    background-color: $c-line;
-}
+// Section headers (Shape, Extras, Zoning, Add entrances) are SectionHead.tsx (sectionHead.module.scss).
 
 // ── one step ──
 .step {
@@ -158,87 +117,89 @@
     min-width: 0;
 }
 
-// ── entrances: one compact block ──
+// ── entrances: the section header, then Add (type buttons, crosswalk switch) and Placed (one row each) ──
 .entrances {
     @include col;
     min-width: 0;
-    margin-top: 6rem;
-    padding: 0 4rem 0 6rem;
+    // a little room round the content, so the "look here" flash never touches it (content stays aligned with the page)
+    margin: 0 -6rem;
+    padding: 0 6rem 4rem 6rem;
     border-radius: $radius;
-    background-color: rgba(255, 255, 255, 0.04);
-    @include border(1rem, $c-line);
+    transition-property: background-color;
+    transition-duration: $t-med;
 }
 
+// a required entrance is missing: the header's badge and note turn the warning colour (SectionHead tone="warn")
 .entrancesMissing {
-    background-color: rgba(255, 181, 71, 0.08);
-    @include border-color(rgba(255, 181, 71, 0.45));
+    background-color: transparent;
 }
 
+// the footer's "Add an entrance" leads here
 .entrancesFlash {
-    @include border-color($c-warning);
     background-color: rgba(255, 181, 71, 0.18);
-}
-
-.entrHead {
-    @include row;
-    flex-wrap: wrap;
-    min-width: 0;
-    min-height: 30rem;
-    padding: 3rem 0;
-    box-sizing: border-box;
-}
-
-.entrTitle {
-    margin-left: 5rem;
-    font-size: $fs;
-    color: #ffffff;
-    white-space: nowrap;
-}
-
-.entrCount {
-    margin-left: 6rem;
-    font-size: $fs-s;
-    color: $c-text-faint;
 }
 
 .required {
     @include row;
     flex-shrink: 0;
-    margin-left: 8rem;
 }
 
 .requiredText {
-    margin-left: 4rem;
-    font-size: $fs-s;
+    font-size: 11rem;
     font-weight: bold;
     color: #ffd79a;
     white-space: nowrap;
 }
 
-// the typed buttons follow the title on one line when they fit, else take the next line (never squeezed)
-.kindRow {
+// the type buttons, then the placed entrances
+.entBlock {
+    @include col;
+    min-width: 0;
+    margin-top: 2rem;
+}
+
+// the header line's Crosswalk switch (for the entrances placed next)
+.headCross {
     @include row;
     flex-shrink: 0;
-    margin-left: auto;
+    height: 22rem;
+    padding: 0 3rem 0 7rem;
+    border-radius: 11rem;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.headCrossLabel {
+    margin: 0 7rem 0 5rem;
+    font-size: $fs-s;
+    color: var(--menuText1Normal);
+    white-space: nowrap;
+}
+
+// one real button per entrance type, wrapping onto a second line when they do not fit
+.kindGrid {
+    @include row;
+    flex-wrap: wrap;
+    min-width: 0;
 }
 
 .kindBtn {
     @include row;
     @include button-reset;
     flex-shrink: 0;
-    height: 22rem;
-    margin-left: 3rem;
-    padding: 0 6rem 0 4rem;
-    border-radius: $radius-s;
-    background-color: rgba(255, 255, 255, 0.07);
-    @include border(1rem, rgba(255, 255, 255, 0.1));
+    height: 28rem;
+    margin: 0 5rem 5rem 0;
+    padding: 0 11rem 0 9rem;
+    border-radius: $radius;
+    background-color: rgba(255, 255, 255, 0.08);
+    @include border(1rem, rgba(255, 255, 255, 0.16));
     transition-property: background-color;
     transition-duration: $t-fast;
     &:hover {
-        background-color: rgba(255, 255, 255, 0.14);
+        background-color: rgba(255, 255, 255, 0.16);
     }
 }
 
+// the type being placed
 .kindBtnOn {
     background-color: #ffb547;
     @include border-color(#ffb547);
@@ -252,40 +213,79 @@
 }
 
 .kindLabel {
-    margin-left: 3rem;
-    font-size: $fs-s;
-    color: var(--menuText1Normal);
+    margin-left: 6rem;
+    font-size: $fs;
+    color: #eaf2f6;
     white-space: nowrap;
 }
 
-.markerList {
+// while placing: what to click
+.placingHint {
+    @include row;
+    min-width: 0;
+    margin-bottom: 5rem;
+    padding: 4rem 8rem;
+    border-radius: $radius-s;
+    background-color: rgba(255, 181, 71, 0.12);
+}
+
+.placingText {
+    margin-left: 6rem;
+    font-size: $fs-s;
+    color: #ffe2b3;
+    white-space: normal;
+}
+
+// the placed entrances: two columns of short rows
+.placedList {
     @include row;
     flex-wrap: wrap;
+    justify-content: space-between;
+    align-self: stretch;
+    width: 100%;
     min-width: 0;
-    padding-bottom: 4rem;
 }
 
-.markerItem {
+.placedRow {
+    @include row;
+    // two per line: the padding is inside the width
+    box-sizing: border-box;
+    width: 49%;
+    min-width: 0;
+    height: 26rem;
+    margin-bottom: 4rem;
+    padding: 0 2rem 0 8rem;
+    border-radius: $radius-s;
+    background-color: rgba(0, 0, 0, 0.22);
+}
+
+.placedName {
+    flex-shrink: 1;
+    min-width: 0;
+    margin-left: 6rem;
+    font-size: $fs-s;
+    color: #eaf2f6;
+    @include ellipsis;
+}
+
+.placedGap {
+    flex: 1 1 auto;
+    min-width: 4rem;
+}
+
+// a placed entrance's own crosswalk switch
+.placedCross {
     @include row;
     flex-shrink: 0;
-    height: 20rem;
-    margin: 0 4rem 2rem 0;
-    padding: 0 0 0 5rem;
-    border-radius: $radius-s;
-    background-color: rgba(0, 0, 0, 0.2);
-}
-
-.markerName {
-    margin-left: 4rem;
-    margin-right: 2rem;
-    font-size: $fs-s;
-    color: var(--menuText1Normal);
-    white-space: nowrap;
+    margin-right: 3rem;
+    > img {
+        margin-right: 4rem;
+    }
 }
 
 .markerBtn {
-    width: 18rem;
-    height: 18rem;
+    width: 22rem;
+    height: 22rem;
 }
 
 // ── extras ──
@@ -494,4 +494,18 @@
     @include row;
     flex-shrink: 0;
     pointer-events: none;
+}
+
+// a zone type's Outgrow in a Zoning type: settings changed there before the outgrow types held them
+.zoneOwnNote {
+    @include row;
+    min-width: 0;
+    margin: 0 0 4rem 0;
+    font-size: 11rem;
+}
+
+.zoneOwnText {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: $c-text-dim;
 }

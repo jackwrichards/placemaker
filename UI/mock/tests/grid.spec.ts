@@ -42,8 +42,8 @@ test("picker: 1 Category · 2 Type · 3 Style rows of chips, compact", async ({ 
 
     // styles of the selected type as chips, several per row, ending with "+ New"
     const presets = page.getByTestId("presets-park");
-    for (const id of ["default", "formal", "wild", "pond", "new"]) await expect(presets.getByTestId(`preset-${id}`)).toBeVisible();
-    const d = await box(page, "preset-default");
+    for (const id of ["standard", "formal", "wild", "pond", "new"]) await expect(presets.getByTestId(`preset-${id}`)).toBeVisible();
+    const d = await box(page, "preset-standard");
     const f = await box(page, "preset-formal");
     expect(Math.abs(f.y - d.y)).toBeLessThan(2);
     expect(f.x).toBeGreaterThan(d.x);

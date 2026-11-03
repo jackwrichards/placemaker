@@ -24,6 +24,9 @@ namespace Placemaker.Core.Layers.Commercial
 
         /// <summary>(shops) A second strip on the back street when the first leaves half the block (a lot, a lane and two cells of shops: ~45 m).</summary>
         protected override float ComposeMoreBelow => 0.6f;
+        /// <summary>(shops4) A lot one aisle deep, the lane and two-cell plots (about 48 m) by three plots: smaller says "too small"; an area
+        /// big enough but too narrow behind every entrance says so itself (LotCentre, NoRoom).</summary>
+        public override float MinArea => 1600f;
         protected override float MoreReach => 44f;
         /// <summary>(shops2) Plan fact set when the whole site was laid out as rows of stores round lots (<see cref="Rows"/>): the number of store rows.</summary>
         public const string RowsFact = "stripRows";
@@ -37,7 +40,11 @@ namespace Placemaker.Core.Layers.Commercial
             // (shops2) The default is the classic strip mall: a long row of single-storey shops (low-density commercial, 32 m deep) round a big lot.
             CommonControls(c, ZoneKinds.CommercialLow, 32, "large", maxDepth: 48);
             // (rf-shops3) The architect's extras: walks, plaza, bikes, food trucks, pads, designed planting, building sites, plot trees, worn ground.
-            ExtrasControls(c, pads: true, water: "rainGardens");
+            // (shops4) Off by default: the strip mall is the lot and the shops (the user: "what are those green rectangles, why is there a
+            // path going nowhere"); the extras stay for the player to add.
+            // (shops4) A square in the middle of the row of shops: a plaza, a small park or a garden (off by default).
+            Shared(c.Choice("square", "none", ControlTier.More, "extras", "none", "plaza", "park", "garden", "pond")).Tip();
+            ExtrasControls(c, walkways: false, plaza: false, bikes: "none", trucks: 0, pads: false, designed: false, hedges: true, sites: true, worn: false, water: "none", plotTrees: false);
             c.Fixed("style");
         }
 
@@ -45,14 +52,16 @@ namespace Placemaker.Core.Layers.Commercial
         {
             // (shops2) The layout of the retail park's Megastores (the user: A-, "should just be what the regular strip mall is"), grown as
             // low-rise shops (a real strip mall is one storey, not office blocks): a big lot; on a big site several rows round a grid of lots.
-            Preset("classic", ("style", "classic"), ("lotSize", "large"), ("plotDepth", 32.0), ("zoneKind", ZoneKinds.CommercialLow), ("evShare", 10.0), ("frontage", 240.0),
-                ("foodTrucks", 2.0), ("bikes", "racks"), ("water", "rainGardens"), ("pads", true));
+            Preset("classic", ("style", "classic"), ("lotSize", "large"), ("plotDepth", 32.0), ("zoneKind", ZoneKinds.CommercialLow), ("evShare", 10.0), ("frontage", 240.0));
             Preset("corner", ("style", "corner"), ("lotSize", "medium"), ("plotDepth", 24.0), ("zoneKind", ZoneKinds.CommercialLow));
             Preset("rearAlley", ("style", "rearAlley"), ("lotSize", "medium"), ("plotDepth", 16.0), ("zoneKind", ZoneKinds.CommercialLow));
             Preset("neighbourhood", ("style", "classic"), ("lotSize", "small"), ("frontage", 90.0), ("plotDepth", 16.0), ("lotGreen", "medians"), ("zoneKind", ZoneKinds.CommercialLow));
             // (shops2) Big box: a few very wide, deep low-rise stores (one-storey boxes) on the biggest lots.
-            Preset("bigBox", ("style", "classic"), ("lotSize", "large"), ("frontage", 240.0), ("plotDepth", 48.0), ("zoneKind", ZoneKinds.CommercialLow), ("evShare", 10.0),
-                ("foodTrucks", 3.0), ("bikes", "paths"), ("water", "both"), ("pads", true), ("lotMedian", 3.5));
+            Preset("bigBox", ("style", "classic"), ("lotSize", "large"), ("frontage", 240.0), ("plotDepth", 48.0), ("zoneKind", ZoneKinds.CommercialLow), ("evShare", 10.0), ("lotMedian", 3.5));
+            // (shops4) Variations of the strip mall with a square in the middle of the row: a café plaza, a small park.
+            Preset("plazaRow", ("style", "classic"), ("lotSize", "large"), ("plotDepth", 32.0), ("zoneKind", ZoneKinds.CommercialLow), ("evShare", 10.0), ("square", "plaza"));
+            Preset("parkRow", ("style", "classic"), ("lotSize", "large"), ("plotDepth", 32.0), ("zoneKind", ZoneKinds.CommercialLow), ("evShare", 10.0), ("square", "park"));
+            Preset("pondRow", ("style", "classic"), ("lotSize", "large"), ("plotDepth", 32.0), ("zoneKind", ZoneKinds.CommercialLow), ("evShare", 10.0), ("square", "pond"));
         }
 
         /// <summary>(rf-shops3) Planned from the player's entrances (the centre: StripMallCentre.cs); the hidden corner and rear-alley styles too.</summary>
@@ -62,7 +71,10 @@ namespace Placemaker.Core.Layers.Commercial
         {
             string style = ctx.S("style");
             if (style != "classic") return false;
-            return Centre(ctx, mall, runs);
+            // (shops4) The lot first, the shops behind it (LotCentre.cs); the ring centre (StripMallCentre.cs) is no longer used.
+            bool big = ctx.Raw("plotDepth") >= 44f;
+            string sq = ctx.S("square");
+            return LotCentre(ctx, mall, runs, new LotLayout { MaxPiece = big ? 6 : 3, AnchorWeight = big ? 1.25f : 1.8f, Square = sq == "none" || string.IsNullOrEmpty(sq) ? null : sq });
         }
 
         protected override void Compose(LayerContext ctx, Mall mall, List<StreetShops.Run> runs)
@@ -357,6 +369,9 @@ namespace Placemaker.Core.Layers.Commercial
         /// <summary>(shops2) After the rows of stores, the rest of the site is lots (no access alleys or street rows across the front lot).</summary>
         protected override void LotFirst(LayerContext ctx, Mall mall, List<StreetShops.Run> runs)
         {
+            // (shops4) The lot-first layout planned its lots itself; opening a shut-in leftover by giving back a shop plot (OpenAccess)
+            // took every shop of an odd site.
+            if (mall.LotFirstMode) return;
             if (!ctx.Plan.Facts.ContainsKey(RowsFact) && !ctx.Plan.Facts.ContainsKey(CentreFact)) { base.LotFirst(ctx, mall, runs); return; }
             // Every bay between the rails and rungs is a whole lot: no budget shared out (a share cut a bay's lot short by the
             // crescents beside a round block that never become lots, and planted the rest).

@@ -31,7 +31,10 @@ param(
     # you started yourself with Run-Suite -Direct -Queue.
     [switch]$Direct,
     [switch]$Build,
-    [string]$Who = ''
+    [string]$Who = '',
+    # -Fresh: a game of its own, launched for this file (never one that has run other requests): e.g. to load a save
+    # in a game that has never seen the objects the save names (suite/README.md, "Save and reload").
+    [switch]$Fresh
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
@@ -101,7 +104,7 @@ if (-not $doc.command) {
 if ($queued) {
     # the machine-wide game queue: waits its turn, prints its place and an ETA, then the same lines as below
     . (Join-Path $PSScriptRoot 'GameQueue.ps1')
-    $q = Invoke-QueuedSend $repo $text $base @{ Build = [bool]$Build; Who = $Who; ResultsRoot = $ResultsRoot; TimeoutSec = $(if ($PSBoundParameters.ContainsKey('TimeoutSec')) { $TimeoutSec } else { 0 }) }
+    $q = Invoke-QueuedSend $repo $text $base @{ Build = [bool]$Build; Fresh = [bool]$Fresh; Who = $Who; ResultsRoot = $ResultsRoot; TimeoutSec = $(if ($PSBoundParameters.ContainsKey('TimeoutSec')) { $TimeoutSec } else { 0 }) }
     if (-not $q.result) { exit $q.code }
     $runDir = $q.resultsDir
     $result = $q.result

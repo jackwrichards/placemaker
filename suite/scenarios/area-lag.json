@@ -1,0 +1,34 @@
+{
+  "_about": "Lag spikes of the area tools (2026-10-21, the user: lag spikes dragging Paint area, and hovering the Paint bucket without clicking). Read each step's worst frame in suite.log: bucket hovers over several grid blocks, a bucket click, a long Paint area stroke across open land (its work box grows), and Paint area strokes in a grid block.",
+  "scenarios": [
+    {
+      "id": "lag-bucket-hover",
+      "steps": [
+        { "do": "hover", "tool": "bucket", "at": [0, 0] },
+        { "do": "hover", "tool": "bucket", "at": [160, 0] },
+        { "do": "hover", "tool": "bucket", "at": [320, 10] },
+        { "do": "hover", "tool": "bucket", "at": [160, 150] },
+        { "do": "hover", "tool": "bucket", "at": [0, 150] },
+        { "do": "area", "tool": "bucket" },
+        { "do": "camera", "target": "area", "view": "top", "shot": "bucket", "shotMode": "overlay" }
+      ]
+    },
+    {
+      "id": "lag-paint-open",
+      "land": { "shape": "rect", "size": [800, 300], "ground": "slope", "grade": 8, "toward": "north", "roads": "none" },
+      "steps": [
+        { "do": "hover", "tool": "bucket", "at": [-200, 0] },
+        { "do": "hover", "tool": "bucket", "at": [150, 30] },
+        { "do": "area", "tool": "paint", "size": 50, "cameraDistance": 1100, "stroke": [[-300, -60], [-150, 40], [0, -20], [150, 50], [250, 0]] },
+        { "do": "camera", "target": "area", "view": "top", "shot": "painted", "shotMode": "overlay" }
+      ]
+    },
+    {
+      "id": "lag-paint-block",
+      "steps": [
+        { "do": "area", "tool": "paint", "size": 30, "stroke": [[-50, -40], [40, -40], [40, 30], [-50, 30]] },
+        { "do": "camera", "target": "area", "view": "top", "shot": "painted", "shotMode": "overlay" }
+      ]
+    }
+  ]
+}

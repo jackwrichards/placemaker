@@ -1,0 +1,59 @@
+{
+  "_about": "Outgrown but empty (the user: buildings the Global outgrow lens shows outgrown get no garden, yard or car park, or what was built later vanished; painting over them again fixes them). Three streets back to back (shops, apartments, offices: all car park looks) grow with Outgrow new buildings on (empty-new), or grow first and get Outgrow all (empty-all, then a brush stroke of Big shops over the shops). Each then lets the city run a while (people and companies move in: the game rebuilds those buildings' objects and took ours with them). outgrowAudit counts every outgrown building that was never planned or has land past its lot but nothing on it, and how many pieces the game took and Outgrow made again; outgrowRepaint stamps the empty ones again (the user's work-around) and counts how many of them get pieces now: those were empty by a fault. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-empty.json -Who fix-outgrow-empty",
+  "scenarios": [
+    {
+      "id": "empty-new",
+      "land": { "shape": "rect", "size": [ 420, 420 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [ 0, 130 ], "zone": "NA Commercial Low" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [ 0, 0 ], "zone": "NA Residential Medium" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [ 0, -130 ], "zone": "Office Low" },
+        { "do": "grow", "seconds": 100 },
+        { "do": "lab", "op": "polishIdle", "seconds": 150 },
+        { "do": "lab", "op": "outgrowAudit", "label": "new buildings, after growing" },
+        { "do": "grow", "seconds": 40 },
+        { "do": "lab", "op": "polishIdle", "seconds": 150 },
+        { "do": "lab", "op": "outgrowAudit", "label": "after the city ran 40 s more" },
+        { "do": "shot", "name": "top", "camera": { "target": "point", "at": [ 0, 0 ], "view": "top", "distance": 420 }, "shotMode": "render" },
+        { "do": "lab", "op": "outgrowRepaint", "only": "empty", "wait": 150 },
+        { "do": "shot", "name": "top-repainted", "camera": { "target": "point", "at": [ 0, 0 ], "view": "top", "distance": 420 }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "empty-all",
+      "land": { "shape": "rect", "size": [ 420, 420 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": false },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [ 0, 130 ], "zone": "NA Commercial Low" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [ 0, 0 ], "zone": "NA Residential Medium" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [ 0, -130 ], "zone": "Office Low" },
+        { "do": "grow", "seconds": 60 },
+        { "do": "polish", "stamp": "pick" },
+        { "do": "polish", "click": "panel-mode-outgrow" },
+        { "do": "polish", "click": "polish-all" },
+        { "do": "polish", "clickText": "Set to defaults" },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "lab", "op": "outgrowAudit", "label": "after Outgrow all" },
+        { "do": "shot", "name": "top", "camera": { "target": "point", "at": [ 0, 0 ], "view": "top", "distance": 420 }, "shotMode": "render" },
+        { "do": "grow", "seconds": 40 },
+        { "do": "lab", "op": "polishIdle", "seconds": 150 },
+        { "do": "lab", "op": "outgrowAudit", "label": "after the city ran 40 s" },
+        { "do": "shot", "name": "top-ran", "camera": { "target": "point", "at": [ 0, 0 ], "view": "top", "distance": 420 }, "shotMode": "render" },
+        { "do": "polish", "click": "polish-brush-type" },
+        { "do": "polish", "click": "polish-brush-pick-bigShops" },
+        { "do": "polish", "click": "polish-brush-paint", "camera": { "target": "point", "at": [ 0, 60 ], "view": "top", "distance": 420 } },
+        { "do": "area", "tool": "outgrowBrush", "stroke": [ [ -130, 150 ], [ 0, 150 ], [ 130, 150 ] ], "size": 40 },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowAudit", "label": "after the brush" },
+        { "do": "shot", "name": "top-lens", "camera": { "target": "point", "at": [ 0, 0 ], "view": "top", "distance": 420 }, "shotMode": "ui" },
+        { "do": "polish", "click": "polish-lens-on" },
+        { "do": "lab", "op": "outgrowRepaint", "only": "empty", "wait": 150 },
+        { "do": "shot", "name": "top-repainted", "camera": { "target": "point", "at": [ 0, 0 ], "view": "top", "distance": 420 }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

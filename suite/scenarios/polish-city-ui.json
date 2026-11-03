@@ -1,0 +1,18 @@
+{
+  "_about": "The Zoning category's City window (header button), one picture of it with a Zoning type picked; a zone row opened (its looks). Send with tools/hot/Send-Hot.ps1 -File suite/scenarios/polish-city-ui.json.",
+  "scenarios": [
+    {
+      "id": "polish-city-ui",
+      "land": { "shape": "rect", "size": [320, 240], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 120, "from": 40, "to": 140 },
+        { "do": "area", "tool": "paint", "size": 60, "cameraDistance": 520, "stroke": [[-110, -60], [-60, 0], [-20, 40]] },
+        { "do": "type", "layer": "polishGarden", "preset": "standard" },
+        { "do": "polish", "click": "panel-mode-outgrow" },
+        { "do": "shot", "name": "city-ui", "shotMode": "ui" },
+        { "do": "polish", "click": "polish-zone-EU Residential Low" },
+        { "do": "shot", "name": "city-pick-ui", "shotMode": "ui" }
+      ]
+    }
+  ]
+}

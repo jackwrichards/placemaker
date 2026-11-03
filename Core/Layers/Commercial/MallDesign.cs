@@ -520,7 +520,7 @@ namespace Placemaker.Core.Layers.Commercial
             if (!X.Designed && !wet) { Buffer(piece, salt); return; }
             var region = LayerRegion.From(piece);
             if (region == null) return;
-            Ctx.Surface(piece, SurfaceRole.Grass, new AssetRef(""), AssetCategories.SurfaceGrass);
+            Lawn(piece);
             var rng = Hashing.Rng(Hashing.Mix(Ctx.Seed, salt), "landscape");
             var reserved = Reserved();
             if (walk != null) for (int i = 0; i + 1 < walk.Count; i++) reserved.AddCorridor(walk[i], walk[i + 1], 2.2f, "walk");

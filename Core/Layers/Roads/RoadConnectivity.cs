@@ -20,6 +20,8 @@ namespace Placemaker.Core.Layers.Roads
         {
             public float2[] Boundary = Array.Empty<float2>();
             public List<ExistingRoad> Existing = new List<ExistingRoad>();
+            /// <summary>Existing roads no link may cross (highways, ramps, roads the player keeps free).</summary>
+            public List<ExistingRoad> Barriers = new List<ExistingRoad>();
             public RoadObstacles Obstacles;
             public Func<float2, float> Height;
             public Func<NetRole, float> HalfWidth = r => 8f;
@@ -296,7 +298,7 @@ namespace Placemaker.Core.Layers.Roads
             if (o.Boundary != null && o.Boundary.Length >= 3)
                 foreach (var p in line)
                     if (!Poly.Contains(o.Boundary, p) && Poly.DistanceToBoundary(o.Boundary, p) > 3f) return float.MaxValue;
-            if (CrossesExisting(line, o.Existing, -1)) return float.MaxValue;
+            if (CrossesExisting(line, o.Existing, -1) || RoadConnections.CrossesAny(line, o.Barriers)) return float.MaxValue;
             float grade = RoadGraph.MaxGrade(curve, o.Height);
             if (grade > o.GradeCap) return float.MaxValue;
             float score = dist;
@@ -324,6 +326,17 @@ namespace Placemaker.Core.Layers.Roads
                         }
             }
             return false;
+        }
+
+        /// <summary>Every existing road leaving point p makes at least <paramref name="minAngle"/>° with <paramref name="dir"/>.</summary>
+        private static bool ClearOfCityArms(List<ExistingRoad> roads, float2 p, float2 dir, float minAngle)
+        {
+            foreach (var r in roads)
+            {
+                if (math.distance(r.Curve.A.xz, p) < 1f && RoadGraph.Angle(r.Curve.TangentXZ(0f), dir) < minAngle) return false;
+                if (math.distance(r.Curve.D.xz, p) < 1f && RoadGraph.Angle(-r.Curve.TangentXZ(1f), dir) < minAngle) return false;
+            }
+            return true;
         }
 
         private static bool CityNear(RoadNetwork net, Options o, int[] comp, int c)
@@ -362,6 +375,9 @@ namespace Placemaker.Core.Layers.Roads
                     {
                         // A dead end stopping a few metres short of a road (its perimeter piece went): it simply joins it.
                         if (inc[u].Count != 1 || (targetOk != null && !targetOk(road.Curve.Position(t).xz))) continue;
+                        // (smarter roads) only a street arriving square joins this way (no knife edge onto the road)
+                        float2 arriving = -RoadGraph.Leaving(net.Edges[inc[u][0]], u);
+                        if (t > 0.01f && t < 0.99f && math.abs(math.dot(arriving, road.Curve.TangentXZ(t))) > 0.57f) continue;
                         if (t * len < 8f) t = 0f; else if ((1f - t) * len < 8f) t = 1f;
                         float3 qs = t <= 0f ? road.Curve.A : t >= 1f ? road.Curve.D : road.Curve.Position(t);
                         if (d < best.Score) best = new Candidate { Score = d, U = u, Q = qs, Existing = r, ExistingT = t, Edge = -1, V = -2 };
@@ -375,12 +391,14 @@ namespace Placemaker.Core.Layers.Roads
                     float2 dir = (q.xz - pu) / dist;
                     if (RoadGraph.MinAngleAt(net, inc, u, dir) < o.AngleMin) continue;
                     if (t > 0f && t < 1f && math.abs(math.dot(dir, road.Curve.TangentXZ(t))) > 0.5f) continue;
+                    // (smarter roads) onto a city node: square to every road already there (no knife edge)
+                    if ((t <= 0f || t >= 1f) && !ClearOfCityArms(o.Existing, q.xz, -dir, 55f)) continue;
                     ignore.Clear();
                     foreach (int k in inc[u]) ignore.Add(k);
                     var curve = RoadCurve.Straight(nu.Position, q);
                     var line = RoadGraph.Sample(curve, 4f);
                     if (all.Crosses(line, 1.5f, ignore)) continue;
-                    if (CrossesExisting(line, o.Existing, r)) continue;
+                    if (CrossesExisting(line, o.Existing, r) || RoadConnections.CrossesAny(line, o.Barriers)) continue;
                     float hw = o.HalfWidth(NetRole.Street);
                     if (all.Clearance(line, hw + 12f, hw * 2f + 4f, ignore) < hw * 2f + (o.Relaxed ? -2f : 2f)) continue;
                     if (o.Obstacles != null && o.Obstacles.Blocked(curve, o.HalfWidth(NetRole.Street) + 1f)) continue;
@@ -460,7 +478,22 @@ namespace Placemaker.Core.Layers.Roads
                     }
                     bool outline = !o.Perimeter && o.Boundary != null && o.Boundary.Length >= 3
                         && Poly.DistanceToBoundary(o.Boundary, net.Nodes[n].Position.xz) < 6f;
-                    if (outline && length >= 20f) continue;
+                    // (Smarter roads) No border: a street running out to the edge of the selection with nothing there is no
+                    // stub-out looking for a border (the user). A long one becomes a cul-de-sac set back inside the edge
+                    // (it serves the land there); a short one goes back to its last junction (a clean edge of the grid).
+                    if (outline && length >= OutlineCulDeSac && !(tip.CapAtEnd && tip.N1 == n) && SetBack(net, chain[0], n, OutlineSetback))
+                    {
+                        changed = true;
+                        res.Capped++;
+                        break;
+                    }
+                    if (outline && length < OutlineCulDeSac)
+                    {
+                        foreach (int k in chain) net.Edges[k].Removed = true;
+                        res.Pruned++;
+                        changed = true;
+                        continue;
+                    }
                     if (length < o.MinCulDeSac)
                     {
                         foreach (int k in chain) net.Edges[k].Removed = true;
@@ -483,6 +516,57 @@ namespace Placemaker.Core.Layers.Roads
             }
             // A cap flag on an end that is no longer a dead end does nothing (the planner caps degree-1 ends only).
             JoinFacingTips(net, o, res);
+        }
+
+        /// <summary>
+        /// (Smarter roads) The last word on dead ends: every car road ending on nothing (not on the city) carries its turning
+        /// circle at that end, whatever the passes after the dead-end pass did to its pieces (a short tip merged away, a piece
+        /// split or turned). Returns the tips that had lost it.
+        /// </summary>
+        public static int CapAllDeadEnds(RoadNetwork net)
+        {
+            int fixedCount = 0;
+            var inc = RoadGraph.Incidence(net, RoadGraph.Car);
+            for (int n = 0; n < net.Nodes.Count; n++)
+            {
+                if (inc[n].Count != 1 || Attached(net.Nodes[n])) continue;
+                var e = net.Edges[inc[n][0]];
+                if (e.Role == NetRole.Roundabout) continue;
+                if (e.CapAtEnd && e.N1 == n) continue;
+                if (e.N0 == n)
+                {
+                    if (e.CapAtEnd && inc[e.N1].Count == 1) continue;   // a lone piece capped at its other end
+                    e.Curve = e.Curve.Reversed();
+                    (e.N0, e.N1) = (e.N1, e.N0);
+                }
+                e.CapAtEnd = true;
+                fixedCount++;
+            }
+            return fixedCount;
+        }
+
+        /// <summary>(Smarter roads) A street to the open edge this long (junction to tip) or longer ends in a cul-de-sac there.</summary>
+        private const float OutlineCulDeSac = 70f;
+        /// <summary>How far inside the edge such a cul-de-sac's tip stops (its turning circle stays inside).</summary>
+        private const float OutlineSetback = 16f;
+
+        /// <summary>Shortens the tip edge by <paramref name="back"/> m at dead end <paramref name="n"/> and caps the new tip (welds).</summary>
+        private static bool SetBack(RoadNetwork net, int ei, int n, float back)
+        {
+            var e = net.Edges[ei];
+            float len = RoadGraph.Length(e);
+            if (len < back + 12f) return false;
+            if (e.N0 == n)
+            {
+                e.Curve = e.Curve.Reversed();
+                (e.N0, e.N1) = (e.N1, e.N0);
+            }
+            float t = RoadGraph.ParamAt(e.Curve, back, fromEnd: true);
+            e.Curve.Split(math.clamp(t, 0.01f, 0.99f), out var keep, out _);
+            e.Curve = keep;
+            e.CapAtEnd = true;
+            net.Weld();
+            return true;
         }
 
         /// <summary>

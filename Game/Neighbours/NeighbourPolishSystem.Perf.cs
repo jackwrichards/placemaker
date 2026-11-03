@@ -1,0 +1,84 @@
+// Placemaker neighbourhood polish — what it costs (GPL-3.0).
+//
+// Times every part: the system's whole frame (UpdateMs), a pass gathering its houses on the frame (PassMainMs), the plan
+// on its worker (PlanWorkerMs) and writing a finished plan into the houses (FinishMainMs), with the worst of each. The game
+// runner's lab ops polishIdle and polishStats report them. Lab op "polishPassDump" writes every pass's input to a file
+// (Core StitchDump) for the offline benchmark (Tests OutgrowBench).
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Placemaker.Core.Neighbours;
+
+namespace Placemaker.Game.Neighbours
+{
+    public sealed partial class NeighbourPolishSystem
+    {
+        /// <summary>Main thread time (ms) since the game started, and the worst single one.</summary>
+        public static double UpdateMs, PassMainMs, FinishMainMs, PlanWorkerMs;
+        public static double UpdateMaxMs, PassMainMaxMs, FinishMainMaxMs, PlanWorkerMaxMs;
+        public static int PlansTimed;
+        /// <summary>Why houses were put in line to be planned (since the game started): 0 a fence line the game changed, 1 a
+        /// building gone nearby, 2 something built nearby, 3 a garden over a new lot, 4 a stamp (Polish), 5 the game rebuilt
+        /// the building (built, levelled up: another model), 6 the game took away surfaces of its own, 7 found empty after a load (NeighbourPolishSystem.Rebuilt).</summary>
+        public static readonly int[] DirtyBy = new int[8];
+        public static readonly string[] DirtyByNames = { "linesChanged", "goneNearby", "builtNearby", "clash", "stamped", "rebuilt", "piecesTaken", "emptyAfterLoad" };
+        public static int DirtySkippedTotal => DirtySkipped;
+        /// <summary>A pass's main thread time by part (ms since the game started): 0 grid, 1 picking the patch, 2 describing
+        /// houses, 3 looks, gardens and fences of the neighbours (with 2: describing counted apart), 4 barriers, 5 starting the
+        /// ground and water jobs, 6 taking their samples and starting the plan.</summary>
+        public static readonly double[] PassPartMs = new double[7];
+        public static readonly string[] PassPartNames = { "grid", "pick", "describe", "looks", "barriers", "sampling", "start" };
+        private double _passPartAt;
+        /// <summary>Gathering barriers by part (ms since the game started): roads, buildings, lot areas and builds, water.</summary>
+        public static readonly double[] BarrierPartMs = new double[4];
+        public static readonly string[] BarrierPartNames = { "roads", "buildings", "lotsAndBuilds", "water" };
+
+        /// <summary>The time since the last part (the pass's clock), added to part k; "looks" (3) leaves out describing.</summary>
+        private void PassPart(int k, System.Diagnostics.Stopwatch sw)
+        {
+            double now = sw.Elapsed.TotalMilliseconds;
+            if (k == 0) _passPartAt = 0;
+            double ms = now - _passPartAt;
+            // describing is timed on its own (part 2) inside the looks loop: left out of part 3
+            if (k == 3) ms -= PassPartMs[2] - _describeBefore;
+            PassPartMs[k] += ms;
+            _passPartAt = now;
+            if (k == 1) _describeBefore = PassPartMs[2];
+        }
+        private double _describeBefore;
+
+        private static void NoteMain(double ms, ref double total, ref double max)
+        {
+            total += ms;
+            if (ms > max) max = ms;
+        }
+
+        /// <summary>The worst times back to zero (the game runner measures one stretch).</summary>
+        public static void ResetWorst() => UpdateMaxMs = PassMainMaxMs = FinishMainMaxMs = PlanWorkerMaxMs = 0;
+
+        /// <summary>Game runner: write each pass's input here (up to PassDumpMax files); null: off.</summary>
+        public static string PassDumpDir;
+        public static int PassDumpMax = 40;
+        private static int s_passDumps;
+
+        public static void StartPassDump(string dir, int max)
+        {
+            PassDumpDir = dir;
+            PassDumpMax = max;
+            s_passDumps = 0;
+            Directory.CreateDirectory(dir);
+        }
+
+        private void DumpPass(List<StitchHouse> stitch, StitchSettings settings, HeightRaster raster, int number)
+        {
+            try
+            {
+                var path = Path.Combine(PassDumpDir, $"pass-{number:000}.json");
+                File.WriteAllText(path, StitchDump.Write(stitch, settings, raster));
+                Mod.Log.Info($"Placemaker neighbourhood polish: pass input written to {path} ({stitch.Count} houses, {settings.Barriers?.Count ?? 0} barriers)");
+            }
+            catch (Exception e) { Mod.Log.Warn("Placemaker neighbourhood polish: pass dump failed: " + e.Message); PassDumpDir = null; }
+        }
+    }
+}

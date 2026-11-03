@@ -1,0 +1,11 @@
+{
+  "formatVersion": 1,
+  "id": "industrialWorks",
+  "nameKey": "Placemaker.Recipe.IndustrialWorks",
+  "descriptionKey": "Placemaker.Recipe.IndustrialWorks.Description",
+  "icon": "Media/Game/Icons/ZoneIndustrialManufacturing.svg",
+  "root": {
+    "layer": "industrialWorks",
+    "settings": {}
+  }
+}

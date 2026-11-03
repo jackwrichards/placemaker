@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Placemaker road lab: runs the REAL roads planner (Core, engine free) on synthetic land and existing networks
+    (a highway with ramps, an avenue through the area, a small two lane road), rates every layout
+    (Core/Layers/Roads/RoadsRating.cs) and writes one SVG picture per case plus index.html and ratings.json.
+    No game needed. Command line: see the header of Program.cs.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <RollForward>Major</RollForward>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>Placemaker.RoadLab</AssemblyName>
+    <RootNamespace>Placemaker.RoadLab</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591;CS0649</NoWarn>
+    <ManagedPath Condition="'$(ManagedPath)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Cities Skylines II\Cities2_Data\Managed</ManagedPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Core\**\*.cs" Link="Core\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Reference Include="Unity.Mathematics"><HintPath>$(ManagedPath)\Unity.Mathematics.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

@@ -145,7 +145,9 @@ namespace Placemaker.Core.Build
         /// can never be smoothed by this pass (s32's high street / retail park / mall park / mall district were).
         /// </summary>
         public static bool Participates(string generatorId) =>
-            !string.IsNullOrEmpty(generatorId) && !OwnGround.Contains(generatorId) && GeneratorGroups.Of(GeneratorRegistry.Get(generatorId)) != "commercial";
+            !string.IsNullOrEmpty(generatorId) && !OwnGround.Contains(generatorId) && GeneratorGroups.Of(GeneratorRegistry.Get(generatorId)) != "commercial"
+            // the Zoning tool levels its own lots (LotLevel): its ground is the design
+            && !(GeneratorRegistry.Get(generatorId) is Layers.Types.Zoning.PolishLookLayer);
 
         // ───────────────────────── context ─────────────────────────
 

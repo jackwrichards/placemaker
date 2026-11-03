@@ -51,7 +51,7 @@ namespace Placemaker.Tests
                     foreach (var kv in f.Preset.Values) Assert.Contains(fg.Controls, c => c.Id == kv.Key);
                     if (f.Target.Length > 0) Assert.Contains(f.Target, g.Emits);
                 }
-            Assert.Equal(new[] { "plaza", "playground", "pond", "picnic", "restrooms", "fountain", "bigtrees", "flowerbeds", "shops", "edgeZoning", "rocks", "ground", "decals", "terrain", "shore",
+            Assert.Equal(new[] { "plaza", "playground", "pond", "picnic", "restrooms", "fountain", "bigtrees", "flowerbeds", "shops", "edgeZoning", "rocks", "ground", "terrain", "shore",
                     "runningTrack", "cricketGround", "pitch", "baseballDiamond", "tennisCourts", "basketballCourt", "skateBowl",
                     "volleyball", "basketball", "tableTennis", "chess", "fitness", "splashPad", "bandstand", "dogRun", "noticeboard",
                     "bigStatue", "folly", "obelisk", "triumphalArch", "sculptureWalk", "terraceGarden" },
@@ -60,7 +60,7 @@ namespace Placemaker.Tests
             Assert.Contains(Features.Of(GeneratorRegistry.Get("plaza")), f => f.Layer == "kiosk");
             // s34: the roads type pre-zones its roads itself (control "preZone"); no edge-zoning feature any more.
             Assert.Empty(Features.Of(GeneratorRegistry.Get("roads")));
-            Assert.Equal(8, Features.Of(GeneratorRegistry.Get("campground")).Count);
+            Assert.Equal(7, Features.Of(GeneratorRegistry.Get("campground")).Count);   // issue #2: the Decals feature is gone
         }
 
         [Fact]

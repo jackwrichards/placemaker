@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Unity.Mathematics;
 
 namespace Placemaker.Core.Tool
@@ -44,6 +45,8 @@ namespace Placemaker.Core.Tool
         public LocText UndoLabel, RedoLabel;
         public string MarkerStepPath, MarkerKind;
         public LocText MarkerLabel;
+        /// <summary>The entrances placed next come with a crosswalk (walking kinds only).</summary>
+        public bool MarkerCrosswalk;
         public List<HintInfo> Hints = new List<HintInfo>();
         public bool Planning;
         /// <summary>Coarse 0..0.95 while planning (0 = queued); not yet in contract.ts (proposed: state.planningProgress?: number).</summary>
@@ -51,6 +54,10 @@ namespace Placemaker.Core.Tool
         public float? BuildProgress;
         public int EditingGroup;
         public bool AnarchyAvailable, AnarchyEnabled;
+        /// <summary>The build becomes a group (not a loose road grid): the Review switch "One group" applies; BuildSeparate = off.</summary>
+        public bool GroupingAvailable, BuildSeparate;
+        /// <summary>Review's "Keep area" switch: Build keeps the area (on) or closes Placemaker (off).</summary>
+        public bool KeepArea = true;
         public bool PanelCollapsed;
         /// <summary>contract: state.previewMode — the player's choice for the current stage.</summary>
         public PreviewMode PreviewMode;
@@ -60,6 +67,84 @@ namespace Placemaker.Core.Tool
         public Dictionary<SelectionMode, LocText> ModeUnavailable;
         /// <summary>(s22) contract: state.legendVisibility — preview layers the player showed/hid (id → visible); null/empty = defaults.</summary>
         public IReadOnlyDictionary<string, bool> LegendVisibility;
+        /// <summary>(Area overhaul) contract: state.areaLegend — what the overlay shows while choosing the area (Core/Tool/AreaLegend).</summary>
+        public List<Placemaker.Core.Build.PreviewLegend.Entry> AreaLegend;
+        /// <summary>(PROTOCOL 25) contract: state.painter — "Polish gardens" is the pick (null = not).</summary>
+        public PainterView Painter;
+    }
+
+    /// <summary>The neighbourhood-polish painter as the panel shows it.</summary>
+    public sealed class PainterView
+    {
+        /// <summary>Lots whose middle lies in the area, and how many of them are polished now.</summary>
+        public int Lots, Polished;
+        /// <summary>This city's master switch "Outgrow" (off: paused; flags are kept, gardens change once it is on).</summary>
+        public bool FeatureOn;
+        /// <summary>"Outgrow new buildings", this city's.</summary>
+        public bool NewHouses;
+        /// <summary>The theme Polish stamps: "zone" (each house by its zone's setting), "garden", "natural", "tidy", "yard".</summary>
+        public string Theme = "zone";
+        /// <summary>The look Polish gives (saved on each lot it polishes; new buildings get it too): the painted-garden share
+        /// 0–100 and the parts.</summary>
+        public int Painted = 33;
+        public bool Lawns = true, Planting = true, Features = true, Paths = true, Rocks = true, GroundPaint = true, ShopPaving = true;
+        /// <summary>The whole city: each kind's theme for new buildings ("off": not polished), polished and growable lots,
+        /// lots waiting to be fitted, lots being put back.</summary>
+        public string Homes = "auto", Shops = "auto", Offices = "auto", Industry = "auto";
+        public int CityPolished, CityTotal, Waiting, Restoring;
+        /// <summary>The look picked (Theme holds its id): its base theme as the rows have it, whether the rows changed it,
+        /// every knob's value in the rows and in the saved look.</summary>
+        public string LookTheme = "garden", LookSavedTheme = "garden";
+        public bool Modified;
+        /// <summary>The old polish painter tool (its own window); false: a Zoning type in Placemaker's panel (City window only).</summary>
+        public bool Tool;
+        /// <summary>Live polish: the selection polished again after every change.</summary>
+        public bool Live;
+        public Dictionary<string, float> Values = new Dictionary<string, float>(), LookValues = new Dictionary<string, float>();
+        /// <summary>Every look: id, name (a key for the built-in ones), the player's own, base theme, a built-in one the player
+        /// changed, its settings that differ from Defaults.</summary>
+        public List<(string Id, string Name, bool Custom, string Theme, bool Edited, Dictionary<string, float> Knobs, string Color)> Looks = new List<(string, string, bool, string, bool, Dictionary<string, float>, string)>();
+        /// <summary>The colours a look can be given.</summary>
+        public string[] Swatches = new string[0];
+        /// <summary>Every look setting's default (a look's values: these, then its Knobs).</summary>
+        public Dictionary<string, float> Defaults = new Dictionary<string, float>();
+        /// <summary>A Zoning type picked: the look its zones take unless one picks its own (null: none picked).</summary>
+        public string TypeLook;
+        /// <summary>Global outgrow's numbers (null: no city).</summary>
+        public PainterStats Stats;
+        /// <summary>The status lens is on (Global outgrow open and its switch on), and what it shows by layer.</summary>
+        public bool Lens, LensWanted;
+        public int[] LensCounts = new int[0];
+        /// <summary>The lens's map: "status" (the line's heat map) or "types" (each building its outgrow type's colour), and in
+        /// "types" how many buildings in view have each type.</summary>
+        public string LensMode = "status";
+        public List<(string Look, int Count)> LensTypes = new List<(string, int)>();
+        /// <summary>Global outgrow's brush: "" off, "paint" (the type picked) or "erase"; the type it paints.</summary>
+        public string Brush = "", BrushLook = "";
+        public float BrushSize = 40f;
+        public bool OutgrowMode;
+        /// <summary>Every zone type: prefab name, kind (home, shop, office, industry), its look ("off"), set for it (not its kind's),
+        /// its icon, its own built-in look (what it gets with no pick of its own nor of its kind).</summary>
+        public List<(string Id, string Kind, string Look, bool Own, string Icon, string Default)> Zones = new List<(string, string, string, bool, string, string)>();
+        /// <summary>The zone types of the buildings in the selection (a Zoning type's Only edit existing): key (the zone's name
+        /// without EU / NA, lower case), a zone prefab of it, its icon, how many buildings.</summary>
+        public List<(string Key, string Zone, string Icon, int Count)> AreaZones = new List<(string, string, string, int)>();
+    }
+
+    /// <summary>What Global outgrow shows (NeighbourPolishSystem.Stats and its last two minutes).</summary>
+    public sealed class PainterStats
+    {
+        /// <summary>By kind (homes, shops, offices, industry): growable buildings and how many are outgrown.</summary>
+        public int[] KindTotal = new int[4], KindPolished = new int[4];
+        /// <summary>By zone prefab name: growable buildings and how many are outgrown.</summary>
+        public List<(string Zone, int Total, int Polished)> Zones = new List<(string, int, int)>();
+        /// <summary>Outgrown buildings by look id ("" none or deleted).</summary>
+        public List<(string Look, int Count)> Looks = new List<(string, int)>();
+        public int ToFit, Stamps, Planning, PuttingBack, Pieces;
+        public float FittedPerSecond, AddedPerSecond, Fps, MsPerFrame;
+        public float[] HistLine = new float[0], HistFitted = new float[0], HistAdded = new float[0], HistFps = new float[0];
+        /// <summary>More numbers, by name (the panel's Details).</summary>
+        public List<(string Name, double Value)> Details = new List<(string, double)>();
     }
 
     public sealed class RecipeListEntry
@@ -69,6 +154,10 @@ namespace Placemaker.Core.Tool
         public string Icon = "";
         public bool Custom;
         public string DescriptionKey = "";
+        /// <summary>(PROTOCOL 25) The neighbourhood-polish painter ("Polish gardens"): picked like a type, not one.</summary>
+        public bool Painter;
+        /// <summary>The group the shelf files it under when it has no generator (the painter: "neighbourhood").</summary>
+        public string Group = "";
     }
 
     public sealed class SummaryInput
@@ -102,7 +191,9 @@ namespace Placemaker.Core.Tool
         /// the UI needs something a previous DLL does not send or handle. The game reloads the UI file from disk but the
         /// DLL only on restart, so after an update they can disagree until the player restarts.
         /// </summary>
-        public const int Protocol = 23;   // s43: brush.rules.walls (Paint bucket walls)
+        public const int Protocol = 25;   // the neighbourhood-polish painter: recipes[].painter, state.painter, primary "polish", trigger polishStamp
+        // 24 = area overhaul: brush.rules paths/bikes/tracks/gap/reach/zoning, areaLegend, Road nodes folded into Points
+        // 23 = s43: brush.rules.walls (Paint bucket walls)
         // 22 = s45: summary.costBuckets (cost bar by friendly category)
         // 21 = s33: summary.permanentNeedsAck (ground paint alone is one info line, no checkbox)
 
@@ -132,7 +223,8 @@ namespace Placemaker.Core.Tool
             if (s.CanRedo && s.RedoLabel != null) o.Set("redoLabel", s.RedoLabel.ToJson());
             if (!string.IsNullOrEmpty(s.MarkerKind))
                 o.Set("markerMode", JsonValue.Obj().Set("stepPath", s.MarkerStepPath ?? "").Set("kind", s.MarkerKind)
-                    .Set("label", (s.MarkerLabel ?? new LocText("Placemaker.Marker." + s.MarkerKind)).ToJson()));
+                    .Set("label", (s.MarkerLabel ?? new LocText("Placemaker.Marker." + s.MarkerKind)).ToJson())
+                    .Set("crosswalk", s.MarkerCrosswalk));
             var hints = JsonValue.Arr();
             foreach (var h in s.Hints)
             {
@@ -151,6 +243,9 @@ namespace Placemaker.Core.Tool
             if (s.BuildProgress.HasValue) o.Set("buildProgress", Round(math.saturate(s.BuildProgress.Value), 3));
             if (s.EditingGroup > 0) o.Set("editingGroup", s.EditingGroup);
             if (s.AnarchyAvailable) o.Set("anarchy", JsonValue.Obj().Set("available", true).Set("enabled", s.AnarchyEnabled));
+            if (s.GroupingAvailable) o.Set("grouping", JsonValue.Obj().Set("separate", s.BuildSeparate));
+            o.Set("entranceCrosswalk", s.MarkerCrosswalk);
+            o.Set("keepArea", s.KeepArea);
             o.Set("panelCollapsed", s.PanelCollapsed);
             o.Set("previewMode", PreviewModes.Id(s.PreviewMode));
             o.Set("ghostPending", s.GhostPending);
@@ -177,7 +272,67 @@ namespace Placemaker.Core.Tool
                 foreach (var k in keys) lv.Set(k, s.LegendVisibility[k]);
                 o.Set("legendVisibility", lv);
             }
+            if (s.AreaLegend != null && s.AreaLegend.Count > 0)
+            {
+                var al = JsonValue.Arr();
+                foreach (var e in s.AreaLegend) al.Add(LegendEntryJson(e));
+                o.Set("areaLegend", al);
+            }
+            if (s.Painter != null)
+            {
+                var p = s.Painter;
+                o.Set("painter", JsonValue.Obj().Set("lots", p.Lots).Set("polished", p.Polished)
+                    .Set("featureOn", p.FeatureOn).Set("newHouses", p.NewHouses).Set("theme", p.Theme ?? "zone")
+                    .Set("look", JsonValue.Obj().Set("painted", p.Painted).Set("lawns", p.Lawns).Set("planting", p.Planting).Set("features", p.Features)
+                        .Set("paths", p.Paths).Set("rocks", p.Rocks).Set("groundPaint", p.GroundPaint).Set("shopPaving", p.ShopPaving))
+                    .Set("city", JsonValue.Obj().Set("homes", p.Homes ?? "garden").Set("shops", p.Shops ?? "tidy").Set("offices", p.Offices ?? "tidy").Set("industry", p.Industry ?? "yard")
+                        .Set("polished", p.CityPolished).Set("total", p.CityTotal).Set("waiting", p.Waiting).Set("restoring", p.Restoring))
+                    .Set("lookTheme", p.LookTheme ?? "garden").Set("lookSavedTheme", p.LookSavedTheme ?? "garden").Set("modified", p.Modified).Set("tool", p.Tool).Set("live", p.Live)
+                    .Set("values", Knobs(p.Values)).Set("lookValues", Knobs(p.LookValues))
+                    .Set("looks", Arr(p.Looks.Select(l => JsonValue.Obj().Set("id", l.Id).Set("name", l.Name).Set("custom", l.Custom).Set("theme", l.Theme).Set("edited", l.Edited).Set("knobs", Knobs(l.Knobs ?? new Dictionary<string, float>())).Set("color", l.Color ?? ""))))
+                    .Set("swatches", Arr(p.Swatches.Select(JsonValue.Str)))
+                    .Set("defaults", Knobs(p.Defaults)).Set("typeLook", p.TypeLook ?? "")
+                    .Set("lens", p.Lens).Set("lensWanted", p.LensWanted).Set("lensCounts", Arr(p.LensCounts.Select(n => JsonValue.Num(n))))
+                    .Set("lensMode", p.LensMode ?? "status").Set("lensTypes", Arr(p.LensTypes.Select(x => JsonValue.Obj().Set("id", x.Look).Set("count", x.Count))))
+                    .Set("brush", p.Brush ?? "").Set("brushLook", p.BrushLook ?? "").Set("brushSize", JsonValue.Num(p.BrushSize)).Set("outgrowMode", p.OutgrowMode)
+                    .Set("stats", p.Stats == null ? JsonValue.Null : StatsJson(p.Stats))
+                    .Set("zones", Arr(p.Zones.Select(z => JsonValue.Obj().Set("id", z.Id).Set("kind", z.Kind).Set("look", z.Look).Set("own", z.Own).Set("icon", z.Icon ?? "").Set("def", z.Default ?? ""))))
+                    .Set("areaZones", Arr(p.AreaZones.Select(z => JsonValue.Obj().Set("key", z.Key).Set("zone", z.Zone).Set("icon", z.Icon ?? "").Set("count", z.Count)))));
+            }
             return o;
+        }
+
+        private static JsonValue StatsJson(PainterStats s)
+        {
+            JsonValue Floats(float[] a) => Arr(a.Select(v => JsonValue.Num(Math.Round(v, 2))));
+            var zones = JsonValue.Obj();
+            foreach (var z in s.Zones) zones.Set(z.Zone, Arr(new[] { JsonValue.Num(z.Total), JsonValue.Num(z.Polished) }));
+            var looks = JsonValue.Obj();
+            foreach (var l in s.Looks) looks.Set(l.Look, l.Count);
+            var details = JsonValue.Obj();
+            foreach (var d in s.Details) details.Set(d.Name, Math.Round(d.Value, 2));
+            return JsonValue.Obj()
+                .Set("kindTotal", Arr(s.KindTotal.Select(n => JsonValue.Num(n)))).Set("kindPolished", Arr(s.KindPolished.Select(n => JsonValue.Num(n))))
+                .Set("zones", zones).Set("looks", looks)
+                .Set("toFit", s.ToFit).Set("stamps", s.Stamps).Set("planning", s.Planning).Set("puttingBack", s.PuttingBack).Set("pieces", s.Pieces)
+                .Set("fittedPerSecond", Math.Round(s.FittedPerSecond, 2)).Set("addedPerSecond", Math.Round(s.AddedPerSecond, 2))
+                .Set("fps", Math.Round(s.Fps, 1)).Set("msPerFrame", Math.Round(s.MsPerFrame, 2))
+                .Set("histLine", Floats(s.HistLine)).Set("histFitted", Floats(s.HistFitted)).Set("histAdded", Floats(s.HistAdded)).Set("histFps", Floats(s.HistFps))
+                .Set("details", details);
+        }
+
+        private static JsonValue Knobs(Dictionary<string, float> d)
+        {
+            var o = JsonValue.Obj();
+            if (d != null) foreach (var kv in d) o.Set(kv.Key, Math.Round(kv.Value, 4));
+            return o;
+        }
+
+        private static JsonValue Arr(IEnumerable<JsonValue> items)
+        {
+            var a = JsonValue.Arr();
+            foreach (var i in items) a.Add(i);
+            return a;
         }
 
         public static JsonValue Primary(PrimaryAction p)
@@ -218,7 +373,8 @@ namespace Placemaker.Core.Tool
             {
                 var ro = JsonValue.Obj().Set("id", r.Id).Set("name", r.Name).Set("icon", IconPath(r.Icon)).Set("custom", r.Custom);
                 if (!string.IsNullOrEmpty(r.DescriptionKey)) ro.Set("description", r.DescriptionKey);
-                var grp = GeneratorGroups.Of(GeneratorRegistry.Get(r.Id));
+                var grp = !string.IsNullOrEmpty(r.Group) ? r.Group : GeneratorGroups.Of(GeneratorRegistry.Get(r.Id));
+                if (r.Painter) ro.Set("painter", true);
                 if (!string.IsNullOrEmpty(grp)) ro.Set("group", grp);
                 if (!r.Custom && !string.IsNullOrEmpty(grp))
                 {
@@ -243,7 +399,8 @@ namespace Placemaker.Core.Tool
             var group = GeneratorGroups.Of(g);
             if (!string.IsNullOrEmpty(group)) o.Set("group", group);
             var controls = JsonValue.Arr();
-            if (g.Controls != null) foreach (var c in g.Controls) if (c != null) controls.Add(Control(c));
+            // (issue #2) controls that only placed decals from decal packs are not shown (Decals.PackDecals)
+            if (g.Controls != null) foreach (var c in g.Controls) if (c != null && !Decals.PackDecals.IsHiddenControl(g.Id, c.Id)) controls.Add(Control(c));
             o.Set("controls", controls);
             var presets = JsonValue.Arr();
             IReadOnlyList<PresetView> views = null;
@@ -413,7 +570,7 @@ namespace Placemaker.Core.Tool
             locked.Sort(StringComparer.Ordinal);
             o.Set("locked", Strings(locked.ToArray()));
             var counts = new SortedDictionary<string, int>(StringComparer.Ordinal);
-            foreach (var m in s.Markers) { counts.TryGetValue(m.Kind ?? "", out int c); counts[m.Kind ?? ""] = c + 1; }
+            foreach (var m in s.Markers) { var mk = MarkerVariants.BaseKind(m.Kind) ?? ""; counts.TryGetValue(mk, out int c); counts[mk] = c + 1; }
             var markers = JsonValue.Arr();
             foreach (var kv in counts) markers.Add(JsonValue.Obj().Set("kind", kv.Key).Set("count", kv.Value));
             o.Set("markers", markers);
@@ -421,8 +578,10 @@ namespace Placemaker.Core.Tool
             for (int i = 0; i < s.Markers.Count; i++)
             {
                 var p = s.Markers[i].Position;
-                markerList.Add(JsonValue.Obj().Set("kind", s.Markers[i].Kind ?? "").Set("index", i)
-                    .Set("position", JsonValue.Arr().Add(Round(p.x, 2)).Add(Round(p.y, 2)).Add(Round(p.z, 2))));
+                var mo = JsonValue.Obj().Set("kind", MarkerVariants.BaseKind(s.Markers[i].Kind) ?? "").Set("index", i)
+                    .Set("position", JsonValue.Arr().Add(Round(p.x, 2)).Add(Round(p.y, 2)).Add(Round(p.z, 2)));
+                if (MarkerVariants.HasCrosswalk(s.Markers[i].Kind)) mo.Set("crosswalk", true);
+                markerList.Add(mo);
             }
             o.Set("markerList", markerList);
             IAreaGenerator gen = null;
@@ -433,6 +592,7 @@ namespace Placemaker.Core.Tool
                 var ko = JsonValue.Obj().Set("kind", k.Kind).Set("label", k.LabelKey);
                 if (!string.IsNullOrEmpty(k.Icon)) ko.Set("icon", IconPath(k.Icon));
                 if (!string.IsNullOrEmpty(k.TooltipKey)) ko.Set("tooltip", k.TooltipKey);
+                if (k.Crosswalk) ko.Set("crosswalk", true);
                 kinds.Add(ko);
             }
             o.Set("markerKinds", kinds);
@@ -853,6 +1013,23 @@ namespace Placemaker.Core.Tool
             return o;
         }
 
+        /// <summary>One legend row (contract.ts LegendEntry) without the road extras.</summary>
+        public static JsonValue LegendEntryJson(Placemaker.Core.Build.PreviewLegend.Entry e)
+        {
+            var eo = JsonValue.Obj()
+                .Set("id", e.Id)
+                .Set("label", e.LabelKey)
+                .Set("color", e.Color)
+                .Set("count", e.Count);
+            if (!string.IsNullOrEmpty(e.Color2)) eo.Set("color2", e.Color2);
+            if (e.LengthM > 0) eo.Set("lengthM", e.LengthM);
+            if (e.AreaM2 > 0) eo.Set("areaM2", e.AreaM2);
+            if (e.MinDelta != 0 || e.MaxDelta != 0) eo.Set("minDelta", e.MinDelta).Set("maxDelta", e.MaxDelta);
+            if (e.Blocked > 0) eo.Set("blocked", e.Blocked);
+            if (!e.DefaultOn) eo.Set("defaultOff", true);
+            return eo;
+        }
+
         /// <summary>
         /// (s22) contract.ts Summary.legend: the preview layers present in the plan (Core/Build/PreviewLegend) with
         /// swatch colours, counts, lengths, areas; roads by role with their main prefab (the s16 road legend).
@@ -867,17 +1044,7 @@ namespace Placemaker.Core.Tool
                 catch (Exception) { entrances = 0; }
             foreach (var e in Placemaker.Core.Build.PreviewLegend.Compute(plan, entrances))
             {
-                var eo = JsonValue.Obj()
-                    .Set("id", e.Id)
-                    .Set("label", e.LabelKey)
-                    .Set("color", e.Color)
-                    .Set("count", e.Count);
-                if (!string.IsNullOrEmpty(e.Color2)) eo.Set("color2", e.Color2);
-                if (e.LengthM > 0) eo.Set("lengthM", e.LengthM);
-                if (e.AreaM2 > 0) eo.Set("areaM2", e.AreaM2);
-                if (e.MinDelta != 0 || e.MaxDelta != 0) eo.Set("minDelta", e.MinDelta).Set("maxDelta", e.MaxDelta);
-                if (e.Blocked > 0) eo.Set("blocked", e.Blocked);
-                if (!e.DefaultOn) eo.Set("defaultOff", true);
+                var eo = LegendEntryJson(e);
                 if (Placemaker.Core.Build.PreviewLegend.IsRoad(e.Id))
                 {
                     eo.Set("group", "roads");
@@ -1058,7 +1225,9 @@ namespace Placemaker.Core.Tool
             .Set("emptyZones", r.EmptyZones).Set("water", r.Water).Set("stayInBlock", r.StayInBlock)
             .Set("builds", r.Builds).Set("anything", r.Anything).Set("drawClip", r.DrawClip)
             .Set("snap", Round(r.Snap, 1)).Set("smoothing", r.Smoothing)
-            .Set("walls", WallsJson(r.BucketWalls));
+            .Set("walls", WallsJson(r.BucketWalls))
+            .Set("paths", r.Paths).Set("bikes", r.Bikes).Set("tracks", r.Tracks).Set("zoning", r.ZoningLevel)
+            .Set("gap", Round(r.Gap, 1)).Set("reach", Round(r.Reach, 0));
 
         /// <summary>(s43) Paint bucket walls as { roads, paths, bikes, tracks, water, lots, zoned }.</summary>
         public static JsonValue WallsJson(Placemaker.Core.Geometry.FillWall w)
@@ -1099,6 +1268,12 @@ namespace Placemaker.Core.Tool
             r.DrawClip = v["drawClip"].AsBool(r.DrawClip);
             r.Snap = (float)v["snap"].AsNumber(r.Snap);
             r.Smoothing = (int)Math.Round(v["smoothing"].AsNumber(r.Smoothing));
+            r.Paths = v["paths"].AsBool(r.Paths);
+            r.Bikes = v["bikes"].AsBool(r.Bikes);
+            r.Tracks = v["tracks"].AsBool(r.Tracks);
+            r.Gap = (float)v["gap"].AsNumber(r.Gap);
+            r.Reach = (float)v["reach"].AsNumber(r.Reach);
+            if (v["zoning"] != null && v["zoning"].Kind == JsonKind.Number) r.SetZoningLevel((int)Math.Round(v["zoning"].AsNumber(r.ZoningLevel)));
             var walls = v["walls"];
             if (walls != null && walls.IsObject)
                 foreach (var kv in WallKeys)

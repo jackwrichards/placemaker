@@ -32,6 +32,8 @@ namespace Placemaker.Game.Suite
         public bool quit = true;
         /// <summary>Playground for the user: build the fixture, frame the grid, give the mouse and keys back, run nothing, never quit.</summary>
         public bool playground;
+        /// <summary>Playground at the main menu: the game launched the same way, no new game, no grid; the controls are the user's.</summary>
+        public bool menuOnly;
         /// <summary>Keep the map's terrain as it is (no heightmap replacement: no flat, slope or rough blocks).</summary>
         public bool noTerrain;
         /// <summary>"map:&lt;display name&gt;": the vanilla map the new game starts on (the fixture area is reshaped in place).</summary>

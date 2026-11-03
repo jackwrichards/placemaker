@@ -180,6 +180,13 @@ $accent: #8fd1ff;
     cursor: default;
 }
 
+// the master chip of the stops: the star alone
+.chipStar {
+    justify-content: center;
+    width: 22rem;
+    padding: 0;
+}
+
 .chipText {
     margin-left: 4rem;
     font-size: $fs-s;
@@ -191,6 +198,21 @@ $accent: #8fd1ff;
     height: 1rem;
     margin: 3rem 0;
     background-color: $c-line;
+}
+
+// Area overhaul: one dim line of help under Points' stops (road nodes).
+.note {
+    @include row;
+    min-width: 0;
+    margin-top: 3rem;
+}
+
+.noteText {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 4rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
 }
 
 // ── summary line ──

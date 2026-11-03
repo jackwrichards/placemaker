@@ -1,0 +1,212 @@
+{
+  "_about": "Outgrow fences before and after the 21 Oct fixes, side by side in one game (the user: gaps in fence runs, crossovers, gardens through each other). Houses far apart on a straight street, a curve and two cul-de-sacs, every reach at its maximum, high fences on the west half and the houses own kind on the east. First with the fixes off (knobs separate, closeRuns, joinEnds, dedupeT at 0), mapped and photographed; then with them on, the same spots photographed again, then its own worst spots. Every pass is written down (Tests FenceContinuityReplay). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-fence-ab.json -Build -Who <you>",
+  "scenarios": [
+    {
+      "id": "fence-ab",
+      "land": {
+        "shape": "rect",
+        "size": [
+          680,
+          600
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": false
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "length": 240,
+          "at": [
+            -130,
+            -190
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "arc",
+          "radius": 120,
+          "from": 20,
+          "to": 160,
+          "at": [
+            110,
+            -60
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "culdesac",
+          "length": 110,
+          "cross": 170,
+          "yaw": 90,
+          "at": [
+            -160,
+            110
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "culdesac",
+          "length": 100,
+          "cross": 150,
+          "yaw": -90,
+          "at": [
+            150,
+            190
+          ]
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "bulldozeHouses",
+          "keep": 2
+        },
+        {
+          "do": "wait",
+          "seconds": 4
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "separate": 0,
+            "closeRuns": 0,
+            "joinEnds": 0,
+            "dedupeT": 0
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 300
+        },
+        {
+          "do": "lab",
+          "op": "polishStamp",
+          "yes": true,
+          "side": "west",
+          "look": "houses",
+          "changes": {
+            "fenceKind": 4,
+            "sideReach": 500,
+            "maxFrontGap": 500,
+            "maxBackGap": 500,
+            "maxRearGap": 500,
+            "maxFacingGap": 500,
+            "maxDeepen": 500,
+            "hugReach": 500,
+            "openReach": 500
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishStamp",
+          "yes": true,
+          "side": "east",
+          "look": "houses",
+          "changes": {
+            "sideReach": 500,
+            "maxFrontGap": 500,
+            "maxBackGap": 500,
+            "maxRearGap": 500,
+            "maxFacingGap": 500,
+            "maxDeepen": 500,
+            "hugReach": 500,
+            "openReach": 500
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 300
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "label": "old",
+          "closeups": 8,
+          "junctions": 20,
+          "edges": 8
+        },
+        {
+          "do": "shot",
+          "name": "old-top",
+          "camera": {
+            "target": "area",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {
+            "separate": 1,
+            "closeRuns": 1,
+            "joinEnds": 1,
+            "dedupeT": 1
+          }
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 300
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "label": "new",
+          "spotsFrom": "old",
+          "closeups": 0
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "label": "new-worst",
+          "closeups": 8
+        },
+        {
+          "do": "shot",
+          "name": "new-top",
+          "camera": {
+            "target": "area",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        }
+      ]
+    }
+  ]
+}

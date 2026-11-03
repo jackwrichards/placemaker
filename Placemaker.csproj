@@ -11,7 +11,7 @@
   <PropertyGroup>
     <AssemblyName>Placemaker</AssemblyName>
     <RootNamespace>Placemaker</RootNamespace>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Configurations>Debug;Release</Configurations>
     <Nullable>disable</Nullable>
     <CS2ToolPath Condition="'$(CSII_TOOLPATH)' != ''">$(CSII_TOOLPATH)</CS2ToolPath>
@@ -45,7 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <GameReference Include="Game;Colossal.Core;Colossal.Collections;Colossal.Logging;Colossal.Localization;Colossal.Mathematics;Colossal.IO.AssetDatabase;Colossal.AssetPipeline;Colossal.UI;Colossal.UI.Binding;Unity.Collections;Unity.Entities;Unity.Mathematics;Unity.Burst;UnityEngine.CoreModule;UnityEngine.ImageConversionModule;UnityEngine.ScreenCaptureModule;Colossal.PSI.Common;UnityEngine.InputLegacyModule;Unity.InputSystem;Newtonsoft.Json;Unity.RenderPipelines.HighDefinition.Runtime;Unity.RenderPipelines.Core.Runtime;cohtml.Net;Cinemachine" />
+    <GameReference Include="Game;Colossal.Core;Colossal.Collections;Colossal.Logging;Colossal.Localization;Colossal.Mathematics;Colossal.IO.AssetDatabase;Colossal.AssetPipeline;Colossal.AssetPipeline.Native;Colossal.UI;Colossal.UI.Binding;Unity.Collections;Unity.Entities;Unity.Mathematics;Unity.Burst;UnityEngine.CoreModule;UnityEngine.ImageConversionModule;UnityEngine.ScreenCaptureModule;Colossal.PSI.Common;UnityEngine.InputLegacyModule;Unity.InputSystem;Newtonsoft.Json;Unity.RenderPipelines.HighDefinition.Runtime;Unity.RenderPipelines.Core.Runtime;cohtml.Net;Cinemachine" />
     <Reference Include="@(GameReference)">
       <HintPath Condition="'$(UseToolchain)' != 'true'">$(ManagedPath)\%(Identity).dll</HintPath>
       <Private>false</Private>

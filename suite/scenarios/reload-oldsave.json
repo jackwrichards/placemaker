@@ -1,0 +1,25 @@
+{
+  "_about": "GitHub issue #6, part 2: a city saved by older builds after it was loaded a second time in one game (or after another city was loaded) holds a second record of each group and records of groups it never had. lab oldDuplicate makes those records (copies without their owner lot, carrier and companion, and one of a group with no members); the city is saved and loaded back, lab groupRecords counts the records (the load must drop the copies and keep the live one), then the car park is edited and built again. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/reload-oldsave.json -Fresh -Who <you>",
+  "scenarios": [
+    {
+      "id": "oldsave",
+      "site": "flat",
+      "steps": [
+        { "do": "area", "tool": "bucket" },
+        { "do": "type", "layer": "parking", "preset": "standard" },
+        { "do": "entrance", "side": "south", "t": 0.5 },
+        { "do": "build" },
+        { "do": "lab", "op": "oldDuplicate" },
+        { "do": "lab", "op": "groupRecords", "label": "as an older build saved it" },
+        { "do": "lab", "op": "saveLoad" },
+        { "do": "lab", "op": "groupRecords", "label": "that save loaded" },
+        { "do": "edit", "build": true },
+        { "do": "value", "id": "aisleWidth", "value": 8.5 },
+        { "do": "build" },
+        { "do": "wait", "seconds": 3 },
+        { "do": "lab", "op": "groupRecords", "label": "car park rebuilt" },
+        { "do": "camera", "target": "build", "view": "oblique", "shot": "oldsave-rebuilt" }
+      ]
+    }
+  ]
+}

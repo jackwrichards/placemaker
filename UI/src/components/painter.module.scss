@@ -1,0 +1,595 @@
+@use "../styles/tokens" as *;
+
+// (PROTOCOL 25) The neighbourhood-polish painter's card: what it does, what the area holds, and the master switch.
+.card {
+    @include col;
+    min-width: 0;
+    margin: 4rem 0 6rem 0;
+    padding: 7rem 8rem;
+    border-radius: $radius;
+    background-color: rgba(159, 216, 107, 0.1);
+    @include border(1rem, rgba(159, 216, 107, 0.35));
+}
+
+.title {
+    @include row;
+    min-width: 0;
+    font-size: $fs;
+    font-weight: bold;
+}
+
+.titleText {
+    margin-left: 5rem;
+}
+
+.line {
+    min-width: 0;
+    margin-top: 3rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
+}
+
+.count {
+    @include row;
+    min-width: 0;
+    margin-top: 5rem;
+    font-size: $fs-s;
+}
+
+.swatch {
+    width: 10rem;
+    height: 10rem;
+    margin-right: 5rem;
+    border-radius: 2rem;
+    background-color: rgba(120, 220, 90, 0.75);
+}
+
+.off {
+    @include row;
+    min-width: 0;
+    margin-top: 5rem;
+    font-size: $fs-s;
+    color: $c-warning;
+}
+
+.offText {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 4rem;
+}
+
+.themeTag {
+    @include row;
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding: 1rem 6rem;
+    border-radius: 8rem;
+    background-color: rgba(159, 216, 107, 0.16);
+}
+
+.themeTagText {
+    margin-left: 4rem;
+    font-size: $fs-s;
+    font-weight: normal;
+    color: $c-text-dim;
+}
+
+.status {
+    @include row;
+    min-width: 0;
+    margin: 2rem 0 4rem 0;
+    font-size: $fs-s;
+}
+
+.statusText {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.buttons {
+    @include row;
+    justify-content: space-between;
+    margin-top: 6rem;
+}
+
+// the polish tool's panel body (PolishBody)
+.body {
+    @include col;
+    min-width: 0;
+}
+
+.step {
+    @include row;
+    min-width: 0;
+    margin: 6rem 0 5rem 0;
+}
+
+.step:first-child {
+    margin-top: 0;
+}
+
+.stepNum {
+    @include row;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 15rem;
+    height: 15rem;
+    border-radius: 8rem;
+    font-size: $fs-s;
+    font-weight: bold;
+    color: #10151a;
+    background-color: rgba(159, 216, 107, 0.9);
+}
+
+.stepText {
+    margin-left: 6rem;
+    font-size: $fs-s;
+    font-weight: bold;
+    color: $c-text-dim;
+}
+
+// the look's buttons (Save, Save as new, Rename, Delete, Revert)
+.lookBar {
+    @include row;
+    min-width: 0;
+    margin: 2rem 0 6rem 0;
+}
+
+.flex {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.modified {
+    font-size: $fs-s;
+    color: $c-warning;
+}
+
+// the looks to pick (a zone's or a kind's): a short list of chips
+.choiceList {
+    @include row;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.choiceItem {
+    @include row;
+    margin: 0 4rem 4rem 0;
+    padding: 2rem 7rem 2rem 5rem;
+    border-radius: 4rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    @include border(1rem, rgba(255, 255, 255, 0.12));
+    color: rgba(234, 242, 246, 0.95);   // buttons in the game UI do not inherit the text colour
+    font-size: $fs-s;
+    cursor: pointer;
+}
+
+.choiceItemOn {
+    background-color: rgba(143, 209, 255, 0.18);
+    @include border(1rem, rgba(143, 209, 255, 0.75));
+}
+
+.choiceText {
+    margin-left: 4rem;
+    @include ellipsis;
+}
+
+// the City window beside the panel: Placemaker's panel frame, only as tall as it needs
+// Outgrow in the panel (its switcher): in the stages' place, under the switcher
+.cityEmbedded {
+    @include col;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.cityBody {
+    padding-top: 5rem;
+}
+
+.cityFoot {
+    @include row;
+    flex-shrink: 0;
+    padding: 6rem 8rem;
+    border-top-width: 1rem;
+    border-top-style: solid;
+    border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+// Outgrow's master switch (this city's), above everything else in Outgrow
+.masterRow {
+    @include row;
+    flex-shrink: 0;
+    min-width: 0;
+    margin: 6rem 8rem 0 8rem;
+    padding: 4rem 6rem 4rem 9rem;
+    border-radius: $radius;
+    background-color: $c-surface;
+}
+
+.masterRow > :first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.masterRowOff {
+    background-color: rgba(255, 181, 71, 0.16);
+}
+
+.masterLabel {
+    @include ellipsis;
+    min-width: 0;
+    margin-right: 8rem;
+    font-size: $fs;
+    font-weight: bold;
+}
+
+// Global outgrow: the whole city's buttons, under the header
+.cityActions {
+    @include row;
+    flex-shrink: 0;
+    padding: 6rem 8rem 3rem 8rem;
+}
+
+// "Outgrow new buildings": right under the whole city's buttons
+// Outgrow new buildings: its own box under the zone types, whose outgrow types it gives the buildings that grow
+.newCard {
+    @include row;
+    min-width: 0;
+    margin-bottom: 8rem;
+    padding: 6rem 9rem 6rem 9rem;
+    border-radius: $radius-l;
+    background-color: $c-surface;
+    @include border(1rem, $c-line);
+}
+
+.newCardOn {
+    @include border(1rem, rgba(143, 209, 255, 0.55));
+}
+
+.newCard > :first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.newText {
+    @include col;
+    min-width: 0;
+    margin-right: 10rem;
+}
+
+.newLabel {
+    font-size: $fs;
+    font-weight: bold;
+}
+
+.newSub {
+    margin-top: 1rem;
+    font-size: 10rem;
+    color: $c-text-dim;
+}
+
+// the brush's size, under Paint and Erase while it is on
+.brushSize {
+    min-width: 0;
+    margin-top: 4rem;
+}
+
+// the brush and the map lens, side by side
+.tools {
+    @include row(stretch);
+    flex-shrink: 0;
+    min-width: 0;
+    padding: 5rem 8rem 0 8rem;
+}
+
+.toolCol {
+    @include col;
+    flex: 1 1 0;
+    min-width: 0;
+    margin-right: 6rem;
+    padding: 5rem 6rem 6rem 7rem;
+    border-radius: $radius;
+    background-color: $c-surface;
+}
+
+.toolHead {
+    @include row;
+    min-width: 0;
+    height: 20rem;
+}
+
+.toolTitle {
+    flex: 0 0 auto;
+    margin-left: 5rem;
+    font-size: $fs;
+    font-weight: bold;
+}
+
+// the brush's column: its outgrow type across the top (no title), Paint and Erase under it
+.brushHead .typeBtn {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+}
+
+.brushHead .typeBtn .choiceText {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.toolRow {
+    @include row;
+    min-width: 0;
+    margin-top: 4rem;
+}
+
+.toolRow > * {
+    flex: 1 1 0;
+    margin-right: 4rem;
+}
+
+.topPick {
+    flex-shrink: 0;
+    margin: 4rem 8rem 0 8rem;
+    padding: 6rem 6rem 2rem 6rem;
+    border-radius: 4rem;
+    background-color: rgba(143, 209, 255, 0.07);
+}
+
+.legendStrip {
+    flex-shrink: 0;
+    padding: 5rem 10rem 4rem 10rem;
+    border-bottom-width: 1rem;
+    border-bottom-style: solid;
+    border-bottom-color: $c-line;
+}
+
+.legendGrid {
+    @include row;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.legendCell {
+    @include row;
+    width: 33.333%;
+    min-width: 0;
+    height: 16rem;
+    padding-right: 8rem;
+    font-size: 11rem;
+}
+
+.legendCellName {
+    @include ellipsis;
+    flex: 1 1 auto;
+    min-width: 0;
+    color: $c-text-dim;
+}
+
+.legendCellCount {
+    flex: 0 0 auto;
+    margin-left: 4rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+// the zones list: one line per zone type
+// one line over the zone types saying what their numbers and dropdowns are (no columns: the groups and their rows differ)
+.zhead {
+    min-width: 0;
+    padding: 0 4rem 4rem 4rem;
+    font-size: 10rem;
+    color: $c-text-faint;
+}
+
+.kindBtns {
+    @include row;
+}
+
+.zrow {
+    @include row;
+    min-width: 0;
+    height: 22rem;
+    padding: 0 2rem 0 6rem;
+    border-radius: 3rem;
+}
+
+.zrow:hover {
+    background-color: $c-surface;
+}
+
+.zrowOn {
+    background-color: rgba(143, 209, 255, 0.12);
+}
+
+.zrowEmpty {
+    opacity: 0.6;
+}
+
+.zrowName {
+    @include ellipsis;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 5rem;
+    font-size: $fs-s;
+}
+
+.zrowCount {
+    flex: 0 0 auto;
+    width: 52rem;
+    font-size: $fs-s;
+    text-align: right;
+    white-space: nowrap;
+    color: $c-text-dim;
+}
+
+.zrow .typeBtn {
+    flex: 0 0 auto;
+    width: 94rem;
+    max-width: 94rem;
+    margin-left: 8rem;
+}
+
+.zrowEditGap {
+    flex: 0 0 auto;
+    width: 22rem;
+}
+
+.cityActions > * {
+    flex: 1 1 0;
+    min-width: 0;
+    margin-right: 6rem;
+}
+
+.dot {
+    flex: 0 0 auto;
+    width: 9rem;
+    height: 9rem;
+    margin-right: 5rem;
+    border-radius: 5rem;
+}
+
+.typeBtn {
+    @include button-reset;
+    @include row;
+    min-width: 0;
+    max-width: 150rem;
+    height: 20rem;
+    padding: 0 6rem;
+    border-radius: $radius-s;
+    background-color: $c-surface-strong;
+    font-size: $fs-s;
+    color: var(--menuText1Normal);
+    cursor: pointer;
+}
+
+.typeBtnOn {
+    background-color: rgba(143, 209, 255, 0.3);
+}
+
+.swatches {
+    @include row;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.swatchBtn {
+    @include button-reset;
+    width: 14rem;
+    height: 14rem;
+    margin: 1rem 3rem 1rem 0;
+    border-radius: 3rem;
+    @include border(1rem, rgba(0, 0, 0, 0.35));
+    cursor: pointer;
+}
+
+.swatchBtnOn {
+    @include border(2rem, #ffffff);
+}
+
+.zonePick {
+    @include col;
+    width: 100%;
+    min-width: 0;
+    margin: 0 4rem 6rem 0;
+    padding: 6rem 6rem 2rem 6rem;
+    border-radius: 4rem;
+    background-color: rgba(143, 209, 255, 0.07);
+}
+
+.cityTabs {
+    margin: 0 0 5rem 0;
+}
+
+.pickFoot {
+    @include row;
+    justify-content: flex-end;
+    margin: 0 0 4rem 0;
+}
+
+// a Zoning type's zone's Outgrow, one box on its line: its label and switch | the outgrow type | edit
+.zoBox {
+    @include row(stretch);
+    flex: 0 0 auto;
+    height: 24rem;
+    border-radius: $radius;
+    background-color: $c-surface;
+    @include border(1rem, $c-line);
+}
+
+.zoHead {
+    @include row;
+    flex: 0 0 auto;
+    padding: 0 8rem 0 7rem;
+}
+
+.zoLabel {
+    margin-right: 7rem;
+    font-size: 10rem;
+    font-weight: bold;
+    letter-spacing: 0.3rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: $c-text-faint;
+}
+
+.zoBox .typeBtn {
+    flex: 0 0 auto;
+    width: 88rem;
+    max-width: 88rem;
+    height: auto;
+    border-radius: 0;
+    background-color: transparent;
+    border-left-width: 1rem;
+    border-left-style: solid;
+    border-left-color: $c-line;
+}
+
+.zoBox .typeBtn .choiceText {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+}
+
+.zoBox .typeBtnOn {
+    background-color: rgba(143, 209, 255, 0.22);
+}
+
+.zoEdit {
+    @include button-reset;
+    @include row;
+    flex: 0 0 auto;
+    justify-content: center;
+    width: 26rem;
+    border-radius: 0 $radius $radius 0;
+    border-left-width: 1rem;
+    border-left-style: solid;
+    border-left-color: $c-line;
+    cursor: pointer;
+}
+
+.zoBox .typeBtn:hover,
+.zoEdit:hover {
+    background-color: $c-surface-hover;
+}
+
+.zoBoxOff .typeBtn,
+.zoBoxOff .zoEdit {
+    opacity: 0.4;
+}
+
+.pickBox {
+    @include col;
+    min-width: 0;
+    margin: 2rem 0 6rem 0;
+    padding: 6rem 6rem 2rem 6rem;
+    border-radius: 4rem;
+    background-color: rgba(143, 209, 255, 0.07);
+}
+
+.pickTitle {
+    margin-bottom: 5rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
+}
+

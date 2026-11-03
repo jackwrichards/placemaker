@@ -24,7 +24,8 @@ namespace Placemaker.Core.Layers.Roads
         private const float MaxGap = 300f;
         private const float MaxFallback = 110f;
 
-        public static Result Close(RoadNetwork net, RoadObstacles obstacles, float2[] boundary, Func<NetRole, float> halfWidth, List<ExistingRoad> existing = null)
+        public static Result Close(RoadNetwork net, RoadObstacles obstacles, float2[] boundary, Func<NetRole, float> halfWidth, List<ExistingRoad> existing = null,
+            List<ExistingRoad> barriers = null)
         {
             var res = new Result();
             for (int round = 0; round < 8; round++)
@@ -43,7 +44,7 @@ namespace Placemaker.Core.Layers.Roads
                 bool changed = false;
                 foreach (int u in open)
                 {
-                    if (TryJoin(net, obstacles, boundary, halfWidth, index, inc, open, u, res)) { changed = true; break; }
+                    if (TryJoin(net, obstacles, boundary, halfWidth, index, inc, open, u, res, barriers)) { changed = true; break; }
                 }
                 if (!changed) break;
                 net.Weld();
@@ -69,7 +70,7 @@ namespace Placemaker.Core.Layers.Roads
         }
 
         private static bool TryJoin(RoadNetwork net, RoadObstacles obstacles, float2[] boundary, Func<NetRole, float> halfWidth,
-            RoadGraph.EdgeIndex index, List<int>[] inc, List<int> open, int u, Result res)
+            RoadGraph.EdgeIndex index, List<int>[] inc, List<int> open, int u, Result res, List<ExistingRoad> barriers)
         {
             var nu = net.Nodes[u];
             int eu = inc[u][0];
@@ -106,6 +107,7 @@ namespace Placemaker.Core.Layers.Roads
                         if (!Poly.Contains(boundary, p) && Poly.DistanceToBoundary(boundary, p) > 1.5f) { inside = false; break; }
                     if (!inside) continue;
                     if (index.Crosses(line, 3f, ignore)) continue;
+                    if (RoadConnections.CrossesAny(line, barriers)) continue;
                     if (!isOpen && RoadGraph.MinAngleAt(net, inc, v, -curve.TangentXZ(1f)) < 55f) continue;
                     net.Edges.Add(new RoadEdge(curve, isOpen ? NetRole.PerimeterRoad : NetRole.Street));
                     if (isOpen) res.Closed++; else res.Joined++;

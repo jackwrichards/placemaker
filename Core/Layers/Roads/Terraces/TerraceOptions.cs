@@ -17,6 +17,8 @@ namespace Placemaker.Core.Layers.Roads.Terraces
         public float CrossFall = 0.01f;
         /// <summary>Steep straight banks with crisp edges instead of rounded graded ones.</summary>
         public bool Wall;
+        /// <summary>Terraced blocks: real retaining walls (a quay along the top of each deep cut), rounded banks elsewhere.</summary>
+        public bool Retaining;
         /// <summary>Steepest bank (rise/run).</summary>
         public float BankSlope = 0.4f;
         public TerraceLinkStyle Links = TerraceLinkStyle.Direct;
@@ -67,6 +69,8 @@ namespace Placemaker.Core.Layers.Roads.Terraces
                 Cells = (int)math.clamp(math.round(N(RoadsIds.TerraceCells)), 1f, 6f),
                 CrossFall = N(RoadsIds.TerraceFall) / 100f,
                 Wall = s.S(RoadsIds.TerraceBank, "bank") == "wall",
+                // the retaining walls (the game's quays) are gone: a saved "retaining" is a bank
+                Retaining = false,
                 BankSlope = N(RoadsIds.TerraceBankSlope) / 100f,
                 LinkSpacing = N(RoadsIds.TerraceLinkSpacing),
                 AvenueLinks = s.B(RoadsIds.TerraceAvenues, false),

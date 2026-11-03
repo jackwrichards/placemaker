@@ -1,0 +1,11 @@
+{
+  "formatVersion": 1,
+  "id": "polishRustic",
+  "nameKey": "Placemaker.UI.Painter.Theme.rustic",
+  "descriptionKey": "Placemaker.UI.Painter.ThemeTip.rustic",
+  "icon": "Media/Game/Icons/Zones.svg",
+  "root": {
+    "layer": "polishRustic",
+    "settings": {}
+  }
+}

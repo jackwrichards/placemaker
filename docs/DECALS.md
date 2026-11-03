@@ -1,5 +1,12 @@
 # Decals — census, model and dressing rules (s21)
 
+> **2026-10-19: decals from decal packs are no longer placed (GitHub issue #2).** The see-through copies of pack
+> decals were runtime prefabs a save names; the packs arrive 30-75 s after startup and the copies were given up after 600
+> frames, so loaded cities showed the game's white missing-object boxes, and no copy can outlive the mod. The user:
+> "Let's just drop decal support." Plans keep only the base game's kinds (markings, stalls, court and field lines,
+> Core/Decals/PackDecals.cs); the rest of this document describes the dressing that is now switched off (its code stays).
+> Game/Build/OldDecalCleanupSystem removes the old copies from loaded cities. Ground-wear paint is unchanged.
+
 User brief: *"Decals are not a thing you sprinkle around. They complement every other feature, and they're their own
 sub-feature of every other feature: leaves under trees, cracks in the paths, sandy rocks, a dirt patch… There's NEVER not
 room for decals — they don't take up space."*

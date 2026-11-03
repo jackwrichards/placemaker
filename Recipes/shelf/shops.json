@@ -1,5 +1,5 @@
 {
-  "_about": "Make-row category 'Shops & squares' (Core/Tool/Shelf.cs; one file per category). Hide, never delete: type ids in hiddenTypes, style (preset) ids per type in hiddenStyles ({\"park\": [\"pocket\"]}), types moved in from another group in types. Hidden things keep their code and the game runner still builds them by id. Squares and events fold into Shops & squares. rf-shops2 (2026-10-16): the user kept about a quarter ('25% remaining, perfect the best, ditch the rest'): mall district (district, downtown) first, mall park (commons, garden square, family park), one real strip mall, big market; fairground hidden, amphitheatre moved to Parks. See docs/refactor/SHOPS-BRIEF.md.",
+  "_about": "Make-row category 'Shops & squares' (Core/Tool/Shelf.cs; one file per category). Hide, never delete: type ids in hiddenTypes, style (preset) ids per type in hiddenStyles ({\"park\": [\"pocket\"]}), types moved in from another group in types. Hidden things keep their code and the game runner still builds them by id. Squares and events fold into Shops & squares. rf-shops2 (2026-10-16): the user kept about a quarter ('25% remaining, perfect the best, ditch the rest'): mall district (district, downtown) first, mall park (commons, garden square, family park), one real strip mall, big market; fairground hidden, amphitheatre moved to Parks. See docs/refactor/SHOPS-BRIEF.md. shops4 (2026-10-17): the user started the category over (\"perfect one thing and then make permutations of it\"): only the strip mall (classic) shows while it is rebuilt as a parking lot with shops; mall district, mall park, market square and big box come back as its variations.",
   "id": "shops",
   "name": "Shops & squares",
   "key": "Placemaker.UI.MakeGroup.Commercial",
@@ -18,7 +18,10 @@
     "highStreet",
     "retailPark",
     "plaza",
-    "fairground"
+    "fairground",
+    "mallDistrict",
+    "mallPark",
+    "marketSquare"
   ],
   "hiddenStyles": {
     "mallDistrict": [
@@ -32,7 +35,9 @@
     "stripMall": [
       "corner",
       "neighbourhood",
-      "rearAlley"
+      "rearAlley",
+      "bigBox",
+      "parkRow"
     ],
     "marketSquare": [
       "weekly",

@@ -1,0 +1,124 @@
+{
+  "_about": "Outgrow fences as the player sees them (the user, 21 Oct: gaps in fence runs at roads and turning circles, fences crossing each other). A suburb of cul-de-sacs grows with Outgrow on; fenceMap measures gaps, crossings, fences inside gardens and gardens over each other while it grows and once settled, writes <run>/fencemap-*.json (draw it: node tools/suite/FenceMap.js <file>) and takes close-ups of the worst spots. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-fence-map.json -Who <you>",
+  "scenarios": [
+    {
+      "id": "fence-map-suburb",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          340
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 400
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "suburb"
+        },
+        {
+          "do": "value",
+          "path": "0",
+          "id": "preZone",
+          "json": "\"residentialLow\""
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 8
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "label": "growing-1"
+        },
+        {
+          "do": "grow",
+          "seconds": 8
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "label": "growing-2"
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "label": "settled",
+          "closeups": 6,
+          "junctions": 24,
+          "edges": 10
+        },
+        {
+          "do": "shot",
+          "name": "45-centre",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 40,
+            "yaw": 30,
+            "distance": 120
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "45-west",
+          "camera": {
+            "target": "point",
+            "at": [
+              -100,
+              40
+            ],
+            "view": "oblique",
+            "pitch": 40,
+            "yaw": 200,
+            "distance": 110
+          },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

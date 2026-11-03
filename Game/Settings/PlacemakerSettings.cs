@@ -10,6 +10,7 @@ using Colossal.IO.AssetDatabase;
 using Game.Input;
 using Game.Modding;
 using Game.Settings;
+using Game.UI.Widgets;
 using FillWall = global::Placemaker.Core.Geometry.FillWall;
 
 namespace Placemaker.Game.Settings
@@ -32,6 +33,7 @@ namespace Placemaker.Game.Settings
         public const string GroupMaintenance = "Maintenance";
         public const string GroupBuild = "Build";
         public const string GroupBrush = "Brush";
+        public const string GroupNeighbourhood = "Neighbourhood";
 
         public const string ActionToggleTool = "ToggleTool";
         public const string ActionPrimary = "Primary";
@@ -61,7 +63,8 @@ namespace Placemaker.Game.Settings
         public bool SnapToRoadsWhenDrawing { get; set; }
 
         /// <summary>Drawn/painted areas are trimmed to the edge of existing roads before planning (AreaClip).</summary>
-        [SettingsUISection(SectionMain, GroupGeneral)]
+        // Area overhaul: Points follow the shared "Stops at" (Roads); kept so the id stays valid.
+        [SettingsUIHidden]
         public bool KeepOffExistingRoads { get; set; }
 
         /// <summary>
@@ -87,6 +90,11 @@ namespace Placemaker.Game.Settings
         [SettingsUISection(SectionMain, GroupGeneral)]
         public float EdgeMargin { get; set; }
 
+        /// <summary>Opacity (%) of the game's zone grid, empty and zoned cells, in every tool that shows it (ZoneGridOpacitySystem); 100 = vanilla.</summary>
+        [SettingsUISlider(min = 0, max = 100, step = 5, scalarMultiplier = 1, unit = global::Game.UI.Unit.kPercentage)]
+        [SettingsUISection(SectionMain, GroupGeneral)]
+        public int ZoneGridOpacity { get; set; }
+
         // ───────────── Brush rules (Block paint; plain Paint ignores them) ─────────────
         // Mirrored in the panel's Block paint "Rules" row (Core/Geometry/BrushRules). Ids are save format.
 
@@ -96,6 +104,18 @@ namespace Placemaker.Game.Settings
 
         [SettingsUISection(SectionMain, GroupBrush)]
         public bool BrushStopRoads { get; set; }
+
+        /// <summary>(Area overhaul) Footpaths.</summary>
+        [SettingsUISection(SectionMain, GroupBrush)]
+        public bool BrushStopPaths { get; set; }
+
+        /// <summary>(Area overhaul) Bike paths.</summary>
+        [SettingsUISection(SectionMain, GroupBrush)]
+        public bool BrushStopBikes { get; set; }
+
+        /// <summary>(Area overhaul) Rail and tram tracks on the ground.</summary>
+        [SettingsUISection(SectionMain, GroupBrush)]
+        public bool BrushStopTracks { get; set; }
 
         [SettingsUISection(SectionMain, GroupBrush)]
         public bool BrushStopBuildings { get; set; }
@@ -125,30 +145,32 @@ namespace Placemaker.Game.Settings
         public bool BrushStayInBlock { get; set; }
 
         /// <summary>(s27) Draw / Roads / Block outlines are clipped to free land (the polygon stops), not only off other builds.</summary>
-        [SettingsUISection(SectionMain, GroupBrush)]
+        // Area overhaul: every tool follows the stops; kept so the id stays valid.
+        [SettingsUIHidden]
         public bool BrushDrawClip { get; set; }
 
-        // (s43) Paint bucket walls (Core/Geometry/FillWalls): lines trace the block, areas cut it. Ids are save format.
+        /// <summary>(Area overhaul) Openings narrower than this (m) count as closed (Paint bucket, Paint area's One block).</summary>
+        [SettingsUISlider(min = 0f, max = 40f, step = 1f, scalarMultiplier = 1)]
         [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallRoads { get; set; }
+        public float AreaGap { get; set; }
 
+        /// <summary>(Area overhaul) How far (m) the Paint bucket spreads from the click.</summary>
+        [SettingsUISlider(min = 20f, max = 1500f, step = 10f, scalarMultiplier = 1)]
         [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallPaths { get; set; }
+        public float AreaReach { get; set; }
 
-        [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallBikes { get; set; }
+        /// <summary>(Area overhaul) Settings files older than the overhaul get its stops once (zoned land on).</summary>
+        [SettingsUIHidden] public int AreaRulesVersion { get; set; }
+        public const int CurrentAreaRulesVersion = 3;
 
-        [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallTracks { get; set; }
-
-        [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallWater { get; set; }
-
-        [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallLots { get; set; }
-
-        [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallZoned { get; set; }
+        // (s43) Paint bucket walls (Core/Geometry/FillWalls). Area overhaul: replaced by the shared stops; ids kept.
+        [SettingsUIHidden] public bool BucketWallRoads { get; set; }
+        [SettingsUIHidden] public bool BucketWallPaths { get; set; }
+        [SettingsUIHidden] public bool BucketWallBikes { get; set; }
+        [SettingsUIHidden] public bool BucketWallTracks { get; set; }
+        [SettingsUIHidden] public bool BucketWallWater { get; set; }
+        [SettingsUIHidden] public bool BucketWallLots { get; set; }
+        [SettingsUIHidden] public bool BucketWallZoned { get; set; }
 
         [SettingsUISlider(min = 0f, max = 20f, step = 1f, scalarMultiplier = 1)]
         [SettingsUISection(SectionMain, GroupBrush)]
@@ -175,10 +197,32 @@ namespace Placemaker.Game.Settings
             EmptyZones = BlockPaintAvoidEmptyZones, Water = BrushStopWater, StayInBlock = BrushStayInBlock,
             Snap = BrushSnapDistance, Smoothing = BrushSmoothing,
             Builds = BrushStopBuilds, Anything = BrushPaintOverAnything, DrawClip = BrushDrawClip,
+            Paths = BrushStopPaths, Bikes = BrushStopBikes, Tracks = BrushStopTracks, Gap = AreaGap, Reach = AreaReach,
             BucketWalls = (BucketWallRoads ? FillWall.Roads : 0) | (BucketWallPaths ? FillWall.Paths : 0) | (BucketWallBikes ? FillWall.Bikes : 0)
                 | (BucketWallTracks ? FillWall.Tracks : 0) | (BucketWallWater ? FillWall.Water : 0) | (BucketWallLots ? FillWall.Lots : 0)
                 | (BucketWallZoned ? FillWall.Zoned : 0),
         }.Normalized();
+
+        /// <summary>
+        /// (Area overhaul) Once per settings file older than the overhaul: the new stops on (paths, bike paths, tracks, and
+        /// zoned land whether built on or not), the fill's gap and reach at their defaults. Version 3: a reach still at the
+        /// old default (500 m) becomes the new one (300 m); a reach the player chose stays. True when something changed.
+        /// </summary>
+        public bool MigrateAreaRules()
+        {
+            if (AreaRulesVersion >= CurrentAreaRulesVersion) return false;
+            var r = GetBrushRules();
+            var d = global::Placemaker.Core.Geometry.BrushRules.Defaults();
+            if (AreaRulesVersion < 2)
+            {
+                r.Paths = d.Paths; r.Bikes = d.Bikes; r.Tracks = d.Tracks; r.AllZoned = d.AllZoned; r.Gap = d.Gap; r.Reach = d.Reach;
+                if (r.Zoned == false && r.AllZoned) r.Zoned = true;
+            }
+            if (Math.Abs(r.Reach - 500f) < 0.5f) r.Reach = d.Reach;
+            SetBrushRules(r);
+            AreaRulesVersion = CurrentAreaRulesVersion;
+            return true;
+        }
 
         public void SetBrushRules(global::Placemaker.Core.Geometry.BrushRules r)
         {
@@ -187,6 +231,7 @@ namespace Placemaker.Game.Settings
             BlockPaintAvoidEmptyZones = r.EmptyZones; BrushStopWater = r.Water; BrushStayInBlock = r.StayInBlock;
             BrushSnapDistance = r.Snap; BrushSmoothing = r.Smoothing;
             BrushStopBuilds = r.Builds; BrushPaintOverAnything = r.Anything; BrushDrawClip = r.DrawClip;
+            BrushStopPaths = r.Paths; BrushStopBikes = r.Bikes; BrushStopTracks = r.Tracks; AreaGap = r.Gap; AreaReach = r.Reach;
             var w = r.BucketWalls;
             BucketWallRoads = (w & FillWall.Roads) != 0; BucketWallPaths = (w & FillWall.Paths) != 0; BucketWallBikes = (w & FillWall.Bikes) != 0;
             BucketWallTracks = (w & FillWall.Tracks) != 0; BucketWallWater = (w & FillWall.Water) != 0; BucketWallLots = (w & FillWall.Lots) != 0;
@@ -282,10 +327,6 @@ namespace Placemaker.Game.Settings
         [SettingsUISection(SectionMain, GroupBuild)]
         public bool DecalsNeverCollide { get; set; }
 
-        /// <summary>(s23) Decorative decals built see-through (runtime clones per opacity tier, DecalOpacitySystem).</summary>
-        [SettingsUISection(SectionMain, GroupBuild)]
-        public bool SeeThroughDecals { get; set; }
-
         [SettingsUISection(SectionMain, GroupBuild)]
         public bool ChargeNetConstruction { get; set; }
 
@@ -331,6 +372,57 @@ namespace Placemaker.Game.Settings
         [SettingsUIDisableByCondition(typeof(PlacemakerSettings), nameof(CompanionOff))]
         public float CompanionUpkeepFactor { get; set; }
 
+        // ───────────── Neighbourhood polish: shown and changed in Placemaker's panel (Polish gardens), saved here ─────────────
+
+        /// <summary>Unused: Outgrow's master switch and "Outgrow new buildings" are each city's own, saved with it
+        /// (NeighbourPolishSystem.Switches). Kept so older settings files still read.</summary>
+        [SettingsUIHidden] public bool NeighbourhoodPolish { get; set; }
+        /// <summary>"Outgrow new buildings": kept with each city (NeighbourPolishSystem.PolishNew, PolishCitySettings; a new
+        /// city: off), not in this file; the property stays for the panel and the game runner's "setting" step.</summary>
+        [SettingsUIHidden] public bool PolishNewHouses { get => global::Placemaker.Game.Neighbours.NeighbourPolishSystem.PolishNew; set => global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetNewBuildings(value); }
+        /// <summary>The look for each kind of building: "auto" (each zone type its own look), a look id, or off (new ones of that
+        /// kind not polished).</summary>
+        [SettingsUIHidden] public string PolishThemeHomes { get; set; }
+        [SettingsUIHidden] public string PolishThemeShops { get; set; }
+        [SettingsUIHidden] public string PolishThemeOffices { get; set; }
+        [SettingsUIHidden] public string PolishThemeIndustry { get; set; }
+        /// <summary>The look Polish gives (and new buildings get), saved on each lot it polishes.</summary>
+        [SettingsUIHidden] public bool PolishLawns { get; set; }
+        [SettingsUIHidden] public int PolishPaintedGardens { get; set; }
+        [SettingsUIHidden] public bool PolishPavedFill { get; set; }
+        [SettingsUIHidden] public bool PolishPlanting { get; set; }
+        [SettingsUIHidden] public bool PolishFeatures { get; set; }
+        [SettingsUIHidden] public bool PolishPaths { get; set; }
+        [SettingsUIHidden] public bool PolishRocks { get; set; }
+        [SettingsUIHidden] public bool PolishGroundPaint { get; set; }
+
+        public static readonly string[] PolishThemeValues = { "auto", "garden", "natural", "tidy", "yard", "off" };
+        /// <summary>The kinds' looks as saved: 0 older than the zone types' own looks (MigratePolishLooks).</summary>
+        [SettingsUIHidden] public int PolishLooksVersion { get; set; }
+        public const int CurrentPolishLooksVersion = 1;
+
+        /// <summary>
+        /// Once per settings file older than the zone types' own looks: a kind still at its old default (homes garden, shops and
+        /// offices tidy, industry yard) becomes "auto", so every zone type gets its own look; a look the player picked stays.
+        /// True when something changed.
+        /// </summary>
+        public bool MigratePolishLooks()
+        {
+            if (PolishLooksVersion >= CurrentPolishLooksVersion) return false;
+            if (PolishThemeHomes == "garden") PolishThemeHomes = "auto";
+            if (PolishThemeShops == "tidy") PolishThemeShops = "auto";
+            if (PolishThemeOffices == "tidy") PolishThemeOffices = "auto";
+            if (PolishThemeIndustry == "yard") PolishThemeIndustry = "auto";
+            PolishLooksVersion = CurrentPolishLooksVersion;
+            return true;
+        }
+        /// <summary>Each zone type's look for new buildings and Polish the whole city (JSON: zone prefab → look id or "off").</summary>
+        [SettingsUIHidden] public string PolishZoneLooks { get; set; }
+        /// <summary>The look the polish tool had picked last ("zone": each building its zone's look).</summary>
+        [SettingsUIHidden] public string PolishLookLast { get; set; }
+
+        public bool PolishOff() => !NeighbourhoodPolish;
+
         public bool ParkingEconomyOff() => !ParkingEconomy;
         public bool CompanionOff() => !ExperimentalParkingCompanion;
 
@@ -353,7 +445,6 @@ namespace Placemaker.Game.Settings
                 global::Placemaker.Game.Build.BuildService.RecoverRejectedPieces = RecoverRejectedPieces;
                 global::Placemaker.Game.Build.BuildService.OverlayPavedSurfaces = OverlayPavedSurfaces;
                 global::Placemaker.Game.Build.BuildService.SinkDecals = DecalsNeverCollide;
-                global::Placemaker.Game.Build.DecalOpacitySystem.FeatureEnabled = SeeThroughDecals;
                 global::Placemaker.Game.Build.BuildService.ChargeNetConstruction = ChargeNetConstruction;
                 global::Placemaker.Game.Build.BuildService.DebugTerrainDump = DebugTerrainDump;
                 global::Placemaker.Game.Build.BuildService.ApplyParkStats = ApplyParkStats;
@@ -367,6 +458,37 @@ namespace Placemaker.Game.Settings
                 global::Placemaker.Game.Economy.ParkingEconomySystem.DefaultFee = DefaultParkingFee;
                 global::Placemaker.Game.Economy.ParkingCompanionSystem.CompanionEnabled = ExperimentalParkingCompanion;
                 global::Placemaker.Game.Economy.ParkingCompanionUpkeepSystem.UpkeepFactor = CompanionUpkeepFactor;
+                // always on (the player's master switch and new buildings are the city's own: NeighbourPolishSystem.Switches):
+                // what is polished keeps fitting as the city changes; only new buildings and what the player polishes are
+                // ever polished, buildings standing before are left as they are
+                global::Placemaker.Game.Neighbours.NeighbourPolishSystem.FeatureEnabled = true;
+                global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetZoneThemes(PolishThemeHomes, PolishThemeShops, PolishThemeOffices, PolishThemeIndustry);
+                global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetZoneLooks(PolishZoneLooks);
+                {
+                    byte parts = 0;
+                    if (PolishLawns) parts |= global::Placemaker.Game.Neighbours.NeighbourPolishSystem.PartLawns;
+                    if (PolishPlanting) parts |= global::Placemaker.Game.Neighbours.NeighbourPolishSystem.PartPlanting;
+                    if (PolishFeatures) parts |= global::Placemaker.Game.Neighbours.NeighbourPolishSystem.PartFeatures;
+                    if (PolishPaths) parts |= global::Placemaker.Game.Neighbours.NeighbourPolishSystem.PartPaths;
+                    if (PolishRocks) parts |= global::Placemaker.Game.Neighbours.NeighbourPolishSystem.PartRocks;
+                    if (PolishGroundPaint) parts |= global::Placemaker.Game.Neighbours.NeighbourPolishSystem.PartPaint;
+                    if (PolishPavedFill) parts |= global::Placemaker.Game.Neighbours.NeighbourPolishSystem.PartShopPaving;
+                    global::Placemaker.Game.Neighbours.NeighbourPolishSystem.LookParts = parts;
+                    global::Placemaker.Game.Neighbours.NeighbourPolishSystem.LookPainted = (byte)System.Math.Max(0, System.Math.Min(100, PolishPaintedGardens));
+                }
+                global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetOptions(new System.Collections.Generic.Dictionary<string, float>
+                {
+                    ["lawns"] = PolishLawns ? 1f : 0f,
+                    ["paintedGardens"] = PolishPaintedGardens,
+                    ["plant"] = PolishPlanting ? 1f : 0f,
+                    ["pavedFill"] = PolishPavedFill ? 1f : 0f,
+                    ["features"] = PolishFeatures ? 1f : 0f,
+                    ["pathChance"] = PolishPaths ? 45f : 0f,
+                    ["alleyChance"] = PolishPaths ? 45f : 0f,
+                    ["rockChance"] = PolishRocks ? 12f : 0f,
+                    ["paint"] = PolishGroundPaint ? 1f : 0f,
+                });
+                global::Placemaker.Game.Overlay.ZoneGridOpacitySystem.OpacityPercent = ZoneGridOpacity;
             }
             catch (Exception e) { Mod.Log.Warn("Placemaker: build options not applied: " + e.Message); }
         }
@@ -391,8 +513,10 @@ namespace Placemaker.Game.Settings
             KeepOffExistingRoads = true;
             PaintAvoidBuildings = true;
             SetBrushRules(global::Placemaker.Core.Geometry.BrushRules.Defaults());
+            AreaRulesVersion = 0;   // a file without it is older than the overhaul (MigrateAreaRules); new files get the defaults anyway
             LayoutSize = (int)System.Math.Round(global::Placemaker.Core.SiteContext.DefaultLayoutScale * 100f);
             EdgeMargin = global::Placemaker.Core.SiteContext.DefaultEdgeMargin;
+            ZoneGridOpacity = 20;
             BrushSize = 150f;
             BrushSquare = false;
             LastAreaMode = 0;
@@ -405,7 +529,20 @@ namespace Placemaker.Game.Settings
             RecoverRejectedPieces = true;
             OverlayPavedSurfaces = true;
             DecalsNeverCollide = true;
-            SeeThroughDecals = true;
+            NeighbourhoodPolish = true;
+            PolishThemeHomes = "auto";
+            PolishThemeShops = "auto";
+            PolishThemeOffices = "auto";
+            PolishThemeIndustry = "auto";
+            PolishLooksVersion = 0;   // a file without it has the old kind looks (MigratePolishLooks)
+            PolishLawns = true;
+            PolishPaintedGardens = 33;
+            PolishPlanting = true;
+            PolishPavedFill = true;
+            PolishFeatures = true;
+            PolishPaths = true;
+            PolishRocks = true;
+            PolishGroundPaint = true;
             ChargeNetConstruction = true;
             SelectAsOneThing = true;
             DebugTerrainDump = false;

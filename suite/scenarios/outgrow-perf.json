@@ -1,0 +1,92 @@
+{
+  "_about": "Global outgrow frame times: the same grown suburb with the window closed, open (lens on), lens off, Numbers tab, closed again. Read each wait step: worst frame, frames over 50 / 100 ms.",
+  "scenarios": [
+    {
+      "id": "outgrow-perf",
+      "land": {
+        "shape": "rect",
+        "size": [
+          700,
+          560
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "suburb"
+        },
+        {
+          "do": "value",
+          "path": "0",
+          "id": "preZone",
+          "json": "\"residentialLow\""
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "wait",
+          "seconds": 8
+        },
+        {
+          "do": "polish",
+          "click": "panel-mode-outgrow"
+        },
+        {
+          "do": "wait",
+          "seconds": 8
+        },
+        {
+          "do": "polish",
+          "click": "polish-lens-on"
+        },
+        {
+          "do": "wait",
+          "seconds": 8
+        },
+        {
+          "do": "polish",
+          "click": "polish-city-tab-numbers"
+        },
+        {
+          "do": "wait",
+          "seconds": 8
+        },
+        {
+          "do": "polish",
+          "click": "panel-mode-placemaker"
+        },
+        {
+          "do": "wait",
+          "seconds": 8
+        }
+      ]
+    }
+  ]
+}

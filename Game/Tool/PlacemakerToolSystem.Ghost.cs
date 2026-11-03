@@ -5,6 +5,7 @@
 // never Apply (the build applies through its own BuildToolSystem).
 
 using System;
+using Unity.Entities;
 using Game.Tools;
 using Placemaker.Core.Tool;
 using Placemaker.Game.Preview;
@@ -25,13 +26,26 @@ namespace Placemaker.Game.Tool
 
         /// <summary>contract state.previewMode: the player's choice for the current stage.</summary>
         public PreviewMode PreviewModeSelected => _previewModes.Selected(_stage);
+        /// <summary>(shops4) The current plan is refused (an error): no ghost is shown for it.</summary>
+        public bool PlanRefused => _plan != null && _plan.HasErrors;
         /// <summary>contract state.ghostPending.</summary>
         public bool GhostPending => _preview.GhostPending;
+        /// <summary>The ghost's state in one line (the runner's idle timeout says why the preview never settled).</summary>
+        public string GhostDebug { get { var st = _ghost.Status; return $"stage {_stage}, selected {_preview.Selected}, effective {_preview.Effective}, phase {st.Phase}, shown {st.ShownRevision}, requested {st.RequestedRevision}, ghost revision {_ghostRevision}, plan {_planRevision}/{_inputRevision}, plan errors {(_plan != null && _plan.HasErrors)}, available {_ghost.Available}, active {IsActive}, building {_building}"; } }
         /// <summary>What is on the map this frame (sketch during drags even when ghost is selected).</summary>
         public PreviewMode PreviewModeEffective => _preview.Effective;
         /// <summary>How the overlay draws the plan's nets/objects/surfaces (outline, markers, handles always drawn).</summary>
         public SketchObjects SketchObjects => _preview.Objects;
         public bool GhostAvailable => _ghost.Available;
+
+        // Stuck-ghost safety net: a ghost that stays pending this long with no build running is asked for again
+        // (twice), then this plan revision falls back to the sketch, so the panel never says "Updating preview…" for
+        // ever (a failed instant build once left every later scenario of a game-runner batch waiting on it).
+        private const float GhostStuckSeconds = 30f;
+        private const int GhostStuckRetries = 2;
+        private float _ghostPendingSince = -1f;
+        private int _ghostKicks;
+        private int _ghostGaveUpRevision = -2;
 
         private int _ghostDropped;
         /// <summary>Objects the game cancelled in the shown ghost (collisions); 0 when no ghost is shown.</summary>
@@ -41,6 +55,45 @@ namespace Placemaker.Game.Tool
         public Placemaker.Core.PlanIssue GhostDroppedIssue => _ghostDropped > 0
             ? new Placemaker.Core.PlanIssue { Severity = Placemaker.Core.IssueSeverity.Warning, Key = "Placemaker.Issue.GhostObjectsDropped", Args = new object[] { _ghostDropped } }
             : null;
+
+        // The game outlines every temporary a tool places (BatchInstanceSystem: TempFlags.Create puts the mesh on the
+        // outline layer too, ManagedBatchSystem draws that on Unity's "Outline" layer). The Real preview is all temporaries,
+        // so the whole build was drawn in blue outlines ("I just want to actually see it"). Making the hover colour
+        // see-through did not work (the outline ignores alpha: black lines). Leaving the Outline layer out of the camera did
+        // not either: the game's outline pass asks for that layer (OutlinesWorldUIPass.AggregateCullingParameters), so HDRP
+        // culled the whole scene a second time every frame for it (CustomPassVolume.Cull) and outlines everywhere flickered
+        // while the camera moved. While the Real preview shows, the outline pass itself draws no layer (it culls nothing
+        // extra and its buffer stays empty); its layer is put back the moment the preview goes (Sketch, Outgrow, another
+        // stage, the tool closed). The build's own outline is drawn thick meanwhile (the overlay).
+        private global::Game.Rendering.OutlinesWorldUIPass _outlinePass;
+        private UnityEngine.LayerMask _outlineLayerSaved;
+        private bool _outlineHidden;
+
+        private void UpdateGhostOutline(bool hide)
+        {
+            if (hide == _outlineHidden) return;
+            var pass = OutlinePass();
+            if (pass == null) return;
+            if (hide)
+            {
+                _outlineLayerSaved = pass.m_OutlineLayer;
+                pass.m_OutlineLayer = 0;
+            }
+            else pass.m_OutlineLayer = _outlineLayerSaved;
+            _outlineHidden = hide;
+        }
+
+        /// <summary>The game's outline pass (DebugCustomPass finds it the same way: by name, after post-processing).</summary>
+        private global::Game.Rendering.OutlinesWorldUIPass OutlinePass()
+        {
+            if (_outlinePass != null) return _outlinePass;
+            var volumes = new System.Collections.Generic.List<UnityEngine.Rendering.HighDefinition.CustomPassVolume>();
+            UnityEngine.Rendering.HighDefinition.CustomPassVolume.GetActivePassVolumes(UnityEngine.Rendering.HighDefinition.CustomPassInjectionPoint.AfterPostProcess, volumes);
+            foreach (var v in volumes)
+                foreach (var p in v.customPasses)
+                    if (p is global::Game.Rendering.OutlinesWorldUIPass o) return _outlinePass = o;
+            return null;
+        }
 
         /// <summary>UI: setPreviewMode("sketch" | "ghost") — for the current stage, sticks for the session.</summary>
         public void SetPreviewMode(string id)
@@ -82,13 +135,15 @@ namespace Placemaker.Game.Tool
                     PlanAvailable = _plan != null,
                     PlanRevision = rev,
                     PlanStale = PlanStale,
-                    GhostAvailable = _ghost.Available,
+                    PlanRefused = PlanRefused,
+                    GhostAvailable = _ghost.Available && rev != _ghostGaveUpRevision,
                     GhostShownRevision = status.ShownRevision,
                     GhostBusy = status.Phase == GhostPhase.Pending,
                 };
                 var d = _previewModes.Step(input);
                 if (d.Command == GhostCommand.Show) _ghost.Show(_plan, d.ShowRevision);
                 else if (d.Command == GhostCommand.Hide) _ghost.Hide();
+                WatchStuckGhost(d.GhostPending, rev, status);
                 if (d.Selected != _preview.Selected || d.GhostPending != _preview.GhostPending || d.Objects != _preview.Objects || d.Effective != _preview.Effective) Touch();
                 _preview = d;
                 clear = _ghost.Pump();
@@ -100,6 +155,28 @@ namespace Placemaker.Game.Tool
             if (_closeAfterGhost > 0 && --_closeAfterGhost == 0 && m_ToolSystem != null && m_ToolSystem.activeTool == this)
                 m_ToolSystem.activeTool = m_DefaultToolSystem;
             return clear ? ApplyMode.Clear : ApplyMode.None;
+        }
+
+        private void WatchStuckGhost(bool pending, int rev, GhostStatus status)
+        {
+            float now = UnityEngine.Time.realtimeSinceStartup;
+            if (!pending || _building)
+            {
+                _ghostPendingSince = -1f;
+                if (!pending) _ghostKicks = 0;
+                return;
+            }
+            if (_ghostPendingSince < 0f) { _ghostPendingSince = now; return; }
+            if (now - _ghostPendingSince < GhostStuckSeconds) return;
+            bool retry = _ghostKicks < GhostStuckRetries;
+            Mod.Log.Warn($"Placemaker: the ghost preview has been pending for {now - _ghostPendingSince:F0} s (stage {_stage}, plan revision {rev}, "
+                + $"service {status.Phase}, requested {status.RequestedRevision}, shown {status.ShownRevision}"
+                + $"{(GhostPreview.Service is Placemaker.Game.Build.BuildService b ? ", " + b.GhostDebug : "")}): "
+                + (retry ? "asking for it again" : "showing the sketch for this plan instead"));
+            if (retry) { _ghost.Hide(); _previewModes.Forget(); _ghostKicks++; }
+            else { _ghostGaveUpRevision = rev; _ghostKicks = 0; }
+            _ghostPendingSince = -1f;
+            Touch();
         }
 
         /// <summary>Hide now (leaving the tool, build start). The service clears its definitions; the next tool's Clear removes the temporaries.</summary>

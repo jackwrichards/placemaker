@@ -35,9 +35,10 @@ async function placeEntranceIfAsked(page: import("@playwright/test").Page) {
         if (!kind) return;
         await page.evaluate((k) => (window as any).pm.trigger("Placemaker", "startMarkers", "0", k), kind);
     }
-    await page.getByTestId("marker-banner").waitFor();
+    await page.getByTestId("marker-kinds").waitFor();
     await clickWorld(page, (FIELD[0][0] + FIELD[1][0]) / 2, (FIELD[0][1] + FIELD[1][1]) / 2);
-    await page.getByTestId("marker-done").click();
+    // stop placing (the lit type button again; no banner any more)
+    await page.evaluate(() => (window as any).pm.trigger("Placemaker", "endMarkers"));
     await waitCore(page);
 }
 

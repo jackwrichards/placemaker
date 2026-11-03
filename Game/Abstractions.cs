@@ -22,6 +22,8 @@ namespace Placemaker.Game
         /// <summary>Existing group to replace (Edit). 0 = new build.</summary>
         public int ReplaceGroup;
         public string CustomName = "";
+        /// <summary>Built as separate pieces: the group is born ungrouped (GroupFlags.Ungrouped).</summary>
+        public bool Ungrouped;
     }
 
     public struct BuildStatus
@@ -90,6 +92,10 @@ namespace Placemaker.Game
         /// <summary>Remove the whole group safely (phase-correct cascade). Returns false if not found.</summary>
         bool RequestRemove(int groupId);
         void Rename(int groupId, string name);
+        /// <summary>Ungrouped: its parts are clicked and bulldozed one by one (GroupFlags.Ungrouped).</summary>
+        bool IsUngrouped(int groupId);
+        /// <summary>Ungroup, or group again. Returns false if the group is not found or being removed.</summary>
+        bool SetUngrouped(int groupId, bool ungrouped);
     }
 
     // ───────────────────────── Assets ─────────────────────────

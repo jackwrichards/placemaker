@@ -26,6 +26,8 @@ namespace Placemaker.Game.Groups.Patches
     {
         /// <summary>Setting: lift clicks on parts to the whole build (default on).</summary>
         public static bool Enabled = true;
+        /// <summary>An exception happened: nothing is changed any more this session.</summary>
+        private static bool _broken;
 
         [HarmonyPrepare]
         private static bool Prepare()
@@ -36,11 +38,14 @@ namespace Placemaker.Game.Groups.Patches
         }
 
         [HarmonyPostfix]
-        private static void Postfix(ToolRaycastSystem __instance, bool __result, ref RaycastResult result)
+        private static void Postfix(ToolRaycastSystem __instance, ref bool __result, ref RaycastResult result) => Apply(__instance, ref __result, ref result);
+
+        /// <summary>The lift itself (also called by the game runner's lab "pickPart" with the active tool's raycast settings).</summary>
+        internal static void Apply(ToolRaycastSystem __instance, ref bool __result, ref RaycastResult result)
         {
             try
             {
-                if (!Enabled || !__result || result.m_Owner == Entity.Null) return;
+                if (_broken || !__result || result.m_Owner == Entity.Null) return;
                 if ((__instance.raycastFlags & RaycastFlags.SubElements) != 0) return;
                 if ((__instance.typeMask & (TypeMask.StaticObjects | TypeMask.Areas)) == 0) return;
                 var registry = GroupRegistrySystem.Instance;
@@ -48,6 +53,16 @@ namespace Placemaker.Game.Groups.Patches
                 var em = __instance.World.EntityManager;
                 var part = result.m_Owner;
                 if (!em.Exists(part) || em.HasComponent<Temp>(part)) return;
+                // Ungrouped: the part itself. The game hands over the top owner of what was hit: for most of our props and trees
+                // that is the build's bare carrier (their shared owner), for the ground between them the build's lot; picking or
+                // bulldozing either would take everything. The carrier gives way to the member that was hit, the lot to nothing.
+                if (registry.TryUngroupedPick(part, result.m_Hit.m_HitEntity, out var pick))
+                {
+                    if (pick == Entity.Null) { __result = false; result = default; }
+                    else result.m_Owner = pick;
+                    return;
+                }
+                if (!Enabled) return;   // the setting: parts are picked as the game picks them (an ungrouped build's are fixed above)
                 if (em.HasComponent<global::Game.Routes.TransportStop>(part)) return;
                 if (!registry.TryLiftToOwner(part, out var owner)) return;
                 result.m_Owner = owner;
@@ -56,6 +71,7 @@ namespace Placemaker.Game.Groups.Patches
             {
                 // Never break the player's tools: give up lifting for this session.
                 Enabled = false;
+                _broken = true;
                 Mod.Log.Error(e, "Placemaker raycast lift failed; disabled for this session");
             }
         }

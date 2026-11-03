@@ -34,23 +34,37 @@ namespace Placemaker.Core.Geometry
 
         private readonly double2 _origin;
         private readonly double _eps, _eps2, _cell;
-        private readonly List<double2> _pts = new List<double2>();
-        private readonly Dictionary<long, List<int>> _grid = new Dictionary<long, List<int>>();
-        private List<Edge> _edges = new List<Edge>();
+        private readonly List<double2> _pts;
+        // vertices by snap cell: the cell's first and last vertex, each vertex's next in its cell (-1: the last), in the order
+        // they were made (one table and one list, not a list per cell: the allocations were a big part of every boolean)
+        private readonly Dictionary<long, (int Head, int Tail)> _grid;
+        private readonly List<int> _nextInCell;
+        private List<Edge> _edges;
 
         // Built state
         private bool _built;
         private int[] _cycleOf;          // half-edge → cycle
-        private List<int[]> _cycles;     // cycle → half-edges in order
+        private int _cycleCount;
+        private int[] _cycleStart;       // cycle c: its half-edges in order are _cycleFlat[_cycleStart[c] .. _cycleStart[c + 1])
+        private int[] _cycleFlat;
         private int[] _windA, _windB;    // winding of the region left of each cycle
-        private List<int>[] _out;        // vertex → outgoing half-edges sorted by angle (CCW)
-        private int[] _posInOut;         // half-edge → index in _out[origin]
+        private int[] _outStart;         // vertex v: its outgoing half-edges sorted by angle (CCW) are _outFlat[_outStart[v] .. _outStart[v + 1])
+        private int[] _outFlat;
+        private int[] _posInOut;         // half-edge → its index among its origin's outgoing half-edges
+        // (flat arrays, not a list per vertex and an array per face: in big booleans the allocations and the collector's work
+        // they caused were most of the time)
 
         public double2 Origin => _origin;
         public double Eps => _eps;
 
-        public Arrangement(double2 min, double2 max)
+        /// <param name="capacity">How many vertices the input has (the tables are made that big at once).</param>
+        public Arrangement(double2 min, double2 max, int capacity = 0)
         {
+            capacity = math.max(capacity, 4);
+            _pts = new List<double2>(capacity);
+            _grid = new Dictionary<long, (int, int)>(capacity);
+            _nextInCell = new List<int>(capacity);
+            _edges = new List<Edge>(capacity);
             _origin = (min + max) * 0.5;
             double extent = math.max(math.cmax(math.abs(min)), math.cmax(math.abs(max)));
             // ~4 float ulps at the input's magnitude, never below 0.1 mm.
@@ -63,9 +77,11 @@ namespace Placemaker.Core.Geometry
         {
             double2 mn = new double2(double.MaxValue), mx = new double2(double.MinValue);
             bool any = false;
+            int count = 0;
             foreach (var r in rings)
             {
                 if (r == null) continue;
+                count += r.Count;
                 foreach (var p in r)
                 {
                     if (!Poly.IsFinite(p)) continue;
@@ -73,7 +89,7 @@ namespace Placemaker.Core.Geometry
                 }
             }
             if (!any) { mn = double2.zero; mx = double2.zero; }
-            return new Arrangement(mn, mx);
+            return new Arrangement(mn, mx, count + count / 4);
         }
 
         public double2 ToLocal(float2 p) => (double2)p - _origin;
@@ -89,15 +105,16 @@ namespace Placemaker.Core.Geometry
             for (long dx = -1; dx <= 1; dx++)
                 for (long dy = -1; dy <= 1; dy++)
                 {
-                    if (!_grid.TryGetValue(Key(ix + dx, iy + dy), out var list)) continue;
-                    foreach (int v in list)
+                    if (!_grid.TryGetValue(Key(ix + dx, iy + dy), out var cell)) continue;
+                    for (int v = cell.Head; v >= 0; v = _nextInCell[v])
                         if (math.distancesq(_pts[v], p) <= _eps2) return v;
                 }
             int id = _pts.Count;
             _pts.Add(p);
+            _nextInCell.Add(-1);
             long k = Key(ix, iy);
-            if (!_grid.TryGetValue(k, out var l)) _grid[k] = l = new List<int>(2);
-            l.Add(id);
+            if (_grid.TryGetValue(k, out var c)) { _nextInCell[c.Tail] = id; _grid[k] = (c.Head, id); }
+            else _grid[k] = (id, id);
             return id;
         }
 
@@ -332,48 +349,63 @@ namespace Placemaker.Core.Geometry
         private int Org(int h) => (h & 1) == 0 ? _edges[h >> 1].U : _edges[h >> 1].V;
         private int Dst(int h) => (h & 1) == 0 ? _edges[h >> 1].V : _edges[h >> 1].U;
 
+        /// <summary>Half-edges by angle, ties by index: a total order, so every sort gives the one same result.</summary>
+        private sealed class ByAngle : IComparer<int>
+        {
+            public double[] Angle;
+            public int Compare(int p, int q) => Angle[p] != Angle[q] ? Angle[p].CompareTo(Angle[q]) : p.CompareTo(q);
+        }
+
         private void BuildFaces()
         {
-            int nh = _edges.Count * 2;
-            _out = new List<int>[_pts.Count];
+            int nh = _edges.Count * 2, nv = _pts.Count;
             var angle = new double[nh];
+            _outStart = new int[nv + 1];
             for (int h = 0; h < nh; h++)
             {
                 double2 dvec = _pts[Dst(h)] - _pts[Org(h)];
                 angle[h] = math.atan2(dvec.y, dvec.x);
-                int o = Org(h);
-                (_out[o] ??= new List<int>(4)).Add(h);
+                _outStart[Org(h) + 1]++;
             }
+            for (int v = 0; v < nv; v++) _outStart[v + 1] += _outStart[v];
+            _outFlat = new int[nh];
+            var fill = new int[nv];
+            for (int h = 0; h < nh; h++) { int o = Org(h); _outFlat[_outStart[o] + fill[o]++] = h; }
             _posInOut = new int[nh];
-            foreach (var list in _out)
+            var byAngle = new ByAngle { Angle = angle };
+            for (int v = 0; v < nv; v++)
             {
-                if (list == null) continue;
-                list.Sort((p, q) => angle[p] != angle[q] ? angle[p].CompareTo(angle[q]) : p.CompareTo(q));
-                for (int k = 0; k < list.Count; k++) _posInOut[list[k]] = k;
+                int s = _outStart[v], count = _outStart[v + 1] - s;
+                if (count > 1) Array.Sort(_outFlat, s, count, byAngle);
+                for (int k = 0; k < count; k++) _posInOut[_outFlat[s + k]] = k;
             }
 
             _cycleOf = new int[nh];
             for (int h = 0; h < nh; h++) _cycleOf[h] = -1;
-            _cycles = new List<int[]>();
-            var cur = new List<int>();
+            _cycleFlat = new int[nh];
+            var starts = new List<int>(nh / 2 + 2);
+            int at = 0;
+            _cycleCount = 0;
             for (int h0 = 0; h0 < nh; h0++)
             {
                 if (_cycleOf[h0] >= 0) continue;
-                cur.Clear();
+                starts.Add(at);
                 int h = h0, guard = nh + 1;
                 while (_cycleOf[h] < 0 && guard-- > 0)
                 {
-                    _cycleOf[h] = _cycles.Count;
-                    cur.Add(h);
+                    _cycleOf[h] = _cycleCount;
+                    _cycleFlat[at++] = h;
                     h = NextInFace(h);
                 }
-                _cycles.Add(cur.ToArray());
+                _cycleCount++;
             }
+            starts.Add(at);
+            _cycleStart = starts.ToArray();
 
             // Windings: measured once per connected component (at its outer boundary, whose left side
             // is the face containing the component), then propagated across edges:
             // winding(right of h) = winding(left of h) − delta(h). O(E) instead of O(F·E).
-            int nc = _cycles.Count;
+            int nc = _cycleCount;
             _windA = new int[nc];
             _windB = new int[nc];
             var parent = new int[_pts.Count];
@@ -385,9 +417,9 @@ namespace Placemaker.Core.Geometry
             for (int c = 0; c < nc; c++)
             {
                 double a = 0;
-                foreach (int h in _cycles[c]) a += Cross(_pts[Org(h)], _pts[Dst(h)]);
+                for (int k = _cycleStart[c]; k < _cycleStart[c + 1]; k++) { int h = _cycleFlat[k]; a += Cross(_pts[Org(h)], _pts[Dst(h)]); }
                 area[c] = a;
-                int comp = Find(Org(_cycles[c][0]));
+                int comp = Find(Org(_cycleFlat[_cycleStart[c]]));
                 if (!outerOf.TryGetValue(comp, out int cur0) || a < area[cur0]) outerOf[comp] = c;
             }
             var done = new bool[nc];
@@ -395,14 +427,15 @@ namespace Placemaker.Core.Geometry
             foreach (var kv in outerOf)
             {
                 int c0 = kv.Value;
-                Winding(SampleLeft(_cycles[c0]), out _windA[c0], out _windB[c0]);
+                Winding(SampleLeft(c0), out _windA[c0], out _windB[c0]);
                 done[c0] = true;
                 queue.Enqueue(c0);
                 while (queue.Count > 0)
                 {
                     int c = queue.Dequeue();
-                    foreach (int h in _cycles[c])
+                    for (int kh = _cycleStart[c]; kh < _cycleStart[c + 1]; kh++)
                     {
+                        int h = _cycleFlat[kh];
                         int c2 = _cycleOf[h ^ 1];
                         if (done[c2]) continue;
                         var e = _edges[h >> 1];
@@ -420,18 +453,19 @@ namespace Placemaker.Core.Geometry
         private int NextInFace(int h)
         {
             int twin = h ^ 1;
-            var list = _out[Dst(h)];
+            int v = Dst(h), s = _outStart[v], count = _outStart[v + 1] - s;
             int k = _posInOut[twin];
-            return list[(k - 1 + list.Count) % list.Count];
+            return _outFlat[s + (k - 1 + count) % count];
         }
 
         /// <summary>A point strictly inside the region on the left of the cycle (between its longest edge and the next edge hit).</summary>
-        private double2 SampleLeft(int[] cycle)
+        private double2 SampleLeft(int cycle)
         {
-            int best = cycle[0];
+            int best = _cycleFlat[_cycleStart[cycle]];
             double bestLen = -1;
-            foreach (int h in cycle)
+            for (int k0 = _cycleStart[cycle]; k0 < _cycleStart[cycle + 1]; k0++)
             {
+                int h = _cycleFlat[k0];
                 double l = math.distancesq(_pts[Org(h)], _pts[Dst(h)]);
                 if (l > bestLen) { bestLen = l; best = h; }
             }
@@ -482,7 +516,7 @@ namespace Placemaker.Core.Geometry
             int nh = _edges.Count * 2;
             var regions = new List<Region>();
             if (nh == 0) return regions;
-            var sel = new bool[_cycles.Count];
+            var sel = new bool[_cycleCount];
             for (int c = 0; c < sel.Length; c++) sel[c] = inside(_windA[c], _windB[c]);
 
             var boundary = new bool[nh];
@@ -528,11 +562,11 @@ namespace Placemaker.Core.Geometry
 
         private int NextBoundary(int h, bool[] boundary)
         {
-            var list = _out[Dst(h)];
+            int v = Dst(h), s = _outStart[v], count = _outStart[v + 1] - s;
             int k = _posInOut[h ^ 1];
-            for (int step = 1; step <= list.Count; step++)
+            for (int step = 1; step <= count; step++)
             {
-                int g = list[((k - step) % list.Count + list.Count) % list.Count];
+                int g = _outFlat[s + ((k - step) % count + count) % count];
                 if (boundary[g]) return g;
             }
             return -1;

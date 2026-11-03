@@ -1,0 +1,86 @@
+{
+  "_about": "Zoning speed (the user: 'it takes so long to plan a zone thing ... It should be near instant'): a road grid of about 4 x 4 blocks on gently uneven open land, then Zoning > Suburb and Zoning > Industrial estate > Default over it (Level the lots on), the industrial one built. How long each plan took: suite.log ('plan N ms') and Placemaker.log ('Placemaker: plan <type> rN: N ms on the worker ...', with where the time went).",
+  "scenarios": [
+    {
+      "id": "zoning-speed",
+      "land": {
+        "shape": "rect",
+        "size": [
+          460,
+          460
+        ],
+        "ground": "hills",
+        "amplitude": 1.5,
+        "wavelength": 160,
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads"
+        },
+        {
+          "do": "value",
+          "path": "0",
+          "id": "gridSpacing",
+          "json": "115"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "block",
+          "view": "top",
+          "shot": "roads-top"
+        },
+        {
+          "_": "the zoning outline spans the whole grid, its roads too (as the user's did): the area tools' stops off. Its corners on the land's corners, by the new grid's rounded corners: the first corner snaps onto the road and the closing click back on that spot did not close (fixed in PolygonEditor.ClosesAt)",
+          "do": "setting",
+          "name": "BrushPaintOverAnything",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "zoningSuburb"
+        },
+        {
+          "do": "preview",
+          "shot": "plan-suburb",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "type",
+          "layer": "zoningIndustrial"
+        },
+        {
+          "do": "preview",
+          "shot": "plan-industrial",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "built-top-zoning",
+          "zones": true
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        }
+      ]
+    }
+  ]
+}

@@ -34,14 +34,14 @@ namespace Placemaker.Tests
         // edges along the rows (Mall.PlotClear) take a bigger share than the old rows-round-lots layout (0.8): measured 0.79, 0.76
         // and, on the small block, 0.69.
         [Theory]
-        [InlineData(300f, 280f, 2, 0.75f)]
+        [InlineData(300f, 280f, 1, 0.75f)]   // (shops4) one row for now: rows across a big lot come back as a variation
         [InlineData(360f, 110f, 1, 0.75f)]
         [InlineData(150f, 140f, 1, 0.65f)]
         public void StripMall_IsRowsOfStoresRoundLots_NotAPark(float w, float d, int minRows, float minShare)
         {
             var plan = Big("stripMall", "classic", w, d);
             var host = plan.Layers.First();
-            Assert.Equal(1.0, host.Facts.GetValueOrDefault(StripMallLayer.CentreFact));
+            Assert.Equal(1.0, host.Facts.GetValueOrDefault(CommercialLayer.LotFact));
             Assert.True(host.Facts.TryGetValue(StripMallLayer.RowsFact, out var rows) && rows >= minRows, "rows " + rows);
             var share = CommercialIrregularSiteTests.Measure(plan, Poly.To2D(TestKit.Rect(w, d)));
             Assert.True(share.Commercial >= minShare, $"commercial share {share.Commercial:0.00}");

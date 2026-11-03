@@ -139,7 +139,7 @@ The area is drawn in the land's shape with the Points tool. Land is laid out at 
 open (the queue's), when its request arrives.
 
 * `-Category`: a category of the Make row, as the central shelf defines it (`Recipes/shelf/<category>.json`: roads,
-  parking, parks, beach, shops, nature, farms, sports; industry and transport are hidden). `Show.ps1` with no arguments
+  parking, parks, beach, shops, nature, farms, sports, industry; transport is hidden). `Show.ps1` with no arguments
   lists them with their types and styles; hidden types and styles are marked.
 * `-Type`, `-Style`: one or more (`a,b`), or `all` (with `-Category` for types). Every type x every style is built.
   `all` leaves out what the shelf hides; a hidden type or style named by id is still built (picked by id: the panel
@@ -304,18 +304,19 @@ after a failed `area`, `type`, `preview` or `build` the scenario's remaining ste
 | `type` | `layer`, `preset` (style), `fresh` (true) | the type tile of the Make row, then the style chip; refuses a type the Make row does not offer; lists the valid ids on a typo |
 | `preset` | `layer` (the current type), `preset` | the style chip (Design) |
 | `value` | `path` ("0"), `id`, `value` or `json` | a slider is dragged (previewValue each frame, then setValue and endPreview, clamped and snapped to the control's range); a picker hovered then clicked; a toggle or choice set; refused when the panel greys the control out; the value is read back |
-| `entrance` | `side` (`south`/`east`/`north`/`west`, `t` 0.5 along it west→east or south→north) or `at`; `path`, `kind` | presses "Add an entrance" (or picks the marker kind), clicks the outline at the point, Esc. The tool's own (snapped) marker is recorded |
+| `entrance` | `side` (`south`/`east`/`north`/`west`, `t` 0.5 along it west→east or south→north) or `at`; `path`, `kind`; `crosswalk` (true/false: presses the panel's Crosswalk switch first when it is the other way) | presses "Add an entrance" (or picks the marker kind), clicks the outline at the point, Esc. The tool's own (snapped) marker is recorded (`placedKind`: `pedestrian+crosswalk` with a crosswalk) |
 | `entrances` | – | while the button asks for entrances: one on the south street, then east, north, west |
 | `moveEntrance` | `index` (0: the script's n-th entrance, matched by position), `side`/`t`/`at` | in placement mode: right-click the marker, left-click the new spot, Esc |
 | `removeEntrance` | `index` | right-click the marker |
 | `preview` | – | Next to Review; waits for the plan and the ghost; records what the Review panel lists |
 | `previewMode` | `mode`: `sketch`/`ghost` | the preview switch |
 | `edit` | `build` (false) | back to Design; with `build: true`: clicks the build (Manage) and Edit |
-| `build` | `when` (`settled`; `planReady`; `ghostPending`), `via` (`panel`; `enter`) | (Next if needed,) OK for permanent changes, Build; waits until it is done and the game has no temporaries left; records the build path (`instant` from the ghost or `start`) |
+| `build` | `when` (`settled`; `planReady`; `ghostPending`), `via` (`panel`; `enter`), `after` (`fresh`: the area cleared, the Area step; `keep`: the player's Build & keep area, the area kept and back to Design; `close`: Build & close) | (Next if needed,) OK for permanent changes, Build; waits until it is done and the game has no temporaries left; records the build path (`instant` from the ghost or `start`). No type stays chosen after a build |
 | `select` | – | the Manage stage, the game's raycast click on the build |
 | `delete` | – | select, Remove, OK; waits until the build is gone |
 | `bulldoze` | `target`: `owner` (the owner lot), `part` | the bulldozer's delete definition on that member (applied through the runner's fixture tool, not the bulldozer UI), then the group's own cascade |
 | `infoEdit` / `infoRemove` | – | the Placemaker tool closed, the build selected the vanilla way, its info panel's Edit / Remove |
+| `infoUngroup` | `ungroup` (true) | the same, its info panel's Ungroup and OK (or Group again with `ungroup: false`) |
 | `camera` | `target`, `view`, `index` (or `"all"`), `yaw`, `pitch`, `distance`, `fov`, `at`, `abs` | frames the camera (below); a target that does not exist is an error and no picture is taken |
 | `shot` | `name`, `shotMode`, `labels` (false: street names stay off) | a settled PNG of the current view |
 | `terrain` | `name` (`terrain`), `margin` (20 m) | not a camera picture: a map of the ground's height over the outline and the margin, from the game's height data (see `-Modes terrain` above); the step's record has the typical ground level and the lowest and highest ground |
@@ -324,6 +325,7 @@ after a failed `area`, `type`, `preview` or `build` the scenario's remaining ste
 | `undo` / `redo` | `via`: `key` (Ctrl+Z / Ctrl+Y, default), `panel` | says so when there is nothing to undo or redo |
 | `key` | `key`: `enter`, `esc`, `undo`, `redo` | the key, through the tool's own key handling |
 | `anarchy` | `on` | the panel's anarchy switch (not there in a clean run: the Anarchy mod is not loaded) |
+| `group` | `on` | Review's "One group" switch beside Build (off: the build is born ungrouped) |
 | `setting` | `name`, `value` | a Placemaker option (e.g. `IgnoreOwnCollisions`), read back |
 
 World clicks: the point is projected to the screen; off the screen or under the panel the camera pans to it like a
@@ -391,6 +393,27 @@ the git hash and the deployed DLL's hash; the game checks it loaded that DLL ("w
 
 If the game is closed early the quit hook writes what is known, marked incomplete; the host says how it ended
 (`quit`, `closed-externally`, `crashed`, `killed`, `hung`, `boot-timeout`) at the top of summary.md.
+
+## Save and reload
+
+What a player sees after quitting and loading their city again needs a second game: a game keeps every runtime prefab
+it made in memory, so a load in the same game finds them even when a fresh game would not (GitHub issue #2: white boxes
+where a save named a prefab the new game did not have yet). Two files, two games:
+
+```
+powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/decal-reload-save.json -Who <you>
+powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/decal-reload-load.json -Fresh -Who <you>
+```
+
+* `{"do":"lab","op":"saveCity","name":"..."}` saves the city in the player's saves; `{"do":"lab","op":"loadCity",
+  "name":"...","delete":true}` loads it (and deletes it after). The load's record says how many objects stand on a
+  missing prefab (`objectsOnMissingPrefabs`; the game draws those as its white missing-object box) and what the
+  old-decal clean-up removed. After a load only camera and shot steps make sense (frame with `"target":"point"`,
+  `"at":[x,z]`, `"abs":true`: the first file's `atAbs`).
+* `-Fresh` (Send-Suite) asks for a game launched for that file: never one that has already run other requests.
+* `{"do":"lab","op":"oldDecal","decal":"...","tier":25}` places an object the way builds up to 0.1.1 left decorative
+  decals (a runtime copy named `Placemaker Decal <tier> - <decal>`); `{"do":"lab","op":"oldDecalCleanup","on":false}`
+  turns the clean-up after loads off for the "before" picture.
 
 ## Live queue
 

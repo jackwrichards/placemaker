@@ -269,7 +269,7 @@ namespace Placemaker.Tests
                 var g = GeneratorRegistry.Get(t);
                 Assert.NotNull(g);
                 Assert.Equal("commercial", GeneratorGroups.Of(g));
-                Assert.InRange(g.Presets.Count, 2, 5);
+                Assert.InRange(g.Presets.Count, 2, 8);   // (shops4) the strip mall: its five and three with a square in the row
             }
         }
     }

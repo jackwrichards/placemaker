@@ -1,0 +1,75 @@
+{
+  "_about": "Outgrow fences in one of the user's own cities (read-only: the save is loaded, never saved or deleted). Run with Send-Suite -Fresh -Build. Outgrow re-plans what it wants after the load, then fenceMap maps every garden ('box': 'gardens'; or 'street': '<name>' with 'margin'): gaps, crossings, fences inside gardens, gardens over each other, with close-ups of the worst spots, of where gardens meet (junctions) and of garden edges along roads. Then every outgrown building planned again (as the options' Redo outgrown buildings does) and mapped once more, with the close-ups. Change 'name' for another city.",
+  "scenarios": [
+    {
+      "id": "city-fences",
+      "site": "flat",
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "loadCity",
+          "name": "Brecon"
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "box": "gardens",
+          "label": "loaded"
+        },
+        {
+          "do": "lab",
+          "op": "polishPassDump",
+          "max": 400
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "box": "gardens",
+          "label": "settled",
+          "closeups": 0,
+          "junctions": 0,
+          "edges": 0
+        },
+        {
+          "do": "lab",
+          "op": "polishSettings",
+          "settings": {}
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 900
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "fenceMap",
+          "box": "gardens",
+          "label": "redone",
+          "closeups": 6,
+          "junctions": 12,
+          "edges": 6
+        }
+      ]
+    }
+  ]
+}

@@ -241,8 +241,12 @@ namespace Placemaker.Game.Preview
                         net.Category = NetCategory.Road;
                         if (prefab != Entity.Null && _em.HasComponent<RoadData>(prefab))
                         {
-                            var flags = _em.GetComponentData<RoadData>(prefab).m_Flags;
+                            var road = _em.GetComponentData<RoadData>(prefab);
+                            var flags = road.m_Flags;
                             net.IsOneWay = (flags & (global::Game.Prefabs.RoadFlags.DefaultIsForward | global::Game.Prefabs.RoadFlags.DefaultIsBackward)) != 0;
+                            // Highways and their ramps: the roads type never links to them (RoadConnections.Connectable).
+                            net.IsHighway = (flags & global::Game.Prefabs.RoadFlags.UseHighwayRules) != 0;
+                            net.SpeedLimit = math.isfinite(road.m_SpeedLimit) ? road.m_SpeedLimit * 3.6f : 0f;   // stored in m/s
                         }
                     }
                     else if (prefab != Entity.Null && _em.HasComponent<PathwayData>(prefab)) net.Category = NetCategory.Pathway;

@@ -326,14 +326,14 @@ namespace Placemaker.Game.Suite
             _windowOpen = false;
             var net = _window.Select(f => math.max(0f, f.Ms - f.Suite)).ToList();
             var (max, p95, n) = SuiteStats.FrameStats(net);
-            int over250 = net.Count(f => f > 250f), over1000 = net.Count(f => f > 1000f);
+            int over50 = net.Count(f => f > 50f), over100 = net.Count(f => f > 100f), over250 = net.Count(f => f > 250f), over1000 = net.Count(f => f > 1000f);
             int maxFrame = -1;
             float maxSuite = 0f;
             for (int i = 0; i < _window.Count; i++) if (net[i] >= max - 1e-3f) { maxFrame = _window[i].Frame; maxSuite = _window[i].Suite; break; }
             var top = new JArray(_window.Select((f, i) => (f, net[i])).OrderByDescending(x => x.Item2).Take(3).Select(x => new JArray(x.f.Frame, Math.Round(x.f.Ms, 1), Math.Round(x.f.Suite, 1))));
             return new JObject
             {
-                ["frames"] = n, ["maxMs"] = Math.Round(max, 1), ["p95Ms"] = Math.Round(p95, 1), ["over250"] = over250, ["over1000"] = over1000,
+                ["frames"] = n, ["maxMs"] = Math.Round(max, 1), ["p95Ms"] = Math.Round(p95, 1), ["over50"] = over50, ["over100"] = over100, ["over250"] = over250, ["over1000"] = over1000,
                 ["maxFrame"] = maxFrame, ["maxSuiteMs"] = Math.Round(maxSuite, 1), ["suiteMsTotal"] = Math.Round(_window.Sum(f => f.Suite)), ["top"] = top,
             };
         }
@@ -389,6 +389,21 @@ namespace Placemaker.Game.Suite
             _look = new SuiteLook(_world, _cfg);
             _summary["look"] = _look.Record;
             yield return _look.Window(Say);
+
+            if (_cfg.playground && _cfg.menuOnly)
+            {
+                // the user's playground at the main menu: nothing started, nothing run, never quit
+                _phase = "playground";
+                PlacemakerToolSystem.SuiteInputOnly = false;
+                _summary["playground"] = new JObject { ["menu"] = true };
+                Say("playground ready at the main menu: the controls are yours; the suite does nothing more");
+                WriteSummary();
+                while (true)
+                {
+                    Beat();
+                    yield return new WaitForSecondsRealtime(5f);
+                }
+            }
 
             _phase = "newgame";
             yield return NewGame();
@@ -478,6 +493,38 @@ namespace Placemaker.Game.Suite
                 _summary["gitMismatch"] = $"the run is labelled git {_cfg.git} but the assembly says {asm}";
         }
 
+        /// <summary>
+        /// The dev menu's Test Mode as the user sets it every time (Game.Debug.DebugSystem "Test Mode"): full crime test mode,
+        /// superfast building and area-prop spawning, superfast leveling, superfast enter school, and Unlimited demands.
+        /// </summary>
+        private string PlaygroundTestMode()
+        {
+            var done = new List<string>();
+            void Try(string what, Action set)
+            {
+                try { set(); done.Add(what); }
+                catch (Exception e) { Say("playground test mode: " + what + " failed: " + e.Message); }
+            }
+            Try("full crime", () => _world.GetOrCreateSystemManaged<CrimeCheckSystem>().debugFullCrimeMode = true);
+            Try("building spawning", () => _world.GetOrCreateSystemManaged<ZoneSpawnSystem>().debugFastSpawn = true);
+            Try("area-prop spawning", () => _world.GetOrCreateSystemManaged<AreaSpawnSystem>().debugFastSpawn = true);
+            Try("leveling", () => _world.GetOrCreateSystemManaged<BuildingUpkeepSystem>().debugFastLeveling = true);
+            Try("enter school", () =>
+            {
+                _world.GetOrCreateSystemManaged<ApplyToSchoolSystem>().debugFastApplySchool = true;
+                _world.GetOrCreateSystemManaged<FindSchoolSystem>().debugFastFindSchool = true;
+            });
+            Try("unlimited demands", () =>
+            {
+                _world.GetOrCreateSystemManaged<ResidentialDemandSystem>().SetUnlimitedDemand(true);
+                _world.GetOrCreateSystemManaged<CommercialDemandSystem>().SetUnlimitedDemand(true);
+                _world.GetOrCreateSystemManaged<IndustrialDemandSystem>().SetUnlimitedDemand(true);
+            });
+            string line = string.Join(", ", done);
+            Say("playground test mode on: " + line);
+            return line;
+        }
+
         /// <summary>The user's playground: frame the grid at 45°, hand the mouse and keys back, unpause, and stay out of the way.</summary>
         private IEnumerator Playground()
         {
@@ -489,6 +536,7 @@ namespace Placemaker.Game.Suite
             yield return Guard(CameraTo(pivot, 25f, 45f, math.max(400f, span * 0.9f), rec, null), e => Say("playground camera: " + e.Message));
             PlacemakerToolSystem.SuiteInputOnly = false;   // the user's mouse and keys work again
             try { _world.GetOrCreateSystemManaged<SimulationSystem>().selectedSpeed = 1f; } catch (Exception e) { Say("playground speed: " + e.Message); }
+            rec["testMode"] = PlaygroundTestMode();
             _summary["playground"] = rec;
             Say("playground ready: the grid is framed, the controls are yours; the suite does nothing more");
             WriteSummary();
@@ -729,6 +777,9 @@ namespace Placemaker.Game.Suite
                     }
             }
             yield return Frames(30);
+            // (area tools) the plots' extra roads and paths, onto the ring roads now in
+            var extra = _fixture.Layout.Plots.SelectMany(p => p.NetSegments()).ToList();
+            if (extra.Count > 0) { yield return ApplyWithFixtureTool(t => _fixture.EmitNets(t, extra), "plot nets"); yield return Frames(30); }
             _tracing = false;
             yield return Settle("after roads");
             int edges = _fixture.CountEdges(out int temps);

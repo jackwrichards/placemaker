@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Colossal.IO.AssetDatabase;
 using Game;
 using Game.Input;
@@ -44,6 +45,7 @@ namespace Placemaker.Game.Tool
             updateSystem.UpdateAt<PlacemakerTooltipSystem>(SystemUpdatePhase.UITooltip);
             updateSystem.UpdateAt<PlacemakerOverlaySystem>(SystemUpdatePhase.Rendering);
             updateSystem.UpdateAt<FilledPreviewSystem>(SystemUpdatePhase.Rendering);
+            updateSystem.UpdateBefore<ZoneGridOpacitySystem, global::Game.Prefabs.ZoneSystem>(SystemUpdatePhase.PrefabUpdate);
             s_Tool = updateSystem.World.GetOrCreateSystemManaged<PlacemakerToolSystem>();
 
             PlacemakerSettings.RemoveEverythingRequested += OnRemoveEverything;
@@ -77,27 +79,15 @@ namespace Placemaker.Game.Tool
 
             r[s.GetSettingsLocaleID()] = T("Placemaker.Name", "Placemaker");
             r[s.GetOptionTabLocaleID(PlacemakerSettings.SectionMain)] = T("Placemaker.Settings.Tab.Main", "Placemaker");
-            foreach (var g in new[] { PlacemakerSettings.GroupGeneral, PlacemakerSettings.GroupBrush, PlacemakerSettings.GroupBuild, PlacemakerSettings.GroupKeys, PlacemakerSettings.GroupMaintenance })
+            foreach (var g in new[] { PlacemakerSettings.GroupGeneral, PlacemakerSettings.GroupBrush, PlacemakerSettings.GroupBuild, PlacemakerSettings.GroupNeighbourhood, PlacemakerSettings.GroupKeys, PlacemakerSettings.GroupMaintenance })
                 r[s.GetOptionGroupLocaleID(g)] = T("Placemaker.Settings.Group." + g, g);
-            foreach (var p in new[]
-            {
-                nameof(PlacemakerSettings.ShowCursorTooltips), nameof(PlacemakerSettings.PreviewDetail), nameof(PlacemakerSettings.SnapToRoadsWhenDrawing), nameof(PlacemakerSettings.KeepOffExistingRoads),
-                nameof(PlacemakerSettings.LayoutSize), nameof(PlacemakerSettings.EdgeMargin), nameof(PlacemakerSettings.PaintAvoidBuildings),
-                nameof(PlacemakerSettings.BrushPaintOverAnything), nameof(PlacemakerSettings.BrushStopRoads), nameof(PlacemakerSettings.BrushStopBuildings), nameof(PlacemakerSettings.BrushStopBuilds),
-                nameof(PlacemakerSettings.BrushStopLots), nameof(PlacemakerSettings.BrushStopZoned), nameof(PlacemakerSettings.BrushStopAllZoned), nameof(PlacemakerSettings.BlockPaintAvoidEmptyZones), nameof(PlacemakerSettings.BrushStopWater),
-                nameof(PlacemakerSettings.BrushStayInBlock), nameof(PlacemakerSettings.BrushDrawClip),
-                nameof(PlacemakerSettings.BucketWallRoads), nameof(PlacemakerSettings.BucketWallPaths), nameof(PlacemakerSettings.BucketWallBikes), nameof(PlacemakerSettings.BucketWallTracks),
-                nameof(PlacemakerSettings.BucketWallWater), nameof(PlacemakerSettings.BucketWallLots), nameof(PlacemakerSettings.BucketWallZoned),
-                nameof(PlacemakerSettings.BrushSnapDistance), nameof(PlacemakerSettings.BrushSmoothing), nameof(PlacemakerSettings.ResetBrushRules),
-                nameof(PlacemakerSettings.ToggleToolBinding), nameof(PlacemakerSettings.PrimaryBinding), nameof(PlacemakerSettings.UndoBinding),
-                nameof(PlacemakerSettings.RedoBinding), nameof(PlacemakerSettings.RedoAltBinding), nameof(PlacemakerSettings.ResetKeys),
-                nameof(PlacemakerSettings.RemoveEverything), nameof(PlacemakerSettings.ResetDefaults),
-                nameof(PlacemakerSettings.AutoExcludeCollisions), nameof(PlacemakerSettings.IgnoreOwnCollisions), nameof(PlacemakerSettings.SurfaceClones), nameof(PlacemakerSettings.TexturedPreviewSurfaces), nameof(PlacemakerSettings.ParkingEconomy),
-                nameof(PlacemakerSettings.DefaultParkingFee), nameof(PlacemakerSettings.ExperimentalParkingCompanion), nameof(PlacemakerSettings.CompanionUpkeepFactor),
-                nameof(PlacemakerSettings.ClearExistingTreesAndProps), nameof(PlacemakerSettings.RecoverRejectedPieces), nameof(PlacemakerSettings.OverlayPavedSurfaces),
-                nameof(PlacemakerSettings.ChargeNetConstruction), nameof(PlacemakerSettings.SelectAsOneThing), nameof(PlacemakerSettings.ConfirmBulldoze),
-                nameof(PlacemakerSettings.ApplyParkStats), nameof(PlacemakerSettings.RealParkStats),
-            })
+            // Every option of the class (a hand list left newer options showing their raw ids); one that asks for confirmation
+            // gets a warning text too
+            var props = typeof(PlacemakerSettings).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.DeclaredOnly);
+            foreach (var prop in props)
+                if (Attribute.IsDefined(prop, typeof(global::Game.Settings.SettingsUIConfirmationAttribute)))
+                    r[s.GetOptionWarningLocaleID(prop.Name)] = T("Placemaker.Settings." + prop.Name + ".Warning", "Are you sure?");
+            foreach (var p in Array.ConvertAll(props, x => x.Name))
             {
                 r[s.GetOptionLabelLocaleID(p)] = T("Placemaker.Settings." + p, p);
                 r[s.GetOptionDescLocaleID(p)] = T("Placemaker.Settings." + p + ".Desc", "");

@@ -85,6 +85,15 @@ ToolSystem (stage machine) ─ Selection (draw|block|paint|perimeter) → AreaSh
 UI ⇄ PlacemakerUISystem: 6 JSON values (state, catalog, design, summary, assets, managed) + triggers (contract.ts)
 ```
 
+- **Footpaths at city streets** (`Core/Layers/Common/StreetJoins`, run by the composer for every type): a visible footpath
+  stops its round end a quarter metre off the street and the game joins it to the sidewalk (LocalConnect): no cut road, no
+  crosswalk. Only an entrance placed with the panel's Crosswalk switch (kind `pedestrian+crosswalk`, `MarkerVariants`)
+  keeps its attach and splits the street, which draws the crosswalk. The build re-checks the clearance with the real path
+  width (`BuildService.Emit`). Invisible paths keep their old join.
+- **Ungroup** (`GroupFlags.Ungrouped`): the record stays (after-load repairs, park stats, Remove, Edit); the raycast lift
+  and the bulldozer cascade are off for it and its owner lot is never hit, so parts are clicked and bulldozed one by one.
+  Review's "One group" switch builds a group already ungrouped; the info panel and Manage have Ungroup / Group again.
+
 ## Visual check (mandatory for layout work)
 
 Render before you claim a layout is good:

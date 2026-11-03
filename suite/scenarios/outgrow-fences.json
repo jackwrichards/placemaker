@@ -1,0 +1,274 @@
+{
+  "_about": "Outgrow fences the game hides (the user: fences invisible until the house is hovered, gaps in fence runs) and shop yards. A suburb of cul-de-sacs grows with Outgrow on and is checked while it grows (twice, a few seconds of growth apart) and once settled (the game hides fence pieces again whenever something beside them changes, so a town that keeps growing is the real test); then a shop street and an office street with open land behind. outgrowCheck reports fence metres open or hidden and our pieces the game holds hidden. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-fences.json -Who outgrow-fences",
+  "scenarios": [
+    {
+      "id": "fences-suburb",
+      "land": {
+        "shape": "rect",
+        "size": [
+          420,
+          340
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "roads",
+          "preset": "suburb"
+        },
+        {
+          "do": "value",
+          "path": "0",
+          "id": "preZone",
+          "json": "\"residentialLow\""
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "grow",
+          "seconds": 8
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "closeups": 0
+        },
+        {
+          "do": "grow",
+          "seconds": 8
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "closeups": 0
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "closeups": 3,
+          "hiddenFirst": true
+        },
+        {
+          "do": "shot",
+          "name": "45-centre",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 40,
+            "yaw": 30,
+            "distance": 120
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "45-west",
+          "camera": {
+            "target": "point",
+            "at": [
+              -100,
+              40
+            ],
+            "view": "oblique",
+            "pitch": 40,
+            "yaw": 200,
+            "distance": 110
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fences-shopyard",
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          280
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "length": 200,
+          "zone": "NA Commercial Low"
+        },
+        {
+          "do": "grow",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "closeups": 2
+        },
+        {
+          "do": "shot",
+          "name": "top",
+          "camera": {
+            "target": "area",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "45-north",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              45
+            ],
+            "view": "oblique",
+            "pitch": 45,
+            "yaw": 180,
+            "distance": 100
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "45-south",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              -45
+            ],
+            "view": "oblique",
+            "pitch": 45,
+            "yaw": 0,
+            "distance": 100
+          },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "fences-offices",
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          280
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "length": 200,
+          "zone": "Office Low"
+        },
+        {
+          "do": "grow",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "closeups": 1
+        },
+        {
+          "do": "shot",
+          "name": "45-north",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              45
+            ],
+            "view": "oblique",
+            "pitch": 45,
+            "yaw": 180,
+            "distance": 100
+          },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "_about": "Zoning inside land Outgrow gave to a yard (the user, 22 Oct: 'I'm zoning new areas inside of outgrown areas, and they don't spawn in'). Shops grow on a street with Outgrow on; their car parks reach back to an unzoned street 130 m behind. Then that street's cells are zoned on both sides (its south side inside the car parks, its north side outside them: the control), the city grows, and lab op zoneCells counts on each side the cells free, occupied (and by what), blocked (and by what) and the buildings that grew. zone-inside: car parks laid now (stall marks a hair under the ground). zone-inside-old: laid as builds before 22 Oct did (on the ground: every cell under them taken), then saved and loaded (the marks are sunk after the load). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-zone-inside.json -Build -Who <you>",
+  "scenarios": [
+    {
+      "id": "zone-inside",
+      "land": { "shape": "rect", "size": [600, 480], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 220, "at": [0, -60], "zone": "NA Commercial Low" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 220, "at": [0, 70], "zone": "none" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "fenceMap", "label": "yards" },
+        { "do": "shot", "name": "yards-top", "camera": { "target": "point", "at": [0, 10], "view": "top", "distance": 330 }, "shotMode": "render" },
+        { "do": "lab", "op": "zoneRect", "rect": [-110, 28, 110, 112], "zone": "NA Residential Low" },
+        { "do": "lab", "op": "zoneCells", "rect": [-110, 28, 110, 66], "label": "inside the yards, zoned" },
+        { "do": "lab", "op": "zoneCells", "rect": [-110, 74, 110, 112], "label": "outside, zoned" },
+        { "do": "shot", "name": "zoned-top", "camera": { "target": "point", "at": [0, 40], "view": "top", "distance": 260 }, "shotMode": "render", "zones": true },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "zoneCells", "rect": [-110, 28, 110, 66], "label": "inside the yards, grown" },
+        { "do": "lab", "op": "zoneCells", "rect": [-110, 74, 110, 112], "label": "outside, grown" },
+        { "do": "lab", "op": "fenceMap", "label": "grown" },
+        { "do": "shot", "name": "grown-top", "camera": { "target": "point", "at": [0, 40], "view": "top", "distance": 260 }, "shotMode": "render" },
+        { "do": "shot", "name": "grown-45", "camera": { "target": "point", "at": [0, 45], "view": "oblique", "pitch": 45, "distance": 150 }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "zone-inside-old",
+      "land": { "shape": "rect", "size": [600, 480], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "zoneSink", "value": false },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 220, "at": [0, -60], "zone": "NA Commercial Low" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 220, "at": [0, 70], "zone": "none" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "fenceMap", "label": "yards" },
+        { "do": "shot", "name": "yards-top", "camera": { "target": "point", "at": [0, 10], "view": "top", "distance": 330 }, "shotMode": "render" },
+        { "do": "lab", "op": "zoneRect", "rect": [-110, 28, 110, 112], "zone": "NA Residential Low" },
+        { "do": "lab", "op": "zoneCells", "rect": [-110, 28, 110, 66], "label": "old marks, inside the yards, zoned" },
+        { "do": "lab", "op": "zoneSink", "value": true },
+        { "do": "lab", "op": "saveLoad" },
+        { "do": "lab", "op": "polishIdle", "seconds": 60 },
+        { "do": "lab", "op": "zoneCells", "rect": [-110, 28, 110, 66], "label": "old marks after a load, inside the yards" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "zoneCells", "rect": [-110, 28, 110, 66], "label": "old marks after a load, inside the yards, grown" },
+        { "do": "shot", "name": "old-grown-top", "camera": { "target": "point", "at": [0, 40], "view": "top", "distance": 260 }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

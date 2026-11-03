@@ -122,9 +122,10 @@ namespace Placemaker.Core.Geometry
 
             // Bounds grow by the offset when growing.
             double2 mn = new double2(double.MaxValue), mx = new double2(double.MinValue);
-            foreach (var r in rings) foreach (var p in r) { mn = math.min(mn, (double2)p); mx = math.max(mx, (double2)p); }
+            int count = 0;
+            foreach (var r in rings) { count += r.Count; foreach (var p in r) { mn = math.min(mn, (double2)p); mx = math.max(mx, (double2)p); } }
             double grow = math.max(0, -inward) * math.max(miterLimit, 1.5f) + 1;
-            var arr = new Arrangement(mn - grow, mx + grow);
+            var arr = new Arrangement(mn - grow, mx + grow, count * 3);
             double d = inward;
             var cleanedLocal = new List<double2[]>();
             foreach (var r in rings)

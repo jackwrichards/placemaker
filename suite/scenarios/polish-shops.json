@@ -1,0 +1,37 @@
+{
+  "_about": "Neighbourhood polish on a curved street of low commercial lots only (shops fill the gaps with their own paving). Send with tools/hot/Send-Hot.ps1 -File suite/scenarios/polish-shops.json.",
+  "scenarios": [
+    {
+      "id": "more-shops",
+      "land": {
+        "shape": "rect",
+        "size": [
+          280,
+          200
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "lab", "op": "hotload", "path": "{hot}" },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 140, "from": 55, "to": 125, "zone": "NA Commercial Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "lab", "op": "polishDump" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

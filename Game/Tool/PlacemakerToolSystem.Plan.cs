@@ -43,7 +43,7 @@ namespace Placemaker.Game.Tool
         {
             get
             {
-                if (_shape == null || _recipe == null || _stage == ToolStage.Building) return false;
+                if (_shape == null || _recipe == null || _painter || _stage == ToolStage.Building) return false;
                 return _worker.Busy || _planRevision != _inputRevision;
             }
         }
@@ -69,6 +69,8 @@ namespace Placemaker.Game.Tool
             // It used to run ~7×/s during the drag (tens to hundreds of ms each on big areas).
             if (!force && Painting && (_mode == SelectionMode.Paint || _mode == SelectionMode.BlockPaint)) return;
             if (!force && _shapeThrottled && now - _lastShapeBuild < 0.15f) return;
+            // Paint area: the outline is worked out on a worker first (a big area took 0.2–0.5 s here at mouse-up)
+            if (!force && _mode == SelectionMode.BlockPaint && !BlockPaintOutlineReady()) return;
             _shapeDirty = false;
             _lastShapeBuild = now;
             AreaShape s = null;
@@ -89,7 +91,14 @@ namespace Placemaker.Game.Tool
                 s = null;
             }
             s = KeepOffRoads(s);
-            s = KeepOffBuilds(s);
+            s = CutByStops(s);
+            if (s != null && (_mode == SelectionMode.Draw || _mode == SelectionMode.Perimeter) && s.Source != AreaSource.Block)
+            {
+                // Points along the roads (corners on their nodes) give a city block, like the bucket: no perimeter road, anchors.
+                if (RoadBound(s.Ring2D())) s.Source = AreaSource.Block;
+                WithFoundAttachments(s);
+                AddNodeAttachments(s);
+            }
             var old = _shape;
             _shape = s;
             _shapeVersion++;
@@ -104,7 +113,8 @@ namespace Placemaker.Game.Tool
         private bool _keepOffApplied = true;
 
         /// <summary>Parts of the selection left out because they lie on existing roads (for the overlay), or null.</summary>
-        public IReadOnlyList<float3[]> ClippedAway => _clip != null && _clip.Clipped && ReferenceEquals(_clip.Shape, _shape) ? _clip.Removed : null;
+        public IReadOnlyList<float3[]> ClippedAway => _leftOut != null && _leftOut.Count > 0 && _shape != null ? _leftOut
+            : _clip != null && _clip.Clipped && ReferenceEquals(_clip.Shape, _shape) ? _clip.Removed : null;
 
         /// <summary>Info about the trimmed outline for the summary, or null.</summary>
         public PlanIssue ClipIssue => _clip != null && _clip.Clipped && ReferenceEquals(_clip.Shape, _shape) ? _clip.Issue : null;
@@ -132,9 +142,9 @@ namespace Placemaker.Game.Tool
         /// (s27) The brushes follow the shared brush rules ("Roads" stop, "Paint over anything"); Draw keeps the
         /// "Keep off existing roads" option.
         /// </summary>
-        private bool KeepOffRoadsWanted() => _mode == SelectionMode.Paint || _mode == SelectionMode.BlockPaint
-            ? BrushRules.Stops(BrushObstacleKind.Road)
-            : _settings == null || _settings.KeepOffExistingRoads;
+        // Area overhaul: only plain Paint (Smart edges off) still trims by road corridors here; every other tool stops at the
+        // exact road surfaces itself (AreaWalls), so a second, rounder cut would only nick the outline.
+        private bool KeepOffRoadsWanted() => _mode == SelectionMode.Paint && BrushRules.Stops(BrushObstacleKind.Road);
 
         private void CheckKeepOffSetting()
         {
@@ -155,12 +165,11 @@ namespace Placemaker.Game.Tool
         private AreaShape BuildDrawShape()
         {
             if (!_draw.Closed) return null;
-            var ring = _draw.RingCcw();
+            // Area overhaul: stretches between two corners on road nodes follow the road (Points.cs); the stops cut it after.
+            var ring = RoutedRing();
             if (ring.Length < 3) return null;
             for (int i = 0; i < ring.Length; i++) ring[i].y = _site.SampleHeight(ring[i].xz);
-            var shape = new AreaShape { Ring = ring, Source = AreaSource.Drawn };
-            WithFoundAttachments(shape);
-            return shape;
+            return new AreaShape { Ring = ring, Source = AreaSource.Drawn };
         }
 
         private void WithFoundAttachments(AreaShape shape)
@@ -180,13 +189,28 @@ namespace Placemaker.Game.Tool
             _planRevision = r.Revision;
             _planMs = r.Milliseconds;
             _affordRevision = -1;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             ResolveAssets();
+            // (zoning speed) Where the plan's time went: the worker's steps (Core PlanClock), the site capture before it and the
+            // assets after it (main thread). Every plan but those of a running drag (unless slow).
+            if (_gesture == Gesture.None || r.Milliseconds >= 100)
+                Mod.Log.Info($"Placemaker: plan {_recipe?.Root?.Layer} r{r.Revision}: {r.Milliseconds:0} ms on the worker (site capture {_captureMs:0} ms, assets {sw.Elapsed.TotalMilliseconds:0} ms), "
+                    + $"{CountZoning(_plan)} zone cells: {PlanTimings.Describe(_plan)}");
             Touch();
+        }
+
+        private double _captureMs;
+
+        private static int CountZoning(ComposedPlan plan)
+        {
+            int n = 0;
+            if (plan != null) foreach (var l in plan.Layers) n += l.Zoning.Count;
+            return n;
         }
 
         private void UpdatePlanning()
         {
-            bool canPlan = _shape != null && _recipe != null && _stage != ToolStage.Building;
+            bool canPlan = _shape != null && _recipe != null && _stage != ToolStage.Building && !_painter;   // the painter plans nothing
             if (!canPlan)
             {
                 if (_plan != null || _requestedRevision >= 0)
@@ -214,7 +238,9 @@ namespace Placemaker.Game.Tool
             if (debounce < 0f) return;   // Simple detail: re-plan when the drag ends
             if (debounce > 0f && UnityEngine.Time.realtimeSinceStartup - _lastInputChange < debounce) return;
 
+            var capture = System.Diagnostics.Stopwatch.StartNew();
             var site = SiteFor(_shape);
+            _captureMs = capture.Elapsed.TotalMilliseconds;
             _requestedRevision = _inputRevision;
             _planStartedAt = UnityEngine.Time.realtimeSinceStartup;
             _worker.Request(_inputRevision, _recipe.Clone(), _shape, site);
@@ -390,6 +416,7 @@ namespace Placemaker.Game.Tool
                 MarkerModeActive = _markerKind != null,
                 Editing = _editingGroup > 0,
                 GestureActive = _gesture != Gesture.None || _previewBase != null,
+                Painter = _painter,
             };
             var u = Unready();
             if (u != null)
@@ -437,7 +464,7 @@ namespace Placemaker.Game.Tool
                     case SelectionMode.Draw: return _draw.Closed;
                     // s43: an open chain of 3+ nodes closes itself (preview), so it is an area already.
                     case SelectionMode.Perimeter: return _perimeter.Closed || _shape != null;
-                    case SelectionMode.Block: return _blocks.Faces.Count > 0;
+                    case SelectionMode.Block: return _blocks.Seeds.Count > 0;
                     default: return _shape != null;
                 }
             }
@@ -451,7 +478,7 @@ namespace Placemaker.Game.Tool
                 {
                     case SelectionMode.Draw: return _draw.Count;
                     case SelectionMode.Perimeter: return _perimeter.Nodes.Count;
-                    case SelectionMode.Block: return _blocks.Faces.Count;
+                    case SelectionMode.Block: return _blocks.Seeds.Count;
                     default: return _shape?.Ring.Length ?? 0;
                 }
             }

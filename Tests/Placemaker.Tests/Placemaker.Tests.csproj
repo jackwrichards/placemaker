@@ -11,6 +11,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\Core\**\*.cs" Link="Core\%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- the road lab's synthetic sites are test cases too (RoadsSmartTests) -->
+    <Compile Include="..\Placemaker.RoadLab\Cases.cs" Link="RoadLab\Cases.cs" />
     <Reference Include="Unity.Mathematics"><HintPath>$(ManagedPath)\Unity.Mathematics.dll</HintPath></Reference>
   </ItemGroup>
   <ItemGroup>

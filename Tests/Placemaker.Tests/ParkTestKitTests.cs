@@ -59,6 +59,23 @@ namespace Placemaker.Tests
         }
 
         /// <summary>A straight road along the bottom edge of a rect, as SiteCapture would report it.</summary>
+        /// <summary>
+        /// The path meets a street of the site: an end attached to it (a crosswalk entrance), or a free end within the game's
+        /// LocalConnect reach of its edge (4 m plus the path's half width: StreetJoins stops footpaths there).
+        /// </summary>
+        public static bool MeetsStreet(PlannedNet n, SiteContext site)
+        {
+            if (n.StartAttach >= 0 || n.EndAttach >= 0) return true;
+            foreach (var r in site.NearbyNets)
+            {
+                if (r.Category != NetCategory.Road) continue;
+                float reach = r.Width * 0.5f + Composer.DefaultHalfWidth(n.Role) + 4f;
+                if (Placemaker.Core.Layers.Common.StreetJoins.RoadDistance(r, n.A.xz) <= reach
+                    || Placemaker.Core.Layers.Common.StreetJoins.RoadDistance(r, n.D.xz) <= reach) return true;
+            }
+            return false;
+        }
+
         public static SiteContext RoadAlongBottom(float w, long id = 77)
         {
             var site = new SiteContext();

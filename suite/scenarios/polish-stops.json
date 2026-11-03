@@ -1,0 +1,19 @@
+{
+  "_about": "The area tool's Stops at chips with a Zoning type picked (the type keeps its own copy of the rules): back to Area, My builds, Lots and Water clicked, one picture of the panel. Send with tools/hot/Send-Hot.ps1 -File suite/scenarios/polish-stops.json.",
+  "scenarios": [
+    {
+      "id": "polish-stops",
+      "land": { "shape": "rect", "size": [320, 240], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 120, "from": 40, "to": 140, "zone": "none" },
+        { "do": "area", "tool": "bucket" },
+        { "do": "type", "layer": "zoningSuburb" },
+        { "do": "polish", "click": "stagebar-area" },
+        { "do": "polish", "click": "stop-builds" },
+        { "do": "polish", "click": "stop-lots" },
+        { "do": "polish", "click": "stop-water" },
+        { "do": "shot", "name": "stops-ui", "shotMode": "ui" }
+      ]
+    }
+  ]
+}

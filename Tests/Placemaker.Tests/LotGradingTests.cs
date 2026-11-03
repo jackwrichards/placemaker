@@ -249,6 +249,10 @@ namespace Placemaker.Tests
             var roads = StreetFrontage.Roads(new AreaInput { Site = Site(ring, ground), Shape = new AreaShape { Ring = ring } });
             var lanes = host.Nets.Where(n => n.Role == NetRole.Alley || n.Role == NetRole.Street).ToList();
 
+            // (shops4) The strip mall paints and never reshapes the ground but for its lot on a slope (the user: "try to only use
+            // painting"): its plots stay on the land as it is (the game levels a building's own lot); the pit, cone and fence checks
+            // below still hold.
+            if (type == "stripMall") plots.Clear();
             foreach (var q in plots)
             {
                 // A plot is level at the height of the road it faces: a building finds its road's grade everywhere on it

@@ -13,6 +13,7 @@ import { compactMoney } from "../lib/format";
 import { Tip } from "../lib/tips";
 import { Btn, Icon, Keys } from "./common";
 import s from "./picker.module.scss";
+import { ScrollArea } from "./ScrollArea";
 
 export interface PickerRequest {
     category: string;
@@ -383,7 +384,7 @@ export const AssetPickerCard = ({ req, onClose }: { req: PickerRequest; onClose:
                     </div>
                 ) : null}
             </div>
-            <div className={s.body} data-testid="asset-grid" onMouseLeave={unhover}>
+            <ScrollArea className={s.body} testId="asset-grid" onMouseLeave={unhover}>
                 {list === undefined ? (
                     <div className={s.empty}>{t("Placemaker.UI.Picker.Loading", "Loading assets…")}</div>
                 ) : (
@@ -427,7 +428,7 @@ export const AssetPickerCard = ({ req, onClose }: { req: PickerRequest; onClose:
                         {items.length === 0 ? <div className={s.empty}>{t("Placemaker.UI.Picker.None", "Nothing matches.")}</div> : null}
                     </>
                 )}
-            </div>
+            </ScrollArea>
             {hint || req.mode === "multi" ? (
                 <div className={s.foot}>
                     <div className={s.footInfo}>{hint}</div>

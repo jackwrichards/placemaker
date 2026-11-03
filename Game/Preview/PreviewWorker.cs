@@ -27,7 +27,9 @@ namespace Placemaker.Game.Preview
         }
 
         /// <summary>A plan running longer than this is abandoned (layers are budgeted at 250 ms for 5 ha).</summary>
-        public double TimeoutSeconds = 12.0;
+        // (shops4) The user: "I don't care if it takes 12 seconds ... or a minute, as long as we show the player something's happening"
+        // (the panel says "Planning…"): a big strip mall planned in 10-12 s in the game and hit the old 12 s limit. A runaway guard only.
+        public double TimeoutSeconds = 60.0;
 
         private readonly object _lock = new object();
         private CancellationTokenSource _cts;

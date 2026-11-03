@@ -50,7 +50,7 @@ namespace Placemaker.Game.Suite
                     p.Heights = ReadPng((string)land["heightmap"], (float?)land["range"] ?? 10f, out error);
                     if (error != null) return null;
                 }
-                // (rf-beach) a lake beside the land: "water": "north", or { side, width, depth, freeboard, bank (grade, % or m/m), shore }
+                // (rf-beach) a lake beside the land: "water": "north", or { side, width, depth, freeboard, bank (grade, % or m/m), shore, wave, waveLength }
                 var water = land["water"];
                 if (water != null && water.Type == JTokenType.String) p.Water = ((string)water).ToLowerInvariant();
                 else if (water is JObject w)
@@ -61,6 +61,8 @@ namespace Placemaker.Game.Suite
                     if (w["freeboard"] != null) p.Freeboard = math.max(0.3f, (float)w["freeboard"]);
                     if (w["bank"] != null) { float b = (float)w["bank"]; p.BankGrade = b > 3f ? b / 100f : b; }
                     if (w["shore"] != null) p.ShoreIn = (float)w["shore"];
+                    if (w["wave"] != null) p.Wave = math.max(0f, (float)w["wave"]);
+                    if (w["waveLength"] != null) p.WaveLength = math.max(20f, (float)w["waveLength"]);
                 }
                 if (p.Water == "none" || p.Water == "false") p.Water = "";
                 if (p.HasWater && p.Water != "north" && p.Water != "south" && p.Water != "east" && p.Water != "west") { error = "land: water side must be north, south, east or west, not " + p.Water; return null; }
@@ -69,6 +71,14 @@ namespace Placemaker.Game.Suite
                 p.RoadsFollow = roads == "follow";
                 if (land["road"] != null) p.Road = (string)land["road"];
                 if (land["gap"] != null) p.Gap = math.max(4f, (float)land["gap"]);
+                // (area tools) extra roads and paths: [{"prefab": "Small Road", "points": [[dx, dz], ...]}], relative to the land's centre
+                if (land["nets"] is JArray nets)
+                    foreach (var n in nets.OfType<JObject>())
+                    {
+                        var q = (n["points"] as JArray)?.OfType<JArray>().Select(v => new float2((float)v[0], (float)v[1])).ToArray();
+                        if (q == null || q.Length < 2) { error = "land: every net needs \"points\" with at least 2 points"; return null; }
+                        p.Nets.Add(((string)n["prefab"] ?? SuiteLayout.SmallRoad, q));
+                    }
                 if (p.Size.x < 4f || p.Size.y < 4f || p.Size.x > 4000f || p.Size.y > 4000f) { error = $"land: size {p.Size.x} x {p.Size.y} m is outside 4..4000 m"; return null; }
                 return p;
             }

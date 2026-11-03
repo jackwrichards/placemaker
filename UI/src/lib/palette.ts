@@ -23,6 +23,8 @@ export const CATEGORY_COLOR: Record<string, string> = {
     shops: "#ff7c9c",
     beach: "#4fb8e8",
     industry: "#a9b4bd",
+    neighbourhood: "#9fd86b",
+    zoning: "#9fd86b",
     other: "#c9d3da",
 };
 
@@ -44,6 +46,8 @@ export const CATEGORY_ICON: Record<string, string> = {
     shops: "shop",
     beach: "waves",
     industry: "factory",
+    neighbourhood: "shrub",
+    zoning: "zone",
     other: "layers",
 };
 
@@ -52,6 +56,25 @@ export const categoryIcon = (group: string) => CATEGORY_ICON[group] ?? "layers";
 
 /** Type glyphs by type (recipe / fill layer) id. Unknown types: the bundled glyph of their id, else the category's. */
 const TYPE_ICON: Record<string, string> = {
+    // the Zoning category's neighbourhoods
+    zoningSuburb: "flower",
+    zoningVillage: "tree",
+    zoningTownhouses: "bench",
+    zoningMainStreet: "shop",
+    zoningTownCentre: "parkPlaza",
+    zoningDowntown: "building",
+    zoningBusinessPark: "sparkle",
+    zoningIndustrial: "factory",
+    zoningSeaside: "waves",
+    // the Zoning category's looks (hidden)
+    polishGarden: "flower",
+    polishNatural: "rocks",
+    polishTidy: "topiary",
+    polishYard: "crate",
+    polishMeadow: "leaf",
+    polishRustic: "pickaxe",
+    polishCoastal: "waves",
+    polishManicured: "shrub",
     parking: "parking",
     parkingGarage: "car",
     stripMall: "shop",
@@ -91,6 +114,10 @@ const TYPE_ICON: Record<string, string> = {
     lookoutHill: "binoculars",
     adventurePlayground: "playground",
     memorialPark: "obelisk",
+    containerYard: "crate",
+    carYard: "car",
+    junkYard: "trash",
+    industrialWorks: "factory",
     logisticsYard: "crate",
     hikingTrail: "signpost",
     scrapyard: "gear",
@@ -100,6 +127,7 @@ const TYPE_ICON: Record<string, string> = {
     roads: "roads",
     wetland: "reeds",
     zenGarden: "zen",
+    polishGardens: "sparkle",
 };
 
 export function typeIcon(id: string, group: string): string {

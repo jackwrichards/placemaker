@@ -1,0 +1,11 @@
+{
+  "formatVersion": 1,
+  "id": "polishManicured",
+  "nameKey": "Placemaker.UI.Painter.Theme.manicured",
+  "descriptionKey": "Placemaker.UI.Painter.ThemeTip.manicured",
+  "icon": "Media/Game/Icons/Zones.svg",
+  "root": {
+    "layer": "polishManicured",
+    "settings": {}
+  }
+}

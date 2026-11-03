@@ -105,7 +105,7 @@ namespace Placemaker.Game.Build
             return math.isfinite(h) ? h : 0f;
         }
 
-        private int _sagNotes;
+        private int _sagNotes, _splitNotes;
 
         /// <summary>The curve parameter of a planned net nearest a point (16 samples).</summary>
         private static float ClosestT(PlannedNet n, float2 p)
@@ -127,11 +127,13 @@ namespace Placemaker.Game.Build
         private void EmitNets()
         {
             _heightsValid = false;
-            _sagNotes = 0;
+            _sagNotes = _splitNotes = 0;
             if (!_gEmission) ScanLivePits("before the nets");
             _netIndex = new PlanIndex();
             _objectIndex = _objectIndex ?? new PlanIndex();
             var random = new Unity.Mathematics.Random(Seeds.Mix(0x5EEDu, (uint)_groupId));
+            var pathEnds = PlannedPathEnds();
+            int clearNotes = 0;
             foreach (var w in _work.Nets)
             {
                 var prefab = PrefabOf(w);
@@ -146,12 +148,32 @@ namespace Placemaker.Game.Build
                 var settings = CourseFitSettings.Default;
                 settings.FollowTerrain = net.FollowTerrain;
                 settings.MaxLength = _catalog.MaxEdgeLength(prefab);
+                var course = new Cubic(net.A, net.B, net.C, net.D);
+                // A visible footpath's dead end whose round end would touch a city street is cut into it by the game, crosswalk
+                // and all (Core/Layers/Common/StreetJoins): keep it off by the real path width.
+                if (net.FollowTerrain && EntityManager.HasComponent<PathwayData>(prefab) && EntityManager.HasComponent<NetData>(prefab)
+                    && (EntityManager.GetComponentData<NetData>(prefab).m_RequiredLayers & Layer.MarkerPathway) == 0 && _request.Plan.ExistingNets.Count > 0)
+                {
+                    var probe = new PlannedNet
+                    {
+                        A = net.A, B = net.B, C = net.C, D = net.D, Role = net.Role,
+                        StartAttach = net.StartAttach >= 0 || pathEnds.Shared(net.A) ? 0 : -1,   // joined ends are not moved
+                        EndAttach = net.EndAttach >= 0 || pathEnds.Shared(net.D) ? 0 : -1,
+                    };
+                    float half = EntityManager.GetComponentData<NetGeometryData>(prefab).m_DefaultWidth * 0.5f;
+                    if (Placemaker.Core.Layers.Common.StreetJoins.ClearOfRoads(probe, _request.Plan.ExistingNets, half) > 0)
+                    {
+                        course = new Cubic(probe.A, probe.B, probe.C, probe.D);
+                        if (clearNotes++ < 12)
+                            Mod.Log.Info($"Placemaker: a footpath end near a street was kept {half:F1} m (its half width) + {Placemaker.Core.Layers.Common.StreetJoins.KerbGap} m off it, so the game joins it to the sidewalk instead of cutting the street: ({net.A.x:F1}, {net.A.z:F1})-({net.D.x:F1}, {net.D.z:F1}) now ({probe.A.x:F1}, {probe.A.z:F1})-({probe.D.x:F1}, {probe.D.z:F1}).");
+                    }
+                }
                 // Bridges/piers/boardwalks keep their planned deck: short pieces, each node with its own
                 // elevation and forced elevated (CourseFitting.FitElevated explains why not one course).
                 bool elevated = !net.FollowTerrain;
                 var pieces = elevated
-                    ? CourseFitting.FitElevated(new Cubic(net.A, net.B, net.C, net.D), settings.MaxLength > 1f ? math.min(ElevatedPieceLength, settings.MaxLength) : ElevatedPieceLength)
-                    : CourseFitting.Fit(new Cubic(net.A, net.B, net.C, net.D), GroundHeight, settings);
+                    ? CourseFitting.FitElevated(course, settings.MaxLength > 1f ? math.min(ElevatedPieceLength, settings.MaxLength) : ElevatedPieceLength)
+                    : CourseFitting.Fit(course, GroundHeight, settings);
                 long key = PlanWork.Key(w);
                 bool any = false;
                 for (int p = 0; p < pieces.Count; p++)
@@ -212,6 +234,25 @@ namespace Placemaker.Game.Build
             }
         }
 
+        /// <summary>Every planned net end, to tell a dead end from an end other nets of the build join.</summary>
+        private sealed class EndSet
+        {
+            private readonly Dictionary<long, int> _count = new Dictionary<long, int>();
+            private static long Key(float3 p) => ((long)math.round(p.x * 10f) << 32) ^ (uint)(int)math.round(p.z * 10f);
+            public void Add(float3 p) { long k = Key(p); _count[k] = (_count.TryGetValue(k, out var n) ? n : 0) + 1; }
+            /// <summary>Two or more ends at p (within 0.1 m grid): a junction.</summary>
+            public bool Shared(float3 p) => _count.TryGetValue(Key(p), out var n) && n > 1;
+        }
+
+        private EndSet PlannedPathEnds()
+        {
+            var set = new EndSet();
+            foreach (var l in _request.Plan.Layers)
+                if (l?.Nets != null)
+                    foreach (var n in l.Nets) { set.Add(n.A); set.Add(n.D); }
+            return set;
+        }
+
         /// <summary>
         /// Course end. Roads attach to an existing edge/node through CoursePos.m_Entity (GRG). Paths
         /// and invisible drivable paths do NOT: they join roads through LocalConnect at a dead end
@@ -239,12 +280,14 @@ namespace Placemaker.Game.Build
             {
                 var curve = EntityManager.GetComponentData<Curve>(target).m_Bezier;
                 float d = MathUtils.Distance(curve.xz, position.xz, out float t);
-                if (d > AttachTolerance) return pos;
+                if (d > AttachReach(target, prefab)) return pos;
                 var edge = EntityManager.GetComponentData<Edge>(target);
                 if (t <= 0.01f) { pos.m_Entity = edge.m_Start; pos.m_SplitPosition = 0f; }
                 else if (t >= 0.99f) { pos.m_Entity = edge.m_End; pos.m_SplitPosition = 1f; }
                 else { pos.m_Entity = target; pos.m_SplitPosition = t; }
                 pos.m_Position = MathUtils.Position(curve, t);
+                if (EntityManager.HasComponent<PathwayData>(prefab) && _splitNotes++ < 12)
+                    Mod.Log.Info($"Placemaker: a footpath end at ({position.x:F1}, {position.z:F1}) splits '{_catalog.NameOf(EntityManager.GetComponentData<PrefabRef>(target).m_Prefab)}' {d:F1} m from its centre line (an entrance with a crosswalk).");
             }
             else if (EntityManager.HasComponent<global::Game.Net.Node>(target))
             {
@@ -283,6 +326,21 @@ namespace Placemaker.Game.Build
         /// <summary>Attachments are stale after save/load (entity ids change); verify by geometry too.</summary>
         private const float AttachTolerance = 4f;
 
+        /// <summary>
+        /// How far from the target's centre line a planned end may lie and still attach. A footpath with a crosswalk
+        /// (Core/Layers/Common/StreetJoins) ends at its entrance on the outline, beside the street: up to the street's half
+        /// width plus the planner's frontage reach (Entrances.FrontageReach, 6 m) and a metre; it is carried onto the centre
+        /// line, where the split gets the crosswalk. Everything else keeps the old 4 m.
+        /// </summary>
+        private float AttachReach(Entity target, Entity prefab)
+        {
+            if (!EntityManager.HasComponent<PathwayData>(prefab) || !EntityManager.HasComponent<PrefabRef>(target)) return AttachTolerance;
+            var other = EntityManager.GetComponentData<PrefabRef>(target).m_Prefab;
+            if (!EntityManager.HasComponent<RoadData>(other) || !EntityManager.HasComponent<NetGeometryData>(other)) return AttachTolerance;
+            float half = EntityManager.GetComponentData<NetGeometryData>(other).m_DefaultWidth * 0.5f;
+            return math.isfinite(half) && half > 0f ? math.max(AttachTolerance, half + 7f) : AttachTolerance;
+        }
+
         private bool CanAttach(Entity target, Entity prefab)
         {
             if (target == Entity.Null || !EntityManager.Exists(target) || EntityManager.HasComponent<Deleted>(target)
@@ -307,7 +365,10 @@ namespace Placemaker.Game.Build
                 if (string.IsNullOrWhiteSpace(raw)) continue;
                 var name = raw.Trim();
                 string side = null;
+                // Roads write "Left.SecondaryBeautification" (RoadsSchema.Upgrades), lanes "left:ZonesDisabled" (LaneSides):
+                // both are side + flag. With ':' alone every street upgrade (trees, grass, bike lanes) was dropped.
                 int colon = name.IndexOf(':');
+                if (colon < 0) colon = name.IndexOf('.');
                 if (colon > 0) { side = name.Substring(0, colon).ToLowerInvariant(); name = name.Substring(colon + 1); }
                 if (side == null || side == "general")
                 {
@@ -356,36 +417,34 @@ namespace Placemaker.Game.Build
             var prefab = PrefabOf(w);
             if (prefab == Entity.Null) return;
             var o = _request.Plan.Layers[w.Layer].Objects[w.Index];
-            // s23: decorative decals are built see-through (runtime clone per opacity tier; the original until it is ready).
-            if (o.Role == ObjectRole.Decal && _decalClones != null)
-            {
-                float opacity = Core.Decals.DecalLook.OpacityOf(o);
-                if (opacity < 0.995f)
-                {
-                    var used = _decalClones.CloneFor(prefab, opacity, out string why);
-                    if (used != prefab) _decalsSeeThrough++;
-                    else { _decalsFull++; _decalsFullWhy[why] = (_decalsFullWhy.TryGetValue(why, out var nWhy) ? nWhy : 0) + 1; }
-                    prefab = used;
-                }
-            }
             long key = PlanWork.Key(w);
             _itemByKey[key] = w;
             // Uniform categories (benches, lamps, bins…): one random seed per build, so colour/mesh
             // variations do not turn a row of one bench into a mix (FEEDBACK-2 #1).
-            int? seed = AutoAssets.IsUniform(w.Category) ? AutoAssets.UniformSeed(w.Category, (uint)_groupId) : (int?)null;
+            int? seed = AutoAssets.IsUniform(w.Category) ? AutoAssets.UniformSeed(w.Category, (uint)_groupId) : o.ColorSeed >= 0 ? o.ColorSeed : (int?)null;
             float elevation = SinkDecals && (o.Role == ObjectRole.Decal || SinkStallMarkings && PlanWork.SinkInBuild(o.Role)) ? DecalSink : 0f;
-            EmitObjectDefinition(prefab, o.Position, o.Yaw, o.Scale, o.Age, o.Variation, key, true, seed, elevation, optional: !IgnoreOwnCollisions && !PlanWork.IsFunctional(o.Role));   // (s59) anarchy: the ghost shows what the build places — nothing is cancelled
+            if (o.Elevation > 0.01f && o.Role != ObjectRole.Decal) elevation = o.Elevation;   // (Industrial) stacked on another prop
+            // (Industrial) set into the ground: lowered, with the game's negative Elevation, so its collision mask is Underground
+            // only (ObjectUtils.GetCollisionMask) and it hides nothing standing on it (seen in the game runner: a car on sunk rubble,
+            // barrels in it, all drawn; without it the game hid one of each pair).
+            float sink = o.Elevation < -0.01f && o.Role != ObjectRole.Decal ? -o.Elevation : 0f;
+            if (sink > 0f) elevation = -sink;
+            EmitObjectDefinition(prefab, o.Position, o.Yaw, o.Scale, o.Age, o.Variation, key, true, seed, elevation, optional: !IgnoreOwnCollisions && !PlanWork.IsFunctional(o.Role), roll: o.Roll, pitch: o.Pitch, sink: sink);   // (s59) anarchy: the ghost shows what the build places — nothing is cancelled
             NoteUsed(prefab);
         }
 
-        private static readonly float[] AgeStages = { 0f, 0.17500001f, 0.425f, 0.77500004f };   // ToolUtils.GetRandomAge
+        private static readonly float[] AgeStages = { 0f, 0.17500001f, 0.425f, 0.77500004f, 0.97f };   // ToolUtils.GetRandomAge; [4] = dead (ObjectUtils.InitializeTreeState: age ≥ 0.95)
 
-        private void EmitObjectDefinition(Entity prefab, float3 position, float yaw, float scale, int age, uint variation, long key, bool snapToGround, int? randomSeed = null, float elevation = 0f, bool optional = true)
+        private void EmitObjectDefinition(Entity prefab, float3 position, float yaw, float scale, int age, uint variation, long key, bool snapToGround, int? randomSeed = null, float elevation = 0f, bool optional = true, float roll = 0f, float pitch = 0f, float sink = 0f)
         {
             _objectIndex = _objectIndex ?? new PlanIndex();
             var p = position;
             if (snapToGround || !math.isfinite(p.y)) p.y = GroundHeight(p.xz);
+            if (elevation > 0f) p.y += elevation;   // raised props (stacked containers) stand this high above the ground
+            p.y -= sink;                            // sunk props (boulders, rubble half in the earth) stand this deep in it
             var rotation = quaternion.RotateY(yaw);
+            // (Industrial) a tilted prop: a wreck on its roof or its side.
+            if (roll != 0f || pitch != 0f) rotation = math.mul(rotation, math.mul(quaternion.RotateX(pitch), quaternion.RotateZ(roll)));
             var def = NewDefinition();
             EntityManager.AddComponentData(def, new CreationDefinition
             {
@@ -489,7 +548,7 @@ namespace Placemaker.Game.Build
                 if (rings.Count == 0)
                 {
                     if (first) NoteSkip(surface ? "Placemaker.Build.Skipped.Surface" : "Placemaker.Build.Skipped.Area", at);
-                    Mod.Log.Info($"Placemaker skipped a {(surface ? "surface" : "area")} ring the game would reject ({ring.Length} nodes, d={d:0.###}).");
+                    Mod.Log.Info($"Placemaker skipped a {(surface ? "surface" : "area")} ring the game would reject ({ring.Length} nodes, d={d:0.###}; {w.GeneratorId} layer {w.Layer} #{w.Index}, first violation at node {AreaRings.FirstViolation(ring2, d + AreaRings.Margin)}): {string.Join(" ", System.Linq.Enumerable.Select(ring2, p => $"({p.x:F2},{p.y:F2})"))}.");
                     return;
                 }
                 if (first) NoteSkip(surface ? "Placemaker.Build.Repaired.Surface" : "Placemaker.Build.Repaired.Area", at, IssueSeverity.Info);

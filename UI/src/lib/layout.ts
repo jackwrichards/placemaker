@@ -4,10 +4,10 @@
 import { createContext, useContext } from "react";
 
 /** Default panel widths in rem; the wide default applies on screens ≥ WIDE_SCREEN_PX. */
-export const NARROW_REM = 400;
-export const WIDE_DEFAULT_REM = 560;
+export const NARROW_REM = 450;
+export const WIDE_DEFAULT_REM = 450;
 export const WIDE_SCREEN_PX = 1600;
-export const MIN_REM = 360;
+export const MIN_REM = 340;
 /** Largest share of the screen width the panel may take. */
 export const MAX_SHARE = 0.45;
 /** From this width on, property rows / groups / features go into two columns. */

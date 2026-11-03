@@ -1,0 +1,16 @@
+{
+  "_about": "Blue outlines in the user's city Brecon (read-only), where Outgrow re-planned the same gardens every third of a second before 21 Oct: a house of that loop (Brecon 803, around 1500, -891) is lit as a hovered one is and the camera pans every frame, each frame's outline pixels counted (lab op outlineFlicker); pieces made and taken away while it is lit drop out of the outline. Run with Send-Suite -Fresh.",
+  "scenarios": [
+    {
+      "id": "outline-flicker-city",
+      "site": "flat",
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "loadCity", "name": "Brecon" },
+        { "do": "lab", "op": "polishIdle", "seconds": 20 },
+        { "do": "lab", "op": "outlineFlicker", "label": "loop-house", "at": [1500.5, -891.5], "abs": true, "frames": 240, "pan": 0.2 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 }
+      ]
+    }
+  ]
+}

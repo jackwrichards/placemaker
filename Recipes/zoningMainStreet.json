@@ -1,0 +1,11 @@
+{
+  "formatVersion": 1,
+  "id": "zoningMainStreet",
+  "nameKey": "Placemaker.Zoning.Type.mainStreet",
+  "descriptionKey": "Placemaker.Zoning.Type.mainStreet.Tooltip",
+  "icon": "Media/Game/Icons/Zones.svg",
+  "root": {
+    "layer": "zoningMainStreet",
+    "settings": {}
+  }
+}

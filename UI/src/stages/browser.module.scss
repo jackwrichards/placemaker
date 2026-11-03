@@ -7,54 +7,25 @@ $accent: #8fd1ff;
 $chip-h: 24rem;
 $label-w: 74rem;
 
-.flex {
-    flex: 1 1 auto;
-}
-
-// ── picker panel ──
+// ── picker: the section header (SectionHead.tsx), then the panel of rows; always open ──
 .picker {
     @include col;
     min-width: 0;
-    border-radius: $radius;
-    background-color: rgba(0, 0, 0, 0.18);
-    @include border(1rem, $c-line-strong);
 }
 
-.head {
-    @include row;
-    min-width: 0;
-    height: 26rem;
-    padding: 0 3rem 0 6rem;
-}
-
-.headToggle {
-    @include row;
-    @include button-reset;
-    flex-shrink: 0;
-    height: 24rem;
-}
-
-.headTitle {
-    margin-left: 5rem;
-    font-size: 11rem;
-    font-weight: bold;
-    letter-spacing: 0.5rem;
-    text-transform: uppercase;
-    color: $c-text-dim;
-    white-space: nowrap;
-}
-
+// the header's search button
 .headBtn {
-    width: 22rem;
-    height: 22rem;
+    width: 20rem;
+    height: 20rem;
 }
 
+// the search box in the header, in place of its rule
 .search {
     @include row;
     flex: 1 1 auto;
     min-width: 0;
     height: 20rem;
-    margin: 0 4rem 0 10rem;
+    margin: 0 4rem 0 8rem;
     padding: 0 1rem 0 6rem;
     border-radius: $radius-s;
     background-color: $c-shade;
@@ -82,9 +53,9 @@ $label-w: 74rem;
 .browser {
     @include col;
     min-width: 0;
-    border-top-width: 1rem;
-    border-top-style: solid;
-    border-top-color: $c-line;
+    border-radius: $radius;
+    background-color: rgba(0, 0, 0, 0.18);
+    @include border(1rem, $c-line-strong);
 }
 
 .row {
@@ -244,12 +215,17 @@ $label-w: 74rem;
     color: $c-text-dim;
 }
 
-// ── editing bar ──
+// ── editing: the section header (EDITING · ● unsaved changes), then the bar ──
+.editing {
+    @include col;
+    position: relative;
+    min-width: 0;
+}
+
 .bar {
     @include col;
     position: relative;
     min-width: 0;
-    margin-top: 6rem;
     border-radius: $radius;
     background-color: rgba(143, 209, 255, 0.07);
     @include border(1rem, rgba(143, 209, 255, 0.4));
@@ -259,26 +235,7 @@ $label-w: 74rem;
     @include border-color(rgba(143, 209, 255, 0.7));
 }
 
-.barHead {
-    @include row;
-    min-width: 0;
-    height: 18rem;
-    padding: 0 8rem;
-    background-color: rgba(143, 209, 255, 0.1);
-    border-bottom-width: 1rem;
-    border-bottom-style: solid;
-    border-bottom-color: rgba(143, 209, 255, 0.2);
-}
-
-.barTitle {
-    flex: 1 1 auto;
-    font-size: 10rem;
-    font-weight: bold;
-    letter-spacing: 0.6rem;
-    text-transform: uppercase;
-    color: $accent;
-}
-
+// "● unsaved changes" in the header
 .modified {
     @include row;
     flex-shrink: 0;
@@ -296,12 +253,6 @@ $label-w: 74rem;
     font-size: 11rem;
     color: #ffd79a;
     white-space: nowrap;
-}
-
-.barNote {
-    flex-shrink: 0;
-    font-size: 11rem;
-    color: $c-text-faint;
 }
 
 .barRow {

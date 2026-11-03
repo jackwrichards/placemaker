@@ -50,7 +50,7 @@ namespace Placemaker.Game.Suite
                 n++;
             }
             Note($"plot {plot.Name}: lake on the {plot.Water} side, {plot.WaterWidth:F0} m wide, {plot.WaterDepth:F1} m deep, surface {level:F1} m "
-                + $"({plot.Freeboard:F1} m under the land), bank {plot.BankGrade * 100f:F0} %, waterline {plot.ShoreIn:F0} m inside the outline; {n} water source(s)");
+                + $"({plot.Freeboard:F1} m under the land), bank {plot.BankGrade * 100f:F0} %, waterline {plot.ShoreIn:F0} m inside the outline{(plot.Wave > 0f ? $" (winding up to {plot.Wave:F0} m further in, every {plot.WaveLength:F0} m)" : "")}; {n} water source(s)");
             return n;
         }
 

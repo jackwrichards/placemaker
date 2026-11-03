@@ -1,0 +1,110 @@
+{
+  "_about": "Neighbourhood polish themes side by side: the same kind of curved street stamped Garden, Natural, Tidy and Yard. Send with tools/hot/Send-Hot.ps1 -File suite/scenarios/polish-themes.json.",
+  "scenarios": [
+    {
+      "id": "theme-garden",
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          220
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "lab", "op": "hotload", "path": "{hot}" },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 110, "from": 40, "to": 140 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true, "theme": "garden" },
+        { "do": "wait", "seconds": 6 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "theme-natural",
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          220
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 110, "from": 40, "to": 140 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true, "theme": "natural" },
+        { "do": "wait", "seconds": 6 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "theme-tidy",
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          220
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 110, "from": 40, "to": 140 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true, "theme": "tidy" },
+        { "do": "wait", "seconds": 6 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "theme-yard",
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          220
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 110, "from": 40, "to": 140 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true, "theme": "yard" },
+        { "do": "wait", "seconds": 6 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,697 @@
+// The Zoning types' zoning editor (ZoneMix.tsx): the mode switch, the land as a bar with draggable dividers, one line per
+// zone (button, width, depth, roads, remove), a short menu of zone types.
+@use "../styles/tokens" as *;
+
+$text: rgba(234, 242, 246, 0.95);   // buttons in the game UI do not inherit the text colour
+
+.mix {
+    @include col;
+    min-width: 0;
+}
+
+.modeGap {
+    height: 6rem;
+}
+
+.mode {
+    @include row;
+    min-width: 0;
+    margin-bottom: 4rem;
+    padding: 2rem;
+    border-radius: 6rem;
+    background-color: rgba(0, 0, 0, 0.22);
+    @include border(1rem, $c-line);
+}
+
+.modeButton {
+    @include row;
+    justify-content: center;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 24rem;
+    border-radius: 4rem;
+    color: $c-text-dim;
+    font-size: $fs-s;
+    cursor: pointer;
+}
+
+.modeButton:hover {
+    color: $text;
+    background-color: $c-surface;
+}
+
+.modeOn {
+    color: #ffffff;
+    background-color: rgba(143, 209, 255, 0.2);
+    @include border(1rem, rgba(143, 209, 255, 0.6));
+}
+
+.modeText {
+    margin-left: 6rem;
+    font-weight: 600;
+    @include ellipsis;
+}
+
+// ── the land as a bar ──
+.barBox {
+    position: relative;
+    margin: 10rem 0 10rem 0;
+}
+
+.barBoxAbove {
+    padding-top: 22rem;
+}
+
+.barBoxBelow {
+    padding-bottom: 22rem;
+}
+
+.bar {
+    position: relative;
+    @include row;
+    height: 26rem;
+    border-radius: $radius;
+    background-color: $c-surface;
+}
+
+.barPart {
+    @include row;
+    justify-content: center;
+    height: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.barPart:first-child {
+    border-top-left-radius: $radius;
+    border-bottom-left-radius: $radius;
+}
+
+.barPart:last-of-type {
+    border-top-right-radius: $radius;
+    border-bottom-right-radius: $radius;
+}
+
+.barEmpty {
+    background-color: rgba(255, 255, 255, 0.07);
+}
+
+.barText {
+    @include row;
+    flex: 0 0 auto;
+    padding: 1rem 7rem;
+    border-radius: 9rem;
+    font-size: 12rem;
+    color: #ffffff;
+    background-color: rgba(16, 21, 26, 0.62);
+    white-space: nowrap;
+}
+
+// a hidden copy of a label, to know how wide it is drawn
+.measure {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.barName {
+    font-weight: 600;
+    @include ellipsis;
+}
+
+.barPct {
+    flex: 0 0 auto;
+    margin-left: 5rem;
+    opacity: 0.85;
+}
+
+.barEmpty .barText {
+    color: $c-text-dim;
+    background-color: transparent;
+}
+
+// a divider: a wide invisible grab area with a white grip
+.barEdge {
+    position: absolute;
+    top: -3rem;
+    bottom: -3rem;
+    width: 14rem;
+    margin-left: -7rem;
+    @include row;
+    justify-content: center;
+    cursor: ew-resize;
+}
+
+.barGrip {
+    width: 4rem;
+    height: 100%;
+    border-radius: 2rem;
+    background-color: #ffffff;
+    box-shadow: 0 0 3rem rgba(0, 0, 0, 0.6);
+}
+
+.barEdge:hover .barGrip {
+    width: 6rem;
+}
+
+// a label that does not fit its part: above or below the bar, on a line to it
+.callout {
+    position: absolute;
+    @include row;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.calloutAbove {
+    top: 0;
+}
+
+.calloutBelow {
+    bottom: 0;
+}
+
+.calloutLine {
+    position: absolute;
+    width: 1rem;
+    height: 6rem;
+    background-color: rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+}
+
+.calloutLineAbove {
+    top: 16rem;
+}
+
+.calloutLineBelow {
+    bottom: 16rem;
+}
+
+.calloutText {
+    @include row;
+    padding: 1rem 7rem;
+    border-radius: 9rem;
+    font-size: 12rem;
+    color: #ffffff;
+    background-color: rgba(16, 21, 26, 0.8);
+    white-space: nowrap;
+}
+
+// ── a zone: one line ──
+.zone {
+    position: relative;
+    @include col;
+    min-width: 0;
+    margin-bottom: 8rem;
+    padding: 7rem 10rem 7rem 8rem;
+    border-radius: 6rem;
+    background-color: rgba(255, 255, 255, 0.035);
+    @include border(1rem, $c-line);
+}
+
+.line {
+    @include row;
+    flex-wrap: wrap;
+    min-width: 0;
+    min-height: 28rem;
+}
+
+.flex {
+    flex: 1 1 auto;
+}
+
+.leftCol {
+    @include col;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-right: 10rem;
+}
+
+// a zone's line: boxes with their label inside (Zone, Outgrow, Allowed road width), the lot grid beside them
+.topRow {
+    @include row;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.fieldLabel {
+    flex: 0 0 auto;
+    padding: 0 6rem 0 7rem;
+    font-size: 10rem;
+    font-weight: bold;
+    letter-spacing: 0.3rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: $c-text-faint;
+}
+
+.zoneField,
+.roadField {
+    @include row;
+    min-width: 0;
+    height: 24rem;
+    border-radius: $radius;
+    background-color: $c-surface;
+    @include border(1rem, $c-line);
+}
+
+.zoneField {
+    flex: 1 1 auto;
+    min-width: 140rem;
+    margin-right: 6rem;
+}
+
+.roadField {
+    margin-top: 5rem;
+}
+
+// (Gameface leaves a flex-grown track short by its min-width: the track gets the wrap's full width)
+.roadField .rangeWrap {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0 4rem;
+}
+
+.roadField .rangeTrack {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+}
+
+.fieldValue {
+    flex: 0 0 auto;
+    min-width: 30rem;
+    padding: 0 8rem 0 6rem;
+    font-size: 10rem;
+    text-align: right;
+    white-space: nowrap;
+    color: $c-text-dim;
+}
+
+.zoneButton {
+    @include row;
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    height: 24rem;
+    padding: 0 7rem 0 5rem;
+    border-radius: $radius;
+    background-color: $c-surface;
+    @include border(1rem, $c-line);
+    color: $text;
+    font-size: $fs-s;
+    cursor: pointer;
+}
+
+.zoneButton:hover {
+    background-color: $c-surface-hover;
+}
+
+.zoneButtonOn {
+    @include border(1rem, rgba(143, 209, 255, 0.75));
+}
+
+.zoneField .zoneButton {
+    flex: 1 1 auto;
+    width: auto;
+    height: 100%;
+    padding: 0 5rem 0 6rem;
+    border-radius: 0 $radius $radius 0;
+    background-color: transparent;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-color: $c-line;
+}
+
+.zoneField .zoneName {
+    margin: 0 2rem 0 4rem;
+}
+
+.zoneField .zoneButton:hover {
+    background-color: $c-surface-hover;
+}
+
+.zoneField .zoneButtonOn {
+    background-color: rgba(143, 209, 255, 0.22);
+}
+
+.swatch {
+    flex: 0 0 auto;
+    width: 9rem;
+    height: 9rem;
+    margin-right: 5rem;
+    border-radius: 2rem;
+}
+
+.zoneName {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0 5rem;
+    text-align: left;
+    @include ellipsis;
+}
+
+.exactTag {
+    flex: 0 0 auto;
+    margin-right: 4rem;
+    padding: 0 3rem;
+    border-radius: 3rem;
+    font-size: 9rem;
+    font-weight: bold;
+    color: $c-text-dim;
+    background-color: $c-surface-strong;
+}
+
+// width, depth and roads: one even row of three under the zone's line
+.ranges {
+    @include row;
+    min-width: 0;
+    margin: 2rem 0 2rem 0;
+}
+
+.range {
+    @include row;
+    flex: 1 1 0;
+    min-width: 0;
+    margin-right: 14rem;
+}
+
+.range:last-child {
+    margin-right: 0;
+}
+
+.rangeLabel {
+    flex: 0 0 auto;
+    width: 40rem;
+    font-size: 11rem;
+    color: $c-text-dim;
+    @include ellipsis;
+}
+
+.rangeWrap {
+    @include row;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.rangeTrack {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 40rem;
+    height: 22rem;
+    cursor: pointer;
+    @include row;
+}
+
+.rangeRail {
+    position: relative;
+    width: 100%;
+    height: 6rem;
+    border-radius: 3rem;
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.rangeFill {
+    position: absolute;
+    top: 0;
+    height: 6rem;
+    border-radius: 3rem;
+    background-color: var(--accentColorNormal);
+}
+
+.rangeThumb {
+    position: absolute;
+    top: 4rem;
+    width: 14rem;
+    height: 14rem;
+    margin-left: -7rem;
+    border-radius: 7rem;
+    background-color: #ffffff;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.5);
+}
+
+.rangeValue {
+    flex: 0 0 auto;
+    width: 46rem;
+    margin-left: 6rem;
+    text-align: right;
+    font-size: 11rem;
+    color: #ffffff;
+    @include ellipsis;
+}
+
+.outgrowButton {
+    @include row;
+    flex: 0 0 auto;
+    height: 22rem;
+    margin-right: 6rem;
+    padding: 0 8rem 0 6rem;
+    border-radius: $radius;
+    @include border(1rem, $c-line);
+    color: $text;
+    font-size: $fs-s;
+    cursor: pointer;
+}
+
+.outgrowButton:hover {
+    background-color: $c-surface-hover;
+}
+
+.outgrowOn {
+    background-color: rgba(143, 209, 255, 0.12);
+    @include border(1rem, rgba(143, 209, 255, 0.6));
+}
+
+.outgrowText {
+    margin-left: 5rem;
+}
+
+.remove {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    @include row;
+    justify-content: center;
+    width: 14rem;
+    height: 14rem;
+    border-radius: 7rem;
+    color: $text;
+    cursor: pointer;
+}
+
+.remove:hover {
+    background-color: $c-surface-hover;
+}
+
+.endSpacer {
+    flex: 0 0 auto;
+    width: 18rem;
+}
+
+.add {
+    @include row;
+    align-self: flex-start;
+    height: 22rem;
+    margin: 2rem 0 6rem 0;
+    padding: 0 8rem 0 6rem;
+    border-radius: $radius;
+    @include border(1rem, $c-line);
+    color: $text;
+    font-size: $fs-s;
+    cursor: pointer;
+}
+
+.add:hover {
+    background-color: $c-surface-hover;
+}
+
+// ── the zone types' menu ──
+.menu {
+    @include col;
+    min-width: 0;
+    margin: 2rem 0 4rem 0;
+    padding: 6rem 6rem 2rem 6rem;
+    border-radius: $radius;
+    background-color: rgba(143, 209, 255, 0.07);
+}
+
+.menuGroup {
+    @include row(flex-start);
+    min-width: 0;
+    margin-bottom: 3rem;
+}
+
+.menuTitle {
+    flex: 0 0 auto;
+    width: 58rem;
+    margin-top: 4rem;
+    font-size: 11rem;
+    color: $c-text-dim;
+}
+
+.menuChips {
+    @include row;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.chip {
+    @include row;
+    height: 20rem;
+    margin: 0 4rem 4rem 0;
+    padding: 0 7rem 0 5rem;
+    border-radius: $radius;
+    background-color: $c-surface;
+    @include border(1rem, $c-line);
+    color: $text;
+    font-size: 11rem;
+    cursor: pointer;
+}
+
+.chip:hover {
+    background-color: $c-surface-hover;
+}
+
+.chipOn {
+    background-color: rgba(143, 209, 255, 0.18);
+    @include border(1rem, rgba(143, 209, 255, 0.75));
+}
+
+.chipText {
+    margin-left: 4rem;
+    @include ellipsis;
+}
+
+.exactButton {
+    @include row;
+    align-self: flex-start;
+    height: 20rem;
+    margin: 2rem 0 4rem 58rem;
+    padding: 0 7rem 0 5rem;
+    border-radius: $radius;
+    color: $c-text-dim;
+    font-size: 11rem;
+    cursor: pointer;
+}
+
+.exactButton:hover {
+    background-color: $c-surface-hover;
+}
+
+// ── a zone's line: button, a small grid of its lots (10 along the road, 6 deep, the road below), the size, its roads ──
+.lotGrid {
+    @include col;
+    flex: 0 0 auto;
+    margin: 0 2rem 0 10rem;
+}
+
+.grid {
+    @include col;
+    padding: 1rem;
+    border-radius: 2rem;
+    background-color: rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+
+.gridRow {
+    @include row;
+}
+
+.cell {
+    width: 9rem;
+    height: 7rem;
+    margin: 0.75rem;
+    border-radius: 1.5rem;
+    background-color: rgba(255, 255, 255, 0.08);
+    opacity: 1;
+    transition-property: background-color, opacity;
+    transition-duration: 0.12s;
+}
+
+.cellMax {
+    opacity: 0.4;
+}
+
+.cellMin {
+    opacity: 1;
+}
+
+.legend {
+    @include row;
+    margin-top: 3rem;
+}
+
+.legendSwatch {
+    width: 6rem;
+    height: 6rem;
+    margin-right: 3rem;
+    border-radius: 1rem;
+}
+
+.legendLight {
+    margin-left: 6rem;
+    opacity: 0.4;
+}
+
+.legendText {
+    font-size: 9rem;
+    color: $c-text-faint;
+}
+
+.lotText {
+    @include col;
+    flex: 0 0 auto;
+    width: 64rem;
+    margin-left: 8rem;
+}
+
+.lotSize {
+    @include row;
+    font-size: $fs-s;
+    color: #ffffff;
+}
+
+.lotNum {
+    font-weight: 600;
+}
+
+.lotTimes {
+    margin: 0 3rem;
+    color: $c-text-dim;
+}
+
+.lotUnit {
+    font-size: 10rem;
+    color: $c-text-faint;
+}
+
+.side {
+    @include col;
+    flex: 1 1 150rem;
+    min-width: 150rem;
+    margin: 0 6rem 0 8rem;
+}
+
+.foundName {
+    @include row;
+    flex: 1 1 auto;
+    min-width: 0;
+    color: $text;
+    font-size: $fs-s;
+}
+
+.foundCount {
+    flex: 0 0 auto;
+    margin: 0 10rem;
+    font-size: 11rem;
+    color: $c-text-dim;
+}
+
+.none {
+    padding: 10rem 4rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
+}

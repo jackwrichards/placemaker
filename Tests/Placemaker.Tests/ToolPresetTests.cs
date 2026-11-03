@@ -123,10 +123,11 @@ namespace Placemaker.Tests
             Assert.True(o.IsOverride);
             Assert.False(s.IsModified(step, "big"));
             var views = s.ViewsFor(_gens["host"]);
-            Assert.Single(views);
-            Assert.True(views[0].Overridden);
-            Assert.False(views[0].Custom);
-            Assert.Equal("P.Big", views[0].Name);
+            Assert.Equal(new[] { PresetStore.StandardId, "big" }, views.ConvertAll(v => v.Id).ToArray());
+            Assert.True(views[1].Overridden);
+            Assert.False(views[1].Custom);
+            Assert.Equal("P.Big", views[1].Name);
+            Assert.False(views[0].Overridden);
 
             // Applying the overridden built-in reproduces the saved step, features included.
             var other = Fresh(e);
@@ -137,7 +138,7 @@ namespace Placemaker.Tests
             Assert.False(s.Rename("host", "big", "x"));
 
             Assert.True(s.Reset("host", "big"));
-            Assert.False(s.ViewsFor(_gens["host"])[0].Overridden);
+            Assert.False(s.ViewsFor(_gens["host"])[1].Overridden);
             Assert.True(s.IsModified(step, "big"));
             Assert.False(s.Reset("host", "big"));
             Assert.False(s.Delete("host", "big"));                     // plain built-in: nothing to delete
@@ -166,10 +167,10 @@ namespace Placemaker.Tests
             Assert.Equal("My preset", s.SaveAs(step, "   ").Name);
 
             var views = s.ViewsFor(_gens["host"]);
-            Assert.Equal(new[] { "big", a.Id, b.Id, "custom-my-preset" }, views.ConvertAll(v => v.Id).ToArray());
-            Assert.True(views[1].Custom);
-            Assert.Equal("big", views[1].BasedOn);
-            Assert.Equal("Shady grove", views[1].Name);
+            Assert.Equal(new[] { PresetStore.StandardId, "big", a.Id, b.Id, "custom-my-preset" }, views.ConvertAll(v => v.Id).ToArray());
+            Assert.True(views[2].Custom);
+            Assert.Equal("big", views[2].BasedOn);
+            Assert.Equal("Shady grove", views[2].Name);
 
             // Save over a custom overwrites it.
             step.Settings.Values["size"] = 20.0;
@@ -188,8 +189,208 @@ namespace Placemaker.Tests
             Assert.Equal(b.Id, active.Id);
             Assert.True(active.CanSave);
             Assert.True(active.Modified);
-            Assert.Equal("", s.Active(step, "host", a.Id).Id);       // deleted → none
-            Assert.False(s.Active(step, "host", a.Id).CanSave);
+            var gone = s.Active(step, "host", a.Id);                 // deleted → the type's Standard, changed
+            Assert.Equal(PresetStore.StandardId, gone.Id);
+            Assert.True(gone.Modified);
+            Assert.True(gone.CanSave);
+        }
+
+        // ───────────── Standard (the old "Default": the type's own design, now a style like the others) ─────────────
+
+        [Fact]
+        public void AFreshTypeIsOnStandardUnchangedAndItIsListedFirst()
+        {
+            var e = Editor();
+            var s = Store(e);
+            var step = Fresh(e);
+            foreach (var none in new[] { "", null, "nope" })
+            {
+                var a = s.Active(step, "host", none);                 // no style named (old saves, built groups) → Standard
+                Assert.Equal(PresetStore.StandardId, a.Id);
+                Assert.Equal("host", a.Layer);
+                Assert.False(a.Modified);
+                Assert.True(a.CanSave);
+            }
+            Assert.Equal(PresetStore.StandardId, s.Active(step, "other", "big").Id);   // another type's style → this type's Standard
+            var views = s.ViewsFor(_gens["host"]);
+            Assert.Equal(PresetStore.StandardId, views[0].Id);
+            Assert.Equal(PresetStore.StandardNameKey, views[0].Name);
+            Assert.False(views[0].Custom);
+            Assert.True(s.Exists("host", PresetStore.StandardId));
+            Assert.True(s.IsTypeStandard("host", PresetStore.StandardId));
+            Assert.NotNull(s.BuiltIn("host", PresetStore.StandardId));
+            Assert.False(s.IsCustom("host", PresetStore.StandardId));
+        }
+
+        [Fact]
+        public void StandardCanBeReselectedAfterAnotherStyle()
+        {
+            var e = Editor();
+            var s = Store(e);
+            var step = Fresh(e);
+            Assert.True(s.Apply(step, "big", () => 7));
+            Assert.True(s.IsModified(step, PresetStore.StandardId));
+            Assert.True(s.Apply(step, PresetStore.StandardId, () => 8));      // back to the type's own design
+            Assert.Equal(50.0, step.Settings.Num("size", 0));
+            Assert.Equal("formal", step.Settings.S("style", ""));
+            Assert.Empty(step.Locked);                                        // as picking the type: nothing locked (Shuffle varies it)
+            Assert.Single(step.Children);
+            Assert.Equal("kid", step.Children[0].Layer);                      // DefaultOn feature
+            Assert.False(s.IsModified(step, PresetStore.StandardId));
+            Assert.False(s.Apply(step, PresetStore.StandardId));              // idempotent
+            step.Settings.Values["size"] = 20.0;
+            Assert.True(s.Active(step, "host", PresetStore.StandardId).Modified);
+        }
+
+        [Fact]
+        public void StandardIsTheTypesRecipeWhenOneIsGiven()
+        {
+            var e = Editor();
+            var recipe = Fresh(e);
+            recipe.Settings.Values["size"] = 70.0;                           // the type's recipe file sets its own values
+            recipe.Locked.Add("trees");
+            var s = new PresetStore(e, () => _now, layer => layer == "host" ? recipe : null);
+            var std = s.Resolve("host", PresetStore.StandardId);
+            Assert.Equal(70.0, std.Settings.Num("size", 0));
+            Assert.Contains("trees", std.Locked);
+            Assert.Single(std.Children);
+            var picked = recipe.Clone();                                      // picking the type: the recipe as it is
+            Assert.False(s.IsModified(picked, PresetStore.StandardId));
+            Assert.Equal(50.0, Store(e).Resolve("host", PresetStore.StandardId).Settings.Num("size", 0));   // without: the defaults
+        }
+
+        [Fact]
+        public void StandardCanBeSavedOverAndResetLikeOtherBuiltIns()
+        {
+            var e = Editor();
+            var s = Store(e);
+            var step = Fresh(e);
+            step.Settings.Values["size"] = 33.0;
+            var o = s.Save(step, PresetStore.StandardId);
+            Assert.NotNull(o);
+            Assert.True(o.IsOverride);
+            Assert.True(s.ViewsFor(_gens["host"])[0].Overridden);
+            Assert.Single(s.ViewsFor(_gens["host"]), v => v.Id == PresetStore.StandardId);   // the override is not listed as a custom
+            Assert.False(s.IsModified(step, PresetStore.StandardId));
+            var other = Fresh(e);
+            Assert.True(s.Apply(other, PresetStore.StandardId));
+            Assert.Equal(33.0, other.Settings.Num("size", 0));
+            Assert.False(s.Rename("host", PresetStore.StandardId, "x"));      // built-in: no rename
+            Assert.True(s.Reset("host", PresetStore.StandardId));
+            Assert.False(s.ViewsFor(_gens["host"])[0].Overridden);
+            Assert.False(s.Delete("host", PresetStore.StandardId));           // built-in: nothing to delete
+            var c = s.SaveAs(step, "From standard", PresetStore.StandardId);
+            Assert.Equal(PresetStore.StandardId, c.BasedOn);
+
+            // survives presets.json
+            s.Save(step, PresetStore.StandardId);
+            var s2 = Store(e);
+            s2.Load(s.Write().Write(true));
+            Assert.True(s2.Find("host", PresetStore.StandardId).IsOverride);
+            Assert.False(s2.IsCustom("host", PresetStore.StandardId));
+        }
+
+        [Fact]
+        public void AShippedStandardIsUsedAndOnlyFillTypesHaveOne()
+        {
+            var gens = new Dictionary<string, IAreaGenerator>(_gens) { ["lot"] = new ShippedStandard() };
+            var e = new DesignEditor(id => id != null && gens.TryGetValue(id, out var g) ? g : null);
+            var s = Store(e);
+            var views = s.ViewsFor(gens["lot"]);
+            Assert.Equal(new[] { PresetStore.StandardId, "tight" }, views.ConvertAll(v => v.Id).ToArray());   // moved first, not doubled
+            Assert.Equal("P.Standard", views[0].Name);
+            Assert.False(s.IsTypeStandard("lot", PresetStore.StandardId));
+            Assert.Equal(80.0, s.Resolve("lot", PresetStore.StandardId).Settings.Num("size", 0));
+
+            Assert.False(s.Exists("kid", PresetStore.StandardId));            // an add-on has no styles
+            Assert.DoesNotContain(s.ViewsFor(gens["kid"]), v => v.Id == PresetStore.StandardId);
+            Assert.Equal("", s.Active(new RecipeStep { Layer = "kid", Settings = e.DefaultsFor("kid") }, "", "").Id);
+        }
+
+        /// <summary>A Fill type that ships its own "standard" preset (like parking) after another one.</summary>
+        private sealed class ShippedStandard : IAreaGenerator
+        {
+            private readonly ToolFakeGenerator _inner = new ToolFakeGenerator { Id = "lot" };
+            public string Id => "lot";
+            public string NameKey => "N.Lot";
+            public string Icon => "";
+            public LayerKind Kind => LayerKind.Fill;
+            public string[] Accepts => _inner.Accepts;
+            public string[] Emits => _inner.Emits;
+            public int Version => 1;
+            public IReadOnlyList<ControlSchema> Controls => _inner.Controls;
+            public IReadOnlyList<PresetInfo> Presets
+            {
+                get
+                {
+                    var tight = new PresetInfo { Id = "tight", LabelKey = "P.Tight" };
+                    tight.Values.Values["size"] = 20.0;
+                    var std = new PresetInfo { Id = PresetStore.StandardId, LabelKey = "P.Standard" };
+                    std.Values.Values["size"] = 80.0;
+                    return new List<PresetInfo> { tight, std };
+                }
+            }
+            public SettingsBag Defaults() => _inner.Defaults();
+            public float MinArea => 10;
+            public float MaxArea => 1e7f;
+            public Readiness CheckReady(AreaInput input) => new Readiness();
+            public List<EdgeMarker> SuggestMarkers(AreaInput input) => new List<EdgeMarker>();
+            public SettingsBag Randomize(SettingsBag current, uint seed, ICollection<string> locked) => current.Clone();
+            public AreaPlan Plan(AreaInput input, CancellationToken cancel) => new AreaPlan();
+        }
+
+        [Fact]
+        public void EveryShownTypeStartsOnItsStandardUnchanged()
+        {
+            // The real types: picking one (its recipe, here the one-layer recipe, plus its DefaultOn features) is its Standard,
+            // also for a type that ships its own "standard" (parking).
+            var editor = new DesignEditor(GeneratorRegistry.Get);
+            var s = new PresetStore(editor, () => _now);
+            var changed = new List<string>();
+            int n = 0;
+            foreach (var g in GeneratorRegistry.All)
+            {
+                if (g == null || g.Kind != LayerKind.Fill || GeneratorRegistry.IsHidden(g)) continue;
+                var r = editor.SingleLayerRecipe(g, 3);
+                editor.AddDefaultFeatures(r, () => 1);
+                var a = s.Active(r.Root, "", "");
+                Assert.Equal(PresetStore.StandardId, a.Id);
+                Assert.Equal(PresetStore.StandardId, s.ViewsFor(g)[0].Id);
+                if (a.Modified) changed.Add(g.Id);
+                n++;
+            }
+            Assert.True(n > 10);
+            Assert.Empty(changed);
+        }
+
+        [Fact]
+        public void EveryShippedTypeRecipeIsItsStandardUnchanged()
+        {
+            // As the game picks a type: its recipe file (values over the defaults) plus its DefaultOn features; the store's
+            // Standard is that recipe (the tool hands it the type's recipe), or the type's own "standard" (parking's file).
+            var editor = new DesignEditor(GeneratorRegistry.Get);
+            var roots = new Dictionary<string, RecipeStep>();
+            foreach (var file in System.IO.Directory.GetFiles(System.IO.Path.Combine(TestKit.RepoRoot(), "Recipes"), "*.json"))
+            {
+                var r = RecipeJson.Parse(System.IO.File.ReadAllText(file)).Recipe;
+                var g = GeneratorRegistry.Get(r.Root?.Layer);
+                if (g == null || g.Kind != LayerKind.Fill || r.Root.Children.Count > 0 || r.Id != g.Id) continue;
+                editor.ApplyDefaults(r);
+                roots[g.Id] = r.Root;
+            }
+            Assert.Contains("parking", roots.Keys);
+            Assert.Contains("campground", roots.Keys);
+            var s = new PresetStore(editor, () => _now, layer => roots.TryGetValue(layer, out var b) ? b : null);
+            var changed = new List<string>();
+            foreach (var kv in roots)
+            {
+                var picked = new Recipe { Root = kv.Value.Clone() };
+                editor.AddDefaultFeatures(picked, () => 1);
+                var a = s.Active(picked.Root, "", "");
+                Assert.Equal(PresetStore.StandardId, a.Id);
+                if (a.Modified) changed.Add(kv.Key);
+            }
+            Assert.Empty(changed);
         }
 
         [Fact]
@@ -312,11 +513,13 @@ namespace Placemaker.Tests
             s.SaveAs(step, "Mine", "big");
             var cat = UiModels.Catalog(new[] { _gens["host"] }, new RecipeListEntry[0], g => s.ViewsFor(g));
             var presets = cat["layers"].Items[0]["presets"];
-            Assert.Equal(2, presets.Count);
-            Assert.True(presets.Items[0]["overridden"].AsBool());
-            Assert.True(presets.Items[1]["custom"].AsBool());
-            Assert.Equal("Mine", presets.Items[1]["name"].AsString());
-            Assert.Equal("big", presets.Items[1]["basedOn"].AsString());
+            Assert.Equal(3, presets.Count);
+            Assert.Equal(PresetStore.StandardId, presets.Items[0]["id"].AsString());
+            Assert.Equal(PresetStore.StandardNameKey, presets.Items[0]["name"].AsString());
+            Assert.True(presets.Items[1]["overridden"].AsBool());
+            Assert.True(presets.Items[2]["custom"].AsBool());
+            Assert.Equal("Mine", presets.Items[2]["name"].AsString());
+            Assert.Equal("big", presets.Items[2]["basedOn"].AsString());
 
             var r = new Recipe { Id = "host", Root = step };
             var d = UiModels.Design(r, "host", false, "0", null, null, id => _gens.TryGetValue(id ?? "", out var g) ? g : null,

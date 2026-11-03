@@ -1,0 +1,416 @@
+@use "../styles/tokens" as *;
+
+// Global outgrow's numbers (OutgrowStats.tsx). Gameface: flexbox only, margins for spacing, one text per element.
+
+.stats {
+    @include col;
+    min-width: 0;
+}
+
+// ── a card ──
+.card {
+    @include col;
+    min-width: 0;
+    margin: 0 0 6rem 0;
+    padding: 6rem 8rem 7rem 8rem;
+    border-radius: $radius-l;
+    background-color: $c-surface;
+}
+
+.cardHead {
+    @include row;
+    min-width: 0;
+    margin-bottom: 5rem;
+}
+
+// two cards side by side
+.pair {
+    @include row(stretch);
+    min-width: 0;
+}
+
+.pair > .card {
+    flex: 1 1 0;
+}
+
+.pair > :first-child {
+    margin-right: 6rem;
+}
+
+.queueBig {
+    @include row(baseline);
+    min-width: 0;
+    margin-bottom: 3rem;
+}
+
+.queueValue {
+    font-size: 18rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.queueLabel {
+    margin-left: 6rem;
+    font-size: 11rem;
+    color: $c-text-dim;
+    white-space: nowrap;
+}
+
+// how soon the line clears (under its count: beside the title it ran into it in a half-width card)
+.queuePace {
+    @include ellipsis;
+    min-width: 0;
+    margin-bottom: 3rem;
+    font-size: 10rem;
+    color: $c-text-dim;
+}
+
+.queueRow {
+    @include row;
+    min-width: 0;
+    height: 16rem;
+    font-size: 11rem;
+}
+
+.queueRowName {
+    @include ellipsis;
+    flex: 1 1 auto;
+    min-width: 0;
+    color: $c-text-dim;
+}
+
+.queueRowValue {
+    flex: 0 0 auto;
+    margin-left: 6rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.cardTitle {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 11rem;
+    font-weight: bold;
+    letter-spacing: 0.6rem;
+    text-transform: uppercase;
+    color: $c-text-faint;
+}
+
+.cardRight {
+    flex: 0 0 auto;
+    margin-left: 8rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
+    white-space: nowrap;
+}
+
+.muted {
+    margin-top: 4rem;
+    font-size: 11rem;
+    color: $c-text-faint;
+}
+
+// ── outgrown: the ring and its legend ──
+.typesRow {
+    @include row(center);
+    min-width: 0;
+}
+
+.ring {
+    position: relative;
+    flex: 0 0 auto;
+    width: 80rem;
+    height: 80rem;
+    margin-right: 12rem;
+}
+
+.ringMid {
+    @include col;
+    position: absolute;
+    left: 0;
+    top: 24rem;
+    width: 80rem;
+    align-items: center;
+}
+
+.ringBig {
+    font-size: 16rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.ringSub {
+    margin-top: 1rem;
+    font-size: 10rem;
+    color: $c-text-dim;
+    white-space: nowrap;
+}
+
+.legend {
+    @include col;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.legendRow,
+.lensItem {
+    @include row;
+    min-width: 0;
+    height: 17rem;
+    padding: 0 3rem;
+    border-radius: 3rem;
+    font-size: $fs-s;
+}
+
+.legendRowOn {
+    background-color: $c-surface-hover;
+}
+
+.swatch {
+    flex: 0 0 auto;
+    width: 10rem;
+    height: 10rem;
+    margin-right: 7rem;
+    border-radius: 2rem;
+}
+
+.dot {
+    flex: 0 0 auto;
+    width: 7rem;
+    height: 7rem;
+    margin-right: 5rem;
+    border-radius: 4rem;
+}
+
+.legendName {
+    @include ellipsis;
+    flex: 1 1 auto;
+    min-width: 0;
+    color: $c-text-dim;
+}
+
+.legendValue {
+    flex: 0 0 auto;
+    margin-left: 8rem;
+    font-weight: bold;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.legendPct {
+    flex: 0 0 auto;
+    width: 34rem;
+    margin-left: 6rem;
+    text-align: right;
+    color: $c-text-faint;
+    white-space: nowrap;
+}
+
+// ── by kind ──
+.kindRow {
+    @include row;
+    min-width: 0;
+    height: 18rem;
+    font-size: $fs-s;
+}
+
+.kindName {
+    flex: 0 0 auto;
+    width: 46rem;
+    color: $c-text-dim;
+}
+
+.bar {
+    flex: 1 1 auto;
+    min-width: 16rem;
+    height: 7rem;
+    border-radius: 4rem;
+    background-color: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.barFill {
+    height: 100%;
+    border-radius: 4rem;
+    background-color: #78e054;
+}
+
+.kindValue {
+    flex: 0 0 auto;
+    margin-left: 6rem;
+    text-align: right;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.cellZero {
+    opacity: 0.55;
+}
+
+// ── activity: three short charts one under the other ──
+.chart {
+    @include col;
+    min-width: 0;
+}
+
+.chart + .chart {
+    margin-top: 6rem;
+}
+
+.chartKeys {
+    @include row;
+    min-width: 0;
+    margin-bottom: 2rem;
+}
+
+.chartKey {
+    @include row;
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-right: 14rem;
+    font-size: $fs-s;
+}
+
+.line {
+    flex: 0 0 auto;
+    width: 12rem;
+    height: 3rem;
+    margin-right: 5rem;
+    border-radius: 2rem;
+}
+
+.chartKeyText {
+    @include ellipsis;
+    min-width: 0;
+    color: $c-text-dim;
+}
+
+.chartKeyValue {
+    flex: 0 0 auto;
+    margin-left: 5rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.plot {
+    position: relative;
+    min-width: 0;
+    height: 44rem;
+    border-radius: $radius;
+    background-color: rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+}
+
+.plotMax {
+    position: absolute;
+    left: 5rem;
+    top: 1rem;
+    font-size: 10rem;
+    color: $c-text-faint;
+    white-space: nowrap;
+}
+
+.plotEmpty {
+    position: absolute;
+    left: 0;
+    top: 15rem;
+    width: 100%;
+    text-align: center;
+    font-size: 11rem;
+    color: $c-text-faint;
+}
+
+.axis {
+    @include row;
+    justify-content: space-between;
+    min-width: 0;
+    margin-top: 2rem;
+}
+
+.axisText {
+    font-size: 10rem;
+    color: $c-text-faint;
+    white-space: nowrap;
+}
+
+// ── details ──
+.details {
+    @include col;
+    min-width: 0;
+    padding: 2rem 4rem 4rem 4rem;
+}
+
+.detailRow {
+    @include row;
+    min-width: 0;
+    height: 17rem;
+    font-size: $fs-s;
+}
+
+.detailName {
+    @include ellipsis;
+    flex: 1 1 auto;
+    min-width: 0;
+    color: $c-text-dim;
+}
+
+.detailValue {
+    flex: 0 0 auto;
+    margin-left: 8rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+// ── the status strip under the window's buttons ──
+.strip {
+    @include row(stretch);
+    flex-shrink: 0;
+    min-width: 0;
+    padding: 6rem 8rem 7rem 8rem;
+    border-bottom-width: 1rem;
+    border-bottom-style: solid;
+    border-bottom-color: $c-line;
+}
+
+.stripCell {
+    @include col;
+    flex: 1 1 0;
+    min-width: 0;
+    align-items: center;
+}
+
+.stripValue {
+    font-size: 15rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.stripLabel {
+    margin-top: 1rem;
+    font-size: 10rem;
+    color: $c-text-dim;
+    white-space: nowrap;
+}
+
+// ── the lens legend ──
+.lensLegend {
+    @include row;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.lensItem {
+    flex: 0 0 auto;
+    height: 16rem;
+    margin-right: 12rem;
+    font-size: 11rem;
+}
+
+.lensItem .legendName {
+    flex: 0 0 auto;
+    overflow: visible;
+}
+
+.lensItemNone {
+    opacity: 0.4;
+}

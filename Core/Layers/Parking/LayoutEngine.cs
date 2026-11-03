@@ -13,7 +13,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using Placemaker.Core.Geometry;
 using Unity.Mathematics;
 
 namespace Placemaker.Core.Layers.Parking
@@ -217,9 +219,23 @@ namespace Placemaker.Core.Layers.Parking
             double es = _s.Setback;
             _c1Raw = es > 1e-6 ? Inset.Of(_lot, es) : _lot.ToArray();
             _c1 = CleanContour(_c1Raw);
+            // a neck or sliver thinner than the margin on both sides folds the corner-by-corner inset over itself: the lot
+            // without them (a 2.4 ha lot with a thin strip to a corner came back "too small", user report 2026-10-19)
+            for (int k = 0; _c1 == null && k < 3; k++)
+            {
+                var tidy = Tidy(_lot, es, k);
+                if (tidy == null) break;
+                var c1 = CleanContour(es > 1e-6 ? Inset.Of(tidy, es) : tidy.ToArray());
+                if (c1 == null) continue;
+                _lot = tidy;
+                _out.Lot = _lot;
+                _out.LotArea = PGeo.Area(_lot);
+                _c1Raw = es > 1e-6 ? Inset.Of(_lot, es) : _lot.ToArray();
+                _c1 = c1;
+            }
             if (_c1 == null)
             {
-                Issue(IssueSeverity.Error, "Placemaker.Parking.Issue.TooSmall");
+                Issue(IssueSeverity.Error, "Placemaker.Parking.Issue.TooNarrow");
                 return false;
             }
             _ring = _s.PerimeterRoad;
@@ -249,6 +265,28 @@ namespace Placemaker.Core.Layers.Parking
                 ZoneRegions.Add((_g, 3));
             }
             return true;
+        }
+
+        /// <summary>
+        /// The lot without what no stall row can use (an opening): shrunk by the margin plus a little, the biggest piece kept,
+        /// grown back and clipped to the lot, straightened a little. Necks, slivers and spikes narrower than about twice the
+        /// margin go; the rest keeps its outline. <paramref name="round"/> 0, 1, 2 open wider each time. Null when nothing
+        /// usable is left.
+        /// </summary>
+        private static List<double2> Tidy(List<double2> lot, double margin, int round)
+        {
+            if (lot == null || lot.Count < 3) return null;
+            float r = (float)(Math.Max(margin, 0.5) + 0.5) * (1 << round);
+            var ring = lot.Select(p => new float2((float)p.x, (float)p.y)).ToList();
+            var inner = Poly.Offset(ring, r, OffsetJoin.Miter);
+            if (inner.Count == 0) return null;
+            var grown = Poly.Offset(inner[0].Outer, -r, OffsetJoin.Miter);
+            if (grown.Count == 0) return null;
+            var clipped = Poly.Intersection(grown[0].Outer, ring);
+            if (clipped.Count == 0 || clipped[0].Outer.Length < 3) return null;
+            var best = clipped.OrderByDescending(x => x.Area).First();
+            var d = PGeo.EnsureCcw(PGeo.Simplify(best.Outer.Select(p => new double2(p.x, p.y)).ToList(), 0.05, 0.02));
+            return d.Count >= 3 && PGeo.IsSimple(d) && PGeo.Area(d) >= 1 ? d : null;
         }
 
         private static List<double2> CleanContour(double2[] raw)

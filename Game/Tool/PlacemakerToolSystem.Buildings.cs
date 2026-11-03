@@ -77,7 +77,7 @@ namespace Placemaker.Game.Tool
 
         private void AddBuildingHint(List<HintInfo> h)
         {
-            if (_keptBuildingCount <= 0 || _shape == null || Painting) return;
+            if (_keptBuildingCount <= 0 || _shape == null || Painting || PolishType) return;
             if (_stage != ToolStage.Area && _stage != ToolStage.Design && _stage != ToolStage.Review) return;
             h.Add(new HintInfo("Placemaker.Hint.BuildingsKept") { Text = new LocText("Placemaker.Hint.BuildingsKept", _keptBuildingCount) });
         }

@@ -894,7 +894,7 @@ function Invoke-QueuedSend([string]$repo, [string]$text, [string]$base, [hashtab
         session = $session; key = "$($snap.hash)|$(Q-HashText $sig)".Substring(0, 30)
         scenarios = [int]$needs.scenarios; land = [int]$needs.land; blocks = $needs.blocks; rowPics = @($needs.rowPics); rowLand = @($needs.rowLand); rowType = @($needs.rowType)
         runId = $runId; resultsRoot = $o.ResultsRoot; resultsDir = (Join-Path $o.ResultsRoot $runId)
-        timeoutMin = $(if ($o.TimeoutSec -gt 0) { [int][math]::Ceiling($o.TimeoutSec / 60) } else { 0 }); fresh = $false
+        timeoutMin = $(if ($o.TimeoutSec -gt 0) { [int][math]::Ceiling($o.TimeoutSec / 60) } else { 0 }); fresh = [bool]$o.Fresh
     }
     Q-Say ("build {0} ({1}){2}" -f $snap.hash, $snap.label, $(if ($snap.sameAs) { "; the same build as $($snap.sameAs)" } else { '' }))
     $res = Q-SubmitAndWait $req $text $PSScriptRoot

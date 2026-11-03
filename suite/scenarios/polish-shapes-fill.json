@@ -1,0 +1,133 @@
+{
+  "_about": "All four shapes with lawns filling their whole enclosure (lawnReach 40). Send with tools/hot/Send-Hot.ps1.",
+  "scenarios": [
+    {
+      "id": "shape-tight",
+      "land": {
+        "shape": "rect",
+        "size": [
+          240,
+          200
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "lab", "op": "hotload", "path": "{hot}" },
+        {
+          "op": "polishSettings",
+          "do": "lab",
+          "settings": {
+            "lawnReach": 40
+          }
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 50, "from": 0, "to": 180 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "shape-gentle",
+      "land": {
+        "shape": "rect",
+        "size": [
+          440,
+          260
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 170, "from": 30, "to": 150, "at": [ 0, -120 ] },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-45", "camera": { "target": "point", "at": [ 0, 80 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "shape-circle",
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          300
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "circle", "radius": 75 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-centre", "camera": { "target": "point", "at": [ 0, 0 ], "view": "oblique", "pitch": 55, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "shape-block",
+      "land": {
+        "shape": "rect",
+        "size": [
+          300,
+          300
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "block", "length": 130 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-centre", "camera": { "target": "point", "at": [ 0, 0 ], "view": "oblique", "pitch": 55, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

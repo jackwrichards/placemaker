@@ -210,7 +210,6 @@ namespace Placemaker.Game.Assets
                 {
                     // s21: decorative decals lie along their host (long axis = planned yaw) whatever pack resolved them.
                     Core.Decals.DecalFit.Orient(plan, _infoMap);
-                    PrewarmSeeThrough(plan);
                     var report = Declutter.Run(plan, _infoMap);
                     if (report.TotalDropped > 0 || report.TotalMoved > 0)
                         Mod.Log.Info("Placemaker declutter: " + report);
@@ -370,29 +369,6 @@ namespace Placemaker.Game.Assets
             if (prefab == Entity.Null || !EntityManager.HasComponent<NetGeometryData>(prefab)) return 0f;
             float max = EntityManager.GetComponentData<NetGeometryData>(prefab).m_EdgeLengthRange.max;
             return math.isfinite(max) && max > 1f ? max : 0f;
-        }
-
-        /// <summary>
-        /// (s28) Asks for the see-through copies of the plan's decorative decals while the player is still looking at the
-        /// preview, so the build (a few seconds later) finds them ready instead of building the originals at full strength.
-        /// </summary>
-        private void PrewarmSeeThrough(ComposedPlan plan)
-        {
-            var clones = World.GetExistingSystemManaged<global::Placemaker.Game.Build.DecalOpacitySystem>();
-            if (clones == null || !global::Placemaker.Game.Build.DecalOpacitySystem.FeatureEnabled) return;
-            var seen = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var l in plan.Layers)
-            {
-                if (l?.Objects == null) continue;
-                foreach (var o in l.Objects)
-                {
-                    if (o == null || o.Role != ObjectRole.Decal || string.IsNullOrEmpty(o.Asset.Id)) continue;
-                    float opacity = Core.Decals.DecalLook.OpacityOf(o);
-                    if (opacity >= 0.995f || !seen.Add(o.Asset.Id + "|" + Core.Decals.DecalLook.Tier(opacity))) continue;
-                    var e = ResolveName(o.Asset.Id, o.Category);
-                    if (e != Entity.Null) clones.CloneFor(e, opacity, out _);
-                }
-            }
         }
 
         private Entity ResolveName(string name, string category)

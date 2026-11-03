@@ -20,6 +20,8 @@ namespace Placemaker.Core.Layers.Commercial
         /// <summary>The player's entrances (entrance mode), null otherwise: the composition then attaches its own lanes to the streets as before.</summary>
         public List<ShopEntrances.Gate> Gates;
         public bool EntranceMode => Gates != null;
+        /// <summary>(shops4) Laid out by LotCentre (the lot first, the shops behind it).</summary>
+        public bool LotFirstMode;
 
         /// <summary>Row bands held before the lots (released before the rows are placed); a gate may cut a gap through one.</summary>
         public readonly List<float2[]> RowHolds = new List<float2[]>();
@@ -107,6 +109,15 @@ namespace Placemaker.Core.Layers.Commercial
                         float dq = math.distance(l.Points[k], g.At);
                         if (dq < 70f && math.dot(l.Points[k] - g.At, g.In) > 0.5f * dq) cands.Add((l, l.Points[k]));
                     }
+                // (shops4) the free ends of open lanes near it, whichever way they lie (an entrance beside the strip mall's row of
+                // shops, behind the lane's end: its drive runs past the end plot to the lane's end node)
+                foreach (var l in Lanes)
+                {
+                    if (l.Closed || l.Role == NetRole.DriveConnector || l.Points.Count < 2) continue;
+                    if (l.StartAttach == -1 && l.StartOn == null && math.distance(l.Points[0], g.At) < 70f) cands.Add((l, l.Points[0]));
+                    var e = l.Points[l.Points.Count - 1];
+                    if (l.EndAttach == -1 && l.EndOn == null && math.distance(e, g.At) < 70f) cands.Add((l, e));
+                }
                 if (cands.Count == 0)
                 {
                     Ctx.Plan.Facts["gateFail" + g.Index] = 2;
@@ -133,6 +144,8 @@ namespace Placemaker.Core.Layers.Commercial
                     var r0 = Strip(g.At - g.In * 1f, h0, rowHalf, cl.Half - 0.5f) ?? c0;
                     int cuts = 0;
                     foreach (var rh in RowHolds) if (StreetShops.ConvexOverlap(rh, r0, 0.05f)) cuts++;
+                    // (shops4) A walk never cuts through a row of shops (its paseo split a plot's zone columns): it takes a way round or none.
+                    if (walk && cuts > 0 && LotFirstMode) continue;
                     float cost = math.distance(g.At, h0) + 30f * cuts + (ci == 0 ? -0.5f : 0f);
                     if (cost >= bestCost) continue;
                     bestCost = cost; target = cl; hit = h0; corridor = c0; rowCorridor = r0;

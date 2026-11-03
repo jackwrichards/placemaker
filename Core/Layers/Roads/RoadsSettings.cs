@@ -87,6 +87,12 @@ namespace Placemaker.Core.Layers.Roads
         public const string FollowTerrain = "followTerrain";
         public const string AvoidObstacles = "avoidObstacles";
         public const string ConnectExisting = "connectExisting";
+        /// <summary>(Smarter roads) Which existing roads new roads join: "streets" (all but highways and ramps) | "small" | "any".</summary>
+        public const string ConnectTo = "connectTo";
+        /// <summary>(Smarter roads) Ground the streets wear in (desire paths, corner wear, verges): "off" | "subtle" | "lived".</summary>
+        public const string GroundWear = "roadWear";
+        /// <summary>(Smarter roads) Grid character: "strict" (the plain grid) | "auto" (gives way to hills and desire lines) | "lively" (more: brick blocks, a square).</summary>
+        public const string GridCharacter = "gridCharacter";
         public const string CapStyle = "capStyle";                  // "none" | "asphalt" | "grass" | "trees"
         public const string CapSize = "capSize";                    // "auto" | "small" | "medium" | "large" | "xl"
         public const string LocalAsset = "localAsset";
@@ -127,6 +133,10 @@ namespace Placemaker.Core.Layers.Roads
         /// <summary>Pre-zone every new road's zone blocks: "none" or a zone kind (ZoneKinds).</summary>
         public const string PreZone = "preZone";
 
+        /// <summary>"terrace" (every pattern: each street's frontage level across, banks or walls between the levels, on
+        /// sloped ground only) | "natural" (the ground as it is).</summary>
+        public const string LandShape = "landShape";
+
         // s52: hillside terraces (pattern "terraces", Core/Layers/Roads/Terraces)
         /// <summary>Zone cells (8 m) kept level on each side of a terrace street, 1..6.</summary>
         public const string TerraceCells = "terraceCells";
@@ -156,6 +166,10 @@ namespace Placemaker.Core.Layers.Roads
     public static class RoadsSchema
     {
         public const string KeyPrefix = "Placemaker.Roads.";
+        /// <summary>Default perimeter corner (m): the tightest a two-lane road turns cleanly (its half width 8 m + 6 m, rounded up).</summary>
+        public const float TightCorner = 15f;
+        /// <summary>Perimeter corner of the winding styles (m): their streets curve, a tight corner would look out of place.</summary>
+        public const float SoftCorner = 30f;
 
         public static readonly string[] PatternValues =
             { "grid", "tree", "organic", "contour", "mixed", "loop", "superblock", "concentric", "radial", "terraces" };
@@ -196,6 +210,7 @@ namespace Placemaker.Core.Layers.Roads
 
             c.Add(Slider(RoadsIds.GridSpacing, ControlTier.Essential, "layout", 60, 300, 10, "m", 100, "pattern=grid"));
             c.Add(Slider(RoadsIds.GridAngle, ControlTier.Essential, "layout", -90, 90, 1, "deg", 0, "pattern=grid", label: "angle"));
+            c.Add(Choice(RoadsIds.GridCharacter, ControlTier.Essential, "layout", RoadCharacter.Auto, RoadCharacter.Values, "pattern=grid"));
             c.Add(Slider(RoadsIds.TreeBranchSpacing, ControlTier.Essential, "layout",
                 GridGenerator.MinTreeBranchSpacing, GridGenerator.MaxTreeBranchSpacing, 10, "m", GridGenerator.TreeBranchSpacingDefault, "pattern=tree"));
             c.Add(Slider(RoadsIds.TreeCulDeSacLength, ControlTier.Essential, "layout",
@@ -224,7 +239,7 @@ namespace Placemaker.Core.Layers.Roads
             c.Add(Slider(RoadsIds.RadialRoundaboutRadius, ControlTier.Essential, "layout", 20, 150, 5, "m", 50, "pattern=radial", label: "roundaboutRadius"));
             c.Add(Slider(RoadsIds.RadialRings, ControlTier.Essential, "layout", 0, ConcentricGenerator.MaxLayersLimit, 1, "count", 2, "pattern=radial", label: "rings"));
             // s52: hillside terraces — terrace depth in zone cells, how the terraces are linked.
-            c.Add(Slider(RoadsIds.TerraceCells, ControlTier.Essential, "layout", 1, 6, 1, "count", 4, "pattern=terraces"));
+            c.Add(Slider(RoadsIds.TerraceCells, ControlTier.Essential, "layout", 1, 6, 1, "count", 4, "landShape=terrace"));
             c.Add(Choice(RoadsIds.TerraceLinks, ControlTier.Essential, "layout", "direct", new[] { "direct", "serpentine", "spiral" }, "pattern=terraces"));
             c.Add(Slider(RoadsIds.TerraceLinkSpacing, ControlTier.Essential, "layout", 120, 600, 20, "m", 300, "pattern=terraces"));
 
@@ -258,8 +273,11 @@ namespace Placemaker.Core.Layers.Roads
 
             // ── More: network-wide ────────────────────────────────────────
             c.Add(Choice(RoadsIds.PerimeterRoad, ControlTier.More, "connections", "auto", new[] { "auto", "on", "off" }));
-            c.Add(Slider(RoadsIds.PerimeterCornerRadius, ControlTier.More, "connections", 0, 80, 5, "m", FreeAreaPerimeter.CornerRadius));
+            // Smarter roads: the perimeter hugs the selection: the tightest corner the road turns cleanly (winding styles set more).
+            c.Add(Slider(RoadsIds.PerimeterCornerRadius, ControlTier.More, "connections", 0, 80, 5, "m", TightCorner));
             c.Add(Toggle(RoadsIds.ConnectExisting, ControlTier.More, "connections", true));
+            c.Add(Choice(RoadsIds.ConnectTo, ControlTier.More, "connections", ConnectTo.Streets, ConnectTo.Values, "connectExisting=true"));
+            c.Add(Choice(RoadsIds.GroundWear, ControlTier.Essential, "terrain", RoadPaint.Subtle, RoadPaint.Values));
             c.Add(Toggle(RoadsIds.AvoidObstacles, ControlTier.More, "connections", true));
             c.Add(Toggle(RoadsIds.FollowTerrain, ControlTier.More, "connections", true));
             c.Add(Asset(RoadsIds.LocalAsset, ControlTier.More, "roadTypes", AssetCategories.Road));
@@ -280,8 +298,10 @@ namespace Placemaker.Core.Layers.Roads
             c.Add(Choice(RoadsIds.TipStyle, ControlTier.More, "culDeSacs", "same", new[] { "same", "gravel", "mixed" }));
             c.Add(Asset(RoadsIds.LaneAsset, ControlTier.More, "roadTypes", AssetCategories.Road));
             c.Add(Choice(RoadsIds.TerrainFit, ControlTier.Essential, "terrain", "auto", new[] { "auto", "follow", "ignore" }));
+            // Smarter roads: no terracing unless the player asks for it (the user: terrain flattening and terracing off by default).
+            c.Add(Choice(RoadsIds.LandShape, ControlTier.Essential, "terrain", "natural", new[] { "terrace", "natural" }));
             c.Add(Slider(RoadsIds.MaxGrade, ControlTier.More, "terrain", 4, 16, 1, "%", 10));
-            var preZone = Choice(RoadsIds.PreZone, ControlTier.Essential, "zoning", RoadPreZone.None, RoadPreZone.Values());
+            var preZone = Choice(RoadsIds.PreZone, ControlTier.Essential, "zoning", RoadPreZone.Default, RoadPreZone.Values());
             // The zone types read like everywhere else (Placemaker.Zone.<kind>).
             foreach (var o in preZone.Options)
                 if (o.Value != RoadPreZone.None) { o.LabelKey = "Placemaker.Zone." + o.Value; o.TooltipKey = "Placemaker.Zone." + o.Value + ".Tooltip"; }
@@ -289,13 +309,14 @@ namespace Placemaker.Core.Layers.Roads
 
             // ── s52: hillside terraces (more) ────────────────────────────
             c.Add(Toggle(RoadsIds.TerraceAvenues, ControlTier.More, "layout", false, "pattern=terraces"));
-            c.Add(Slider(RoadsIds.TerraceFall, ControlTier.More, "terraces", 0, 4, 0.5, "%", 1, "pattern=terraces"));
-            c.Add(Choice(RoadsIds.TerraceBank, ControlTier.More, "terraces", "bank", new[] { "bank", "wall" }, "pattern=terraces"));
-            c.Add(Slider(RoadsIds.TerraceBankSlope, ControlTier.More, "terraces", 20, 50, 5, "%", 40, "pattern=terraces"));
-            c.Add(Slider(RoadsIds.TerraceFlat, ControlTier.More, "terraces", 2, 12, 1, "%", 5, "pattern=terraces"));
-            c.Add(Slider(RoadsIds.TerraceEarthwork, ControlTier.More, "terraces", 2, 20, 1, "m", 8, "pattern=terraces"));
-            c.Add(Toggle(RoadsIds.TerracePaint, ControlTier.More, "terraces", true, "pattern=terraces"));
-            c.Add(Toggle(RoadsIds.TerraceTrees, ControlTier.More, "terraces", true, "pattern=terraces"));
+            c.Add(Slider(RoadsIds.TerraceFall, ControlTier.More, "terraces", 0, 4, 0.5, "%", 1, "landShape=terrace"));
+            // no "retaining" (the walls were the game's quays: the user, "they never work"); a saved "retaining" is a bank
+            c.Add(Choice(RoadsIds.TerraceBank, ControlTier.More, "terraces", "bank", new[] { "bank", "wall" }, "landShape=terrace"));
+            c.Add(Slider(RoadsIds.TerraceBankSlope, ControlTier.More, "terraces", 20, 50, 5, "%", 40, "landShape=terrace"));
+            c.Add(Slider(RoadsIds.TerraceFlat, ControlTier.More, "terraces", 2, 12, 1, "%", 5, "landShape=terrace"));
+            c.Add(Slider(RoadsIds.TerraceEarthwork, ControlTier.More, "terraces", 2, 20, 1, "m", 8, "landShape=terrace"));
+            c.Add(Toggle(RoadsIds.TerracePaint, ControlTier.More, "terraces", true, "landShape=terrace"));
+            c.Add(Toggle(RoadsIds.TerraceTrees, ControlTier.More, "terraces", true, "landShape=terrace"));
 
             // ── More: upgrades ────────────────────────────────────────────
             c.Add(Toggle(RoadsIds.StreetTrees, ControlTier.More, "streetUpgrades", false));
@@ -326,8 +347,9 @@ namespace Placemaker.Core.Layers.Roads
                 LabelKey = Label(labelId), TooltipKey = Tooltip(labelId),
                 VisibleWhen = visibleWhen ?? "",
                 // s15: the per-pattern essentials stay hidden for the other patterns (greyed they would bury the
-                // few that apply); every other condition is shown greyed with its reason.
-                HideWhenOff = (visibleWhen ?? "").StartsWith("pattern=", System.StringComparison.Ordinal),
+                // few that apply), as the terrace settings on natural land; every other condition is shown greyed with its reason.
+                HideWhenOff = (visibleWhen ?? "").StartsWith("pattern=", System.StringComparison.Ordinal)
+                    || (visibleWhen ?? "").StartsWith(RoadsIds.LandShape + "=", System.StringComparison.Ordinal),
             };
         }
 

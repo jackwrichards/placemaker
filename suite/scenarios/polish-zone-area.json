@@ -1,0 +1,146 @@
+{
+  "_about": "The Zoning category zoning empty land: an unzoned street, its land picked with Paint area, Suburb with Corner shops (85 % low housing, 15 % low commercial, evenly), Build zones the cells as lots from the road; houses grow there and outgrow their lots with the Garden look (the look area). Send with tools/hot/Send-Hot.ps1 -File suite/scenarios/polish-zone-area.json.",
+  "scenarios": [
+    {
+      "id": "polish-zone-area",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          240
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": false
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "arc",
+          "radius": 120,
+          "from": 40,
+          "to": 140,
+          "zone": "none"
+        },
+        {
+          "do": "wait",
+          "seconds": 2
+        },
+        {
+          "do": "area",
+          "tool": "paint",
+          "size": 80,
+          "cameraDistance": 520,
+          "stroke": [
+            [
+              -110,
+              -60
+            ],
+            [
+              -60,
+              0
+            ],
+            [
+              -20,
+              40
+            ],
+            [
+              30,
+              60
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "zoningSuburb",
+          "preset": "suburbCornerShops"
+        },
+        {
+          "do": "shot",
+          "name": "design-ui",
+          "camera": {
+            "target": "point",
+            "at": [
+              -40,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 60,
+            "distance": 320
+          },
+          "shotMode": "ui"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "shot",
+          "name": "zoned-top",
+          "camera": {
+            "target": "point",
+            "at": [
+              -40,
+              0
+            ],
+            "view": "top",
+            "distance": 380
+          },
+          "shotMode": "render",
+          "zones": true
+        },
+        {
+          "do": "grow",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 180
+        },
+        {
+          "do": "shot",
+          "name": "grown-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              -40,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 200
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "grown-top",
+          "camera": {
+            "target": "point",
+            "at": [
+              -40,
+              0
+            ],
+            "view": "top",
+            "distance": 380
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        }
+      ]
+    }
+  ]
+}

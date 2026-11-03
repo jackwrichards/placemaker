@@ -89,7 +89,8 @@ test("area modes: pick block (+shift), paint, road loop", async ({ page }) => {
     await shot(page, "11-mode-paint");
 
     await page.getByTestId("clear-area").click();
-    await page.getByTestId("area-mode-perimeter").click();
+    // Area overhaul: Road nodes is part of Points (corners snap to road nodes in the game).
+    await page.getByTestId("area-mode-draw").click();
     for (const [nx, nz] of [
         [490, 260],
         [790, 260],
@@ -99,10 +100,10 @@ test("area modes: pick block (+shift), paint, road loop", async ({ page }) => {
     ])
         await clickWorld(page, nx, nz);
     expect(await page.evaluate(() => (window as any).pm.backend.state().area.valid)).toBe(true);
-    await shot(page, "12-mode-perimeter");
+    await shot(page, "12-mode-points-on-nodes");
 });
 
-test("launcher toggles the tool; info-panel section edits a built place", async ({ page }) => {
+test("launcher toggles the tool; info-panel section: no Edit (it left an edit open), Ungroup asks in place", async ({ page }) => {
     await open(page);
     await expect(page.getByTestId("launcher")).toHaveAttribute("data-open", "true");
     await page.getByTestId("launcher").locator("button").click();
@@ -121,12 +122,16 @@ test("launcher toggles the tool; info-panel section edits a built place", async 
     await clickWorld(page, 650, 380);
     await expect(page.getByTestId("info-section")).toBeVisible();
     await shot(page, "13-info-section");
-    await page.getByTestId("info-edit").click();
-    await expect(page.getByTestId("stage-design")).toBeVisible();
-    await expect(page.getByTestId("placemaker-panel")).toContainText("Editing");
-    await page.getByTestId("primary").click();
-    await waitPlanned(page);
-    await expect(page.getByTestId("primary")).toContainText("Apply changes");
+    // Edit lives in Placemaker's own Manage stage only: from the game's info panel it loaded the build without opening
+    // Placemaker, and the next build replaced it (the user, 22 Oct)
+    await expect(page.getByTestId("info-edit")).toHaveCount(0);
+    // Ungroup asks in the section itself, no dialog
+    await page.getByTestId("info-ungroup").click();
+    await expect(page.getByTestId("info-confirm")).toBeVisible();
+    await expect(page.getByTestId("confirm-dialog")).toHaveCount(0);
+    await page.getByTestId("info-confirm-cancel").click();
+    await expect(page.getByTestId("info-confirm")).toHaveCount(0);
+    await expect(page.getByTestId("info-remove")).toBeVisible();
 });
 
 test("robustness: malformed or partial C# payloads never crash the panel", async ({ page }) => {

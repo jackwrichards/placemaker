@@ -43,7 +43,7 @@ namespace Placemaker.Tests
             Composer.Compose(r, new AreaShape { Ring = ring, Source = AreaSource.Drawn }, site, CancellationToken.None);
 
         private static string CompositionFact(string type) =>
-            type == "stripMall" ? StripMallLayer.CentreFact : type == "mallPark" ? MallParkLayer.RingFact : MallDistrictLayer.RingFact;
+            type == "stripMall" ? CommercialLayer.LotFact : type == "mallPark" ? MallParkLayer.RingFact : MallDistrictLayer.RingFact;
 
         // ───────────── Build waits for a way in for cars; nothing is suggested ─────────────
 
@@ -101,7 +101,10 @@ namespace Placemaker.Tests
             return false;
         }
 
-        /// <summary>Net ends of the plan that join an existing street: attached ends, and ends at a kerb (a drive the game connects).</summary>
+        /// <summary>
+        /// Net ends of the plan that join an existing street: attached ends, and ends at a kerb (a drive or a walk the game
+        /// connects). A walk's end stops half its width off the kerb (StreetJoins: its round end must not touch the street).
+        /// </summary>
         private static List<(PlannedNet net, float2 at)> StreetJoins(ComposedPlan plan, SiteContext site)
         {
             var list = new List<(PlannedNet, float2)>();
@@ -111,9 +114,9 @@ namespace Placemaker.Tests
                     if (n.Role == NetRole.Fence) continue;
                     if (n.StartAttach >= 0) list.Add((n, n.A.xz));
                     if (n.EndAttach >= 0) list.Add((n, n.D.xz));
-                    if (n.Role == NetRole.DriveConnector || n.Role == NetRole.Pathway)
+                    if (n.Role == NetRole.DriveConnector || n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide)
                         foreach (var e in new[] { n.A.xz, n.D.xz })
-                            if (NearStreet(site, e, 1.5f)) list.Add((n, e));
+                            if (NearStreet(site, e, 1.5f + (n.Role == NetRole.DriveConnector ? 0f : Composer.DefaultHalfWidth(n.Role)))) list.Add((n, e));
                 }
             return list;
         }
@@ -160,7 +163,7 @@ namespace Placemaker.Tests
             // The driveway: a real lane junction with the street.
             Assert.Contains(joins, j => (j.net.Role == NetRole.Alley || j.net.Role == NetRole.Street) && (j.net.StartAttach >= 0 || j.net.EndAttach >= 0) && Near(j.at, At(ShopEntrances.Alley)));
             // The footpath: a walk from the sidewalk.
-            Assert.Contains(joins, j => j.net.Role == NetRole.Pathway && Near(j.at, At(ShopEntrances.Footpath)));
+            Assert.Contains(joins, j => (j.net.Role == NetRole.Pathway || j.net.Role == NetRole.PathwayWide) && Near(j.at, At(ShopEntrances.Footpath)));
             // Nothing else joins a street.
             Assert.True(joins.All(j => markers.Any(m => Near(j.at, m.Position.xz))), $"{ctx}: a street join away from every entrance: {string.Join("; ", joins.Where(j => !markers.Any(m => Near(j.at, m.Position.xz))).Select(j => j.net.Role + " at " + j.at))}");
         }
@@ -188,7 +191,7 @@ namespace Placemaker.Tests
             // Never a pocket park, never nothing: the type's own composition, shops round its ring.
             Assert.DoesNotContain(plan.AllIssues(), i => i.Key == CommercialLayer.NoStreetKey || i.Key == CommercialLayer.NoLayoutKey || i.Key == CommercialLayer.FallbackKey);
             Assert.Equal(1.0, host.Facts.GetValueOrDefault(CompositionFact(type)));
-            Assert.True(host.Facts.GetValueOrDefault("shopPlots") >= 4, type + ": shop plots " + host.Facts.GetValueOrDefault("shopPlots"));
+            Assert.True(host.Facts.GetValueOrDefault("shopPlots") >= (type == "stripMall" ? 2 : 4), type + ": shop plots " + host.Facts.GetValueOrDefault("shopPlots"));
             Assert.Equal(host.Facts["shopPlots"], host.Regions.Count(Cutouts.IsCutout));
             Assert.NotEmpty(host.Zoning);
             // The strip mall is a lot with shops round it.
@@ -202,6 +205,7 @@ namespace Placemaker.Tests
         [MemberData(nameof(Types))]
         public void TheRingFollowsACircle(string type)
         {
+            if (type == "stripMall") return;   // (shops4) the strip mall has no ring: one lane behind its lot (LotCentre)
             var ring = Circle();
             var site = ZoningCutoutTests.Streets(ring);
             var r = Recipe(type);
@@ -261,6 +265,7 @@ namespace Placemaker.Tests
             var ring = TestKit.Rect(160, 160);
             var site = ZoningCutoutTests.Streets(ring);
             var r = Recipe("stripMall", "classic");
+            r.Root.Settings.Values["plotTrees"] = true;   // (shops4) off by default now: the player's extra
             ShopTestEntrances.Place(r, ring, site, footpath: true);
             var plan = Compose(r, ring, site);
             var host = plan.Layers.First(l => l.GeneratorId == "stripMall");

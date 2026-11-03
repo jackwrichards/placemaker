@@ -1,0 +1,404 @@
+{
+ "_about": "Lab: the game's ground pieces up close; the dirt heap and rubble as they are, sunk 0.5 and 1 m, tipped; then sunk with and without the game's negative Elevation, a car or barrels on each (does the sunk piece hide them?). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-ground-close.json -Who industrial-ground",
+ "scenarios": [
+  {
+   "id": "ground-new",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "names": [
+      "PlaygroundMountain01",
+      "PlaygroundMountain02",
+      "PlaygroundMountain03",
+      "Sandbox01",
+      "Sandbox02",
+      "Sandbox03",
+      "CampgroundFireplace01",
+      "CampgroundFireplace02",
+      "CampgroundFireplace03",
+      "BarrelFire01",
+      "BarrelFire02",
+      "BuildingRubble Placeholder",
+      "Road Block",
+      "VentilationDuctGroundConnection01",
+      "Citizen_Logger_Chainsaw01"
+     ],
+     "perRow": 5,
+     "gap": 3
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "low",
+     "camera": {
+      "target": "area",
+      "view": "low"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "ground-mounds",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "names": [
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile02",
+      "RubblePileConcrete01",
+      "RubblePileConcrete02",
+      "RubblePileConcrete03",
+      "RubblePileConcrete04",
+      "RubblePileMixed03",
+      "RubblePileWood03",
+      "Boulder01",
+      "Boulder04"
+     ],
+     "perRow": 4,
+     "gap": 2,
+     "turn": 35
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "low",
+     "camera": {
+      "target": "area",
+      "view": "low"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "ground-mounds-sunk",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "names": [
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile02",
+      "RubblePileConcrete01",
+      "RubblePileConcrete02",
+      "RubblePileConcrete03",
+      "RubblePileConcrete04",
+      "RubblePileMixed03",
+      "RubblePileWood03",
+      "Boulder01",
+      "Boulder04"
+     ],
+     "perRow": 4,
+     "gap": 2,
+     "turn": 35,
+     "sink": 0.5
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "low",
+     "camera": {
+      "target": "area",
+      "view": "low"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "ground-mounds-deep",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "names": [
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile02",
+      "RubblePileConcrete01",
+      "RubblePileConcrete02",
+      "RubblePileConcrete03",
+      "RubblePileConcrete04",
+      "RubblePileMixed03",
+      "RubblePileWood03",
+      "Boulder01",
+      "Boulder04"
+     ],
+     "perRow": 4,
+     "gap": 2,
+     "turn": 35,
+     "sink": 1
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "low",
+     "camera": {
+      "target": "area",
+      "view": "low"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "ground-tipped",
+   "land": {
+    "shape": "rect",
+    "size": [
+     120,
+     100
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "names": [
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile03",
+      "OreMiningTruck01_OrePile02",
+      "RubblePileConcrete01",
+      "RubblePileConcrete02",
+      "RubblePileConcrete03",
+      "RubblePileConcrete04",
+      "RubblePileMixed03",
+      "RubblePileWood03",
+      "Boulder01",
+      "Boulder04"
+     ],
+     "perRow": 4,
+     "gap": 2,
+     "turn": 35,
+     "roll": 12
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "low",
+     "camera": {
+      "target": "area",
+      "view": "low"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "sunk-plain",
+   "land": {
+    "shape": "rect",
+    "size": [
+     100,
+     80
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "names": [
+      "RubblePileConcrete01",
+      "RubblePileConcrete03",
+      "RubblePileMixed02",
+      "RubblePileWood02",
+      "Boulder03",
+      "OreMiningTruck01_OrePile03"
+     ],
+     "perRow": 3,
+     "gap": 2,
+     "turn": 30,
+     "sink": 0.6,
+     "pair": "Placemaker Vehicle Car 1"
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "sunk-underground",
+   "land": {
+    "shape": "rect",
+    "size": [
+     100,
+     80
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "names": [
+      "RubblePileConcrete01",
+      "RubblePileConcrete03",
+      "RubblePileMixed02",
+      "RubblePileWood02",
+      "Boulder03",
+      "OreMiningTruck01_OrePile03"
+     ],
+     "perRow": 3,
+     "gap": 2,
+     "turn": 30,
+     "sink": 0.6,
+     "underground": true,
+     "pair": "Placemaker Vehicle Car 1"
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "low",
+     "camera": {
+      "target": "area",
+      "view": "low"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "underground-barrels",
+   "land": {
+    "shape": "rect",
+    "size": [
+     100,
+     80
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "names": [
+      "RubblePileConcrete02",
+      "RubblePileConcrete04",
+      "RubblePileMixed03",
+      "RubblePileWood03"
+     ],
+     "perRow": 4,
+     "gap": 2,
+     "turn": 50,
+     "sink": 0.4,
+     "underground": true,
+     "pair": "BarrelPile01"
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    }
+   ]
+  }
+ ]
+}

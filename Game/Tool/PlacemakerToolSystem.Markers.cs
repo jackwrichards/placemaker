@@ -39,6 +39,43 @@ namespace Placemaker.Game.Tool
             StartMarkers(path, kind);
         }
 
+        /// <summary>The entrances placed next come with a crosswalk (walking kinds only; Core/Layers/Common/StreetJoins). Off by default.</summary>
+        private bool _markerCrosswalk;
+        public bool MarkerCrosswalk => _markerCrosswalk;
+
+        /// <summary>
+        /// UI: crosswalk or not. <paramref name="index"/> &lt; 0: for the entrances placed next; else for the placed marker with that
+        /// index in StepView.markerList (kept in its kind as "+crosswalk", MarkerVariants).
+        /// </summary>
+        public void SetMarkerCrosswalk(string path, int index, bool on)
+        {
+            if (index < 0) { _markerCrosswalk = on; Touch(); return; }
+            EndValuePreview(true);
+            var step = RecipePaths.Resolve(_recipe, path);
+            if (step == null || index >= step.Markers.Count) return;
+            var m = step.Markers[index];
+            if (!OffersCrosswalk(path, MarkerVariants.BaseKind(m.Kind)) || MarkerVariants.HasCrosswalk(m.Kind) == on) return;
+            m.Kind = MarkerVariants.WithCrosswalk(m.Kind, on);
+            step.Markers[index] = m;
+            MarkMarkersEdited(path);
+            DesignChanged();
+            Commit("Placemaker.Undo.Crosswalk");
+        }
+
+        /// <summary>The step's generator lets people walk in through <paramref name="kind"/>: it can have a crosswalk.</summary>
+        private bool OffersCrosswalk(string path, string kind)
+        {
+            var step = RecipePaths.Resolve(_recipe, path);
+            if (step == null) return false;
+            foreach (var k in MarkerKinds.For(GeneratorRegistry.Get(step.Layer)))
+                if (k.Kind == kind) return k.Crosswalk;
+            return false;
+        }
+
+        /// <summary>The kind a new marker gets: with "+crosswalk" while the crosswalk choice is on and people walk in there.</summary>
+        private string PlacedKind(string path, string kind) =>
+            _markerCrosswalk && OffersCrosswalk(path, kind) ? MarkerVariants.WithCrosswalk(kind, true) : kind;
+
         /// <summary>UI: remove one marker by its index in StepView.markerList.</summary>
         public void RemoveMarker(string path, int index)
         {
@@ -87,7 +124,7 @@ namespace Placemaker.Game.Tool
             }
             if (_in.LeftPressed && _markerHoverValid)
             {
-                var m = new EdgeMarker { Kind = _markerKind, RingSegment = _markerHoverSegment, RingT = _markerHoverT, Position = _markerHover };
+                var m = new EdgeMarker { Kind = PlacedKind(_markerPath, _markerKind), RingSegment = _markerHoverSegment, RingT = _markerHoverT, Position = _markerHover };
                 if (_editor.AddMarker(_recipe, _markerPath, m))
                 {
                     MarkMarkersEdited(_markerPath);

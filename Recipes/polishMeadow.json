@@ -1,0 +1,11 @@
+{
+  "formatVersion": 1,
+  "id": "polishMeadow",
+  "nameKey": "Placemaker.UI.Painter.Theme.meadow",
+  "descriptionKey": "Placemaker.UI.Painter.ThemeTip.meadow",
+  "icon": "Media/Game/Icons/Zones.svg",
+  "root": {
+    "layer": "polishMeadow",
+    "settings": {}
+  }
+}

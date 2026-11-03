@@ -40,7 +40,7 @@ test("s42 design: picker rows, editing bar, two-column Shape and Extras for real
         await pick(page, group, recipe);
         await expect(page.getByTestId(`recipe-${recipe}`)).toHaveAttribute("aria-pressed", "true");
         await expect(page.getByTestId("preset-bar")).toBeVisible();
-        await expect(page.getByTestId("preset-default")).toBeVisible();
+        await expect(page.getByTestId("preset-standard")).toBeVisible();
         await noTextOverflow(page, "design " + recipe);
         await panelShot(page, `s42-design-${recipe}`);
     }
@@ -155,7 +155,7 @@ test("s42 review: permanent changes need the OK chip beside Build", async ({ pag
     const primary = page.getByTestId("primary");
     await expect(page.getByTestId("permanent").first()).toBeVisible();
     await expect(primary).toHaveAttribute("aria-disabled", "true");
-    await expect(page.getByTestId("primary-reason")).toContainText("Tick OK to build");
+    await expect(page.getByTestId("primary-reason")).toContainText("Click OK to build");
     await noTextOverflow(page, "review permanent");
     await panelShot(page, "s42-review-permanent");
     await page.getByTestId("ack-permanent").click();
@@ -163,35 +163,33 @@ test("s42 review: permanent changes need the OK chip beside Build", async ({ pag
     expect(errors).toEqual([]);
 });
 
-test("s42 area: four tool cards, Paint area with Smart edges, keep-off chips, one summary line", async ({ page }) => {
+test("s42 area: three tool cards, Paint area with Smart edges, the stops, one summary line", async ({ page }) => {
     const errors = await open(page);
     await expect(page.getByTestId("area-mode-draw")).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByTestId("keep-off-builds")).toBeVisible();
+    await expect(page.getByTestId("stop-builds")).toBeVisible();
     await noTextOverflow(page, "area empty");
     await panelShot(page, "s42-area-points");
 
     await page.getByTestId("area-mode-paint").click();
     await expect(page.getByTestId("smart-edges")).toHaveAttribute("aria-checked", "true");
     expect(await page.evaluate(() => (window as any).pm.backend.mode)).toBe("blockPaint");
-    await expect(page.getByTestId("brush-rule-roads")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("stop-roads")).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByTestId("brush-angle-row")).toHaveCount(0);
     await noTextOverflow(page, "paint area");
     await panelShot(page, "s42-area-paint");
     // Smart edges off = plain paint over anything: the stops grey out
     await page.getByTestId("smart-edges").click();
     expect(await page.evaluate(() => (window as any).pm.backend.mode)).toBe("paint");
-    await expect(page.getByTestId("brush-rule-roads")).toHaveAttribute("aria-disabled", "true");
+    await expect(page.getByTestId("stop-roads")).toHaveAttribute("aria-disabled", "true");
     await page.getByTestId("brush-shape-square").click();
     await expect(page.getByTestId("brush-angle-row")).toBeVisible();
     await panelShot(page, "s42-area-paint-free");
     await page.getByTestId("brush-shape-round").click();
     await page.getByTestId("smart-edges").click();
-    // the outline tools keep their own Keep off chips whatever the brush does
+    // the outline tools follow the stops whatever the brush does
     await page.getByTestId("area-mode-block").click();
-    await expect(page.getByTestId("keep-off-builds")).not.toHaveAttribute("aria-disabled", "true");
+    await expect(page.getByTestId("stop-builds")).not.toHaveAttribute("aria-disabled", "true");
     await panelShot(page, "s42-area-bucket");
-    await page.getByTestId("area-mode-perimeter").click();
-    await panelShot(page, "s42-area-nodes");
 
     await page.getByTestId("area-mode-draw").click();
     await drawPolygon(page, FIELD);

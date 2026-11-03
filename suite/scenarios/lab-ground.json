@@ -1,0 +1,326 @@
+{
+ "_about": "Lab: a line-up of the game's own ground pieces (rocks, boulders, heaps, loads, rubble, logs, trash, anything else earthy), two pictures each (Game/Suite/SuiteLab.Lineup.cs). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-ground.json -Who industrial-ground",
+ "scenarios": [
+  {
+   "id": "ground-rocks",
+   "land": {
+    "shape": "rect",
+    "size": [
+     200,
+     160
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "match": "^Rock\\d+$",
+     "max": 30,
+     "perRow": 6,
+     "gap": 3
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "top",
+     "camera": {
+      "target": "area",
+      "view": "top"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "ground-boulders",
+   "land": {
+    "shape": "rect",
+    "size": [
+     200,
+     160
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "match": "^(Boulder|StandingStone)\\d+$",
+     "max": 16,
+     "perRow": 4,
+     "gap": 3
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "top",
+     "camera": {
+      "target": "area",
+      "view": "top"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "ground-piles",
+   "land": {
+    "shape": "rect",
+    "size": [
+     200,
+     160
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "match": "^Pile(Sand|Stone|Coal|Ore|Garbage|Crop)(Small|Medium|Large|Massive)01$",
+     "max": 24,
+     "perRow": 4,
+     "gap": 3
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "top",
+     "camera": {
+      "target": "area",
+      "view": "top"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "ground-loads",
+   "land": {
+    "shape": "rect",
+    "size": [
+     200,
+     160
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "match": "_(Ore|Coal|Stone|Garbage|Crop)Pile\\d",
+     "max": 24,
+     "perRow": 6,
+     "gap": 3
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "top",
+     "camera": {
+      "target": "area",
+      "view": "top"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "ground-rubble",
+   "land": {
+    "shape": "rect",
+    "size": [
+     200,
+     160
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "match": "^Rubble(Pile|Pylon)",
+     "max": 20,
+     "perRow": 4,
+     "gap": 3
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "top",
+     "camera": {
+      "target": "area",
+      "view": "top"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "ground-logs",
+   "land": {
+    "shape": "rect",
+    "size": [
+     200,
+     160
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "match": "^(Log\\d+|LogPile|FirewoodPile)",
+     "max": 30,
+     "perRow": 6,
+     "gap": 3
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "top",
+     "camera": {
+      "target": "area",
+      "view": "top"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "ground-trash",
+   "land": {
+    "shape": "rect",
+    "size": [
+     200,
+     160
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "match": "^(Trashpile|Trashbag)",
+     "max": 12,
+     "perRow": 6,
+     "gap": 3
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "top",
+     "camera": {
+      "target": "area",
+      "view": "top"
+     },
+     "shotMode": "render"
+    }
+   ]
+  },
+  {
+   "id": "ground-other",
+   "land": {
+    "shape": "rect",
+    "size": [
+     200,
+     160
+    ],
+    "ground": "flat",
+    "roads": "none"
+   },
+   "steps": [
+    {
+     "do": "lab",
+     "op": "lineup",
+     "match": "(stump|dirt|mud|sand|soil|gravel|debris|mound|heap|puddle|crater|dust|ground|scrap|junk|rubble|stone)",
+     "max": 36,
+     "perRow": 6,
+     "gap": 3,
+     "exclude": "(Surface|Decal|Pillar|Logo|Road|Lane|Area|Zone|Sign|Poster|Screen|Stand|Pylon|^Rubble|^Pile|Pile0|^Rock|^Boulder|StandingStone|Trash)"
+    },
+    {
+     "do": "shot",
+     "name": "oblique",
+     "camera": {
+      "target": "area",
+      "view": "oblique"
+     },
+     "shotMode": "render"
+    },
+    {
+     "do": "shot",
+     "name": "top",
+     "camera": {
+      "target": "area",
+      "view": "top"
+     },
+     "shotMode": "render"
+    }
+   ]
+  }
+ ]
+}

@@ -15,7 +15,7 @@ previews it and builds it: roads, parking lots, parks, shops. It merges ParkingL
 The focus, in order, is **Roads, Parking, Parks, Shops & squares**. Make those excellent before anything else.
 
 **The shelf** (`Recipes/shelf/<category>.json`, read by `Core/Tool/Shelf.cs`) decides the Make row: one file per
-category (Roads, Parking, Parks, Beach, Shops & squares, Nature, Farms, Sports; Industry and Transport hidden), its order,
+category (Roads, Parking, Parks, Beach, Shops & squares, Nature, Farms, Sports, Zoning, Industrial (docs/refactor/industrial.md); Transport hidden), its order,
 the type groups it shows (Gardens fold into Parks, the old Water group is Beach, Squares and Events fold into Shops), types
 moved in from another group (`types`), and what it hides: `hiddenTypes` and `hiddenStyles` per type. To cut a type or
 a style, list it there: never delete code. The panel, its search, the game runner's catalog and `Show.ps1` all read it;
@@ -27,6 +27,8 @@ file.
 - `docs/ARCHITECTURE.md`, `docs/DESIGN.md`: how it is built and how it should feel.
 - `docs/RESEARCH-NOTES.md`, `docs/RESEARCH-NOTES-ADDENDUM.md`: game engine rules (decompiled). A mandatory checklist.
 - `docs/refactor/GRADES.md`: the user's grades per category and the current refactor brief.
+- `docs/AREA-TOOLS.md`: the area tools (Points, Paint bucket, Paint area) after the area overhaul: one set of stops,
+  the fill engine (gaps, reach, exact road surfaces), how to test them (`suite/scenarios/area-tools.json`).
 - `suite/README.md`: the game runner (below).
 - `docs/teardown/`: what went wrong and why. Start with `00-user-feedback-1215.md`, then `07` (shop defects), `08`
   (street zoning), `09` (switching freezes).

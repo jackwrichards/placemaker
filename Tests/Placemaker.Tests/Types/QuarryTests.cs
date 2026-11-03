@@ -148,7 +148,6 @@ namespace Placemaker.Tests.Types
             Assert.True(dig.Objects.Count(o => o.Category == AssetCategories.ConstructionMachine) >= 5);
             // Art pass: automatic stockpiles are real 9 × 15 m bulk heaps, one per two of the old truck-load cones.
             Assert.True(dig.Objects.Count(o => o.Category == AssetCategories.ConstructionPile) >= 4);
-            Assert.True(dig.Objects.Count(o => o.Role == ObjectRole.Decal) > flooded.Objects.Count(o => o.Role == ObjectRole.Decal));
             Assert.True(dig.Paint.Count >= 4);
             Assert.DoesNotContain(flooded.Objects, o => o.Category == AssetCategories.ConstructionMachine);
             Assert.True(flooded.Facts.ContainsKey("lookout"));

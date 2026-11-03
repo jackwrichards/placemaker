@@ -11,7 +11,7 @@ namespace Placemaker.Core.Tool
 {
     public enum ToolStage { Area = 0, Design = 1, Review = 2, Building = 3, Manage = 4 }
 
-    public enum PrimaryKind { None = 0, ToDesign = 1, ToReview = 2, Build = 3, PlaceMarkers = 4, CancelBuild = 5, FinishEdit = 6 }
+    public enum PrimaryKind { None = 0, ToDesign = 1, ToReview = 2, Build = 3, PlaceMarkers = 4, CancelBuild = 5, FinishEdit = 6, Polish = 7 }
 
     public enum EscapeAction { None = 0, ExitMarkers = 1, CancelGesture = 2, ToDesign = 3, ToArea = 4, ClearSelection = 5, CloseTool = 6 }
 
@@ -49,6 +49,8 @@ namespace Placemaker.Core.Tool
         public bool Editing;
         /// <summary>A drag (point, edge, brush stroke, slider) is in progress.</summary>
         public bool GestureActive;
+        /// <summary>The "Polish gardens" painter is the picked entry: the area is stamped (Polish / Unpolish), never built.</summary>
+        public bool Painter;
     }
 
     public sealed class PrimaryAction
@@ -72,6 +74,7 @@ namespace Placemaker.Core.Tool
                 case PrimaryKind.PlaceMarkers: return "placeMarkers";
                 case PrimaryKind.CancelBuild: return "cancelBuild";
                 case PrimaryKind.FinishEdit: return "finishEdit";
+                case PrimaryKind.Polish: return "polish";
                 default: return "none";
             }
         }
@@ -111,7 +114,7 @@ namespace Placemaker.Core.Tool
             if (f.BuildRunning) { r.Add(ToolStage.Building); return r; }
             r.Add(ToolStage.Area);
             if (f.AreaValid) r.Add(ToolStage.Design);
-            if (f.AreaValid && f.HasRecipe) r.Add(ToolStage.Review);
+            if (f.AreaValid && f.HasRecipe && !f.Painter) r.Add(ToolStage.Review);
             r.Add(ToolStage.Manage);
             return r;
         }
@@ -127,7 +130,7 @@ namespace Placemaker.Core.Tool
         {
             if (f.BuildRunning) return ToolStage.Building;
             if (current == ToolStage.Building) return f.AreaValid && f.HasRecipe ? ToolStage.Review : ToolStage.Area;
-            if (current == ToolStage.Review && !(f.AreaValid && f.HasRecipe)) current = ToolStage.Design;
+            if (current == ToolStage.Review && !(f.AreaValid && f.HasRecipe && !f.Painter)) current = ToolStage.Design;
             if (current == ToolStage.Design && !f.AreaValid) current = ToolStage.Area;
             return current;
         }
@@ -139,6 +142,15 @@ namespace Placemaker.Core.Tool
 
             if (f.MarkerModeActive)
                 return Make(PrimaryKind.PlaceMarkers, "Placemaker.Primary.DoneMarkers", true, null);
+
+            // the polish tool: Area (Next) → Polish, its look and Polish (Unpolish is its second button). The lots in the area
+            // are stamped, nothing is planned or built.
+            if (f.Painter && stage != ToolStage.Manage)
+            {
+                if (stage == ToolStage.Area || !f.AreaValid) return AreaPrimary(f);
+                if (f.AreaProblem == null) return Make(PrimaryKind.Polish, "Placemaker.Primary.Polish", true, null);
+                return new PrimaryAction { Kind = PrimaryKind.Polish, Label = new LocText("Placemaker.Primary.Polish"), Enabled = false, Reason = f.AreaProblem };
+            }
 
             switch (stage)
             {
