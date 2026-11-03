@@ -60,6 +60,8 @@ namespace Placemaker.Core.Tool
         public Dictionary<SelectionMode, LocText> ModeUnavailable;
         /// <summary>(s22) contract: state.legendVisibility — preview layers the player showed/hid (id → visible); null/empty = defaults.</summary>
         public IReadOnlyDictionary<string, bool> LegendVisibility;
+        /// <summary>(Area overhaul) contract: state.areaLegend — what the overlay shows while choosing the area (Core/Tool/AreaLegend).</summary>
+        public List<Placemaker.Core.Build.PreviewLegend.Entry> AreaLegend;
     }
 
     public sealed class RecipeListEntry
@@ -102,7 +104,8 @@ namespace Placemaker.Core.Tool
         /// the UI needs something a previous DLL does not send or handle. The game reloads the UI file from disk but the
         /// DLL only on restart, so after an update they can disagree until the player restarts.
         /// </summary>
-        public const int Protocol = 23;   // s43: brush.rules.walls (Paint bucket walls)
+        public const int Protocol = 24;   // area overhaul: brush.rules paths/bikes/tracks/gap/reach/zoning, areaLegend, Road nodes folded into Points
+        // 23 = s43: brush.rules.walls (Paint bucket walls)
         // 22 = s45: summary.costBuckets (cost bar by friendly category)
         // 21 = s33: summary.permanentNeedsAck (ground paint alone is one info line, no checkbox)
 
@@ -176,6 +179,12 @@ namespace Placemaker.Core.Tool
                 keys.Sort(StringComparer.Ordinal);
                 foreach (var k in keys) lv.Set(k, s.LegendVisibility[k]);
                 o.Set("legendVisibility", lv);
+            }
+            if (s.AreaLegend != null && s.AreaLegend.Count > 0)
+            {
+                var al = JsonValue.Arr();
+                foreach (var e in s.AreaLegend) al.Add(LegendEntryJson(e));
+                o.Set("areaLegend", al);
             }
             return o;
         }
@@ -853,6 +862,23 @@ namespace Placemaker.Core.Tool
             return o;
         }
 
+        /// <summary>One legend row (contract.ts LegendEntry) without the road extras.</summary>
+        public static JsonValue LegendEntryJson(Placemaker.Core.Build.PreviewLegend.Entry e)
+        {
+            var eo = JsonValue.Obj()
+                .Set("id", e.Id)
+                .Set("label", e.LabelKey)
+                .Set("color", e.Color)
+                .Set("count", e.Count);
+            if (!string.IsNullOrEmpty(e.Color2)) eo.Set("color2", e.Color2);
+            if (e.LengthM > 0) eo.Set("lengthM", e.LengthM);
+            if (e.AreaM2 > 0) eo.Set("areaM2", e.AreaM2);
+            if (e.MinDelta != 0 || e.MaxDelta != 0) eo.Set("minDelta", e.MinDelta).Set("maxDelta", e.MaxDelta);
+            if (e.Blocked > 0) eo.Set("blocked", e.Blocked);
+            if (!e.DefaultOn) eo.Set("defaultOff", true);
+            return eo;
+        }
+
         /// <summary>
         /// (s22) contract.ts Summary.legend: the preview layers present in the plan (Core/Build/PreviewLegend) with
         /// swatch colours, counts, lengths, areas; roads by role with their main prefab (the s16 road legend).
@@ -867,17 +893,7 @@ namespace Placemaker.Core.Tool
                 catch (Exception) { entrances = 0; }
             foreach (var e in Placemaker.Core.Build.PreviewLegend.Compute(plan, entrances))
             {
-                var eo = JsonValue.Obj()
-                    .Set("id", e.Id)
-                    .Set("label", e.LabelKey)
-                    .Set("color", e.Color)
-                    .Set("count", e.Count);
-                if (!string.IsNullOrEmpty(e.Color2)) eo.Set("color2", e.Color2);
-                if (e.LengthM > 0) eo.Set("lengthM", e.LengthM);
-                if (e.AreaM2 > 0) eo.Set("areaM2", e.AreaM2);
-                if (e.MinDelta != 0 || e.MaxDelta != 0) eo.Set("minDelta", e.MinDelta).Set("maxDelta", e.MaxDelta);
-                if (e.Blocked > 0) eo.Set("blocked", e.Blocked);
-                if (!e.DefaultOn) eo.Set("defaultOff", true);
+                var eo = LegendEntryJson(e);
                 if (Placemaker.Core.Build.PreviewLegend.IsRoad(e.Id))
                 {
                     eo.Set("group", "roads");
@@ -1058,7 +1074,9 @@ namespace Placemaker.Core.Tool
             .Set("emptyZones", r.EmptyZones).Set("water", r.Water).Set("stayInBlock", r.StayInBlock)
             .Set("builds", r.Builds).Set("anything", r.Anything).Set("drawClip", r.DrawClip)
             .Set("snap", Round(r.Snap, 1)).Set("smoothing", r.Smoothing)
-            .Set("walls", WallsJson(r.BucketWalls));
+            .Set("walls", WallsJson(r.BucketWalls))
+            .Set("paths", r.Paths).Set("bikes", r.Bikes).Set("tracks", r.Tracks).Set("zoning", r.ZoningLevel)
+            .Set("gap", Round(r.Gap, 1)).Set("reach", Round(r.Reach, 0));
 
         /// <summary>(s43) Paint bucket walls as { roads, paths, bikes, tracks, water, lots, zoned }.</summary>
         public static JsonValue WallsJson(Placemaker.Core.Geometry.FillWall w)
@@ -1099,6 +1117,12 @@ namespace Placemaker.Core.Tool
             r.DrawClip = v["drawClip"].AsBool(r.DrawClip);
             r.Snap = (float)v["snap"].AsNumber(r.Snap);
             r.Smoothing = (int)Math.Round(v["smoothing"].AsNumber(r.Smoothing));
+            r.Paths = v["paths"].AsBool(r.Paths);
+            r.Bikes = v["bikes"].AsBool(r.Bikes);
+            r.Tracks = v["tracks"].AsBool(r.Tracks);
+            r.Gap = (float)v["gap"].AsNumber(r.Gap);
+            r.Reach = (float)v["reach"].AsNumber(r.Reach);
+            if (v["zoning"] != null && v["zoning"].Kind == JsonKind.Number) r.SetZoningLevel((int)Math.Round(v["zoning"].AsNumber(r.ZoningLevel)));
             var walls = v["walls"];
             if (walls != null && walls.IsObject)
                 foreach (var kv in WallKeys)

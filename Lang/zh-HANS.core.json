@@ -1,0 +1,6 @@
+{
+  "Placemaker.Name": "Placemaker",
+  "Placemaker.Issue.RecipeTooDeep": "此设计包含的嵌套层级过多。",
+  "Placemaker.Issue.UnknownLayer": "未知图层“{0}”——是否缺少相关模组？",
+  "Placemaker.Issue.LayerFailed": "无法规划{0}：{1}"
+}

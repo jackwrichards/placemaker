@@ -26,15 +26,20 @@ namespace Placemaker.Core.Tool
         {
             public float3[] Points = Array.Empty<float3>();
             public float2[] Axes = Array.Empty<float2>();
+            /// <summary>(Area overhaul) The road node each corner sits on (packed entity; 0 = none).</summary>
+            public long[] Nodes = Array.Empty<long>();
             public bool Closed;
         }
 
         private readonly List<float3> _points = new List<float3>();
         /// <summary>Snap axis each point was placed with (for guide lines through earlier corners).</summary>
         private readonly List<float2> _axes = new List<float2>();
+        /// <summary>(Area overhaul) The road node each corner was snapped to (0 = none): two in a row follow the road between.</summary>
+        private readonly List<long> _nodes = new List<long>();
 
         public IReadOnlyList<float3> Points => _points;
         public IReadOnlyList<float2> Axes => _axes;
+        public IReadOnlyList<long> Nodes => _nodes;
         public bool Closed { get; private set; }
         public int Count => _points.Count;
         public bool IsEmpty => _points.Count == 0;
@@ -44,16 +49,18 @@ namespace Placemaker.Core.Tool
 
         // ───────────── snapshot ─────────────
 
-        public Snapshot Save() => new Snapshot { Points = _points.ToArray(), Axes = _axes.ToArray(), Closed = Closed };
+        public Snapshot Save() => new Snapshot { Points = _points.ToArray(), Axes = _axes.ToArray(), Nodes = _nodes.ToArray(), Closed = Closed };
 
         public void Restore(Snapshot s)
         {
             _points.Clear();
             _axes.Clear();
+            _nodes.Clear();
             if (s != null)
             {
                 _points.AddRange(s.Points ?? Array.Empty<float3>());
                 for (int i = 0; i < _points.Count; i++) _axes.Add(s.Axes != null && i < s.Axes.Length ? s.Axes[i] : float2.zero);
+                for (int i = 0; i < _points.Count; i++) _nodes.Add(s.Nodes != null && i < s.Nodes.Length ? s.Nodes[i] : 0L);
                 Closed = s.Closed && _points.Count >= MinPoints;
             }
             else Closed = false;
@@ -65,6 +72,7 @@ namespace Placemaker.Core.Tool
             if (_points.Count == 0 && !Closed) return;
             _points.Clear();
             _axes.Clear();
+            _nodes.Clear();
             Closed = false;
             Version++;
         }
@@ -74,8 +82,9 @@ namespace Placemaker.Core.Tool
         {
             _points.Clear();
             _axes.Clear();
+            _nodes.Clear();
             if (ring != null)
-                foreach (var p in ring) { _points.Add(p); _axes.Add(float2.zero); }
+                foreach (var p in ring) { _points.Add(p); _axes.Add(float2.zero); _nodes.Add(0L); }
             Closed = _points.Count >= MinPoints;
             Version++;
         }
@@ -160,11 +169,12 @@ namespace Placemaker.Core.Tool
             return null;
         }
 
-        public bool AddPoint(float3 p, float2 axis = default)
+        public bool AddPoint(float3 p, float2 axis = default, long node = 0L)
         {
             if (CheckAdd(p.xz) != null) return false;
             _points.Add(p);
             _axes.Add(axis);
+            _nodes.Add(node);
             Version++;
             return true;
         }
@@ -193,6 +203,7 @@ namespace Placemaker.Core.Tool
             if (Closed || _points.Count == 0) return false;
             _points.RemoveAt(_points.Count - 1);
             _axes.RemoveAt(_axes.Count - 1);
+            _nodes.RemoveAt(_nodes.Count - 1);
             Version++;
             return true;
         }
@@ -215,6 +226,7 @@ namespace Placemaker.Core.Tool
             }
             _points.RemoveAt(index);
             _axes.RemoveAt(index);
+            _nodes.RemoveAt(index);
             Version++;
             return true;
         }
@@ -232,6 +244,7 @@ namespace Placemaker.Core.Tool
             if (Closed ? !Poly.IsSimple(probe) : !OpenChainSimple(probe)) return -1;
             _points.Insert(edge + 1, p);
             _axes.Insert(edge + 1, float2.zero);
+            _nodes.Insert(edge + 1, 0L);
             Version++;
             return edge + 1;
         }
@@ -267,6 +280,14 @@ namespace Placemaker.Core.Tool
         public void SetAxis(int index, float2 axis)
         {
             if (index >= 0 && index < _axes.Count) _axes[index] = axis;
+        }
+
+        /// <summary>(Area overhaul) The road node corner <paramref name="index"/> sits on (0 = none).</summary>
+        public void SetNode(int index, long node)
+        {
+            if (index < 0 || index >= _nodes.Count || _nodes[index] == node) return;
+            _nodes[index] = node;
+            Version++;
         }
 
         private bool MoveValid(int index, float2 p)
@@ -344,6 +365,13 @@ namespace Placemaker.Core.Tool
 
         public void EndEdgeDrag()
         {
+            // Corners moved off their road nodes no longer follow the road.
+            if (_edge >= 0 && _edgeStartWorld != null)
+                for (int k = 0; k < 2; k++)
+                {
+                    int i = (_edge + k) % _points.Count;
+                    if (i < _nodes.Count && i < _edgeStartWorld.Length && !_points[i].Equals(_edgeStartWorld[i])) _nodes[i] = 0L;
+                }
             _edge = -1;
             _edgeStart = null;
             _edgeStartWorld = null;

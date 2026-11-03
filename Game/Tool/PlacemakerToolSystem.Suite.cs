@@ -219,14 +219,14 @@ namespace Placemaker.Game.Tool
             CancelGesture();
             ExitMarkerMode();
             if (_mode != SelectionMode.Block) SetAreaMode(SelectionMode.Block);
-            _roads.InvalidateGraph();
-            var face = PickFace(xz, out var why);
+            InvalidateFills();
+            var face = PickAt(xz, out var why);
             if (face == null) { problem = why?.Key ?? "no block"; return false; }
             _hoverFace = face;
             _hoverFaceAt = xz;
             _blocks = new BlockSelectionState();
-            _blocks.Faces.Add(new System.Collections.Generic.List<HalfEdge>(face.Loop));
             _blocks.Seeds.Add(face.Seed);
+            _blocks.Rings.Add(face.Fill.Ring);
             ShapeChanged();
             Commit("Placemaker.Undo.SelectBlock");
             if (_stage == ToolStage.Area && _shape != null) SetStage(ToolStage.Design);

@@ -1,11 +1,15 @@
 <Publish>
 	<!--Empty for the first upload. The publisher prints "Mod published with Id=NNNNNN": write it here, or the next upload makes a second listing-->
-	<ModId Value="" />
+	<ModId Value="163638" />
 	<DisplayName Value="Placemaker" />
-	<ShortDescription Value="Select an area and turn it into roads, a parking lot, a park, shops or about 30 other kinds of places. You see a preview first, then build it in one go." />
+	<ShortDescription Value="Select an area and turn it into roads, parking, parks, shops, nature, farms or sports: 25 types, over 100 styles, every setting adjustable. Preview it, then build it." />
 	<!--Same text as docs/publish/MOD-PAGE.md. Markdown; no leading spaces; &amp; for "and" signs-->
 	<LongDescription>
 Placemaker fills an area for you. Select some land, choose what you want there, check the preview and build it.
+
+[Watch the showcase video on YouTube](https://www.youtube.com/watch?v=ghIR5UhFwj4) (3 minutes).
+
+**Not just presets.** There are 25 types and over 100 styles to start from, and each one has its own settings: layout, paths, planting, surfaces, extras. Change anything and save it as your own style. That makes billions of combinations; the pictures show only a few.
 
 It only uses the game's own assets, so no asset packs are needed.
 
@@ -22,7 +26,7 @@ It only uses the game's own assets, so no asset packs are needed.
 - Parking: lots of any shape, with trees, lamps and fences
 - Parks: parks, gardens, memorial parks, playgrounds, amphitheatres
 - Beach: sand painted from the water's edge, quays and boardwalks
-- Shops &amp; squares: strip malls, mall districts, market squares, transit plazas
+- Shops &amp; squares: strip malls, mall parks, mall districts, market squares
 - Nature: wetlands, reserves, lookout hills, hiking trails, campgrounds
 - Farms and Sports: farmsteads, animal parks, sports parks, golf, a skate spot
 
@@ -40,26 +44,29 @@ If something looks wrong, please report it with a screenshot and your Placemaker
 
 **Credits**
 
-Inspired by ParkingLotTool (KruemelGames), ParkManager (tomkpunkt) and Grid Road Generator. Includes Harmony by Andreas Pardeike (MIT). Licensed GPL-3.0.
+Based on similar concepts to ParkingLotTool (KruemelGames), ParkManager (tomkpunkt) and Grid Road Generator. Includes Harmony by Andreas Pardeike (MIT). Licensed GPL-3.0, source code: [GitHub](https://github.com/jackwrichards/placemaker).
 	</LongDescription>
 	<!--A missing picture is silently replaced by a default one: add it before uploading-->
 	<Thumbnail Value="Properties/Thumbnail.png" />
-	<!--Stills from the showcase video (v6)-->
-	<Screenshot Value="Properties/Screenshots/01-beach.jpg" />
-	<Screenshot Value="Properties/Screenshots/02-parking.jpg" />
-	<Screenshot Value="Properties/Screenshots/03-wetland.jpg" />
-	<Screenshot Value="Properties/Screenshots/04-roads.jpg" />
-	<Screenshot Value="Properties/Screenshots/05-sports-park.jpg" />
-	<Screenshot Value="Properties/Screenshots/06-amphitheatre.jpg" />
-	<Screenshot Value="Properties/Screenshots/07-strip-mall.jpg" />
-	<Screenshot Value="Properties/Screenshots/08-coast-farms.jpg" />
+	<!--At most 10 (Paradox Mods refuses more): roads first, then one picture per category, related types paired; settings pills from the panel or the preset-->
+	<Screenshot Value="Properties/Screenshots/01-streets.jpg" />
+	<Screenshot Value="Properties/Screenshots/02-street-patterns.jpg" />
+	<Screenshot Value="Properties/Screenshots/03-preview.jpg" />
+	<Screenshot Value="Properties/Screenshots/04-parking-lot.jpg" />
+	<Screenshot Value="Properties/Screenshots/05-shops.jpg" />
+	<Screenshot Value="Properties/Screenshots/06-parks.jpg" />
+	<Screenshot Value="Properties/Screenshots/07-sports-park.jpg" />
+	<Screenshot Value="Properties/Screenshots/08-nature.jpg" />
+	<Screenshot Value="Properties/Screenshots/09-beach.jpg" />
+	<Screenshot Value="Properties/Screenshots/10-farms.jpg" />
 	<!--"Code Mod" is added by the publisher itself-->
 	<Tag Value="Code Mod" />
 	<ForumLink Value="" />
-	<ModVersion Value="0.1.0" />
+	<ModVersion Value="0.1.1" />
 	<GameVersion Value="1.6.*" />
-	<ChangeLog Value="First public version." />
-	<!--Add once the source is public: <ExternalLink Type="github" Url="https://github.com/..." />-->
-	<!--Public, Unlisted or Private, exactly as written (a typo falls back to Public). Private for the first test upload-->
-	<AccessLevel Value="Private" />
+	<ChangeLog Value="Area tools: the paint bucket follows roads and buildings more exactly and previews as you hover, painting shows a live outline, slow drags now paint, and fills pick up new buildings and zoning." />
+	<ExternalLink Type="youtube" Url="https://www.youtube.com/watch?v=ghIR5UhFwj4" />
+	<ExternalLink Type="github" Url="https://github.com/jackwrichards/placemaker" />
+	<!--Public, Unlisted or Private, exactly as written (a typo falls back to Public). Made Public by the user on the website, 2026-10-17-->
+	<AccessLevel Value="Public" />
 </Publish>

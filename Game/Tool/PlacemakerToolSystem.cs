@@ -111,6 +111,9 @@ namespace Placemaker.Game.Tool
                 _brushSize = math.clamp(_settings.BrushSize, BrushMask.MinDiameter, BrushMask.MaxDiameter);
                 _brushSquare = _settings.BrushSquare;
                 _mode = (SelectionMode)math.clamp(_settings.LastAreaMode, 0, 4);
+                // Area overhaul: Road nodes is part of Points now (points snap to road nodes).
+                if (_mode == SelectionMode.Perimeter) _mode = SelectionMode.Draw;
+                if (_settings.MigrateAreaRules()) _settings.ApplyAndSave();
                 _panelCollapsed = _settings.PanelCollapsed;
             }
         }
@@ -193,6 +196,7 @@ namespace Placemaker.Game.Tool
             EnableActions(true);
             if (_anarchy) ApplyAnarchy(true);
             _wasRunning = true;
+            InvalidateFills();   // the city changed while the tool was closed
             Touch();
         }
 
@@ -498,7 +502,7 @@ namespace Placemaker.Game.Tool
         }
 
         private bool HasSelection() =>
-            _shape != null || !_draw.IsEmpty || !_paint.IsEmpty || _blocks.Faces.Count > 0 || _perimeter.Nodes.Count > 0 || !_bpMask.IsEmpty;
+            _shape != null || !_draw.IsEmpty || !_paint.IsEmpty || _blocks.Seeds.Count > 0 || _perimeter.Nodes.Count > 0 || !_bpMask.IsEmpty;
 
         public void SetBrush(bool square, float size, float angle)
         {

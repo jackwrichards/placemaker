@@ -7,6 +7,10 @@
 // (Cut), Draw / Roads / Block always keep off other Placemaker builds and, with DrawClip, off everything
 // the polygon stops name (water is brush-only). New stop: other Placemaker builds (their owner lot + zone
 // blocks). New master toggle "Paint over anything" (Anything) switches every stop and the block lock off.
+// Area overhaul (2026-10-17): ONE set of stops for Points, Paint bucket and Paint area ("Stops at, keep off, whatever,
+// you get it"): roads, paths, bike paths, rail and tram, water, buildings, lots, my builds and zoning (off / built on /
+// zoned / the whole grid), plus the fill's Gap and Reach (Core/Geometry/AreaFill). The bucket's own walls (BucketWalls)
+// and Draw's DrawClip are no longer read; they stay so old settings files and UIs still parse.
 
 using System;
 using System.Collections.Generic;
@@ -14,7 +18,7 @@ using Unity.Mathematics;
 
 namespace Placemaker.Core.Geometry
 {
-    public enum BrushObstacleKind { Road = 0, Building = 1, Lot = 2, ZonedCell = 3, EmptyZoneCell = 4, PlacemakerBuild = 5, UnbuiltZonedCell = 6 }
+    public enum BrushObstacleKind { Road = 0, Building = 1, Lot = 2, ZonedCell = 3, EmptyZoneCell = 4, PlacemakerBuild = 5, UnbuiltZonedCell = 6, Path = 7, Bike = 8, Track = 9, Water = 10 }
 
     /// <summary>A polygon the brush may stop at, tagged with what it is (rules decide whether it counts).</summary>
     public struct BrushObstacle
@@ -33,8 +37,14 @@ namespace Placemaker.Core.Geometry
         // s49: Zoned = zoned cells with a building on them (or under construction); vacant zoned land stays paintable
         // unless AllZoned is also on (parks over empty road frontage is what players want).
         public bool Roads = true, Buildings = true, Lots = true, Zoned = true, EmptyZones = false, Water = true;
-        /// <summary>(s49) Also keep off zoned cells nobody built on yet (off by default).</summary>
-        public bool AllZoned;
+        /// <summary>(s49) Also keep off zoned cells nobody built on yet. (Area overhaul) On by default: "it goes onto zoned areas when it shouldn't".</summary>
+        public bool AllZoned = true;
+        /// <summary>(Area overhaul) Footpaths, bike paths, rail and tram tracks on the ground.</summary>
+        public bool Paths = true, Bikes = true, Tracks = true;
+        /// <summary>(Area overhaul) Openings narrower than this (m) count as closed; narrower places are left out (0 = off).</summary>
+        public float Gap = FillOptions.DefaultGap;
+        /// <summary>(Area overhaul) How far (m) the Paint bucket spreads from the click.</summary>
+        public float Reach = FillOptions.DefaultReach;
         /// <summary>(s27) Other Placemaker builds: their owner lot outline and zone-block lots (never the group being edited).</summary>
         public bool Builds = true;
         /// <summary>(s27) "Paint over anything": every stop and the block lock off, whatever the other toggles say.</summary>
@@ -61,6 +71,8 @@ namespace Placemaker.Core.Geometry
             r.Snap = float.IsNaN(r.Snap) ? DefaultSnap : math.clamp(r.Snap, 0f, MaxSnap);
             r.Smoothing = math.clamp(r.Smoothing, 0, MaxSmoothing);
             r.BucketWalls &= FillWalls.All;
+            r.Gap = float.IsNaN(r.Gap) ? FillOptions.DefaultGap : math.clamp(r.Gap, 0f, FillOptions.MaxGap);
+            r.Reach = float.IsNaN(r.Reach) || r.Reach <= 0f ? FillOptions.DefaultReach : math.clamp(r.Reach, FillOptions.MinReach, FillOptions.MaxReach);
             return r;
         }
 
@@ -76,12 +88,38 @@ namespace Placemaker.Core.Geometry
                 case BrushObstacleKind.EmptyZoneCell: return EmptyZones;
                 case BrushObstacleKind.UnbuiltZonedCell: return AllZoned;
                 case BrushObstacleKind.PlacemakerBuild: return Builds;
+                case BrushObstacleKind.Path: return Paths;
+                case BrushObstacleKind.Bike: return Bikes;
+                case BrushObstacleKind.Track: return Tracks;
+                case BrushObstacleKind.Water: return Water;
                 default: return true;
             }
         }
 
         /// <summary>Nothing to stop at and no block lock: the brush is plain Paint.</summary>
-        public bool AllOff => Anything || (!Roads && !Buildings && !Builds && !Lots && !Zoned && !AllZoned && !EmptyZones && !Water && !StayInBlock);
+        public bool AllOff => Anything || (!Roads && !Paths && !Bikes && !Tracks && !Buildings && !Builds && !Lots && !Zoned && !AllZoned && !EmptyZones && !Water && !StayInBlock);
+
+        /// <summary>(Area overhaul) The outline tools (Points, Paint bucket) follow the stops whatever Paint area's Smart edges switch says.</summary>
+        public BrushRules ForOutline()
+        {
+            if (!Anything) return this;
+            var r = Clone();
+            r.Anything = false;
+            return r;
+        }
+
+        /// <summary>(Area overhaul) The fill's settings: the gap and the reach.</summary>
+        public FillOptions Fill() => new FillOptions { Gap = Gap, Reach = Reach };
+
+        /// <summary>(Area overhaul) Zoning as one choice: 0 off, 1 built on, 2 zoned (built or not), 3 the whole grid.</summary>
+        public int ZoningLevel => !Zoned && !AllZoned && !EmptyZones ? 0 : EmptyZones ? 3 : AllZoned ? 2 : 1;
+
+        public void SetZoningLevel(int level)
+        {
+            Zoned = level >= 1;
+            AllZoned = level >= 2;
+            EmptyZones = level >= 3;
+        }
         /// <summary>Water counts (brush tools).</summary>
         public bool WaterOn => !Anything && Water;
         /// <summary>The block lock counts (Block paint).</summary>
@@ -113,10 +151,16 @@ namespace Placemaker.Core.Geometry
         }
 
         public bool Equals(BrushRules o) => o != null && Roads == o.Roads && Buildings == o.Buildings && Lots == o.Lots && Zoned == o.Zoned && AllZoned == o.AllZoned
-            && EmptyZones == o.EmptyZones && Water == o.Water && StayInBlock == o.StayInBlock && Builds == o.Builds && Anything == o.Anything && DrawClip == o.DrawClip && Snap == o.Snap && Smoothing == o.Smoothing && BucketWalls == o.BucketWalls;
+            && EmptyZones == o.EmptyZones && Water == o.Water && StayInBlock == o.StayInBlock && Builds == o.Builds && Anything == o.Anything && DrawClip == o.DrawClip && Snap == o.Snap && Smoothing == o.Smoothing && BucketWalls == o.BucketWalls
+            && Paths == o.Paths && Bikes == o.Bikes && Tracks == o.Tracks && Gap == o.Gap && Reach == o.Reach;
+
+        /// <summary>Same walls (what stops, not the brush's own sliders): a fill or a cut made with the other rules still holds.</summary>
+        public bool SameWalls(BrushRules o) => o != null && Roads == o.Roads && Paths == o.Paths && Bikes == o.Bikes && Tracks == o.Tracks && Buildings == o.Buildings
+            && Lots == o.Lots && Zoned == o.Zoned && AllZoned == o.AllZoned && EmptyZones == o.EmptyZones && Water == o.Water && Builds == o.Builds && Anything == o.Anything;
         public override bool Equals(object obj) => Equals(obj as BrushRules);
         public override int GetHashCode() => (Roads ? 1 : 0) | (Buildings ? 2 : 0) | (Lots ? 4 : 0) | (Zoned ? 8 : 0) | (AllZoned ? 8192 : 0) | (EmptyZones ? 16 : 0)
-            | (Water ? 32 : 0) | (StayInBlock ? 64 : 0) | (Builds ? 1024 : 0) | (Anything ? 2048 : 0) | (DrawClip ? 4096 : 0) | (Smoothing << 7) ^ Snap.GetHashCode() ^ ((int)BucketWalls << 16);
+            | (Water ? 32 : 0) | (StayInBlock ? 64 : 0) | (Builds ? 1024 : 0) | (Anything ? 2048 : 0) | (DrawClip ? 4096 : 0) | (Smoothing << 7) ^ Snap.GetHashCode() ^ ((int)BucketWalls << 16)
+            ^ (Paths ? 1 << 24 : 0) ^ (Bikes ? 1 << 25 : 0) ^ (Tracks ? 1 << 26 : 0) ^ Gap.GetHashCode() * 31 ^ Reach.GetHashCode() * 17;
 
         /// <summary>
         /// The brush for a stroke starting at <paramref name="start"/>: fenced to <paramref name="block"/>

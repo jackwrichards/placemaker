@@ -89,7 +89,8 @@ test("area modes: pick block (+shift), paint, road loop", async ({ page }) => {
     await shot(page, "11-mode-paint");
 
     await page.getByTestId("clear-area").click();
-    await page.getByTestId("area-mode-perimeter").click();
+    // Area overhaul: Road nodes is part of Points (corners snap to road nodes in the game).
+    await page.getByTestId("area-mode-draw").click();
     for (const [nx, nz] of [
         [490, 260],
         [790, 260],
@@ -99,7 +100,7 @@ test("area modes: pick block (+shift), paint, road loop", async ({ page }) => {
     ])
         await clickWorld(page, nx, nz);
     expect(await page.evaluate(() => (window as any).pm.backend.state().area.valid)).toBe(true);
-    await shot(page, "12-mode-perimeter");
+    await shot(page, "12-mode-points-on-nodes");
 });
 
 test("launcher toggles the tool; info-panel section edits a built place", async ({ page }) => {

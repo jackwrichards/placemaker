@@ -185,5 +185,33 @@ namespace Placemaker.Tests
             Assert.True(e.Closed);
             Assert.Equal(4, e.Count);
         }
+
+        [Fact]
+        public void RoadNodes_FollowTheCorners_ThroughEditsAndUndo()
+        {
+            // Area overhaul: corners remember the road node they were snapped to (two in a row follow the road).
+            var e = new PolygonEditor();
+            e.AddPoint(new float3(0, 0, 0), default, 11L);
+            e.AddPoint(new float3(100, 0, 0), default, 12L);
+            e.AddPoint(new float3(100, 0, 80), default);
+            e.AddPoint(new float3(0, 0, 80), default, 14L);
+            Assert.True(e.Close());
+            Assert.Equal(new long[] { 11, 12, 0, 14 }, e.Nodes);
+            Assert.Equal(1, e.InsertPoint(0, new float3(50, 0, 0)));
+            Assert.Equal(new long[] { 11, 0, 12, 0, 14 }, e.Nodes);
+            var s = e.Save();
+            Assert.True(e.RemovePoint(1));
+            e.SetNode(1, 0L);
+            Assert.Equal(new long[] { 11, 0, 0, 14 }, e.Nodes);
+            e.Restore(s);
+            Assert.Equal(new long[] { 11, 0, 12, 0, 14 }, e.Nodes);
+            // An edge dragged away leaves its nodes.
+            Assert.True(e.BeginEdgeDrag(4));
+            e.DragEdge(-5f, false);
+            e.EndEdgeDrag();
+            Assert.Equal(0L, e.Nodes[4]);
+            Assert.Equal(0L, e.Nodes[0]);
+            Assert.Equal(12L, e.Nodes[2]);
+        }
     }
 }

@@ -729,6 +729,9 @@ namespace Placemaker.Game.Suite
                     }
             }
             yield return Frames(30);
+            // (area tools) the plots' extra roads and paths, onto the ring roads now in
+            var extra = _fixture.Layout.Plots.SelectMany(p => p.NetSegments()).ToList();
+            if (extra.Count > 0) { yield return ApplyWithFixtureTool(t => _fixture.EmitNets(t, extra), "plot nets"); yield return Frames(30); }
             _tracing = false;
             yield return Settle("after roads");
             int edges = _fixture.CountEdges(out int temps);

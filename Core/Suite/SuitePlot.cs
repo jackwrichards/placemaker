@@ -42,6 +42,23 @@ namespace Placemaker.Core.Suite
         public float Gap = 16f;
 
         /// <summary>
+        /// (area tools) Extra roads and paths on the land ("nets": [{"prefab", "points"}]), points relative to the plot's centre:
+        /// a dead end with its turning circle, a footpath across the block, a gap between two streets. Laid after the ring road;
+        /// an end on a ring node joins it, an end on the middle of a ring edge splits it, as the vanilla road tool does.
+        /// </summary>
+        public readonly List<(string prefab, float2[] points)> Nets = new List<(string, float2[])>();
+
+        /// <summary>The extra nets in world coordinates, one segment per pair of points.</summary>
+        public List<SuiteRoadSegment> NetSegments()
+        {
+            var r = new List<SuiteRoadSegment>();
+            foreach (var (prefab, pts) in Nets)
+                for (int k = 0; k + 1 < (pts?.Length ?? 0); k++)
+                    r.Add(new SuiteRoadSegment { Prefab = prefab, Line = -2, A = Center + pts[k], B = Center + pts[k + 1], Vertical = math.abs(pts[k + 1].x - pts[k].x) < math.abs(pts[k + 1].y - pts[k].y) });
+            return r;
+        }
+
+        /// <summary>
         /// (rf-beach) A lake beside the land, for the shore types: "" none, or the side it lies on (north | south | east |
         /// west). The waterline runs along that side of the shape's bounding box (ShoreIn metres inside it), the ground
         /// falls from the land to the water over a bank of BankGrade, the lake floor falls at UnderGrade to WaterDepth and

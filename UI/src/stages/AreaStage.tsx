@@ -1,11 +1,12 @@
-// Stage 1 — choose the area (s42): four tools as one row of equal cards (icon tile + name + a short line):
-//   Points (draw) · Paint bucket (block) · Paint area (paint + block paint: the "Smart edges" switch picks the
-//   mode) · Road nodes (perimeter). The tool's settings sit under it, always visible (no folds), then one summary
-//   line: Area · Edge · Corners · Clear. Mode ids and saved settings are unchanged (a saved "blockPaint" opens
-//   Paint area with Smart edges on).
+// Stage 1 — choose the area. Area overhaul (PROTOCOL 24): three tools as one row of equal cards (icon tile + name + a
+// short line): Points (draw; corners snap to road nodes, two in a row follow the road: Road nodes is folded in) · Paint
+// bucket (block) · Paint area (paint + block paint: the "Smart edges" switch picks the mode). Under them ONE "Stops at"
+// for every tool (roads, paths, bike paths, rail & tram, water, buildings, lots, my builds, and zoning as one choice),
+// then the tool's own settings: the bucket's Gaps and Reach, Paint area's One block / Gaps / Snap / Smooth and the
+// brush. Then one summary line: Area · Edge · Corners · Clear. Saved "perimeter" opens Points.
 import React from "react";
 import classNames from "classnames";
-import { AreaMode, BrushRules, BrushShape, BucketWalls, LocText, ToolState } from "../contract";
+import { AreaMode, BrushRules, BrushShape, LocText, ToolState } from "../contract";
 import { act } from "../lib/bindings";
 import { area as fmtArea, group } from "../lib/format";
 import { TFunc, useT } from "../lib/l10n";
@@ -16,10 +17,10 @@ import { Tip } from "../lib/tips";
 import { Tile } from "./PresetBrowser";
 import s from "./area.module.scss";
 
-type Tool = "draw" | "block" | "paint" | "perimeter";
+type Tool = "draw" | "block" | "paint";
 
-/** The tool a mode belongs to (block paint and paint are one tool). */
-export const toolOf = (m: AreaMode): Tool => (m === "blockPaint" || m === "paint" ? "paint" : m === "block" ? "block" : m === "perimeter" ? "perimeter" : "draw");
+/** The tool a mode belongs to (block paint and paint are one tool; Road nodes is part of Points). */
+export const toolOf = (m: AreaMode): Tool => (m === "blockPaint" || m === "paint" ? "paint" : m === "block" ? "block" : "draw");
 
 export function modeOptions(t: TFunc) {
     return [
@@ -28,14 +29,17 @@ export function modeOptions(t: TFunc) {
             icon: "points",
             label: t("Placemaker.UI.Tool.Points", "Points"),
             line: t("Placemaker.UI.Tool.PointsLine", "Click corners"),
-            description: t("Placemaker.UI.Tool.PointsTip", "Click corners, then the first one to close. Snaps to curbs and right angles."),
+            description: t(
+                "Placemaker.UI.Tool.PointsTip2",
+                "Click corners, then the first one to close. Snaps to curbs, right angles and road nodes: two corners on road nodes follow the road between them.",
+            ),
         },
         {
             value: "block" as Tool,
             icon: "bucket",
             label: t("Placemaker.UI.Tool.Bucket", "Paint bucket"),
             line: t("Placemaker.UI.Tool.BucketLine", "Click to fill"),
-            description: t("Placemaker.UI.Tool.BucketTip", "Click a city block to fill it. Shift+click adds more."),
+            description: t("Placemaker.UI.Tool.BucketTip2", "Click to fill the land up to what it stops at. Shift+click adds more, right-click drops one."),
         },
         {
             value: "paint" as Tool,
@@ -43,13 +47,6 @@ export function modeOptions(t: TFunc) {
             label: t("Placemaker.UI.Tool.Paint", "Paint area"),
             line: t("Placemaker.UI.Tool.PaintLine", "Brush it on"),
             description: t("Placemaker.UI.Tool.PaintTip", "Brush the area on. Right-click erases."),
-        },
-        {
-            value: "perimeter" as Tool,
-            icon: "nodes",
-            label: t("Placemaker.UI.Tool.Nodes", "Road nodes"),
-            line: t("Placemaker.UI.Tool.NodesLine", "Click road corners"),
-            description: t("Placemaker.UI.Tool.NodesTip", "Click road corners around the area; the roads between are followed."),
         },
     ];
 }
@@ -83,9 +80,111 @@ const Row = ({ label, children, off, testId, tip }: { label: string; children: R
     </div>
 );
 
-type StopKey = "roads" | "buildings" | "builds" | "lots" | "zoned" | "allZoned" | "emptyZones" | "water";
+type StopKey = "roads" | "paths" | "bikes" | "tracks" | "water" | "buildings" | "lots" | "builds";
 
-/** Paint area settings: Smart edges + what the brush stops at, one block, snap, smooth; then the brush. */
+/** The stops are on unless the DLL says otherwise (older DLLs send no paths/bikes/tracks). */
+const stopOn = (r: BrushRules, k: StopKey) => r[k] !== false;
+
+/** Zoning as one choice; older DLLs send only the three switches. */
+const zoningOf = (r: BrushRules) => (typeof r.zoning === "number" ? r.zoning : !r.zoned && !r.allZoned && !r.emptyZones ? 0 : r.emptyZones ? 3 : r.allZoned ? 2 : 1);
+
+/**
+ * Stops at — one set for every tool: what the outline never covers. Points are cut by it, the bucket's fill stops at
+ * it, Paint area's brush is fenced by it (only with Smart edges on: <paramref name="off"/>).
+ */
+const Stops = ({ rules, off, offWhy }: { rules: BrushRules; off?: boolean; offWhy?: string }) => {
+    const { t } = useT();
+    const stops: { key: StopKey; icon: string; label: string; tip: string }[] = [
+        { key: "roads", icon: "roads", label: t("Placemaker.UI.Rules.Roads", "Roads"), tip: t("Placemaker.UI.Rules.RoadsTip2", "Stop at the curb of every road, its junctions and turning circles.") },
+        { key: "paths", icon: "footpath", label: t("Placemaker.UI.Walls.Paths", "Paths"), tip: t("Placemaker.UI.Rules.PathsTip", "Stop at footpaths.") },
+        { key: "bikes", icon: "bike", label: t("Placemaker.UI.Walls.Bikes", "Bike paths"), tip: t("Placemaker.UI.Rules.BikesTip", "Stop at bike paths.") },
+        { key: "tracks", icon: "track", label: t("Placemaker.UI.Walls.Tracks", "Rail & tram"), tip: t("Placemaker.UI.Walls.TracksTip", "Train and tram tracks on the ground.") },
+        { key: "water", icon: "water", label: t("Placemaker.UI.Rules.Water", "Water"), tip: t("Placemaker.UI.Rules.WaterTip", "Keep off deep water.") },
+        { key: "buildings", icon: "building", label: t("Placemaker.UI.Rules.Buildings", "Buildings"), tip: t("Placemaker.UI.Rules.BuildingsTip", "Keep off building lots.") },
+        { key: "lots", icon: "area", label: t("Placemaker.UI.Rules.Lots", "Lots"), tip: t("Placemaker.UI.Rules.LotsTip2", "Keep off other lots (other mods, extractors).") },
+        { key: "builds", icon: "otherBuilds", label: t("Placemaker.UI.Rules.MyBuilds", "My builds"), tip: t("Placemaker.UI.Rules.BuildsTip", "Keep off what you built with Placemaker.") },
+    ];
+    const zoning = zoningOf(rules);
+    return (
+        <>
+            <Row label={t("Placemaker.UI.Rules.Stops", "Stops at")} off={off} testId="area-stops" tip={t("Placemaker.UI.Rules.StopsTip", "What the area never covers, for every tool. Red on the map.")}>
+                <div className={s.chips} data-testid="area-stops-chips">
+                    {stops.map((x) => (
+                        <ToggleChip
+                            key={x.key}
+                            icon={x.icon}
+                            label={x.label}
+                            on={stopOn(rules, x.key)}
+                            disabled={off}
+                            tip={off ? offWhy : x.tip}
+                            onClick={() => act.setBrushRules({ [x.key]: !stopOn(rules, x.key) })}
+                            testId={`stop-${x.key}`}
+                        />
+                    ))}
+                </div>
+            </Row>
+            <Row label={t("Placemaker.UI.Rules.Zoning", "Zoning")} off={off} testId="area-zoning" tip={t("Placemaker.UI.Rules.ZoningTip", "How much of the zoning the area keeps off.")}>
+                <Segmented
+                    testId="stop-zoning"
+                    stretch
+                    value={String(zoning)}
+                    onChange={(v) => !off && act.setBrushRules({ zoning: Number(v) })}
+                    options={[
+                        { value: "0", label: t("Placemaker.UI.Rules.ZoningOff", "Ignore"), description: t("Placemaker.UI.Rules.ZoningOffTip", "Zoning does not stop it.") },
+                        { value: "1", label: t("Placemaker.UI.Rules.ZoningBuilt", "Built"), description: t("Placemaker.UI.Rules.ZoningBuiltTip", "Keep off zoned cells that have a building.") },
+                        { value: "2", label: t("Placemaker.UI.Rules.ZoningZoned", "Zoned"), description: t("Placemaker.UI.Rules.ZoningZonedTip", "Keep off every zoned cell, built on or not.") },
+                        { value: "3", label: t("Placemaker.UI.Rules.ZoningGrid", "Grid"), description: t("Placemaker.UI.Rules.ZoningGridTip", "Keep off the whole zone grid along the streets, even cells nobody zoned.") },
+                    ]}
+                />
+            </Row>
+        </>
+    );
+};
+
+const GapSlider = ({ rules, off }: { rules: BrushRules; off?: boolean }) => {
+    const { t } = useT();
+    return (
+        <Row
+            label={t("Placemaker.UI.Rules.Gap", "Gaps")}
+            off={off}
+            testId="area-gap"
+            tip={t("Placemaker.UI.Rules.GapTip", "Openings narrower than this count as closed, and places narrower than it are left out. 0 = off.")}
+        >
+            <Slider testId="area-gap-slider" value={rules.gap ?? 10} min={0} max={30} step={1} unit="m" onPreview={() => undefined} onCommit={(v) => !off && act.setBrushRules({ gap: v })} />
+        </Row>
+    );
+};
+
+/** Paint bucket: the stops, then how it fills (gaps, reach). */
+const BucketSettings = ({ rules }: { rules: BrushRules }) => {
+    const { t } = useT();
+    return (
+        <div className={s.settings} data-testid="bucket-settings">
+            <Stops rules={rules} />
+            <div className={s.rule} />
+            <GapSlider rules={rules} />
+            <Row label={t("Placemaker.UI.Rules.Reach", "Reach")} testId="area-reach" tip={t("Placemaker.UI.Rules.ReachTip", "How far the fill may spread from where you click. In open land it fills a circle this size.")}>
+                <Slider testId="area-reach-slider" value={rules.reach ?? 500} min={20} max={1500} step={10} unit="m" onPreview={() => undefined} onCommit={(v) => act.setBrushRules({ reach: v })} />
+            </Row>
+        </div>
+    );
+};
+
+/** Points: the stops (the outline is cut by them). */
+const PointsSettings = ({ rules }: { rules: BrushRules }) => {
+    const { t } = useT();
+    return (
+        <div className={s.settings} data-testid="points-settings">
+            <Stops rules={rules} />
+            <div className={s.note} data-testid="points-note">
+                <Icon name="info" size={11} tint="dim" />
+                <div className={s.noteText}>{t("Placemaker.UI.Area.PointsNodes", "Over a junction a corner snaps to the road node; two in a row follow the road. Alt: no snapping.")}</div>
+            </div>
+        </div>
+    );
+};
+
+/** Paint area: Smart edges + the stops, one block, gaps, snap, smooth; then the brush. */
 const PaintSettings = ({ state, rules }: { state: ToolState; rules: BrushRules }) => {
     const { t, tl } = useT();
     // Smart edges = the block paint mode; a DLL without it greys the switch with the reason (s15).
@@ -93,16 +192,7 @@ const PaintSettings = ({ state, rules }: { state: ToolState; rules: BrushRules }
     const b = state.brush;
     const smart = state.areaMode === "blockPaint";
     const offWhy = t("Placemaker.UI.Why.SmartOff", "Smart edges is off");
-    const stops: { key: StopKey; icon: string; label: string; tip: string }[] = [
-        { key: "roads", icon: "roads", label: t("Placemaker.UI.Rules.Roads", "Roads"), tip: t("Placemaker.UI.Rules.RoadsTip", "Stop at the curb.") },
-        { key: "buildings", icon: "building", label: t("Placemaker.UI.Rules.Buildings", "Buildings"), tip: t("Placemaker.UI.Rules.BuildingsTip", "Keep off building lots.") },
-        { key: "builds", icon: "otherBuilds", label: t("Placemaker.UI.Rules.MyBuilds", "My builds"), tip: t("Placemaker.UI.Rules.BuildsTip", "Keep off what you built with Placemaker.") },
-        { key: "lots", icon: "area", label: t("Placemaker.UI.Rules.Lots", "Lots"), tip: t("Placemaker.UI.Rules.LotsTip2", "Keep off other lots (other mods, extractors).") },
-        { key: "zoned", icon: "edgeZoning", label: t("Placemaker.UI.Rules.Zoned", "Zoned"), tip: t("Placemaker.UI.Rules.ZonedTip2", "Keep off zoned cells that have a building. Empty zoned land can be painted.") },
-        { key: "allZoned", icon: "edgeZoning", label: t("Placemaker.UI.Rules.AllZoned", "All zoned"), tip: t("Placemaker.UI.Rules.AllZonedTip", "Also keep off zoned cells nobody has built on yet.") },
-        { key: "emptyZones", icon: "zoneEmpty", label: t("Placemaker.UI.Rules.EmptyZones", "Empty zones"), tip: t("Placemaker.UI.Rules.EmptyZonesTip", "Keep the empty zone grid free.") },
-        { key: "water", icon: "water", label: t("Placemaker.UI.Rules.Water", "Water"), tip: t("Placemaker.UI.Rules.WaterTip", "Keep off deep water.") },
-    ];
+    const oneBlock = smart && rules.stayInBlock !== false;
     const setSmart = (on: boolean) => {
         if (on && !smartAv.enabled) return;
         act.setBrushRules({ anything: !on });
@@ -125,27 +215,13 @@ const PaintSettings = ({ state, rules }: { state: ToolState; rules: BrushRules }
                 <div className={s.flex} />
                 <Btn icon="reset" iconSize={11} title={t("Placemaker.UI.Rules.Reset", "Reset edges")} onClick={act.resetBrushRules} testId="brush-rules-reset" />
             </div>
-            <Row label={t("Placemaker.UI.Rules.Stops", "Stops at")} off={!smart} testId="brush-rules">
-                <div className={s.chips} data-testid="brush-rules-stops">
-                    {stops.map((x) => (
-                        <ToggleChip
-                            key={x.key}
-                            icon={x.icon}
-                            label={x.label}
-                            on={x.key === "allZoned" ? rules.allZoned === true : rules[x.key] !== false}
-                            disabled={!smart}
-                            tip={smart ? x.tip : offWhy}
-                            onClick={() => act.setBrushRules({ [x.key]: !(x.key === "allZoned" ? rules.allZoned === true : rules[x.key] !== false) })}
-                            testId={`brush-rule-${x.key}`}
-                        />
-                    ))}
-                </div>
-            </Row>
-            <Row label={t("Placemaker.UI.Rules.Block", "One block")} off={!smart} tip={t("Placemaker.UI.Rules.BlockTip", "A stroke stays in the block where it started.")}>
+            <Stops rules={rules} off={!smart} offWhy={offWhy} />
+            <Row label={t("Placemaker.UI.Rules.Block", "One block")} off={!smart} tip={t("Placemaker.UI.Rules.BlockTip2", "A stroke stays in what the Paint bucket would fill where it started.")}>
                 <div className={s.switchCell}>
-                    <Switch on={smart && rules.stayInBlock !== false} onChange={(v) => smart && act.setBrushRules({ stayInBlock: v })} testId="brush-rule-stayInBlock" />
+                    <Switch on={oneBlock} onChange={(v) => smart && act.setBrushRules({ stayInBlock: v })} testId="brush-rule-stayInBlock" />
                 </div>
             </Row>
+            <GapSlider rules={rules} off={!oneBlock} />
             <Row label={t("Placemaker.UI.Rules.Snap", "Snap")} off={!smart} tip={t("Placemaker.UI.Rules.SnapTip", "Pulls painted edges this close onto a curb.")}>
                 <Slider testId="brush-rule-snap" value={rules.snap} min={0} max={20} step={1} unit="m" onPreview={() => undefined} onCommit={(v) => smart && act.setBrushRules({ snap: v })} />
             </Row>
@@ -177,81 +253,10 @@ const PaintSettings = ({ state, rules }: { state: ToolState; rules: BrushRules }
     );
 };
 
-/**
- * (s43) Paint bucket: what the fill treats as a wall. Lines (roads, paths, bike paths, tracks) trace the block; areas
- * (water, lots & buildings, zoning) cut it and keep the side you clicked. Absent on DLLs before PROTOCOL 22.
- */
-const BucketWallChips = ({ walls }: { walls: BucketWalls }) => {
-    const { t } = useT();
-    const chips: { key: keyof BucketWalls; icon: string; label: string; tip: string }[] = [
-        { key: "roads", icon: "roads", label: t("Placemaker.UI.Walls.Roads", "Roads"), tip: t("Placemaker.UI.Walls.RoadsTip", "Every street and road, alleys and gravel too.") },
-        { key: "paths", icon: "footpath", label: t("Placemaker.UI.Walls.Paths", "Paths"), tip: t("Placemaker.UI.Walls.PathsTip", "Footpaths split a block like streets do.") },
-        { key: "bikes", icon: "bike", label: t("Placemaker.UI.Walls.Bikes", "Bike paths"), tip: t("Placemaker.UI.Walls.BikesTip", "Bike-only paths split a block too.") },
-        { key: "tracks", icon: "track", label: t("Placemaker.UI.Walls.Tracks", "Rail & tram"), tip: t("Placemaker.UI.Walls.TracksTip", "Train and tram tracks on the ground.") },
-        { key: "water", icon: "water", label: t("Placemaker.UI.Walls.Water", "Water"), tip: t("Placemaker.UI.Walls.WaterTip", "Stop at the water's edge.") },
-        { key: "lots", icon: "building", label: t("Placemaker.UI.Walls.Lots", "Lots"), tip: t("Placemaker.UI.Walls.LotsTip", "Stop at buildings, other lots and your builds.") },
-        { key: "zoned", icon: "edgeZoning", label: t("Placemaker.UI.Walls.Zoned", "Zoned"), tip: t("Placemaker.UI.Walls.ZonedTip", "Stop at zoned cells.") },
-    ];
-    return (
-        <Row
-            label={t("Placemaker.UI.Walls.Label", "Walls")}
-            testId="bucket-walls"
-            tip={t("Placemaker.UI.Walls.Tip", "What the fill stops at. Lines split blocks; areas keep the side you click.")}
-        >
-            <div className={s.chips} data-testid="bucket-walls-chips">
-                {chips.map((x) => (
-                    <ToggleChip
-                        key={x.key}
-                        icon={x.icon}
-                        label={x.label}
-                        on={!!walls[x.key]}
-                        tip={x.tip}
-                        onClick={() => act.setBrushRules({ walls: { [x.key]: !walls[x.key] } })}
-                        testId={`bucket-wall-${x.key}`}
-                    />
-                ))}
-            </div>
-        </Row>
-    );
-};
-
-/** Points / Paint bucket / Road nodes: keep the outline off my builds, optionally clip it to free land. */
-const KeepOff = ({ rules, bucket }: { rules: BrushRules; bucket?: boolean }) => {
-    const { t } = useT();
-    const builds = rules.builds !== false;
-    const clip = !!rules.drawClip;
-    return (
-        <div className={s.settings} data-testid="outline-rules">
-            {bucket && rules.walls ? <BucketWallChips walls={rules.walls} /> : null}
-            <Row label={t("Placemaker.UI.Rules.KeepOff", "Keep off")} testId="keep-off">
-                <div className={s.chips}>
-                    <ToggleChip
-                        icon="otherBuilds"
-                        label={t("Placemaker.UI.Rules.MyBuilds", "My builds")}
-                        on={builds}
-                        tip={t("Placemaker.UI.Rules.BuildsCutTip", "Cut the outline back where it covers what you built.")}
-                        onClick={() => act.setBrushRules({ builds: !builds })}
-                        testId="keep-off-builds"
-                    />
-                    <ToggleChip
-                        icon="area"
-                        label={t("Placemaker.UI.Rules.FreeLand", "Avoid zoning")}
-                        on={clip}
-                        tip={t("Placemaker.UI.Rules.FreeLandTip", "Shrinks the outline to keep off zoned land, buildings and lots. Empty zone cells along streets do not count. Off by default.")}
-                        onClick={() => act.setBrushRules({ drawClip: !clip })}
-                        testId="keep-off-free-land"
-                    />
-                </div>
-            </Row>
-        </div>
-    );
-};
-
 const HOWTO: Record<Tool, [string, string]> = {
     draw: ["Placemaker.UI.Area.HowDraw", "Click corners, then the first one"],
-    block: ["Placemaker.UI.Area.HowBlock", "Click a block to fill it"],
+    block: ["Placemaker.UI.Area.HowBlock2", "Click to fill"],
     paint: ["Placemaker.UI.Area.HowPaint", "Drag to paint, right-drag erases"],
-    perimeter: ["Placemaker.UI.Area.HowPerimeter", "Click road corners around it"],
 };
 
 /**
@@ -278,7 +283,7 @@ export const AreaStage = ({ state }: { state: ToolState }) => {
     const tool = toolOf(state.areaMode);
     // Paint area opens in Smart edges (block paint) unless the DLL cannot, then plain paint.
     const paintMode = (): AreaMode => (modeAvailability(state, "blockPaint", t, tl).enabled && !rules?.anything ? "blockPaint" : "paint");
-    const cols = layout.width >= 480 ? 4 : 2;
+    const cols = layout.width >= 360 ? 3 : 1;
     return (
         <div className={s.stage} data-testid="stage-area">
             <div className={s.tools} data-testid="area-mode">
@@ -298,7 +303,7 @@ export const AreaStage = ({ state }: { state: ToolState }) => {
                                     className={classNames(s.tool, { [s.toolOn]: on, [s.toolOff]: !av.enabled && !on })}
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        if (!on && av.enabled) act.setAreaMode(mode);
+                                        if ((!on || state.areaMode === "perimeter") && av.enabled) act.setAreaMode(mode);
                                     }}
                                 >
                                     <Tile icon={o.icon} color={on ? "#8fd1ff" : "#9fb0b9"} size={20} />
@@ -320,7 +325,8 @@ export const AreaStage = ({ state }: { state: ToolState }) => {
                     </Row>
                 </div>
             ) : null}
-            {tool !== "paint" && rules ? <KeepOff rules={rules} bucket={tool === "block"} /> : null}
+            {tool === "block" && rules ? <BucketSettings rules={rules} /> : null}
+            {tool === "draw" && rules ? <PointsSettings rules={rules} /> : null}
             <div className={s.summary} data-testid="area-summary">
                 {a.closed && a.areaM2 > 0 ? (
                     <>

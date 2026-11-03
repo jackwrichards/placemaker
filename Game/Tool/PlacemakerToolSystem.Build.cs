@@ -186,6 +186,7 @@ namespace Placemaker.Game.Tool
             _worker.Cancel();
             ClearSelectionState();
             _roads.InvalidateGraph();   // the new roads must be pickable right away
+            InvalidateFills();          // and stop the area tools at once
             if (_recipe != null) foreach (var kv in RecipePaths.Walk(_recipe)) kv.Value.Markers.Clear();
             _editingGroup = 0;
             _plan = null;

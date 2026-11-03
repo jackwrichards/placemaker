@@ -244,16 +244,8 @@ namespace Placemaker.Game.Overlay
                 return;
             }
             var line = bad ? OutlineBad : clipped ? OutlineDim : Outline;
-            for (int i = 0; i + 1 < n; i++)
-            {
-                var c = _tool.HoverEdge == i ? HandleHot : line;
-                buffer.DrawLine(c, new Line3.Segment(pts[i], pts[i + 1]), _tool.HoverEdge == i ? w * 1.6f : w);
-            }
-            if (draw.Closed)
-            {
-                var c = _tool.HoverEdge == n - 1 ? HandleHot : line;
-                buffer.DrawLine(c, new Line3.Segment(pts[n - 1], pts[0]), _tool.HoverEdge == n - 1 ? w * 1.6f : w);
-            }
+            for (int i = 0; i + 1 < n; i++) DrawEdge(buffer, w, i, pts[i], pts[i + 1], line);
+            if (draw.Closed) DrawEdge(buffer, w, n - 1, pts[n - 1], pts[0], line);
             else if (_tool.CursorValid)
             {
                 // Rubber band to the cursor and the closing edge preview.
@@ -268,6 +260,16 @@ namespace Placemaker.Game.Overlay
             }
             if (_tool.EdgeDragging) buffer.DrawCircle(HandleHot, _tool.EdgeGuidePoint, d);
             DrawSnap(buffer, w);
+        }
+
+        /// <summary>One edge of the drawn outline: along its road when both corners sit on road nodes (area overhaul), else straight.</summary>
+        private void DrawEdge(OverlayRenderSystem.Buffer buffer, float w, int i, float3 a, float3 b, Color line)
+        {
+            var c = _tool.HoverEdge == i ? HandleHot : line;
+            float width = _tool.HoverEdge == i ? w * 1.6f : w;
+            var route = _tool.RouteOfEdge(i);
+            if (route == null) { buffer.DrawLine(c, new Line3.Segment(a, b), width); return; }
+            for (int k = 0; k + 1 < route.Length; k++) buffer.DrawLine(c, new Line3.Segment(route[k], route[k + 1]), width);
         }
 
         private void DrawSnap(OverlayRenderSystem.Buffer buffer, float w)
@@ -290,60 +292,48 @@ namespace Placemaker.Game.Overlay
                 case SnapKind.Direction: return new Color(0.75f, 0.45f, 1f, 1f);
                 case SnapKind.Guide: return new Color(1f, 0.78f, 0.25f, 1f);
                 case SnapKind.ZoneGrid: return new Color(0.25f, 0.9f, 0.85f, 1f);
+                case SnapKind.RoadNode: return new Color(1f, 1f, 1f, 1f);
                 default: return Color.white;
             }
         }
 
-        // s43: the walls the Paint bucket traces, faint, by kind (road white, path green, bike teal, track amber).
-        private static Color WallColor(Placemaker.Core.Geometry.FillWall k)
-        {
-            switch (k)
-            {
-                case Placemaker.Core.Geometry.FillWall.Paths: return new Color(0.45f, 0.95f, 0.5f, 0.45f);
-                case Placemaker.Core.Geometry.FillWall.Bikes: return new Color(0.3f, 0.9f, 0.85f, 0.45f);
-                case Placemaker.Core.Geometry.FillWall.Tracks: return new Color(1f, 0.75f, 0.3f, 0.45f);
-                default: return new Color(1f, 1f, 1f, 0.28f);
-            }
-        }
+        // Area overhaul: what the fill shows while hovering — closed gaps (amber, thick dashes), the reach (pale blue dashes)
+        // where the fill met it, and the stops along its edge (red tint). Legend rows: AreaLegend (area:*).
+        private static readonly Color DoorColor = new Color(1f, 0.8f, 0.2f, 0.95f);
+        private static readonly Color ReachColor = new Color(0.55f, 0.85f, 1f, 0.7f);
 
-        private int _wallsVersion = -1;
-        private readonly List<(Bezier4x3 curve, Placemaker.Core.Geometry.FillWall kind, float2 min, float2 max)> _walls = new List<(Bezier4x3, Placemaker.Core.Geometry.FillWall, float2, float2)>();
-        private const float WallsShownRadius = 220f;
+        private PlacemakerToolSystem.BlockPick _stopsFor;
+        private long _stopsSig;
 
-        private void DrawBucketWalls(OverlayRenderSystem.Buffer buffer, float w)
+        private void DrawFillExtras(OverlayRenderSystem.Buffer buffer, float w, PlacemakerToolSystem.BlockPick pick)
         {
-            var em = EntityManager;
-            if (_wallsVersion != _tool.BucketGraphVersion)
+            if (pick == null) return;
+            if (_tool.LayerVisible(AreaLegend.Stops) && pick.Stops != null && pick.Stops.Count > 0)
             {
-                _wallsVersion = _tool.BucketGraphVersion;
-                _walls.Clear();
-                foreach (var kv in _tool.BucketGraphEdges)
-                {
-                    if (!em.Exists(kv.Key) || !em.HasComponent<Curve>(kv.Key)) continue;
-                    var c = em.GetComponentData<Curve>(kv.Key).m_Bezier;
-                    float2 mn = math.min(math.min(c.a.xz, c.b.xz), math.min(c.c.xz, c.d.xz)), mx = math.max(math.max(c.a.xz, c.b.xz), math.max(c.c.xz, c.d.xz));
-                    _walls.Add((c, kv.Value, mn, mx));
-                }
+                if (!ReferenceEquals(_stopsFor, pick)) { _stopsFor = pick; _stopsSig = FilledPreviewSystem.Signature(pick.Stops); }
+                _fill.SetLayer("fillStops", pick.Stops, Blocked, -93.8f, _stopsSig);
             }
-            if (!_tool.CursorValid) return;
-            float2 at = _tool.Cursor.xz;
-            foreach (var x in _walls)
-            {
-                if (math.length(math.max(math.max(x.min - at, at - x.max), 0f)) > WallsShownRadius) continue;
-                buffer.DrawCurve(WallColor(x.kind), x.curve, w * 0.45f);
-            }
+            if (_tool.LayerVisible(AreaLegend.Doors) && pick.Doors != null)
+                foreach (var d in pick.Doors)
+                    for (int i = 0; i + 1 < d.Length; i++) buffer.DrawDashedLine(DoorColor, new Line3.Segment(d[i], d[i + 1]), w * 1.4f, w * 3f, w * 2f);
+            if (_tool.LayerVisible(AreaLegend.Reach) && pick.Reach != null)
+                for (int i = 0; i < pick.Reach.Length; i++)
+                    buffer.DrawDashedLine(ReachColor, new Line3.Segment(pick.Reach[i], pick.Reach[(i + 1) % pick.Reach.Length]), w * 0.8f, w * 5f, w * 4f);
         }
 
         private void DrawBlockMode(OverlayRenderSystem.Buffer buffer, float w, AreaShape shape)
         {
-            if (_tool.Stage == ToolStage.Area) DrawBucketWalls(buffer, w);
-            if (shape != null) Ring(buffer, shape.Ring, Outline, w);
+            if (shape != null && _tool.LayerVisible(AreaLegend.Outline)) Ring(buffer, shape.Ring, Outline, w);
             var hover = _tool.HoverFace;
-            if (hover?.Area != null && _tool.Stage != ToolStage.Building)
+            if (hover?.Area != null && _tool.Stage == ToolStage.Area)
             {
-                var rings = new[] { hover.Area.Ring };
-                _fill.SetLayer("hover", rings, FillHover, -93.5f, FilledPreviewSystem.Signature(rings));
-                Ring(buffer, hover.Area.Ring, HandleHot, w * 0.8f, dashed: true);
+                if (_tool.LayerVisible(AreaLegend.Fill))
+                {
+                    var rings = new[] { hover.Area.Ring };
+                    _fill.SetLayer("hover", rings, FillHover, -93.5f, FilledPreviewSystem.Signature(rings));
+                    Ring(buffer, hover.Area.Ring, HandleHot, w * 0.8f, dashed: true);
+                }
+                DrawFillExtras(buffer, w, hover);
             }
         }
 

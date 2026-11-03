@@ -116,7 +116,7 @@ namespace Placemaker.Game.Suite
         /// raycasts at its screen point, glides the cursor there and clicks. rec gets the press (screen point, hit,
         /// how far the hit is from the scripted point, pans). Returns the hit through done (null = refused, with rec error).
         /// </summary>
-        private IEnumerator Press(ScenarioState st, JObject rec, float3 target, bool right, Action<RaycastHit?> done, bool releaseOnly = false, TypeMask? mask = null)
+        private IEnumerator Press(ScenarioState st, JObject rec, float3 target, bool right, Action<RaycastHit?> done, bool releaseOnly = false, TypeMask? mask = null, bool shift = false)
         {
             var presses = rec["presses"] as JArray ?? (JArray)(rec["presses"] = new JArray());
             var pr = new JObject { ["target"] = new JArray(Math.Round(target.x, 1), Math.Round(target.z, 1)) };
@@ -163,7 +163,7 @@ namespace Placemaker.Game.Suite
             var from = PlacemakerToolSystem.SuiteCursor ?? (h.m_HitPosition + new float3(40f, 0f, 0f));
             int glide = st.Pace == "human" ? 8 : st.Pace == "user" ? 3 : 4;
             PlacemakerToolSystem.SuiteHover(from, h.m_HitPosition, glide);
-            PlacemakerToolSystem.SuiteClickHit(owner, h, right);
+            PlacemakerToolSystem.SuiteClickHit(owner, h, right, shift);
             yield return Feed(rec);
             float pause = StepPause(st);
             if (pause > 0f) yield return Seconds(pause);
@@ -171,6 +171,37 @@ namespace Placemaker.Game.Suite
         }
 
         // ───────────── area tools ─────────────
+
+        /// <summary>
+        /// (Area overhaul) The cursor rests on a spot in the Area stage with a tool picked, so the shot shows what it shows
+        /// there: the fill under the cursor with its closed gaps, reach and stops (bucket), or the brush and the fill a
+        /// stroke would paint in (paint). Nothing is clicked.
+        /// </summary>
+        private IEnumerator StepHover(ScenarioState st, JObject step, JObject rec)
+        {
+            var b = st.S.Block;
+            bool abs = (bool?)step["abs"] ?? false;
+            string tool = ((string)step["tool"] ?? "bucket").ToLowerInvariant();
+            if (_tool.Stage != ToolStage.Area) yield return UiGoToStage(rec, ToolStage.Area);
+            var mode = tool == "paint" ? SelectionMode.BlockPaint : tool == "points" || tool == "draw" ? SelectionMode.Draw : SelectionMode.Block;
+            yield return UiSetAreaMode(rec, mode);
+            var at = P3(Pt(step["at"], b, abs));
+            var from = PlacemakerToolSystem.SuiteCursor ?? (at + new float3(30f, 0f, 0f));
+            PlacemakerToolSystem.SuiteHover(from, at, 8);
+            // After the glide the cursor rests there (the last scripted position repeats until new input).
+            float wait = (float?)step["seconds"] ?? 2f;
+            yield return Feed(rec);
+            yield return Seconds(wait);
+            var hover = _tool.HoverFace;
+            rec["at"] = new JArray(Math.Round(at.x, 1), Math.Round(at.z, 1));
+            if (hover?.Fill != null)
+            {
+                rec["fill"] = hover.Fill.ToString();
+                rec["fillDoors"] = hover.Doors.Count;
+                rec["fillStops"] = hover.Stops.Count;
+            }
+            else rec["fill"] = _tool.HoverFaceProblem?.Key ?? "none";
+        }
 
         private IEnumerator StepArea(ScenarioState st, JObject step, JObject rec)
         {
@@ -197,6 +228,14 @@ namespace Placemaker.Game.Suite
                     RaycastHit? hit = null;
                     yield return Press(st, rec, P3(Pt(step["at"], b, abs)), false, h => hit = h);
                     if (!hit.HasValue) { st.Result["status"] = "no-outline"; yield break; }
+                    // (area overhaul) Shift+clicks add more fills: "shift": [[dx, dz], ...]
+                    if (step["shift"] is JArray more)
+                        foreach (var p in more)
+                        {
+                            RaycastHit? h2 = null;
+                            yield return Press(st, rec, P3(Pt(p, b, abs)), false, h => h2 = h, shift: true);
+                            if (!h2.HasValue) { st.Result["status"] = "no-outline"; yield break; }
+                        }
                     break;
                 }
                 case "points":
@@ -288,7 +327,8 @@ namespace Placemaker.Game.Suite
                 case "nodes":
                 case "perimeter":
                 {
-                    yield return UiSetAreaMode(rec, SelectionMode.Perimeter);
+                    // Area overhaul: Road nodes is part of Points — the same clicks on the junctions, the corners snap to the nodes.
+                    yield return UiSetAreaMode(rec, SelectionMode.Draw);
                     var targets = new List<float2>();
                     if (step["nodes"] is JArray list) foreach (var p in list) targets.Add(Pt(p, b, abs));
                     else { targets.Add(new float2(b.X0, b.Z0)); targets.Add(new float2(b.X1, b.Z0)); targets.Add(new float2(b.X1, b.Z1)); targets.Add(new float2(b.X0, b.Z1)); }

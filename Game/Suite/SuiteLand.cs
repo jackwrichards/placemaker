@@ -69,6 +69,14 @@ namespace Placemaker.Game.Suite
                 p.RoadsFollow = roads == "follow";
                 if (land["road"] != null) p.Road = (string)land["road"];
                 if (land["gap"] != null) p.Gap = math.max(4f, (float)land["gap"]);
+                // (area tools) extra roads and paths: [{"prefab": "Small Road", "points": [[dx, dz], ...]}], relative to the land's centre
+                if (land["nets"] is JArray nets)
+                    foreach (var n in nets.OfType<JObject>())
+                    {
+                        var q = (n["points"] as JArray)?.OfType<JArray>().Select(v => new float2((float)v[0], (float)v[1])).ToArray();
+                        if (q == null || q.Length < 2) { error = "land: every net needs \"points\" with at least 2 points"; return null; }
+                        p.Nets.Add(((string)n["prefab"] ?? SuiteLayout.SmallRoad, q));
+                    }
                 if (p.Size.x < 4f || p.Size.y < 4f || p.Size.x > 4000f || p.Size.y > 4000f) { error = $"land: size {p.Size.x} x {p.Size.y} m is outside 4..4000 m"; return null; }
                 return p;
             }

@@ -10,7 +10,9 @@ import {
 } from "../../src/contract";
 import { publish, setTriggerHandler } from "../cs2/api";
 
-const DEFAULT_BRUSH_RULES = { builds: true, anything: false, drawClip: false, roads: true, buildings: true, lots: true, zoned: true, allZoned: false, emptyZones: false, water: true, stayInBlock: true, snap: 6, smoothing: 1,
+// Area overhaul (PROTOCOL 24): one set of stops for every tool, zoning as one choice (2 = zoned, built on or not), gap and reach.
+const DEFAULT_BRUSH_RULES = { builds: true, anything: false, drawClip: false, roads: true, buildings: true, lots: true, zoned: true, allZoned: true, emptyZones: false, water: true, stayInBlock: true, snap: 6, smoothing: 1,
+    paths: true, bikes: true, tracks: true, zoning: 2, gap: 10, reach: 500,
     walls: { roads: true, paths: true, bikes: true, tracks: true, water: true, lots: false, zoned: false } };
 import { addStrings } from "../cs2/l10n";
 import { BLOCKS, blocksRing, Block, cellsOutline, NODES, paintCells } from "./city";
@@ -605,7 +607,8 @@ export class MockBackend {
                 this.redo();
                 return;
             case "setAreaMode":
-                this.mode = a[0];
+                // Area overhaul: Road nodes is part of Points.
+                this.mode = a[0] === "perimeter" ? "draw" : a[0];
                 this.userCollapsed = null;
                 break;
             case "setBrush":
@@ -616,6 +619,11 @@ export class MockBackend {
                     const patch = JSON.parse(String(a[0]));
                     // s43: walls merge per key, like the DLL's ParseBrushRules.
                     this.brushRules = { ...this.brushRules, ...patch, walls: { ...this.brushRules.walls, ...(patch.walls ?? {}) } };
+                    // Area overhaul: zoning as one choice sets the three switches, like BrushRules.SetZoningLevel.
+                    if (typeof patch.zoning === "number") {
+                        const z = patch.zoning;
+                        this.brushRules = { ...this.brushRules, zoned: z >= 1, allZoned: z >= 2, emptyZones: z >= 3, zoning: z };
+                    }
                 } catch { /* ignore */ }
                 break;
             case "resetBrushRules":
@@ -1517,7 +1525,23 @@ export class MockBackend {
             protocol: this.protocol,
             areaModes: this.areaModes,
             legendVisibility: Object.keys(this.legendVisibility).length ? { ...this.legendVisibility } : undefined,
+            areaLegend: this.stage === "area" ? this.areaLegend() : undefined,
         };
+    }
+
+    /** Area overhaul: what the area tools draw (C# Core/Tool/AreaLegend), a fixed sample per tool. */
+    areaLegend(): ToolState["areaLegend"] {
+        const e = (id: string, color: string, count: number, areaM2?: number) => ({ id, label: "Placemaker.Legend.Area." + id.slice(5), color, count, areaM2 });
+        const shape = this.closed && this.ring.length >= 3 ? Math.round(area(this.ring)) : 0;
+        const list: NonNullable<ToolState["areaLegend"]> = [];
+        if (this.mode === "block") {
+            if (shape) list.push(e("area:outline", "#cceaff", 1, shape));
+            list.push(e("area:fill", "#ffffff", 1), e("area:doors", "#ffcc33", 1), e("area:stops", "#ff5a46", 4));
+        } else if (this.mode === "blockPaint" || this.mode === "paint") {
+            if (shape) list.push(e("area:painted", "#4d9eff", 1, shape));
+            list.push(e("area:fence", "#e6f2ff", 1), e("area:stops", "#ff5a46", 3));
+        } else if (shape) list.push(e("area:outline", "#cceaff", 1, shape));
+        return list.length ? list : undefined;
     }
 
     catalog(): Catalog {

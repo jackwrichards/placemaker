@@ -23,17 +23,17 @@ powershell -File tools/publish/Publish.ps1 -Command Update         # the page on
 
 ## The private test
 
-1. Upload (`Publish.ps1`). It prints the mod's id and writes it into `ModId`: commit that.
+1. Uploaded 2026-10-17 as Private: mod id **163638** (build 0.1.0+51b39d1, master's mod code).
+   0.1.1 uploaded 2026-10-17 09:25 (build 0.1.1+bc58941 = master with the area tools work).
 2. Remove the local copy (`Mods\Placemaker`) so the game doesn't load two, subscribe to the private mod in your game,
    and check it works.
 
 ## Before going Public
 
-1. **Credits wording**: "inspired by" or "uses code from" (the code contains ported ParkingLotTool and ParkManager
-   code).
+1. **Credits wording**: decided 2026-10-17: "Based on similar concepts to ...". The code files keep their own "ported from" notes (GPL-3.0).
 2. **Your co-author's OK.** Grid Road Generator code is in Placemaker, and that mod has no licence yet. The code
    comments disagree too (`Core/Tool/RoadGraph.cs` says MIT, `BuildService.Terrain.cs` says GPL-3.0); settle it.
-3. **Public source code** (the GPL-3.0 requires it): a public GitHub repository, as `<ExternalLink Type="github">`.
+3. **Public source code** (the GPL-3.0 requires it): the code is on GitHub at https://github.com/jackwrichards/placemaker, **public** since 2026-10-17, linked on the page (`<ExternalLink Type="github">` and in the credits line).
    `Publish.ps1` refuses Public or Unlisted without it.
 4. **The video**: Paradox Mods takes pictures only. Put the showcase on YouTube and add it as
    `<ExternalLink Type="youtube">` (and a line on the page).
@@ -48,3 +48,4 @@ powershell -File tools/publish/Publish.ps1 -Command Update         # the page on
 - No review before it goes live, but reported mods are checked, and Paradox can remove them.
 - A name stays reserved even after the mod is deleted.
 - Every new version needs a higher `ModVersion` and a `ChangeLog`; the uploader refuses the same version twice.
+- At most 10 screenshots (Paradox refuses more; `Publish.ps1` checks).

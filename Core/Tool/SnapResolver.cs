@@ -13,7 +13,7 @@ using Unity.Mathematics;
 
 namespace Placemaker.Core.Tool
 {
-    public enum SnapKind { None = 0, RoadEdge = 1, ObjectSide = 2, AreaEdge = 3, Direction = 4, Guide = 5, ZoneGrid = 6, Crossing = 7 }
+    public enum SnapKind { None = 0, RoadEdge = 1, ObjectSide = 2, AreaEdge = 3, Direction = 4, Guide = 5, ZoneGrid = 6, Crossing = 7, RoadNode = 8 }
 
     public struct SnapResult
     {
@@ -22,6 +22,8 @@ namespace Placemaker.Core.Tool
         public float2 Direction;
         public bool HasGuide;
         public float3 GuideA, GuideB;
+        /// <summary>(Area overhaul) Kind RoadNode: the road node snapped to (packed entity).</summary>
+        public long Node;
     }
 
     public sealed class SnapResolver

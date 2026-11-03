@@ -61,7 +61,8 @@ namespace Placemaker.Game.Settings
         public bool SnapToRoadsWhenDrawing { get; set; }
 
         /// <summary>Drawn/painted areas are trimmed to the edge of existing roads before planning (AreaClip).</summary>
-        [SettingsUISection(SectionMain, GroupGeneral)]
+        // Area overhaul: Points follow the shared "Stops at" (Roads); kept so the id stays valid.
+        [SettingsUIHidden]
         public bool KeepOffExistingRoads { get; set; }
 
         /// <summary>
@@ -97,6 +98,18 @@ namespace Placemaker.Game.Settings
         [SettingsUISection(SectionMain, GroupBrush)]
         public bool BrushStopRoads { get; set; }
 
+        /// <summary>(Area overhaul) Footpaths.</summary>
+        [SettingsUISection(SectionMain, GroupBrush)]
+        public bool BrushStopPaths { get; set; }
+
+        /// <summary>(Area overhaul) Bike paths.</summary>
+        [SettingsUISection(SectionMain, GroupBrush)]
+        public bool BrushStopBikes { get; set; }
+
+        /// <summary>(Area overhaul) Rail and tram tracks on the ground.</summary>
+        [SettingsUISection(SectionMain, GroupBrush)]
+        public bool BrushStopTracks { get; set; }
+
         [SettingsUISection(SectionMain, GroupBrush)]
         public bool BrushStopBuildings { get; set; }
 
@@ -125,30 +138,32 @@ namespace Placemaker.Game.Settings
         public bool BrushStayInBlock { get; set; }
 
         /// <summary>(s27) Draw / Roads / Block outlines are clipped to free land (the polygon stops), not only off other builds.</summary>
-        [SettingsUISection(SectionMain, GroupBrush)]
+        // Area overhaul: every tool follows the stops; kept so the id stays valid.
+        [SettingsUIHidden]
         public bool BrushDrawClip { get; set; }
 
-        // (s43) Paint bucket walls (Core/Geometry/FillWalls): lines trace the block, areas cut it. Ids are save format.
+        /// <summary>(Area overhaul) Openings narrower than this (m) count as closed (Paint bucket, Paint area's One block).</summary>
+        [SettingsUISlider(min = 0f, max = 40f, step = 1f, scalarMultiplier = 1)]
         [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallRoads { get; set; }
+        public float AreaGap { get; set; }
 
+        /// <summary>(Area overhaul) How far (m) the Paint bucket spreads from the click.</summary>
+        [SettingsUISlider(min = 20f, max = 1500f, step = 10f, scalarMultiplier = 1)]
         [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallPaths { get; set; }
+        public float AreaReach { get; set; }
 
-        [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallBikes { get; set; }
+        /// <summary>(Area overhaul) Settings files older than the overhaul get its stops once (zoned land on).</summary>
+        [SettingsUIHidden] public int AreaRulesVersion { get; set; }
+        public const int CurrentAreaRulesVersion = 2;
 
-        [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallTracks { get; set; }
-
-        [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallWater { get; set; }
-
-        [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallLots { get; set; }
-
-        [SettingsUISection(SectionMain, GroupBrush)]
-        public bool BucketWallZoned { get; set; }
+        // (s43) Paint bucket walls (Core/Geometry/FillWalls). Area overhaul: replaced by the shared stops; ids kept.
+        [SettingsUIHidden] public bool BucketWallRoads { get; set; }
+        [SettingsUIHidden] public bool BucketWallPaths { get; set; }
+        [SettingsUIHidden] public bool BucketWallBikes { get; set; }
+        [SettingsUIHidden] public bool BucketWallTracks { get; set; }
+        [SettingsUIHidden] public bool BucketWallWater { get; set; }
+        [SettingsUIHidden] public bool BucketWallLots { get; set; }
+        [SettingsUIHidden] public bool BucketWallZoned { get; set; }
 
         [SettingsUISlider(min = 0f, max = 20f, step = 1f, scalarMultiplier = 1)]
         [SettingsUISection(SectionMain, GroupBrush)]
@@ -175,10 +190,27 @@ namespace Placemaker.Game.Settings
             EmptyZones = BlockPaintAvoidEmptyZones, Water = BrushStopWater, StayInBlock = BrushStayInBlock,
             Snap = BrushSnapDistance, Smoothing = BrushSmoothing,
             Builds = BrushStopBuilds, Anything = BrushPaintOverAnything, DrawClip = BrushDrawClip,
+            Paths = BrushStopPaths, Bikes = BrushStopBikes, Tracks = BrushStopTracks, Gap = AreaGap, Reach = AreaReach,
             BucketWalls = (BucketWallRoads ? FillWall.Roads : 0) | (BucketWallPaths ? FillWall.Paths : 0) | (BucketWallBikes ? FillWall.Bikes : 0)
                 | (BucketWallTracks ? FillWall.Tracks : 0) | (BucketWallWater ? FillWall.Water : 0) | (BucketWallLots ? FillWall.Lots : 0)
                 | (BucketWallZoned ? FillWall.Zoned : 0),
         }.Normalized();
+
+        /// <summary>
+        /// (Area overhaul) Once per settings file older than the overhaul: the new stops on (paths, bike paths, tracks, and
+        /// zoned land whether built on or not), the fill's gap and reach at their defaults. True when something changed.
+        /// </summary>
+        public bool MigrateAreaRules()
+        {
+            if (AreaRulesVersion >= CurrentAreaRulesVersion) return false;
+            var r = GetBrushRules();
+            var d = global::Placemaker.Core.Geometry.BrushRules.Defaults();
+            r.Paths = d.Paths; r.Bikes = d.Bikes; r.Tracks = d.Tracks; r.AllZoned = d.AllZoned; r.Gap = d.Gap; r.Reach = d.Reach;
+            if (r.Zoned == false && r.AllZoned) r.Zoned = true;
+            SetBrushRules(r);
+            AreaRulesVersion = CurrentAreaRulesVersion;
+            return true;
+        }
 
         public void SetBrushRules(global::Placemaker.Core.Geometry.BrushRules r)
         {
@@ -187,6 +219,7 @@ namespace Placemaker.Game.Settings
             BlockPaintAvoidEmptyZones = r.EmptyZones; BrushStopWater = r.Water; BrushStayInBlock = r.StayInBlock;
             BrushSnapDistance = r.Snap; BrushSmoothing = r.Smoothing;
             BrushStopBuilds = r.Builds; BrushPaintOverAnything = r.Anything; BrushDrawClip = r.DrawClip;
+            BrushStopPaths = r.Paths; BrushStopBikes = r.Bikes; BrushStopTracks = r.Tracks; AreaGap = r.Gap; AreaReach = r.Reach;
             var w = r.BucketWalls;
             BucketWallRoads = (w & FillWall.Roads) != 0; BucketWallPaths = (w & FillWall.Paths) != 0; BucketWallBikes = (w & FillWall.Bikes) != 0;
             BucketWallTracks = (w & FillWall.Tracks) != 0; BucketWallWater = (w & FillWall.Water) != 0; BucketWallLots = (w & FillWall.Lots) != 0;
@@ -391,6 +424,7 @@ namespace Placemaker.Game.Settings
             KeepOffExistingRoads = true;
             PaintAvoidBuildings = true;
             SetBrushRules(global::Placemaker.Core.Geometry.BrushRules.Defaults());
+            AreaRulesVersion = 0;   // a file without it is older than the overhaul (MigrateAreaRules); new files get the defaults anyway
             LayoutSize = (int)System.Math.Round(global::Placemaker.Core.SiteContext.DefaultLayoutScale * 100f);
             EdgeMargin = global::Placemaker.Core.SiteContext.DefaultEdgeMargin;
             BrushSize = 150f;

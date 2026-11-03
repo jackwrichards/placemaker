@@ -12,13 +12,22 @@ namespace Placemaker.Tests
         private static float2[] Sq(float x, float z, float s = 8f) => new[] { new float2(x, z), new float2(x + s, z), new float2(x + s, z + s), new float2(x, z + s) };
 
         [Fact]
-        public void Defaults_StopAtBuiltZonedOnly()
+        public void Defaults_StopAtAllZoned_NotTheEmptyGrid()
         {
+            // Area overhaul: zoned land is kept off whether built on or not ("it goes onto zoned areas when it shouldn't").
             var r = BrushRules.Defaults();
             Assert.True(r.Stops(BrushObstacleKind.ZonedCell));
-            Assert.False(r.Stops(BrushObstacleKind.UnbuiltZonedCell));
+            Assert.True(r.Stops(BrushObstacleKind.UnbuiltZonedCell));
             Assert.False(r.Stops(BrushObstacleKind.EmptyZoneCell));
             Assert.True(r.Stops(BrushObstacleKind.PlacemakerBuild));
+            Assert.Equal(2, r.ZoningLevel);
+            r.SetZoningLevel(1);
+            Assert.True(r.Stops(BrushObstacleKind.ZonedCell));
+            Assert.False(r.Stops(BrushObstacleKind.UnbuiltZonedCell));
+            r.SetZoningLevel(3);
+            Assert.True(r.Stops(BrushObstacleKind.EmptyZoneCell));
+            r.SetZoningLevel(0);
+            Assert.False(r.Stops(BrushObstacleKind.ZonedCell));
         }
 
         [Fact]
@@ -29,7 +38,7 @@ namespace Placemaker.Tests
             Assert.True(r.Stops(BrushObstacleKind.UnbuiltZonedCell));
             r.Anything = true;
             Assert.False(r.Stops(BrushObstacleKind.UnbuiltZonedCell));
-            Assert.False(BrushRules.Defaults().Equals(new BrushRules { AllZoned = true }));
+            Assert.False(BrushRules.Defaults().Equals(new BrushRules { AllZoned = false }));
         }
 
         [Fact]
@@ -41,10 +50,9 @@ namespace Placemaker.Tests
                 new BrushObstacle(BrushObstacleKind.UnbuiltZonedCell, Sq(10, 10, 40f)),
                 new BrushObstacle(BrushObstacleKind.ZonedCell, Sq(60, 60, 20f)),
             };
-            var def = BrushRules.Defaults().Build(new float2(5, 5), block, obstacles);
-            Assert.Single(def.Obstacles);
-            var all = BrushRules.Defaults(); all.AllZoned = true;
-            Assert.Equal(2, all.Build(new float2(5, 5), block, obstacles).Obstacles.Count);
+            var built = BrushRules.Defaults(); built.SetZoningLevel(1);
+            Assert.Single(built.Build(new float2(5, 5), block, obstacles).Obstacles);
+            Assert.Equal(2, BrushRules.Defaults().Build(new float2(5, 5), block, obstacles).Obstacles.Count);
         }
 
         [Fact]

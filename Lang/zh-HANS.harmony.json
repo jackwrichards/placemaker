@@ -1,0 +1,4 @@
+{
+  "Placemaker.Harmony.Issue.SteepPath": "部分路径坡度过大，地面太陡，若不进行大规模挖方就无法将其整平到舒适坡度。",
+  "Placemaker.Harmony.Issue.Failed": "无法平整路径和平台（{0}），它们将直接贴合现有地形。"
+}

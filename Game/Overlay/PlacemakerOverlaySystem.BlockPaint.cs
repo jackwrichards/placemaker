@@ -58,9 +58,12 @@ namespace Placemaker.Game.Overlay
             bool selecting = _tool.BrushLive;
             if (cur != null)
             {
-                // Open-land fallback: no block line; the shading shows the roads/obstacles near the brush.
-                if (cur.Block != null) Ring(buffer, cur.Block, OutlineDim, w * 0.8f, dashed: true);
-                if (selecting && cur.Obstacles.Count > 0)
+                // Open box: no fence line; the shading shows the stops near the brush.
+                if (cur.Block != null && _tool.LayerVisible(AreaLegend.Fence)) Ring(buffer, cur.Block, OutlineDim, w * 0.8f, dashed: true);
+                if (selecting && _tool.LayerVisible(AreaLegend.Doors))
+                    foreach (var d in cur.Doors)
+                        for (int i = 0; i + 1 < d.Length; i++) buffer.DrawDashedLine(DoorColor, new Line3.Segment(d[i], d[i + 1]), w * 1.4f, w * 3f, w * 2f);
+                if (selecting && cur.Obstacles.Count > 0 && _tool.LayerVisible(AreaLegend.Stops))
                 {
                     var shown = cur.Open ? NearBrush(cur) : cur.Obstacles;
                     if (!ReferenceEquals(_bpSigFor, cur) || !ReferenceEquals(_bpShown, shown))
@@ -74,8 +77,11 @@ namespace Placemaker.Game.Overlay
             }
 
             var hover = _tool.HoverFace;
-            if (hover?.Area != null && !_tool.Painting && _tool.BrushLive)
+            if (hover?.Area != null && !_tool.Painting && _tool.BrushLive && _tool.LayerVisible(AreaLegend.Fence))
+            {
                 Ring(buffer, hover.Area.Ring, HoverBlock, w * 0.7f, dashed: true);
+                DrawFillExtras(buffer, w, hover);
+            }
 
             var mask = _tool.BlockPaintMask;
             if (mask.Version != _bpVersion)
@@ -83,18 +89,27 @@ namespace Placemaker.Game.Overlay
                 _bpVersion = mask.Version;
                 _bpBoundary = mask.RawBoundary();
             }
-            // Raw cells while painting; the smoothed, curb-snapped outline once the shape exists.
+            // While painting: the outline the stroke would give (worked out in the background) over the painted cells, dim;
+            // the cells alone until the first outline is in. Once the shape exists: its outline.
             if (_tool.Painting || shape == null)
             {
+                var preview = _tool.BlockPaintPreview;
                 int max = math.min(_bpBoundary.Count, 20000);
                 float y = _tool.Cursor.y;
+                var cellColor = preview != null ? OutlineDim : Outline;
                 for (int i = 0; i < max; i++)
                 {
                     var (a, b) = _bpBoundary[i];
-                    buffer.DrawLine(Outline, new Line3.Segment(new float3(a.x, y, a.y), new float3(b.x, y, b.y)), w * 0.7f);
+                    buffer.DrawLine(cellColor, new Line3.Segment(new float3(a.x, y, a.y), new float3(b.x, y, b.y)), w * (preview != null ? 0.45f : 0.7f));
                 }
+                if (preview != null && _tool.LayerVisible(AreaLegend.Painted))
+                    for (int i = 0; i < preview.Length; i++)
+                    {
+                        float2 a = preview[i], b = preview[(i + 1) % preview.Length];
+                        buffer.DrawLine(Outline, new Line3.Segment(new float3(a.x, y, a.y), new float3(b.x, y, b.y)), w);
+                    }
             }
-            else Ring(buffer, shape.Ring, Outline, w);
+            else if (_tool.LayerVisible(AreaLegend.Painted)) Ring(buffer, shape.Ring, Outline, w);
 
             var c = _tool.Erasing ? Erase : Brush;
             if (_tool.BrushLive) DrawBrushCursor(buffer, w, _tool.Painting ? c : new Color(c.r, c.g, c.b, 0.2f));

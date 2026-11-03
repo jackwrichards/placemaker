@@ -12,13 +12,15 @@ export const GROUP = "Placemaker";
  * together. The game reloads this UI file from disk but loads the DLL only at start, so right after an
  * update they can disagree: the panel then shows "Restart the game" (absent = a DLL older than s15).
  */
-export const PROTOCOL = 23;
+export const PROTOCOL = 24;
 
 // ─────────────────────────── Values (C# → UI) ───────────────────────────
 
 /** Workflow stages. The player can always click back to an earlier stage; nothing is lost. */
 export type Stage = "area" | "design" | "review" | "building" | "manage";
-/** "blockPaint" (s11): a brush fenced to the city block under the cursor; uses the same brush settings as "paint". */
+/** "blockPaint" (s11): a brush fenced to the city block under the cursor; uses the same brush settings as "paint".
+ *  (PROTOCOL 24, area overhaul) "perimeter" (Road nodes) is folded into "draw": Points snap to road nodes. The DLL still
+ *  answers "perimeter" with Points; the panel no longer offers it. */
 export type AreaMode = "draw" | "block" | "paint" | "perimeter" | "blockPaint";
 export type BrushShape = "round" | "square";
 
@@ -41,8 +43,19 @@ export interface BrushRules {
   drawClip?: boolean;
   snap: number;          // m, 0 = off (default 6)
   smoothing: number;     // 0–6 passes (default 1; Paint uses 6)
-  /** (s43, PROTOCOL 22) What the Paint bucket treats as a wall; setBrushRules({ walls: { paths: false } }) merges per key. */
+  /** (s43, PROTOCOL 22) What the Paint bucket treats as a wall; setBrushRules({ walls: { paths: false } }) merges per key.
+   *  (PROTOCOL 24) No longer read: every tool uses the stops above. */
   walls?: BucketWalls;
+  /** (PROTOCOL 24, area overhaul) One set of stops for Points, Paint bucket and Paint area: footpaths, bike paths, tracks. */
+  paths?: boolean;
+  bikes?: boolean;
+  tracks?: boolean;
+  /** (PROTOCOL 24) Zoning as one choice: 0 off, 1 built on, 2 zoned (built or not, default), 3 the whole grid. Sets zoned/allZoned/emptyZones. */
+  zoning?: number;
+  /** (PROTOCOL 24) Openings narrower than this (m) count as closed; narrower places are left out (0 = off; default 10). */
+  gap?: number;
+  /** (PROTOCOL 24) How far (m) the Paint bucket spreads from the click (default 500). */
+  reach?: number;
 }
 
 /** (s43) Paint bucket walls: lines (roads, paths, bikes, tracks) trace the block, areas (water, lots, zoned) cut it. */
@@ -123,6 +136,9 @@ export interface ToolState {
   /** Additive (s22): preview layers the player showed / hid with the legend (layer id → visible). Absent = every
    *  layer at its default (LegendEntry.defaultOff). Kept for the game session. */
   legendVisibility?: Record<string, boolean>;
+  /** (PROTOCOL 24, area overhaul) The legend while choosing the area: what the overlay shows for the current tool
+   *  (ids "area:*": outline, fill, doors = closed gaps, reach, stops, painted, fence, leftOut, node). Area stage only. */
+  areaLegend?: LegendEntry[];
 }
 
 /** One control, mirrors Core.ControlSchema. */

@@ -27,6 +27,8 @@ file.
 - `docs/ARCHITECTURE.md`, `docs/DESIGN.md`: how it is built and how it should feel.
 - `docs/RESEARCH-NOTES.md`, `docs/RESEARCH-NOTES-ADDENDUM.md`: game engine rules (decompiled). A mandatory checklist.
 - `docs/refactor/GRADES.md`: the user's grades per category and the current refactor brief.
+- `docs/AREA-TOOLS.md`: the area tools (Points, Paint bucket, Paint area) after the area overhaul: one set of stops,
+  the fill engine (gaps, reach, exact road surfaces), how to test them (`suite/scenarios/area-tools.json`).
 - `suite/README.md`: the game runner (below).
 - `docs/teardown/`: what went wrong and why. Start with `00-user-feedback-1215.md`, then `07` (shop defects), `08`
   (street zoning), `09` (switching freezes).

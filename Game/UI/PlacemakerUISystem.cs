@@ -55,7 +55,8 @@ namespace Placemaker.Game.UI
             Trigger("primary", () => _tool.Primary());
             Trigger("undo", () => _tool.Undo());
             Trigger("redo", () => _tool.Redo());
-            Trigger<string>("setAreaMode", m => { if (SelectionModes.TryParse(m, out var mode)) _tool.SetAreaMode(mode); });
+            // Area overhaul: Road nodes is part of Points (corners snap to road nodes); an older panel asking for it gets Points.
+            Trigger<string>("setAreaMode", m => { if (SelectionModes.TryParse(m, out var mode)) _tool.SetAreaMode(mode == SelectionMode.Perimeter ? SelectionMode.Draw : mode); });
             Trigger<string, double, double>("setBrush", (shape, size, angle) => _tool.SetBrush(shape == "square", (float)size, (float)angle));
             Trigger<string>("setBrushRules", json => _tool.SetBrushRules(UiModels.ParseBrushRules(json, _tool.BrushRules)));
             Trigger("resetBrushRules", () => _tool.ResetBrushRules());

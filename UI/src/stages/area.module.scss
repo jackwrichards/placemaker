@@ -193,6 +193,21 @@ $accent: #8fd1ff;
     background-color: $c-line;
 }
 
+// Area overhaul: one dim line of help under Points' stops (road nodes).
+.note {
+    @include row;
+    min-width: 0;
+    margin-top: 3rem;
+}
+
+.noteText {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 4rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
+}
+
 // ── summary line ──
 .summary {
     @include row;

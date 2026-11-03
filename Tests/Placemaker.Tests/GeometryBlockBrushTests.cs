@@ -508,7 +508,7 @@ namespace Placemaker.Tests
         [Fact]
         public void Rules_AllOff_IsPlainPaint()
         {
-            var rules = new BrushRules { Roads = false, Buildings = false, Builds = false, Lots = false, Zoned = false, EmptyZones = false, Water = false, StayInBlock = false, Smoothing = 6 };
+            var rules = new BrushRules { Roads = false, Paths = false, Bikes = false, Tracks = false, Buildings = false, Builds = false, Lots = false, Zoned = false, AllZoned = false, EmptyZones = false, Water = false, StayInBlock = false, Smoothing = 6 };
             Assert.True(rules.AllOff);
             var road = Footprints(Road(new float2(-400, 0), new float2(400, 0))).Select(r => new BrushObstacle(BrushObstacleKind.Road, r.ToArray()));
             var bb = rules.Build(new float2(10, 30), Block, Kinded().Concat(road), p => true);

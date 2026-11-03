@@ -89,7 +89,14 @@ namespace Placemaker.Game.Tool
                 s = null;
             }
             s = KeepOffRoads(s);
-            s = KeepOffBuilds(s);
+            s = CutByStops(s);
+            if (s != null && (_mode == SelectionMode.Draw || _mode == SelectionMode.Perimeter) && s.Source != AreaSource.Block)
+            {
+                // Points along the roads (corners on their nodes) give a city block, like the bucket: no perimeter road, anchors.
+                if (RoadBound(s.Ring2D())) s.Source = AreaSource.Block;
+                WithFoundAttachments(s);
+                AddNodeAttachments(s);
+            }
             var old = _shape;
             _shape = s;
             _shapeVersion++;
@@ -104,7 +111,8 @@ namespace Placemaker.Game.Tool
         private bool _keepOffApplied = true;
 
         /// <summary>Parts of the selection left out because they lie on existing roads (for the overlay), or null.</summary>
-        public IReadOnlyList<float3[]> ClippedAway => _clip != null && _clip.Clipped && ReferenceEquals(_clip.Shape, _shape) ? _clip.Removed : null;
+        public IReadOnlyList<float3[]> ClippedAway => _leftOut != null && _leftOut.Count > 0 && _shape != null ? _leftOut
+            : _clip != null && _clip.Clipped && ReferenceEquals(_clip.Shape, _shape) ? _clip.Removed : null;
 
         /// <summary>Info about the trimmed outline for the summary, or null.</summary>
         public PlanIssue ClipIssue => _clip != null && _clip.Clipped && ReferenceEquals(_clip.Shape, _shape) ? _clip.Issue : null;
@@ -132,9 +140,9 @@ namespace Placemaker.Game.Tool
         /// (s27) The brushes follow the shared brush rules ("Roads" stop, "Paint over anything"); Draw keeps the
         /// "Keep off existing roads" option.
         /// </summary>
-        private bool KeepOffRoadsWanted() => _mode == SelectionMode.Paint || _mode == SelectionMode.BlockPaint
-            ? BrushRules.Stops(BrushObstacleKind.Road)
-            : _settings == null || _settings.KeepOffExistingRoads;
+        // Area overhaul: only plain Paint (Smart edges off) still trims by road corridors here; every other tool stops at the
+        // exact road surfaces itself (AreaWalls), so a second, rounder cut would only nick the outline.
+        private bool KeepOffRoadsWanted() => _mode == SelectionMode.Paint && BrushRules.Stops(BrushObstacleKind.Road);
 
         private void CheckKeepOffSetting()
         {
@@ -155,12 +163,11 @@ namespace Placemaker.Game.Tool
         private AreaShape BuildDrawShape()
         {
             if (!_draw.Closed) return null;
-            var ring = _draw.RingCcw();
+            // Area overhaul: stretches between two corners on road nodes follow the road (Points.cs); the stops cut it after.
+            var ring = RoutedRing();
             if (ring.Length < 3) return null;
             for (int i = 0; i < ring.Length; i++) ring[i].y = _site.SampleHeight(ring[i].xz);
-            var shape = new AreaShape { Ring = ring, Source = AreaSource.Drawn };
-            WithFoundAttachments(shape);
-            return shape;
+            return new AreaShape { Ring = ring, Source = AreaSource.Drawn };
         }
 
         private void WithFoundAttachments(AreaShape shape)
@@ -437,7 +444,7 @@ namespace Placemaker.Game.Tool
                     case SelectionMode.Draw: return _draw.Closed;
                     // s43: an open chain of 3+ nodes closes itself (preview), so it is an area already.
                     case SelectionMode.Perimeter: return _perimeter.Closed || _shape != null;
-                    case SelectionMode.Block: return _blocks.Faces.Count > 0;
+                    case SelectionMode.Block: return _blocks.Seeds.Count > 0;
                     default: return _shape != null;
                 }
             }
@@ -451,7 +458,7 @@ namespace Placemaker.Game.Tool
                 {
                     case SelectionMode.Draw: return _draw.Count;
                     case SelectionMode.Perimeter: return _perimeter.Nodes.Count;
-                    case SelectionMode.Block: return _blocks.Faces.Count;
+                    case SelectionMode.Block: return _blocks.Seeds.Count;
                     default: return _shape?.Ring.Length ?? 0;
                 }
             }

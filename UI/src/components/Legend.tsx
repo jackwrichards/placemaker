@@ -53,7 +53,9 @@ export function legendValue(e: LegendEntry): string {
     }
     if (e.id === "issues") return e.blocked ? `${e.count} (${e.blocked} red)` : String(e.count);
     if (e.lengthM && e.lengthM > 0) return legendLength(e.lengthM);
-    if ((e.id === "surfaces" || e.id === "water") && e.areaM2) return legendArea(e.areaM2);
+    if ((e.id === "surfaces" || e.id === "water" || e.id.startsWith("area:")) && e.areaM2) return legendArea(e.areaM2);
+    // Area overhaul: the fill under the cursor, the brush's fence and the reach are one thing each, no number.
+    if (e.id === "area:fill" || e.id === "area:fence" || e.id === "area:reach") return "";
     return String(e.count);
 }
 
@@ -118,8 +120,9 @@ export const Legend = ({ state, summary, side }: { state: ToolState; summary: Su
     const { t } = useT();
     const [open, setOpen] = useState(loadOpen);
     const [hover, setHover] = useState("");
-    const entries = summary.legend ?? [];
-    const show = (state.stage === "design" || state.stage === "review") && entries.length > 0;
+    // Area overhaul: while choosing the area the window lists what the area tools draw (state.areaLegend).
+    const entries = state.stage === "area" ? state.areaLegend ?? [] : summary.legend ?? [];
+    const show = (state.stage === "area" || state.stage === "design" || state.stage === "review") && entries.length > 0;
     // A hover must never stick when the window goes away (stage change, collapse, plan without that layer).
     useEffect(() => {
         if ((!show || !open) && hover) {

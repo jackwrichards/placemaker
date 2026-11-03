@@ -1,6 +1,9 @@
 // Draw mode: PLT-quality polygon editor (KruemelGames' ParkingLotTool, GPL-3.0, behaviour ported;
 // geometry rules in Core/Tool/PolygonEditor).
 //
+// Area overhaul: corners snap to road nodes (junctions, dead ends) and two in a row follow the road between them
+// (PlacemakerToolSystem.Points); the outline is cut by the shared stops.
+//
 // Mouse map (shown in the panel hints and cursor tooltips):
 //   while drawing:  click = add corner · click first corner / double-click = close
 //                   right-click = remove last corner (or the corner under the cursor)
@@ -85,7 +88,7 @@ namespace Placemaker.Game.Tool
                 if (_hoverPoint == _draw.Count - 1 && _draw.Count > 0) { BeginPointDrag(_hoverPoint, false); return; }
                 var problem = _draw.CheckAdd(_cursor.xz);
                 if (problem != null) { Flash(new LocText(problem)); return; }
-                _draw.AddPoint(_cursor, _lastSnap.Kind != SnapKind.None ? _lastSnap.Direction : float2.zero);
+                _draw.AddPoint(_cursor, _lastSnap.Kind != SnapKind.None ? _lastSnap.Direction : float2.zero, _lastSnap.Kind == SnapKind.RoadNode ? _lastSnap.Node : 0L);
                 _lastAddTime = _in.Time;
                 _lastAddPos = _cursor;
                 ShapeChanged();
@@ -181,6 +184,7 @@ namespace Placemaker.Game.Tool
                 var target = Snap(_in.Hit, _dragIndex);
                 _cursor = _draw.MovePoint(_dragIndex, target, _draw.Points[_dragIndex]);
                 _draw.SetAxis(_dragIndex, _lastSnap.Kind != SnapKind.None ? _lastSnap.Direction : float2.zero);
+                _draw.SetNode(_dragIndex, _lastSnap.Kind == SnapKind.RoadNode ? _lastSnap.Node : 0L);
                 _hoverPoint = _dragIndex;
                 ShapeChanged(throttled: true);
                 return;

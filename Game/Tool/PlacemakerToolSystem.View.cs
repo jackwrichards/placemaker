@@ -3,6 +3,7 @@
 // (corner, node, block, paint, marker) — never anything else.
 
 using System.Collections.Generic;
+using Placemaker.Core.Build;
 using Placemaker.Core.Geometry;
 using Placemaker.Core.Tool;
 
@@ -10,6 +11,32 @@ namespace Placemaker.Game.Tool
 {
     public sealed partial class PlacemakerToolSystem
     {
+        /// <summary>(Area overhaul) The legend rows for what the overlay shows while choosing the area.</summary>
+        private List<PreviewLegend.Entry> AreaLegendNow()
+        {
+            var i = new AreaLegend.Input { Mode = _mode, HasShape = _shape != null, AreaM2 = _shape != null ? AreaM2 : 0 };
+            switch (_mode)
+            {
+                case SelectionMode.Block:
+                    i.HasFill = _hoverFace != null;
+                    i.Doors = _hoverFace?.Doors.Count ?? 0;
+                    i.Reach = _hoverFace?.Reach != null;
+                    i.Stops = _hoverFace?.Stops.Count ?? 0;
+                    break;
+                case SelectionMode.BlockPaint:
+                    var cur = BlockPaintCurrent;
+                    i.HasFill = cur?.Ring != null || _hoverFace != null;
+                    i.Doors = cur?.Doors.Count ?? _hoverFace?.Doors.Count ?? 0;
+                    i.Stops = cur?.Obstacles.Count ?? _hoverFace?.Stops.Count ?? 0;
+                    break;
+                default:
+                    i.LeftOut = _leftOut?.Count ?? 0;
+                    i.Nodes = CornersOnNodes;
+                    break;
+            }
+            return AreaLegend.Compute(i);
+        }
+
         /// <summary>Hints for the current situation, most important first (tooltips show the first ones).</summary>
         public List<HintInfo> Hints()
         {
@@ -44,6 +71,7 @@ namespace Placemaker.Game.Tool
                     {
                         h.Add(new HintInfo(_draw.Count >= PolygonEditor.MinPoints ? "Placemaker.Hint.DrawAddOrClose" : "Placemaker.Hint.DrawAdd"));
                         if (_draw.Count > 0) h.Add(new HintInfo("Placemaker.Hint.DrawRemoveLast"));
+                        if (_lastSnap.Kind == SnapKind.RoadNode) h.Add(new HintInfo("Placemaker.Hint.DrawNodes"));
                         h.Add(new HintInfo("Placemaker.Hint.DrawNoSnap", "Alt"));
                     }
                     else
@@ -60,9 +88,9 @@ namespace Placemaker.Game.Tool
                     }
                     break;
                 case SelectionMode.Block:
-                    h.Add(new HintInfo(_blocks.Faces.Count == 0 ? "Placemaker.Hint.BlockPick" : "Placemaker.Hint.BlockReplace"));
+                    h.Add(new HintInfo(_blocks.Seeds.Count == 0 ? "Placemaker.Hint.BlockPick" : "Placemaker.Hint.BlockReplace"));
                     h.Add(new HintInfo("Placemaker.Hint.BlockAdd", "Shift"));
-                    if (_blocks.Faces.Count > 0) h.Add(new HintInfo("Placemaker.Hint.BlockRemove"));
+                    if (_blocks.Seeds.Count > 0) h.Add(new HintInfo("Placemaker.Hint.BlockRemove"));
                     break;
                 case SelectionMode.Perimeter:
                     if (_perimeter.Closed) h.Add(new HintInfo("Placemaker.Hint.PerimeterReopen"));
@@ -144,6 +172,7 @@ namespace Placemaker.Game.Tool
                 PreviewMode = PreviewModeSelected,
                 GhostPending = GhostPending,
                 LegendVisibility = LegendVisibility,
+                AreaLegend = _stage == ToolStage.Area ? AreaLegendNow() : null,
             };
             return s;
         }

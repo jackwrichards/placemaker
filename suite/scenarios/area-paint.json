@@ -1,0 +1,13 @@
+{
+  "_note": "Paint area strokes on test land with a dead end (debugging the drag).",
+  "scenarios": [
+    {
+      "id": "area-paint-culdesac",
+      "land": { "size": [200, 160], "nets": [ { "prefab": "Small Road", "points": [[0, -96], [0, -30]] }, { "prefab": "Small Road", "points": [[116, 0], [55, 0]] } ] },
+      "steps": [
+        { "do": "area", "tool": "paint", "size": 40, "cameraDistance": 520, "stroke": [[-40, -60], [-20, -40], [20, -40], [40, -60], [40, -15], [80, 20], [30, 25], [-40, -15]] },
+        { "do": "camera", "target": "block", "view": "top", "shot": "paint", "shotMode": "overlay" }
+      ]
+    }
+  ]
+}

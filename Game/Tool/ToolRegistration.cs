@@ -83,7 +83,8 @@ namespace Placemaker.Game.Tool
             {
                 nameof(PlacemakerSettings.ShowCursorTooltips), nameof(PlacemakerSettings.PreviewDetail), nameof(PlacemakerSettings.SnapToRoadsWhenDrawing), nameof(PlacemakerSettings.KeepOffExistingRoads),
                 nameof(PlacemakerSettings.LayoutSize), nameof(PlacemakerSettings.EdgeMargin), nameof(PlacemakerSettings.PaintAvoidBuildings),
-                nameof(PlacemakerSettings.BrushPaintOverAnything), nameof(PlacemakerSettings.BrushStopRoads), nameof(PlacemakerSettings.BrushStopBuildings), nameof(PlacemakerSettings.BrushStopBuilds),
+                nameof(PlacemakerSettings.BrushPaintOverAnything), nameof(PlacemakerSettings.BrushStopRoads), nameof(PlacemakerSettings.BrushStopPaths),
+                nameof(PlacemakerSettings.BrushStopBikes), nameof(PlacemakerSettings.BrushStopTracks), nameof(PlacemakerSettings.AreaGap), nameof(PlacemakerSettings.AreaReach), nameof(PlacemakerSettings.BrushStopBuildings), nameof(PlacemakerSettings.BrushStopBuilds),
                 nameof(PlacemakerSettings.BrushStopLots), nameof(PlacemakerSettings.BrushStopZoned), nameof(PlacemakerSettings.BrushStopAllZoned), nameof(PlacemakerSettings.BlockPaintAvoidEmptyZones), nameof(PlacemakerSettings.BrushStopWater),
                 nameof(PlacemakerSettings.BrushStayInBlock), nameof(PlacemakerSettings.BrushDrawClip),
                 nameof(PlacemakerSettings.BucketWallRoads), nameof(PlacemakerSettings.BucketWallPaths), nameof(PlacemakerSettings.BucketWallBikes), nameof(PlacemakerSettings.BucketWallTracks),

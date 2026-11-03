@@ -1,266 +1,400 @@
-// Block mode ("Paint bucket"): hover inside a city block → it highlights; click takes it; Shift+click adds or
-// removes an adjacent block (the union must stay one simple outline). Face tracing is pure
-// (Core/Geometry/FillGraph → PlanarGraph.PickFace, cursor-aware) and starts on the cursor's
-// side of the nearest wall, so the exact block under the mouse is picked even at X junctions.
-// s43: the player picks the walls (BrushRules.BucketWalls): roads, paths, bike paths and tracks trace the face;
-// water, lots & buildings and zoning cut it afterwards, keeping the side that was clicked (the seed).
+// Block mode ("Paint bucket"), area overhaul (2026-10-17): hover → the fill under the cursor is outlined; click takes it;
+// Shift+click adds another fill next to it (or removes one); right-click removes the one under the cursor.
+//
+// The fill is Core/Geometry/AreaFill on the shared walls (Game/Selection/AreaWalls, the "Stops at" rules): road and path
+// surfaces with their junctions and turning circles, buildings, lots, my builds, zoning, water. Openings narrower than
+// the Gap setting count as closed and narrower places are left out; the Reach setting bounds it in open land. It runs
+// in the background while hovering (AreaFillRunner); a click uses the hover's result for that spot. The user's grades
+// that started it: "Paint bucket gets like a D minus ... it needs more settings ... a threshold ... doesn't always avoid
+// zones ... in corners it doesn't get to the full corner ... goes inside tiny little cracks ... goes onto roads even
+// though I have avoid roads on ... things cut into it that don't make any sense".
+// Before the overhaul it traced faces of a road graph (FillGraph) and cut area walls afterwards; that code stays for
+// Road nodes' old snapshots, nothing here uses it.
 
 using System;
 using System.Collections.Generic;
+using Game.Net;
 using Placemaker.Core;
 using Placemaker.Core.Geometry;
 using Placemaker.Core.Tool;
 using Placemaker.Game.Selection;
+using Unity.Entities;
 using Unity.Mathematics;
 
 namespace Placemaker.Game.Tool
 {
     public sealed partial class PlacemakerToolSystem
     {
-
+        /// <summary>A fill under the cursor (hover) or clicked: the result and its outline as an area.</summary>
         public sealed class BlockPick
         {
-            public List<HalfEdge> Loop;
-            public AreaShape Area;              // usable land of this block (curbs, area walls cut)
-            public HashSet<long> Edges;
+            public FillResult Fill;
+            public AreaShape Area;
             public float2 Seed;
+            /// <summary>Overlay: the stops along its edge (red), its closed gaps, the reach circle when it met it.</summary>
+            public List<float3[]> Stops = new List<float3[]>();
+            public List<float3[]> Doors = new List<float3[]>();
+            public float3[] Reach;
         }
 
         private BlockPick _hoverFace;
-        private float2 _hoverFaceAt;
+        private float2 _hoverFaceAt = new float2(float.MaxValue);
         private LocText _hoverFaceProblem;
+        private int _hoverFillVersion = -1;
+        private AreaWalls _areaWalls;
+        private AreaFillRunner _fills;
 
         public BlockPick HoverFace => _hoverFace;
         public LocText HoverFaceProblem => _hoverFaceProblem;
         public BlockSelectionState Blocks => _blocks;
+        /// <summary>The fill being hovered is still being worked out (the overlay can say so).</summary>
+        public bool FillBusy => _fills != null && _fills.Busy;
 
-        /// <summary>The Paint bucket's walls (Options / the panel's Walls chips).</summary>
-        public FillWall BucketWalls => BrushRules.BucketWalls;
+        private AreaWalls Walls => _areaWalls ??= new AreaWalls(EntityManager, _roads, _bpObstacles ??= new BlockObstacles(EntityManager, World));
+        private AreaFillRunner Fills => _fills ??= new AreaFillRunner(Walls);
 
-        /// <summary>Real nets the bucket currently traces (overlay); empty outside Block mode.</summary>
-        public IReadOnlyDictionary<global::Unity.Entities.Entity, FillWall> BucketGraphEdges => _roads.GraphEdges;
-        public int BucketGraphVersion => _roads.GraphVersion;
+        /// <summary>The city changed (a build, an undo of one): forget walls, grids and fills.</summary>
+        private void InvalidateFills()
+        {
+            _areaWalls?.Invalidate();
+            _fills?.Invalidate();
+            _hoverFace = null;
+            _hoverFaceAt = new float2(float.MaxValue);
+        }
+
+        private int _hoverRulesKey, _blockRulesKey;
+
+        private int FillKey(BrushRules rules)
+        {
+            var r = rules.ForOutline();
+            return r.GetHashCode() * 31 + _editingGroup;
+        }
 
         private void UpdateBlock()
         {
             _cursorValid = _in.HasHit;
+            Fills.Pump();
+            int key = FillKey(BrushRules);
+            if (key != _blockRulesKey)
+            {
+                bool first = _blockRulesKey == 0;
+                _blockRulesKey = key;
+                if (!first && _blocks.Seeds.Count > 0 && _gesture == Gesture.None) RepickBlocks();
+            }
             if (_in.HasHit)
             {
                 _cursor = _in.Hit;
-                bool stillInside = _hoverFace?.Area != null && Poly.Contains(_hoverFace.Area.Ring2D(), _in.Hit.xz);
-                if (!stillInside && math.distance(_in.Hit.xz, _hoverFaceAt) > 1f)
-                {
-                    _hoverFaceAt = _in.Hit.xz;
-                    _hoverFace = PickFace(_in.Hit.xz, out _hoverFaceProblem);
-                }
+                HoverFill(_in.Hit.xz);
             }
             else _hoverFace = null;
 
             if (_in.LeftPressed)
             {
-                if (_hoverFace == null) { Flash(_hoverFaceProblem ?? new LocText("Placemaker.Problem.NoBlockHere")); return; }
+                var pick = PickAt(_in.Hit.xz, out var problem);
+                if (pick == null) { Flash(problem ?? new LocText("Placemaker.Problem.NoBlockHere")); return; }
                 if (!_in.Shift)
                 {
                     _blocks = new BlockSelectionState();
-                    _blocks.Faces.Add(new List<HalfEdge>(_hoverFace.Loop));
-                    _blocks.Seeds.Add(_hoverFace.Seed);
+                    _blocks.Seeds.Add(pick.Seed);
+                    _blocks.Rings.Add(pick.Fill.Ring);
                     ShapeChanged();
                     Commit("Placemaker.Undo.SelectBlock");
                     if (_stage == ToolStage.Area && _shape != null) SetStage(ToolStage.Design);
                     return;
                 }
-                ToggleBlock(_hoverFace);
+                ToggleBlock(pick);
                 return;
             }
-            if (_in.RightPressed && _hoverFace != null)
+            if (_in.RightPressed && _in.HasHit)
             {
-                int idx = IndexOfFace(_hoverFace);
-                if (idx >= 0) ToggleBlock(_hoverFace);
+                int idx = IndexOfFill(_in.Hit.xz);
+                if (idx >= 0) RemoveBlock(idx);
             }
         }
 
-        private int IndexOfFace(BlockPick face)
+        /// <summary>Hover: keep the outline under the cursor; ask for a new fill when the cursor leaves it.</summary>
+        private void HoverFill(float2 p)
         {
-            for (int i = 0; i < _blocks.Faces.Count; i++)
+            var rules = BrushRules;
+            // The rules changed elsewhere (the options page, the game runner): the hover was filled with the old ones.
+            int key = FillKey(rules);
+            if (key != _hoverRulesKey)
             {
-                var f = _blocks.Faces[i];
-                if (f.Count != face.Edges.Count) continue;
-                bool same = true;
-                foreach (var h in f) if (!face.Edges.Contains(h.Edge)) { same = false; break; }
-                if (same) return i;
+                _hoverRulesKey = key;
+                _hoverFace = null;
+                _hoverFaceAt = new float2(float.MaxValue);
             }
-            return -1;
-        }
-
-        private void ToggleBlock(BlockPick face)
-        {
-            var next = _blocks.Clone();
-            int idx = IndexOfFace(face);
-            string label;
-            if (idx >= 0)
+            var latest = _fills.Latest;
+            if (_fills.Version != _hoverFillVersion)
             {
-                next.Faces.RemoveAt(idx);
-                if (idx < next.Seeds.Count) next.Seeds.RemoveAt(idx);
-                label = "Placemaker.Undo.RemoveBlock";
-            }
-            else
-            {
-                if (next.Faces.Count > 0)
+                _hoverFillVersion = _fills.Version;
+                if (latest != null && _fills.Matches(latest, latest.Seed, rules, _editingGroup))
                 {
-                    bool adjacent = false;
-                    foreach (var f in next.Faces) if (RoadGraphAlgorithms.SharesEdge(f, face.Loop)) { adjacent = true; break; }
-                    if (!adjacent) { Flash(new LocText("Placemaker.Problem.NotAdjacent")); return; }
+                    _hoverFace = latest.Status == FillStatus.Ok ? ToPick(latest) : null;
+                    _hoverFaceProblem = Problem(latest);
+                    if (latest.Ms > 40) LogFill("hover", latest);
                 }
-                // Seeds stay parallel to faces (old snapshots may have none: pad with the face's own click).
-                while (next.Seeds.Count < next.Faces.Count) next.Seeds.Add(face.Seed);
-                next.Faces.Add(new List<HalfEdge>(face.Loop));
-                next.Seeds.Add(face.Seed);
-                label = "Placemaker.Undo.AddBlock";
+                else _hoverFace = null;
+                Touch();   // the area legend follows the hover
             }
-            if (next.Faces.Count > 1 && !RoadGraphAlgorithms.UnionBoundary(next.Faces, new List<HalfEdge>()))
-            {
-                Flash(new LocText(idx >= 0 ? "Placemaker.Problem.WouldSplit" : "Placemaker.Problem.WouldEncloseHole"));
-                return;
-            }
-            _blocks = next;
-            ShapeChanged();
-            Commit(label);
-            if (_stage == ToolStage.Area && _shape != null) SetStage(ToolStage.Design);
+            bool inside = _hoverFace?.Fill?.Ring != null && Poly.Contains(_hoverFace.Fill.Ring, p);
+            if (inside || math.distance(p, _hoverFaceAt) <= 1f) return;
+            _hoverFaceAt = p;
+            _fills.Request(p, rules, _editingGroup);
         }
 
-        /// <summary>The block (face of the wall graph) containing <paramref name="p"/>, or null with a reason.</summary>
-        private BlockPick PickFace(float2 p, out LocText problem)
+        /// <summary>The fill at a click: the hover's when the click is inside it, else filled now.</summary>
+        private BlockPick PickAt(float2 p, out LocText problem)
         {
             problem = null;
-            var loop = new List<HalfEdge>();
-            // Block paint fences its strokes to road blocks only (its own stops do the rest).
-            var walls = _mode == SelectionMode.Block ? BucketWalls : FillWall.Roads;
-            if ((walls & FillWalls.Curves) == 0) { problem = new LocText("Placemaker.Problem.NoLineWalls"); return null; }
-            FacePickStatus status;
-            try { status = _roads.PickBlock(p, UnityEngine.Time.realtimeSinceStartup, loop, walls); }
+            if (_hoverFace?.Fill?.Ring != null && Poly.Contains(_hoverFace.Fill.Ring, p)) return _hoverFace;
+            FillResult r;
+            try { r = Fills.Now(p, BrushRules, _editingGroup); }
             catch (Exception e)
             {
-                Mod.Log.Warn("Placemaker: block pick failed: " + e.Message);
+                Mod.Log.Warn("Placemaker: fill failed: " + e.Message);
                 problem = new LocText("Placemaker.Problem.NoBlockHere");
                 return null;
             }
-            switch (status)
-            {
-                case FacePickStatus.Ok: break;
-                case FacePickStatus.EmptyGraph:
-                case FacePickStatus.NoRoadNearby: problem = new LocText("Placemaker.Problem.NoRoadsNearby"); return null;
-                case FacePickStatus.TooLarge: problem = new LocText("Placemaker.Problem.BlockTooLarge"); return null;
-                case FacePickStatus.OutsideNetwork: problem = new LocText("Placemaker.Problem.NotEnclosed"); return null;
-                default: problem = new LocText("Placemaker.Problem.NoBlockHere"); return null;
-            }
-            var area = FaceArea(loop, p, true);
-            if (area == null) { problem = new LocText(_bucketWallsAll ? "Placemaker.Problem.OnlyWallsHere" : "Placemaker.Problem.NoBlockHere"); return null; }
-            var edges = new HashSet<long>();
-            foreach (var h in loop) edges.Add(h.Edge);
-            return new BlockPick { Loop = loop, Area = area, Edges = edges, Seed = p };
+            LogFill("click", r);
+            problem = Problem(r);
+            return r.Status == FillStatus.Ok ? ToPick(r) : null;
         }
 
-        /// <summary>Set when the last FaceArea found nothing but area walls.</summary>
-        private bool _bucketWallsAll;
-
-        /// <summary>Usable land of a loop: curb outline, then the area walls (keeping the seed's side).</summary>
-        private AreaShape FaceArea(IReadOnlyList<HalfEdge> loop, float2 seed, bool hover)
+        private static LocText Problem(FillResult r)
         {
-            _bucketWallsAll = false;
-            AreaShape area;
-            try
+            if (r == null) return null;
+            switch (r.Status)
             {
-                area = _roads.BuildFaceArea(loop, seed, AreaSource.Block, out bool needsAttachments);
-                if (area != null && needsAttachments && !hover) WithFoundAttachments(area);
+                case FillStatus.Ok: return null;
+                case FillStatus.OnWall: return new LocText("Placemaker.Problem.FillOnWall");
+                case FillStatus.TooSmall: return new LocText("Placemaker.Problem.FillTooSmall");
+                default: return new LocText("Placemaker.Problem.NoBlockHere");
             }
-            catch (Exception e) { Mod.Log.Warn("Placemaker: block outline failed: " + e.Message); return null; }
-            return ApplyAreaWalls(area, seed, hover);
+        }
+
+        private void LogFill(string what, FillResult r)
+        {
+            Mod.Log.Info($"Placemaker: fill ({what}) at ({r.Seed.x:0.0}, {r.Seed.y:0.0}): {r}" + (r.Error != null ? " — " + r.Error : "") + "; walls " + (_areaWalls?.LastStats ?? ""));
+        }
+
+        private BlockPick ToPick(FillResult r)
+        {
+            var pick = new BlockPick { Fill = r, Seed = r.Seed, Area = FillShape(r.Ring, r) };
+            Func<float2, float> y = p => _site.SampleHeight(p);
+            foreach (var d in r.Doors) if (d != null && d.Length >= 2) pick.Doors.Add(Poly.To3D(d, y));
+            if (r.HitReach) pick.Reach = Poly.To3D(AreaFill.Circle(r.Seed, r.Reach, 96), y);
+            var walls = r.Window_?.Walls;
+            if (walls != null && r.Ring != null)
+            {
+                Poly.Bounds(r.Ring, out var mn, out var mx);
+                foreach (var w in walls)
+                {
+                    if (pick.Stops.Count >= 400) break;
+                    if (w.Ring == null || IsNet(w.Kind)) continue;
+                    Poly.Bounds(w.Ring, out var a, out var b);
+                    if (b.x < mn.x - 1f || b.y < mn.y - 1f || a.x > mx.x + 1f || a.y > mx.y + 1f) continue;
+                    if (ShowsInBlock(w.Ring, r.Ring)) pick.Stops.Add(Poly.To3D(w.Ring, y));
+                }
+            }
+            return pick;
+        }
+
+        private static bool IsNet(BrushObstacleKind k) => k == BrushObstacleKind.Road || k == BrushObstacleKind.Path || k == BrushObstacleKind.Bike || k == BrushObstacleKind.Track;
+
+        /// <summary>An outline from the fill as an area: heights from the ground, attachments to the roads along it.</summary>
+        private AreaShape FillShape(float2[] ring, FillResult r)
+        {
+            if (ring == null || ring.Length < 3) return null;
+            return new AreaShape { Ring = Poly.To3D(ring, p => _site.SampleHeight(p)), Source = RoadBound(ring) ? AreaSource.Block : AreaSource.Painted };
         }
 
         /// <summary>
-        /// (s43) Water / lots &amp; buildings / zoning walls: cut out of the block, the piece on the clicked side kept.
-        /// Other Placemaker builds count under "Lots &amp; buildings"; the group being edited never counts.
+        /// The outline runs along road curbs for most of its length (a city block): the roads planner then adds no
+        /// perimeter road and anchors to the junctions on it, like the old block pick.
         /// </summary>
-        private AreaShape ApplyAreaWalls(AreaShape s, float2 seed, bool hover)
+        private bool RoadBound(float2[] ring)
         {
-            var walls = _mode == SelectionMode.Block ? BucketWalls : FillWall.None;
-            if (s?.Ring == null || s.Ring.Length < 3 || (walls & FillWalls.Areas) == 0) return s;
-            try
+            var roads = new List<float2[]>();
+            Poly.Bounds(ring, out var mn, out var mx);
+            foreach (var w in Walls.All(mn - 2f, mx + 2f, _editingGroup))
             {
-                var ring = s.Ring2D();
-                Poly.Bounds(ring, out var mn, out var mx);
-                _bpObstacles ??= new BlockObstacles(EntityManager, World);
-                var list = new List<float2[]>();
-                if ((walls & (FillWall.Lots | FillWall.Zoned)) != 0)
-                    foreach (var o in _bpObstacles.Gather(mn - 1f, mx + 1f, _editingGroup))
-                        if (o.Ring != null && FillWalls.Counts(walls, o.Kind)) list.Add(o.Ring);
-                if ((walls & FillWall.Water) != 0)
-                {
-                    var wet = _bpObstacles.Water(mn - 4f, mx + 4f, 4f);
-                    if (wet != null) list.AddRange(FillWalls.WaterRects(ring, wet));
-                }
-                if (list.Count == 0) return s;
-                var cut = FillWalls.ClipToSeed(ring, list, seed, out int touched);
-                if (cut == null) { _bucketWallsAll = touched > 0; return null; }
-                if (ReferenceEquals(cut, ring)) return s;
-                var shape = new AreaShape { Ring = Poly.To3D(cut, p => _site.SampleHeight(p)), Source = AreaSource.Painted };
-                if (!hover) WithFoundAttachments(shape);
-                return shape;
+                if (w.Kind != BrushObstacleKind.Road || w.Ring == null) continue;
+                Poly.Bounds(w.Ring, out var a, out var b);
+                if (b.x < mn.x - 1f || b.y < mn.y - 1f || a.x > mx.x + 1f || a.y > mx.y + 1f) continue;
+                roads.Add(w.Ring);
             }
-            catch (Exception e)
+            if (roads.Count == 0) return false;
+            float on = 0f, all = 0f;
+            int n = ring.Length;
+            for (int i = 0; i < n; i++)
             {
-                Mod.Log.Warn("Placemaker: bucket walls failed: " + e.Message);
-                return s;
+                float2 a = ring[i], b = ring[(i + 1) % n];
+                float len = math.distance(a, b);
+                all += len;
+                var mid = (a + b) * 0.5f;
+                foreach (var w in roads)
+                    if (Poly.DistanceToBoundary(w, mid) < 0.6f) { on += len; break; }
             }
+            return all > 0f && on >= 0.6f * all;
         }
 
-        /// <summary>(s43) The walls changed: re-trace the picked blocks from where they were clicked.</summary>
+        private int IndexOfFill(float2 p)
+        {
+            for (int i = 0; i < _blocks.Rings.Count; i++)
+                if (_blocks.Rings[i] != null && Poly.Contains(_blocks.Rings[i], p)) return i;
+            return -1;
+        }
+
+        private void ToggleBlock(BlockPick pick)
+        {
+            int idx = IndexOfFill(pick.Seed);
+            if (idx >= 0) { RemoveBlock(idx); return; }
+            var next = _blocks.Clone();
+            next.Seeds.Add(pick.Seed);
+            next.Rings.Add(pick.Fill.Ring);
+            if (next.Rings.Count > 1 && UnionOfFills(next.Rings) == null) { Flash(new LocText("Placemaker.Problem.NotAdjacent")); return; }
+            _blocks = next;
+            ShapeChanged();
+            Commit("Placemaker.Undo.AddBlock");
+            if (_stage == ToolStage.Area && _shape != null) SetStage(ToolStage.Design);
+        }
+
+        private void RemoveBlock(int idx)
+        {
+            var next = _blocks.Clone();
+            next.Seeds.RemoveAt(idx);
+            next.Rings.RemoveAt(idx);
+            if (next.Rings.Count > 1 && UnionOfFills(next.Rings) == null) { Flash(new LocText("Placemaker.Problem.WouldSplit")); return; }
+            _blocks = next;
+            ShapeChanged();
+            Commit("Placemaker.Undo.RemoveBlock");
+        }
+
+        /// <summary>Gap (m) between two fills that Shift+click still joins (a road or a path between two blocks).</summary>
+        private const float JoinAcross = 40f;
+
+        /// <summary>
+        /// Several fills as one outline: their union, and where two of them face each other across less than JoinAcross
+        /// (a street between two blocks) the strip between them. Null when they stay apart.
+        /// </summary>
+        private static float2[] UnionOfFills(List<float2[]> rings)
+        {
+            var list = new List<IReadOnlyList<float2>>();
+            foreach (var r in rings) if (r != null && r.Length >= 3) list.Add(Poly.EnsureCcw((float2[])r.Clone()));
+            if (list.Count == 0) return null;
+            if (list.Count == 1) return (float2[])list[0];
+            List<Region> union;
+            try { union = Poly.Boolean(list, null, BoolOp.Union, FillRule.NonZero); }
+            catch (Exception) { return null; }
+            if (union.Count > 1)
+            {
+                // The strips between them: a closing of the union, kept only where it touches two different fills.
+                float d = JoinAcross * 0.5f;
+                List<Region> closed;
+                try { closed = Poly.Offset(Poly.Offset(union, -d, OffsetJoin.Round, 4f, 0.3f), d, OffsetJoin.Round, 4f, 0.3f); }
+                catch (Exception) { return null; }
+                List<Region> extra;
+                try { extra = Poly.Boolean(closed, union, BoolOp.Difference); }
+                catch (Exception) { return null; }
+                var keep = new List<IReadOnlyList<float2>>(list);
+                foreach (var e in extra)
+                {
+                    var grown = Poly.Offset(e.Outer, -0.3f);
+                    var probe = grown.Count > 0 ? grown[0] : e.Outer;
+                    int touches = 0;
+                    foreach (var r in list) if (ObstacleCut.Overlaps(probe, r)) touches++;
+                    if (touches >= 2) keep.Add(e.Outer);
+                }
+                try { union = Poly.Boolean(keep, null, BoolOp.Union, FillRule.NonZero); }
+                catch (Exception) { return null; }
+            }
+            if (union.Count != 1) return null;
+            var u = union[0];
+            if (!u.HasHoles) return u.Outer;
+            var cut = Poly.CutHoles(u, ObstacleCut.Corridor);
+            float2[] best = null;
+            float area = 0f;
+            foreach (var c in cut) { float a = Poly.Area(c); if (a > area) { area = a; best = c; } }
+            return best;
+        }
+
+        /// <summary>(Rules changed) Fill the picked spots again with the new stops, gap and reach.</summary>
         private void RepickBlocks()
         {
             _hoverFace = null;
             _hoverFaceAt = new float2(float.MaxValue);
-            if (_blocks.Faces.Count == 0) return;
+            if (_blocks.Seeds.Count == 0) return;
             var next = new BlockSelectionState();
-            for (int i = 0; i < _blocks.Seeds.Count && i < _blocks.Faces.Count; i++)
+            foreach (var seed in _blocks.Seeds)
             {
-                var pick = PickFace(_blocks.Seeds[i], out _);
-                if (pick == null) continue;
-                bool dup = false;
-                foreach (var f in next.Faces) if (BlockPaintState.SameFace(f, pick.Loop)) { dup = true; break; }
-                if (dup) continue;
-                next.Faces.Add(pick.Loop);
-                next.Seeds.Add(pick.Seed);
+                FillResult r;
+                try { r = Fills.Now(seed, BrushRules, _editingGroup); }
+                catch (Exception) { continue; }
+                if (r.Status != FillStatus.Ok) continue;
+                if (next.Rings.Exists(x => x != null && Poly.Contains(x, seed))) continue;
+                next.Seeds.Add(seed);
+                next.Rings.Add(r.Ring);
             }
-            if (next.Faces.Count > 1 && !RoadGraphAlgorithms.UnionBoundary(next.Faces, new List<HalfEdge>()))
+            if (next.Rings.Count > 1 && UnionOfFills(next.Rings) == null)
             {
-                // The new walls split the selection into blocks that no longer form one outline: keep the last one.
-                var last = next.Faces.Count - 1;
-                next = new BlockSelectionState { Faces = { next.Faces[last] }, Seeds = { next.Seeds[last] } };
+                int last = next.Rings.Count - 1;
+                next = new BlockSelectionState { Seeds = { next.Seeds[last] }, Rings = { next.Rings[last] } };
             }
             _blocks = next;
             ShapeChanged();
         }
 
-        /// <summary>Shape for the picked blocks (union of faces).</summary>
+        /// <summary>Shape for the picked fills (their union).</summary>
         private AreaShape BuildBlockShape()
         {
-            if (_blocks.Faces.Count == 0) return null;
-            List<HalfEdge> loop;
-            if (_blocks.Faces.Count == 1) loop = _blocks.Faces[0];
-            else
+            if (_blocks.Seeds.Count == 0) return null;
+            // Snapshots from before the overhaul hold road loops, not fills: fill again from where they were clicked.
+            while (_blocks.Rings.Count < _blocks.Seeds.Count)
             {
-                loop = new List<HalfEdge>();
-                if (!RoadGraphAlgorithms.UnionBoundary(_blocks.Faces, loop)) return null;
+                var seed = _blocks.Seeds[_blocks.Rings.Count];
+                var r = Fills.Now(seed, BrushRules, _editingGroup);
+                _blocks.Rings.Add(r.Status == FillStatus.Ok ? r.Ring : null);
             }
-            float2 seed;
-            if (_blocks.Seeds.Count > 0) seed = _blocks.Seeds[_blocks.Seeds.Count - 1];
-            else
+            var rings = _blocks.Rings.FindAll(x => x != null && x.Length >= 3);
+            if (rings.Count == 0) return null;
+            var ring = rings.Count == 1 ? rings[0] : UnionOfFills(rings);
+            if (ring == null) return null;
+            var shape = FillShape(ring, null);
+            if (shape == null) return null;
+            WithFoundAttachments(shape);
+            AddNodeAttachments(shape);
+            return shape;
+        }
+
+        /// <summary>
+        /// Road junctions and dead ends on the outline (within their own half-width of it) as RoadNode attachments, as the
+        /// old block pick gave for every corner of its road loop (entrances and the roads planner anchor to them).
+        /// </summary>
+        private void AddNodeAttachments(AreaShape shape)
+        {
+            try
             {
-                // Snapshot from before s43: no click recorded, the centre of the centre-line ring stands in.
-                var c = Poly.To2D(_roads.CenterRing(loop));
-                seed = c.Length >= 3 ? Poly.Centroid(c) : float2.zero;
+                var ring2 = shape.Ring2D();
+                Poly.Bounds(ring2, out var mn, out var mx);
+                var found = new List<Entity>();
+                _roads.Query(mn - 20f, mx + 20f, found);
+                var seen = new HashSet<Entity>();
+                foreach (var e in found)
+                {
+                    if (!EntityManager.HasComponent<Node>(e) || !seen.Add(e) || !EntityManager.HasBuffer<ConnectedEdge>(e)) continue;
+                    float half = 0f;
+                    var edges = EntityManager.GetBuffer<ConnectedEdge>(e, true);
+                    for (int i = 0; i < edges.Length; i++)
+                        if (_roads.IsBoundaryEdge(edges[i].m_Edge)) half = math.max(half, _roads.RoadWidth(edges[i].m_Edge) * 0.5f);
+                    if (half <= 0f) continue;
+                    var p = EntityManager.GetComponentData<Node>(e).m_Position;
+                    if (Poly.DistanceToBoundary(ring2, p.xz) > half + 3f) continue;
+                    Composer.ClosestSegment(shape.Ring, p.xz, out int seg, out float st, out _);
+                    shape.Attachments.Add(new BoundaryAttachment { Kind = AttachmentKind.RoadNode, ExternalId = EntityIds.Pack(e), Position = p, RingSegment = seg, RingT = st });
+                }
             }
-            return FaceArea(loop, seed, false);
+            catch (Exception ex) { Mod.Log.Warn("Placemaker: node attachments failed: " + ex.Message); }
         }
     }
 }

@@ -48,18 +48,25 @@ namespace Placemaker.Core.Tool
         }
     }
 
-    /// <summary>Picked blocks: each a CCW loop of road half-edges (ids are packed entities).</summary>
+    /// <summary>
+    /// Paint bucket picks. Area overhaul: each pick is where it was clicked (Seeds) and the fill it gave (Rings, parallel;
+    /// filled again from the seed when the rules change, or for old snapshots that hold road loops in Faces instead).
+    /// </summary>
     public sealed class BlockSelectionState
     {
+        /// <summary>(Before the overhaul) the picked road loops; no longer written.</summary>
         public List<List<HalfEdge>> Faces = new List<List<HalfEdge>>();
-        /// <summary>(s43) Where each face was clicked (parallel to Faces; may be shorter in old snapshots): area walls keep that side.</summary>
+        /// <summary>Where each fill was clicked.</summary>
         public List<Unity.Mathematics.float2> Seeds = new List<Unity.Mathematics.float2>();
+        /// <summary>The outline each click filled (never mutated once stored).</summary>
+        public List<Unity.Mathematics.float2[]> Rings = new List<Unity.Mathematics.float2[]>();
 
         public BlockSelectionState Clone()
         {
             var c = new BlockSelectionState();
             foreach (var f in Faces) c.Faces.Add(new List<HalfEdge>(f));
             c.Seeds.AddRange(Seeds);
+            c.Rings.AddRange(Rings);
             return c;
         }
     }
@@ -71,13 +78,18 @@ namespace Placemaker.Core.Tool
     /// </summary>
     public sealed class BlockPaintState
     {
+        /// <summary>(Before the area overhaul) the road loop the strokes were fenced to; no longer written.</summary>
         public List<HalfEdge> Face = new List<HalfEdge>();
+        /// <summary>(Area overhaul) The fill the strokes are fenced to (One block), never mutated; null in the open box.</summary>
+        public Unity.Mathematics.float2[] Ring;
+        /// <summary>That fill's closed gaps (overlay).</summary>
+        public List<Unity.Mathematics.float2[]> Doors;
         public Placemaker.Core.Geometry.BrushMask.Snapshot Mask;
-        /// <summary>Open-land fallback (no closed block under the first stroke): Face is empty, Seed is where it started.</summary>
+        /// <summary>Open box (One block off, or no fill under the first stroke): Ring is null, Seed is where it started.</summary>
         public bool Open;
         public Unity.Mathematics.float2 Seed;
 
-        public BlockPaintState Clone() => new BlockPaintState { Face = new List<HalfEdge>(Face), Mask = Mask, Open = Open, Seed = Seed };
+        public BlockPaintState Clone() => new BlockPaintState { Face = new List<HalfEdge>(Face), Ring = Ring, Doors = Doors, Mask = Mask, Open = Open, Seed = Seed };
 
         /// <summary>Same block (same set of road edges), independent of where the loop starts.</summary>
         public static bool SameFace(IReadOnlyList<HalfEdge> a, IReadOnlyList<HalfEdge> b)

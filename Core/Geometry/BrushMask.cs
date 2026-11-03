@@ -226,14 +226,20 @@ namespace Placemaker.Core.Geometry
         /// Stroke from `from` (already stamped last frame) to `to`: stamps close enough that a fast
         /// mouse leaves no gaps.
         /// </summary>
-        public void Stroke(float2 from, float2 to, float radius, bool erase, bool square = false, float angleDegrees = 0f)
+        /// <returns>
+        /// False when <paramref name="to"/> is still within half a cell of <paramref name="from"/> (nothing stamped): the caller
+        /// must then keep <paramref name="from"/> as the stroke's last point. Moving it on anyway made a slow drag (a few dm a
+        /// frame) paint nothing at all after the first stamp.
+        /// </returns>
+        public bool Stroke(float2 from, float2 to, float radius, bool erase, bool square = false, float angleDegrees = 0f)
         {
             float length = math.distance(from, to);
-            if (!(length >= 0.5f * CellSize)) return;
+            if (!(length >= 0.5f * CellSize)) return false;
             int steps = math.max(1, (int)math.ceil(length / math.max(radius * 0.25f, CellSize)));
             steps = math.min(steps, 4096);
             for (int k = 1; k <= steps; k++)
                 Stamp(math.lerp(from, to, (float)k / steps), radius, erase, square, angleDegrees);
+            return true;
         }
 
         /// <summary>Paints (or erases) every cell whose centre lies inside the ring (e.g. a picked block).</summary>
