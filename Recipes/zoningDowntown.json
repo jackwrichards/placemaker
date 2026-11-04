@@ -1,0 +1,11 @@
+{
+  "formatVersion": 1,
+  "id": "zoningDowntown",
+  "nameKey": "Placemaker.Zoning.Type.downtown",
+  "descriptionKey": "Placemaker.Zoning.Type.downtown.Tooltip",
+  "icon": "Media/Game/Icons/Zones.svg",
+  "root": {
+    "layer": "zoningDowntown",
+    "settings": {}
+  }
+}

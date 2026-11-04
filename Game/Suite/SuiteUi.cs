@@ -111,6 +111,29 @@ namespace Placemaker.Game.Suite
                 + "return o;";
         }
 
+        /// <summary>JS: drags an element with the mouse by (dx, dy) screen pixels: a press near its left end, moves on the
+        /// window, a release (how a window is moved by its header).</summary>
+        public static string DragJs(string testId, float dx, float dy)
+        {
+            string x = dx.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), y = dy.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+            return "var el=document.querySelector('[data-testid=\"'+" + Q(testId) + "+'\"]');"
+                + "if(!el)return {found:false};"
+                + "var r=el.getBoundingClientRect(),sx=r.left+Math.min(40,r.width/2),sy=r.top+r.height/2;"
+                + "function ev(t,x,y){return new MouseEvent(t,{bubbles:true,cancelable:true,clientX:x,clientY:y,button:0});}"
+                + "el.dispatchEvent(ev('mousedown',sx,sy));"
+                + "for(var i=1;i<=4;i++)window.dispatchEvent(ev('mousemove',sx+" + x + "*i/4,sy+" + y + "*i/4));"
+                + "window.dispatchEvent(ev('mouseup',sx+" + x + ",sy+" + y + "));"
+                + "return {found:true,from:[sx,sy],by:[" + x + "," + y + "]};";
+        }
+
+        /// <summary>JS: a double-click on an element (near its left end).</summary>
+        public static string DoubleClickJs(string testId) =>
+            "var el=document.querySelector('[data-testid=\"'+" + Q(testId) + "+'\"]');"
+            + "if(!el)return {found:false};"
+            + "var r=el.getBoundingClientRect();"
+            + "el.dispatchEvent(new MouseEvent('dblclick',{bubbles:true,cancelable:true,clientX:r.left+Math.min(40,r.width/2),clientY:r.top+r.height/2,button:0}));"
+            + "return {found:true};";
+
         /// <summary>JS: the panel's rectangle (the header's container) in screen pixels from the top-left, and the view size.</summary>
         public static string PanelRectJs =>
             "var h=document.querySelector('[data-testid=\"panel-header\"]');"

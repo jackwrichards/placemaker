@@ -1,0 +1,34 @@
+{
+  "_about": "Back gardens that run down to a second street at an angle (the user, 22 Oct: a grass triangle between each back fence and the sidewalk, one per lot: 'WHERE DO THESE COME FROM?'; then two hedges side by side behind a walkway between two houses: 'who would want two fences running parallel to each other?'). Houses grow on one street, then a second street is laid behind them at 25 degrees (after the growth, unzoned, so nothing grows on it). Every garden is planned again three times, the same spots pictured each time: the old rules (streetEnd 0: a garden narrowing toward its slanted end is cut square as a spike; walkwayMeet 0: a walkway's two gardens keep their own fences all the way back), gardens to the street (streetEnd 1), and gardens meeting behind a walkway (walkwayMeet 1, the defaults). Walkways are left between 45% of the neighbours with an even 3-9 m gap: not every town grows one. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-back-street.json -Build -Who <you>",
+  "scenarios": [
+    {
+      "id": "back-street-25",
+      "land": { "shape": "rect", "size": [400, 360], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [0, 70], "yaw": 0, "length": 120, "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 150 },
+        { "do": "lab", "op": "street", "shape": "straight", "at": [0, -28], "yaw": -25, "length": 280, "zone": "none" },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "polishSettings", "settings": { "streetEnd": 0, "walkwayMeet": 0 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "lab", "op": "fenceMap", "label": "old-rules" },
+        { "do": "shot", "name": "old-south", "camera": { "target": "point", "at": [0, 0], "view": "top", "distance": 330 }, "shotMode": "render" },
+        { "do": "shot", "name": "old-north", "camera": { "target": "point", "at": [0, 115], "view": "top", "distance": 330 }, "shotMode": "render" },
+        { "do": "shot", "name": "old-45", "camera": { "target": "point", "at": [0, 10], "view": "oblique", "pitch": 45, "distance": 120 }, "shotMode": "render" },
+        { "do": "lab", "op": "polishSettings", "settings": { "streetEnd": 1 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "lab", "op": "fenceMap", "label": "street-ends" },
+        { "do": "shot", "name": "street-south", "camera": { "target": "point", "at": [0, 0], "view": "top", "distance": 330 }, "shotMode": "render" },
+        { "do": "shot", "name": "street-45", "camera": { "target": "point", "at": [0, 10], "view": "oblique", "pitch": 45, "distance": 120 }, "shotMode": "render" },
+        { "do": "lab", "op": "polishSettings", "settings": { "walkwayMeet": 1 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "lab", "op": "fenceMap", "label": "walkways-meet" },
+        { "do": "shot", "name": "new-south", "camera": { "target": "point", "at": [0, 0], "view": "top", "distance": 330 }, "shotMode": "render" },
+        { "do": "shot", "name": "new-north", "camera": { "target": "point", "at": [0, 115], "view": "top", "distance": 330 }, "shotMode": "render" },
+        { "do": "shot", "name": "new-45", "camera": { "target": "point", "at": [0, 10], "view": "oblique", "pitch": 45, "distance": 120 }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

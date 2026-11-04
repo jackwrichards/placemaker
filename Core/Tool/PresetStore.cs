@@ -1,7 +1,12 @@
 // Placemaker — presets: Category ▸ Type ▸ Preset (contract.ts PresetView / ActivePreset).
 //
 // A type (layer) ships built-in presets (IAreaGenerator.Presets: a few setting values over the
-// defaults). The player can
+// defaults). Every Fill type also has STANDARD (StandardId, first in its list): the type's own design, what
+// picking the type gives (its recipe's values over the defaults, its DefaultOn features, nothing locked).
+// It was the "Default" chip (no preset, user 2026-10-20: "there should be no default style, just lists of
+// styles"); now it is a built-in like the others. A type that ships a preset with that id (parking) uses it.
+// A design that names no style (older saves, a built group being edited, a deleted style) reads as Standard.
+// The player can
 //   * save over a built-in        → an OVERRIDE entry (same id; "Reset to default" removes it),
 //   * "Save as…" a new preset     → a CUSTOM entry (★, own id, literal name, BasedOn for display),
 //   * rename / delete customs.
@@ -68,8 +73,14 @@ namespace Placemaker.Core.Tool
         public const int CurrentFormatVersion = 1;
         public const int MaxNameLength = 60;
 
+        /// <summary>The style every Fill type has and starts on: its own design ("Standard").</summary>
+        public const string StandardId = "standard";
+        /// <summary>Name key of a Standard the type does not ship itself (Lang/en-US.ui.json).</summary>
+        public const string StandardNameKey = "Placemaker.UI.Preset.Standard";
+
         private readonly DesignEditor _editor;
         private readonly Func<DateTime> _clock;
+        private readonly Func<string, RecipeStep> _typeBase;
         private readonly List<UserPreset> _presets = new List<UserPreset>();
 
         /// <summary>Bumped on every change (catalog binding refresh).</summary>
@@ -78,10 +89,13 @@ namespace Placemaker.Core.Tool
         /// <summary>formatVersion of the last Load (may be newer than CurrentFormatVersion).</summary>
         public int LoadedFormatVersion { get; private set; } = CurrentFormatVersion;
 
-        public PresetStore(DesignEditor editor, Func<DateTime> clock = null)
+        /// <param name="typeBase">Layer → the root step of the type's own recipe (its values over the defaults, as picking the
+        /// type gives them), or null: Standard is that step; without it Standard is the layer's defaults.</param>
+        public PresetStore(DesignEditor editor, Func<DateTime> clock = null, Func<string, RecipeStep> typeBase = null)
         {
             _editor = editor ?? new DesignEditor(null);
             _clock = clock ?? (() => DateTime.UtcNow);
+            _typeBase = typeBase;
         }
 
         public IReadOnlyList<UserPreset> All => _presets;
@@ -96,16 +110,41 @@ namespace Placemaker.Core.Tool
             return null;
         }
 
+        /// <summary>A built-in preset of the layer: one it ships, or its Standard (a type that ships none gets one, see <see cref="IsTypeStandard"/>).</summary>
         public PresetInfo BuiltIn(string layer, string id)
         {
             if (string.IsNullOrEmpty(id)) return null;
             try
             {
                 var gen = _editor.Generator(LayerAliases.Canonical(layer));
-                if (gen?.Presets != null)
-                    foreach (var p in gen.Presets) if (p != null && p.Id == id) return p;
+                var shipped = Shipped(gen, id);
+                if (shipped != null) return shipped;
+                if (IsTypeStandard(gen, id)) return new PresetInfo { Id = StandardId, LabelKey = StandardNameKey };
             }
             catch (Exception) { }
+            return null;
+        }
+
+        /// <summary>
+        /// True for the Standard of a Fill type that ships no preset with that id: the type's own design (what picking the
+        /// type gives), resolved from the type's recipe instead of preset values.
+        /// </summary>
+        public bool IsTypeStandard(string layer, string id)
+        {
+            try { return IsTypeStandard(_editor.Generator(LayerAliases.Canonical(layer)), id); }
+            catch (Exception) { return false; }
+        }
+
+        private static bool IsTypeStandard(IAreaGenerator gen, string id) =>
+            id == StandardId && gen != null && gen.Kind == LayerKind.Fill && Shipped(gen, id) == null;
+
+        private static PresetInfo Shipped(IAreaGenerator gen, string id)
+        {
+            if (gen == null || string.IsNullOrEmpty(id)) return null;
+            IReadOnlyList<PresetInfo> presets;
+            try { presets = gen.Presets; } catch (Exception) { return null; }
+            if (presets != null)
+                foreach (var p in presets) if (p != null && p.Id == id) return p;
             return null;
         }
 
@@ -118,7 +157,7 @@ namespace Placemaker.Core.Tool
             return u != null && (!u.IsOverride || BuiltIn(layer, id) == null);
         }
 
-        /// <summary>Built-ins in their order (overrides flagged), then customs (★) by creation time.</summary>
+        /// <summary>Standard first, then the other built-ins in their order (overrides flagged), then customs (★) by creation time.</summary>
         public List<PresetView> ViewsFor(IAreaGenerator gen)
         {
             var list = new List<PresetView>();
@@ -126,12 +165,20 @@ namespace Placemaker.Core.Tool
             var builtIns = new HashSet<string>(StringComparer.Ordinal);
             IReadOnlyList<PresetInfo> presets = null;
             try { presets = gen.Presets; } catch (Exception) { presets = null; }
+            if (IsTypeStandard(gen, StandardId))
+            {
+                builtIns.Add(StandardId);
+                var u = Find(gen.Id, StandardId);
+                list.Add(new PresetView { Id = StandardId, Name = StandardNameKey, Overridden = u != null && u.IsOverride });
+            }
             if (presets != null)
                 foreach (var p in presets)
                 {
                     if (p == null || string.IsNullOrEmpty(p.Id) || !builtIns.Add(p.Id)) continue;
                     var u = Find(gen.Id, p.Id);
-                    list.Add(new PresetView { Id = p.Id, Name = p.LabelKey ?? "", Icon = p.Icon ?? "", Overridden = u != null && u.IsOverride });
+                    var view = new PresetView { Id = p.Id, Name = p.LabelKey ?? "", Icon = p.Icon ?? "", Overridden = u != null && u.IsOverride };
+                    if (p.Id == StandardId) list.Insert(0, view);   // a Standard the type ships comes first too
+                    else list.Add(view);
                 }
             var customs = new List<UserPreset>();
             foreach (var u in _presets)
@@ -161,7 +208,8 @@ namespace Placemaker.Core.Tool
         /// <summary>
         /// The step a preset produces for a fresh step of <paramref name="layer"/>: built-in = defaults
         /// (+ saved defaults) + PresetInfo.Values (locked) + the type's DefaultOn features and the preset's own (PresetInfo.Features); override /
-        /// custom = defaults + the stored settings, stored Locked and the stored feature children.
+        /// custom = defaults + the stored settings, stored Locked and the stored feature children; a type's own Standard
+        /// (<see cref="IsTypeStandard"/>) = the type's recipe step as picking the type gives it (its Locked, its DefaultOn features).
         /// Null when the preset does not exist.
         /// </summary>
         public RecipeStep Resolve(string layer, string presetId)
@@ -187,7 +235,8 @@ namespace Placemaker.Core.Tool
                 }
                 return step;
             }
-            var builtIn = BuiltIn(layer, presetId);
+            if (IsTypeStandard(gen, presetId)) return ResolveTypeStandard(layer, gen, step);
+            var builtIn = Shipped(gen, presetId);
             if (builtIn == null) return null;
             var locked = new HashSet<string>(StringComparer.Ordinal);
             step.Settings = Overlay(_editor.DefaultsFor(layer), gen, builtIn.Values, locked);
@@ -196,6 +245,41 @@ namespace Placemaker.Core.Tool
             {
                 if (f == null || !builtIn.FeatureOn(f) || Features.ChildIndex(step, f) >= 0) continue;
                 var fs = _editor.FeatureStep(f, 0, DesignEditor.PresetFeatureValues(builtIn, f.Layer));
+                fs.Markers.Clear();
+                step.Children.Add(fs);
+            }
+            return step;
+        }
+
+        /// <summary>
+        /// A type's own Standard: what picking the type gives (RecipeStore.Instantiate + DesignEditor.AddDefaultFeatures): the
+        /// type recipe's settings and Locked (the layer's defaults without one), its enabled feature children, then every
+        /// DefaultOn feature it has no child for.
+        /// </summary>
+        private RecipeStep ResolveTypeStandard(string layer, IAreaGenerator gen, RecipeStep step)
+        {
+            RecipeStep b = null;
+            try { b = _typeBase?.Invoke(layer); } catch (Exception) { b = null; }
+            if (b != null && b.Layer != layer) b = null;
+            step.Settings = b?.Settings != null ? b.Settings.Clone() : _editor.DefaultsFor(layer);
+            if (b != null) foreach (var id in b.Locked) if (step.Settings.Values.ContainsKey(id)) step.Locked.Add(id);
+            if (b != null)
+                foreach (var c in b.Children)
+                {
+                    if (c == null || !c.Enabled || FeatureFor(gen, c) == null) continue;
+                    step.Children.Add(new RecipeStep
+                    {
+                        Layer = c.Layer ?? "",
+                        Target = c.Target ?? "",
+                        Settings = c.Settings?.Clone() ?? new SettingsBag(),
+                        Locked = new HashSet<string>(c.Locked, StringComparer.Ordinal),
+                    });
+                }
+            foreach (var f in Features.Of(gen))
+            {
+                if (f == null || !f.DefaultOn || Features.ChildIndex(step, f) >= 0) continue;
+                if (b != null && Features.ChildIndex(b, f) >= 0) continue;   // the recipe has it (off): picking the type does not add it
+                var fs = _editor.FeatureStep(f, 0);
                 fs.Markers.Clear();
                 step.Children.Add(fs);
             }
@@ -267,10 +351,17 @@ namespace Placemaker.Core.Tool
             return !SameDesign(step, expected, _editor.Generator(step.Layer));
         }
 
+        /// <summary>
+        /// The style shown as picked for <paramref name="root"/>. A design that names no style of its own type (an older save,
+        /// a built group being edited, a deleted or unknown style) is on the type's Standard (modified when it differs from it).
+        /// Id "" only for a root without styles (not a Fill type).
+        /// </summary>
         public ActivePresetInfo Active(RecipeStep root, string layer, string presetId)
         {
             var a = new ActivePresetInfo { Layer = root?.Layer ?? "" };
-            if (root == null || string.IsNullOrEmpty(presetId) || LayerAliases.Canonical(layer) != root.Layer || !Exists(root.Layer, presetId)) return a;
+            if (root == null) return a;
+            if (string.IsNullOrEmpty(presetId) || LayerAliases.Canonical(layer) != root.Layer || !Exists(root.Layer, presetId)) presetId = StandardId;
+            if (!Exists(root.Layer, presetId)) return a;
             a.Id = presetId;
             a.Modified = IsModified(root, presetId);
             a.CanSave = true;

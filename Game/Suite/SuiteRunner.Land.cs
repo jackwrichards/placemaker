@@ -46,6 +46,8 @@ namespace Placemaker.Game.Suite
                 yield return ApplyWithFixtureTool(t => _fixture.EmitRoads(t, seg => Inside(seg.A) && Inside(seg.B)), $"land {plot.Name} ring road");
                 yield return Frames(30);
             }
+            var extra = plot.NetSegments();
+            if (extra.Count > 0) { yield return ApplyWithFixtureTool(t => _fixture.EmitNets(t, extra), $"land {plot.Name} nets"); yield return Frames(30); }
             if (plot.HasWater) yield return FillWater(new[] { plot });
             yield return Settle("land " + plot.Name);
             _phase = phase;

@@ -78,86 +78,25 @@ namespace Placemaker.Core.Decals
         }
 
         /// <summary>
-        /// Runs the pass over a composed plan. <paramref name="dress"/> maps each layer plan to the dressing settings
-        /// of the fill step it belongs to (features share their parent's instance); layers without settings are not dressed.
+        /// Runs the pass over a composed plan. (issue #2, 2026-10-19) Decals from decal packs are no longer placed: every
+        /// decal of a kind the base game does not have is dropped from every layer, whoever placed it (PackDecals), and the
+        /// complement rules below no longer add any. What stays is the ground wear painted into the terrain texture
+        /// (GroundWear, no packs needed). <paramref name="dress"/> maps each layer plan to the dressing settings of the fill
+        /// step it belongs to (features share their parent's instance); layers without settings get no ground wear.
         /// </summary>
         public static Report Apply(ComposedPlan plan, AreaShape area, SiteContext site, IReadOnlyDictionary<AreaPlan, DressSettings> dress, CancellationToken cancel = default)
         {
             var report = new Report();
-            if (plan?.Layers == null || dress == null || dress.Count == 0) return report;
+            if (plan?.Layers == null) return report;
             var sw = System.Diagnostics.Stopwatch.StartNew();
-            DecalPools.EnsureRegistered();
+            foreach (var l in plan.Layers) report.Removed += PackDecals.Drop(l);
+            if (dress == null || dress.Count == 0) { report.Ms = sw.Elapsed.TotalMilliseconds; return report; }
             foreach (var s0 in dress.Values) if (s0 != null) s0.MainTaken = false;
-
-            // Master amount below 100 % thins what the layers placed themselves; 0 removes every decorative decal.
-            foreach (var l in plan.Layers)
-            {
-                if (l == null || !dress.TryGetValue(l, out var s) || s == null || s.Master >= 1f) continue;
-                report.Removed += ThinLayerDecals(l, s.Master);
-            }
 
             var world = new DressingWorld(plan, area, site);
             if (world.Root == null) return report;
             // s28: ground wear painted into the terrain texture (needs no decal packs).
             report.Paint = GroundWear.Apply(plan, world, site, dress);
-
-            if (!DecalPools.PacksAvailable())
-            {
-                plan.Issues.Add(new PlanIssue { Severity = IssueSeverity.Info, Key = DecalPools.NoPacksKey });
-                report.Ms = sw.Elapsed.TotalMilliseconds;
-                return report;
-            }
-            float ha = world.Root.Area / 10000f;
-
-            // One budget per fill step (its features share it), filled by priority.
-            var groups = new Dictionary<DressSettings, List<Candidate>>();
-            var order = new List<DressSettings>();
-            for (int li = 0; li < plan.Layers.Count; li++)
-            {
-                var l = plan.Layers[li];
-                if (l == null || !dress.TryGetValue(l, out var s) || s == null || !s.Any || l.GeneratorId == Cutouts.ZoningLayer) continue;
-                cancel.ThrowIfCancellationRequested();
-                if (!groups.TryGetValue(s, out var list)) { groups[s] = list = new List<Candidate>(); order.Add(s); }
-                var ctx = new Rules.Ctx(world, l, li, s, list, Hashing.Mix(l.Seed == 0 ? 1u : l.Seed, 0xD3C4u));
-                Rules.Run(ctx);
-            }
-
-            var placed = new Placed();
-            foreach (var s in order)
-            {
-                cancel.ThrowIfCancellationRequested();
-                var list = groups[s];
-                int budget = (int)math.round(math.max(MinBudget, BudgetPerHa * ha) * math.min(3f, s.Master));
-                list.Sort((a, b) => a.Priority != b.Priority ? b.Priority.CompareTo(a.Priority) : a.Hash.CompareTo(b.Hash));
-                int accepted = 0;
-                foreach (var c in list)
-                {
-                    if (accepted >= budget) break;
-                    if (!Accept(world, placed, c)) continue;
-                    var l = plan.Layers[c.Layer];
-                    float y = Height(l, site, c.P);
-                    l.Objects.Add(new PlannedObject
-                    {
-                        Position = new float3(c.P.x, y, c.P.y), Yaw = c.Yaw, Role = ObjectRole.Decal, Asset = new AssetRef(""),
-                        Variation = c.Hash, Category = c.Pool,
-                    });
-                    placed.Add(c);
-                    accepted++;
-                    report.ByPool[c.Pool] = (report.ByPool.TryGetValue(c.Pool, out var n) ? n : 0) + 1;
-                }
-                report.Added += accepted;
-            }
-
-            // Stats: one "Decals" line per dressed layer (merged by key in the summary).
-            var perLayer = new Dictionary<AreaPlan, int>();
-            foreach (var l in plan.Layers)
-            {
-                if (l == null || !dress.ContainsKey(l)) continue;
-                int count = 0;
-                foreach (var o in l.Objects) if (o != null && o.Role == ObjectRole.Decal && !DecalCatalog.IsFunctionalCategory(o.Category)) count++;
-                l.Stats.RemoveAll(st => st.Key == StatKey);
-                if (count > 0) l.Stats.Add(new PlanStat(StatKey, count, Keys.UnitCount));
-            }
             report.Ms = sw.Elapsed.TotalMilliseconds;
             return report;
         }

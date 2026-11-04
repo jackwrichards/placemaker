@@ -1,0 +1,71 @@
+{
+  "_about": "Do the game's blue outlines flicker while the camera moves (the user, 21 Oct: 'all blue outlines flicker when you pan and hover over something')? A park is previewed on a block beside grown houses; a house there is lit as a hovered one is and the camera pans every frame, each frame grabbed and its outline pixels counted (lab op outlineFlicker): with the Real preview on, with the Sketch preview, and after the build. Before 21 Oct the Real preview left the Outline layer out of the camera, which made HDRP cull the scene twice a frame. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outline-flicker.json -Build -Who <you>",
+  "scenarios": [
+    {
+      "id": "outline-flicker",
+      "site": "zoned",
+      "steps": [
+        {
+          "do": "area",
+          "tool": "bucket"
+        },
+        {
+          "do": "type",
+          "layer": "park",
+          "preset": "formal"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "preview"
+        },
+        {
+          "do": "previewMode",
+          "mode": "ghost"
+        },
+        {
+          "do": "wait",
+          "seconds": 3
+        },
+        {
+          "do": "lab",
+          "op": "outlineFlicker",
+          "label": "real-preview",
+          "frames": 120,
+          "pan": 0.4
+        },
+        {
+          "do": "shot",
+          "name": "real-preview-ui",
+          "shotMode": "ui"
+        },
+        {
+          "do": "previewMode",
+          "mode": "sketch"
+        },
+        {
+          "do": "wait",
+          "seconds": 2
+        },
+        {
+          "do": "lab",
+          "op": "outlineFlicker",
+          "label": "sketch",
+          "frames": 120,
+          "pan": 0.4
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "outlineFlicker",
+          "label": "after-build",
+          "frames": 120,
+          "pan": 0.4
+        }
+      ]
+    }
+  ]
+}

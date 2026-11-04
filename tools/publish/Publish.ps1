@@ -38,6 +38,8 @@ if ($Command -ne 'Publish' -and -not ("$($p.ChangeLog.Value)$($p.ChangeLog.Inner
 $github = @($p.ExternalLink | Where-Object { $_.Type -eq 'github' -and $_.Url })
 if ($access -ne 'Private' -and -not $github) { $problems += "AccessLevel is $access but there is no github ExternalLink: the GPL-3.0 needs the source public before anyone else gets the mod" }
 $pictures = @($p.Thumbnail.Value) + @($p.Screenshot | ForEach-Object { $_.Value })
+$shots = @($p.Screenshot | Where-Object { $_.Value })
+if ($shots.Count -gt 10) { $problems += "$($shots.Count) screenshots: Paradox Mods takes at most 10" }
 foreach ($pic in $pictures) { if ($pic -and -not (Test-Path -LiteralPath (Join-Path $root $pic))) { $problems += "missing picture: $pic" } }
 if ($problems) { $problems | ForEach-Object { Write-Host "STOP: $_" }; exit 1 }
 
@@ -65,6 +67,9 @@ Write-Host "page: $($p.DisplayName.Value) $($p.ModVersion.Value), $access, $($pi
 if ($StageOnly) { Write-Host 'stage only: nothing uploaded'; exit 0 }
 
 # --- the upload ---
+# The uploader and the game share one saved Paradox login (.pdxsdk): an upload while a game runs (the user's or the
+# game queue's) left the game holding an outdated session, and the login came back logged out (2026-10-17).
+if (Get-Process Cities2 -ErrorAction SilentlyContinue) { Write-Host 'STOP: a game is running (yours or the game queue''s); the uploader shares its Paradox login, so close it first'; exit 1 }
 $publisher = $env:CSII_MODPUBLISHERPATH
 if (-not $publisher) { $publisher = [Environment]::GetEnvironmentVariable('CSII_MODPUBLISHERPATH', 'User') }
 if (-not $publisher -or -not (Test-Path -LiteralPath $publisher)) { Write-Host "STOP: ModPublisher not found (CSII_MODPUBLISHERPATH = '$publisher')"; exit 1 }

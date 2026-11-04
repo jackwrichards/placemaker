@@ -15,6 +15,18 @@ namespace Placemaker.Game.Tool
         private int _modifiedVersion = -1;
         private bool _modified;
 
+        // the last design of each type this session (style, zoning, every choice): picking the type again brings it back.
+        // No type stays chosen after a build, so without this every build started from the type's defaults.
+        private readonly System.Collections.Generic.Dictionary<string, (Recipe Recipe, string PresetLayer, string PresetId)> _lastDesigns =
+            new System.Collections.Generic.Dictionary<string, (Recipe, string, string)>(StringComparer.Ordinal);
+
+        /// <summary>The design on the panel, as its type's last (not an edit of a built group: that one is the receipt's).</summary>
+        private void RememberDesign()
+        {
+            if (_recipe == null || string.IsNullOrEmpty(_recipeId) || _editingGroup != 0) return;
+            _lastDesigns[_recipeId] = (_recipe.Clone(), _presetLayer ?? "", _presetId ?? "");
+        }
+
         public int DesignVersion => _designVersion;
         public bool ValuePreviewActive => _previewBase != null;
         public ValuePreviewKind ValuePreviewKind => _previewBase != null ? _previewKind : ValuePreviewKind.None;
@@ -75,19 +87,43 @@ namespace Placemaker.Game.Tool
         public void SelectRecipe(string id)
         {
             EndValuePreview(true);
-            if (string.IsNullOrEmpty(id) || id == _recipeId && _recipe != null) return;
+            // the painter is picked like a type (it is not one: no recipe, nothing planned)
+            if (id == PainterId) { SetPainter(true); return; }
+            bool leftPainter = SetPainter(false);
+            if (string.IsNullOrEmpty(id) || id == _recipeId && _recipe != null) { if (leftPainter) DesignChanged(); return; }
             if (!SwitchRecipe(id)) return;
-            _presetLayer = ""; _presetId = "";
             DesignChanged();
             Commit("Placemaker.Undo.SelectRecipe");
         }
 
-        /// <summary>Replaces the design with a fresh copy of recipe <paramref name="id"/> (area kept). No undo step.</summary>
+        /// <summary>
+        /// Replaces the design with recipe <paramref name="id"/> (area kept): the player's last design of that type this session
+        /// (new seeds, no entrances, its style), else a fresh copy on the type's Standard style. No undo step.
+        /// </summary>
         private bool SwitchRecipe(string id)
         {
-            var r = _recipes.Instantiate(id, NewSeed());
-            if (r == null) { Flash(new LocText("Placemaker.Problem.UnknownRecipe")); return false; }
-            _editor.AddDefaultFeatures(r, NewSeed);
+            Recipe r;
+            string presetLayer = "", presetId = "";
+            if (_lastDesigns.TryGetValue(id, out var last))
+            {
+                r = last.Recipe.Clone();
+                foreach (var kv in RecipePaths.Walk(r)) { kv.Value.Markers.Clear(); kv.Value.Seed = NewSeed(); }
+                presetLayer = last.PresetLayer;
+                presetId = last.PresetId;
+            }
+            else
+            {
+                r = _recipes.Instantiate(id, NewSeed());
+                if (r == null) { Flash(new LocText("Placemaker.Problem.UnknownRecipe")); return false; }
+                _editor.AddDefaultFeatures(r, NewSeed);
+                // A type starts on its Standard style (its own design). A Standard the player saved over, or one the type ships
+                // that differs from its recipe, is applied, so the panel shows it picked and unchanged.
+                presetLayer = r.Root.Layer;
+                presetId = _presets.Exists(presetLayer, PresetStore.StandardId) ? PresetStore.StandardId : "";
+                if (presetId.Length > 0 && RecipeFor(presetLayer) == id && _presets.IsModified(r.Root, presetId))
+                    _presets.Apply(r.Root, presetId, NewSeed);
+            }
+            RememberDesign();   // the design being left
             // Markers the player placed for the same root layer stay (switching park ↔ park+playground keeps entrances).
             bool sameRoot = _recipe != null && _recipe.Root.Layer == r.Root.Layer;
             if (sameRoot && _recipe.Root.Markers.Count > 0)
@@ -97,6 +133,8 @@ namespace Placemaker.Game.Tool
             if (rootEdited) _markersEdited.Add(RecipePaths.Root);
             _recipe = r;
             _recipeId = id;
+            _presetLayer = presetLayer;
+            _presetId = presetId;
             _focus = RecipePaths.Root;
             ExitMarkerMode();
             if (_settings != null) { _settings.LastRecipe = id; _settings.ApplyAndSave(); }

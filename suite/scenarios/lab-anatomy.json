@@ -1,0 +1,16 @@
+{
+  "_about": "Lab (exploration): what grown houses are made of (surfaces, props, fence/hedge lines, paths), on a curved street, after construction has finished. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/lab-anatomy.json -Build -Who lab-anatomy",
+  "scenarios": [
+    {
+      "id": "anatomy-curve",
+      "land": { "shape": "rect", "size": [380, 300], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 90, "from": 0, "to": 180 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "grow", "seconds": 60, "fast": false },
+        { "do": "lab", "op": "anatomy" },
+        { "do": "shot", "name": "houses-top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

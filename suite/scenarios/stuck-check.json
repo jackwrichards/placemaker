@@ -1,0 +1,9 @@
+{
+  "_about": "The game runner must never stare: replays the sequence that once froze a 35-build batch (a roads build on a grid block failed (strict-grid builds nothing) 'nothing materialized' and left the preview pending for good, every later scenario waited 60 s on it), then a normal park build, then a strip mall too small to build (its greyed-out Build button must be reported at once, not after a 2-minute ghost wait). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/stuck-check.json -Build -Who stuck-check",
+  "scenarios": [
+    { "id": "stuck-roads-block", "layer": "roads", "preset": "strict-grid", "site": "flat" },
+    { "id": "stuck-park-after", "layer": "park", "preset": "formal", "site": "flat" },
+    { "id": "stuck-tiny-shops", "layer": "stripMall", "preset": "classic", "site": "flat", "draw": [24, 24] },
+    { "id": "stuck-park-last", "layer": "park", "preset": "formal", "site": "flat" }
+  ]
+}

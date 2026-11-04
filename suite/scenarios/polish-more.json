@@ -1,0 +1,356 @@
+{
+  "_about": "Neighbourhood polish beyond the four basic shapes: a very tight curve (R 30), a cul-de-sac (a dead-end street off a cross street; the game rounds its end), medium density, row houses, high density, low commercial, low-density houses levelled up after the polish (the new models must fit again), every third house bulldozed after it (nothing of theirs left standing), and polish switched on before a street grows with standing houses left alone (houses polished as they come). Before/after from above, one close-up each, and a dump of the houses for offline replays (Tests NeighbourReplay). Send with tools/hot/Send-Hot.ps1 -File suite/scenarios/polish-more.json (-Build after a mod change).",
+  "scenarios": [
+    {
+      "id": "more-tight30",
+      "land": {
+        "shape": "rect",
+        "size": [
+          200,
+          180
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "lab", "op": "hotload", "path": "{hot}" },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 30, "from": 0, "to": 180 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "lab", "op": "polishDump" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-45", "camera": { "target": "point", "at": [ 0, 10 ], "view": "oblique", "pitch": 50, "distance": 100 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "more-culdesac",
+      "land": {
+        "shape": "rect",
+        "size": [
+          240,
+          260
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "culdesac", "length": 110, "cross": 180, "yaw": 90 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "lab", "op": "polishDump" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-bulb", "camera": { "target": "point", "at": [ 0, 45 ], "view": "oblique", "pitch": 55, "distance": 120 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "more-medium",
+      "land": {
+        "shape": "rect",
+        "size": [
+          280,
+          180
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 110, "from": 45, "to": 135, "zone": "NA Residential Medium" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "lab", "op": "polishDump" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "more-row",
+      "land": {
+        "shape": "rect",
+        "size": [
+          280,
+          180
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 110, "from": 45, "to": 135, "zone": "NA Residential Medium Row" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "lab", "op": "polishDump" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "more-high",
+      "land": {
+        "shape": "rect",
+        "size": [
+          280,
+          200
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 220, "zone": "NA Residential High" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "lab", "op": "polishDump" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-45", "camera": { "target": "point", "at": [ 0, 30 ], "view": "oblique", "pitch": 50, "distance": 140 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "more-shops",
+      "land": {
+        "shape": "rect",
+        "size": [
+          280,
+          200
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 140, "from": 55, "to": 125, "zone": "NA Commercial Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "lab", "op": "polishDump" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "more-levelup",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          220
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 120, "from": 40, "to": 140 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "wait", "seconds": 4 },
+        { "do": "shot", "name": "polished-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "lab", "op": "levelUp" },
+        { "do": "grow", "seconds": 150 },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "lab", "op": "polishDump" },
+        { "do": "shot", "name": "levelled-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "levelled-45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "more-bulldoze",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          220
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 120, "from": 40, "to": 140 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "wait", "seconds": 4 },
+        { "do": "shot", "name": "polished-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "lab", "op": "bulldozeHouses", "every": 3 },
+        { "do": "wait", "seconds": 4 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "lab", "op": "polishDump" },
+        { "do": "shot", "name": "bulldozed-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "bulldozed-45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "more-newonly",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          220
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 110, "from": 40, "to": 140 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "wait", "seconds": 6 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "lab", "op": "polishDump" },
+        { "do": "shot", "name": "grown-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "grown-45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 110 },
+          "shotMode": "render"
+        }
+      ]
+    },
+    {
+      "id": "more-painter",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          220
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "PolishNewHouses", "value": false },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 120, "from": 40, "to": 140 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "wait", "seconds": 4 },
+        { "do": "shot", "name": "unpolished-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "lab", "op": "polishStamp", "yes": true, "side": "west" },
+        { "do": "wait", "seconds": 6 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "lab", "op": "polishDump" },
+        { "do": "shot", "name": "west-polished-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "west-polished-45", "camera": { "target": "point", "at": [ 0, 40 ], "view": "oblique", "pitch": 50, "distance": 120 },
+          "shotMode": "render"
+        },
+        { "do": "lab", "op": "polishStamp", "yes": false, "side": "west" },
+        { "do": "wait", "seconds": 6 },
+        { "do": "shot", "name": "put-back-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "PolishNewHouses", "value": true }
+      ]
+    },
+    {
+      "id": "more-painter-panel",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          220
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "PolishNewHouses", "value": false },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 120, "from": 40, "to": 140 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "wait", "seconds": 4 },
+        { "do": "area", "tool": "paint", "size": 60, "cameraDistance": 520, "stroke": [ [ -110, -60 ], [ -60, 0 ], [ -20, 40 ] ] },
+        { "do": "polish", "stamp": "yes", "wait": 120 },
+        { "do": "lab", "op": "polishFlags" },
+        { "do": "shot", "name": "painted-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "lab", "op": "saveLoad" },
+        { "do": "lab", "op": "polishFlags" },
+        { "do": "shot", "name": "after-load-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "lab", "op": "removeAllPolish" },
+        { "do": "shot", "name": "removed-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "PolishNewHouses", "value": true }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 // (core) The central shelf (Recipes/shelf/<category>.json, Core/Tool/Shelf.cs): the shipped files parse, cover every type of the
-// Make row exactly once, keep Industry and Transport hidden and make Beach its own category; hiding a type or a style is a file
+// Make row exactly once, keep Transport hidden (Industrial is shown again, 2026-10-19) and make Beach its own category; hiding a type or a style is a file
 // edit that the catalog the panel gets reflects; the game's restore of a hidden last pick is the panel's first type.
 
 using System.Collections.Generic;
@@ -26,8 +26,8 @@ namespace Placemaker.Tests
             var shelf = Shipped();
             Assert.Empty(shelf.Warnings);
             var shown = shelf.Categories.Where(c => !c.Hidden).Select(c => c.Id).ToArray();
-            Assert.Equal(new[] { "roads", "parking", "parks", "beach", "shops", "nature", "farms", "sports" }, shown);
-            Assert.True(shelf.Category("industry").Hidden);
+            Assert.Equal(new[] { "zoning", "roads", "parking", "parks", "beach", "shops", "nature", "farms", "sports", "industry" }, shown);
+            Assert.False(shelf.Category("industry").Hidden);   // Industrial (2026-10-19): its own category again
             Assert.True(shelf.Category("transport").Hidden);
             foreach (var g in GeneratorRegistry.All)
             {
@@ -41,7 +41,8 @@ namespace Placemaker.Tests
             Assert.Equal("parks", shelf.CategoryOf("zenGarden", "gardens"));
             Assert.Equal("shops", shelf.CategoryOf("plaza", "squares"));
             Assert.Equal("shops", shelf.CategoryOf("fairground", "events"));
-            Assert.True(shelf.IsTypeShelved("quarry", "industrial"));
+            Assert.False(shelf.IsTypeShelved("quarry", "industrial"));
+            Assert.Equal("industry", shelf.CategoryOf("containerYard", "industrial"));
             Assert.True(shelf.IsTypeShelved("restArea", "transport"));
             Assert.False(shelf.IsTypeShelved("park", "parks"));
         }

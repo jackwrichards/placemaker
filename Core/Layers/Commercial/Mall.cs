@@ -470,6 +470,51 @@ namespace Placemaker.Core.Layers.Commercial
             return new LotTry { Sub = sub, Ring = lot, Capacity = (float)cap, Ev = (float)ev, Synthetic = synthetic, Site = site };
         }
 
+        /// <summary>
+        /// (shops4) An asphalt ring as pieces the game draws whole: cut into 30 m tiles square to the main street, each tile's part made
+        /// convex; parts the game would refuse are left out when tiny or a sliver (else the part stays as it is). Null when the ring
+        /// is small and convex already.
+        /// </summary>
+        private List<float2[]> SafeAsphalt(float2[] ring)
+        {
+            if (Poly.IsConvex(ring) && Poly.Area(ring) <= 900f) return null;
+            bool Good(float2[] p) => SurfaceAcceptance.IsAccepted(p) && Build.AreaRings.IsValid(p, Build.AreaRings.SurfaceMinNodeDistance + Build.AreaRings.Margin);
+            var d = MainDir ?? new float2(1f, 0f); var n = new float2(-d.y, d.x);
+            float a0 = float.MaxValue, a1 = float.MinValue, b0 = float.MaxValue, b1 = float.MinValue;
+            foreach (var p in ring) { float a = math.dot(p, d), b = math.dot(p, n); a0 = math.min(a0, a); a1 = math.max(a1, a); b0 = math.min(b0, b); b1 = math.max(b1, b); }
+            const float T = 30f;
+            var res = new List<float2[]>();
+            try
+            {
+                for (float a = a0; a < a1; a += T)
+                    for (float b = b0; b < b1; b += T)
+                    {
+                        var tile = Poly.EnsureCcw(new[] { d * a + n * b, d * (a + T) + n * b, d * (a + T) + n * (b + T), d * a + n * (b + T) });
+                        foreach (var reg in Poly.Intersection(ring, tile))
+                        {
+                            if (reg?.Outer == null || reg.Outer.Length < 3) continue;
+                            var piece = Poly.EnsureCcw(Poly.Clean(reg.Outer, 0.05f));
+                            if (piece.Length < 3 || Poly.Area(piece) < 0.5f) continue;
+                            var parts = Poly.IsConvex(piece) ? new List<float2[]> { piece } : ConvexDecomposition.Decompose(piece, true);
+                            if (parts == null || parts.Count == 0) parts = new List<float2[]> { piece };
+                            foreach (var p in parts)
+                            {
+                                if (Good(p)) { res.Add(p); continue; }
+                                // A tile's corner cut a few centimetres from a vertex (an edge the game refuses): that vertex merged away.
+                                var fixedPart = Poly.Clean(p, 2f * SurfaceAcceptance.MinEdge);
+                                if (fixedPart.Length >= 3 && Good(fixedPart)) { res.Add(fixedPart); continue; }
+                                // a sliver under a metre wide (a seam along a lane's edge, which the lane covers) is left out, and so is a
+                                // piece under 40 m² the game would refuse anyway (the build skips it: nothing is lost by leaving it out)
+                                float per = 0f; for (int k = 0; k < p.Length; k++) per += math.distance(p[k], p[(k + 1) % p.Length]);
+                                if (Poly.Area(p) >= 40f && 2f * Poly.Area(p) / math.max(per, 0.01f) >= 0.5f) res.Add(p);
+                            }
+                        }
+                    }
+            }
+            catch (Exception) { return null; }
+            return res.Count > 0 ? res : null;
+        }
+
         /// <summary>Merges a planned lot into the plan and takes its land.</summary>
         public bool CommitLot(LotTry t, bool leftover = false)
         {
@@ -482,6 +527,38 @@ namespace Placemaker.Core.Layers.Commercial
                 if (t.Synthetic.TryGetValue(n.EndAttach, out var s1)) { SnapOnto(s1.lane, s1.seg, ref n.D, ref n.C); OntoNode(s1.lane, ref n.D, ref n.C); AddJoin(s1.lane, n.D.xz); n.EndAttach = -1; }
             }
             sub.Regions.Clear();
+            // (shops4) The lot's planted islands and edge strips as painted ground, not grass surfaces (the user: "paint all the grass
+            // and then texture it in different areas"): mulch and dirt with green tufts round the trees. The asphalt is laid in spans
+            // that leave the islands out, so the bare ground shows there.
+            if (LotFirstMode)
+            {
+                // The asphalt as small convex pieces: the game split a big many-sided lot ring into triangles with a long sliver
+                // missing, grass showing under a row of stalls (game runner, 300 x 280 m site). 30 m tiles, each made convex.
+                for (int i = sub.Surfaces.Count - 1; i >= 0; i--)
+                {
+                    var sf = sub.Surfaces[i];
+                    if (sf.Role != SurfaceRole.Asphalt || sf.Ring.Length <= 4) continue;
+                    var parts = SafeAsphalt(Poly.To2D(sf.Ring));
+                    if (parts == null) continue;
+                    sub.Surfaces.RemoveAt(i);
+                    foreach (var p in parts)
+                        sub.Surfaces.Insert(i, new PlannedSurface { Ring = Poly.To3D(p, q => sub.HeightAfter != null ? sub.HeightAfter(q) : Ctx.H(q)), Role = sf.Role, Asset = sf.Asset, Control = sf.Control, Category = sf.Category });
+                }
+                var kit = PaintKit();
+                for (int i = sub.Surfaces.Count - 1; i >= 0; i--)
+                {
+                    var sf = sub.Surfaces[i];
+                    if (sf.Role != SurfaceRole.Grass) continue;
+                    var r2 = Poly.To2D(sf.Ring);
+                    if (r2.Length >= 3 && Poly.Area(r2) >= 2f)
+                    {
+                        kit.Fill(r2, TerrainMaterials.Dirt, 1f, 0.6f, 0.6f, 4f);
+                        kit.Speckle(r2, TerrainMaterials.Lush, 0.85f, 3f, 0.35f, 0.3f, 0.6f);
+                        kit.Speckle(r2, TerrainMaterials.Dry, 0.7f, 5f, 0.2f, 0.3f, 0.6f);
+                    }
+                    sub.Surfaces.RemoveAt(i);
+                }
+            }
             sub.Issues.RemoveAll(i => i.Severity == IssueSeverity.Error || i.Key == "Placemaker.Parking.Issue.NoEntrance");
             Merge(sub);
             // (s25) The lot graded itself (level tiers on a slope): the rest of the mall plans on that ground.
@@ -700,12 +777,38 @@ namespace Placemaker.Core.Layers.Commercial
             return clearance < 9f;
         }
 
+        /// <summary>
+        /// (shops4) The ground of a planted piece. The lot-first strip mall paints it (terrain paint, never a lawn surface: the user,
+        /// "grass patches going onto the roads ... we've moved on to terrain paint"); the other layouts keep their lawn surface.
+        /// </summary>
+        public void Lawn(float2[] ring)
+        {
+            if (!LotFirstMode) { Ctx.Surface(ring, SurfaceRole.Grass, new AssetRef(""), AssetCategories.SurfaceGrass); return; }
+            // Heavy, textured ground (the user: "texture terrain across the board, even heavy amounts, like sand or dirt"): dry grass over
+            // the whole piece, dirt and sand patches, lusher tufts. It also covers the flat stripes the zone block strips leave along the
+            // city streets (a lot area takes the grass detail off the ground under it).
+            try
+            {
+                var kit = PaintKit();
+                foreach (var part in Poly.Offset(Poly.EnsureCcw(ring), 0.5f, OffsetJoin.Miter))
+                {
+                    if (part?.Outer == null || part.Outer.Length < 3 || Poly.Area(part.Outer) < 20f) continue;
+                    var p = part.Outer;
+                    kit.Fill(p, TerrainMaterials.Dry, 1f, 1f, 1.6f, 9f);
+                    kit.Speckle(p, TerrainMaterials.Dirt, 1f, 8f, 0.5f, 0.3f, 1f);
+                    kit.Speckle(p, TerrainMaterials.Sand, 0.9f, 14f, 0.22f, 0.35f, 1f);
+                    kit.Speckle(p, TerrainMaterials.Lush, 0.8f, 5f, 0.22f, 0.3f, 1f);
+                }
+            }
+            catch (Exception) { }
+        }
+
         /// <summary>A planted buffer: lawn and a loose line of trees, no paths (strips beside lanes and rows).</summary>
         public void Buffer(float2[] ring, uint salt)
         {
             var region = LayerRegion.From(ring);
             if (region == null) return;
-            Ctx.Surface(ring, SurfaceRole.Grass, new AssetRef(""), AssetCategories.SurfaceGrass);
+            Lawn(ring);
             var rng = Hashing.Rng(Hashing.Mix(Ctx.Seed, salt), "buffer");
             var placed = new List<float2>();
             float step = 4f;

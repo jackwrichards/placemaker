@@ -1,0 +1,14 @@
+{
+  "Placemaker.Category.surface.crop": "农田地表",
+  "Placemaker.Category.surface.crop.soil": "耕作土壤地表",
+  "Placemaker.Category.surface.crop.plowed": "翻耕土壤地表",
+  "Placemaker.Category.surface.crop.rows": "作物行列地表",
+  "Placemaker.Category.surface.crop.green": "绿色作物地表",
+  "Placemaker.Category.surface.crop.straw": "秸秆／谷物地表",
+  "Placemaker.Category.surface.crop.flower": "开花作物地表",
+  "Placemaker.Category.surface.crop.lavender": "薰衣草色作物地表",
+  "Placemaker.Category.surface.crop.yellow": "黄色作物地表",
+  "Placemaker.Category.decal.farm": "农田车辙贴花",
+  "Placemaker.GroundCover.Issue.Painted": "未安装农田地表，因此改为直接在地形上绘制田地（永久生效）。",
+  "Placemaker.Common.Issue.ObjectBudget": "此设计原需 {0} 个物体；已减少 {2} 个重复道具，使数量接近 {1}。田地和种植床改为地表绘制。"
+}

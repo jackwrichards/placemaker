@@ -1,65 +1,133 @@
 <Publish>
 	<!--Empty for the first upload. The publisher prints "Mod published with Id=NNNNNN": write it here, or the next upload makes a second listing-->
-	<ModId Value="" />
+	<ModId Value="163638" />
 	<DisplayName Value="Placemaker" />
-	<ShortDescription Value="Select an area and turn it into roads, a parking lot, a park, shops or about 30 other kinds of places. You see a preview first, then build it in one go." />
+	<ShortDescription Value="Your plot's edges connect to each other and to the roads around them. Draw any area and turn it into a park, parking lot, plaza, beach or other amenity. Preview it, tweak it, build it." />
 	<!--Same text as docs/publish/MOD-PAGE.md. Markdown; no leading spaces; &amp; for "and" signs-->
 	<LongDescription>
-Placemaker fills an area for you. Select some land, choose what you want there, check the preview and build it.
+[Here's a 4-minute showcase.](https://www.youtube.com/watch?v=Fa5TWC3B-Ps)
 
-It only uses the game's own assets, so no asset packs are needed.
 
-**How to use**
+### What you can make
 
-1. Click the Placemaker button at the top left, or press Ctrl+Shift+A.
-2. Select an area: click a city block, click corners, brush it on, or click the road nodes around it.
-3. Choose a type and a style. The preview updates as you go.
-4. Press Build. Undo works if you don't like it.
+- **Roads**: street grids that connect to the roads around them
+- **Parking**: lots of any shape with trees, lamps, fences and marked bays
+- **Parks**: parks, gardens, playgrounds, memorial parks and amphitheatres
+- **Beach**: sand painted from the water's edge, quays and boardwalks
+- **Shops &amp; squares**: strip malls etc.
+- **Nature**: wetlands, reserves, lookout hills, hiking trails and campgrounds
+- **Farms**: farmsteads and animal parks
+- **Sports**: sports parks, skate bowls and golf
+- **Industrial**: container yards, car yards, junk yards and industrial works
+- **Zoning**: Specify percentage breakdown of zone types and min and max lot sizes, and it auto zones for you in your selection.
 
-**What's in it**
 
-- Roads: street grids connected to the roads around them
-- Parking: lots of any shape, with trees, lamps and fences
-- Parks: parks, gardens, memorial parks, playgrounds, amphitheatres
-- Beach: sand painted from the water's edge, quays and boardwalks
-- Shops &amp; squares: strip malls, mall districts, market squares, transit plazas
-- Nature: wetlands, reserves, lookout hills, hiking trails, campgrounds
-- Farms and Sports: farmsteads, animal parks, sports parks, golf, a skate spot
+### ⚠️ Early access (please read this bit)
 
-Most types have a few styles. Settings are under Options &gt; Placemaker.
+- I consider **anarchy** essentially required to work with this mod, though it's not necessarily a requirement.
 
-**Early version**
+- This mod won't stop you building dumb looking stuff. I didn't want to box anyone in. So **double check your selection before you hit Build.**
 
-Roads, parking and parks are the most finished. Shops and squares still need work. Known issues:
+Expect some bugs. Use it at your own risk.
 
-- The strict grid and superblock road presets build nothing yet
-- Big builds can freeze the game for a second or two
-- Shops in plazas and market squares face the city street
+**Back up your save before you try it.**
 
-If something looks wrong, please report it with a screenshot and your Placemaker.log (in the game's Logs folder).
+Built for game version **1.6.\***
 
-**Credits**
 
-Inspired by ParkingLotTool (KruemelGames), ParkManager (tomkpunkt) and Grid Road Generator. Includes Harmony by Andreas Pardeike (MIT). Licensed GPL-3.0.
+### Will it wreck my save?
+
+It wont.
+
+- I've tested it extensively, but obviously I can't speak for every other mod compatibility.
+- Still. **Make a backup.**
+
+
+### Can I remove it?
+
+Yep. Your save still loads without it.
+
+### How to use it
+
+1. Click the **Placemaker** button at the top left. Or hit **Ctrl+Shift+A**.
+
+2. Select an area with **Points**, **Paint bucket** or **Paint area**. More on those below.
+
+   You get three tools.
+
+   - **Points**: click the corners. It snaps to curbs, buildings, right angles and road nodes.
+   - **Paint bucket**: click a city block to fill it. **Shift+click** adds more.
+   - **Paint area**: just brush it on. **Right-click** erases.
+
+   You also choose what the selection stops at. Roads, paths, water, buildings, zoning and more.
+
+3. Under **Pick what to make**, choose a category. Then a type and a style.
+
+   Every type has a few styles to pick from. Don't love one? Mess with it.
+
+4. Check out the live preview. Tweak whatever you want.
+
+   Layout, paths, planting, surfaces, the works. Then save it as your own if you want.
+
+5. Hit **Build**. Done!
+
+
+### Outgrow (beta)
+
+- **Outgrow** settings can be found using a button at the top of the panel. It lets lots connect other to lots and roads that are nearby.
+
+- There are many different styles of outgrow. You can mix and match any zone type with any outgrow type, and set their defaults.
+
+- You can also paint an outgrow types on to the world with the **Outgrow Paint** button.
+
+- It's **off by default** for new buildings.
+
+- Want to try it? Turn it on for certain buildings. Or use the Outgrow brush on an area.
+
+- **Careful with outgrowing every building on a huge save.** It is to iterate through each lot and the have to calculate how to connect to each other. It can take a while on larger saves, but once it's caught up, its smooth. I haven't tested this on saves beyond 1 million population.
+
+
+### Found a bug?
+
+Tell me on [GitHub](https://github.com/jackwrichards/placemaker/issues). Throw in a screenshot and your **Placemaker.log**.
+
+It's in AppData\LocalLow\Colossal Order\Cities Skylines II\Logs. The log helps me a ton.
+
+
+### Credits
+
+Parts of Placemaker are built on these awesome mods. Go show them some love:
+
+**Parking** has been overhauled, but some code ported from **Parking Lot Tool**, Copyright (c) 2026 KruemelGames, GPL-3.0 https://github.com/KruemelGames/ParkingLotTool
+
+Includes **Harmony 2.2.2**, Copyright (c) 2017 Andreas Pardeike, MIT (see 0Harmony-LICENSE.txt) https://github.com/pardeike/Harmony
+
+**Placemaker** Licensed under the GNU General Public License v3.0
+
+
+Have fun :)
 	</LongDescription>
 	<!--A missing picture is silently replaced by a default one: add it before uploading-->
 	<Thumbnail Value="Properties/Thumbnail.png" />
-	<!--Stills from the showcase video (v6)-->
-	<Screenshot Value="Properties/Screenshots/01-beach.jpg" />
-	<Screenshot Value="Properties/Screenshots/02-parking.jpg" />
-	<Screenshot Value="Properties/Screenshots/03-wetland.jpg" />
-	<Screenshot Value="Properties/Screenshots/04-roads.jpg" />
-	<Screenshot Value="Properties/Screenshots/05-sports-park.jpg" />
-	<Screenshot Value="Properties/Screenshots/06-amphitheatre.jpg" />
-	<Screenshot Value="Properties/Screenshots/07-strip-mall.jpg" />
-	<Screenshot Value="Properties/Screenshots/08-coast-farms.jpg" />
+	<!--At most 10 (Paradox Mods refuses more): roads first, then one picture per category, related types paired; settings pills from the panel or the preset-->
+	<Screenshot Value="Properties/Screenshots/01-streets.jpg" />
+	<Screenshot Value="Properties/Screenshots/02-street-patterns.jpg" />
+	<Screenshot Value="Properties/Screenshots/03-preview.jpg" />
+	<Screenshot Value="Properties/Screenshots/04-parking-lot.jpg" />
+	<Screenshot Value="Properties/Screenshots/05-shops.jpg" />
+	<Screenshot Value="Properties/Screenshots/06-parks.jpg" />
+	<Screenshot Value="Properties/Screenshots/07-sports-park.jpg" />
+	<Screenshot Value="Properties/Screenshots/08-nature.jpg" />
+	<Screenshot Value="Properties/Screenshots/09-beach.jpg" />
+	<Screenshot Value="Properties/Screenshots/10-farms.jpg" />
 	<!--"Code Mod" is added by the publisher itself-->
 	<Tag Value="Code Mod" />
 	<ForumLink Value="" />
-	<ModVersion Value="0.1.0" />
+	<ModVersion Value="0.2.0" />
 	<GameVersion Value="1.6.*" />
-	<ChangeLog Value="First public version." />
-	<!--Add once the source is public: <ExternalLink Type="github" Url="https://github.com/..." />-->
-	<!--Public, Unlisted or Private, exactly as written (a typo falls back to Public). Private for the first test upload-->
-	<AccessLevel Value="Private" />
+	<ChangeLog Value="- New: Outgrow (beta). Gardens and car parks grow past their lots and join up. Off by default.&#10;- New: Zoning. Set the zone mix and lot sizes and it zones your selection.&#10;- New: Industrial. Container yards, car yards, junk yards and industrial works.&#10;- Fixed: white boxes after loading a save (decal packs).&#10;- Smarter road grids and terraced blocks on slopes.&#10;- Odd-shaped parking lots work now.&#10;- No more lag spikes from the paint tools.&#10;- New panel: a Placemaker | Outgrow switch at the top, scrollbars, a cleaner preview." />
+	<ExternalLink Type="youtube" Url="https://www.youtube.com/watch?v=Fa5TWC3B-Ps" />
+	<ExternalLink Type="github" Url="https://github.com/jackwrichards/placemaker" />
+	<!--Public, Unlisted or Private, exactly as written (a typo falls back to Public). Made Public by the user on the website, 2026-10-17-->
+	<AccessLevel Value="Public" />
 </Publish>

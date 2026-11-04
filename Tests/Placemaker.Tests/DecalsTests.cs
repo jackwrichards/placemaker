@@ -161,125 +161,80 @@ namespace Placemaker.Tests
             Assert.Equal(5000, plan.Objects.Count(o => o.Role == ObjectRole.Decal));
         }
 
-        [Fact]
-        public void ComposerNeverReservesDecalsAndNeverReportsNoRoom()
-        {
-            // A decals feature in a park packed with objects still places decals, with no "no room" issue.
-            var r = Recipe("park", 3, x => Editor.SetFeature(x, RecipePaths.Root, "decals", true, 99));
-            var step = RecipePaths.Walk(r).First(kv => kv.Value.Layer == "decals").Value;
-            step.Settings.Values["theme"] = "cracks";   // no paving in a lawn park: falls back to any dry ground
-            var p = Compose(r, Site);
-            Assert.DoesNotContain(p.AllIssues(), i => i.Key.Contains("NoGround") || i.Key == Declutter.IssueKey(ObjectRole.Decal) || i.Key == Keys.NoSpace);
-            var addon = p.Layers.First(l => l.GeneratorId == "decals");
-            Assert.Contains(addon.Objects, o => o.Role == ObjectRole.Decal);
-            var reserved = new ReservedSpace();
-            foreach (var l in p.Layers) Composer.Reserve(l, reserved);
-            foreach (var o in Decals(p))
-                Assert.DoesNotContain(reserved.Discs, d => math.distancesq(d.Center, o.Position.xz) < 1e-6f && d.Tag == ObjectRole.Decal.ToString());
-        }
-
-        // ───────────────────────── the dressing pass ─────────────────────────
+        // ───────────────────────── no decals from decal packs (issue #2) ─────────────────────────
 
         [Theory]
         [InlineData("park")]
         [InlineData("plaza")]
         [InlineData("parking")]
+        [InlineData("beach")]
+        [InlineData("sportsPark")]
+        [InlineData("campground")]
         [InlineData("abandonedLot")]
         [InlineData("constructionSite")]
-        [InlineData("sportsPark")]
-        public void DressingAddsDecalsAndIsDeterministic(string type)
+        [InlineData("quarry")]
+        [InlineData("scrapyard")]
+        [InlineData("landfill")]
+        [InlineData("logisticsYard")]
+        [InlineData("urbanRuins")]
+        [InlineData("mallDistrict")]
+        public void PlansHoldNoDecalsFromDecalPacks(string type)
         {
-            var a = Compose(Recipe(type), Site);
-            var b = Compose(Recipe(type), Site);
-            var da = Decals(a); var db = Decals(b);
-            _out.WriteLine(type + ": " + da.Count + " decorative decals: " + string.Join(", ", da.GroupBy(o => o.Category).Select(g => g.Key + " " + g.Count())));
-            Assert.True(da.Count > 10, type + " has only " + da.Count + " decals");   // s23: few, deliberate
-            Assert.Equal(da.Count, db.Count);
-            for (int i = 0; i < da.Count; i++)
+            // Gritty asked for the most wear; the beach on its water (the waterline was dressed with wet sand and wrack).
+            var site = type == "beach" ? Types.WaterTypesKit.WaterInside(18f) : null;
+            var p = Compose(Recipe(type, 7, r => r.Root.Settings.Values[DressingControls.StyleId] = "gritty"), Site, site);
+            var all = p.Layers.SelectMany(l => l.Objects).ToList();
+            Assert.NotEmpty(all);
+            Assert.DoesNotContain(all, o => o.Role == ObjectRole.Decal && !PackDecals.Kept(o.Category));
+        }
+
+        [Fact]
+        public void OnlyTheBaseGameKindsOfDecalsAreKept()
+        {
+            var l = new AreaPlan();
+            string[] kept = { AssetCategories.DecalMarkings, AssetCategories.ParkingDecal, "decal.courtbasketball", "decal.fieldline" };
+            string[] dropped = { AssetCategories.DecalLeaves, AssetCategories.DecalPaving, AssetCategories.DecalFarm, DecalPools.Oil, AssetCategories.DecalGraffiti, "" };
+            foreach (var c in kept.Concat(dropped)) l.Objects.Add(new PlannedObject { Role = ObjectRole.Decal, Category = c });
+            l.Objects.Add(new PlannedObject { Role = ObjectRole.ParkingBay, Category = AssetCategories.ParkingDecal });
+            l.Objects.Add(new PlannedObject { Role = ObjectRole.Tree, Category = AssetCategories.Tree });
+            Assert.Equal(dropped.Length, PackDecals.Drop(l));
+            Assert.Equal(kept, l.Objects.Where(o => o.Role == ObjectRole.Decal).Select(o => o.Category).ToArray());
+            Assert.Equal(2, l.Objects.Count(o => o.Role != ObjectRole.Decal));
+        }
+
+        [Fact]
+        public void NoTypeOffersPackDecalsInThePanel()
+        {
+            var familyIds = Enum.GetValues(typeof(DressFamily)).Cast<DressFamily>().Select(DressingControls.FamilyId).ToList();
+            foreach (var g in GeneratorRegistry.All)
             {
-                Assert.Equal(da[i].Position, db[i].Position);
-                Assert.Equal(da[i].Yaw, db[i].Yaw);
-                Assert.Equal(da[i].Category, db[i].Category);
-                Assert.Equal(da[i].Variation, db[i].Variation);
+                Assert.DoesNotContain(Features.Of(g), f => f.Layer == Placemaker.Core.Layers.AddOns.DecalsAddOn.LayerId);
+                Assert.DoesNotContain(g.Controls, c => c.Id == DressingControls.AmountId || familyIds.Contains(c.Id));
             }
+            // every hidden type control still exists (a renamed one would show again)
+            foreach (var (layer, control) in PackDecals.HiddenControlIds)
+                Assert.Contains(GeneratorRegistry.Get(layer).Controls, c => c.Id == control);
         }
 
         [Fact]
-        public void DensityScalesWithTheSliders()
+        public void TheWearStyleSitsWithTheGroundPaint()
         {
-            int Count(double master, string family = null, double familyAmount = 100) =>
-                Decals(Compose(Recipe("park", 7, r =>
-                {
-                    r.Root.Settings.Values[DressingControls.AmountId] = master;
-                    if (family != null) r.Root.Settings.Values[family] = familyAmount;
-                }), Site)).Count;
-            int half = Count(50), normal = Count(100), lots = Count(250);
-            _out.WriteLine($"50% {half}, 100% {normal}, 250% {lots}");
-            Assert.True(half < normal && normal < lots, $"{half} < {normal} < {lots}");
-            int noTrees = Count(100, DressingControls.FamilyId(DressFamily.Trees), 0);
-            Assert.True(noTrees < normal);
-        }
-
-        [Fact]
-        public void MasterZeroRemovesDecorativeDecalsButKeepsFunctionalOnes()
-        {
-            // Sports park: pitch line markings are functional decals; the decals feature adds decorative ones.
-            var off = Compose(Recipe("sportsPark", 5, r =>
+            foreach (var id in DressingProfiles.LayerIds)
             {
-                Editor.SetFeature(r, RecipePaths.Root, "decals", true, 99);
-                r.Root.Settings.Values[DressingControls.AmountId] = 0.0;
-            }), Site);
-            var on = Compose(Recipe("sportsPark", 5, r => Editor.SetFeature(r, RecipePaths.Root, "decals", true, 99)), Site);
-            Assert.Empty(Decals(off));
-            Assert.NotEmpty(Decals(on));
-            Assert.Equal(Decals(on, true).Count, Decals(off, true).Count);
-            Assert.Equal(on.Layers.Sum(l => l.Objects.Count(o => o.Role == ObjectRole.ParkingBay)), off.Layers.Sum(l => l.Objects.Count(o => o.Role == ObjectRole.ParkingBay)));
-        }
-
-        [Fact]
-        public void ParkingOilAlignsWithTheBayAndTyreMarksWithTheAisle()
-        {
-            var p = Compose(Recipe("parking", 7, r => r.Root.Settings.Values[DressingControls.StyleId] = "gritty"), Site);   // tyre marks are Gritty only (s23)
-            var lot = p.Layers.First(l => l.GeneratorId == "parking");
-            var bays = lot.Objects.Where(o => o.Role == ObjectRole.ParkingBay).ToList();
-            var oil = lot.Objects.Where(o => o.Role == ObjectRole.Decal && o.Category == DecalPools.Oil).ToList();
-            // s25: a minority of bays only (playtest: "too many decals, too prominent").
-            Assert.True(oil.Count >= 1 && oil.Count <= bays.Count * 0.15f, $"{oil.Count} oil stains for {bays.Count} bays");
-            foreach (var o in oil)
-            {
-                var bay = bays.OrderBy(b => math.distancesq(b.Position.xz, o.Position.xz)).First();
-                float d = AngleBetweenAxes(o.Yaw, bay.Yaw);
-                Assert.True(d < math.radians(12f), $"oil at {o.Position.xz} is {math.degrees(d):0}° off its bay");
+                var g = GeneratorRegistry.Get(id);
+                if (g == null) continue;
+                var style = g.Controls.FirstOrDefault(c => c.Id == DressingControls.StyleId);
+                Assert.NotNull(style);
+                Assert.Equal(DressingControls.PaintGroup, style.Group);
+                foreach (var p in g.Presets)
+                    Assert.Equal(DressingControls.Styles[(int)DressingProfiles.StyleFor(id, p.Id)], p.Values.S(DressingControls.StyleId, null));
             }
-            var aisles = lot.Nets.Where(n => n.Role == NetRole.DriveAisle || n.Role == NetRole.DriveConnector).ToList();
-            var tyres = lot.Objects.Where(o => o.Role == ObjectRole.Decal && o.Category == DecalPools.Tyre).ToList();
-            int aligned = 0;
-            foreach (var t in tyres)
-            {
-                float best = float.MaxValue;
-                foreach (var n in aisles) best = math.min(best, AngleBetweenAxes(t.Yaw, math.atan2(n.D.x - n.A.x, n.D.z - n.A.z)));
-                foreach (var b in bays) if (math.distancesq(b.Position.xz, t.Position.xz) < 16f) best = math.min(best, AngleBetweenAxes(t.Yaw, b.Yaw));
-                if (best < math.radians(10f)) aligned++;
-            }
-            Assert.True(aligned == tyres.Count, $"{aligned}/{tyres.Count} tyre marks along an aisle or bay");
+            Assert.Equal("gritty", GeneratorRegistry.Get("abandonedLot").Defaults().S(DressingControls.StyleId, null));
+            Assert.Equal("clean", GeneratorRegistry.Get("formalGarden").Defaults().S(DressingControls.StyleId, null));
+            Assert.Null(GeneratorRegistry.Get("roads").Controls.FirstOrDefault(c => c.Id == DressingControls.StyleId));
         }
 
-        [Fact]
-        public void PathEdgeLeavesFollowThePath()
-        {
-            var p = Compose(Recipe("park", 7, r => r.Root.Settings.Values[DressingControls.StyleId] = "gritty"), Site);   // edge drifts are Gritty only (s23)
-            int n = 0;
-            foreach (var l in p.Layers)
-                foreach (var o in l.Objects.Where(o => o.Role == ObjectRole.Decal && o.Category == DecalPools.LeavesEdge))
-                {
-                    var (dist, tangent) = NearestPath(p, o.Position.xz);
-                    if (dist > 6f) continue;   // hedge-side drifts
-                    float d = AngleBetweenAxes(o.Yaw, math.atan2(tangent.x, tangent.y));
-                    Assert.True(d < math.radians(15f), $"edge leaves at {o.Position.xz} {math.degrees(d):0}° off the path");
-                    n++;
-                }
-            Assert.True(n > 0);
-        }
+        // ───────────────────────── the dressing pass ─────────────────────────
 
         [Fact]
         public void DecalFitTurnsLongXPrefabsAlongThePlannedAxis()
@@ -308,82 +263,7 @@ namespace Placemaker.Tests
             Assert.Equal(yaw, mark.Yaw);   // functional markings are placed exactly by their layer
         }
 
-        [Fact]
-        public void NothingOnWaterBuildingLotsOrCutouts()
-        {
-            // Water in the south strip, a building lot in the north-west corner.
-            var site = new SiteContext { WaterDepthAt = p => p.y < 15f ? 2f : 0f, HeightAt = p => p.y < 15f ? -2f : 0f };
-            site.Obstacles.Add(new Obstacle { Kind = ObstacleKind.Building, A = new float2(0, 80), B = new float2(25, 80), C = new float2(25, 100), D = new float2(0, 100) });
-            var p = Compose(Recipe("park", 9, r => r.Root.Settings.Values[DressingControls.AmountId] = 300.0), Site, site);
-            var decals = Decals(p);
-            Assert.NotEmpty(decals);
-            foreach (var o in decals)
-            {
-                Assert.True(o.Position.z >= 15f, $"{o.Category} decal on water at {o.Position.xz}");
-                Assert.False(o.Position.x < 25f && o.Position.z > 80f, $"{o.Category} decal on a building lot at {o.Position.xz}");
-            }
-        }
-
-        [Fact]
-        public void BeachGetsAWaterline()
-        {
-            var ring = TestKit.Rect(120, 90);
-            var site = Types.WaterTypesKit.WaterInside(18f);
-            var p = Compose(Recipe("beach", 7, r => r.Root.Settings.Values[DressingControls.StyleId] = "gritty"), ring, site);   // wrack is Gritty only (s23)
-            var d = Decals(p);
-            _out.WriteLine(string.Join(", ", d.GroupBy(o => o.Category).Select(g => g.Key + " " + g.Count())));
-            Assert.Contains(d, o => o.Category == DecalPools.WetSand);
-            Assert.Contains(d, o => o.Category == DecalPools.Beach);
-            foreach (var o in d) Assert.True(site.WaterDepthAt(o.Position.xz) <= 0f);
-        }
-
-        [Fact]
-        public void WithoutDecalPacksDesignSaysSoAndNothingDecorativeIsPlaced()
-        {
-            var none = new Dictionary<string, int> { [AssetCategories.Tree] = 5 };   // a known catalog without any decal
-            using (AssetAvailability.Scope(none))
-            {
-                Assert.False(DecalPools.PacksAvailable());
-                var r = Recipe("park");
-                var p = Compose(r, Site);
-                Assert.DoesNotContain(Decals(p), o => DecalPools.IsDressingPool(o.Category));   // the pass placed nothing
-                Assert.Contains(p.Issues, i => i.Key == DecalPools.NoPacksKey && i.Severity == IssueSeverity.Info);
-                var why = Availability.For(r, new AreaShape { Ring = Site }, new SiteContext(), GeneratorRegistry.Get);
-                Assert.Equal(DecalPools.NoPacksKey, why[RecipePaths.Root][DressingControls.AmountId].Key);
-            }
-            Assert.True(DecalPools.PacksAvailable());   // no snapshot: assume packs
-        }
-
         // ───────────────────────── controls ─────────────────────────
-
-        [Fact]
-        public void EveryDressedTypeHasTheControlsInTheSamePlace()
-        {
-            var lang = TestKit.Lang();
-            foreach (var id in DressingProfiles.LayerIds)
-            {
-                var g = GeneratorRegistry.Get(id);
-                if (g == null) continue;
-                var amount = g.Controls.FirstOrDefault(c => c.Id == DressingControls.AmountId);
-                var style = g.Controls.FirstOrDefault(c => c.Id == DressingControls.StyleId);
-                Assert.NotNull(amount);
-                Assert.NotNull(style);
-                Assert.Equal(DressingControls.Group, amount.Group);
-                Assert.Equal(DressingControls.Group, style.Group);
-                Assert.Equal(100.0, Convert.ToDouble(amount.Default));
-                foreach (var f in DressingProfiles.For(id).Families)
-                {
-                    var c = g.Controls.FirstOrDefault(x => x.Id == DressingControls.FamilyId(f));
-                    Assert.NotNull(c);
-                    Assert.True(lang.ContainsKey(c.LabelKey) && lang.ContainsKey(c.TooltipKey), c.LabelKey);
-                }
-                foreach (var p in g.Presets)
-                    Assert.Equal(DressingControls.Styles[(int)DressingProfiles.StyleFor(id, p.Id)], p.Values.S(DressingControls.StyleId, null));
-            }
-            Assert.Equal("gritty", GeneratorRegistry.Get("abandonedLot").Defaults().S(DressingControls.StyleId, null));
-            Assert.Equal("clean", GeneratorRegistry.Get("formalGarden").Defaults().S(DressingControls.StyleId, null));
-            Assert.Null(GeneratorRegistry.Get("roads").Controls.FirstOrDefault(c => c.Id == DressingControls.AmountId));
-        }
 
         [Fact]
         public void OldSavesWithoutDecalSettingsGetTheDefaults()

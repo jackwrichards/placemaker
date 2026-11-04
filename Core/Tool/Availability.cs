@@ -51,11 +51,6 @@ namespace Placemaker.Core.Tool
                         if (min > 0f && areaM2 < min) Add(Unavailable.Feature(f.Layer), new LocText(AreaTooSmall, Math.Round(min)));
                     }
 
-                // s21: decorative decals need decal asset packs (vanilla has none) — say so in the Decals section.
-                if (!Decals.DecalPools.PacksAvailable())
-                    foreach (var c in gen.Controls ?? Array.Empty<ControlSchema>())
-                        if (c != null && c.Id == Decals.DressingControls.AmountId) { Add(c.Id, new LocText(Decals.DecalPools.NoPacksKey)); break; }
-
                 if (gen is IHasAvailability ha && area?.Ring != null && area.Ring.Length >= 3)
                 {
                     var list = new List<Unavailable>();

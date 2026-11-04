@@ -196,8 +196,8 @@ namespace Placemaker.Tests.Types
             Assert.DoesNotContain(plan.Objects, o => o.Category == AssetCategories.DecalMarkings);
             Assert.True(TestKit.Stat(plan, "Placemaker.Stat.RestSpots") >= 1);
             Assert.True(TestKit.Stat(plan, "Placemaker.Stat.Viewpoints") >= 1);
-            // The path starts at the entrance and attaches to the road.
-            Assert.Contains(Trail(plan), n => n.StartAttach >= 0 || n.EndAttach >= 0);
+            // The path starts at the entrance and meets the road (stops at its kerb: the game joins it, StreetJoins).
+            Assert.Contains(Trail(plan), n => TestKit.MeetsStreet(n, road));
         }
 
         [Fact]

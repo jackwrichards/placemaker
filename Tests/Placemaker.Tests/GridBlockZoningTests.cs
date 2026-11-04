@@ -148,23 +148,23 @@ namespace Placemaker.Tests
             Assert.True(bad.Count == 0, $"{type}/{preset}/{ring}: {bad.Count} zoned cell(s) under a crossing block of our own lanes, e.g. {string.Join("; ", bad.Take(4))}");
         }
 
-        /// <summary>The strip mall's rails keep zoning only on the sides with stores (none here: the row is along the rung).</summary>
+        /// <summary>(shops4) The strip mall's shop lane zones only the side its shops stand on (the lot's side is off).</summary>
         [Theory]
         [InlineData("classic", "kerbs")]
         [InlineData("bigBox", "kerbs")]
         [InlineData("classic", "rect")]
         [InlineData("bigBox", "rect")]
-        public void StripMallRailsBesideTheRowDoNotZoneIt(string preset, string ring)
+        public void StripMallLaneZonesOnlyItsShopSide(string preset, string ring)
         {
             var plan = Compose("stripMall", preset, ring, out _);
             var host = plan.Layers.First(l => l.GeneratorId == "stripMall");
             Assert.Equal(1.0, host.Facts["stripRows"]);
-            // Rails: the alleys running north-south (street to street); every piece has its inner side (towards x = block centre) off.
-            float cx = -625f;
-            foreach (var n in host.Nets.Where(n => n.Role == NetRole.Alley && math.abs(n.D.x - n.A.x) < 2f && math.abs(n.D.z - n.A.z) > 30f))
+            var lanes = host.Nets.Where(n => n.Role == NetRole.Alley && math.distance(n.A.xz, n.D.xz) > 30f).ToList();
+            Assert.NotEmpty(lanes);
+            foreach (var n in lanes)
             {
-                LaneSides.SideOf(n, new float2(cx, 0.5f * (n.A.z + n.D.z)), out int inner);
-                Assert.Contains(inner > 0 ? LaneSides.RightOff : LaneSides.LeftOff, n.Upgrades ?? new string[0]);
+                var up = n.Upgrades ?? new string[0];
+                Assert.True(up.Contains(LaneSides.LeftOff) != up.Contains(LaneSides.RightOff), "one side off: " + string.Join(",", up));
             }
         }
 

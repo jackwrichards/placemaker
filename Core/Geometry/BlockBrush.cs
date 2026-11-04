@@ -44,7 +44,6 @@ namespace Placemaker.Core.Geometry
 
         private readonly List<float2[]> _obstacles = new List<float2[]>();
         private List<Region> _allowedRegions;
-        private List<IReadOnlyList<float2>> _forbidden;
 
         /// <param name="block">Curb outline of the block (any orientation; cleaned to a simple CCW ring).</param>
         /// <param name="obstacles">Polygons nothing may be painted on (lots, zoned cells, areas). Only those touching the block are kept.</param>
@@ -55,7 +54,7 @@ namespace Placemaker.Core.Geometry
         {
             CellSize = cellSize > 0.01f && !float.IsNaN(cellSize) ? cellSize : BrushMask.DefaultCellSize;
             Block = block != null && block.Count >= 3 ? Poly.Clean(block, 0.05f) : Array.Empty<float2>();
-            Allowed = new BrushMask(CellSize);
+            Allowed = new BrushMask(CellSize) { TrackEdges = false };
             if (Block.Length < 3) return;
             Poly.Bounds(Block, out var bmin, out var bmax);
             if (obstacles != null)
@@ -81,7 +80,7 @@ namespace Placemaker.Core.Geometry
 
         public float CellSize { get; }
         /// <summary>The block's curb outline (simple, CCW). Empty when the input was unusable.</summary>
-        public float2[] Block { get; }
+        public float2[] Block { get; private set; }
         /// <summary>Obstacles that touch the block (CCW).</summary>
         public IReadOnlyList<float2[]> Obstacles => _obstacles;
         /// <summary>Cells that may be painted (centre inside the block and outside every obstacle).</summary>
@@ -96,7 +95,7 @@ namespace Placemaker.Core.Geometry
         public float SnapDistance
         {
             get => _snap >= 0f ? _snap : 1.5f * CellSize;
-            set { _snap = float.IsNaN(value) ? -1f : math.clamp(value, 0f, 30f); _forbidden = null; }
+            set { _snap = float.IsNaN(value) ? -1f : math.clamp(value, 0f, 30f); _boxForbidden = null; _boxAllowed = null; }
         }
         /// <summary>Moving-average passes for the painted outline (0–6; Paint uses 6).</summary>
         public int Smoothing { get; set; } = SmoothPasses;
@@ -123,10 +122,92 @@ namespace Placemaker.Core.Geometry
             float cellSize = BrushMask.DefaultCellSize, Func<float2, bool> blockedAt = null, float halfSize = OpenHalfSize, bool keepSide = true)
         {
             halfSize = math.max(10f, halfSize);
-            var box = new[] { centre + new float2(-halfSize, -halfSize), centre + new float2(halfSize, -halfSize),
-                              centre + new float2(halfSize, halfSize), centre + new float2(-halfSize, halfSize) };
-            var b = new BlockBrush(box, obstacles, cellSize, blockedAt) { IsOpen = true };
-            if (keepSide) b.Allowed = b.Allowed.ConnectedComponent(centre);
+            return OpenBox(centre, centre - halfSize, centre + halfSize, obstacles, cellSize, blockedAt, keepSide);
+        }
+
+        /// <summary>The open-land brush over the box min..max (Paint area grows it as a stroke nears its edge).</summary>
+        public static BlockBrush OpenBox(float2 centre, float2 min, float2 max, IEnumerable<IReadOnlyList<float2>> obstacles,
+            float cellSize = BrushMask.DefaultCellSize, Func<float2, bool> blockedAt = null, bool keepSide = true)
+        {
+            var box = new[] { min, new float2(max.x, min.y), max, new float2(min.x, max.y) };
+            var b = new BlockBrush(box, obstacles, cellSize, blockedAt) { IsOpen = true, _keepSide = keepSide, _seed = centre, _boxMinAt = min, _boxMaxAt = max };
+            if (keepSide)
+            {
+                b._candidate = b.Allowed;
+                b.Allowed = b.Allowed.ConnectedComponent(centre);
+            }
+            return b;
+        }
+
+        private bool _keepSide;
+        private float2 _seed, _boxMinAt, _boxMaxAt;
+        /// <summary>Open, kept on the start's side: every cell of the box that is not under a stop (Allowed is its part connected to the start).</summary>
+        private BrushMask _candidate;
+
+        /// <summary>
+        /// (Lag spikes, 2026-10-21: Paint area rebuilt its whole box each time a stroke neared the edge, 8.5 s for a 2 km box
+        /// on a worker while the brush stopped at the old edge.) The open-land brush over a bigger box min..max (containing
+        /// this one's) as a new brush; this one is left as it is. Only the new strips are rasterised and flooded from the cells
+        /// already allowed, so the cost follows the new area. <paramref name="obstacles"/> are the stops over the whole new
+        /// box; <paramref name="blockedAt"/> needs to answer only in the new strips. Null when this is not an open box brush or
+        /// the box does not contain the old one (build it with <see cref="OpenBox"/> instead).
+        /// </summary>
+        public BlockBrush Grow(float2 min, float2 max, IEnumerable<IReadOnlyList<float2>> obstacles, Func<float2, bool> blockedAt = null)
+        {
+            if (!IsOpen || Unconstrained || Block.Length < 3) return null;
+            float2 omin = _boxMinAt, omax = _boxMaxAt;
+            if (math.any(min > omin) || math.any(max < omax)) return null;
+            var b = new BlockBrush(null, null, CellSize)
+            {
+                IsOpen = true, _keepSide = _keepSide, _seed = _seed, _boxMinAt = min, _boxMaxAt = max,
+                _snap = _snap, Smoothing = Smoothing,
+            };
+            b.Block = new[] { min, new float2(max.x, min.y), max, new float2(min.x, max.y) };
+            if (obstacles != null)
+                foreach (var o in obstacles)
+                {
+                    if (o == null || o.Count < 3) continue;
+                    var ring = new float2[o.Count];
+                    bool finite = true;
+                    for (int i = 0; i < ring.Length; i++) { ring[i] = o[i]; if (!Poly.IsFinite(ring[i])) finite = false; }
+                    if (!finite || Poly.Area(ring) < 0.01f) continue;
+                    b._obstacles.Add(Poly.EnsureCcw(ring));
+                }
+            // The new strips: left and right full height, bottom and top between them.
+            var strips = new List<(float2 a, float2 b)>();
+            if (min.x < omin.x) strips.Add((min, new float2(omin.x, max.y)));
+            if (max.x > omax.x) strips.Add((new float2(omax.x, min.y), max));
+            if (min.y < omin.y) strips.Add((new float2(omin.x, min.y), new float2(omax.x, omin.y)));
+            if (max.y > omax.y) strips.Add((new float2(omin.x, omax.y), new float2(omax.x, max.y)));
+            var cand = (_keepSide ? _candidate : Allowed).Copy();
+            foreach (var (a, c) in strips)
+            {
+                cand.PaintPolygon(new[] { a, new float2(c.x, a.y), c, new float2(a.x, c.y) });
+                foreach (var o in b._obstacles)
+                {
+                    Poly.Bounds(o, out var p, out var q);
+                    if (q.x < a.x || q.y < a.y || p.x > c.x || p.y > c.y) continue;
+                    // (its part in the old box was erased there already: the same stop)
+                    cand.PaintPolygon(o, erase: true);
+                }
+                if (blockedAt != null) cand.EraseWhere(blockedAt, a, c);
+            }
+            if (!_keepSide) { b.Allowed = cand; return b; }
+            b._candidate = cand;
+            var allowed = Allowed.Copy();
+            // seeds: the new cells next to a cell already allowed (the flood also reaches old cells around a road from there)
+            var seeds = new List<int2>();
+            foreach (var (a, c) in strips)
+            {
+                int2 c0 = (int2)math.floor(a / CellSize), c1 = (int2)math.floor(c / CellSize);
+                for (int j = c0.y; j <= c1.y; j++)
+                    for (int i = c0.x; i <= c1.x; i++)
+                        if (cand.IsPainted(i, j) && !allowed.IsPainted(i, j)
+                            && (allowed.IsPainted(i + 1, j) || allowed.IsPainted(i - 1, j) || allowed.IsPainted(i, j + 1) || allowed.IsPainted(i, j - 1)))
+                            seeds.Add(new int2(i, j));
+            }
+            allowed.FloodFrom(cand, seeds);
+            b.Allowed = allowed;
             return b;
         }
 
@@ -165,25 +246,59 @@ namespace Placemaker.Core.Geometry
         }
 
         /// <summary>
-        /// Everything around the block that may not be painted, as rings: a box around the block minus
-        /// the allowed regions (= outside the curb plus the obstacles inside the block).
+        /// (Area overhaul) The allowed regions inside a box only: the block clipped to the box minus the obstacles that touch
+        /// it. The open-land brush holds hundreds of walls (every road piece in 600 m); an outline only needs those near the
+        /// paint. Cached for the last box.
         /// </summary>
-        private List<IReadOnlyList<float2>> Forbidden()
+        public IReadOnlyList<Region> AllowedIn(float2 min, float2 max)
         {
-            if (_forbidden != null) return _forbidden;
-            _forbidden = new List<IReadOnlyList<float2>>();
-            if (Block.Length < 3) return _forbidden;
-            Poly.Bounds(Block, out var mn, out var mx);
-            float pad = 2f * SnapDistance + 2f * CellSize;
-            mn -= pad; mx += pad;
+            if (_allowedRegions != null) return _allowedRegions;
+            if (_boxAllowed != null && math.all(min >= _boxMin) && math.all(max <= _boxMax)) return _boxAllowed;
+            if (Block.Length < 3) return new List<Region>();
+            var box = new[] { min, new float2(max.x, min.y), max, new float2(min.x, max.y) };
+            var near = new List<IReadOnlyList<float2>>();
+            foreach (var o in _obstacles)
+            {
+                Poly.Bounds(o, out var a, out var b);
+                if (b.x < min.x || b.y < min.y || a.x > max.x || a.y > max.y) continue;
+                near.Add(o);
+            }
+            List<Region> r;
+            try
+            {
+                var clipped = Poly.Boolean(new IReadOnlyList<float2>[] { Block }, new IReadOnlyList<float2>[] { box }, BoolOp.Intersection);
+                r = near.Count == 0 ? clipped : Poly.Boolean(clipped, near.ConvertAll(x => new Region(x as float2[] ?? new List<float2>(x).ToArray())), BoolOp.Difference);
+            }
+            catch (Exception) { r = AllowedRegions as List<Region> ?? new List<Region>(AllowedRegions); }
+            _boxAllowed = r;
+            _boxMin = min;
+            _boxMax = max;
+            _boxForbidden = null;
+            return r;
+        }
+
+        private List<Region> _boxAllowed;
+        private float2 _boxMin, _boxMax;
+        private List<IReadOnlyList<float2>> _boxForbidden;
+
+        /// <summary>
+        /// Everything inside the box that may not be painted, as rings: the box minus the allowed regions in it (= outside
+        /// the curb plus the obstacles inside the block).
+        /// </summary>
+        private List<IReadOnlyList<float2>> Forbidden(float2 mn, float2 mx, IReadOnlyList<Region> allowed)
+        {
+            if (_boxForbidden != null && ReferenceEquals(allowed, _boxAllowed)) return _boxForbidden;
+            var list = new List<IReadOnlyList<float2>>();
+            if (Block.Length < 3) return list;
             var box = new[] { mn, new float2(mx.x, mn.y), mx, new float2(mn.x, mx.y) };
             try
             {
-                foreach (var r in Poly.Boolean(new[] { new Region(box) }, AllowedRegions, BoolOp.Difference))
-                    foreach (var ring in r.Normalized().Rings()) _forbidden.Add(ring);
+                foreach (var r in Poly.Boolean(new[] { new Region(box) }, allowed, BoolOp.Difference))
+                    foreach (var ring in r.Normalized().Rings()) list.Add(ring);
             }
-            catch (Exception) { _forbidden.Clear(); }
-            return _forbidden;
+            catch (Exception) { list.Clear(); }
+            if (ReferenceEquals(allowed, _boxAllowed)) _boxForbidden = list;
+            return list;
         }
 
         /// <summary>
@@ -205,7 +320,11 @@ namespace Placemaker.Core.Geometry
             var smooth = paint.Outlines(keepIslands: false, keepHoles: false, minIslandArea: minArea, smoothPasses: Smoothing);
             if (smooth.Count == 0) return null;
             var painted = smooth[0].Outer;
-            var allowed = AllowedRegions;
+            // Only the walls near the paint matter (snap reach around it); a box rounded out to 16 m so small strokes reuse it.
+            Poly.Bounds(painted, out var pmin, out var pmax);
+            float reach = 2f * SnapDistance + 2f * CellSize + 4f;
+            float2 bmin = math.floor((pmin - reach) / 16f) * 16f, bmax = math.ceil((pmax + reach) / 16f) * 16f;
+            var allowed = AllowedIn(bmin, bmax);
             if (allowed.Count == 0) return null;
 
             List<Region> pieces;
@@ -221,7 +340,7 @@ namespace Placemaker.Core.Geometry
                 else
                 {
                     var rings = new List<IReadOnlyList<float2>> { painted };
-                    rings.AddRange(Forbidden());
+                    rings.AddRange(Forbidden(bmin, bmax, allowed));
                     var joined = Poly.Boolean(rings, null, BoolOp.Union, FillRule.Positive);
                     var closed = Poly.Offset(Poly.Offset(joined, -r, OffsetJoin.Round, 4f, 0.2f), r, OffsetJoin.Round, 4f, 0.2f);
                     var near = Poly.Offset(new Region(painted), -(SnapDistance + CellSize), OffsetJoin.Round, 4f, 0.5f);

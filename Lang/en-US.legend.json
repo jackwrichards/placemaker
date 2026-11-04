@@ -12,5 +12,14 @@
   "Placemaker.Legend.cutouts": "Zoning cutouts",
   "Placemaker.Legend.blocked": "Blocked for zoning",
   "Placemaker.Legend.decals": "Decals",
-  "Placemaker.Legend.issues": "Issues (red: left out, orange: warning)"
+  "Placemaker.Legend.issues": "Issues (red: left out, orange: warning)",
+  "Placemaker.Legend.Area.outline": "Your area",
+  "Placemaker.Legend.Area.fill": "Fill under the cursor",
+  "Placemaker.Legend.Area.doors": "Closed gaps",
+  "Placemaker.Legend.Area.reach": "Reach",
+  "Placemaker.Legend.Area.stops": "Stops here",
+  "Placemaker.Legend.Area.painted": "Painted",
+  "Placemaker.Legend.Area.fence": "Paints only inside",
+  "Placemaker.Legend.Area.leftOut": "Left out",
+  "Placemaker.Legend.Area.node": "Corners on road nodes"
 }

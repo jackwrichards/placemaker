@@ -1,0 +1,112 @@
+{
+  "_about": "Outgrow's panel. 1: the Outgrow tool's look picker (looks for zones, themes, yours) and editor (what the land becomes, the water gap first); Global outgrow (its button, there whatever is picked): Zones (kinds folded), Looks (every look and the editor; a built-in look changed shows Save). 2: a Zoning type's zone Outgrow settings: the zone's look picker and its Edit button, which opens Global outgrow's Looks on it. Pictures with the panel. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-panel.json -Who outgrow-panel",
+  "scenarios": [
+    {
+      "id": "outgrow-panel",
+      "land": {
+        "shape": "rect",
+        "size": [
+          200,
+          160
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "polish",
+          "stamp": "pick"
+        },
+        {
+          "do": "area",
+          "tool": "points",
+          "rect": [
+            80,
+            60
+          ]
+        },
+        {
+          "do": "polish",
+          "theme": "towers",
+          "shot": "tool-look-towers",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "panel-mode-outgrow",
+          "shot": "global-zones",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "polish-zones-home-toggle",
+          "shot": "global-zones-homes-open",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "polish-city-tab-looks",
+          "shot": "global-looks",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "knob": "fill",
+          "value": 2,
+          "shot": "global-looks-towers-carpark",
+          "shotMode": "ui"
+        }
+      ]
+    },
+    {
+      "id": "outgrow-panel-zoning",
+      "land": {
+        "shape": "rect",
+        "size": [
+          200,
+          160
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "points",
+          "rect": [
+            80,
+            60
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "zoningSuburb"
+        },
+        {
+          "do": "polish",
+          "click": "zonemix-outgrow-A",
+          "shot": "zone-outgrow-settings",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "zonemix-look-residential-low-open",
+          "shot": "zone-look-pick",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "zonemix-look-residential-low-pick-towers",
+          "shot": "zone-look-towers",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "zonemix-look-residential-low-edit",
+          "shot": "zone-look-edit-opens-global",
+          "shotMode": "ui"
+        }
+      ]
+    }
+  ]
+}

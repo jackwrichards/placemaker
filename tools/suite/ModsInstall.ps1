@@ -45,6 +45,41 @@ $script:MI = @{
 # Seconds a folder must have gone unwritten before a build found there is taken as installed on purpose.
 $script:MIQuietSec = 10
 
+# ReShade (dxgi.dll in the game's folder, with its DLSS 5 addon) hangs the GPU in the runner's test games (their window
+# changes size after launch: DXGI device removed, the boot times out). Every runner launch switches it off (dxgi.dll
+# renamed, reshade-off.txt remembers it); it comes back the moment no game runs (MI-ReshadeBack: the host's restore, the
+# dispatcher's reconcile, also after a cut-off run), so the user's own game always starts with it.
+$script:MIGameDir = 'C:\Program Files (x86)\Steam\steamapps\common\Cities Skylines II'
+$script:MIReshadeOffName = 'dxgi.dll.off-for-placemaker-tests'
+$script:MIReshadeMark = Join-Path $script:MIRoot 'reshade-off.txt'
+
+function MI-ReshadeOff {
+    if ($script:MITest) { return }
+    $on = Join-Path $script:MIGameDir 'dxgi.dll'
+    $off = Join-Path $script:MIGameDir $script:MIReshadeOffName
+    if (-not (Test-Path -LiteralPath $on)) { return }
+    if (Test-Path -LiteralPath $off) { MI-Log "ReShade left on: both dxgi.dll and $($script:MIReshadeOffName) are there (nothing renamed)"; return }
+    try {
+        Rename-Item -LiteralPath $on -NewName $script:MIReshadeOffName -ErrorAction Stop
+        New-Item -ItemType Directory -Force -Path (Split-Path $script:MIReshadeMark) | Out-Null
+        Set-Content -LiteralPath $script:MIReshadeMark -Value (Get-Date).ToString('o') -Encoding ASCII
+        MI-Log "ReShade off for the runner's game (dxgi.dll renamed to $($script:MIReshadeOffName))"
+    } catch { MI-Log "could not switch ReShade off: $($_.Exception.Message)" }
+}
+
+function MI-ReshadeBack([string]$why) {
+    if ($script:MITest -or -not (Test-Path -LiteralPath $script:MIReshadeMark)) { return }
+    if (@(MI-Games).Count -gt 0) { return }   # never under a running game: once it has closed
+    $on = Join-Path $script:MIGameDir 'dxgi.dll'
+    $off = Join-Path $script:MIGameDir $script:MIReshadeOffName
+    if ((Test-Path -LiteralPath $off) -and -not (Test-Path -LiteralPath $on)) {
+        try { Rename-Item -LiteralPath $off -NewName 'dxgi.dll' -ErrorAction Stop }
+        catch { MI-Log "could not switch ReShade back on ($why): $($_.Exception.Message)"; return }
+    }
+    Remove-Item -LiteralPath $script:MIReshadeMark -Force -ErrorAction SilentlyContinue
+    MI-Log "ReShade back on ($why)"
+}
+
 function MI-Log([string]$m) {
     $line = '{0:yyyy-MM-dd HH:mm:ss} [{1}] install: {2}' -f (Get-Date), $PID, $m
     for ($i = 0; $i -lt 5; $i++) { try { [IO.File]::AppendAllText($script:MI.Log, $line + "`r`n", (New-Object Text.UTF8Encoding $false)); break } catch { Start-Sleep -Milliseconds 40 } }
@@ -346,6 +381,7 @@ function MI-ReconcileLocked([string]$why) {
         if ($st.state -ne 'user') { return @{ ok = $false; pending = $true; message = "a game is running (Cities2.exe PID $($g -join ', ')): the user's build goes back when it has closed" } }
         return @{ ok = $true; pending = $false; message = '' }
     }
+    MI-ReshadeBack $why
     $ub = MI-ReadUser
     # the usual case, fast (the moment a queue game exits): the queue's own build is there, the user's goes back
     if ($ub -and $st.state -eq 'queue' -and $st.queueDll -and (MI-DllHash $script:MI.Mods) -eq $st.queueDll) {
@@ -400,8 +436,9 @@ function MI-Reconcile([string]$why) {
     catch { $m = "could not put the user's build back ($why): $($_.Exception.Message)"; MI-Log $m; return @{ ok = $false; pending = $true; message = $m } }
 }
 
-# True when Mods\Placemaker may hold a queue build (a restore is due once no game runs).
-function MI-Pending { return ((MI-State).state -ne 'user') }
+# True when Mods\Placemaker may hold a queue build, or ReShade is still off for a runner's game (a restore is due once no
+# game runs).
+function MI-Pending { return ((MI-State).state -ne 'user') -or (-not $script:MITest -and (Test-Path -LiteralPath $script:MIReshadeMark)) }
 
 # Installs the frozen build in $src (a bundle's mod\) for a queue game: the user's build is made current first, then the
 # frozen build is copied to staging, verified and swapped in. Returns @{ ok; message; installed = folder info }.

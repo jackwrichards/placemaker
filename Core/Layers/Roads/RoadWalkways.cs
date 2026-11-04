@@ -479,6 +479,8 @@ namespace Placemaker.Core.Layers.Roads
                     foreach (var j in joined) if (math.distance(j, c.p.xz) < 25f && Near(joined, hit, 25f)) { dup = true; break; }
                     if (dup) continue;
                     float3 b = f.Curve.Position(ht);
+                    // (Smarter roads) both ends a full junction gap from every other junction, or no lane (never squeezed in)
+                    if (!ClearOfJunctions(net, c.p.xz) || !ClearOfJunctions(net, b.xz)) continue;
                     var curve = RoadCurve.Straight(c.p, b);
                     var line = RoadGraph.Sample(curve, 3f);
                     var ignore = new HashSet<int> { ei, hitEdge };
@@ -506,6 +508,19 @@ namespace Placemaker.Core.Layers.Roads
                 }
             }
             return added;
+        }
+
+        /// <summary>No junction (three car arms or more, or a join onto a city road) within the junction gap of p.</summary>
+        private static bool ClearOfJunctions(RoadNetwork net, float2 p)
+        {
+            var inc = RoadGraph.Incidence(net, RoadGraph.Car);
+            for (int n = 0; n < net.Nodes.Count; n++)
+            {
+                if (inc[n].Count < 3 && !(inc[n].Count > 0 && net.Nodes[n].Attach >= 0)) continue;
+                float d = math.distance(net.Nodes[n].Position.xz, p);
+                if (d > 0.5f && d < RoadTopology.MinJunctionGap - RoadTopology.GapSlack) return false;
+            }
+            return true;
         }
 
         private static bool Near(List<float2> pts, float2 p, float r)

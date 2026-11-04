@@ -1,0 +1,35 @@
+{
+  "_about": "Outgrow by the water (the user: yards right up to the shore, a jagged Lego-brick edge along it). A street runs along a winding lakeshore; homes on one land, shops on another grow with Outgrow on, their yards reach back toward the lake. They should stop well short of the water (the look's Water gap) along a smooth line, never a staircase. Shots from above and at 45 degrees looking at the lake. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-water.json -Who outgrow-water",
+  "scenarios": [
+    {
+      "id": "water-homes",
+      "land": { "shape": "rect", "size": [ 320, 240 ], "ground": "flat", "roads": "none", "water": { "side": "north", "width": 90, "wave": 30, "waveLength": 150 } },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 260, "at": [ 0, 10 ], "zone": "NA Residential Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "outgrowCheck", "closeups": 0 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" },
+        { "do": "shot", "name": "45-lake", "camera": { "target": "point", "at": [ 0, 70 ], "view": "oblique", "pitch": 45, "yaw": 180, "distance": 170 }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "water-shops",
+      "land": { "shape": "rect", "size": [ 320, 240 ], "ground": "flat", "roads": "none", "water": { "side": "north", "width": 90, "wave": 30, "waveLength": 150 } },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 260, "at": [ 0, 10 ], "zone": "NA Commercial Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "outgrowCheck", "closeups": 0 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" },
+        { "do": "shot", "name": "45-lake", "camera": { "target": "point", "at": [ 0, 70 ], "view": "oblique", "pitch": 45, "yaw": 180, "distance": 170 }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

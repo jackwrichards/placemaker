@@ -1,0 +1,36 @@
+{
+  "_about": "Shop yards (the user: big empty concrete back lots behind shops): shops and offices grow with Outgrow on along a straight street with open land behind; their extra land gets a grass strip with trees inside the fence, a service corner (bins, a skip, pallets, crates, cardboard, a gas cage, a shed), an overflow car park (marked bays, parked cars and vans) and green ground further out. The outgrow check measures fit as before; shots from above and at 45 degrees. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-shopyard.json -Who shop-yard",
+  "scenarios": [
+    {
+      "id": "shopyard-shops",
+      "land": { "shape": "rect", "size": [ 300, 280 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 200, "zone": "NA Commercial Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "outgrowCheck", "closeups": 3 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" },
+        { "do": "shot", "name": "45-north", "camera": { "target": "point", "at": [ 0, 45 ], "view": "oblique", "pitch": 45, "yaw": 180, "distance": 110 }, "shotMode": "render" },
+        { "do": "shot", "name": "45-south", "camera": { "target": "point", "at": [ 0, -45 ], "view": "oblique", "pitch": 45, "yaw": 0, "distance": 110 }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "shopyard-offices",
+      "land": { "shape": "rect", "size": [ 300, 280 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 200, "zone": "Office Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "outgrowCheck", "closeups": 2 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" },
+        { "do": "shot", "name": "45-north", "camera": { "target": "point", "at": [ 0, 45 ], "view": "oblique", "pitch": 45, "yaw": 180, "distance": 110 }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

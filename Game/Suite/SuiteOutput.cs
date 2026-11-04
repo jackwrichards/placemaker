@@ -16,7 +16,7 @@ namespace Placemaker.Game.Suite
     public sealed partial class SuiteRunner
     {
         private static readonly HashSet<string> OnSafeSteps = new HashSet<string>(StringComparer.Ordinal)
-        { "camera", "shot", "terrain", "select", "delete", "bulldoze", "infoEdit", "infoRemove", "wait", "grow" };
+        { "camera", "shot", "terrain", "select", "delete", "bulldoze", "infoEdit", "infoRemove", "infoUngroup", "wait", "grow" };
 
         private IEnumerator RunOne(Scenario s)
         {

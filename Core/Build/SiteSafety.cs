@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Placemaker.Core.Geometry;
 using Unity.Mathematics;
 
@@ -131,7 +132,9 @@ namespace Placemaker.Core.Build
                 FilterZoning(l, prot, report);
             }
 
-            if (report.BuildingsInArea > 0)
+            // a Zoning look polishes the buildings in the area: them being there is the point, not news
+            bool looks = plan.Layers.Count > 0 && plan.Layers.All(l => l != null && GeneratorRegistry.Get(l.GeneratorId) is Placemaker.Core.Layers.Types.Zoning.PolishLookLayer);
+            if (report.BuildingsInArea > 0 && !looks)
                 plan.Issues.Add(new PlanIssue
                 {
                     Severity = IssueSeverity.Info, Key = IssueKept, Args = new object[] { report.BuildingsInArea },

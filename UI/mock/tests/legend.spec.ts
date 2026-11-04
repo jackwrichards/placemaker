@@ -71,9 +71,10 @@ test("legend: layers of the plan, hover isolates one, click hides it, All resets
     await legend.getByTestId("legend-toggle").click();
     await expect(legend).toHaveAttribute("data-open", "true");
 
-    // Not in the Area stage.
+    // Area overhaul: in the Area stage the window lists what the area tools draw, not the plan's layers.
     await page.getByTestId("stagebar-area").click();
-    await expect(legend).toHaveCount(0);
+    await expect(legend.getByTestId("legend-row-trees")).toHaveCount(0);
+    await expect(legend.getByTestId("legend-row-area:outline")).toBeVisible();
     expect(errors).toEqual([]);
 });
 

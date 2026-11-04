@@ -1,0 +1,260 @@
+{
+  "_about": "Outgrow car park yards: industry (industrial, worn, waste ground), shops (everyday), shops with the coastal type (sand edge, natural things further out). Read the shop yard notes in Placemaker.log.",
+  "scenarios": [
+    {
+      "id": "carpark-industry",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          300
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishZoneLooks",
+          "value": ""
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "length": 200,
+          "zone": "Industrial Manufacturing"
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "closeups": 0
+        },
+        {
+          "do": "shot",
+          "name": "top",
+          "camera": {
+            "target": "area",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "45-north",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              45
+            ],
+            "view": "oblique",
+            "pitch": 45,
+            "yaw": 180,
+            "distance": 130
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "PolishZoneLooks",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "id": "carpark-shops",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          300
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishZoneLooks",
+          "value": ""
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "length": 200,
+          "zone": "NA Commercial Low"
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "closeups": 0
+        },
+        {
+          "do": "shot",
+          "name": "top",
+          "camera": {
+            "target": "area",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "45-north",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              45
+            ],
+            "view": "oblique",
+            "pitch": 45,
+            "yaw": 180,
+            "distance": 130
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "PolishZoneLooks",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "id": "carpark-shops-coastal",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          300
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        },
+        {
+          "do": "setting",
+          "name": "PolishZoneLooks",
+          "value": "{\"NA Commercial Low\":\"coastal\",\"EU Commercial Low\":\"coastal\"}"
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "straight",
+          "length": 200,
+          "zone": "NA Commercial Low"
+        },
+        {
+          "do": "grow",
+          "seconds": 150
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 120
+        },
+        {
+          "do": "lab",
+          "op": "outgrowQuiet",
+          "seconds": 10
+        },
+        {
+          "do": "lab",
+          "op": "outgrowCheck",
+          "closeups": 0
+        },
+        {
+          "do": "shot",
+          "name": "top",
+          "camera": {
+            "target": "area",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "45-north",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              45
+            ],
+            "view": "oblique",
+            "pitch": 45,
+            "yaw": 180,
+            "distance": 130
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "PolishZoneLooks",
+          "value": ""
+        }
+      ]
+    }
+  ]
+}

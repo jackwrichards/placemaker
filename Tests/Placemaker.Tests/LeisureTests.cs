@@ -259,28 +259,6 @@ namespace Placemaker.Tests
         }
 
         [Fact]
-        public void DecalsFollowTheirTheme()
-        {
-            // Cracks only on paving: in a park, that is on the paths.
-            var r = With("park", "decals");
-            r.Root.Children[0].Settings.Values["theme"] = "cracks";
-            r.Root.Children[0].Settings.Values["density"] = 6.0;
-            var plan = Compose(r, TestKit.Rect(200, 150), TestKit.RoadAlongBottom(200));
-            var park = plan.Layers.Single(l => l.GeneratorId == "park");
-            var decals = plan.Layers.Single(l => l.GeneratorId == "decals").Objects;
-            Assert.NotEmpty(decals);
-            Assert.All(decals, d => Assert.Equal(ObjectRole.Decal, d.Role));
-            Assert.All(decals, d => Assert.Equal(AssetCategories.DecalCracks, d.Category));
-            foreach (var d in decals)
-                Assert.Contains(park.Nets, n => (n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide) &&
-                    TestKit.DistanceToCurve(d.Position.xz, n) <= Composer.DefaultHalfWidth(n.Role) + 0.3f);
-            // Decals never reserve space.
-            var reserved = new ReservedSpace();
-            Composer.Reserve(plan.Layers.Single(l => l.GeneratorId == "decals"), reserved);
-            Assert.Empty(reserved.Discs);
-        }
-
-        [Fact]
         public void ShopsStandNearEntrancesBesidePaths()
         {
             var site = TestKit.RoadAlongBottom(200);
@@ -290,7 +268,7 @@ namespace Placemaker.Tests
             var stands = shops.Objects.Where(o => o.Category == AssetCategories.Kiosk).ToList();
             Assert.NotEmpty(stands);
             var ends = park.Nets.Where(n => n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide)
-                .SelectMany(n => new[] { n.A.xz, n.D.xz }).Where(p => Poly.DistanceToBoundary(Poly.To2D(TestKit.Rect(200, 150)), p) < 1.5f).ToList();
+                .SelectMany(n => new[] { n.A.xz, n.D.xz }).Where(p => Poly.DistanceToBoundary(Poly.To2D(TestKit.Rect(200, 150)), p) < 5f).ToList();   // entrances stop at the kerb (StreetJoins)
             Assert.NotEmpty(ends);
             Assert.True(ends.Min(e => math.distance(e, stands[0].Position.xz)) < 40f, "first stand is not near an entrance");
             AssertNothingOnPaths(new AreaPlan { GeneratorId = "shops", Objects = shops.Objects, Nets = park.Nets });
@@ -337,7 +315,7 @@ namespace Placemaker.Tests
             var rest = plan.Layers.Single(l => l.GeneratorId == "restrooms").Objects.Where(o => o.Category == AssetCategories.Restroom).ToList();
             Assert.Equal(2, rest.Count);   // 5 ha, one per 3 ha (rounded)
             var park = plan.Layers.Single(l => l.GeneratorId == "park");
-            var ends = park.Nets.SelectMany(n => new[] { n.A.xz, n.D.xz }).Where(p => Poly.DistanceToBoundary(Poly.To2D(ring), p) < 1.5f).ToList();
+            var ends = park.Nets.SelectMany(n => new[] { n.A.xz, n.D.xz }).Where(p => Poly.DistanceToBoundary(Poly.To2D(ring), p) < 5f).ToList();   // entrances stop at the kerb (StreetJoins)
             Assert.True(rest.Min(r => ends.Min(e => math.distance(e, r.Position.xz))) < 45f, "no restroom near an entrance");
             Assert.True(math.distance(rest[0].Position.xz, rest[1].Position.xz) > 30f);
         }

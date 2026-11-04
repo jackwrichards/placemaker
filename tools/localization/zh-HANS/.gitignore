@@ -1,0 +1,4 @@
+/Payload/
+/Reports/
+*.tmp-*
+/tests/__pycache__/

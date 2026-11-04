@@ -238,7 +238,7 @@ namespace Placemaker.Tests
         [Fact]
         public void TheStripMallKeepsItsFivePresetsAndEveryS32TypeHasTwoToFive()
         {
-            Assert.Equal(new[] { "classic", "corner", "rearAlley", "neighbourhood", "bigBox" }, GeneratorRegistry.Get("stripMall").Presets.Select(p => p.Id).ToArray());
+            Assert.Equal(new[] { "classic", "corner", "rearAlley", "neighbourhood", "bigBox", "plazaRow", "parkRow", "pondRow" }, GeneratorRegistry.Get("stripMall").Presets.Select(p => p.Id).ToArray());
             foreach (var t in S32Types)
             {
                 Assert.Equal("commercial", GeneratorGroups.Of(GeneratorRegistry.Get(t)));

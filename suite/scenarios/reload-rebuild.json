@@ -1,0 +1,48 @@
+{
+  "_about": "GitHub issue #6 (a crash after rebuilding an industrial yard; Placemaker.log full of 'duplicate group id'): the player loaded their city a second time in the same game, then edited a yard and built it again. A container yard and a car park are built, the city is saved and loaded back in this game (lab saveLoad), lab groupRecords counts the group records per id (more than one: the earlier load's left next to the save's), then both builds are edited and built again (the build replaces the old group). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/reload-rebuild.json -Fresh -Who <you>",
+  "scenarios": [
+    {
+      "id": "yard",
+      "site": "flat",
+      "steps": [
+        { "do": "area", "tool": "bucket" },
+        { "do": "type", "layer": "containerYard", "preset": "terminal" },
+        { "do": "entrances" },
+        { "do": "build" },
+        { "do": "lab", "op": "groupRecords", "label": "yard built" }
+      ]
+    },
+    {
+      "id": "carpark",
+      "site": "flat",
+      "steps": [
+        { "do": "area", "tool": "bucket" },
+        { "do": "type", "layer": "parking", "preset": "compact" },
+        { "do": "entrance", "side": "south", "t": 0.5 },
+        { "do": "build" },
+        { "do": "lab", "op": "groupRecords", "label": "both built" },
+        { "do": "lab", "op": "saveLoad" },
+        { "do": "lab", "op": "groupRecords", "label": "loaded back in the same game" },
+        { "do": "camera", "target": "build", "view": "oblique", "shot": "carpark-loaded" },
+        { "do": "edit", "build": true },
+        { "do": "value", "id": "aisleWidth", "value": 8.5 },
+        { "do": "build" },
+        { "do": "wait", "seconds": 3 },
+        { "do": "lab", "op": "groupRecords", "label": "car park rebuilt" },
+        { "do": "camera", "target": "build", "view": "oblique", "shot": "carpark-rebuilt" }
+      ]
+    },
+    {
+      "id": "yard-rebuild",
+      "on": "yard",
+      "steps": [
+        { "do": "edit", "build": true },
+        { "do": "preset", "preset": "depot" },
+        { "do": "build" },
+        { "do": "wait", "seconds": 3 },
+        { "do": "lab", "op": "groupRecords", "label": "yard rebuilt" },
+        { "do": "camera", "target": "build", "view": "oblique", "shot": "yard-rebuilt" }
+      ]
+    }
+  ]
+}

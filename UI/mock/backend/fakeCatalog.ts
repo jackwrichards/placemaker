@@ -9,7 +9,7 @@ export type MockLayer = Omit<LayerType, "controls" | "presets"> & {
     presets: { id: string; name: string; icon?: string; values?: Record<string, SettingValue> }[];
     minArea?: number;
     /** Typed marker kinds (StepView.markerKinds) and how many markers Build needs (StepView.markersRequired). */
-    markerKinds?: { kind: string; label: string; icon?: string; tooltip?: string }[];
+    markerKinds?: { kind: string; label: string; icon?: string; tooltip?: string; crosswalk?: boolean }[];
     markersRequired?: number;
     real?: boolean;
     /** Built-in features (the mock host sends Core's IHasFeatures; fake layers use FAKE_FEATURES). */
@@ -96,7 +96,7 @@ export const FAKE_LAYERS: MockLayer[] = [
             { kind: "entry", label: "Placemaker.Marker.Entry" },
             { kind: "exit", label: "Placemaker.Marker.Exit" },
             { kind: "alley", label: "Placemaker.Marker.Alley" },
-            { kind: "footpath", label: "Placemaker.Marker.Footpath" },
+            { kind: "footpath", label: "Placemaker.Marker.Footpath", crosswalk: true },
         ],
         markersRequired: 1,
     },

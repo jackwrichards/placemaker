@@ -54,6 +54,9 @@ namespace Placemaker.Gallery
             bool follow = parts.Contains("f");
             var gapPart = parts.Skip(3).FirstOrDefault(x => x != "f");
             var plot = new Placemaker.Core.Suite.SuitePlot { RoadsFollow = follow, Gap = gapPart != null ? float.Parse(gapPart, System.Globalization.CultureInfo.InvariantCulture) : 8f, Shape = parts[1], Size = new float2(float.Parse(wd[0], System.Globalization.CultureInfo.InvariantCulture), float.Parse(wd[1], System.Globalization.CultureInfo.InvariantCulture)) };
+            // (shops4) land-tri-… and land-odd-…: the game runner's sharp-cornered test outlines (.forensics/shops4/gen.js)
+            if (plot.Shape == "tri") { plot.Shape = "points"; plot.Points = new[] { new float2(0, 0), new float2(130, 0), new float2(15, 95) }; plot.SizeFromPoints(); plot.RoadsFollow = true; }
+            if (plot.Shape == "odd") { plot.Shape = "points"; plot.Points = new[] { new float2(0, 0), new float2(100, -10), new float2(140, 50), new float2(60, 60), new float2(70, 110), new float2(-10, 80) }; plot.SizeFromPoints(); plot.RoadsFollow = true; }
             site = new SiteContext();
             long id = 700;
             foreach (var seg in plot.RingRoads()) Line(site, ref id, seg.A, seg.B, 12f);

@@ -1,0 +1,41 @@
+{
+  "_about": "The neighbourhood-polish painter through the panel: a street grown unpolished, its lots picked with Paint area and stamped with Polish gardens, the city saved and loaded back, then Remove all polish. Send with tools/hot/Send-Hot.ps1 -File suite/scenarios/polish-painter.json.",
+  "scenarios": [
+    {
+      "id": "more-painter-panel",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          220
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "lab", "op": "hotload", "path": "{hot}" },
+        { "do": "setting", "name": "PolishNewHouses", "value": false },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 120, "from": 40, "to": 140 },
+        { "do": "grow", "seconds": 120 },
+        { "do": "wait", "seconds": 4 },
+        { "do": "area", "tool": "paint", "size": 60, "cameraDistance": 520, "stroke": [ [ -110, -60 ], [ -60, 0 ], [ -20, 40 ] ] },
+        { "do": "polish", "stamp": "yes", "wait": 120 },
+        { "do": "lab", "op": "polishFlags" },
+        { "do": "shot", "name": "painted-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "lab", "op": "saveLoad" },
+        { "do": "lab", "op": "polishFlags" },
+        { "do": "shot", "name": "after-load-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "lab", "op": "removeAllPolish" },
+        { "do": "shot", "name": "removed-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "PolishNewHouses", "value": true }
+      ]
+    }
+  ]
+}

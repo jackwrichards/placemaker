@@ -392,7 +392,8 @@ namespace Placemaker.Game.Suite
             string mode = ((string)step["shotMode"] ?? (string)step["mode"] ?? "").ToLowerInvariant();
             if (mode == "grab") mode = "overlay";
             if (mode != "render" && mode != "overlay" && mode != "ui") mode = _tool.IsActive && _tool.Stage != ToolStage.Manage ? "overlay" : "render";
-            if (mode != "ui") PlacemakerToolSystem.SuiteCursorAway();   // the person moved the mouse off the map to look
+            // the person moved the mouse off the map to look — except after a hover step, whose picture is of what the cursor shows
+            if (mode != "ui" && !((bool?)step["keepCursor"] ?? false)) PlacemakerToolSystem.SuiteCursorAway();
             bool labels = (bool?)step["labels"] ?? false;
             if (labels) SuiteCapture.Labels(true);
             // zones: the game's zone grid is drawn only while the active tool asks for it; the runner's own tool does, for this picture

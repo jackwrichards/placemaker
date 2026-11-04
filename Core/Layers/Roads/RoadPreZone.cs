@@ -19,6 +19,9 @@ namespace Placemaker.Core.Layers.Roads
     public static class RoadPreZone
     {
         public const string None = "none";
+        /// <summary>New roads are not zoned unless the player picks a zone (the user: "that should be off by default"); the
+        /// zone picked stays for later builds of the type (the tool remembers its last design) and across style changes.</summary>
+        public const string Default = None;
         /// <summary>AreaPlan fact: the plan's zoning quads are "zone the new roads whole" (the game re-snaps them to the live blocks).</summary>
         public const string Fact = "roads.preZone";
 
@@ -45,6 +48,37 @@ namespace Placemaker.Core.Layers.Roads
         {
             public int MaxDepth;
             public Func<float2, bool> Level;
+            /// <summary>Terraced blocks: level across the block (the cell's centre and the block's direction to its road).</summary>
+            public Func<float2, float2, bool> LevelAcross;
+        }
+
+        /// <summary>The steepest the ground may be along a block (terraced blocks: a street may climb).</summary>
+        public const string FactAlong = "roads.preZoneAlong";
+
+        /// <summary>
+        /// Terraced blocks: a cell is level when, over the whole cell (its centre line and the lines 3 m either side of it, both
+        /// ways), the ground 3.5 m either side ACROSS the block (towards and away from its road) differs by no more than
+        /// <paramref name="maxCross"/> × 3.5 m (+ 5 cm), and along it by no more than <paramref name="maxAlong"/> × 3.5 m: a lot
+        /// along a climbing street lies level across (the game levels its own lot), and no corner of it reaches into a bank.
+        /// </summary>
+        public static Func<float2, float2, bool> LevelAcross(Func<float2, float> ground, float maxCross, float maxAlong)
+        {
+            return (c, dir) =>
+            {
+                var d = math.normalizesafe(dir, new float2(0, 1));
+                var t = new float2(d.y, -d.x);
+                float limC = maxCross * 3.5f + 0.05f, limA = maxAlong * 3.5f + 0.05f;
+                for (int k = -1; k <= 1; k++)
+                {
+                    var row = c + t * (3f * k);
+                    float h = ground(row);
+                    if (math.abs(ground(row + d * 3.5f) - h) > limC || math.abs(ground(row - d * 3.5f) - h) > limC) return false;
+                    var col = c + d * (3f * k);
+                    h = ground(col);
+                    if (math.abs(ground(col + t * 3.5f) - h) > limA || math.abs(ground(col - t * 3.5f) - h) > limA) return false;
+                }
+                return true;
+            };
         }
 
         /// <summary>
@@ -56,6 +90,8 @@ namespace Placemaker.Core.Layers.Roads
             if (plan?.Facts == null || !plan.Facts.TryGetValue(FactDepth, out double d) || !(d > 0)) return null;
             var g = plan.HeightAfter ?? ground;
             float slope = plan.Facts.TryGetValue(FactLevel, out double s) ? (float)s : 0f;
+            if (plan.Facts.TryGetValue(FactAlong, out double along) && along > 0 && slope > 0f && g != null)
+                return new DepthRule { MaxDepth = (int)Math.Round(d), LevelAcross = LevelAcross(g, slope, (float)along) };
             return new DepthRule { MaxDepth = (int)Math.Round(d), Level = slope > 0f && g != null ? LevelCell(g, slope) : null };
         }
 
@@ -84,7 +120,7 @@ namespace Placemaker.Core.Layers.Roads
             for (int x = 0; x < g.Size.x; x++)
             {
                 int d = 0;
-                while (d < cap && (rule.Level == null || rule.Level(ZoneGuard.CellCentre(g, x, d)))) d++;
+                while (d < cap && (rule.LevelAcross != null ? rule.LevelAcross(ZoneGuard.CellCentre(g, x, d), g.Direction) : rule.Level == null || rule.Level(ZoneGuard.CellCentre(g, x, d)))) d++;
                 depth[x] = d;
             }
             int x0 = 0;

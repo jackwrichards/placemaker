@@ -1,0 +1,340 @@
+{
+  "_about": "The neighbourhood-polish tool (its own button next to Placemaker's, its own small window), as a player uses it, on a town of about 290 buildings: the window pictured (empty, with an area, Look open, Whole city open), an area polished Natural, then Polish the whole city and Unpolish the whole city through the window and its confirm dialog. polishIdle logs the frames during each city-wide job (median, 95%, worst, over 33/50/100 ms). Send with tools/hot/Send-Hot.ps1 -Build -File suite/scenarios/polish-panel.json.",
+  "scenarios": [
+    {
+      "id": "polish-panel",
+      "land": {
+        "shape": "rect",
+        "size": [
+          760,
+          760
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "NeighbourhoodPolish",
+          "value": false
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": false
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            -220,
+            -220
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            -220,
+            0
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            -220,
+            220
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            0,
+            -220
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            0,
+            0
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            0,
+            220
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            220,
+            -220
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            220,
+            0
+          ]
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "block",
+          "length": 130,
+          "at": [
+            220,
+            220
+          ]
+        },
+        {
+          "do": "grow",
+          "seconds": 180
+        },
+        {
+          "do": "wait",
+          "seconds": 4
+        },
+        {
+          "do": "polish",
+          "stamp": "pick"
+        },
+        {
+          "do": "shot",
+          "name": "tool-open",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              -60
+            ],
+            "view": "oblique",
+            "pitch": 55,
+            "distance": 300
+          },
+          "shotMode": "ui"
+        },
+        {
+          "do": "area",
+          "tool": "paint",
+          "size": 70,
+          "cameraDistance": 520,
+          "stroke": [
+            [
+              -70,
+              -80
+            ],
+            [
+              70,
+              -80
+            ]
+          ]
+        },
+        {
+          "do": "shot",
+          "name": "tool-area",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              -60
+            ],
+            "view": "oblique",
+            "pitch": 55,
+            "distance": 300
+          },
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "theme": "natural"
+        },
+        {
+          "do": "polish",
+          "open": "look"
+        },
+        {
+          "do": "shot",
+          "name": "tool-look",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "close": "look"
+        },
+        {
+          "do": "polish",
+          "open": "city"
+        },
+        {
+          "do": "shot",
+          "name": "tool-city",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "close": "city"
+        },
+        {
+          "do": "polish",
+          "stamp": "yes",
+          "wait": 120
+        },
+        {
+          "do": "shot",
+          "name": "area-natural-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              -60
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 170
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "polish",
+          "theme": "zone"
+        },
+        {
+          "do": "polish",
+          "open": "city"
+        },
+        {
+          "do": "polish",
+          "click": "polish-all"
+        },
+        {
+          "do": "shot",
+          "name": "confirm-polish-all",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 55,
+            "distance": 420
+          },
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "clickText": "Polish all"
+        },
+        {
+          "do": "wait",
+          "seconds": 1
+        },
+        {
+          "do": "shot",
+          "name": "tool-working",
+          "shotMode": "ui"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 600
+        },
+        {
+          "do": "shot",
+          "name": "tool-done",
+          "shotMode": "ui"
+        },
+        {
+          "do": "shot",
+          "name": "city-polished-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 170
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "polish",
+          "click": "polish-none"
+        },
+        {
+          "do": "shot",
+          "name": "confirm-unpolish",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 55,
+            "distance": 420
+          },
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "clickText": "Unpolish all"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 300
+        },
+        {
+          "do": "shot",
+          "name": "unpolished-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              0,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 170
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "_about": "The Zoning category in Placemaker (Phase 1): a street grown unpolished, its houses picked with Paint area, the Natural look picked in the Make row with its Sprawling style, Review and Build (the houses polished, nothing built), the City window from the header. Send with tools/hot/Send-Hot.ps1 -Build -File suite/scenarios/polish-zoning.json.",
+  "scenarios": [
+    {
+      "id": "polish-zoning",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          240
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": false
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "arc",
+          "radius": 120,
+          "from": 40,
+          "to": 140
+        },
+        {
+          "do": "grow",
+          "seconds": 120
+        },
+        {
+          "do": "wait",
+          "seconds": 4
+        },
+        {
+          "do": "shot",
+          "name": "before-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              -40,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 170
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "area",
+          "tool": "paint",
+          "size": 60,
+          "cameraDistance": 520,
+          "stroke": [
+            [
+              -110,
+              -60
+            ],
+            [
+              -60,
+              0
+            ],
+            [
+              -20,
+              40
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "polishNatural",
+          "preset": "sprawling"
+        },
+        {
+          "do": "shot",
+          "name": "design-ui",
+          "camera": {
+            "target": "point",
+            "at": [
+              -40,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 55,
+            "distance": 300
+          },
+          "shotMode": "ui"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 180
+        },
+        {
+          "do": "shot",
+          "name": "review-ui",
+          "shotMode": "ui"
+        },
+        {
+          "do": "polish",
+          "click": "panel-mode-outgrow"
+        },
+        {
+          "do": "shot",
+          "name": "city-ui",
+          "shotMode": "ui"
+        },
+        {
+          "do": "shot",
+          "name": "after-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              -40,
+              0
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 170
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "after-top",
+          "camera": {
+            "target": "area",
+            "view": "top"
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        }
+      ]
+    }
+  ]
+}

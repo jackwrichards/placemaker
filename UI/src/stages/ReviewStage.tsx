@@ -24,6 +24,7 @@ import { layerName, targetLabel } from "./DesignStage";
 import { recipeGroup } from "./PresetBrowser";
 import { ParkStatsSection } from "./ParkStatsSection";
 import s from "./review.module.scss";
+import { SectionHead } from "./SectionHead";
 
 export const StatChip = ({ k, value, unit }: { k: string; value: number; unit: string }) => {
     const { t } = useT();
@@ -386,19 +387,24 @@ export const ReviewStage = ({ catalog, state, summary }: { catalog: Catalog; sta
                 </div>
             ) : (
                 <>
+                    {/* the same story as the Design page: what it costs, what you get, what to check */}
+                    <SectionHead first icon="cost" title={t("Placemaker.UI.Review.CostHead", "Cost")} sub={t("Placemaker.UI.Review.CostSub", "to build and to run")} testId="review-head-cost" />
                     <MoneyCard catalog={catalog} state={state} summary={summary} pending={pending} />
+                    <SectionHead icon="layers" title={t("Placemaker.UI.Review.StatsHead", "What you get")} sub={t("Placemaker.UI.Review.StatsSub", "what will be built")} testId="review-head-stats" />
                     <div className={classNames(s.stats, { [s.shimmer]: pending })} data-testid="review-stats">
                         {mergeStats(t, summary.stats).map((st) => (
                             <StatChip key={st.key + st.unit} k={st.key} value={st.value} unit={st.unit} />
                         ))}
                     </div>
+                    <SectionHead
+                        icon={clean ? "check" : "warning"}
+                        title={t("Placemaker.UI.Review.ChecksHead", "Checks")}
+                        count={summary.issues.length + summary.permanent.length}
+                        tone={clean ? undefined : "warn"}
+                        sub={clean ? t("Placemaker.UI.Review.AllGood", "No problems") : t("Placemaker.UI.Review.ChecksSub", "warnings and things to look at before building")}
+                        testId="review-head-checks"
+                    />
                     <Alerts summary={summary} />
-                    {clean ? (
-                        <div className={s.allGood} data-testid="all-good">
-                            <Icon name="check" size={11} tint="ok" />
-                            <div className={s.allGoodText}>{t("Placemaker.UI.Review.AllGood", "No problems")}</div>
-                        </div>
-                    ) : null}
                     {summary.parkStats && summary.parkStats.stats && summary.parkStats.stats.length ? <ParkStatsSection ps={summary.parkStats} pending={pending} /> : null}
                 </>
             )}

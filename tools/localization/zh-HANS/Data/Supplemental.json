@@ -1,0 +1,2148 @@
+[
+  {
+    "key": "Placemaker.UI.Outgrow.StripOutgrown",
+    "en": "outgrown",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "已扩展庭院",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.StripWaiting",
+    "en": "waiting",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "等待中",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.StripSpeed",
+    "en": "fitted",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "已处理",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.StripFps",
+    "en": "FPS",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "FPS",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.NoType",
+    "en": "No type",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "无类型",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Other",
+    "en": "Other types",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "其他类型",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.NotOutgrown",
+    "en": "Not outgrown",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "未扩展庭院",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.PaceIdle2",
+    "en": "Empty",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "空",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.PaceDone2",
+    "en": "Clears in {0}",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "将在 {0} 后清空",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.PaceGrowing2",
+    "en": "Growing",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "队列增长中",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.OutgrownByType",
+    "en": "Outgrown, by outgrow type",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "按庭院扩展类型统计",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.OfAll",
+    "en": "{0} of {1}",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "{0}/{1}",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.RingSub",
+    "en": "outgrown",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "已扩展庭院",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.ByKind",
+    "en": "By kind",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "按建筑类别",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Kind.homes",
+    "en": "Homes",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Kind.",
+    "zh": "住宅",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Kind.shops",
+    "en": "Shops",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Kind.",
+    "zh": "商店",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Kind.offices",
+    "en": "Offices",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Kind.",
+    "zh": "办公",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Kind.industry",
+    "en": "Industry",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Kind.",
+    "zh": "工业",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.NoBuildings",
+    "en": "No buildings yet",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "尚无建筑",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Queue",
+    "en": "Queue",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "队列",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.QueueWaiting",
+    "en": "buildings waiting",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "等待中的建筑",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Work.planning",
+    "en": "Fitting now",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "正在处理",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Work.puttingBack",
+    "en": "Being removed",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "正在移除",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Work.pieces",
+    "en": "Pieces to place",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "待放置部件",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Activity",
+    "en": "Activity",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "活动",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Last2",
+    "en": "last 2 minutes",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "最近 2 分钟",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Fitted2",
+    "en": "Speed: fitted",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "速度：已处理",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Added2",
+    "en": "Queued",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "已入队",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.InLine2",
+    "en": "Queue: waiting",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "队列：等待中",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Fps2",
+    "en": "FPS",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "FPS",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Cost2",
+    "en": "Outgrow's own work: {0} ms a frame",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "庭院扩展自身耗时：每帧 {0} ms",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Details",
+    "en": "Details",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "详细信息",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Lens.polished",
+    "en": "Outgrown",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.Lens.",
+    "zh": "已扩展庭院",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Lens.not",
+    "en": "Not outgrown",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.Lens.",
+    "zh": "未扩展庭院",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Lens.planning",
+    "en": "Fitting now",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.Lens.",
+    "zh": "正在处理",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Lens.added",
+    "en": "Just queued",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.Lens.",
+    "zh": "刚刚入队",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Lens.wait0",
+    "en": "Queued <10s",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.Lens.",
+    "zh": "已排队 <10s",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Lens.wait1",
+    "en": "Queued <30s",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.Lens.",
+    "zh": "已排队 <30s",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Lens.wait2",
+    "en": "Queued <90s",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.Lens.",
+    "zh": "已排队 <90s",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Lens.wait3",
+    "en": "Queued longer",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.Lens.",
+    "zh": "等待更久",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Planting.garden",
+    "en": "Garden",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Planting.",
+    "zh": "花园",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.PlantingTip.garden",
+    "en": "Lawns, planted beds, now and then a sand pit or a bench.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.PlantingTip.",
+    "zh": "草坪、种植花坛，偶尔有沙坑或长椅。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Planting.natural",
+    "en": "Natural",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Planting.",
+    "zh": "自然",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.PlantingTip.natural",
+    "en": "Painted wild ground, rock outcrops, log piles; no tidy beds.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.PlantingTip.",
+    "zh": "涂画的自然地面、露岩和原木堆；没有整齐花坛。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Planting.tidy",
+    "en": "Tidy",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Planting.",
+    "zh": "整洁",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.PlantingTip.tidy",
+    "en": "Mowed lawns, hedges, flower beds; no rocks.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.PlantingTip.",
+    "zh": "修剪整齐的草坪、树篱和花坛；没有岩石。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Planting.yard",
+    "en": "Yard",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Planting.",
+    "zh": "堆场",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.PlantingTip.yard",
+    "en": "Worn ground, storage yards with pallets and rubble.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.PlantingTip.",
+    "zh": "磨损地面，以及带托盘和碎石的储料场。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Group.land",
+    "en": "What the land becomes",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Group.",
+    "zh": "土地用途",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Group.reach",
+    "en": "Reach and joining",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Group.",
+    "zh": "延伸与连接",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Group.fences",
+    "en": "Fences",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Group.",
+    "zh": "围栏",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Group.lawns",
+    "en": "Lawns and ground paint",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Group.",
+    "zh": "草坪与地面涂画",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Group.ground",
+    "en": "Ground",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Group.",
+    "zh": "地面",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Group.planting",
+    "en": "Planting and features",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Group.",
+    "zh": "种植与特色设施",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Group.paths",
+    "en": "Paths",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Group.",
+    "zh": "步道",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Master",
+    "en": "Outgrow",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "庭院扩展",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Master.Tip",
+    "en": "This city's master switch. Off: nothing outgrows (new buildings, zoned areas, what you outgrow), and nothing is put back: outgrown buildings stay as they are. Saved with the city.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "此城市的总开关。关闭：不再进行任何庭院扩展（新建筑、分区区域及手动扩展均停止），也不恢复任何庭院；已扩展的建筑保持原样。随城市保存。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.MasterOn",
+    "en": "Outgrow is on in this city",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "此城市已启用庭院扩展",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.MasterOff",
+    "en": "Outgrow is paused in this city",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "此城市已暂停庭院扩展",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.OutgrowAllShort2",
+    "en": "Set all to defaults",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "全部设为默认类型",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.OutgrowAll2",
+    "en": "Outgrow every building in the city with its zone type's default outgrow type (the Defaults tab), also the ones you brushed",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "按各分区类型的默认庭院扩展类型（“默认设置”标签页）扩展全市所有建筑庭院，也包括曾用笔刷处理的建筑",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.RemoveAllShort2",
+    "en": "Remove all",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "全部移除",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.RemoveAll",
+    "en": "Put every outgrown building in the city back as the game made it",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "将此城市所有已扩展庭院的建筑恢复为游戏原样",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.BrushPaint",
+    "en": "Paint",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "涂装",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.BrushDefaultTip",
+    "en": "Drag over buildings: every one the brush touches lights up; let go and each gets its own zone type's default outgrow type again, first in the queue. Right-click drops the stroke.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "拖过建筑：笔刷触及的建筑会亮起；松开后，各建筑重新采用自身分区类型的默认庭院扩展类型，并优先处理。右键取消本次笔画。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.BrushPaintTip3",
+    "en": "Drag over buildings: every one the brush touches lights up; let go and they all get this outgrow type, first in the queue. Right-click drops the stroke.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "拖过建筑：笔刷触及的建筑会亮起；松开后，全部采用此庭院扩展类型，并优先处理。右键取消本次笔画。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.BrushErase",
+    "en": "Erase",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "擦除",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.BrushEraseTip2",
+    "en": "Drag over buildings: every one the brush touches lights up; let go and their outgrow is removed",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "拖过建筑：笔刷触及的建筑会亮起；松开后，移除它们的庭院扩展",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Lens",
+    "en": "Map lens",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "地图视图",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.LensStatus",
+    "en": "Status",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "状态",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.LensStatusTip",
+    "en": "Outgrown, not, being fitted, and the queue by how long each has waited",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "显示已扩展、未扩展、正在处理的建筑，以及按等待时长划分的队列",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.LensTypes",
+    "en": "Types",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "类型",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.LensTypesTip",
+    "en": "Every building in its outgrow type's colour",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "按各建筑的庭院扩展类型着色",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.NotOutgrown",
+    "en": "Not outgrown",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "未扩展庭院",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.NoType",
+    "en": "No type",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "无类型",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.TabDefaults",
+    "en": "Defaults",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "默认设置",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.TabDefaultsTip",
+    "en": "Each zone type's default outgrow type: what new buildings and Set all to defaults give its buildings",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "各分区类型的默认庭院扩展类型：新建筑和“全部设为默认类型”会采用这些类型",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.TabEdit",
+    "en": "Edit",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "编辑",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.TabEditTip",
+    "en": "Every outgrow type and its settings: change one, or make your own",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "全部庭院扩展类型及设置：修改现有类型，或创建自己的类型",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.TabNumbers",
+    "en": "Numbers",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "统计",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.TabNumbersTip",
+    "en": "Outgrown by type and by kind, the queue, speed, frames per second",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "按类型和建筑类别统计庭院扩展、队列、速度及每秒帧数",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.NoCity",
+    "en": "The numbers come once the city has run for a moment.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "城市运行片刻后会显示统计数据。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.NewHouses3",
+    "en": "Outgrow new buildings (this city)",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "扩展新建筑庭院（此城市）",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.NewHouses.Tip4",
+    "en": "Buildings that grow from now on get their zone type's outgrow type. Kept with this city; a new city starts with it off.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "今后生成的建筑采用其分区类型对应的庭院扩展类型。随此城市保存；新城市默认关闭。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.NewHousesSub2",
+    "en": "With their zone type's default, below",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "使用下方各分区类型的默认设置",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.ZonesHead2",
+    "en": "Each zone type's default outgrow type, and how many of its buildings are outgrown (open a group)",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "各分区类型的默认庭院扩展类型，以及已扩展庭院的建筑数量（展开分组查看）",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.OutgrowKind2",
+    "en": "Set all {0} to their defaults",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "将所有 {0} 设为默认类型",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.RemoveKind",
+    "en": "Remove outgrow from {0}",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "移除 {0} 的庭院扩展",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Mixed",
+    "en": "Mixed",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "混合",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.OutgrowZone2",
+    "en": "Set these to it",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "将这些建筑设为此类型",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.RemoveZone",
+    "en": "Remove from these",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "移除这些建筑的庭院扩展",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.PickToEdit2",
+    "en": "Pick an outgrow type to see and change it. Saving a built-in one changes it everywhere it is used; Copy as new makes your own.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "选择庭院扩展类型以查看和修改。保存内置类型会更改所有使用它的地方；“复制为新类型”可创建自己的类型。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.OutgrowAll.Title2",
+    "en": "Set the whole city to its defaults?",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "将全市建筑设为各自的默认类型？",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.RemoveAll.Title",
+    "en": "Remove all outgrow?",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "移除全部庭院扩展？",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.OutgrowSome.Title2",
+    "en": "Set all {0} to their defaults?",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "将所有 {0} 设为各自的默认类型？",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.RemoveSome.Title",
+    "en": "Remove outgrow from {0}?",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "移除 {0} 的庭院扩展？",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.OutgrowAll.Ok2",
+    "en": "Set to defaults",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "设为默认类型",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.RemoveAll.Ok",
+    "en": "Remove all",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.",
+    "zh": "全部移除",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.fill",
+    "en": "Beyond the lot",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "地块之外",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.fill.Tip",
+    "en": "What a building's land past its own lot becomes, whatever the building is: a garden (lawn, fences, beds), a car park yard (green edges, bins, marked bays with parked cars), or paving. The outgrow type alone decides: whatever the building is (a house given a car park type gets a car park).",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "建筑原地块之外的土地用途，与建筑类型无关：花园（草坪、围栏、种植床）、停车院（绿化边缘、垃圾桶、带停放车辆的标线车位）或铺装。仅由庭院扩展类型决定：例如为住宅指定停车场类型，也会生成停车场。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Opt.fill.1",
+    "en": "Garden",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Opt.",
+    "zh": "花园",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Opt.fill.2",
+    "en": "Car park",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Opt.",
+    "zh": "小型停车场",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Opt.fill.3",
+    "en": "Paved",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Opt.",
+    "zh": "铺装",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.parkStyle",
+    "en": "Car park style",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "停车场风格",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.parkStyle.Tip",
+    "en": "How a car park yard looks. Clean: a wide grass edge, trees in planters at the ends of the rows, a tidy bin corner. Everyday: grass edges, bins and stock, most bays taken. Industrial: concrete, no grass, more vans, pallets, barrels, skips and containers, dry worn ground further out.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "停车院的外观。整洁：宽草地边缘、各排末端花箱中的树木、整齐的垃圾桶角。日常：草地边缘、垃圾桶和货物，多数车位被占用。工业：混凝土、无草地，更多厢式货车、托盘、桶、垃圾斗和集装箱，外围为干燥踩损地面。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Opt.parkStyle.1",
+    "en": "Clean",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Opt.",
+    "zh": "整洁",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Opt.parkStyle.2",
+    "en": "Everyday",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Opt.",
+    "zh": "日常",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Opt.parkStyle.3",
+    "en": "Industrial",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Opt.",
+    "zh": "工业",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.parkReach",
+    "en": "Car park reach",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "停车场延伸范围",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.parkReach.Tip",
+    "en": "How far out from the building its car park yard is paved and parked. Further out, the land is the outgrow type's own: its ground, patches, rocks and things.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "建筑停车院铺装和停放车辆向外延伸的距离。更远处采用庭院扩展类型自身的地面、斑块、岩石和物品。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.parkCars",
+    "en": "Parked cars",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "停放车辆",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.parkCars.Tip",
+    "en": "The share of parking bays with a car or van in them.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "停有汽车或厢式货车的停车位比例。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.parkWorn",
+    "en": "Worn edge",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "磨损边缘",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.parkWorn.Tip",
+    "en": "The chance a car park's edge is worn, as the strip malls' are: the ground painted, dirt fading into dry grass out from the paving, no grass strip. Otherwise a grass strip with trees. Industrial car parks are always worn.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "停车场边缘呈现商业街停车场式磨损的概率：绘制地面，从铺装向外由泥土渐变为干草，不设草带。否则设置带树木的草带。工业停车场始终使用磨损边缘。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.waterGap",
+    "en": "Water gap",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "水边间距",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.waterGap.Tip",
+    "en": "How far the land keeps from water: gardens, yards and car parks stop this far from the shore, along a smooth line. The building's own lot is never cut.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "土地与水体保持的距离：庭院、堆场和停车场沿平滑边界，在距岸边此距离处停止。建筑自身地块不会被裁切。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.sideReach",
+    "en": "Side reach",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "侧向延伸",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.sideReach.Tip",
+    "en": "How far a garden reaches sideways to meet the neighbour beside it. Very large values make the polish slower in big cities.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "庭院横向延伸以衔接邻居的距离。数值很大时，大城市的庭院处理速度会降低。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.maxFrontGap",
+    "en": "Street gap",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "临街间隙",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.maxFrontGap.Tip",
+    "en": "Two neighbours this far apart at the street still join (one shared fence or hedge).",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "相邻庭院在街道处相距不超过此值时仍会连接（共用一道围栏或绿篱）。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.maxBackGap",
+    "en": "Back gap",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "后角间隙",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.maxBackGap.Tip",
+    "en": "How far apart their back corners may be (wedges on the outside of a curve).",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "两个庭院后角允许的最大间距（适用于弯道外侧的楔形空地）。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.maxRearGap",
+    "en": "Back to back",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "背靠背间距",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.maxRearGap.Tip",
+    "en": "Two gardens back to back this far apart meet in the middle.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "背靠背的两个庭院相距不超过此值时，会在中间汇合。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.maxFacingGap",
+    "en": "Block corners",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "街区拐角",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.maxFacingGap.Tip",
+    "en": "A side facing another house's side or back this far away meets it halfway.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "一侧面向另一房屋的侧面或背面，且距离不超过此值时，会在中途汇合。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.maxDeepen",
+    "en": "Line up backs",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "对齐后边界",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.maxDeepen.Tip",
+    "en": "A shallow garden reaches back to its row's deepest by up to this much.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "较浅的庭院最多向后延伸此距离，以对齐同排最深的庭院。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.hug",
+    "en": "Reach out to roads and buildings",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "延伸至道路和建筑",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.hug.Tip",
+    "en": "A side or back nobody else has grows out to a road, path or building near it and hugs it.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "没有相邻庭院的侧面或后方会向附近道路、步道或建筑延伸，并贴合其边缘。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.hugReach",
+    "en": "Reach out",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "外延距离",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.hugReach.Tip",
+    "en": "How far a garden reaches out to a road, path or building. Very large values make the polish slower in big cities.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "庭院向道路、步道或建筑延伸的距离。数值很大时，大城市的庭院处理速度会降低。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.openReach",
+    "en": "Into open land",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "向空地延伸",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.openReach.Tip",
+    "en": "A side or back with nothing near it to meet still grows this far into open land. Very large values fill whole fields (and make the polish slower in big cities).",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "侧面或后面附近没有可衔接对象时，仍向空地延伸的距离。数值很大时会填满整片田野，也会降低大城市的庭院处理速度。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.wrap",
+    "en": "Meet behind a shallow lot",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "在较浅地块后方相接",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.wrap.Tip",
+    "en": "Two deep gardens meet behind a shallow one between them.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "两侧较深的庭院在中间较浅庭院的后方汇合。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.closeBacks",
+    "en": "Close open backs",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "封闭开放后边界",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.closeBacks.Tip",
+    "en": "A garden open at the back closes with a fence or hedge the joining freed.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "用庭院连接后腾出的围栏或绿篱，封闭原本开放的后边界。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.closeGardens",
+    "en": "Close every garden",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "封闭所有庭院",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.closeGardens.Tip",
+    "en": "Every open edge of a garden (not its street front) gets fence or hedge pieces, following its bends and the roads it hugs.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "为庭院所有开放边缘（临街正面除外）添加围栏或绿篱，沿其弯曲边界和贴合的道路布置。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.fenceKind",
+    "en": "New fences",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "新围栏",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.fenceKind.Tip",
+    "en": "What closes the open edges: the house's own fence or hedge kind, or one for every house.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "封闭开放边缘使用的类型：沿用房屋自身的围栏或绿篱，或所有房屋统一使用一种类型。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Opt.fenceKind.0",
+    "en": "Own",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Opt.",
+    "zh": "沿用原有",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Opt.fenceKind.1",
+    "en": "Low hedge",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Opt.",
+    "zh": "低绿篱",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Opt.fenceKind.2",
+    "en": "Tall hedge",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Opt.",
+    "zh": "高绿篱",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Opt.fenceKind.3",
+    "en": "Low fence",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Opt.",
+    "zh": "低围栏",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Opt.fenceKind.4",
+    "en": "Tall fence",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Opt.",
+    "zh": "高围栏",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.lawns",
+    "en": "Lawns up to the fences",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "草坪延伸至围栏",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.lawns.Tip",
+    "en": "A garden's lawn grows to its new fences, around driveways and paving.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "庭院草坪延伸至新围栏，并绕开车行通道和铺装。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.lawnReach",
+    "en": "Lawn near the house",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "屋旁草坪",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.lawnReach.Tip",
+    "en": "Mowed lawn this far from the house; a big garden is painted further out (Ground: further out). 400 or more: lawn everywhere.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "住宅周围此距离内保留修剪草坪；大庭院更远处采用地面涂画（“地面：更远处”）。400 或以上：全部使用草坪。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.paintedGardens",
+    "en": "Painted gardens",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "绘制庭院",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.paintedGardens.Tip",
+    "en": "How many gardens are painted (lush ground, soft edges) instead of keeping their lawns. Natural and Yard more often, Tidy seldom.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "使用地面涂画（边缘柔和的茂密草地）代替草坪的庭院比例。自然和堆场主题较多，整洁主题较少。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.gardenPaint",
+    "en": "Garden paint",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "庭院绘制",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.gardenPaint.Tip",
+    "en": "How strong the paint of a painted garden is.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "绘制庭院的纹理强度。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.paint",
+    "en": "Ground paint",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "地形涂装",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.paint.Tip",
+    "en": "Soft lush ground past the gardens and worn ground along fences facing open land.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "在庭院外侧涂画柔和的茂密草地，并沿面向空地的围栏涂画磨损地面。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.blendWidth",
+    "en": "Paint reach",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "绘制延伸范围",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.blendWidth.Tip",
+    "en": "How far the lush ground reaches past the gardens.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "茂密草地延伸至庭院外侧的距离。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.blendFar",
+    "en": "Faint reach",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "淡化延伸范围",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.blendFar.Tip",
+    "en": "How far the fainter, wider band reaches.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "较淡、较宽的外围带延伸的距离。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.blendStrength",
+    "en": "Paint strength",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "绘制强度",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.blendStrength.Tip",
+    "en": "How strong the paint past the gardens is.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "庭院外绘制纹理的强度。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.gardenLayer",
+    "en": "Painted gardens",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "绘制庭院",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.gardenLayer.Tip",
+    "en": "The ground a painted garden is painted with.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "绘制庭院所用的地面纹理。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.meadowLayer",
+    "en": "Further out",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "较远区域",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.meadowLayer.Tip",
+    "en": "The ground of a big garden beyond its lawn near the house.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "大型庭院中，房屋附近草坪以外的地面。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.meadowStrength",
+    "en": "Further out strength",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "远端绘制强度",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.meadowStrength.Tip",
+    "en": "How strong that paint is.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "该纹理的绘制强度。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.blendLayer",
+    "en": "Just past the gardens",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "紧邻庭院外侧",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.blendLayer.Tip",
+    "en": "The ground of the band just past the gardens.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "紧邻庭院外侧条带的地面纹理。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.blendFarLayer",
+    "en": "Fainter band",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "淡化带",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.blendFarLayer.Tip",
+    "en": "The ground of the wider, fainter band further out.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "更外围较宽、较淡条带的地面纹理。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.edgeLayer",
+    "en": "Along open fences",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "临空地围栏沿线",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.edgeLayer.Tip",
+    "en": "Worn ground along back fences that face open land.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "面向空地的后围栏沿线的踩损地面。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.edgeWidth",
+    "en": "Fence band width",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "围栏带宽度",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.edgeWidth.Tip",
+    "en": "How wide the worn band along those fences is.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "这些围栏沿线踩损带的宽度。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.edgeStrength",
+    "en": "Fence band strength",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "围栏带强度",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.edgeStrength.Tip",
+    "en": "How strong it is.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "其绘制强度。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.roadLayer",
+    "en": "Along roads",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "道路沿线",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.roadLayer.Tip",
+    "en": "A band along the roads and paths beside the gardens (sand or dirt by the road…).",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "沿庭院旁道路和步道的条带（路边沙地或泥土等）。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.roadWidth",
+    "en": "Road band width",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "道路带宽度",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.roadWidth.Tip",
+    "en": "How wide the band along roads and paths is.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "道路和步道沿线条带的宽度。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.roadStrength",
+    "en": "Road band strength",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "道路带强度",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.roadStrength.Tip",
+    "en": "How strong it is.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "其绘制强度。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.rockLayer",
+    "en": "Under rocks",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "岩石下方",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.rockLayer.Tip",
+    "en": "The ground under rock gardens and outcrops.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "岩石花园和露头下方的地面。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.rockGround",
+    "en": "Around outcrops",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "露头周围",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.rockGround.Tip",
+    "en": "The wider ground around an outcrop.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "岩石露头周围更大范围的地面。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.yardLayer",
+    "en": "Storage yards",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "仓储堆场",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.yardLayer.Tip",
+    "en": "The ground of a storage yard.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "仓储堆场的地面。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.patchLayer",
+    "en": "Worn patches",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "磨损斑块",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.patchLayer.Tip",
+    "en": "The ground of the worn patches in big gardens.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "大型庭院中踩损斑块的地面纹理。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.patchChance",
+    "en": "Patch chance",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "斑块概率",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.patchChance.Tip",
+    "en": "How many worn patches big gardens get.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "大型庭院获得踩损斑块的数量。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.plant",
+    "en": "Beds and bushes",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "种植床与灌木",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.plant.Tip",
+    "en": "Planted beds with bushes along new fences. Off: no planting, features, paths or rocks.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "沿新围栏布置种有灌木的种植床。关闭时，不添加植被、设施、步道或岩石。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.bedChance",
+    "en": "Beds",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "种植床",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.bedChance.Tip",
+    "en": "How often a new fence gets a bed with bushes.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "新围栏旁出现灌木种植床的频率。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.bushesPerGarden",
+    "en": "Bushes",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "灌木",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.bushesPerGarden.Tip",
+    "en": "The most bushes the beds of one garden get.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "单个庭院种植床内的最大灌木数量。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.features",
+    "en": "Garden features",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "庭院设施",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.features.Tip",
+    "en": "Big new garden land gets something by its theme: a rock garden, a sand pit, a log pile, a bench nook, a flower garden, a storage yard.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "较大的新增庭院按主题增加景物：岩石花园、沙坑、原木堆、长椅角落、花园或储料场。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.featureChance",
+    "en": "Feature chance",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "设施概率",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.featureChance.Tip",
+    "en": "How many big gardens get a feature.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "大型庭院获得设施的比例。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.featureSpacing",
+    "en": "More features every",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "新增设施面积间隔",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.featureSpacing.Tip",
+    "en": "A big garden gets one more feature for every this much new land (at most 6).",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "大型庭院每增加此面积的土地，就多获得一个设施（最多 6 个）。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.featureMinLand",
+    "en": "Feature land",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "设施用地",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.featureMinLand.Tip",
+    "en": "New garden land a feature needs.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "一个设施所需的新增庭院面积。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.rockChance",
+    "en": "Rocks",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "岩石",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.rockChance.Tip",
+    "en": "How often a rock sits where two gardens meet at the street (never against a hedge).",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "两个庭院在临街交界处放置岩石的频率（不会紧靠绿篱）。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.pathChance",
+    "en": "Garden paths",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "庭院步道",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.pathChance.Tip",
+    "en": "How many big gardens get a paved path from the house to the back.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "大型庭院获得从房屋通向后院的铺装步道的比例。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.alleys",
+    "en": "Walkways between houses",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "房屋间步行通道",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.alleys.Tip",
+    "en": "A narrow even gap between two houses becomes a paved walkway.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "两栋房屋之间狭窄且均匀的空隙会变成铺装步行通道。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.alleyChance",
+    "en": "Walkways",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "步行通道",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Knob.alleyChance.Tip",
+    "en": "How often a narrow gap becomes a walkway.",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Knob.",
+    "zh": "狭窄空隙变为步行通道的频率。",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.plans",
+    "en": "Plans made",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "完成规划数",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.planAvgMs",
+    "en": "Plan time, average (ms)",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "平均规划耗时（ms）",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.planWorstMs",
+    "en": "Plan time, worst (ms)",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "最长规划耗时（ms）",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.frameWorstMs",
+    "en": "Worst frame for Outgrow (ms)",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "庭院扩展最慢单帧耗时（ms）",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.taken",
+    "en": "Buildings fitted",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "已处理建筑数",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.newFlagged",
+    "en": "New buildings outgrown",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "已扩展庭院的新建筑数",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.fencesMoved",
+    "en": "Fences moved",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "已移动围栏数",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.objectsMade",
+    "en": "Plants and props placed",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "已放置植物和道具数",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.surfacesMade",
+    "en": "Surfaces laid",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "已铺设表面数",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.lawnsWritten",
+    "en": "Lawns reshaped",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "已调整草坪数",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.paintStamps",
+    "en": "Ground paint stamps",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "地面涂画印记数",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Outgrow.Detail.lookAreas",
+    "en": "Zoned areas with an outgrow type",
+    "reference": "UI/src/components/OutgrowStats.tsx",
+    "prefix": "Placemaker.UI.Outgrow.",
+    "zh": "带庭院扩展类型的分区区域数",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Ground.0",
+    "en": "None",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Ground.",
+    "zh": "无",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Ground.1",
+    "en": "Dry",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Ground.",
+    "zh": "干燥",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Ground.2",
+    "en": "Lush",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Ground.",
+    "zh": "葱郁",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Ground.3",
+    "en": "Dirt",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Ground.",
+    "zh": "泥土",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Polish.Ground.4",
+    "en": "Sand",
+    "reference": "UI/src/components/PainterCard.tsx",
+    "prefix": "Placemaker.UI.Polish.Ground.",
+    "zh": "沙地",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Marker.TwoWay",
+    "en": "Two-way",
+    "reference": "UI/src/stages/DesignStage.tsx",
+    "zh": "双向",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Marker.Entry",
+    "en": "Entry only",
+    "reference": "UI/src/stages/DesignStage.tsx",
+    "zh": "仅入口",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Marker.Exit",
+    "en": "Exit only",
+    "reference": "UI/src/stages/DesignStage.tsx",
+    "zh": "仅出口",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Marker.Alley",
+    "en": "Alley",
+    "reference": "UI/src/stages/DesignStage.tsx",
+    "zh": "巷道",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  },
+  {
+    "key": "Placemaker.UI.Marker.Footpath",
+    "en": "Footpath",
+    "reference": "UI/src/stages/DesignStage.tsx",
+    "zh": "人行步道",
+    "checkEnglish": true,
+    "runtimeReference": "Placemaker.mjs"
+  }
+]

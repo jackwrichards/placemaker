@@ -127,6 +127,7 @@ namespace Placemaker.Game.Suite
             {
                 if (_tool.Stage == ToolStage.Manage) _tool.GoToStage(ToolStage.Area);
                 if (_tool.SuiteHasSelection) _tool.ClearArea();
+                _tool.SuiteLeavePainter();   // a scenario starts on a type, never on the polish painter
                 _tool.SuiteResetHistory();
                 yield return Frames(2);
             }
@@ -171,13 +172,14 @@ namespace Placemaker.Game.Suite
                     var cam = step["camera"] as JObject ?? DefaultShotCamera(what);
                     var sstep = ShotOptions(step);
                     sstep["camera"] = cam;
+                    if (what == "hover") sstep["keepCursor"] = true;
                     var srec = new JObject();
                     yield return Guard(StepShot(st, sstep, srec, shot), e => srec["error"] = "suite error: " + e.Message);
                     rec["shotRecord"] = srec;
                     if (srec["error"] != null && rec["error"] == null) rec["shotError"] = srec["error"];
                 }
                 rec["frames"] = CloseWindow();
-                Say($"step {i} {what}: {rec["ms"]} ms, worst frame {rec["frames"]?["maxMs"]} ms" + (rec["planComputeMs"] != null ? $", plan {rec["planComputeMs"]} ms" : "")
+                Say($"step {i} {what}: {rec["ms"]} ms, worst frame {rec["frames"]?["maxMs"]} ms, over 50 ms: {rec["frames"]?["over50"]}, over 100: {rec["frames"]?["over100"]} of {rec["frames"]?["frames"]}" + (rec["planComputeMs"] != null ? $", plan {rec["planComputeMs"]} ms" : "")
                     + (rec["shot"] != null ? $", shot {rec["shot"]}" : rec["shotRecord"]?["shot"] != null ? $", shot {rec["shotRecord"]["shot"]}" : "") + (rec["error"] != null ? " — " + rec["error"] : ""));
                 if (rec["error"] != null && IsHard(what) && !((bool?)rec["suiteError"] ?? false)) st.Stop = true;
             }
@@ -201,18 +203,56 @@ namespace Placemaker.Game.Suite
 
         private static bool IsHard(string what) => what == "area" || what == "type" || what == "build" || what == "preview";
 
-        /// <summary>The tool takes no new scene until nothing is building, planning or emitting a ghost (bounded).</summary>
+        /// <summary>
+        /// The tool takes no new scene until nothing is building, planning or emitting a ghost. Stuck for 20 s (a preview
+        /// that never finishes) → closed and reopened once, as a person would; still stuck → the batch stops at once with
+        /// the reason, instead of every later scenario waiting on the same stuck tool (a 35-build batch once spent 34 min so).
+        /// </summary>
         private IEnumerator Idle(JObject res)
         {
             float t0 = Time.realtimeSinceStartup;
-            yield return Until(() => !_tool.Building && !_tool.Planning && !_tool.GhostPending, 60f, "tool idle");
+            bool IsIdle() => !_tool.Building && !_tool.Planning && !_tool.GhostPending;
+            yield return Until(IsIdle, _tool.Building ? 60f : 20f, "tool idle");
+            if (_timedOut && !_tool.Building)
+            {
+                string stuck = ToolState();
+                res["toolReset"] = stuck;
+                Say($"tool not idle after 20 s ({stuck}): closing and reopening it");
+                yield return CloseTool();
+                yield return Frames(30);
+                yield return OpenTool();
+                yield return Until(IsIdle, 45f, "tool idle after reopening it");
+                if (!_timedOut) Say("tool idle again after reopening it");
+            }
             res["idleWaitMs"] = Math.Round((Time.realtimeSinceStartup - t0) * 1000f);
             if (_timedOut)
             {
                 res["status"] = "tool-not-idle";
-                res["refused"] = $"tool not idle after 60 s (building {_tool.Building}, planning {_tool.Planning}, ghost pending {_tool.GhostPending})";
-                if (_tool.Building) _abortBatch = "a build was still running when the next scenario started: every later result would be contaminated";
+                res["refused"] = $"tool not idle ({ToolState()})";
+                _abortBatch = _tool.Building
+                    ? "a build was still running when the next scenario started: every later result would be contaminated"
+                    : $"the Placemaker tool stayed busy even after closing and reopening it ({ToolState()}): every later scenario would wait on it";
             }
+        }
+
+        private string ToolState() =>
+            $"building {_tool.Building}, planning {_tool.Planning}, ghost pending {_tool.GhostPending}, stage {_tool.Stage}, active {_tool.IsActive}"
+            + (Placemaker.Game.Preview.GhostPreview.Service is Placemaker.Game.Build.BuildService b ? ", " + b.GhostDebug : "");
+
+        /// <summary>The build button is greyed out for a reason no waiting can change (plan errors, money, no area or type).</summary>
+        private bool PlanBlocked(out string why)
+        {
+            var p = _tool.SuitePrimaryInfo();
+            why = null;
+            if (p.Enabled) return false;
+            switch (p.Reason)
+            {
+                case "Placemaker.Reason.PlanErrors": case "Placemaker.Reason.NoMoney": case "Placemaker.Reason.BuildUnavailable":
+                case "Placemaker.Reason.NoArea": case "Placemaker.Reason.NoRecipe": case "Placemaker.Reason.CloseArea": case "Placemaker.Reason.GroupsUnavailable":
+                    why = p.Reason + " " + _tool.SuiteUnreadyText();
+                    return true;
+            }
+            return false;
         }
 
         private string _abortBatch;
@@ -242,6 +282,7 @@ namespace Placemaker.Game.Suite
             {
                 case "area": yield return StepArea(st, step, rec); break;
                 case "clear": yield return StepClear(st, step, rec); break;
+                case "hover": yield return StepHover(st, step, rec); break;
                 case "type": yield return StepType(st, step, rec); break;
                 case "value": yield return StepValue(st, step, rec); break;
                 case "entrance": yield return StepEntrance(st, step, rec); break;
@@ -257,6 +298,7 @@ namespace Placemaker.Game.Suite
                 case "bulldoze": yield return StepBulldoze(st, step, rec); break;
                 case "infoEdit": yield return StepInfo(st, step, rec, edit: true); break;
                 case "infoRemove": yield return StepInfo(st, step, rec, edit: false); break;
+                case "infoUngroup": yield return StepInfoUngroup(st, step, rec); break;
                 case "camera": yield return StepCameraAndShot(st, step, rec); break;
                 case "terrain": yield return StepTerrainMap(st, step, rec); break;
                 case "shot": yield return StepShot(st, step, rec, (string)step["name"] ?? (string)step["shot"] ?? "shot" + rec["i"]); break;
@@ -269,8 +311,12 @@ namespace Placemaker.Game.Suite
                 case "redo": yield return StepUndoRedo(st, step, rec, false); break;
                 case "key": yield return StepKey(st, step, rec); break;
                 case "anarchy": yield return StepAnarchy(st, step, rec); break;
+                case "group": yield return StepGroupSwitch(st, step, rec); break;
                 case "setting": yield return StepSetting(st, step, rec); break;
+                case "options": yield return StepOptions(st, step, rec); break;
                 case "preset": yield return StepPreset(st, step, rec); break;
+                case "lab": yield return StepLab(st, step, rec); break;
+                case "polish": yield return StepPolish(st, step, rec); break;
                 default: rec["error"] = "unknown step '" + what + "' (suite/schema.json lists the steps)"; break;
             }
         }
@@ -295,7 +341,10 @@ namespace Placemaker.Game.Suite
             }
         }
 
-        private bool PlanReady() => _tool.Shape == null || (!_tool.Planning && _tool.Plan != null && _tool.PlanRevision == _tool.InputRevision);
+        // No type chosen (d4467e3: none until the player picks one; an area drawn first or after a build) plans nothing:
+        // nothing to wait for (it waited 240 s).
+        private bool PlanReady() => _tool.Shape == null || string.IsNullOrEmpty(_tool.RecipeId) || _tool.CurrentRecipe == null
+            || (!_tool.Planning && _tool.Plan != null && _tool.PlanRevision == _tool.InputRevision);
 
         /// <summary>The plan for the current input revision is finished. At "user" pace a person does not wait: a few frames only.</summary>
         private IEnumerator WaitPlan(ScenarioState st, JObject rec, float timeout = 240f, bool always = false)
@@ -314,10 +363,12 @@ namespace Placemaker.Game.Suite
         }
 
         /// <summary>The ghost is emitted (Ghost mode effective, nothing pending) and its temporaries stopped changing.</summary>
-        private IEnumerator WaitGhost(JObject rec, float timeout = 120f)
+        private IEnumerator WaitGhost(JObject rec, float timeout = 45f)
         {
             float t0 = Time.realtimeSinceStartup;
-            yield return Until(() => _tool.PreviewModeEffective == PreviewMode.Ghost && !_tool.GhostPending, timeout, "ghost");
+            // (shops4) a refused plan (an error: Build waits) shows no ghost: nothing to wait for
+            yield return Until(() => (_tool.PreviewModeEffective == PreviewMode.Ghost && !_tool.GhostPending) || (_tool.PlanRefused && !_tool.Planning), timeout, "ghost");
+            if (_tool.PlanRefused) { rec["ghost"] = "none: the plan is refused"; yield break; }
             bool timedOut = _timedOut;
             int last = -1, still = 0;
             float until = Time.realtimeSinceStartup + 30f;

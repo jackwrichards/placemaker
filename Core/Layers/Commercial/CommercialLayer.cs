@@ -13,7 +13,7 @@ using Unity.Mathematics;
 
 namespace Placemaker.Core.Layers.Commercial
 {
-    public abstract class CommercialLayer : LeisureLayer
+    public abstract partial class CommercialLayer : LeisureLayer
     {
         public const string Group = "commercial";
         protected const string K = "Placemaker.Commercial.";
@@ -142,6 +142,8 @@ namespace Placemaker.Core.Layers.Commercial
                     CommonStats(ctx);
                     return;
                 }
+                // (shops4) The layout said why it does not fit (an error the panel shows; Build waits): nothing else is tried.
+                if (ctx.Plan.Issues.Exists(i => i.Key == NoRoomKey || i.Key == TooSteepKey)) return;
                 // The site could not hold it: the type's older layout (its lanes join the streets themselves) when a street runs
                 // along it; a shops type never quietly becomes a park (the lead: a user drawing 8 m off a road got one).
                 if (runs.Count == 0)

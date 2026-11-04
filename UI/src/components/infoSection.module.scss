@@ -33,6 +33,21 @@
     flex: 1 1 auto;
 }
 
+// Remove / Ungroup asked in place: one line of what happens, then OK and Cancel
+.ask {
+    @include col;
+    margin-top: 6rem;
+    padding: 6rem 8rem 2rem 8rem;
+    border-radius: $radius;
+    background-color: $c-surface;
+}
+
+.askText {
+    font-size: var(--fontSizeXS);
+    line-height: 1.3;
+    color: var(--menuText1Normal);
+}
+
 .kind {
     margin-left: 26rem;
     font-size: var(--fontSizeXS);

@@ -1,0 +1,44 @@
+{
+  "_about": "Follow-up of reload-surfaces.json: the grass under a standard car park rebuilt in reload-oldsave.json. That car park was first built in a city that had already been loaded once, then saved with duplicate records (lab oldDuplicate) and loaded. 'after-load': built after a load, loaded again, rebuilt. 'after-load-dup': the same with the duplicate records of older builds in the save. A picture after each. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/reload-surfaces-2.json -Fresh -Who <you>",
+  "scenarios": [
+    {
+      "id": "after-load",
+      "site": "flat",
+      "steps": [
+        { "do": "lab", "op": "saveLoad" },
+        { "do": "area", "tool": "bucket" },
+        { "do": "type", "layer": "parking", "preset": "standard" },
+        { "do": "entrance", "side": "south", "t": 0.5 },
+        { "do": "build" },
+        { "do": "camera", "target": "build", "view": "oblique", "shot": "built" },
+        { "do": "lab", "op": "saveLoad" },
+        { "do": "camera", "target": "build", "view": "oblique", "shot": "loaded" },
+        { "do": "edit", "build": true },
+        { "do": "value", "id": "aisleWidth", "value": 8.5 },
+        { "do": "build" },
+        { "do": "wait", "seconds": 3 },
+        { "do": "camera", "target": "build", "view": "oblique", "shot": "rebuilt" }
+      ]
+    },
+    {
+      "id": "after-load-dup",
+      "site": "flat",
+      "steps": [
+        { "do": "area", "tool": "bucket" },
+        { "do": "type", "layer": "parking", "preset": "standard" },
+        { "do": "entrance", "side": "south", "t": 0.5 },
+        { "do": "build" },
+        { "do": "camera", "target": "build", "view": "oblique", "shot": "built" },
+        { "do": "lab", "op": "oldDuplicate" },
+        { "do": "lab", "op": "saveLoad" },
+        { "do": "lab", "op": "groupRecords", "label": "duplicates dropped" },
+        { "do": "camera", "target": "build", "view": "oblique", "shot": "loaded" },
+        { "do": "edit", "build": true },
+        { "do": "value", "id": "aisleWidth", "value": 8.5 },
+        { "do": "build" },
+        { "do": "wait", "seconds": 3 },
+        { "do": "camera", "target": "build", "view": "oblique", "shot": "rebuilt" }
+      ]
+    }
+  ]
+}

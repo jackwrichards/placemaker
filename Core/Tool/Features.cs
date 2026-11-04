@@ -17,8 +17,21 @@ namespace Placemaker.Core.Tool
         public static IReadOnlyList<FeatureInfo> Of(IAreaGenerator gen)
         {
             if (gen == null || gen.Kind != LayerKind.Fill || !(gen is IHasFeatures hf)) return Array.Empty<FeatureInfo>();
-            try { return hf.Features ?? (IReadOnlyList<FeatureInfo>)Array.Empty<FeatureInfo>(); }
+            // (issue #2) the Decals feature placed only decals from decal packs, which plans no longer keep (PackDecals)
+            try { return hf.Features == null ? (IReadOnlyList<FeatureInfo>)Array.Empty<FeatureInfo>() : Visible(hf.Features); }
             catch (Exception) { return Array.Empty<FeatureInfo>(); }
+        }
+
+        private static IReadOnlyList<FeatureInfo> Visible(IReadOnlyList<FeatureInfo> all)
+        {
+            foreach (var f in all)
+                if (f != null && Decals.PackDecals.IsHiddenFeature(f.Layer))
+                {
+                    var list = new List<FeatureInfo>(all.Count);
+                    foreach (var g in all) if (g == null || !Decals.PackDecals.IsHiddenFeature(g.Layer)) list.Add(g);
+                    return list;
+                }
+            return all;
         }
 
         public static FeatureInfo Find(IAreaGenerator gen, string featureLayer)

@@ -44,7 +44,8 @@ namespace Placemaker.Game.Suite
             if (when == "settled")
             {
                 yield return WaitPlan(st, rec, always: true);
-                if (_tool.PreviewModeSelected == PreviewMode.Ghost && (_tool.GhostPending || _tool.PreviewModeEffective != PreviewMode.Ghost)) yield return WaitGhost(rec);
+                // a plan that cannot be built has no ghost worth waiting for: the greyed-out button is reported below at once
+                if (!PlanBlocked(out _) && _tool.PreviewModeSelected == PreviewMode.Ghost && (_tool.GhostPending || _tool.PreviewModeEffective != PreviewMode.Ghost)) yield return WaitGhost(rec);
             }
             else if (when == "planready") yield return WaitPlan(st, rec, always: true);
             else if (when == "ghostpending")
@@ -69,6 +70,11 @@ namespace Placemaker.Game.Suite
             }
             int doneBefore = _tool.SuiteBuildsDone;
             float t0 = Time.realtimeSinceStartup;
+            // what the build leaves: "fresh" (default, the area cleared as every scenario expects), "keep" (the area kept,
+            // back to Design: the player's Build & keep area) or "close" (Build & close)
+            string after = ((string)step["after"] ?? "fresh").ToLowerInvariant();
+            _tool.SuiteNextAfterBuild = after == "keep" ? PlacemakerToolSystem.AfterBuild.KeepArea
+                : after == "close" ? PlacemakerToolSystem.AfterBuild.Close : PlacemakerToolSystem.AfterBuild.Fresh;
             string via = ((string)step["via"] ?? "panel").ToLowerInvariant();
             if (via == "enter") { yield return KeyPress("enter"); rec["ui"] = new JArray(new JObject { ["action"] = "Build", ["path"] = "key Enter" }); }
             else yield return UiPrimary(st, rec, "Build");
@@ -262,7 +268,7 @@ namespace Placemaker.Game.Suite
             else
             {
                 yield return UiAct(st, rec, "info Remove", "info-remove", null, null, null, null, mustChange: false, effectFrames: 4);
-                yield return UiAct(st, rec, "OK (remove)", "confirm-ok", "removeGroup", new object[] { (double)g }, () => Services.Groups?.Get(g) == null, () => _tool.RemoveGroup(g), mustChange: false, effectFrames: 10);
+                yield return UiAct(st, rec, "OK (remove)", "info-confirm-ok", "removeGroup", new object[] { (double)g }, () => Services.Groups?.Get(g) == null, () => _tool.RemoveGroup(g), mustChange: false, effectFrames: 10);
                 yield return AfterDelete(st, rec, g);
                 yield return OpenTool();
             }

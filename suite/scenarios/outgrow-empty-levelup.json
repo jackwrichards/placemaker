@@ -1,0 +1,28 @@
+{
+  "_about": "Outgrown but empty after a level-up (the user: what was built later vanished): three streets back to back (shops, apartments, offices) grow, every lot is outgrown, then most buildings level up through the game's own level-up (the model swapped on the same lot, its fences, lawns and pieces rebuilt) and the simulation runs a little. outgrowAudit before and after; outgrowRepaint stamps the empty ones again and counts how many of them get pieces now (empty by a fault). Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-empty-levelup.json -Who fix-outgrow-empty",
+  "scenarios": [
+    {
+      "id": "empty-levelup",
+      "land": { "shape": "rect", "size": [ 420, 420 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": false },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [ 0, 130 ], "zone": "NA Commercial Low" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [ 0, 0 ], "zone": "NA Residential Medium" },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 300, "at": [ 0, -130 ], "zone": "Office Low" },
+        { "do": "grow", "seconds": 100 },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "lab", "op": "outgrowAudit", "label": "after outgrowing every lot" },
+        { "do": "shot", "name": "top", "camera": { "target": "point", "at": [ 0, 0 ], "view": "top", "distance": 420 }, "shotMode": "render" },
+        { "do": "lab", "op": "levelUp", "share": 0.6 },
+        { "do": "grow", "seconds": 20 },
+        { "do": "lab", "op": "polishIdle", "seconds": 150 },
+        { "do": "lab", "op": "outgrowAudit", "label": "after level-ups" },
+        { "do": "shot", "name": "top-levelled", "camera": { "target": "point", "at": [ 0, 0 ], "view": "top", "distance": 420 }, "shotMode": "render" },
+        { "do": "lab", "op": "outgrowRepaint", "only": "empty", "wait": 150 },
+        { "do": "shot", "name": "top-repainted", "camera": { "target": "point", "at": [ 0, 0 ], "view": "top", "distance": 420 }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

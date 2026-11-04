@@ -372,6 +372,82 @@ namespace Placemaker.Game.Suite
             return courses;
         }
 
+        /// <summary>
+        /// (area tools) Emits a plot's extra roads and paths (SuitePlot.Nets) after its ring road: an end on an existing node
+        /// joins it, an end within a metre of an existing edge splits that edge there (CoursePos.m_Entity = the edge,
+        /// m_SplitPosition = its curve position, as the vanilla road tool snaps onto a road), consecutive points of one net
+        /// join each other.
+        /// </summary>
+        public int EmitNets(SuiteFixtureToolSystem tool, IEnumerable<SuiteRoadSegment> segments)
+        {
+            int courses = 0;
+            var random = new Unity.Mathematics.Random(0xA4EA5u);
+            var nodes = ExistingNodes();
+            var edges = ExistingEdges();
+            var made = new Dictionary<long, bool>();
+            foreach (var seg in segments)
+            {
+                var prefab = Road(seg.Prefab);
+                if (prefab == Entity.Null) continue;
+                var a = new float3(seg.A.x, H(seg.A.x, seg.A.y), seg.A.y);
+                var b = new float3(seg.B.x, H(seg.B.x, seg.B.y), seg.B.y);
+                var curve = NetUtils.StraightCurve(a, b);
+                var start = new CoursePos
+                {
+                    m_Entity = Entity.Null, m_Position = a, m_Rotation = NetUtils.GetNodeRotation(MathUtils.StartTangent(curve)),
+                    m_CourseDelta = 0f, m_Elevation = float2.zero, m_Flags = CoursePosFlags.IsFirst | CoursePosFlags.IsLeft | CoursePosFlags.IsRight,
+                    m_ParentMesh = -1, m_SplitPosition = 0f,
+                };
+                var end = new CoursePos
+                {
+                    m_Entity = Entity.Null, m_Position = b, m_Rotation = NetUtils.GetNodeRotation(MathUtils.EndTangent(curve)),
+                    m_CourseDelta = 1f, m_Elevation = float2.zero, m_Flags = CoursePosFlags.IsLast | CoursePosFlags.IsLeft | CoursePosFlags.IsRight,
+                    m_ParentMesh = -1, m_SplitPosition = 0f,
+                };
+                // Points this batch already starts or ends a course at are left to the game to join (same position).
+                if (!made.ContainsKey(Key(seg.A))) AttachOrSplit(ref start, nodes, edges);
+                if (!made.ContainsKey(Key(seg.B))) AttachOrSplit(ref end, nodes, edges);
+                made[Key(seg.A)] = true;
+                made[Key(seg.B)] = true;
+                var def = tool.NewDefinition();
+                _em.AddComponentData(def, new CreationDefinition { m_Prefab = prefab, m_RandomSeed = random.NextInt() });
+                _em.AddComponent<Updated>(def);
+                _em.AddComponentData(def, new NetCourse
+                {
+                    m_Curve = curve, m_Length = MathUtils.Length(curve), m_FixedIndex = -1, m_Elevation = float2.zero,
+                    m_StartPosition = start, m_EndPosition = end,
+                });
+                courses++;
+            }
+            return courses;
+        }
+
+        private List<Entity> ExistingEdges()
+        {
+            var r = new List<Entity>();
+            using (var q = _em.CreateEntityQuery(ComponentType.ReadOnly<Edge>(), ComponentType.ReadOnly<global::Game.Net.Curve>(), ComponentType.Exclude<Deleted>(), ComponentType.Exclude<Temp>()))
+            using (var all = q.ToEntityArray(Allocator.Temp))
+                foreach (var e in all) r.Add(e);
+            return r;
+        }
+
+        private void AttachOrSplit(ref CoursePos pos, Dictionary<long, Entity> nodes, List<Entity> edges)
+        {
+            Attach(ref pos, nodes);
+            if (pos.m_Entity != Entity.Null) return;
+            float best = 1f;
+            foreach (var e in edges)
+            {
+                var c = _em.GetComponentData<global::Game.Net.Curve>(e).m_Bezier;
+                float d = MathUtils.Distance(c.xz, pos.m_Position.xz, out float t);
+                if (d >= best) continue;
+                best = d;
+                pos.m_Entity = e;
+                pos.m_SplitPosition = t;
+                pos.m_Position = MathUtils.Position(c, t);
+            }
+        }
+
         private static long Key(float2 p) => ((long)math.round(p.x * 4f) << 32) ^ (uint)(int)math.round(p.y * 4f);
 
         private Dictionary<long, Entity> ExistingNodes()

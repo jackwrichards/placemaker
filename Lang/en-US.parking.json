@@ -140,6 +140,7 @@
 
   "Placemaker.Parking.Issue.BadShape": "This outline crosses itself. Move a corner so the edges don't cross.",
   "Placemaker.Parking.Issue.TooSmall": "Too small for a parking lot ({0} m², needs at least {1} m²).",
+  "Placemaker.Parking.Issue.TooNarrow": "Too narrow for parking rows once the edge margin is taken off. Make the area wider, or the edge margin smaller.",
   "Placemaker.Parking.Issue.TooLarge": "Too large for one parking lot ({0} m², at most {1} m²). Split it into smaller areas.",
   "Placemaker.Parking.Issue.NoEntrance": "No entrance for cars yet. Pick an entrance type and click the outline next to a street.",
   "Placemaker.Parking.Issue.EntrancesSuggested": "Entrances were placed on the nearest road. Move them along the outline if you like.",

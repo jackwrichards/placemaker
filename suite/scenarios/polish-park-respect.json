@@ -1,0 +1,148 @@
+{
+  "_about": "Gardens never grow into a build: a zoned street grown, its houses outgrown with Suburb Leafy (the most reach), then a park built in the land the gardens took; the gardens near it are planned again and give the park its land back. Send with tools/hot/Send-Hot.ps1 -File suite/scenarios/polish-park-respect.json.",
+  "scenarios": [
+    {
+      "id": "polish-park-respect",
+      "land": {
+        "shape": "rect",
+        "size": [
+          320,
+          240
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": false
+        },
+        {
+          "do": "lab",
+          "op": "street",
+          "shape": "arc",
+          "radius": 120,
+          "from": 40,
+          "to": 140
+        },
+        {
+          "do": "grow",
+          "seconds": 120
+        },
+        {
+          "do": "area",
+          "tool": "paint",
+          "size": 80,
+          "cameraDistance": 520,
+          "stroke": [
+            [
+              -110,
+              -60
+            ],
+            [
+              -60,
+              0
+            ],
+            [
+              -20,
+              40
+            ],
+            [
+              30,
+              60
+            ]
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "zoningSuburb",
+          "preset": "suburbLeafy"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 180
+        },
+        {
+          "do": "shot",
+          "name": "gardens-top",
+          "camera": {
+            "target": "point",
+            "at": [
+              -20,
+              -30
+            ],
+            "view": "top",
+            "distance": 300
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "area",
+          "tool": "points",
+          "at": [
+            -20,
+            -45
+          ],
+          "rect": [
+            50,
+            36
+          ]
+        },
+        {
+          "do": "type",
+          "layer": "park"
+        },
+        {
+          "do": "entrances"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "lab",
+          "op": "polishIdle",
+          "seconds": 180
+        },
+        {
+          "do": "shot",
+          "name": "park-top",
+          "camera": {
+            "target": "point",
+            "at": [
+              -20,
+              -30
+            ],
+            "view": "top",
+            "distance": 300
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "shot",
+          "name": "park-45",
+          "camera": {
+            "target": "point",
+            "at": [
+              -20,
+              -40
+            ],
+            "view": "oblique",
+            "pitch": 50,
+            "distance": 170
+          },
+          "shotMode": "render"
+        },
+        {
+          "do": "setting",
+          "name": "PolishNewHouses",
+          "value": true
+        }
+      ]
+    }
+  ]
+}

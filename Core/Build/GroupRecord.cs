@@ -20,6 +20,12 @@ namespace Placemaker.Core.Build
         PermanentTerrain = 4,
         /// <summary>Group runs the parking economy (fee, upkeep, companion).</summary>
         ParkingEconomy = 8,
+        /// <summary>
+        /// Ungrouped by the player: its pieces are clicked, changed and bulldozed one by one (no lift to the owner lot, no
+        /// cascade from a bulldozed part, the lot itself is never hit). The record stays for the after-load repairs, the park
+        /// stats and "Group again".
+        /// </summary>
+        Ungrouped = 16,
     }
 
     /// <summary>

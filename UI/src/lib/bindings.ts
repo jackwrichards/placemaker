@@ -198,7 +198,7 @@ function normalizeStep(s: Record<string, any>): StepView {
         markers: arr(s.markers),
         markerList: arr<any>(s.markerList)
             .filter(isObj)
-            .map((m, i) => ({ kind: String(m.kind ?? ""), index: typeof m.index === "number" ? m.index : i, position: (Array.isArray(m.position) ? m.position : [0, 0, 0]) as [number, number, number] })),
+            .map((m, i) => ({ kind: String(m.kind ?? ""), index: typeof m.index === "number" ? m.index : i, position: (Array.isArray(m.position) ? m.position : [0, 0, 0]) as [number, number, number], crosswalk: m.crosswalk === true || undefined })),
         markerKinds: arr<any>(s.markerKinds)
             .map((k) => (typeof k === "string" ? { kind: k, label: "" } : k))
             .filter((k) => isObj(k) && typeof k.kind === "string"),
@@ -315,10 +315,29 @@ const json = (v: SettingValue) => JSON.stringify(v);
 /** Every UI → C# call, typed after contract.ts Triggers. */
 export const act = {
     toggleTool: () => fire(Triggers.toggleTool),
+    togglePolish: () => fire(Triggers.togglePolish),
     close: () => fire(Triggers.close),
     setPanelCollapsed: (collapsed: boolean) => fire(Triggers.setPanelCollapsed, collapsed),
     goToStage: (stage: Stage) => fire(Triggers.goToStage, stage),
     primary: () => fire(Triggers.primary),
+    /** Review's second button: build, then close Placemaker (the primary builds and keeps the area). */
+    buildAndClose: () => fire(Triggers.buildAndClose),
+    /** (PROTOCOL 25) The painter: Polish (true) or Unpolish (false) the lots in the area. */
+    polishStamp: (yes: boolean) => fire(Triggers.polishStamp, yes),
+    /** The theme the painter's Polish gives. */
+    polishTheme: (theme: string) => fire(Triggers.polishTheme, theme),
+    /** A look row of the painter card (toggles 1 / 0, painted 0–100). */
+    polishOption: (id: string, value: number) => fire(Triggers.polishOption, id, value),
+    /** A Whole city row of the painter card. */
+    polishCity: (what: string, value = "") => fire(Triggers.polishCity, what, value),
+    /** A setting of the look picked in the polish tool. */
+    polishKnob: (id: string, value: number) => fire(Triggers.polishKnob, id, value),
+    /** save / saveAs (name) / rename (name) / delete / revert the look picked. */
+    polishLook: (what: string, arg = "") => fire(Triggers.polishLook, what, arg),
+    /** A zone type's look ("off"; "" = as its kind). */
+    polishZone: (zone: string, look: string) => fire(Triggers.polishZone, zone, look),
+    /** The Live switch beside Polish. */
+    polishLive: (on: boolean) => fire(Triggers.polishLive, on),
     undo: () => fire(Triggers.undo),
     redo: () => fire(Triggers.redo),
     setAreaMode: (mode: AreaMode) => fire(Triggers.setAreaMode, mode),
@@ -357,6 +376,11 @@ export const act = {
     locate: (at: [number, number, number]) => fire(Triggers.locate, Number(at[0]) || 0, Number(at[1]) || 0, Number(at[2]) || 0),
     setMarkerKind: (path: string, kind: string) => fire(Triggers.setMarkerKind, path, kind),
     removeMarker: (path: string, index: number) => fire(Triggers.removeMarker, path, index),
+    /** Crosswalk or not: index -1 = the entrances placed next, else that placed marker. */
+    setMarkerCrosswalk: (path: string, index: number, on: boolean) => fire(Triggers.setMarkerCrosswalk, path, index, on),
+    ungroupGroup: (id: number, ungroup: boolean) => fire(Triggers.ungroupGroup, id, ungroup),
+    setBuildUngrouped: (on: boolean) => fire(Triggers.setBuildUngrouped, on),
+    setKeepArea: (on: boolean) => fire(Triggers.setKeepArea, on),
     /** Leave marker placement: in marker mode the C# primary action is "placeMarkers" (Done), which toggles it off. */
     endMarkers: () => fire(Triggers.primary),
     /** The player ticked the permanent-effects box (C# also guards Enter with it). */

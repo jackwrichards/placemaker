@@ -502,7 +502,7 @@ namespace Placemaker.Gallery
     {
         public string Summary = "", File = "";
         public double Ms;
-        public int Objects, Nets, Surfaces, Errors, Warnings, BenchesOffPath, Overlaps, Outside, Decals, EdgeSpikes;
+        public int Objects, Nets, Surfaces, Errors, Warnings, BenchesOffPath, Overlaps, Outside, Decals, EdgeSpikes, BadSurfaces;
         /// <summary>(shops2) The first layer plan's facts (the composition's own numbers).</summary>
         public Dictionary<string, double> Facts = new Dictionary<string, double>();
         /// <summary>(s30) Glitch metrics of the final ground (curtain, net seats) for terrain renders.</summary>
@@ -1216,6 +1216,17 @@ namespace Placemaker.Gallery
             // s9: edge spikes (paths hugging or leaving the outline) drawn as red bars.
             var spikes = Placemaker.Core.Layers.Common.PathQuality.EdgeSpikes(plan, ring);
             res.EdgeSpikes = spikes.Count;
+            // (shops4) Surfaces the game would refuse (the build skips them: a lot's asphalt missing under its stalls). Same rule as
+            // BuildService.EmitPreparedRings with the surface prefabs' snap distance (d = 0.375).
+            foreach (var l in plan.Layers)
+                foreach (var sf in l.Surfaces)
+                {
+                    var r2 = Placemaker.Core.Geometry.Poly.To2D(sf.Ring);
+                    if (Placemaker.Core.Build.AreaRings.IsValid(r2, 0.375f + Placemaker.Core.Build.AreaRings.Margin) && Placemaker.Core.Geometry.SurfaceAcceptance.IsAccepted(r2)) continue;
+                    if (Placemaker.Core.Build.AreaRings.PrepareSurface(r2, 0.375f).Count > 0) continue;
+                    res.BadSurfaces++;
+                    if (System.Environment.GetEnvironmentVariable("PM_DEBUG") == "1") System.Console.Error.WriteLine($"bad surface {l.GeneratorId} {sf.Role} area {Placemaker.Core.Geometry.Poly.Area(r2):F1}: {string.Join(" ", r2.Select(p => $"({p.x:F2},{p.y:F2})"))}");
+                }
             foreach (var sp in spikes) cv.StrokePolyline(new[] { sp.From, sp.To }, 1.6f, Rgba.Hex("#e01010", 0.85f));
             if (final != null)
             {
@@ -1559,7 +1570,7 @@ namespace Placemaker.Gallery
                     {
                         type = j.Type, variant = j.Variant, file = r.File, ms = Math.Round(r.Ms), failure = r.Failure, objects = r.Objects, nets = r.Nets,
                         pathMetres = Math.Round(r.PathMetres), surfaces = r.Surfaces, errors = r.Errors, warnings = r.Warnings,
-                        benchesOffPath = r.BenchesOffPath, overlaps = r.Overlaps, outside = r.Outside, edgeSpikes = r.EdgeSpikes, decals = r.Decals, byRole = r.ByRole, byCategory = r.ByCategory.OrderByDescending(k => k.Value).ToDictionary(k => k.Key, k => k.Value), issues = r.IssueKeys.Distinct().ToList(), facts = r.Facts,
+                        benchesOffPath = r.BenchesOffPath, overlaps = r.Overlaps, outside = r.Outside, edgeSpikes = r.EdgeSpikes, badSurfaces = r.BadSurfaces, decals = r.Decals, byRole = r.ByRole, byCategory = r.ByCategory.OrderByDescending(k => k.Value).ToDictionary(k => k.Key, k => k.Value), issues = r.IssueKeys.Distinct().ToList(), facts = r.Facts,
                         roads = r.RoadLegend.Select(e => new { role = e.Role, asset = e.AssetId, lengthM = e.LengthM, count = e.Count }).ToList(),
                     });
                 }

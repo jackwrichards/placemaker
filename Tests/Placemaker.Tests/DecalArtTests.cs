@@ -86,44 +86,6 @@ namespace Placemaker.Tests
         }
 
         [Fact]
-        public void PathWearFollowsFeetNotEveryMetre()
-        {
-            var p = Park(200);
-            var traffic = new List<float2>();
-            foreach (var l in p.Layers)
-            {
-                foreach (var o in l.Objects) if (o.Role == ObjectRole.Bench || o.Role == ObjectRole.Bin || (o.Category ?? "").StartsWith("picnic") || (o.Category ?? "").StartsWith("play")) traffic.Add(o.Position.xz);
-                foreach (var n in l.Nets) if (n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide) { traffic.Add(n.A.xz); traffic.Add(n.D.xz); }
-            }
-            var wear = p.Layers.SelectMany(l => l.Objects).Where(o => o.Role == ObjectRole.Decal && o.Category == DecalPools.Wear).ToList();
-            Assert.NotEmpty(wear);
-            int near = wear.Count(o => traffic.Any(t => math.distance(t, o.Position.xz) < 14f));
-            Assert.True(near >= wear.Count * 0.9f, $"{near}/{wear.Count} worn patches near benches, play, junctions or entrances");
-        }
-
-        [Fact]
-        public void SandDustsThePavingAtTheSandEdge()
-        {
-            // A sand patch with paving to its east; the seam rule dusts the paving side, along the edge.
-            var plan = new ComposedPlan();
-            var l = new AreaPlan { GeneratorId = "park", Seed = 5 };
-            plan.Layers.Add(l);
-            l.Surfaces.Add(new PlannedSurface { Ring = Poly.To3D(new[] { new float2(10, 10), new float2(40, 10), new float2(40, 50), new float2(10, 50) }, _ => 0f), Role = SurfaceRole.Ground, Category = AssetCategories.SurfaceSand });
-            l.Surfaces.Add(new PlannedSurface { Ring = Poly.To3D(new[] { new float2(40, 10), new float2(70, 10), new float2(70, 50), new float2(40, 50) }, _ => 0f), Role = SurfaceRole.Paving, Category = AssetCategories.SurfacePaving });
-            var s = DressingControls.Read(GeneratorRegistry.Get("park"), new SettingsBag { Values = { [DressingControls.AmountId] = 100.0 } });
-            s.LayerId = "park";
-            var area = new AreaShape { Ring = TestKit.Rect(80, 60) };
-            Dressing.Apply(plan, area, new SiteContext(), new Dictionary<AreaPlan, DressSettings> { [l] = s });
-            var sand = l.Objects.Where(o => o.Category == DecalPools.Sand).ToList();
-            Assert.True(sand.Count >= 6, "sand dust along the 40 m seam: " + sand.Count);
-            foreach (var o in sand)
-            {
-                Assert.InRange(o.Position.x, 40f, 43.5f);
-                Assert.True(System.Math.Abs(math.sin(o.Yaw)) < 0.05f, "along the seam");
-            }
-        }
-
-        [Fact]
         public void LawnIsNotScatteredAtRandom()
         {
             var p = Park(300);

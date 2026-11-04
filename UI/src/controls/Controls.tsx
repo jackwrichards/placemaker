@@ -21,13 +21,22 @@ import { setOpen as setSectionOpen, useSections } from "../lib/collapse";
 import { pairHalves, usePanelLayout } from "../lib/layout";
 import s from "./controls.module.scss";
 
-type RowCtx = { step: StepView; layer: LayerType; state: ToolState };
+type RowCtx = { step: StepView; layer: LayerType; state: ToolState; sink?: ValueSink | null };
+
+/**
+ * Where the rows write their values: the design (null, the default), or a sink of the caller's (a Zoning type's zone keeps its
+ * own copy of the Outgrow settings in one setting: ZoneMix). With a sink there is no live preview and no lock.
+ */
+export type ValueSink = { set: (id: string, v: SettingValue) => void };
+export const ValueSinkContext = React.createContext<ValueSink | null>(null);
 
 const label = (t: TFunc, c: ControlEx) => t(c.label, humanize(c.label || c.id));
 const optLabel = (t: TFunc, o: { value: string; label: string }) => t(o.label, humanize(o.label || o.value));
 
 export const ControlRow = ({ c, ctx, className, avail }: { c: ControlEx; ctx: RowCtx; className?: string; avail?: ControlAvailability }) => {
     const { t } = useT();
+    const sink = React.useContext(ValueSinkContext);
+    ctx = { ...ctx, sink };
     const { step } = ctx;
     const value = valueOf(step, c);
     const locked = step.locked.includes(c.id);
@@ -36,7 +45,10 @@ export const ControlRow = ({ c, ctx, className, avail }: { c: ControlEx; ctx: Ro
     const off = !!avail?.disabled;
     const changed = !off && def !== undefined && !valuesEqual(value, def);
     const commit = (v: SettingValue) => {
-        if (!off) act.setValue(step.path, c.id, v);
+        if (!off) {
+            if (sink) sink.set(c.id, v);
+            else act.setValue(step.path, c.id, v);
+        }
     };
     const help = c.tooltip ? t(c.tooltip, "") : c.kind === "arrangement" ? t("Placemaker.UI.Arrangement.Hint", "Repeats in this order along the edges") : "";
     const tip = off && avail?.reason ? avail.reason + (help ? " — " + help : "") : help;
@@ -45,7 +57,7 @@ export const ControlRow = ({ c, ctx, className, avail }: { c: ControlEx; ctx: Ro
 
     const affordances = (
         <div className={s.affordances}>
-            {locked && !off ? (
+            {locked && !off && !sink ? (
                 <Btn
                     icon="lock"
                     iconSize={11}
@@ -66,8 +78,11 @@ export const ControlRow = ({ c, ctx, className, avail }: { c: ControlEx; ctx: Ro
                     testId={`reset-${c.id}`}
                     title={t("Placemaker.UI.ResetValue", "Reset to default")}
                     onClick={() => {
-                        act.setValue(step.path, c.id, def as SettingValue);
-                        act.unlockValue(step.path, c.id);
+                        if (sink) sink.set(c.id, def as SettingValue);
+                        else {
+                            act.setValue(step.path, c.id, def as SettingValue);
+                            act.unlockValue(step.path, c.id);
+                        }
                     }}
                 />
             ) : (
@@ -116,9 +131,9 @@ function renderEditor(c: ControlEx, value: SettingValue, commit: (v: SettingValu
                     max={c.max ?? 1}
                     step={c.step ?? 1}
                     unit={c.unit}
-                    onPreview={(v) => act.previewValue(ctx.step.path, c.id, v)}
+                    onPreview={(v) => (ctx.sink ? undefined : act.previewValue(ctx.step.path, c.id, v))}
                     onCommit={(v) => commit(v)}
-                    onEndPreview={() => act.endPreview()}
+                    onEndPreview={() => (ctx.sink ? undefined : act.endPreview())}
                 />
             );
         case "toggle":

@@ -1,0 +1,22 @@
+{
+  "_about": "Make-row category 'Zoning' (Core/Tool/Shelf.cs): the neighbourhood types (Core/Layers/Types/Zoning/ZoningTypes.cs: Suburb, Village, Townhouses, Main street, Town centre, Downtown, Business park, Industrial estate, Seaside). Each zones the empty land as lots from the road (its zones, lot sizes, fill, mix, road rule) and lets the lots outgrow their borders with its look; its styles are variations of that neighbourhood. The looks as types (polishGarden…) are hidden. The City window (header button) sets each zone type's look for new buildings and polishes or unpolishes the whole city.",
+  "id": "zoning",
+  "name": "Zoning",
+  "order": 0,
+  "hidden": false,
+  "groups": [
+    "zoning"
+  ],
+  "types": [],
+  "hiddenTypes": [
+    "polishGarden",
+    "polishNatural",
+    "polishTidy",
+    "polishYard",
+    "polishMeadow",
+    "polishRustic",
+    "polishCoastal",
+    "polishManicured"
+  ],
+  "hiddenStyles": {}
+}

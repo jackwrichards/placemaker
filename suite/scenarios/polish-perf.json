@@ -1,0 +1,43 @@
+{
+  "_about": "Neighbourhood polish on a town at once: nine square blocks of houses (about 450), polish switched on over all of them; the step polishIdle reports how long until every house was looked at and the frame cost meanwhile (Placemaker.log 'polish idle'). Send with tools/hot/Send-Hot.ps1 -File suite/scenarios/polish-perf.json.",
+  "scenarios": [
+    {
+      "id": "perf-town",
+      "land": {
+        "shape": "rect",
+        "size": [
+          760,
+          760
+        ],
+        "ground": "flat",
+        "roads": "none"
+      },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": false },
+        { "do": "lab", "op": "street", "shape": "block", "length": 130, "at": [ -220, -220 ] },
+        { "do": "lab", "op": "street", "shape": "block", "length": 130, "at": [ -220, 0 ] },
+        { "do": "lab", "op": "street", "shape": "block", "length": 130, "at": [ -220, 220 ] },
+        { "do": "lab", "op": "street", "shape": "block", "length": 130, "at": [ 0, -220 ] },
+        { "do": "lab", "op": "street", "shape": "block", "length": 130, "at": [ 0, 0 ] },
+        { "do": "lab", "op": "street", "shape": "block", "length": 130, "at": [ 0, 220 ] },
+        { "do": "lab", "op": "street", "shape": "block", "length": 130, "at": [ 220, -220 ] },
+        { "do": "lab", "op": "street", "shape": "block", "length": 130, "at": [ 220, 0 ] },
+        { "do": "lab", "op": "street", "shape": "block", "length": 130, "at": [ 220, 220 ] },
+        { "do": "grow", "seconds": 180 },
+        { "do": "shot", "name": "before-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "lab", "op": "polishStamp", "yes": true },
+        { "do": "lab", "op": "polishIdle", "seconds": 400 },
+        { "do": "lab", "op": "polishStats" },
+        { "do": "shot", "name": "after-top", "camera": { "target": "area", "view": "top" },
+          "shotMode": "render"
+        },
+        { "do": "shot", "name": "after-45", "camera": { "target": "point", "at": [ 0, 0 ], "view": "oblique", "pitch": 50, "distance": 140 },
+          "shotMode": "render"
+        }
+      ]
+    }
+  ]
+}

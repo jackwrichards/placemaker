@@ -1,0 +1,43 @@
+{
+  "_about": "Car parks in front of their lots where the street curves away (the user, 22 Oct: a lot on a cul-de-sac cannot hug the turning circle, the triangle between its front and the kerb is nobody's). Shops round a turning circle and on the outside of a curve, their car parks planned without (frontReach 0) and with the reach (the default, 15 m), the same spots pictured each time. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-front-reach.json -Build -Who <you>",
+  "scenarios": [
+    {
+      "id": "front-reach-culdesac",
+      "land": { "shape": "rect", "size": [360, 360], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "culdesac", "at": [0, 0], "length": 120, "zone": "NA Commercial Low" },
+        { "do": "grow", "seconds": 150 },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "lab", "op": "polishSettings", "settings": { "frontReach": 0 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "shot", "name": "circle-before-top", "camera": { "target": "point", "at": [0, 55], "view": "top", "distance": 140 }, "shotMode": "render" },
+        { "do": "shot", "name": "circle-before-45", "camera": { "target": "point", "at": [0, 55], "view": "oblique", "pitch": 45, "distance": 110 }, "shotMode": "render" },
+        { "do": "lab", "op": "polishSettings", "settings": { "frontReach": 15 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "lab", "op": "fenceMap", "label": "with-reach" },
+        { "do": "shot", "name": "circle-after-top", "camera": { "target": "point", "at": [0, 55], "view": "top", "distance": 140 }, "shotMode": "render" },
+        { "do": "shot", "name": "circle-after-45", "camera": { "target": "point", "at": [0, 55], "view": "oblique", "pitch": 45, "distance": 110 }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "front-reach-curve",
+      "land": { "shape": "rect", "size": [380, 320], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "arc", "radius": 90, "from": 0, "to": 180, "zone": "NA Commercial Low" },
+        { "do": "grow", "seconds": 150 },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "lab", "op": "polishSettings", "settings": { "frontReach": 0 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "shot", "name": "curve-before-top", "camera": { "target": "point", "at": [0, 75], "view": "top", "distance": 190 }, "shotMode": "render" },
+        { "do": "lab", "op": "polishSettings", "settings": { "frontReach": 15 } },
+        { "do": "lab", "op": "polishIdle", "seconds": 180 },
+        { "do": "lab", "op": "fenceMap", "label": "with-reach" },
+        { "do": "shot", "name": "curve-after-top", "camera": { "target": "point", "at": [0, 75], "view": "top", "distance": 190 }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

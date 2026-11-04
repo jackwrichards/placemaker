@@ -49,13 +49,24 @@ namespace Placemaker.Game.UI
             AddBinding(_managed = new ValueBinding<string>(Group, "managed", "null"));
 
             Trigger("toggleTool", () => _tool.Toggle());
+            Trigger("togglePolish", () => _tool.TogglePolishTool());   // the polish tool's own button
             Trigger("close", () => _tool.Close());
             Trigger<bool>("setPanelCollapsed", c => _tool.SetPanelCollapsed(c));
             Trigger<string>("goToStage", s => { if (StageMachine.TryParse(s, out var st)) _tool.GoToStage(st); });
             Trigger("primary", () => _tool.Primary());
+            Trigger("buildAndClose", () => _tool.BuildAndClose());   // Review's second button (the primary keeps the area)
+            Trigger<bool>("polishStamp", yes => _tool.PolishStamp(yes));   // PROTOCOL 25: the painter's Polish / Unpolish
+            Trigger<string>("polishTheme", theme => _tool.SetPainterTheme(theme));   // the theme the painter's Polish gives
+            Trigger<string, double>("polishOption", (id, v) => _tool.SetPolishOption(id, v));   // the painter card's look rows
+            Trigger<string, double>("polishKnob", (id, v) => _tool.SetPolishKnob(id, v));   // a look row of the polish tool
+            Trigger<string, string>("polishLook", (what, arg) => _tool.PolishLookAction(what, arg));   // save / saveAs / rename / delete / revert
+            Trigger<string, string>("polishZone", (zone, look) => _tool.SetPolishZoneLook(zone, look));   // the City window's zone looks
+            Trigger<bool>("polishLive", on => _tool.SetPolishLive(on));   // the Live switch beside Polish
+            Trigger<string, string>("polishCity", (what, value) => _tool.PolishCity(what, value));   // the painter card's Whole city rows
             Trigger("undo", () => _tool.Undo());
             Trigger("redo", () => _tool.Redo());
-            Trigger<string>("setAreaMode", m => { if (SelectionModes.TryParse(m, out var mode)) _tool.SetAreaMode(mode); });
+            // Area overhaul: Road nodes is part of Points (corners snap to road nodes); an older panel asking for it gets Points.
+            Trigger<string>("setAreaMode", m => { if (SelectionModes.TryParse(m, out var mode)) _tool.SetAreaMode(mode == SelectionMode.Perimeter ? SelectionMode.Draw : mode); });
             Trigger<string, double, double>("setBrush", (shape, size, angle) => _tool.SetBrush(shape == "square", (float)size, (float)angle));
             Trigger<string>("setBrushRules", json => _tool.SetBrushRules(UiModels.ParseBrushRules(json, _tool.BrushRules)));
             Trigger("resetBrushRules", () => _tool.ResetBrushRules());
@@ -101,6 +112,10 @@ namespace Placemaker.Game.UI
             Trigger<bool>("acknowledgePermanent", ack => _tool.AcknowledgePermanent(ack));
             Trigger<string, string>("setMarkerKind", (p, kind) => _tool.SetMarkerKind(p, kind));
             Trigger<string, double>("removeMarker", (p, i) => _tool.RemoveMarker(p, (int)Math.Round(i)));
+            Trigger<string, double, bool>("setMarkerCrosswalk", (p, i, on) => _tool.SetMarkerCrosswalk(p, (int)Math.Round(i), on));   // i < 0: the entrances placed next
+            Trigger<double, bool>("ungroupGroup", (id, on) => _tool.UngroupGroup((int)id, on));   // on = false: group again
+            Trigger<bool>("setBuildUngrouped", on => _tool.SetBuildUngrouped(on));
+            Trigger<bool>("setKeepArea", on => _tool.SetKeepArea(on));   // Review: Build keeps the area (on) or closes Placemaker
             Trigger<string>("setPreviewMode", m => _tool.SetPreviewMode(m));
             // s17 park stats (docs/proposals/s17.md)
             Trigger<string, string>("setParkStat", (id, json) => _tool.SetParkStat(id, json));
@@ -196,6 +211,12 @@ namespace Placemaker.Game.UI
                     DescriptionKey = e.DescriptionKey,
                 });
             }
+            // the neighbourhood-polish painter: picked like a type (Recipes/shelf/neighbourhood.json shows it)
+            entries.Add(new RecipeListEntry
+            {
+                Id = PlacemakerToolSystem.PainterId, Name = "Placemaker.Painter.Name", Icon = "Media/Game/Icons/Lawn.svg",
+                DescriptionKey = "Placemaker.Painter.Desc", Painter = true, Group = "neighbourhood",
+            });
             var store = _tool.Presets;
             _catalog.Update(UiModels.Catalog(GeneratorRegistry.All, entries, store != null ? g => store.ViewsFor(g) : (Func<IAreaGenerator, IReadOnlyList<PresetView>>)null).ToString());
         }
@@ -211,7 +232,7 @@ namespace Placemaker.Game.UI
             _designStamp = _tool.DesignVersion;
             _designPlanStamp = _tool.PlanRevision;
             _designAssetsStamp = _tool.AssetsResolvedStamp;
-            _design.Update(UiModels.Design(_tool.CurrentRecipe, _tool.RecipeId, _tool.Modified, _tool.Focus, _tool.StepStatuses(), _tool.Plan,
+            _design.Update(UiModels.Design(_tool.Painter ? null : _tool.CurrentRecipe, _tool.Painter ? PlacemakerToolSystem.PainterId : _tool.RecipeId, !_tool.Painter && _tool.Modified, _tool.Focus, _tool.StepStatuses(), _tool.Plan,
                 null, _tool.ActivePreset, _tool.PresetsFile, _tool.PlanStale, _tool.Unavailability(), AssetLabelOf).ToString());
         }
 
@@ -330,7 +351,9 @@ namespace Placemaker.Game.UI
         {
             int id = _tool.ManagedGroup != 0 ? _tool.ManagedGroup : _tool.HoverGroup;
             var groups = Services.Groups;
-            string stamp = id + "|" + (groups != null) + "|" + (_frame / 60);
+            bool ungrouped = false;
+            try { ungrouped = id != 0 && groups != null && groups.IsUngrouped(id); } catch (Exception) { }
+            string stamp = id + "|" + (groups != null) + "|" + ungrouped + "|" + (_frame / 60);
             if (stamp == _managedStamp) return;
             _managedStamp = stamp;
             if (id == 0 || groups == null) { _managed.Update("null"); return; }
@@ -349,6 +372,7 @@ namespace Placemaker.Game.UI
             o.Set("stats", UiModels.Stats(info.Stats));
             o.Set("upkeep", Math.Round(info.Upkeep));
             o.Set("canEdit", canEdit);
+            if (ungrouped) o.Set("ungrouped", true);
             _managed.Update(o.ToString());
         }
     }

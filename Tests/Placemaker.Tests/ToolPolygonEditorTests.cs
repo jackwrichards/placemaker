@@ -34,6 +34,32 @@ namespace Placemaker.Tests
             Assert.True(e.IsValid);
         }
 
+        /// <summary>
+        /// (zoning speed run) The first corner snapped 9 m off its click (a road node, a curb); after the camera zoomed in the
+        /// close radius was 7.6 m: the click back on the same spot did not close and added a fifth corner beside the first.
+        /// </summary>
+        [Fact]
+        public void ClickingWhereTheFirstCornerWasClickedCloses()
+        {
+            var e = new PolygonEditor();
+            var click = new float2(0, 0);
+            e.AddPoint(new float3(6, 0, 7));   // the snap put it 9.2 m from the click
+            e.SetFirstClick(click);
+            e.AddPoint(new float3(400, 0, 0));
+            e.AddPoint(new float3(400, 0, 400));
+            Assert.False(e.ClosesAt(new float2(200, 200), new float2(200, 200), 7.6f));
+            Assert.True(e.ClosesAt(click, new float2(-3, 2), 7.6f));                 // the same spot, wherever it snaps now
+            Assert.True(e.ClosesAt(new float2(30, 30), new float2(6.3f, 7.2f), 7.6f)); // snapped onto the first corner
+            Assert.True(e.ClosesAt(new float2(10, 3), new float2(10, 3), 7.6f));      // near the corner itself, as before
+            // a corner placed somewhere the first corner's snap no longer accounts for
+            e.MovePoint(0, new float3(-50, 0, -50), new float3(6, 0, 7));
+            Assert.False(e.ClosesAt(click, new float2(-3, 2), 7.6f));
+            // fewer than three corners: nothing to close
+            var two = new PolygonEditor();
+            two.AddPoint(new float3(6, 0, 7)); two.SetFirstClick(click); two.AddPoint(new float3(400, 0, 0));
+            Assert.False(two.ClosesAt(click, click, 7.6f));
+        }
+
         [Fact]
         public void AddingACrossingSegmentIsRefused()
         {
@@ -184,6 +210,34 @@ namespace Placemaker.Tests
             e.Restore(s);
             Assert.True(e.Closed);
             Assert.Equal(4, e.Count);
+        }
+
+        [Fact]
+        public void RoadNodes_FollowTheCorners_ThroughEditsAndUndo()
+        {
+            // Area overhaul: corners remember the road node they were snapped to (two in a row follow the road).
+            var e = new PolygonEditor();
+            e.AddPoint(new float3(0, 0, 0), default, 11L);
+            e.AddPoint(new float3(100, 0, 0), default, 12L);
+            e.AddPoint(new float3(100, 0, 80), default);
+            e.AddPoint(new float3(0, 0, 80), default, 14L);
+            Assert.True(e.Close());
+            Assert.Equal(new long[] { 11, 12, 0, 14 }, e.Nodes);
+            Assert.Equal(1, e.InsertPoint(0, new float3(50, 0, 0)));
+            Assert.Equal(new long[] { 11, 0, 12, 0, 14 }, e.Nodes);
+            var s = e.Save();
+            Assert.True(e.RemovePoint(1));
+            e.SetNode(1, 0L);
+            Assert.Equal(new long[] { 11, 0, 0, 14 }, e.Nodes);
+            e.Restore(s);
+            Assert.Equal(new long[] { 11, 0, 12, 0, 14 }, e.Nodes);
+            // An edge dragged away leaves its nodes.
+            Assert.True(e.BeginEdgeDrag(4));
+            e.DragEdge(-5f, false);
+            e.EndEdgeDrag();
+            Assert.Equal(0L, e.Nodes[4]);
+            Assert.Equal(0L, e.Nodes[0]);
+            Assert.Equal(12L, e.Nodes[2]);
         }
     }
 }

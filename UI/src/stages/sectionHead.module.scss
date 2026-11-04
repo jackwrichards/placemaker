@@ -1,0 +1,93 @@
+@use "../styles/tokens" as *;
+
+// One header line for every Design-page section (SectionHead.tsx): badge · TITLE · count · note · rule · buttons.
+// Gameface: flexbox + margins only.
+
+.head {
+    @include row;
+    min-width: 0;
+    min-height: 20rem;
+    margin: 16rem 0 5rem 0;
+}
+
+.headFirst {
+    margin-top: 1rem;
+}
+
+// the buttons go to the next line (right-aligned) when they do not fit beside the title
+.headWrap {
+    flex-wrap: wrap;
+    .right {
+        margin-left: auto;
+    }
+}
+
+.badge {
+    @include row;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 18rem;
+    height: 18rem;
+    border-radius: 9rem;
+    background-color: rgba(143, 209, 255, 0.16);
+}
+
+.badgeWarn {
+    background-color: rgba(255, 181, 71, 0.22);
+}
+
+.title {
+    flex-shrink: 0;
+    margin-left: 6rem;
+    font-size: 11rem;
+    font-weight: bold;
+    letter-spacing: 0.6rem;
+    text-transform: uppercase;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.count {
+    flex-shrink: 0;
+    margin-left: 5rem;
+    padding: 0 4rem;
+    border-radius: 6rem;
+    background-color: rgba(143, 209, 255, 0.2);
+    font-size: 10rem;
+    color: #dff1ff;
+}
+
+.sub {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-left: 6rem;
+    font-size: 11rem;
+    color: $c-text-faint;
+    @include ellipsis;
+}
+
+.subWarn {
+    font-weight: bold;
+    color: #ffd79a;
+}
+
+.subBox {
+    @include row;
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-left: 6rem;
+}
+
+.rule {
+    flex: 1 1 auto;
+    min-width: 6rem;
+    height: 1rem;
+    margin-left: 8rem;
+    margin-right: 4rem;
+    background-color: $c-line;
+}
+
+.right {
+    @include row;
+    flex-shrink: 0;
+}

@@ -1,0 +1,67 @@
+{
+  "_about": "Outgrow fit (the user's B-minus report): houses grow with Outgrow on along Placemaker's own roads (cul-de-sacs with turning circles, a roundabout centre) and on shop and industry streets; the outgrow check measures gardens over roads (round ends apart), garden edges with no fence or a fence the game hides, and lawns or paving that stop short of the fence, with close-ups of the worst spots. Send with: powershell -File tools/suite/Send-Suite.ps1 -File suite/scenarios/outgrow-fit.json -Who outgrow-fit",
+  "scenarios": [
+    {
+      "id": "outgrow-culdesacs",
+      "land": { "shape": "rect", "size": [ 420, 340 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "area", "tool": "land" },
+        { "do": "type", "layer": "roads", "preset": "suburb" },
+        { "do": "value", "path": "0", "id": "preZone", "json": "\"residentialLow\"" },
+        { "do": "build" },
+        { "do": "grow", "seconds": 150 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "outgrowCheck", "closeups": 6 },
+        { "do": "camera", "target": "build", "view": "top", "shot": "top" }
+      ]
+    },
+    {
+      "id": "outgrow-roundabout",
+      "land": { "shape": "rect", "size": [ 400, 400 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "area", "tool": "land" },
+        { "do": "type", "layer": "roads", "preset": "garden-city" },
+        { "do": "value", "path": "0", "id": "preZone", "json": "\"residentialLow\"" },
+        { "do": "build" },
+        { "do": "grow", "seconds": 150 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "outgrowCheck", "closeups": 5 },
+        { "do": "camera", "target": "build", "view": "top", "shot": "top" }
+      ]
+    },
+    {
+      "id": "outgrow-shops",
+      "land": { "shape": "rect", "size": [ 240, 260 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "culdesac", "length": 110, "cross": 180, "yaw": 90, "zone": "NA Commercial Low" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "outgrowCheck", "closeups": 4 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" }
+      ]
+    },
+    {
+      "id": "outgrow-industry",
+      "land": { "shape": "rect", "size": [ 300, 240 ], "ground": "flat", "roads": "none" },
+      "steps": [
+        { "do": "setting", "name": "NeighbourhoodPolish", "value": true },
+        { "do": "setting", "name": "PolishNewHouses", "value": true },
+        { "do": "lab", "op": "street", "shape": "straight", "length": 240, "zone": "Industrial Manufacturing" },
+        { "do": "grow", "seconds": 120 },
+        { "do": "lab", "op": "polishIdle", "seconds": 120 },
+        { "do": "lab", "op": "outgrowQuiet", "seconds": 10 },
+        { "do": "lab", "op": "outgrowCheck", "closeups": 4 },
+        { "do": "shot", "name": "top", "camera": { "target": "area", "view": "top" }, "shotMode": "render" }
+      ]
+    }
+  ]
+}

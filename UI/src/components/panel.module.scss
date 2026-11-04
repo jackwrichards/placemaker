@@ -254,10 +254,6 @@
     animation-iteration-count: infinite;
 }
 
-.undoRedo {
-    @include row;
-}
-
 // ── stage bar: three equal steps under the header ──
 .stageBar {
     @include row;
@@ -643,6 +639,29 @@
     margin-left: 10rem;
 }
 
+// the header's Placemaker | Outgrow switcher, in the title's place
+.headMode {
+    flex-shrink: 0;
+    margin-left: 6rem;
+}
+
+// under the header (Placemaker's Design and Review): Sketch | Real across the panel
+.subRow {
+    @include row;
+    flex-shrink: 0;
+    padding: 6rem 8rem 0 8rem;
+}
+
+.subRow .previewToggle {
+    flex: 1 1 auto;
+    margin-left: 0;
+}
+
+.subRow .pvBtn {
+    flex: 1 1 0;
+    justify-content: center;
+}
+
 // ── crash ──
 .crash {
     position: absolute;
@@ -689,6 +708,28 @@
     white-space: normal;
 }
 
+// Review: Build's two switches side by side above the button row ([OK, permanent] then Build)
+.footSwitches {
+    @include row;
+    min-width: 0;
+    margin-bottom: 8rem;
+}
+
+.footOption {
+    @include row;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 22rem;
+    padding-left: 2rem;
+}
+
+.footOptionLabel {
+    margin-left: 8rem;
+    font-size: $fs-s;
+    color: var(--menuText1Normal);
+    @include ellipsis;
+}
+
 // s42: [☐ OK, permanent] beside the primary button; the button takes the rest of the row.
 .primaryRow {
     @include row;
@@ -711,4 +752,35 @@
     border-radius: $radius + 1rem;
     background-color: rgba(255, 181, 71, 0.14);
     @include border(1rem, rgba(255, 181, 71, 0.5));
+}
+
+// (PROTOCOL 25) The painter's Unpolish beside Polish: a quieter button, a little gap before the primary.
+.primaryRow > .primarySecond {
+    flex: 0 0 auto;
+    margin-right: 6rem;
+}
+
+.primarySecond {
+    background-color: rgba(255, 255, 255, 0.14);
+    color: #eaf2f6;
+    box-shadow: none;
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.24);
+    }
+}
+
+// the polish tool's Live switch beside Polish and Unpolish
+.primaryRow > .liveChip {
+    flex: 0 0 auto;
+}
+
+.liveChip {
+    @include row;
+    margin-right: 6rem;
+}
+
+.liveLabel {
+    margin-left: 5rem;
+    font-size: $fs-s;
+    color: $c-text-dim;
 }

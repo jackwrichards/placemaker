@@ -73,8 +73,10 @@ namespace Placemaker.Game.Overlay
             if (_toolSystem.activeTool != _tool)
             {
                 if (_wasDrawing) { _fill.ClearAll(); _wasDrawing = false; }
+                PolishedShown = 0;
                 return;
             }
+            if (!_tool.Painter) PolishedShown = 0;
             _wasDrawing = true;
             try
             {
@@ -87,12 +89,16 @@ namespace Placemaker.Game.Overlay
                 if (_tool.Stage == ToolStage.Manage) DrawManage(buffer, w);
                 else
                 {
-                    if (_tool.Stage == ToolStage.Design || _tool.Stage == ToolStage.Review || _tool.Stage == ToolStage.Building)
+                    // Global outgrow open: its lens or nothing (the lens off shows the plain map, even while brushing)
+                    if (_tool.OutgrowLens) DrawOutgrowLens();
+                    else if (_tool.Painter && !_tool.OutgrowCityOpen) DrawPolishedLots();
+                    else PolishedShown = 0;
+                    if ((_tool.Stage == ToolStage.Design || _tool.Stage == ToolStage.Review || _tool.Stage == ToolStage.Building) && !_tool.OutgrowMode)
                         DrawPlan(buffer, w, detail);
-                    DrawSelection(buffer, w);
-                    DrawMarkers(buffer, w);
-                    DrawErrors(buffer, w);
+                    if (!_tool.OutgrowBrushOn && !_tool.OutgrowMode) DrawSelection(buffer, w);   // Outgrow: no area tool's cursor or hover
+                    if (!_tool.OutgrowMode) { DrawMarkers(buffer, w); DrawErrors(buffer, w); }
                 }
+                if (_tool.OutgrowBrushOn) DrawOutgrowBrush(buffer, w);
                 _fill.EndFrame();
             }
             catch (Exception e)
@@ -220,6 +226,8 @@ namespace Placemaker.Game.Overlay
                 case SelectionMode.BlockPaint: DrawBlockPaintMode(buffer, w, shape); break;
             }
             if ((clipped || cutBack) && shape != null && _tool.Mode == SelectionMode.Draw) Ring(buffer, shape.Ring, Outline, w);
+            // the Real preview: what will be built, its outline thick (the game's outlines on every piece are hidden meanwhile)
+            if (_tool.PreviewModeEffective == PreviewMode.Ghost && shape != null && shape.Ring.Length >= 3 && !stroke) Ring(buffer, shape.Ring, Outline, w * 3f);
         }
 
         private void Ring(OverlayRenderSystem.Buffer buffer, float3[] ring, Color c, float w, bool dashed = false)
@@ -244,16 +252,8 @@ namespace Placemaker.Game.Overlay
                 return;
             }
             var line = bad ? OutlineBad : clipped ? OutlineDim : Outline;
-            for (int i = 0; i + 1 < n; i++)
-            {
-                var c = _tool.HoverEdge == i ? HandleHot : line;
-                buffer.DrawLine(c, new Line3.Segment(pts[i], pts[i + 1]), _tool.HoverEdge == i ? w * 1.6f : w);
-            }
-            if (draw.Closed)
-            {
-                var c = _tool.HoverEdge == n - 1 ? HandleHot : line;
-                buffer.DrawLine(c, new Line3.Segment(pts[n - 1], pts[0]), _tool.HoverEdge == n - 1 ? w * 1.6f : w);
-            }
+            for (int i = 0; i + 1 < n; i++) DrawEdge(buffer, w, i, pts[i], pts[i + 1], line);
+            if (draw.Closed) DrawEdge(buffer, w, n - 1, pts[n - 1], pts[0], line);
             else if (_tool.CursorValid)
             {
                 // Rubber band to the cursor and the closing edge preview.
@@ -268,6 +268,16 @@ namespace Placemaker.Game.Overlay
             }
             if (_tool.EdgeDragging) buffer.DrawCircle(HandleHot, _tool.EdgeGuidePoint, d);
             DrawSnap(buffer, w);
+        }
+
+        /// <summary>One edge of the drawn outline: along its road when both corners sit on road nodes (area overhaul), else straight.</summary>
+        private void DrawEdge(OverlayRenderSystem.Buffer buffer, float w, int i, float3 a, float3 b, Color line)
+        {
+            var c = _tool.HoverEdge == i ? HandleHot : line;
+            float width = _tool.HoverEdge == i ? w * 1.6f : w;
+            var route = _tool.RouteOfEdge(i);
+            if (route == null) { buffer.DrawLine(c, new Line3.Segment(a, b), width); return; }
+            for (int k = 0; k + 1 < route.Length; k++) buffer.DrawLine(c, new Line3.Segment(route[k], route[k + 1]), width);
         }
 
         private void DrawSnap(OverlayRenderSystem.Buffer buffer, float w)
@@ -290,60 +300,48 @@ namespace Placemaker.Game.Overlay
                 case SnapKind.Direction: return new Color(0.75f, 0.45f, 1f, 1f);
                 case SnapKind.Guide: return new Color(1f, 0.78f, 0.25f, 1f);
                 case SnapKind.ZoneGrid: return new Color(0.25f, 0.9f, 0.85f, 1f);
+                case SnapKind.RoadNode: return new Color(1f, 1f, 1f, 1f);
                 default: return Color.white;
             }
         }
 
-        // s43: the walls the Paint bucket traces, faint, by kind (road white, path green, bike teal, track amber).
-        private static Color WallColor(Placemaker.Core.Geometry.FillWall k)
-        {
-            switch (k)
-            {
-                case Placemaker.Core.Geometry.FillWall.Paths: return new Color(0.45f, 0.95f, 0.5f, 0.45f);
-                case Placemaker.Core.Geometry.FillWall.Bikes: return new Color(0.3f, 0.9f, 0.85f, 0.45f);
-                case Placemaker.Core.Geometry.FillWall.Tracks: return new Color(1f, 0.75f, 0.3f, 0.45f);
-                default: return new Color(1f, 1f, 1f, 0.28f);
-            }
-        }
+        // Area overhaul: what the fill shows while hovering — closed gaps (amber, thick dashes), the reach (pale blue dashes)
+        // where the fill met it, and the stops along its edge (red tint). Legend rows: AreaLegend (area:*).
+        private static readonly Color DoorColor = new Color(1f, 0.8f, 0.2f, 0.95f);
+        private static readonly Color ReachColor = new Color(0.55f, 0.85f, 1f, 0.7f);
 
-        private int _wallsVersion = -1;
-        private readonly List<(Bezier4x3 curve, Placemaker.Core.Geometry.FillWall kind, float2 min, float2 max)> _walls = new List<(Bezier4x3, Placemaker.Core.Geometry.FillWall, float2, float2)>();
-        private const float WallsShownRadius = 220f;
+        private PlacemakerToolSystem.BlockPick _stopsFor;
+        private long _stopsSig;
 
-        private void DrawBucketWalls(OverlayRenderSystem.Buffer buffer, float w)
+        private void DrawFillExtras(OverlayRenderSystem.Buffer buffer, float w, PlacemakerToolSystem.BlockPick pick)
         {
-            var em = EntityManager;
-            if (_wallsVersion != _tool.BucketGraphVersion)
+            if (pick == null) return;
+            if (_tool.LayerVisible(AreaLegend.Stops) && pick.Stops != null && pick.Stops.Count > 0)
             {
-                _wallsVersion = _tool.BucketGraphVersion;
-                _walls.Clear();
-                foreach (var kv in _tool.BucketGraphEdges)
-                {
-                    if (!em.Exists(kv.Key) || !em.HasComponent<Curve>(kv.Key)) continue;
-                    var c = em.GetComponentData<Curve>(kv.Key).m_Bezier;
-                    float2 mn = math.min(math.min(c.a.xz, c.b.xz), math.min(c.c.xz, c.d.xz)), mx = math.max(math.max(c.a.xz, c.b.xz), math.max(c.c.xz, c.d.xz));
-                    _walls.Add((c, kv.Value, mn, mx));
-                }
+                if (!ReferenceEquals(_stopsFor, pick)) { _stopsFor = pick; _stopsSig = FilledPreviewSystem.Signature(pick.Stops); }
+                _fill.SetLayer("fillStops", pick.Stops, Blocked, -93.8f, _stopsSig);
             }
-            if (!_tool.CursorValid) return;
-            float2 at = _tool.Cursor.xz;
-            foreach (var x in _walls)
-            {
-                if (math.length(math.max(math.max(x.min - at, at - x.max), 0f)) > WallsShownRadius) continue;
-                buffer.DrawCurve(WallColor(x.kind), x.curve, w * 0.45f);
-            }
+            if (_tool.LayerVisible(AreaLegend.Doors) && pick.Doors != null)
+                foreach (var d in pick.Doors)
+                    for (int i = 0; i + 1 < d.Length; i++) buffer.DrawDashedLine(DoorColor, new Line3.Segment(d[i], d[i + 1]), w * 1.4f, w * 3f, w * 2f);
+            if (_tool.LayerVisible(AreaLegend.Reach) && pick.Reach != null)
+                for (int i = 0; i < pick.Reach.Length; i++)
+                    buffer.DrawDashedLine(ReachColor, new Line3.Segment(pick.Reach[i], pick.Reach[(i + 1) % pick.Reach.Length]), w * 0.8f, w * 5f, w * 4f);
         }
 
         private void DrawBlockMode(OverlayRenderSystem.Buffer buffer, float w, AreaShape shape)
         {
-            if (_tool.Stage == ToolStage.Area) DrawBucketWalls(buffer, w);
-            if (shape != null) Ring(buffer, shape.Ring, Outline, w);
+            if (shape != null && _tool.LayerVisible(AreaLegend.Outline)) Ring(buffer, shape.Ring, Outline, w);
             var hover = _tool.HoverFace;
-            if (hover?.Area != null && _tool.Stage != ToolStage.Building)
+            if (hover?.Area != null && _tool.Stage == ToolStage.Area)
             {
-                var rings = new[] { hover.Area.Ring };
-                _fill.SetLayer("hover", rings, FillHover, -93.5f, FilledPreviewSystem.Signature(rings));
-                Ring(buffer, hover.Area.Ring, HandleHot, w * 0.8f, dashed: true);
+                if (_tool.LayerVisible(AreaLegend.Fill))
+                {
+                    var rings = new[] { hover.Area.Ring };
+                    _fill.SetLayer("hover", rings, FillHover, -93.5f, FilledPreviewSystem.Signature(rings));
+                    Ring(buffer, hover.Area.Ring, HandleHot, w * 0.8f, dashed: true);
+                }
+                DrawFillExtras(buffer, w, hover);
             }
         }
 
@@ -406,8 +404,7 @@ namespace Placemaker.Game.Overlay
                 for (int i = 0; i < max; i++)
                 {
                     var (a, b) = _paintBoundary[i];
-                    var y = _tool.Cursor.y;
-                    buffer.DrawLine(Outline, new Line3.Segment(new float3(a.x, y, a.y), new float3(b.x, y, b.y)), w * 0.7f);
+                    buffer.DrawLine(Outline, new Line3.Segment(OnGround(a), OnGround(b)), w * 0.7f);
                 }
             }
             else Ring(buffer, shape.Ring, Outline, w);
@@ -456,6 +453,8 @@ namespace Placemaker.Game.Overlay
                     // Inner dot: entry/exit read at a glance even for colour-blind players (entry filled, exit hollow).
                     if (m.Kind == "exit" || m.Kind == "alleyOut") buffer.DrawCircle(Color.white, new Color(0, 0, 0, 0.6f), w * 0.4f, 0, new float2(0, 1), m.Position, size * 0.45f);
                     else if (m.Kind == "entry" || m.Kind == "alleyIn") buffer.DrawCircle(Color.white, Color.white, w * 0.4f, 0, new float2(0, 1), m.Position, size * 0.35f);
+                    // An entrance with a crosswalk: a white ring round it, like the road markings it brings.
+                    if (MarkerVariants.HasCrosswalk(m.Kind)) buffer.DrawCircle(Color.white, new Color(0, 0, 0, 0), w * 0.5f, 0, new float2(0, 1), m.Position, size * 1.5f);
                 }
             }
             if (_tool.MarkerKind != null && _tool.MarkerHoverValid)
@@ -577,6 +576,10 @@ namespace Placemaker.Game.Overlay
                     DrawNet(buffer, n, w, alpha);
                 }
             }
+            // Entrances with a crosswalk: white zebra stripes across the street where the path will split it, and the path
+            // carried on to the street's centre line, so the plan says which entrances cut the street (shown with the ghost too:
+            // it only shows the crossing once the street is split).
+            if (Shows(PreviewLegend.Entrances) || Shows(PreviewLegend.Paths)) DrawCrosswalks(buffer, plan, w, stale ? 0.45f : 1f);
             // Clutter first, then features; trees last so crowns read as a canopy over the furniture.
             for (int pass = 0; pass < 3 && content; pass++)
                 foreach (var l in plan.Layers)
@@ -833,6 +836,52 @@ namespace Placemaker.Game.Overlay
             }
             float dash = w * 5f;
             buffer.DrawDashedCurve(WithAlpha(col, 0.95f * alpha), curve, w * 0.8f, dash, dash * 0.7f);
+        }
+
+        /// <summary>
+        /// Zebra stripes where a footpath end is attached to a city street (an entrance placed with a crosswalk,
+        /// Core/Layers/Common/StreetJoins): across the carriageway, each stripe along the street, plus a dashed leg from the
+        /// path's end to the street's centre line (the game carries it there).
+        /// </summary>
+        private void DrawCrosswalks(OverlayRenderSystem.Buffer buffer, ComposedPlan plan, float w, float alpha)
+        {
+            if (plan.ExistingNets == null || plan.ExistingNets.Count == 0) return;
+            var white = new Color(1f, 1f, 1f, 0.9f * alpha);
+            foreach (var l in plan.Layers)
+            {
+                if (l?.Nets == null) continue;
+                foreach (var n in l.Nets)
+                {
+                    if (n == null || (n.Role != NetRole.Pathway && n.Role != NetRole.PathwayWide)) continue;
+                    for (int end = 0; end < 2; end++)
+                    {
+                        long id = end == 0 ? n.StartAttach : n.EndAttach;
+                        if (id < 0) continue;
+                        NearbyNet road = default; bool found = false;
+                        foreach (var r in plan.ExistingNets) if (r.ExternalId == id && r.Category == NetCategory.Road) { road = r; found = true; break; }
+                        if (!found) continue;
+                        var tip = end == 0 ? n.A : n.D;
+                        var rc = new Bezier4x3(road.A, road.B, road.C, road.D);
+                        MathUtils.Distance(rc.xz, tip.xz, out float t);
+                        var centre = MathUtils.Position(rc, t);
+                        var along = math.normalizesafe(MathUtils.Tangent(rc, t).xz, new float2(1, 0));
+                        var across = new float2(-along.y, along.x);
+                        // the carriageway: the street's width less the sidewalks (about a quarter of it on each side of a city street)
+                        float half = math.max(2f, road.Width * 0.5f * (road.HasSidewalk ? 0.7f : 0.95f));
+                        int stripes = math.clamp((int)math.round(half * 2f / 1.2f), 3, 30);
+                        float stripe = math.max(0.35f, w * 0.9f), len = 2.6f;
+                        for (int k = 0; k < stripes; k++)
+                        {
+                            float off = -half + (k + 0.5f) * (half * 2f / stripes);
+                            var mid = centre.xz + across * off;
+                            var a = OnGround(mid - along * len * 0.5f);
+                            var b = OnGround(mid + along * len * 0.5f);
+                            buffer.DrawLine(white, new Line3.Segment(a, b), stripe);
+                        }
+                        buffer.DrawDashedLine(WithAlpha(NetColor(n.Role), 0.9f * alpha), new Line3.Segment(OnGround(tip.xz), OnGround(centre.xz)), w * 0.8f, w * 3f, w * 2f);
+                    }
+                }
+            }
         }
 
         /// <summary>Approximate parallel curve: end points and handles shifted along the end normals (fine for road-like curvature).</summary>

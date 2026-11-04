@@ -1,0 +1,88 @@
+{
+  "_about": "Terrain overhaul, Zoning tool: Level the lots on a 10 % slope inside a ring road (lots on all four sides, the north and south ones back to back), then the city grows and the houses outgrow their lots (gardens stop at steep banks and big climbs).",
+  "scenarios": [
+    {
+      "id": "terrain-zoning-slope",
+      "land": {
+        "shape": "rect",
+        "size": [
+          220,
+          130
+        ],
+        "ground": "slope",
+        "grade": 10,
+        "toward": "north",
+        "roads": "around",
+        "gap": 10
+      },
+      "steps": [
+        {
+          "do": "area",
+          "tool": "land"
+        },
+        {
+          "do": "type",
+          "layer": "zoningSuburb",
+          "preset": "suburbLeafy"
+        },
+        {
+          "do": "preview",
+          "shot": "plan",
+          "shotMode": "overlay"
+        },
+        {
+          "do": "build"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "shot": "built-45"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "built-top-zoning",
+          "zones": true
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "low",
+          "shot": "built-low"
+        },
+        {
+          "do": "terrain",
+          "name": "terrain"
+        },
+        {
+          "do": "grow",
+          "seconds": 90
+        },
+        {
+          "do": "wait",
+          "seconds": 20
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "oblique",
+          "shot": "grown-45"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "low",
+          "shot": "grown-low"
+        },
+        {
+          "do": "camera",
+          "target": "build",
+          "view": "top",
+          "shot": "grown-top"
+        }
+      ]
+    }
+  ]
+}

@@ -27,6 +27,28 @@ namespace Placemaker.Core.Layers.Roads
         public long Id;
         public RoadCurve Curve;
         public float HalfWidth;
+        /// <summary>Its place in the hierarchy (highways and ramps: <see cref="RoadRank.Highway"/>).</summary>
+        public RoadRank Rank;
+    }
+
+    /// <summary>"Connect to": which existing roads the plan may join (the others are barriers it never crosses).</summary>
+    public static class ConnectTo
+    {
+        /// <summary>Every road but highways and their ramps (the default).</summary>
+        public const string Streets = "streets";
+        /// <summary>Small roads only: two-lane roads, lanes and gravel roads (the big roads keep their junctions few).</summary>
+        public const string Small = "small";
+        /// <summary>Any road, highways too (the player's explicit choice).</summary>
+        public const string Any = "any";
+
+        public static readonly string[] Values = { Streets, Small, Any };
+
+        public static bool Allows(string rule, RoadRank rank)
+        {
+            if (rule == Any) return true;
+            if (rank == RoadRank.Highway) return false;
+            return rule != Small || rank <= RoadRank.Minor;
+        }
     }
 
     internal static class RoadConnections
@@ -57,9 +79,283 @@ namespace Placemaker.Core.Layers.Roads
                     Id = n.ExternalId,
                     Curve = new RoadCurve(n.A, n.B, n.C, n.D),
                     HalfWidth = n.Width > 0f && math.isfinite(n.Width) ? n.Width * 0.5f : Composer.DefaultHalfWidth(NetRole.Street),
+                    Rank = RoadClasses.Rank(n),
                 });
             }
             return list;
+        }
+
+        /// <summary>
+        /// Splits the existing roads into those the plan may join (<paramref name="connect"/> on and the rule allows it) and
+        /// the barriers: roads it must neither join nor cross (highways and ramps by default; every road with connecting off).
+        /// </summary>
+        public static void Partition(List<ExistingRoad> all, bool connect, string rule, out List<ExistingRoad> joinable, out List<ExistingRoad> barriers)
+        {
+            joinable = new List<ExistingRoad>();
+            barriers = new List<ExistingRoad>();
+            foreach (var r in all)
+                if (connect && ConnectTo.Allows(rule, r.Rank)) joinable.Add(r); else barriers.Add(r);
+        }
+
+        /// <summary>
+        /// Cuts the planned roads where they would cross a barrier (a highway, a ramp, a road the player keeps free): the piece
+        /// within the barrier's corridor (its half width + the road's + 4 m) goes, the two sides end short of it. The free ends
+        /// are the later passes' business (linked to the city elsewhere, a turning circle, or gone). Returns the edges cut.
+        /// </summary>
+        public static int CutAtBarriers(RoadNetwork net, List<ExistingRoad> barriers, System.Func<NetRole, float> halfWidth, System.Func<RoadEdge, bool> which = null)
+        {
+            if (barriers == null || barriers.Count == 0) return 0;
+            var index = BuildIndex(barriers, out _);
+            var scratch = new List<int>();
+            var seen = new HashSet<int>();
+            var pts = new List<float3>();
+            var ts = new List<float>();
+            int cut = 0, count = net.Edges.Count;
+            for (int ei = 0; ei < count; ei++)
+            {
+                var e = net.Edges[ei];
+                if (!e.Alive || (which != null && !which(e))) continue;
+                pts.Clear(); ts.Clear();
+                e.Curve.Flatten(pts, ts, 2f, 4f);
+                var ranges = new List<float2>();
+                for (int i = 0; i + 1 < pts.Count; i++)
+                {
+                    float2 a = pts[i].xz, b = pts[i + 1].xz;
+                    index.Query(math.min(a, b) - 0.5f, math.max(a, b) + 0.5f, scratch, seen);
+                    foreach (int sid in scratch)
+                    {
+                        if (!Seg.Intersect(a, b, index.A[sid], index.B[sid], out float ta, out _)) continue;
+                        var bar = barriers[index.Owner[sid]];
+                        float gap = bar.HalfWidth + halfWidth(e.Role) + 4f;
+                        float t = math.lerp(ts[i], ts[i + 1], math.saturate(ta));
+                        const float step = 1f / 256f;
+                        float lo = t, hi = t;
+                        while (lo > 0f && bar.Curve.DistanceXZ(e.Curve.Position(lo).xz, out _) < gap) lo -= step;
+                        while (hi < 1f && bar.Curve.DistanceXZ(e.Curve.Position(hi).xz, out _) < gap) hi += step;
+                        ranges.Add(new float2(math.max(0f, lo), math.min(1f, hi)));
+                    }
+                }
+                // an end lying on (or right beside) a barrier, touching it without crossing: that end goes too
+                foreach (var bar in barriers)
+                {
+                    float gap = bar.HalfWidth + halfWidth(e.Role) + 4f;
+                    const float step = 1f / 256f;
+                    if (bar.Curve.DistanceXZ(e.Curve.A.xz, out _) < gap)
+                    {
+                        float t = 0f;
+                        while (t < 1f && bar.Curve.DistanceXZ(e.Curve.Position(t).xz, out _) < gap) t += step;
+                        ranges.Add(new float2(0f, math.min(1f, t)));
+                    }
+                    if (bar.Curve.DistanceXZ(e.Curve.D.xz, out _) < gap)
+                    {
+                        float t = 1f;
+                        while (t > 0f && bar.Curve.DistanceXZ(e.Curve.Position(t).xz, out _) < gap) t -= step;
+                        ranges.Add(new float2(math.max(0f, t), 1f));
+                    }
+                }
+                if (ranges.Count == 0) continue;
+                ranges.Sort((x, y) => x.x.CompareTo(y.x));
+                var keep = new List<float2>();
+                float from = 0f;
+                foreach (var r in ranges)
+                {
+                    if (r.x > from) keep.Add(new float2(from, r.x));
+                    from = math.max(from, r.y);
+                }
+                if (from < 1f) keep.Add(new float2(from, 1f));
+                var original = e.Curve;
+                bool cap = e.CapAtEnd;
+                keep.RemoveAll(k => original.Sub(k.x, k.y).LengthXZ(8) < 2f);
+                cut++;
+                if (keep.Count == 0) { e.Removed = true; continue; }
+                for (int k = 0; k < keep.Count; k++)
+                {
+                    var piece = original.Sub(keep[k].x, keep[k].y);
+                    bool tip = cap && keep[k].y >= 1f;
+                    if (k == 0) { e.Curve = piece; e.CapAtEnd = tip; }
+                    else { var copy = e.Clone(piece); copy.CapAtEnd = tip; net.Edges.Add(copy); }
+                }
+            }
+            return cut;
+        }
+
+        /// <summary>Removes every alive piece crossing a barrier (the safety net after the passes that add walks and lanes).</summary>
+        public static int DropBarrierCrossings(RoadNetwork net, List<ExistingRoad> barriers, System.Func<RoadEdge, bool> which = null)
+        {
+            if (barriers == null || barriers.Count == 0) return 0;
+            int removed = 0;
+            foreach (var e in net.Edges)
+            {
+                if (!e.Alive || (which != null && !which(e))) continue;
+                if (!CrossesAny(RoadGraph.Sample(e.Curve, 3f), barriers, 1f)) continue;
+                e.Removed = true;
+                removed++;
+            }
+            return removed;
+        }
+
+        /// <summary>True when the polyline crosses one of the roads anywhere but within <paramref name="endSkip"/> m of its ends.</summary>
+        public static bool CrossesAny(IReadOnlyList<float2> line, List<ExistingRoad> roads, float endSkip = 0.5f)
+        {
+            if (roads == null || roads.Count == 0 || line.Count < 2) return false;
+            var pts = new List<float3>();
+            float2 first = line[0], last = line[line.Count - 1];
+            foreach (var r in roads)
+            {
+                pts.Clear();
+                r.Curve.Flatten(pts, null, 4f, 6f);
+                for (int k = 0; k + 1 < pts.Count; k++)
+                    for (int i = 0; i + 1 < line.Count; i++)
+                        if (Seg.Intersect(line[i], line[i + 1], pts[k].xz, pts[k + 1].xz, out float ta, out _))
+                        {
+                            float2 hit = math.lerp(line[i], line[i + 1], ta);
+                            if (math.distance(hit, first) > endSkip && math.distance(hit, last) > endSkip) return true;
+                        }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// (Smarter roads) Where a planned road runs ON an existing road for part of its length (the grid line laid along a
+        /// spine, a street over an existing stub), that part goes and the rest ends on the existing road: on its node when one
+        /// is within 12 m, else on the road itself. Whole pieces on top of a road are the overlap pass's. Returns the trims.
+        /// </summary>
+        public static int TrimOverlaps(RoadNetwork net, List<ExistingRoad> existing, System.Func<NetRole, float> halfWidth)
+        {
+            if (existing == null || existing.Count == 0) return 0;
+            int trimmed = 0, count = net.Edges.Count;
+            for (int ei = 0; ei < count; ei++)
+            {
+                var e = net.Edges[ei];
+                if (!e.Alive || !e.IsCar || e.Role == NetRole.PerimeterRoad) continue;
+                float len = e.Curve.LengthXZ(12);
+                if (len < 12f) continue;
+                int n = math.clamp((int)math.ceil(len / 2f), 6, 400);
+                var on = new bool[n + 1];
+                var road = new int[n + 1];
+                float hw = halfWidth(e.Role);
+                int onCount = 0;
+                for (int i = 0; i <= n; i++)
+                {
+                    float t = (float)i / n;
+                    float2 p = e.Curve.Position(t).xz;
+                    float2 dir = e.Curve.TangentXZ(t);
+                    road[i] = -1;
+                    for (int r = 0; r < existing.Count; r++)
+                    {
+                        float d = existing[r].Curve.DistanceXZ(p, out float rt);
+                        if (d > (hw + existing[r].HalfWidth) * 0.6f) continue;
+                        if (math.abs(math.dot(dir, existing[r].Curve.TangentXZ(rt))) < 0.94f || !Beside(existing[r].Curve, p, rt)) continue;
+                        on[i] = true; road[i] = r; onCount++;
+                        break;
+                    }
+                }
+                if (onCount == 0 || onCount > n * 0.8f) continue;   // nothing on a road, or a whole piece on one (RemoveOverlapping)
+                // Runs of samples on a road at least 8 m long, cut out.
+                var cuts = new List<float2>();
+                int i0 = -1;
+                for (int i = 0; i <= n + 1; i++)
+                {
+                    bool o = i <= n && on[i];
+                    if (o && i0 < 0) i0 = i;
+                    if (!o && i0 >= 0)
+                    {
+                        float a = (float)i0 / n, b = (float)(i - 1) / n;
+                        if ((b - a) * len >= 8f) cuts.Add(new float2(a, b));
+                        i0 = -1;
+                    }
+                }
+                if (cuts.Count == 0) continue;
+                var keep = new List<float2>();
+                float from = 0f;
+                foreach (var c in cuts)
+                {
+                    if (c.x > from + 1e-4f) keep.Add(new float2(from, c.x));
+                    from = c.y;
+                }
+                if (from < 1f - 1e-4f) keep.Add(new float2(from, 1f));
+                var original = e.Curve;
+                bool cap = e.CapAtEnd;
+                keep.RemoveAll(k => original.Sub(k.x, k.y).LengthXZ(8) < 6f);
+                trimmed++;
+                if (keep.Count == 0) { e.Removed = true; continue; }
+                for (int k = 0; k < keep.Count; k++)
+                {
+                    var piece = original.Sub(keep[k].x, keep[k].y);
+                    // the cut ends land on the existing road (its node when one is near)
+                    if (keep[k].x > 0f) piece = piece.WithEnds(OntoRoad(existing, piece.A), piece.D);
+                    if (keep[k].y < 1f) piece = piece.WithEnds(piece.A, OntoRoad(existing, piece.D));
+                    bool tip = cap && keep[k].y >= 1f;
+                    if (k == 0) { e.Curve = piece; e.CapAtEnd = tip; }
+                    else { var copy = e.Clone(piece); copy.CapAtEnd = tip; net.Edges.Add(copy); }
+                }
+            }
+            return trimmed;
+        }
+
+        /// <summary>The point of the nearest existing road to p: an end node of it when within 12 m, else the closest point.</summary>
+        private static float3 OntoRoad(List<ExistingRoad> existing, float3 p)
+        {
+            float best = float.MaxValue;
+            float3 q = p;
+            foreach (var r in existing)
+            {
+                float d = r.Curve.DistanceXZ(p.xz, out float t);
+                if (d >= best) continue;
+                best = d;
+                float len = r.Curve.LengthXZ(8);
+                q = t * len < 12f ? r.Curve.A : (1f - t) * len < 12f ? r.Curve.D : r.Curve.Position(t);
+            }
+            return best < 30f ? q : p;
+        }
+
+        /// <summary>
+        /// (Smarter roads) Interior streets running alongside an existing road closer than a building plot (centre lines within
+        /// both half widths + 20 m for most of their length) would leave a sliver between the two: the existing road already
+        /// fronts that land, the street goes. Perimeter pieces have their own rule (RemoveOverlapping). Returns the count.
+        /// </summary>
+        public static int RemoveAlongside(RoadNetwork net, List<ExistingRoad> existing, System.Func<NetRole, float> halfWidth)
+        {
+            if (existing == null || existing.Count == 0) return 0;
+            int removed = 0;
+            foreach (var e in net.Edges)
+            {
+                if (!e.Alive || !e.IsCar || e.Role == NetRole.PerimeterRoad || e.Role == NetRole.Roundabout || e.Connector) continue;
+                float len = e.Curve.LengthXZ(12);
+                if (len < 20f) continue;
+                float hw = halfWidth(e.Role);
+                int close = 0;
+                const int samples = 9;
+                for (int i = 1; i <= samples; i++)
+                {
+                    float t = i / (samples + 1f);
+                    float2 p = e.Curve.Position(t).xz;
+                    float2 dir = e.Curve.TangentXZ(t);
+                    foreach (var r in existing)
+                    {
+                        float d = r.Curve.DistanceXZ(p, out float rt);
+                        if (d > hw + r.HalfWidth + 20f) continue;
+                        if (math.abs(math.dot(dir, r.Curve.TangentXZ(rt))) < 0.9f || !Beside(r.Curve, p, rt)) continue;
+                        close++;
+                        break;
+                    }
+                }
+                if (close >= 7) { e.Removed = true; removed++; }
+            }
+            return removed;
+        }
+
+        /// <summary>
+        /// Is p beside the road (its nearest point at parameter <paramref name="t"/>), not out beyond one of its ends? A street
+        /// continuing an existing road in line with it is not "alongside" it.
+        /// </summary>
+        public static bool Beside(RoadCurve road, float2 p, float t)
+        {
+            if (t > 0.002f && t < 0.998f) return true;
+            bool end = t >= 0.5f;
+            float2 e = end ? road.D.xz : road.A.xz;
+            float2 outward = end ? road.TangentXZ(1f) : -road.TangentXZ(0f);
+            return math.dot(p - e, outward) <= 1f;
         }
 
         /// <summary>Snap distance for an existing road: wide roads catch ends that stop at their curb.</summary>
@@ -205,7 +501,7 @@ namespace Placemaker.Core.Layers.Roads
                     {
                         float d = r.Curve.DistanceXZ(p, out float rt);
                         if (d > (r.HalfWidth + hw) * reach + extra) continue;
-                        if (math.abs(math.dot(dir, r.Curve.TangentXZ(rt))) < (extra > 0f ? 0.7f : 0.85f)) continue;
+                        if (math.abs(math.dot(dir, r.Curve.TangentXZ(rt))) < (extra > 0f ? 0.7f : 0.85f) || !Beside(r.Curve, p, rt)) continue;
                         inside++;
                         break;
                     }

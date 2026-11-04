@@ -141,6 +141,17 @@ namespace Placemaker.Game.Tool
             var mask = GetActualSnap();
             if (mask == global::Game.Tools.Snap.None || _in.Alt)   // Alt = place freely, like vanilla
                 return WithHeight(raw);
+            // (Area overhaul) Points snap to road nodes first (Road nodes is part of Points now): over a junction or a dead
+            // end the corner sits on the node, and two such corners in a row follow the road between them.
+            if ((mask & (global::Game.Tools.Snap.NetSide | global::Game.Tools.Snap.ExistingGeometry)) != 0 && _mode == SelectionMode.Draw)
+            {
+                var node = RoadNodeAt(raw.xz, HandleRadius(raw));
+                if (node.id != 0)
+                {
+                    _lastSnap = new SnapResult { Position = node.pos, Kind = SnapKind.RoadNode, Node = node.id };
+                    return node.pos;
+                }
+            }
             _resolver.SnapDistance = math.clamp(HandleRadius(raw) * 1.3f, 4f, 24f);
             _resolver.Begin(raw);
             if (_settings == null || _settings.SnapToRoadsWhenDrawing) _snapCollector.Collect(_resolver, mask);

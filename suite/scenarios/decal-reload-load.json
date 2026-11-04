@@ -1,0 +1,17 @@
+{
+  "_about": "GitHub issue #2 (white boxes after loading), part 2 of 2: run with Send-Suite -Fresh, after decal-reload-save.json. Loads the saved city in a game that has never made the 'Placemaker Decal' copies the save names (what a player meets after restarting the game): first with the clean-up after loads switched off (the white boxes of older builds), then again with it on (they are removed). The camera looks at the spot part 1 recorded ('atAbs' of its oldDecal steps); the save is deleted at the end.",
+  "scenarios": [
+    {
+      "id": "reload",
+      "site": "flat",
+      "steps": [
+        { "do": "lab", "op": "oldDecalCleanup", "on": false },
+        { "do": "lab", "op": "loadCity", "name": "PlacemakerSuiteReload" },
+        { "do": "camera", "target": "point", "at": [275, -430], "abs": true, "view": "oblique", "distance": 70, "shot": "before-cleanup" },
+        { "do": "lab", "op": "oldDecalCleanup", "on": true },
+        { "do": "lab", "op": "loadCity", "name": "PlacemakerSuiteReload", "delete": true },
+        { "do": "camera", "target": "point", "at": [275, -430], "abs": true, "view": "oblique", "distance": 70, "shot": "after-cleanup" }
+      ]
+    }
+  ]
+}

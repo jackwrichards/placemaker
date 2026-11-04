@@ -101,7 +101,7 @@ namespace Placemaker.Tests.Types.T04
             var plan = Layer(composed);
             var paths = plan.Nets.Where(n => n.Role == NetRole.Pathway || n.Role == NetRole.PathwayWide).ToList();
             Assert.NotEmpty(paths);
-            Assert.Contains(paths, n => n.StartAttach >= 0);
+            Assert.Contains(paths, n => TestKit.MeetsStreet(n, road));   // at the kerb: the game joins it (StreetJoins)
             var summit = Summit(plan);
             // The last 25 m of the climb (walking back from the piece that ends nearest the summit) only ever gets
             // closer to the summit: it walks onto the plaza instead of hooking round it.

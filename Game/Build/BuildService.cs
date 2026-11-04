@@ -74,10 +74,6 @@ namespace Placemaker.Game.Build
         private AssetCatalogSystem _catalog;
         private GroupRegistrySystem _registry;
         private SurfaceCloneSystem _clones;
-        private DecalOpacitySystem _decalClones;
-        // s28: per build, how many decorative decals were built see-through and why the others were not.
-        private int _decalsSeeThrough, _decalsFull;
-        private readonly Dictionary<string, int> _decalsFullWhy = new Dictionary<string, int>(StringComparer.Ordinal);
 
         private EntityQuery _tempQuery;
         private EntityQuery _errorQuery;
@@ -137,7 +133,6 @@ namespace Placemaker.Game.Build
             _catalog = World.GetOrCreateSystemManaged<AssetCatalogSystem>();
             _registry = World.GetOrCreateSystemManaged<GroupRegistrySystem>();
             _clones = World.GetOrCreateSystemManaged<SurfaceCloneSystem>();
-            _decalClones = World.GetOrCreateSystemManaged<DecalOpacitySystem>();
             InitOwner();
             InitGhost();
             InitProtect();
@@ -220,8 +215,10 @@ namespace Placemaker.Game.Build
             int auto = _catalog.ResolveAutomatic(request.Plan);
             if (auto > 0) Mod.Log.Info($"Placemaker resolved {auto} automatic assets at build start (the tool should do this before preview/pricing).");
             Go(Step.Prepare);
-            Mod.Log.Info($"Placemaker build started: {request.Plan.Layers.Count} layers, replace={request.ReplaceGroup}.");
-            _decalsSeeThrough = 0; _decalsFull = 0; _decalsFullWhy.Clear();
+            Mod.Log.Info($"Placemaker build started: {request.Plan.Layers.Count} layers, replace={request.ReplaceGroup}{(request.Ungrouped ? ", ungrouped" : "")}.");
+            if (request.Plan.KerbJoins + request.Plan.CrosswalkJoins > 0 || request.Plan.JoinNotes.Count > 0)
+                Mod.Log.Info($"Placemaker street joins: {request.Plan.KerbJoins} footpath end(s) stop at the kerb (the game joins them), {request.Plan.CrosswalkJoins} split the street with a crosswalk."
+                    + (request.Plan.JoinNotes.Count > 0 ? " " + string.Join("; ", request.Plan.JoinNotes) : ""));
             return true;
         }
 
@@ -627,13 +624,6 @@ namespace Placemaker.Game.Build
             };
             Mod.Log.Info($"Placemaker build finished: group {groupId}, {_registry.CountMembers(groupId, true)} members, "
                 + $"{issues.Count} notes, {UnityEngine.Time.frameCount - _startFrame} frames.");
-            if (_decalsSeeThrough + _decalsFull > 0)
-            {
-                var whys = new List<string>();
-                foreach (var kv in _decalsFullWhy) whys.Add(kv.Value + " " + kv.Key);
-                Mod.Log.Info($"Placemaker decal opacity: used {_decalsSeeThrough} see-through decals, {_decalsFull} at full strength"
-                    + (whys.Count > 0 ? " (" + string.Join(", ", whys) + ")" : "") + ".");
-            }
         }
 
         // ───────────────────────── failure / cleanup ─────────────────────────

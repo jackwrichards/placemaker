@@ -200,7 +200,7 @@ namespace Placemaker.Core.Geometry
                 float half = square ? radius / cell : math.sqrt(rest);
                 int j0 = math.max(min.y, (int)math.ceil(local.y - half)), j1 = math.min(max.y, (int)math.floor(local.y + half));
                 for (int j = j0; j <= j1; j++)
-                    if (Set(i, j, !erase)) _changed.Add(new int2(i, j));
+                    if (Set(i, j, !erase)) Changed(new int2(i, j));
             }
             CommitChanges();
         }
@@ -217,7 +217,7 @@ namespace Placemaker.Core.Geometry
                 {
                     float2 d = (new float2(i, j) + 0.5f) * cell - centre;
                     if (math.abs(math.dot(d, axisX)) > radius || math.abs(math.dot(d, axisZ)) > radius) continue;
-                    if (Set(i, j, !erase)) _changed.Add(new int2(i, j));
+                    if (Set(i, j, !erase)) Changed(new int2(i, j));
                 }
             CommitChanges();
         }
@@ -226,14 +226,20 @@ namespace Placemaker.Core.Geometry
         /// Stroke from `from` (already stamped last frame) to `to`: stamps close enough that a fast
         /// mouse leaves no gaps.
         /// </summary>
-        public void Stroke(float2 from, float2 to, float radius, bool erase, bool square = false, float angleDegrees = 0f)
+        /// <returns>
+        /// False when <paramref name="to"/> is still within half a cell of <paramref name="from"/> (nothing stamped): the caller
+        /// must then keep <paramref name="from"/> as the stroke's last point. Moving it on anyway made a slow drag (a few dm a
+        /// frame) paint nothing at all after the first stamp.
+        /// </returns>
+        public bool Stroke(float2 from, float2 to, float radius, bool erase, bool square = false, float angleDegrees = 0f)
         {
             float length = math.distance(from, to);
-            if (!(length >= 0.5f * CellSize)) return;
+            if (!(length >= 0.5f * CellSize)) return false;
             int steps = math.max(1, (int)math.ceil(length / math.max(radius * 0.25f, CellSize)));
             steps = math.min(steps, 4096);
             for (int k = 1; k <= steps; k++)
                 Stamp(math.lerp(from, to, (float)k / steps), radius, erase, square, angleDegrees);
+            return true;
         }
 
         /// <summary>Paints (or erases) every cell whose centre lies inside the ring (e.g. a picked block).</summary>
@@ -259,7 +265,7 @@ namespace Placemaker.Core.Geometry
                 {
                     int i0 = (int)math.ceil(xs[k] / cell - 0.5f), i1 = (int)math.floor(xs[k + 1] / cell - 0.5f);
                     for (int i = i0; i <= i1; i++)
-                        if (Set(i, j, !erase)) _changed.Add(new int2(i, j));
+                        if (Set(i, j, !erase)) Changed(new int2(i, j));
                 }
             }
             CommitChanges();
@@ -274,7 +280,7 @@ namespace Placemaker.Core.Geometry
                 if (atCellCentre(((float2)c + 0.5f) * CellSize)) hits.Add(c);
             _changed.Clear();
             foreach (int2 c in hits)
-                if (Set(c.x, c.y, false)) _changed.Add(c);
+                if (Set(c.x, c.y, false)) Changed(c);
             CommitChanges();
             return hits.Count;
         }
@@ -285,31 +291,88 @@ namespace Placemaker.Core.Geometry
         /// </summary>
         public BrushMask ConnectedComponent(float2 seed, int maxCells = 4_000_000)
         {
-            var result = new BrushMask(CellSize);
+            var result = new BrushMask(CellSize) { TrackEdges = TrackEdges };
             if (!Poly.IsFinite(seed)) return result;
             int2 start = (int2)math.floor(seed / CellSize);
             if (!IsPainted(start.x, start.y)) return result;
-            var seen = new HashSet<long> { Key(start.x, start.y) };
-            var stack = new List<int2> { start };
-            result._changed.Clear();
-            while (stack.Count > 0 && seen.Count <= maxCells)
+            result.FloodFrom(this, new[] { start }, maxCells);
+            return result;
+        }
+
+        /// <summary>
+        /// Paints here every cell of <paramref name="within"/> 4-connected to the seeds through cells of it not painted here
+        /// yet (a seed not in it, or already painted here, starts nothing). Returns how many were painted. The open-land
+        /// fence grows this way: only the new part of its box is flooded.
+        /// </summary>
+        public int FloodFrom(BrushMask within, IEnumerable<int2> seeds, int maxCells = int.MaxValue)
+        {
+            if (within == null || math.abs(within.CellSize - CellSize) > 1e-6f) return 0;
+            var stack = new List<int2>();
+            int added = 0;
+            _changed.Clear();
+            foreach (var s in seeds) Visit(s.x, s.y);
+            while (stack.Count > 0 && added < maxCells)
             {
                 int2 c = stack[stack.Count - 1];
                 stack.RemoveAt(stack.Count - 1);
-                if (result.Set(c.x, c.y, true)) result._changed.Add(c);
                 Visit(c.x + 1, c.y); Visit(c.x - 1, c.y); Visit(c.x, c.y + 1); Visit(c.x, c.y - 1);
             }
-            result.CommitChanges();
-            return result;
+            CommitChanges();
+            return added;
 
             void Visit(int i, int j)
             {
-                if (IsPainted(i, j) && seen.Add(Key(i, j))) stack.Add(new int2(i, j));
+                // marked when pushed: the mask itself is the visited set
+                if (added >= maxCells || !within.IsPainted(i, j) || IsPainted(i, j)) return;
+                if (!Set(i, j, true)) return;
+                Changed(new int2(i, j));
+                added++;
+                stack.Add(new int2(i, j));
             }
+        }
+
+        /// <summary>A copy (cells only: no limit; edge cells only when tracked).</summary>
+        public BrushMask Copy()
+        {
+            var m = new BrushMask(CellSize) { TrackEdges = TrackEdges };
+            foreach (var pair in _tiles) m._tiles[pair.Key] = (bool[])pair.Value.Clone();
+            m._count = _count;
+            if (TrackEdges) m._edgeCells.UnionWith(_edgeCells);
+            return m;
+        }
+
+        /// <summary>Erases the painted cells in min..max (cell centres) whose centre satisfies the predicate.</summary>
+        public int EraseWhere(Func<float2, bool> atCellCentre, float2 min, float2 max)
+        {
+            if (atCellCentre == null || _count == 0) return 0;
+            int2 c0 = (int2)math.floor(min / CellSize), c1 = (int2)math.floor(max / CellSize);
+            var hits = new List<int2>();
+            for (int j = c0.y; j <= c1.y; j++)
+                for (int i = c0.x; i <= c1.x; i++)
+                    if (IsPainted(i, j) && atCellCentre((new float2(i, j) + 0.5f) * CellSize)) hits.Add(new int2(i, j));
+            _changed.Clear();
+            foreach (int2 c in hits)
+                if (Set(c.x, c.y, false)) Changed(c);
+            CommitChanges();
+            return hits.Count;
+        }
+
+        /// <summary>
+        /// (Lag spikes, 2026-10-21) Keep the edge cells up to date (the live preview of painted cells). A fence mask (Block
+        /// paint's allowed cells, millions in a big open box) never draws them: off, painting a cell is just setting it.
+        /// </summary>
+        public bool TrackEdges { get; set; } = true;
+
+        private bool _dirty;
+
+        private void Changed(int2 c)
+        {
+            if (TrackEdges) _changed.Add(c); else _dirty = true;
         }
 
         private void CommitChanges()
         {
+            if (_dirty) { _dirty = false; Version++; }
             if (_changed.Count == 0) return;
             Version++;
             foreach (int2 c in _changed)

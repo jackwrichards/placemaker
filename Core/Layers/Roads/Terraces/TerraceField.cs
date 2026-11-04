@@ -59,6 +59,8 @@ namespace Placemaker.Core.Layers.Roads.Terraces
         public readonly double[] Ms = new double[4];
         /// <summary>The roads the field was built for: 0 terrace street, 1 link, 2 bank walk, 3 other (city links, lanes) — diagnostics.</summary>
         public readonly List<(RoadCurve curve, int kind)> Roads = new List<(RoadCurve, int)>();
+        /// <summary>Retaining walls (terraced blocks): the quays along the tops of the cuts.</summary>
+        public readonly List<TerraceWall> Walls = new List<TerraceWall>();
     }
 
     internal static class TerraceField
@@ -340,7 +342,7 @@ namespace Placemaker.Core.Layers.Roads.Terraces
         /// step needs at the bank slope, so the bank fits in one go: a terrace that cannot be full width narrows next to the
         /// road instead of ending in a cliff, and the road keeps its profile.
         /// </summary>
-        public static void Resolve(Sculpt sc, byte[] protect, float slope, CancellationToken cancel, float earth = float.PositiveInfinity, List<float4> log = null)
+        public static void Resolve(Sculpt sc, byte[] protect, float slope, CancellationToken cancel, float earth = float.PositiveInfinity, List<float4> log = null, sbyte[] wall = null)
         {
             int nx = sc.Nx, ny = sc.Ny, count = nx * ny;
             var T = sc.Target; var B = sc.Base;
@@ -353,7 +355,7 @@ namespace Placemaker.Core.Layers.Roads.Terraces
             byte Level(int k) => sc.Free[k] ? protect[k] : (byte)4;
             for (int round = 0; round < 8; round++)
             {
-                LimitBanks(sc, protect, slope, cancel, earth);
+                LimitBanks(sc, protect, slope, cancel, earth, wall);
                 int found = 0;
                 for (int l = 0; l < 3; l++) Array.Clear(rem[l], 0, count);
                 void Seed(int k, int level, float radius)
@@ -371,6 +373,9 @@ namespace Placemaker.Core.Layers.Roads.Terraces
                             if (i2 >= nx || j2 >= ny) continue;
                             int m = j2 * nx + i2;
                             if (!sc.Free[k] && !sc.Free[m]) continue;
+                            // A retaining wall's nodes hold (BlockField): its jump is the wall, the land around its ends gives way
+                            // through the bank pass (no release spreading from a wall end).
+                            if (wall != null && (wall[k] != 0 || wall[m] != 0)) continue;
                             float dh = math.abs(T[k] - T[m]);
                             float allowed = math.max(step, math.abs(B[k] - B[m])) + 0.03f;
                             if (dh <= allowed) continue;
@@ -431,23 +436,27 @@ namespace Placemaker.Core.Layers.Roads.Terraces
                     }
                     byte lv = (byte)(l + 1);
                     for (int k = 0; k < count; k++)
-                        if (r[k] > 0f && protect[k] != 0 && protect[k] <= lv) protect[k] = 0;
+                        if (r[k] > 0f && protect[k] != 0 && protect[k] <= lv && (wall == null || wall[k] == 0)) protect[k] = 0;   // a wall holds: the land around it gives
                 }
                 cancel.ThrowIfCancellationRequested();
             }
-            LimitBanks(sc, protect, slope, cancel, earth);
+            LimitBanks(sc, protect, slope, cancel, earth, wall);
         }
 
         /// <summary>
         /// Holds every free, unprotected node within the bank slope of its neighbours (or the natural slope there, if steeper):
         /// terraces and road corridors are fixed, the banks between them give. Alternating sweeps until nothing moves.
         /// </summary>
-        public static void LimitBanks(Sculpt sc, byte[] protect, float slope, CancellationToken cancel, float earth = float.PositiveInfinity)
+        public static void LimitBanks(Sculpt sc, byte[] protect, float slope, CancellationToken cancel, float earth = float.PositiveInfinity, sbyte[] wall = null)
         {
             // Eight directions: the steepest gradient between them is at most 1/cos 22.5° = 1.08× the limit, so hold 1/1.08 of it.
             float step = slope / 1.08f * sc.Cell, diag = step * 1.41421356f;
             int nx = sc.Nx, ny = sc.Ny;
             var T = sc.Target; var B = sc.Base;
+            // Only nodes whose neighbours moved since they were last held are looked at again (the same result, a fraction of
+            // the work: after the first sweeps only the fronts of the banks still move).
+            var active = new bool[nx * ny];
+            for (int k = 0; k < active.Length; k++) active[k] = true;
             for (int sweep = 0; sweep < 100; sweep++)
             {
                 float moved = 0f;
@@ -459,6 +468,8 @@ namespace Placemaker.Core.Layers.Roads.Terraces
                     {
                         int i = forward ? ii : nx - 1 - ii;
                         int k = j * nx + i;
+                        if (!active[k]) continue;
+                        active[k] = false;
                         if (!sc.Free[k] || protect[k] != 0) continue;
                         // The earthwork limit is a hard box around the original ground.
                         float lo = B[k] - earth, hi = B[k] + earth;
@@ -467,13 +478,23 @@ namespace Placemaker.Core.Layers.Roads.Terraces
                             int i2 = i + Di[n], j2 = j + Dj[n];
                             if (i2 < 0 || j2 < 0 || i2 >= nx || j2 >= ny) continue;
                             int m = j2 * nx + i2;
+                            if (wall != null && wall[k] * wall[m] < 0) continue;
                             float allowed = math.max(n < 4 ? step : diag, math.abs(B[k] - B[m]));
                             lo = math.max(lo, T[m] - allowed);
                             hi = math.min(hi, T[m] + allowed);
                         }
                         float v = T[k];
                         float nv = lo > hi ? 0.5f * (lo + hi) : math.clamp(v, lo, hi);
-                        if (nv != v) { T[k] = nv; moved = math.max(moved, math.abs(nv - v)); }
+                        if (nv != v)
+                        {
+                            T[k] = nv;
+                            moved = math.max(moved, math.abs(nv - v));
+                            for (int n = 0; n < 8; n++)
+                            {
+                                int i2 = i + Di[n], j2 = j + Dj[n];
+                                if (i2 >= 0 && j2 >= 0 && i2 < nx && j2 < ny) active[j2 * nx + i2] = true;
+                            }
+                        }
                     }
                 }
                 if (moved < 0.005f) break;

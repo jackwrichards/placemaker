@@ -173,9 +173,9 @@ namespace Placemaker.Tests
                 var f = Features.Of(TestKit.Gen(type));
                 foreach (var l in layers) Assert.True(f.Any(x => x.Layer == l && x.DefaultOn), $"{type}: {l} not on by default");
             }
-            On("park", "playground", "picnic", "restrooms", "bigtrees", "flowerbeds", "decals");
+            On("park", "playground", "picnic", "restrooms", "bigtrees", "flowerbeds");
             On("plaza", "fountain");   // art pass a2: the square plants its own trees and beds
-            On("campground", "restrooms", "decals");
+            On("campground", "restrooms");
             On("sportsPark", "pitch", "tennisCourts", "basketballCourt", "playground");   // s10: the clubhouse has the toilets
             // s20: the waterfront plants its own beds and tree rows (the flower-bed feature scattered planter rows over its lawn).
             Assert.DoesNotContain(Features.Of(TestKit.Gen("waterfront")), x => x.DefaultOn && (x.Layer == "flowerbeds" || x.Layer == "bigtrees"));

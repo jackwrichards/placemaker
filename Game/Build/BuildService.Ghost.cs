@@ -118,6 +118,9 @@ namespace Placemaker.Game.Build
             }
         }
 
+        /// <summary>The ghost service's own state, for the tool's stuck-ghost log line.</summary>
+        public string GhostDebug => $"ghost step {_gStep}, wanted {_gWanted}, emitting {_gEmitting}, content {_gHasContent}, build step {_step}, last pump {UnityEngine.Time.frameCount - _gLastPump} frames ago";
+
         /// <summary>Ghost status (IGhostPreview.Status; explicit because IBuildService.Status is the build's).</summary>
         public GhostStatus GhostState => ((IGhostPreview)this).Status;
 
@@ -160,7 +163,9 @@ namespace Placemaker.Game.Build
                     _gStep = _gStep == GhostStep.Failed ? GhostStep.Failed : GhostStep.Idle;
                     return true;   // Clear frame: the temporaries go
                 }
-                bool newRevision = _gRequested != _gEmitting;
+                // a revision asked for again after its ghost went (hidden, or a failed build took it) shows again: wanted,
+                // nothing shown and nothing emitting never waits for ever
+                bool newRevision = _gRequested != _gEmitting || (_gStep == GhostStep.Idle && !_gHasContent);
                 if (newRevision)
                 {
                     bool first = !_gHasContent;
@@ -199,6 +204,7 @@ namespace Placemaker.Game.Build
             if (Busy || request?.Plan == null || !_gWanted || _gStep != GhostStep.Shown || _gShown != revision || revision != _gRequested) return false;
             if (_gDetails.Partial || request.ReplaceGroup != 0 || request.Plan.HasErrors) return false;
             if (_catalog == null || !_catalog.Ready || _work == null || _work.Terraform.Count > 0) return false;
+            if (_work.DefinitionCount == 0) return false;   // zoning only (a Zoning type): no temporaries to adopt, the normal build zones
             foreach (var l in request.Plan.Layers) if (l?.Paint != null && l.Paint.Count > 0) return false;   // the ghost never paints
             if (!ReferenceEquals(request.Plan, _gPlan)) return false;   // must be the very plan the ghost shows
             // Adopt: keep _work, prefabs, indexes, own definitions and the temporaries.

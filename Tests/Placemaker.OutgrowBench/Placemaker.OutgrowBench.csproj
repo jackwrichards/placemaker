@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Outgrow benchmark: replays the planner passes the game runner recorded (lab op polishPassDump), times
+    YardStitch.Plan on each and checks a faster planner plans exactly the same (StitchDump.Signature).
+    Pure .NET, Release build: profile it with dotnet-trace. -p:CoreDir=<a copy of Core> builds it on an older planner
+    (with its own -o folder) to write the baseline signatures.
+    Lives under Tests/ so the mod csproj (which removes Tests\**) never compiles it.
+      Command line: see the header of Program.cs.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <RollForward>Major</RollForward>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>Placemaker.OutgrowBench</AssemblyName>
+    <RootNamespace>Placemaker.OutgrowBench</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591;CS0649</NoWarn>
+    <CoreDir Condition="'$(CoreDir)' == ''">..\..\Core</CoreDir>
+    <ManagedPath Condition="'$(ManagedPath)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Cities Skylines II\Cities2_Data\Managed</ManagedPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(CoreDir)\**\*.cs" Link="Core\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Reference Include="Unity.Mathematics"><HintPath>$(ManagedPath)\Unity.Mathematics.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

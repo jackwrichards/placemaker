@@ -12,13 +12,15 @@ export const GROUP = "Placemaker";
  * together. The game reloads this UI file from disk but loads the DLL only at start, so right after an
  * update they can disagree: the panel then shows "Restart the game" (absent = a DLL older than s15).
  */
-export const PROTOCOL = 23;
+export const PROTOCOL = 25;
 
 // ─────────────────────────── Values (C# → UI) ───────────────────────────
 
 /** Workflow stages. The player can always click back to an earlier stage; nothing is lost. */
 export type Stage = "area" | "design" | "review" | "building" | "manage";
-/** "blockPaint" (s11): a brush fenced to the city block under the cursor; uses the same brush settings as "paint". */
+/** "blockPaint" (s11): a brush fenced to the city block under the cursor; uses the same brush settings as "paint".
+ *  (PROTOCOL 24, area overhaul) "perimeter" (Road nodes) is folded into "draw": Points snap to road nodes. The DLL still
+ *  answers "perimeter" with Points; the panel no longer offers it. */
 export type AreaMode = "draw" | "block" | "paint" | "perimeter" | "blockPaint";
 export type BrushShape = "round" | "square";
 
@@ -41,8 +43,19 @@ export interface BrushRules {
   drawClip?: boolean;
   snap: number;          // m, 0 = off (default 6)
   smoothing: number;     // 0–6 passes (default 1; Paint uses 6)
-  /** (s43, PROTOCOL 22) What the Paint bucket treats as a wall; setBrushRules({ walls: { paths: false } }) merges per key. */
+  /** (s43, PROTOCOL 22) What the Paint bucket treats as a wall; setBrushRules({ walls: { paths: false } }) merges per key.
+   *  (PROTOCOL 24) No longer read: every tool uses the stops above. */
   walls?: BucketWalls;
+  /** (PROTOCOL 24, area overhaul) One set of stops for Points, Paint bucket and Paint area: footpaths, bike paths, tracks. */
+  paths?: boolean;
+  bikes?: boolean;
+  tracks?: boolean;
+  /** (PROTOCOL 24) Zoning as one choice: 0 off, 1 built on, 2 zoned (built or not, default), 3 the whole grid. Sets zoned/allZoned/emptyZones. */
+  zoning?: number;
+  /** (PROTOCOL 24) Openings narrower than this (m) count as closed; narrower places are left out (0 = off; default 10). */
+  gap?: number;
+  /** (PROTOCOL 24) How far (m) the Paint bucket spreads from the click (default 500). */
+  reach?: number;
 }
 
 /** (s43) Paint bucket walls: lines (roads, paths, bikes, tracks) trace the block, areas (water, lots, zoned) cut it. */
@@ -60,7 +73,7 @@ export interface LocText { key: string; args?: (string | number)[] }
 
 export interface PrimaryAction {
   /** What pressing the main button (or Enter) does now. */
-  action: "none" | "toDesign" | "toReview" | "build" | "placeMarkers" | "cancelBuild" | "finishEdit";
+  action: "none" | "toDesign" | "toReview" | "build" | "placeMarkers" | "cancelBuild" | "finishEdit" | "polish";
   label: LocText;
   enabled: boolean;
   /** Why disabled, shown as tooltip and inline hint. */
@@ -99,7 +112,7 @@ export interface ToolState {
   undoLabel?: LocText;
   redoLabel?: LocText;
   /** Marker placement mode active (entrances/access points/split line) and for which step path. */
-  markerMode?: { stepPath: string; kind: string; label: LocText };
+  markerMode?: { stepPath: string; kind: string; label: LocText; /** The entrances placed next come with a crosswalk (walking kinds). */ crosswalk?: boolean };
   hints: Hint[];
   /** Non-null while the composer is planning in the background. */
   planning: boolean;
@@ -109,6 +122,12 @@ export interface ToolState {
   editingGroup?: number;
   /** Anarchy mod detected → show its toggle. */
   anarchy?: { available: boolean; enabled: boolean };
+  /** The build becomes one group (not a loose road grid). separate = the Review switch "One group" is off: built ungrouped. */
+  grouping?: { separate: boolean };
+  /** The entrances placed next come with a crosswalk across the street (walking entrance kinds only). */
+  entranceCrosswalk?: boolean;
+  /** Review's "Keep area" switch: Build keeps the area and the panel (true, default) or closes Placemaker. */
+  keepArea?: boolean;
   panelCollapsed: boolean;
   /** "sketch" = fast overlay lines/dots; "ghost" = real translucent game models + surfaces (Review uses ghost by default). */
   previewMode?: "sketch" | "ghost";
@@ -123,6 +142,129 @@ export interface ToolState {
   /** Additive (s22): preview layers the player showed / hid with the legend (layer id → visible). Absent = every
    *  layer at its default (LegendEntry.defaultOff). Kept for the game session. */
   legendVisibility?: Record<string, boolean>;
+  /** (PROTOCOL 24, area overhaul) The legend while choosing the area: what the overlay shows for the current tool
+   *  (ids "area:*": outline, fill, doors = closed gaps, reach, stops, painted, fence, leftOut, node). Area stage only. */
+  areaLegend?: LegendEntry[];
+  /** (PROTOCOL 25) The neighbourhood-polish painter ("Polish gardens") is the pick: the area is stamped (primary "polish"
+   *  = Polish, trigger polishStamp(false) = Unpolish), never built. Absent = not the painter. */
+  painter?: PainterState;
+}
+
+/** (PROTOCOL 25) The painter as the panel shows it. */
+export interface PainterState {
+  /** Lots whose middle lies in the area, and how many of them are polished now. */
+  lots: number;
+  polished: number;
+  /** This city's master switch "Outgrow" (off: paused; the flags are kept, gardens change once it is on). */
+  featureOn: boolean;
+  /** "Outgrow new buildings", this city's. */
+  newHouses: boolean;
+  /** The theme Polish gives: "zone" (each house by its zone's setting), "garden", "natural", "tidy", "yard". */
+  theme: string;
+  /** The whole city: each kind's look for new buildings, how many are polished, work left. */
+  city?: PolishCity;
+  /** The look picked is `theme` ("zone": each building its zone's look). Its base theme as the rows have it, as saved. */
+  lookTheme: string;
+  lookSavedTheme: string;
+  /** The rows changed the look (not saved). */
+  modified: boolean;
+  /** The old polish painter tool; false: anything else in Placemaker's panel (the Global outgrow window is always there). */
+  tool?: boolean;
+  /** Live polish: the selection polished again a moment after every change (the switch beside Polish). */
+  live?: boolean;
+  /** Every setting of the look as the rows have it, and as the look has it (reset). */
+  values?: Record<string, number>;
+  lookValues?: Record<string, number>;
+  /** Every look: the built-in ones (name is a key; edited: the player changed it) and the player's own, each with the
+   *  settings that differ from `defaults` (a look's values: defaults, then knobs). */
+  looks?: { id: string; name: string; custom: boolean; theme: string; edited?: boolean; knobs?: Record<string, number>; color?: string }[];
+  defaults?: Record<string, number>;
+  /** The colours an outgrow type can be given. */
+  swatches?: string[];
+  /** Global outgrow's numbers (absent: no city). */
+  stats?: PainterStats | null;
+  /** The status lens: drawn now (window open, switch on), its switch, its map ("status" | "types"), what it shows: by layer
+   *  (outgrown, not, being fitted, just added, waiting < 10 s, < 30 s, < 90 s, longer) or by outgrow type ("-": not outgrown). */
+  lens?: boolean;
+  lensWanted?: boolean;
+  lensMode?: string;
+  lensCounts?: number[];
+  lensTypes?: { id: string; count: number }[];
+  /** Global outgrow's brush: "" off, "paint" (brushLook) or "erase". */
+  brush?: string;
+  brushLook?: string;
+  /** The brush's diameter in metres. */
+  brushSize?: number;
+  /** The panel shows Outgrow (its switcher; the toolbar's Outgrow button) instead of Placemaker's stages. */
+  outgrowMode?: boolean;
+  /** A Zoning type picked: the look its zones take unless one picks its own. */
+  typeLook?: string;
+  /** Every zone type of the game: its look ("off": not polished) and whether it has its own (else its kind's). */
+  zones?: PolishZone[];
+  /** The zone types of the buildings in the selection: key (the zone's name without EU / NA, lower case), a zone prefab of
+   *  it, its icon, how many buildings (a Zoning type's Only edit existing). */
+  areaZones?: { key: string; zone: string; icon: string; count: number }[];
+}
+
+export interface PolishZone {
+  id: string;
+  kind: "home" | "shop" | "office" | "industry";
+  look: string;
+  own: boolean;
+  /** The game's own zone icon (UIObject.m_Icon, "Media/…"), or "". */
+  icon: string;
+  /** The zone type's own built-in look (what it gets with no pick of its own nor of its kind). */
+  def?: string;
+}
+
+/** Global outgrow's numbers (NeighbourPolishSystem.Stats), with their last two minutes (one sample a second). */
+export interface PainterStats {
+  /** By kind: homes, shops, offices, industry. */
+  kindTotal: number[];
+  kindPolished: number[];
+  /** Zone prefab name → [buildings, outgrown]. */
+  zones: Record<string, [number, number]>;
+  /** Outgrown buildings by outgrow type id ("" none). */
+  looks: Record<string, number>;
+  toFit: number;
+  stamps: number;
+  planning: number;
+  puttingBack: number;
+  pieces: number;
+  fittedPerSecond: number;
+  addedPerSecond: number;
+  fps: number;
+  msPerFrame: number;
+  histLine: number[];
+  histFitted: number[];
+  histAdded: number[];
+  histFps: number[];
+  details: Record<string, number>;
+}
+
+export interface PolishLook {
+  /** Painted gardens instead of lawns: share 0–100 (Natural and Yard more, Tidy fewer). */
+  painted: number;
+  lawns: boolean;
+  planting: boolean;
+  features: boolean;
+  paths: boolean;
+  rocks: boolean;
+  groundPaint: boolean;
+  shopPaving: boolean;
+}
+
+export interface PolishCity {
+  /** Each kind's look for new buildings: "auto" (each zone type its own look), a look id, or "off". */
+  homes: string;
+  shops: string;
+  offices: string;
+  industry: string;
+  polished: number;
+  total: number;
+  /** Buildings waiting to be fitted, gardens being put back (a few a frame). */
+  waiting: number;
+  restoring: number;
 }
 
 /** One control, mirrors Core.ControlSchema. */
@@ -249,6 +391,8 @@ export interface RecipeInfo {
   category?: string;
   /** (core) Hidden by the shelf (its category is hidden or the category hides it): not in the picker or its search. */
   shelved?: boolean;
+  /** (PROTOCOL 25) The neighbourhood-polish painter ("polishGardens"): picked like a type, but it stamps lots, it builds nothing. */
+  painter?: boolean;
 }
 
 /** (core) A Make-row category of the central shelf, in Make-row order. */
@@ -317,9 +461,9 @@ export interface StepView {
   locked: string[];         // ids set explicitly by the player
   markers: { kind: string; count: number }[];
   /** Every placed marker in placement order (index = removeMarker index). */
-  markerList?: { kind: string; index: number; position: [number, number, number] }[];
-  /** Marker kinds this step accepts, in display order (e.g. entrance, entry, exit, alley, footpath). */
-  markerKinds?: { kind: string; label: string; icon?: string; tooltip?: string }[];
+  markerList?: { kind: string; index: number; position: [number, number, number]; /** with a crosswalk across the street */ crosswalk?: boolean }[];
+  /** Marker kinds this step accepts, in display order (e.g. entrance, entry, exit, alley, footpath). crosswalk = people walk in there: it can have one. */
+  markerKinds?: { kind: string; label: string; icon?: string; tooltip?: string; crosswalk?: boolean }[];
   /** Minimum markers needed before Build (0 = optional). */
   markersRequired?: number;
   /** Readiness from IAreaGenerator.CheckReady for this step. */
@@ -488,6 +632,8 @@ export interface ManagedGroup {
   stats: Stat[];
   upkeep: number;
   canEdit: boolean;
+  /** Ungrouped: its parts are clicked and bulldozed one by one. */
+  ungrouped?: boolean;
 }
 
 export const Values = {
@@ -504,11 +650,21 @@ export const Values = {
 
 export const Triggers = {
   toggleTool: "toggleTool",                 // ()
+  togglePolish: "togglePolish",             // () — the neighbourhood-polish tool's own button (state.painter while it is open)
   close: "close",                           // ()
   setPanelCollapsed: "setPanelCollapsed",   // (collapsed: boolean)
 
   goToStage: "goToStage",                   // (stage: Stage) — only if in state.reachable
-  primary: "primary",                       // () — same as Enter
+  primary: "primary",                       // () — same as Enter (Review: Build & keep area)
+  buildAndClose: "buildAndClose",           // () — Review's second button: build, then close Placemaker
+  polishTheme: "polishTheme",               // (theme: string) — the theme the painter's Polish gives
+  polishOption: "polishOption",             // (id: string, value: number) — the painter card's look rows (toggles 1/0, painted 0–100)
+  polishCity: "polishCity",                 // (what: string, value: string) — on / newHouses / homes|shops|offices|industry / polishAll / unpolishAll
+  polishKnob: "polishKnob",                 // (id: string, value: number) — a setting of the look picked ("theme": base theme index)
+  polishLook: "polishLook",                 // (what: string, arg: string) — save / saveAs / rename / delete / revert the look picked
+  polishLive: "polishLive",                 // (on: boolean) — the Live switch beside Polish
+  polishZone: "polishZone",                 // (zone: string, look: string) — a zone type's look ("off"; "" = its kind's)
+  polishStamp: "polishStamp",               // (yes: boolean) — (PROTOCOL 25) the painter: Polish (true, = primary) / Unpolish (false) the lots in the area
   undo: "undo",                             // ()
   redo: "redo",                             // ()
 
@@ -552,6 +708,10 @@ export const Triggers = {
   acknowledgePermanent: "acknowledgePermanent", // (ack: boolean) — required before Build when summary.permanent is non-empty (Enter included)
   setMarkerKind: "setMarkerKind",           // (path: string, kind: string) — which marker type the next click places (entrance types etc.)
   removeMarker: "removeMarker",             // (path: string, index: number)
+  setMarkerCrosswalk: "setMarkerCrosswalk", // (path: string, index: number, on: boolean) — index -1: the entrances placed next
+  ungroupGroup: "ungroupGroup",             // (groupId: number, ungroup: boolean) — false: group again
+  setBuildUngrouped: "setBuildUngrouped",   // (on: boolean) — the next build is born ungrouped (separate pieces)
+  setKeepArea: "setKeepArea",               // (on: boolean) — Build keeps the area (true) or closes Placemaker (false)
   setFeature: "setFeature",                 // (path: string, featureLayerId: string, enabled: boolean)
   setPreviewMode: "setPreviewMode",         // (mode: "sketch" | "ghost")
   selectPreset: "selectPreset",             // (layerId: string, presetId: string) — select type (single-layer recipe) + apply preset; undoable

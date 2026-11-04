@@ -139,11 +139,10 @@ namespace Placemaker.Tests.Types
             Assert.Contains(earthworks.Terraform, t => t.Kind == TerraformKind.Lower);
             Assert.Contains(earthworks.Terraform, t => t.Kind == TerraformKind.Raise);
             Assert.True(earthworks.Objects.Count(o => o.Category == AssetCategories.ConstructionMachine) >= 4);
-            // Everyone: mud (paint + decals) and a fence with a gate.
+            // Everyone: mud paint and a fence with a gate (issue #2: no decals from decal packs any more).
             foreach (var p in new[] { foundation, roadworks, compound, demolition, earthworks })
             {
                 Assert.NotEmpty(p.Paint);
-                Assert.Contains(p.Objects, o => o.Role == ObjectRole.Decal && o.Category == AssetCategories.DecalDirt);
                 Assert.Contains(p.Nets, n => n.Role == NetRole.Fence);
             }
         }

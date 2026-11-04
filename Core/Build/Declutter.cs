@@ -114,7 +114,11 @@ namespace Placemaker.Core.Build
         {
             f = default;
             if (o == null || assets == null || string.IsNullOrEmpty(o.Asset.Id) || !assets.TryGetValue(o.Asset.Id, out var info)) return false;
-            return TryFootprint(o.Position, o.Yaw, o.Scale, info.BoundsMin, info.BoundsMax, out f);
+            if (!TryFootprint(o.Position, o.Yaw, o.Scale, info.BoundsMin, info.BoundsMax, out f)) return false;
+            // (Industrial) a prop stacked on another stands higher: their boxes meet in plan, not in height.
+            if (math.abs(math.abs(o.Roll) - math.PI) < 0.1f) { float lo = o.Elevation - f.MaxY, hi = o.Elevation - f.MinY; f.MinY = lo; f.MaxY = hi; }
+            else if (o.Elevation != 0f) { f.MinY += o.Elevation; f.MaxY += o.Elevation; }   // raised, or sunk into the ground (negative)
+            return true;
         }
 
         public static bool TryFootprint(float3 position, float yaw, float scale, float3 min, float3 max, out Footprint f)
@@ -248,6 +252,9 @@ namespace Placemaker.Core.Build
                 {
                     var o = l.Objects[oi];
                     if (o == null || !Participates(o.Role)) continue;
+                    // (Industrial) a prop set into the ground carries the game's negative Elevation: its collision mask is then
+                    // Underground only and it meets nothing (seen in the game runner: a car on sunk rubble, both drawn).
+                    if (o.Elevation < -0.01f) continue;
                     var it = new Item { Layer = li, Index = oi, Obj = o, Tier = Tier(o.Role) };
                     it.HasFp = TryFootprint(o, assets, out it.Fp);
                     if (it.HasFp) items.Add(it);

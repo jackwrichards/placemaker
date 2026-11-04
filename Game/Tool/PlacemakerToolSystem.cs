@@ -98,7 +98,8 @@ namespace Placemaker.Game.Tool
             _defaults = ToolRegistration.Defaults ?? new LayerDefaultsStore();
             _editor = new DesignEditor(GeneratorRegistry.Get, id => _defaults.Get(id));
             _recipes = new RecipeStore(() => _editor);
-            _presets = new PresetStore(_editor);
+            // a type's Standard style is its own design: the root of its recipe, as picking the type gives it
+            _presets = new PresetStore(_editor, null, layer => { var id = RecipeFor(layer); return id != null ? _recipes.Find(id)?.Recipe?.Root : null; });
             PresetFile.Load(_presets);
             _roads = new RoadNetwork(EntityManager, World.GetOrCreateSystemManaged<global::Game.Net.SearchSystem>());
             _snapCollector = new SnapCollector(EntityManager, World);
@@ -111,6 +112,9 @@ namespace Placemaker.Game.Tool
                 _brushSize = math.clamp(_settings.BrushSize, BrushMask.MinDiameter, BrushMask.MaxDiameter);
                 _brushSquare = _settings.BrushSquare;
                 _mode = (SelectionMode)math.clamp(_settings.LastAreaMode, 0, 4);
+                // Area overhaul: Road nodes is part of Points now (points snap to road nodes).
+                if (_mode == SelectionMode.Perimeter) _mode = SelectionMode.Draw;
+                if (_settings.MigrateAreaRules() | _settings.MigratePolishLooks()) _settings.ApplyAndSave();
                 _panelCollapsed = _settings.PanelCollapsed;
             }
         }
@@ -118,11 +122,19 @@ namespace Placemaker.Game.Tool
         [Preserve]
         protected override void OnDestroy()
         {
+            UpdateGhostOutline(false);
             _worker?.Dispose();
             base.OnDestroy();
         }
 
-        /// <summary>First open: load recipes (generators register by then) and pick the last used recipe.</summary>
+        [Preserve]
+        protected override void OnGamePreload(Colossal.Serialization.Entities.Purpose purpose, global::Game.GameMode mode)
+        {
+            base.OnGamePreload(purpose, mode);
+            UpdateGhostOutline(false);   // a city loading (or the menu) with the Real preview on: the game's outlines back
+        }
+
+        /// <summary>First open: load recipes (generators register by then). No type is chosen until the player picks one.</summary>
         private void EnsureInitialized()
         {
             if (_initialized) return;
@@ -134,25 +146,8 @@ namespace Placemaker.Game.Tool
                 _recipes.Reload();
             }
             catch (Exception e) { Mod.Log.Error(e, "Placemaker: loading recipes failed"); }
-            var last = _settings?.LastRecipe;
-            var pick = !string.IsNullOrEmpty(last) && _recipes.Find(last) != null ? last
-                     : _recipes.Entries.Count > 0 ? _recipes.Entries[0].Recipe.Id : null;
-            // (core) The last type used is shelved now (e.g. Quarry before industry was hidden): start on the first type shown.
-            // Only at this restore: a hidden type picked on purpose (the game runner by id, editing an old build) stays.
-            if (pick != null && _recipes.IsShelved(pick))
-            {
-                var shown = _recipes.FirstShown();
-                if (shown != null)
-                {
-                    Mod.Log.Info($"Placemaker: the last type used, '{pick}', is shelved; starting on '{shown}'.");
-                    pick = shown;
-                }
-            }
-            if (pick != null)
-            {
-                _recipe = _recipes.Instantiate(pick, NewSeed());
-                _recipeId = pick;
-            }
+            // The last type used is not picked again (the user: "nothing should be selected if I didn't specifically select
+            // something"): it planned itself on the next area, often a big one meant for something else, and lagged.
             _history.Reset(Capture());
         }
 
@@ -171,8 +166,16 @@ namespace Placemaker.Game.Tool
         {
             // While a build runs the build service owns the tool slot; switching tools would abort it.
             if (m_ToolSystem == null || _building) return;
-            if (m_ToolSystem.activeTool == this) Close();
-            else { _closeAfterGhost = 0; m_ToolSystem.activeTool = this; }
+            // the polish tool (its own button) shares this tool: Placemaker's button switches over to Placemaker
+            if (m_ToolSystem.activeTool == this) { if (_painter || _outgrowMode) { SetPainter(false); SetOutgrowMode(false); } else Close(); }
+            else
+            {
+                // opened again: the mode it was left in (Outgrow stays Outgrow)
+                if (_painter) SetPainter(false);
+                _closeAfterGhost = 0;
+                _closeAfterBuild = false;   // opened by the player: a Build & close the build never handed back is void
+                m_ToolSystem.activeTool = this;
+            }
         }
 
         public void Close()
@@ -193,6 +196,7 @@ namespace Placemaker.Game.Tool
             EnableActions(true);
             if (_anarchy) ApplyAnarchy(true);
             _wasRunning = true;
+            InvalidateFills();   // the city changed while the tool was closed
             Touch();
         }
 
@@ -205,10 +209,14 @@ namespace Placemaker.Game.Tool
             _legendHover = "";
             EndValuePreview(true);      // hovers revert, drags commit
             HideGhost();
+            UpdateGhostOutline(false);
             _closeAfterGhost = 0;
             EnableActions(false);
             // While the build service holds the tool slot for our build, Anarchy must stay in effect.
             if (_anarchy && !_building) ApplyAnarchy(false);
+            // An edit of a finished build ends with Placemaker: left open, the next build (on any area) replaced the edited one
+            // (the user, 22 Oct: Edit in the info panel, then a new park elsewhere, and the first park was gone).
+            if (_editingGroup != 0 && !_building) CancelEdit("Placemaker was closed", true);
             LockSnapMask();
             _wasRunning = false;
             Touch();
@@ -251,10 +259,14 @@ namespace Placemaker.Game.Tool
                 _roads.BeginFrame();
                 PumpPreview();
                 UpdateBuild();
+                // Build & close: the build service hands the tool back when it is done, then it closes
+                if (_closeAfterBuild && !_building) { _closeAfterBuild = false; Close(); }
                 ReadInput();
 
                 if (HandleKeys()) { /* key handled: no tool input this frame */ }
                 else if (_stage == ToolStage.Building) { /* input ignored while building */ }
+                else if (_brush != 0) UpdateOutgrowBrushInput();   // Outgrow's brush: the mouse is its own
+                else if (_outgrowMode) _cursorValid = false;       // Outgrow mode: the area tools rest
                 else if (_markerKind != null) UpdateMarkers();
                 else if (_stage == ToolStage.Manage) UpdateManage();
                 else
@@ -283,7 +295,9 @@ namespace Placemaker.Game.Tool
         private void FinishFrame()
         {
             CheckKeepOffSetting();
+            CheckPolishType();
             RebuildShapeIfDirty(false);
+            UpdateLivePolish();
             UpdatePlanning();
             TickPlanningProgress();
             var facts = Facts();
@@ -292,6 +306,7 @@ namespace Placemaker.Game.Tool
             ResolveAssets();
             if (_markerKind != null && (_shape == null || RecipePaths.Resolve(_recipe, _markerPath) == null)) ExitMarkerMode();
             UpdateHintActions();
+            UpdateGhostOutline(PreviewModeEffective == PreviewMode.Ghost && !_outgrowMode);
         }
 
         // ───────────── stage ─────────────
@@ -339,13 +354,14 @@ namespace Placemaker.Game.Tool
             {
                 case PrimaryKind.ToDesign: SetStage(ToolStage.Design); break;
                 case PrimaryKind.ToReview: SetStage(ToolStage.Review); break;
-                case PrimaryKind.Build:
-                case PrimaryKind.FinishEdit: StartBuild(); break;
+                case PrimaryKind.Build: StartBuild(_keepArea ? AfterBuild.KeepArea : AfterBuild.Close); break;
+                case PrimaryKind.FinishEdit: StartBuild(AfterBuild.Fresh); break;
                 case PrimaryKind.PlaceMarkers:
                     if (_markerKind != null) ExitMarkerMode();
                     else StartMarkers(p.StepPath, p.MarkerKind);
                     break;
                 case PrimaryKind.CancelBuild: CancelBuild(); break;
+                case PrimaryKind.Polish: PolishStamp(true); break;
             }
         }
 
@@ -439,6 +455,7 @@ namespace Placemaker.Game.Tool
 
         public void Undo()
         {
+            CommitBlockPaintStroke(true);   // a Paint area stroke whose outline is still on a worker is a step first
             if (!CanUndo) return;
             EndValuePreview(false);
             Restore(_history.Undo());
@@ -446,6 +463,7 @@ namespace Placemaker.Game.Tool
 
         public void Redo()
         {
+            CommitBlockPaintStroke(true);
             if (!CanRedo) return;
             EndValuePreview(false);
             Restore(_history.Redo());
@@ -475,12 +493,35 @@ namespace Placemaker.Game.Tool
             if (!HasSelection()) return;
             CancelGesture();
             ExitMarkerMode();
+            CancelEdit("the area was cleared", false);   // a new area is a new build, never the edited one again
             ClearSelectionState();
             // Markers belong to the old outline.
             if (_recipe != null) foreach (var kv in RecipePaths.Walk(_recipe)) kv.Value.Markers.Clear();
             _markersEdited.Clear();
             DesignChanged();
             Commit("Placemaker.Undo.ClearArea");
+            SetStage(ToolStage.Area);
+        }
+
+        /// <summary>
+        /// The edit of a finished build ends without building: the build stays as it was, and nothing built next replaces it.
+        /// <paramref name="forget"/>: the edited build's design and area go too (closing Placemaker; reopening starts fresh).
+        /// </summary>
+        private void CancelEdit(string why, bool forget)
+        {
+            if (_editingGroup == 0) return;
+            Mod.Log.Info($"Placemaker: the edit of group {_editingGroup} ended without building ({why}); the build stays as it was.");
+            _editingGroup = 0;
+            _buildUngrouped = false;
+            if (!forget) { Touch(); return; }
+            ClearSelectionState();
+            _recipe = null;
+            _recipeId = "";
+            _presetLayer = ""; _presetId = "";
+            _focus = RecipePaths.Root;
+            _plan = null;
+            DesignChanged();
+            _history.Reset(Capture());
             SetStage(ToolStage.Area);
         }
 
@@ -498,7 +539,7 @@ namespace Placemaker.Game.Tool
         }
 
         private bool HasSelection() =>
-            _shape != null || !_draw.IsEmpty || !_paint.IsEmpty || _blocks.Faces.Count > 0 || _perimeter.Nodes.Count > 0 || !_bpMask.IsEmpty;
+            _shape != null || !_draw.IsEmpty || !_paint.IsEmpty || _blocks.Seeds.Count > 0 || _perimeter.Nodes.Count > 0 || !_bpMask.IsEmpty;
 
         public void SetBrush(bool square, float size, float angle)
         {

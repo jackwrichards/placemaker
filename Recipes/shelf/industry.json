@@ -1,9 +1,9 @@
 {
-  "_about": "Make-row category 'Industry' (Core/Tool/Shelf.cs; one file per category). Hide, never delete: type ids in hiddenTypes, style (preset) ids per type in hiddenStyles ({\"park\": [\"pocket\"]}), types moved in from another group in types. Hidden things keep their code and the game runner still builds them by id. The whole category is hidden from the Make row.",
+  "_about": "Make-row category 'Industrial' (Core/Tool/Shelf.cs; one file per category). Hide, never delete: type ids in hiddenTypes, style (preset) ids per type in hiddenStyles ({\"park\": [\"pocket\"]}), types moved in from another group in types. Hidden things keep their code and the game runner still builds them by id. Industrial (2026-10-19, the user: 'a whole new Industrial category ... industrial awesomeness ... like someone handcrafted it'): the handcrafted yards first (container yard, car yard, junk yard, industrial works: Core/Layers/Types/Industrial), then every type of the 'industrial' group that was hidden before (logistics yard, scrapyard, landfill, quarry, construction site, abandoned lot). The zoning type Industrial estate stays in Zoning (it zones lots; it does not build a yard).",
   "id": "industry",
-  "name": "Industry",
-  "order": 90,
-  "hidden": true,
+  "name": "Industrial",
+  "order": 9,
+  "hidden": false,
   "groups": [
     "industrial"
   ],

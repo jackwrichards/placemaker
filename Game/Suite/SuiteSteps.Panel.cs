@@ -112,8 +112,10 @@ namespace Placemaker.Game.Suite
             var stage0 = _tool.Stage;
             bool building0 = _tool.Building;
             string marker0 = _tool.MarkerKind;
+            int built0 = _tool.SuiteBuildsDone;
+            // a build done at once that keeps the selection (a Zoning look) counts by the builds done
             yield return UiAct(st, rec, label, "primary", "primary", null,
-                () => _tool.Stage != stage0 || _tool.Building != building0 || _tool.MarkerKind != marker0,
+                () => _tool.Stage != stage0 || _tool.Building != building0 || _tool.MarkerKind != marker0 || _tool.SuiteBuildsDone != built0,
                 () => _tool.Primary());
         }
 
@@ -337,7 +339,8 @@ namespace Placemaker.Game.Suite
             }
             yield return WaitFor(rec, "review", () => _tool.Stage == ToolStage.Review, 15f);
             yield return WaitPlan(st, rec, always: true);
-            if (_tool.PreviewModeSelected == PreviewMode.Ghost) yield return WaitGhost(rec);
+            if (PlanBlocked(out string blocked)) { rec["ghostSkipped"] = "the plan cannot be built (" + blocked + "): no ghost to wait for"; rec["previewMode"] = "sketch"; }
+            else if (_tool.PreviewModeSelected == PreviewMode.Ghost) yield return WaitGhost(rec);
             else rec["previewMode"] = "sketch";
             rec["issues"] = Issues(rec);
             rec["planCost"] = Math.Round(_tool.PlanCost);
@@ -430,13 +433,83 @@ namespace Placemaker.Game.Suite
             yield return WaitPlan(st, rec);
         }
 
+        /// <summary>Review's "One group" switch beside Build (on: one group, the default; off: built as separate pieces).</summary>
+        private IEnumerator StepGroupSwitch(ScenarioState st, JObject step, JObject rec)
+        {
+            bool on = (bool?)step["on"] ?? true;
+            yield return UiAct(st, rec, "one group", "build-group", "setBuildUngrouped", new object[] { !on }, () => _tool.BuildUngrouped == !on, () => _tool.SetBuildUngrouped(!on));
+            rec["separate"] = _tool.BuildUngrouped;
+        }
+
         /// <summary>A Placemaker option (the Options page), set through the settings object and read back.</summary>
+        /// <summary>
+        /// The game's Options screen on Placemaker's page (what a person opens from the pause menu), scrolled so a label
+        /// (scrollTo: its exact text, e.g. a group's name) sits near the top; close: back to the game. Shots with shotMode
+        /// "ui" show it.
+        /// </summary>
+        private IEnumerator StepOptions(ScenarioState st, JObject step, JObject rec)
+        {
+            if ((bool?)step["close"] ?? false)
+            {
+                var screens = _world.GetExistingSystemManaged<global::Game.UI.InGame.GameScreenUISystem>();
+                if (screens != null) screens.activeScreen = global::Game.UI.InGame.GameScreenUISystem.GameScreen.Main;
+                yield return Seconds(0.5f);
+                yield break;
+            }
+            var options = _world.GetExistingSystemManaged<global::Game.UI.Menu.OptionsUISystem>();
+            var s = ToolRegistration.Settings;
+            if (options == null || s == null) { rec["error"] = "options: no options screen"; yield break; }
+            string err = null;
+            try { options.OpenPage(s.id, global::Placemaker.Game.Settings.PlacemakerSettings.SectionMain, false); }
+            catch (Exception e) { err = e.Message; }
+            if (err != null) { rec["error"] = "options: " + err; yield break; }
+            yield return Seconds(1.5f);
+            string to = (string)step["scrollTo"];
+            if (to != null)
+            {
+                int offset = (int?)step["offset"] ?? 8;
+                string js = "var want=" + SuiteUiSystem.Q(to) + ";var all=document.querySelectorAll('*');var el=null;"
+                    + "for(var i=0;i<all.length;i++){var n=all[i];if(String(n.textContent||'').trim()===want){el=n;}}"
+                    + "if(!el)return {found:false};"
+                    + "var p=el.parentElement;while(p&&!(p.scrollHeight>p.clientHeight+4))p=p.parentElement;"
+                    + "if(!p){try{el.scrollIntoView();}catch(e){}return {found:true,scroller:false};}"
+                    + "var er=el.getBoundingClientRect(),pr=p.getBoundingClientRect();"
+                    + "p.scrollTop=p.scrollTop+(er.top-pr.top)-" + offset + ";"
+                    + "return {found:true,scroller:true,top:p.scrollTop,height:p.scrollHeight,view:p.clientHeight};";
+                JObject reply = null;
+                yield return UiRun(js, r => reply = r);
+                rec["scroll"] = reply?["value"] ?? (JToken)(reply?["error"] ?? "no reply");
+                if (reply == null || !((bool?)reply["value"]?["found"] ?? false)) rec["error"] = "options: no label '" + to + "' on the page";
+                yield return Seconds(0.6f);
+            }
+            rec["polished"] = global::Placemaker.Game.Neighbours.NeighbourPolishSystem.StatusPolished + " of " + global::Placemaker.Game.Neighbours.NeighbourPolishSystem.StatusTotal;
+        }
+
         private IEnumerator StepSetting(ScenarioState st, JObject step, JObject rec)
         {
             string name = (string)step["name"];
+            if (name == "PolishNewHouses" || name == "NeighbourhoodPolish")
+            {
+                // Outgrow's switches are the city's own now (NeighbourPolishSystem.Switches), no longer settings
+                bool on = (bool?)step["value"] ?? true;
+                if (name == "PolishNewHouses") global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetNewBuildings(on);
+                else global::Placemaker.Game.Neighbours.NeighbourPolishSystem.SetRunning(on);
+                rec["effective"] = on;
+                rec["city"] = true;
+                yield return Frames(2);
+                yield break;
+            }
             var s = ToolRegistration.Settings;
             var prop = s?.GetType().GetProperty(name ?? "");
             if (s == null || prop == null || !prop.CanWrite) { rec["error"] = $"unknown setting '{name}'"; yield break; }
+            if (!prop.CanRead)
+            {
+                // a button (write-only): pressed, as after its confirmation
+                try { prop.SetValue(s, true); rec["pressed"] = name; Mod.Log.Info("Placemaker suite: setting button " + name + " pressed"); }
+                catch (Exception e) { rec["error"] = $"setting {name}: {e.Message}"; }
+                yield return Frames(4);
+                yield break;
+            }
             try
             {
                 var v = step["value"].ToObject(prop.PropertyType);

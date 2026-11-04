@@ -160,7 +160,9 @@ namespace Placemaker.Tests
                     if (audit.LooseWalkEnds > 0) failures.Add($"{name}/{kind}: {audit.LooseWalkEnds} walkway ends on nothing");
                     bool caps = s.S(RoadsIds.CapStyle, "asphalt") != "none";
                     if (caps && audit.BareDeadEnds > 0) failures.Add($"{name}/{kind}: {audit.BareDeadEnds} dead ends without a turning circle");
-                    if (audit.ShortPieces > 0) failures.Add($"{name}/{kind}: {audit.ShortPieces} road pieces under 6 m");
+                    if (audit.ShortPieces > 0)
+                        failures.Add($"{name}/{kind}: {audit.ShortPieces} road pieces under 6 m " + string.Join(" ", plan.Nets
+                            .Where(n => math.distance(n.A.xz, n.D.xz) < 6f).Select(n => $"{n.Role}({n.A.x:0},{n.A.z:0})")));
                     if (plan.HasErrors) failures.Add($"{name}/{kind}: errors " + string.Join(",", plan.Issues.Where(i => i.Severity == IssueSeverity.Error).Select(i => i.Key)));
                 }
             foreach (var f in failures) _out.WriteLine("FAIL " + f);
@@ -381,7 +383,8 @@ namespace Placemaker.Tests
             Assert.NotEmpty(caps);
             var trails = plan.Nets.Where(n => n.Role == NetRole.Pathway && n.Category == AssetCategories.TrailPath).ToList();
             if (trails.Count > 0) Assert.NotEmpty(plan.Paint);   // dirt worn along the trails
-            Assert.All(plan.Paint, p => Assert.Equal(TerrainMaterials.Dirt, p.Layer));
+            // dirt along the trails, desire paths and worn corners; dry grass on the verges (smarter roads: ground wear)
+            Assert.All(plan.Paint, p => Assert.Contains(p.Layer, new[] { TerrainMaterials.Dirt, TerrainMaterials.Dry }));
         }
 
         // ───────────────────────── zoning ─────────────────────────

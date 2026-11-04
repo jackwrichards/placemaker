@@ -1,0 +1,30 @@
+{
+  "_about": "Area tools (2026-10-19): Paint area without a radius limit (one 700 m stroke across open sloped land, longer than the old 500 m fill disc and 600 m work box); the Stops at panel with its star (all on / all off); Points as just points (no stops, no zoning row, the outline exactly as drawn, across the ring road).",
+  "scenarios": [
+    {
+      "id": "paint-reach-open-slope",
+      "land": { "shape": "rect", "size": [800, 300], "ground": "slope", "grade": 8, "toward": "north", "roads": "none" },
+      "steps": [
+        { "do": "area", "tool": "paint", "size": 50, "cameraDistance": 900, "stroke": [[-350, -60], [-150, 40], [0, -20], [150, 50], [350, 0]] },
+        { "do": "camera", "target": "area", "view": "top", "shot": "painted", "shotMode": "overlay" },
+        { "do": "camera", "target": "area", "view": "oblique", "shot": "painted-45", "shotMode": "overlay" }
+      ]
+    },
+    {
+      "id": "panel-bucket-stops",
+      "land": { "shape": "rect", "size": [150, 120], "ground": "flat" },
+      "steps": [
+        { "do": "hover", "tool": "bucket", "at": [0, 0], "camera": { "target": "block", "view": "top" }, "shot": "bucket-panel", "shotMode": "ui" }
+      ]
+    },
+    {
+      "id": "panel-points-plain",
+      "land": { "shape": "rect", "size": [150, 120], "ground": "flat" },
+      "steps": [
+        { "do": "area", "tool": "points", "rect": [200, 160] },
+        { "do": "camera", "target": "area", "view": "top", "shot": "points-outline", "shotMode": "overlay" },
+        { "do": "shot", "name": "points-panel", "shotMode": "ui" }
+      ]
+    }
+  ]
+}

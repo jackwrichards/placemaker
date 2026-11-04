@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Hot planner for the game runner: Core/Neighbours/YardStitch.cs alone, compiled against the Placemaker.dll the running
+       game already has (bin\Release), under a fresh assembly name each time, so the lab op "hotload" can swap the
+       neighbourhood-polish planner without rebuilding the mod or relaunching the game. Build with tools/hot/Build-Hot.ps1. -->
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <HotName Condition="'$(HotName)' == ''">PlacemakerHot</HotName>
+    <AssemblyName>$(HotName)</AssemblyName>
+    <OutputPath>..\..\bin\Hot\</OutputPath>
+    <IntermediateOutputPath>..\..\obj\Hot\$(HotName)\</IntermediateOutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <NoWarn>CS0436</NoWarn>
+    <ManagedPath Condition="'$(ManagedPath)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Cities Skylines II\Cities2_Data\Managed</ManagedPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Core\Neighbours\YardStitch.cs" />
+    <Reference Include="mscorlib"><HintPath>$(ManagedPath)\mscorlib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System"><HintPath>$(ManagedPath)\System.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Core"><HintPath>$(ManagedPath)\System.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="netstandard"><HintPath>$(ManagedPath)\netstandard.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.Mathematics"><HintPath>$(ManagedPath)\Unity.Mathematics.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Placemaker"><HintPath>..\..\bin\Release\Placemaker.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

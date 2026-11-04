@@ -1,0 +1,11 @@
+{
+  "formatVersion": 1,
+  "id": "polishYard",
+  "nameKey": "Placemaker.UI.Painter.Theme.yard",
+  "descriptionKey": "Placemaker.UI.Painter.ThemeTip.yard",
+  "icon": "Media/Game/Icons/Zones.svg",
+  "root": {
+    "layer": "polishYard",
+    "settings": {}
+  }
+}

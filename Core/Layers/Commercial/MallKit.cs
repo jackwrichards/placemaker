@@ -763,7 +763,7 @@ namespace Placemaker.Core.Layers.Commercial
         {
             var region = LayerRegion.From(ring);
             if (region == null) return;
-            Ctx.Surface(ring, SurfaceRole.Grass, new AssetRef(""), AssetCategories.SurfaceGrass);
+            Lawn(ring);
             var reserved = new ReservedSpace();
             Composer.Reserve(Ctx.Plan, reserved);
             var rng = Hashing.Rng(Hashing.Mix(Ctx.Seed, salt), "green");

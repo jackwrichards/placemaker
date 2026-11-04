@@ -10,7 +10,9 @@ import {
 } from "../../src/contract";
 import { publish, setTriggerHandler } from "../cs2/api";
 
-const DEFAULT_BRUSH_RULES = { builds: true, anything: false, drawClip: false, roads: true, buildings: true, lots: true, zoned: true, allZoned: false, emptyZones: false, water: true, stayInBlock: true, snap: 6, smoothing: 1,
+// Area overhaul (PROTOCOL 24): one set of stops for every tool, zoning as one choice (2 = zoned, built on or not), gap and reach.
+const DEFAULT_BRUSH_RULES = { builds: true, anything: false, drawClip: false, roads: true, buildings: true, lots: true, zoned: true, allZoned: true, emptyZones: false, water: true, stayInBlock: true, snap: 6, smoothing: 1,
+    paths: true, bikes: true, tracks: true, zoning: 2, gap: 10, reach: 500,
     walls: { roads: true, paths: true, bikes: true, tracks: true, water: true, lots: false, zoned: false } };
 import { addStrings } from "../cs2/l10n";
 import { BLOCKS, blocksRing, Block, cellsOutline, NODES, paintCells } from "./city";
@@ -28,6 +30,10 @@ function needsAck(permanent: { key: string }[]): boolean {
 
 const EN: Record<string, string> = { ...FAKE_STRINGS };
 const en = (key: string, fallback?: string) => EN[key] ?? fallback ?? key.split(".").pop() ?? key;
+
+/** (C# PresetStore.StandardId / StandardNameKey) Every fill type's own design, a style like the others. */
+const STANDARD_ID = "standard";
+const STANDARD_KEY = "Placemaker.UI.Preset.Standard";
 
 interface Snapshot {
     ring: V2[];
@@ -99,6 +105,14 @@ export class MockBackend {
     areaModes: ToolState["areaModes"] = (["draw", "block", "blockPaint", "paint", "perimeter"] as AreaMode[]).map((mode) => ({ mode, enabled: true }));
     userCollapsed: boolean | null = null;
     anarchy = { available: true, enabled: false };
+    /** Entrances placed next come with a crosswalk (C# PlacemakerToolSystem._markerCrosswalk). */
+    entranceCrosswalk = false;
+    /** Review's "One group" switch off: the next build is born ungrouped. */
+    buildSeparate = false;
+    /** Review's "Keep area" switch: Build keeps the area (C# PlacemakerToolSystem._keepArea). */
+    keepArea = true;
+    /** Ungrouped builds (C# GroupFlags.Ungrouped). */
+    ungrouped = new Set<number>();
     money = 250000;
 
     // ── area ──
@@ -160,6 +174,8 @@ export class MockBackend {
     // ── build / manage ──
     buildProgress = 0;
     private buildTimer: number | null = null;
+    /** What the build under way leaves (the game's AfterBuild): keep the area, close the tool, or a fresh Area step. */
+    private afterBuild: "keep" | "close" | "fresh" = "fresh";
     groups: BuiltGroup[] = [];
     managedId: number | null = null;
     editingGroup: number | null = null;
@@ -340,12 +356,23 @@ export class MockBackend {
         return { values: clone(step.values), features };
     }
 
-    /** Stored data of a preset: own preset, saved-over built-in, or the shipped built-in (its values over the defaults, default features). */
+    /** (C# PresetStore.IsTypeStandard) The "standard" style of a fill type that ships none: the type's own design. */
+    typeStandard(layerId: string, id: string): boolean {
+        const l = this.layer(layerId);
+        return id === STANDARD_ID && !!l && l.kind === "fill" && !l.presets.some((p) => p.id === STANDARD_ID);
+    }
+
+    hasStandard(layerId: string): boolean {
+        return this.typeStandard(layerId, STANDARD_ID) || !!this.layer(layerId)?.presets.some((p) => p.id === STANDARD_ID);
+    }
+
+    /** Stored data of a preset: own preset, saved-over built-in, the type's own Standard, or the shipped built-in (its values over the defaults, default features). */
     presetData(layerId: string, id: string): PresetData | null {
         const own = (this.customPresets[layerId] ?? []).find((p) => p.id === id);
         if (own) return clone(own.data);
         const ov = this.presetOverrides[layerId + "|" + id];
         if (ov) return clone(ov);
+        if (this.typeStandard(layerId, id)) return this.defaultData(layerId);
         const p = this.layer(layerId)?.presets.find((x) => x.id === id);
         if (!p) return null;
         return { values: { ...this.defaults(layerId), ...clone(p.values ?? {}) }, features: this.defaultData(layerId).features };
@@ -354,6 +381,7 @@ export class MockBackend {
     presetName(layerId: string, id: string): string {
         const own = (this.customPresets[layerId] ?? []).find((p) => p.id === id);
         if (own) return own.name;
+        if (this.typeStandard(layerId, id)) return en(STANDARD_KEY, "Standard");
         const p = this.layer(layerId)?.presets.find((x) => x.id === id);
         return p ? en(p.name, id) : id;
     }
@@ -375,9 +403,11 @@ export class MockBackend {
         }
     }
 
-    /** No preset ("Default"): the type's fresh defaults are the baseline, so a loaded build can read "modified". */
+    /** A type picked (or a build loaded): its Standard; the type's fresh defaults are the baseline, so a loaded build can read "modified". */
     resetActive() {
-        this.active = this.root ? { id: "", layer: this.root.layer, base: this.defaultData(this.root.layer) } : null;
+        this.active = this.root
+            ? { id: this.hasStandard(this.root.layer) ? STANDARD_ID : "", layer: this.root.layer, base: this.presetData(this.root.layer, STANDARD_ID) ?? this.defaultData(this.root.layer) }
+            : null;
     }
 
     defaultData(layerId: string): PresetData {
@@ -386,10 +416,13 @@ export class MockBackend {
     }
 
     presetViews(l: MockLayer): PresetView[] {
-        const built: PresetView[] = l.presets.map((p) => ({
+        const list = this.typeStandard(l.id, STANDARD_ID) ? [{ id: STANDARD_ID, name: STANDARD_KEY } as MockLayer["presets"][number], ...l.presets] : l.presets;
+        const built: PresetView[] = list.map((p) => ({
             id: p.id, name: p.name, icon: p.icon, overridden: this.presetOverrides[l.id + "|" + p.id] ? true : undefined,
             shelved: (p as PresetView).shelved || styleShelved(l.id, (l as { group?: string }).group, p.id) || undefined,
         }));
+        // Standard first, also one the type ships
+        built.sort((a, b) => (a.id === STANDARD_ID ? -1 : b.id === STANDARD_ID ? 1 : 0));
         const own: PresetView[] = (this.customPresets[l.id] ?? []).map((p) => ({ id: p.id, name: p.name, custom: true, basedOn: p.basedOn }));
         return [...built, ...own];
     }
@@ -536,7 +569,9 @@ export class MockBackend {
         const q = closestOnRing(p, this.ring);
         if (q.d > 14) return;
         const kind = this.markerMode.kind;
-        this.edit({ key: "Placemaker.Undo.AddMarker", args: [en(`Placemaker.Marker.${kind}`, kind)] }, () => step.markers.push({ kind, p: q.q }));
+        const walks = !!this.markerKindsOf(step)?.find((k) => k.kind === kind && k.crosswalk);
+        const stored = this.entranceCrosswalk && walks ? kind + "+crosswalk" : kind;
+        this.edit({ key: "Placemaker.Undo.AddMarker", args: [en(`Placemaker.Marker.${kind}`, kind)] }, () => step.markers.push({ kind: stored, p: q.q }));
     }
 
     removeMarkerNear(p: V2) {
@@ -598,6 +633,14 @@ export class MockBackend {
             case "primary":
                 this.primaryAction();
                 return;
+            case "buildAndClose": {
+                const p = this.primary();
+                if (!p.enabled || p.action !== "build" || (this.plan && needsAck(this.plan.permanent) && !this.ackPermanent)) return;
+                this.afterBuild = "close";
+                this.startBuild();
+                this.publishAll();
+                return;
+            }
             case "undo":
                 this.undo();
                 return;
@@ -605,7 +648,8 @@ export class MockBackend {
                 this.redo();
                 return;
             case "setAreaMode":
-                this.mode = a[0];
+                // Area overhaul: Road nodes is part of Points.
+                this.mode = a[0] === "perimeter" ? "draw" : a[0];
                 this.userCollapsed = null;
                 break;
             case "setBrush":
@@ -616,6 +660,11 @@ export class MockBackend {
                     const patch = JSON.parse(String(a[0]));
                     // s43: walls merge per key, like the DLL's ParseBrushRules.
                     this.brushRules = { ...this.brushRules, ...patch, walls: { ...this.brushRules.walls, ...(patch.walls ?? {}) } };
+                    // Area overhaul: zoning as one choice sets the three switches, like BrushRules.SetZoningLevel.
+                    if (typeof patch.zoning === "number") {
+                        const z = patch.zoning;
+                        this.brushRules = { ...this.brushRules, zoned: z >= 1, allZoned: z >= 2, emptyZones: z >= 3, zoning: z };
+                    }
                 } catch { /* ignore */ }
                 break;
             case "resetBrushRules":
@@ -636,6 +685,9 @@ export class MockBackend {
                 this.edit({ key: "Placemaker.Undo.SelectRecipe", args: [r.info.custom ? r.info.name : en(r.info.name)] }, () => {
                     this.recipeId = r.info.id;
                     this.root = this.instantiate(r.root);
+                    // a type starts on its Standard: one the player saved over is applied (C# SwitchRecipe)
+                    const ov = this.presetOverrides[this.root.layer + "|" + STANDARD_ID];
+                    if (ov) this.applyData(this.root, clone(ov));
                     this.focus = "0";
                     this.modified = false;
                     this.resetActive();
@@ -804,7 +856,7 @@ export class MockBackend {
             }
             case "selectPreset": {
                 const layerId = String(a[0]);
-                const id = String(a[1] ?? "");
+                const id = String(a[1] ?? "") || (this.hasStandard(layerId) ? STANDARD_ID : "");
                 const r =
                     this.recipes.find((x) => !x.info.custom && x.root.layer === layerId && !(x.root.children ?? []).length) ??
                     this.recipes.find((x) => x.info.id === layerId);
@@ -828,7 +880,7 @@ export class MockBackend {
                 const data = this.capture(step);
                 const own = (this.customPresets[step.layer] ?? []).find((p) => p.id === id);
                 if (own) own.data = data;
-                else if (this.layer(step.layer)?.presets.some((p) => p.id === id)) this.presetOverrides[step.layer + "|" + id] = data;
+                else if (this.layer(step.layer)?.presets.some((p) => p.id === id) || this.typeStandard(step.layer, id)) this.presetOverrides[step.layer + "|" + id] = data;
                 else break;
                 if (a[0] === "0") this.active = { id, layer: step.layer, base: clone(data) };
                 this.toast = `Saved “${this.presetName(step.layer, id)}”`;
@@ -861,7 +913,8 @@ export class MockBackend {
                 const isActive = !!this.active && this.active.layer === layerId && this.active.id === id;
                 if (list.some((p) => p.id === id)) {
                     this.customPresets[layerId] = list.filter((p) => p.id !== id);
-                    if (isActive) this.active = { id: "", layer: layerId, base: this.defaultData(layerId) };
+                    // the design stays, now on the type's Standard (changed if it differs)
+                    if (isActive) this.active = { id: this.hasStandard(layerId) ? STANDARD_ID : "", layer: layerId, base: this.presetData(layerId, STANDARD_ID) ?? this.defaultData(layerId) };
                     break;
                 }
                 const key = layerId + "|" + id;
@@ -902,6 +955,24 @@ export class MockBackend {
             case "setMarkerKind":
                 // Which entrance type the next click places; also enters placement for that step.
                 if (this.get(a[0])) this.markerMode = { stepPath: a[0], kind: String(a[1]) };
+                break;
+            case "setMarkerCrosswalk": {
+                const i = Number(a[1]);
+                if (i < 0) { this.entranceCrosswalk = !!a[2]; break; }
+                const step = this.get(a[0]);
+                if (!step || !(i < step.markers.length)) break;
+                const base = step.markers[i].kind.split("+crosswalk")[0];
+                this.edit({ key: "Placemaker.Undo.Crosswalk" }, () => (step.markers[i].kind = a[2] ? base + "+crosswalk" : base));
+                return;
+            }
+            case "ungroupGroup":
+                if (a[1]) this.ungrouped.add(Number(a[0])); else this.ungrouped.delete(Number(a[0]));
+                break;
+            case "setBuildUngrouped":
+                this.buildSeparate = !!a[0];
+                break;
+            case "setKeepArea":
+                this.keepArea = !!a[0];
                 break;
             case "removeMarker": {
                 const step = this.get(a[0]);
@@ -1126,13 +1197,17 @@ export class MockBackend {
     }
 
     /** Typed marker kinds of a step (StepView.markerKinds): declared by the fake layer, or derived from a real layer's markers control. */
-    markerKindsOf(s: StepModel): { kind: string; label: string; icon?: string }[] | undefined {
+    markerKindsOf(s: StepModel): { kind: string; label: string; icon?: string; crosswalk?: boolean }[] | undefined {
         const l = this.layer(s.layer);
         if (!l) return undefined;
         if (l.markerKinds) return l.markerKinds;
-        if (l.real && l.id.toLowerCase().includes("parking")) {
+        if (l.real) {
+            // C# MarkerKinds.For / MarkerVariants.Walks: the kinds of the markers control, walking ones offer a crosswalk
             const c = l.controls.find((x) => x.kind === "markers" && x.markerKinds && x.markerKinds.length);
-            if (c) return (c.markerKinds ?? []).map((k) => ({ kind: k, label: "" }));
+            const all = c?.markerKinds ?? [];
+            const cars = all.some((k) => k === "entry" || k === "exit" || k === "alley");
+            const walks = (k: string) => ["pedestrian", "bike", "main", "footpath", "access"].includes(k) || (k === "entrance" && !cars);
+            if (c && (l.id.toLowerCase().includes("parking") || all.length > 1)) return all.map((k) => ({ kind: k, label: "", crosswalk: walks(k) || undefined }));
         }
         return undefined;
     }
@@ -1228,6 +1303,7 @@ export class MockBackend {
             case "build":
             case "finishEdit":
                 if (this.plan && needsAck(this.plan.permanent) && !this.ackPermanent) return;
+                this.afterBuild = p.action === "build" ? (this.keepArea ? "keep" : "close") : "fresh";
                 this.startBuild();
                 break;
             case "cancelBuild":
@@ -1273,12 +1349,20 @@ export class MockBackend {
         this.groups = this.groups.filter((x) => x.id !== g.id).concat([g]);
         this.money -= plan.cost;
         this.editingGroup = null;
-        this.ring = [];
-        this.closed = false;
-        this.cells.clear();
-        this.picked = [];
-        for (const s of this.allSteps()) s.markers = [];
-        this.stage = "area";
+        const keep = this.afterBuild === "keep";
+        if (!keep) {
+            this.ring = [];
+            this.closed = false;
+            this.cells.clear();
+            this.picked = [];
+        }
+        // no type stays chosen (the game: a kept one planned itself on the next area)
+        this.root = null;
+        this.recipeId = "";
+        this.focus = "0";
+        this.stage = keep ? "design" : "area";
+        if (this.afterBuild === "close") this.open = false;
+        this.afterBuild = "fresh";
         this.undoStack = [];
         this.redoStack = [];
         this.ackPermanent = false;
@@ -1510,6 +1594,9 @@ export class MockBackend {
             buildProgress: this.stage === "building" ? this.buildProgress : undefined,
             editingGroup: this.editingGroup ?? undefined,
             anarchy: this.anarchy,
+            grouping: { separate: this.buildSeparate },
+            entranceCrosswalk: this.entranceCrosswalk,
+            keepArea: this.keepArea,
             panelCollapsed: this.collapsed(),
             previewMode: this.previewMode(),
             planningProgress: this.planning ? this.planProgress : undefined,
@@ -1517,7 +1604,23 @@ export class MockBackend {
             protocol: this.protocol,
             areaModes: this.areaModes,
             legendVisibility: Object.keys(this.legendVisibility).length ? { ...this.legendVisibility } : undefined,
+            areaLegend: this.stage === "area" ? this.areaLegend() : undefined,
         };
+    }
+
+    /** Area overhaul: what the area tools draw (C# Core/Tool/AreaLegend), a fixed sample per tool. */
+    areaLegend(): ToolState["areaLegend"] {
+        const e = (id: string, color: string, count: number, areaM2?: number) => ({ id, label: "Placemaker.Legend.Area." + id.slice(5), color, count, areaM2 });
+        const shape = this.closed && this.ring.length >= 3 ? Math.round(area(this.ring)) : 0;
+        const list: NonNullable<ToolState["areaLegend"]> = [];
+        if (this.mode === "block") {
+            if (shape) list.push(e("area:outline", "#cceaff", 1, shape));
+            list.push(e("area:fill", "#ffffff", 1), e("area:doors", "#ffcc33", 1), e("area:stops", "#ff5a46", 4));
+        } else if (this.mode === "blockPaint" || this.mode === "paint") {
+            if (shape) list.push(e("area:painted", "#4d9eff", 1, shape));
+            list.push(e("area:fence", "#e6f2ff", 1), e("area:stops", "#ff5a46", 3));
+        } else if (shape) list.push(e("area:outline", "#cceaff", 1, shape));
+        return list.length ? list : undefined;
     }
 
     catalog(): Catalog {
@@ -1585,7 +1688,7 @@ export class MockBackend {
             }
         }
         const counts = new Map<string, number>();
-        for (const m of s.markers) counts.set(m.kind, (counts.get(m.kind) ?? 0) + 1);
+        for (const m of s.markers) { const k = m.kind.split("+crosswalk")[0]; counts.set(k, (counts.get(k) ?? 0) + 1); }
         const kinds = new Set<string>();
         for (const c of this.layer(s.layer)?.controls ?? []) if (c.kind === "markers") (c.markerKinds ?? [c.id]).forEach((k) => kinds.add(k));
         for (const k of this.markerKindsOf(s) ?? []) kinds.add(k.kind);
@@ -1615,7 +1718,7 @@ export class MockBackend {
             values,
             locked: s.locked.slice(),
             markers: Array.from(kinds).map((k) => ({ kind: k, count: counts.get(k) ?? 0 })),
-            markerList: s.markers.map((m, index) => ({ kind: m.kind, index, position: [m.p[0], 0, m.p[1]] as [number, number, number] })),
+            markerList: s.markers.map((m, index) => ({ kind: m.kind.split("+crosswalk")[0], index, position: [m.p[0], 0, m.p[1]] as [number, number, number], crosswalk: m.kind.endsWith("+crosswalk") || undefined })),
             markerKinds: this.markerKindsOf(s),
             markersRequired: this.markersRequiredOf(s),
             ready: r.ready,
@@ -1661,7 +1764,7 @@ export class MockBackend {
     managed(): ManagedGroup | null {
         const g = this.groups.find((x) => x.id === this.managedId);
         if (!g) return null;
-        return { id: g.id, recipeName: g.recipeName, customName: g.customName || undefined, stats: g.stats, upkeep: g.upkeep, canEdit: true };
+        return { id: g.id, recipeName: g.recipeName, customName: g.customName || undefined, stats: g.stats, upkeep: g.upkeep, canEdit: true, ungrouped: this.ungrouped.has(g.id) || undefined };
     }
 
     publishAll() {

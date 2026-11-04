@@ -9,12 +9,14 @@
 #   powershell -File tools/suite/Play.ps1 -Direct -Mods PreservePhotoMode,SunGlasses
 #       # also these Paradox mods (by DLL name, from the subscribed-mods cache), loaded as local mods for this session
 #       # only: copied into Mods\ before the launch and removed again when the game closes. Needs -Direct.
-param([string]$Grid = '', [switch]$AllMods, [string]$Window = '1600x900', [ValidateSet('suite', 'game')][string]$Look = 'suite', [switch]$NoBuild, [switch]$Direct, [string]$Who = '', [switch]$DevMode, [string[]]$Mods = @())
+#   powershell -File tools/suite/Play.ps1 -Direct -Menu   # the same launch, but it stops at the main menu (no test grid)
+param([string]$Grid = '', [switch]$AllMods, [string]$Window = '1600x900', [ValidateSet('suite', 'game')][string]$Look = 'suite', [switch]$NoBuild, [switch]$Direct, [string]$Who = '', [switch]$DevMode, [string[]]$Mods = @(), [switch]$Menu)
 $runId = 'play-' + (Get-Date -Format 'MMdd-HHmmss')
 $args2 = @('-File', (Join-Path $PSScriptRoot 'Run-Suite.ps1'), '-Playground', '-RunId', $runId, '-Window', $Window, '-Look', $Look)
 if ($Grid) { $args2 += @('-Grid', $Grid) }
 if ($AllMods) { $args2 += '-AllMods' }
 if ($DevMode) { $args2 += '-DevMode' }
+if ($Menu) { $args2 += '-Menu' }
 if ($NoBuild) { $args2 += '-NoBuild' }
 if ($Direct) { $args2 += '-Direct' }
 if ($Who) { $args2 += @('-Who', $Who) }

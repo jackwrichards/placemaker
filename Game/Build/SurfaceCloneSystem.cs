@@ -46,7 +46,12 @@ namespace Placemaker.Game.Build
         private readonly List<string> _queue = new List<string>();
         private readonly HashSet<string> _remembered = new HashSet<string>(StringComparer.Ordinal);
         private bool _builtinsDone;
-        private int _rememberedRetries;
+        // Modded surfaces (EAI packs) arrive 30–75 s after startup. The old limit (600 frames, ~10 s) gave up before them,
+        // so a save naming an overlay of a pack surface loaded with that prefab missing (GitHub issue #2, the decal copies'
+        // mechanism). Now looked for every half second until all are there.
+        private const int RememberedPollFrames = 30;
+        private int _rememberedPoll;
+        private bool _rememberedAllFound;
 
         /// <summary>Switch for the feature (setting). Off = parking surfaces use the originals.</summary>
         public static bool FeatureEnabled = true;
@@ -112,7 +117,7 @@ namespace Placemaker.Game.Build
             try
             {
                 if (!_builtinsDone && !_surfaceQuery.IsEmptyIgnoreFilter) RequestBuiltins();
-                if (_rememberedRetries < 600 && _remembered.Count > 0) { RequestRemembered(); }
+                if (!_rememberedAllFound && _remembered.Count > 0 && --_rememberedPoll <= 0) { _rememberedPoll = RememberedPollFrames; RequestRemembered(); }
                 int budget = 64;   // spread a large first batch over a few frames
                 while (_queue.Count > 0 && budget-- > 0) { var next = _queue[0]; _queue.RemoveAt(0); CreateClone(next); }
             }
@@ -134,14 +139,13 @@ namespace Placemaker.Game.Build
 
         private void RequestRemembered()
         {
-            _rememberedRetries++;
             bool allFound = true;
             foreach (var name in _remembered)
             {
                 if (_requestedNames.Contains(name)) continue;
                 if (FindSurface(name, out _)) Request(name); else allFound = false;
             }
-            if (allFound) _rememberedRetries = int.MaxValue;   // done; a missing pack is retried only until then
+            if (allFound) _rememberedAllFound = true;   // a pack that never comes is looked for twice a second (cheap)
         }
 
         private bool FindSurface(string name, out SurfacePrefab prefab)

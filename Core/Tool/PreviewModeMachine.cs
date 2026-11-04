@@ -58,6 +58,9 @@ namespace Placemaker.Core.Tool
         public int PlanRevision;
         /// <summary>The plan is older than the input (re-planning in the background).</summary>
         public bool PlanStale;
+        /// <summary>(shops4) The plan is refused (an error: Build waits). Nothing to show, so no ghost and nothing to wait for: the
+        /// panel said "Updating preview…" for ever on a too-small area and the tool never settled.</summary>
+        public bool PlanRefused;
         /// <summary>The ghost service is registered and usable.</summary>
         public bool GhostAvailable;
         /// <summary>Revision the ghost currently shows on the map, -1 = nothing.</summary>
@@ -145,7 +148,7 @@ namespace Placemaker.Core.Tool
                              && HasPreview(i.Stage)
                              && i.ToolActive && !i.BuildRunning
                              && i.ValuePreview != ValuePreviewKind.Drag && !i.Dragging
-                             && i.GhostAvailable && i.PlanAvailable;
+                             && i.GhostAvailable && i.PlanAvailable && !i.PlanRefused;
             if (!wantGhost)
             {
                 if (_requested >= 0) { d.Command = GhostCommand.Hide; _requested = -1; }

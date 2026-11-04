@@ -1,0 +1,15 @@
+{
+  "_about": "Make-row category 'Neighbourhood' (Core/Tool/Shelf.cs), hidden: 'Polish gardens' is the neighbourhood-polish tool with its own button next to Placemaker's (Game/Tool/PlacemakerToolSystem.Painter.cs, UI PolishPanel). It stamps the lots in the area polished (yes) or as the game made them (no); it plans and builds nothing.",
+  "id": "neighbourhood",
+  "name": "Neighbourhood",
+  "order": 9,
+  "hidden": true,
+  "groups": [
+    "neighbourhood"
+  ],
+  "types": [
+    "polishGardens"
+  ],
+  "hiddenTypes": [],
+  "hiddenStyles": {}
+}

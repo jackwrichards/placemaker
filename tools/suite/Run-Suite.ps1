@@ -48,6 +48,7 @@ param(
     [ValidateSet('human', 'settled', 'user')][string]$Pace = 'human',
     [switch]$RestoreOnly,
     [switch]$Playground,
+    [switch]$Menu,       # with -Playground: stop at the main menu (no new game, no grid)
     [switch]$DevMode,   # the game's developer mode (-developerMode: debug menus)
     [string]$ResultsRoot = 'C:\Users\jack\cs2-area-tool\.forensics\suite\runs',
     # The game queue (GameQueue.ps1): by default the run waits its turn in the machine-wide line and the queue's game runs
@@ -151,6 +152,7 @@ function Get-RunEnd {
 # -RunEnded: the caller's game is gone now (the host's own restore): recorded first, so a restore that has to wait (a
 # game the user started) later knows which files changed after the run.
 function Restore-Settings([string]$why, [switch]$RunEnded) {
+    MI-ReshadeBack $why
     $pending = Join-Path $saved 'pending.txt'
     if (-not (Test-Path -LiteralPath $pending)) { return }
     Disarm
@@ -337,6 +339,13 @@ if (-not $KeepGraphics) {
     if (Test-Path $sc) {
         $t = Get-Content -LiteralPath $sc -Raw -Encoding UTF8
         $t = $t -replace '"masterVolume":\s*[0-9.]+', '"masterVolume": 0'
+        $t = $t -replace '"menuVolume":\s*[0-9.]+', '"menuVolume": 0'
+        $t = $t -replace '"radioActive":\s*true', '"radioActive": false'
+        # the game saves a section only once a value differs from its default: with default volumes there is no audio
+        # section to change, and the game plays its music. Add one, muted (the user's file comes back after the run).
+        if ($t -notmatch '(?m)^Audio Settings\s*$') {
+            $t = $t.TrimEnd() + "`r`nAudio Settings`r`n{`n    `"masterVolume`": 0,`n    `"menuVolume`": 0,`n    `"ingameVolume`": 0,`n    `"radioActive`": false,`n    `"radioVolume`": 0`n}`r`n"
+        }
         $t = $t -replace '"vSync":\s*true', '"vSync": false'
         $t = $t -replace '"displayMode":\s*"[A-Za-z]+"', '"displayMode": "Window"'
         $t = $t -replace '"volumetricCloudsEnabled":\s*true', '"volumetricCloudsEnabled": false'
@@ -351,7 +360,7 @@ if (-not $KeepGraphics) {
         $t = $t -replace '("enabled":\s*)true(,\s*"sampleCount")', '${1}false$2'
         Write-NoBom $sc $t
     }
-    Say "suite profile: $Window window, vsync off, full detail without LOD cross-fade, no clouds or cloud shadows, no DOF/motion blur/dynamic resolution, muted"
+    Say "suite profile: $Window window, vsync off, full detail without LOD cross-fade, no clouds or cloud shadows, no DOF/motion blur/dynamic resolution, muted (music and radio off)"
 }
 
 # ───────────── arm ─────────────
@@ -367,6 +376,7 @@ $cfg = [ordered]@{
     fixtureOnly = ($Set -eq 'bootstrap' -or [bool]$Playground); quit = (-not $Playground); playground = [bool]$Playground; shotWidth = [int]$w; shotHeight = [int]$h; noTerrain = [bool]$NoTerrain; queue = [bool]$Queue
     userModSettings = [bool]$UserModSettings; look = $Look; pace = $Pace; profile = $(if ($AllMods) { 'full' } else { 'clean' })
 }
+if ($Menu) { $cfg['menuOnly'] = $true }
 if ($Grid -match '^(\d+)x(\d+)$') { $cfg['nx'] = [int]$Matches[1]; $cfg['nz'] = [int]$Matches[2] }
 foreach ($kv in ($Opt -split ';' | Where-Object { $_ -match '=' })) {
     $k, $v = $kv -split '=', 2
@@ -397,6 +407,8 @@ try {
     # while it runs, the user's build goes back once no game runs)
     $other = @(Get-OtherGames)
     if ($other.Count -gt 0) { $status = 'not started'; Disarm; Say ("STOP: Cities2.exe is running or starting ({0}) and it is not this run's; the game was not started." -f ($other -join ', ')); exit 2 }   # the finally puts back what it may
+    # ReShade hangs the GPU in a test game: off for this launch, back on once no game runs (ModsInstall.ps1)
+    MI-ReshadeOff
     $proc = [System.Diagnostics.Process]::Start($psi)
     $ourPid = $proc.Id
     $script:ourPid = $ourPid

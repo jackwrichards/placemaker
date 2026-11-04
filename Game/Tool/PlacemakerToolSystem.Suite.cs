@@ -219,14 +219,13 @@ namespace Placemaker.Game.Tool
             CancelGesture();
             ExitMarkerMode();
             if (_mode != SelectionMode.Block) SetAreaMode(SelectionMode.Block);
-            _roads.InvalidateGraph();
-            var face = PickFace(xz, out var why);
+            InvalidateFills();
+            var face = PickAt(xz, out var why);
             if (face == null) { problem = why?.Key ?? "no block"; return false; }
             _hoverFace = face;
-            _hoverFaceAt = xz;
             _blocks = new BlockSelectionState();
-            _blocks.Faces.Add(new System.Collections.Generic.List<HalfEdge>(face.Loop));
             _blocks.Seeds.Add(face.Seed);
+            _blocks.Rings.Add(face.Fill.Ring);
             ShapeChanged();
             Commit("Placemaker.Undo.SelectBlock");
             if (_stage == ToolStage.Area && _shape != null) SetStage(ToolStage.Design);
@@ -271,8 +270,8 @@ namespace Placemaker.Game.Tool
             if (_markerKind == null || _shape == null) { problem = "marker placement did not start"; return null; }
             if (!Composer.ClosestSegment(_shape.Ring, near, out int seg, out float t, out _)) { problem = "no outline segment"; ExitMarkerMode(); return null; }
             var at = math.lerp(_shape.Ring[seg], _shape.Ring[(seg + 1) % _shape.Ring.Length], t);
-            var m = new EdgeMarker { Kind = _markerKind, RingSegment = seg, RingT = t, Position = at };
-            string placed = _markerPath + " " + _markerKind;
+            var m = new EdgeMarker { Kind = PlacedKind(_markerPath, _markerKind), RingSegment = seg, RingT = t, Position = at };
+            string placed = _markerPath + " " + m.Kind;
             if (!_editor.AddMarker(_recipe, _markerPath, m)) { problem = "marker refused"; ExitMarkerMode(); return null; }
             MarkMarkersEdited(_markerPath);
             DesignChanged();

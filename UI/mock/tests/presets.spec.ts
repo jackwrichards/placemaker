@@ -16,11 +16,11 @@ test("browser: categories ▸ types ▸ presets; clicking a preset applies it; t
     const errors = await open(page);
     await toDesign(page, "park");
     const park = page.getByTestId("presets-park");
-    // selected type expanded: Default + its built-ins; other types collapsed
-    await expect(park.getByTestId("preset-default")).toHaveAttribute("aria-pressed", "true");
+    // selected type expanded: Standard (its own design, a style like the others) + its built-ins; other types collapsed
+    await expect(park.getByTestId("preset-standard")).toHaveAttribute("aria-pressed", "true");
     for (const id of ["formal", "wild", "pond"]) await expect(park.getByTestId(`preset-${id}`)).toBeVisible();
     await expect(page.getByTestId("presets-plaza")).toHaveCount(0);
-    await expect(page.getByTestId("preset-bar-name")).toHaveText("Default");
+    await expect(page.getByTestId("preset-bar-name")).toHaveText("Standard");
     // compact chips and tiles
     const h = (await park.getByTestId("preset-formal").boundingBox())!.height;
     expect(h).toBeLessThanOrEqual(24);
@@ -28,11 +28,21 @@ test("browser: categories ▸ types ▸ presets; clicking a preset applies it; t
 
     await park.getByTestId("preset-wild").click();
     await expect(park.getByTestId("preset-wild")).toHaveAttribute("aria-pressed", "true");
-    await expect(park.getByTestId("preset-default")).toHaveAttribute("aria-pressed", "false");
+    await expect(park.getByTestId("preset-standard")).toHaveAttribute("aria-pressed", "false");
     expect(await backend(page, "b.root.values.style")).toBe("meadow");
     await expect(page.getByTestId("preset-bar-name")).toHaveText("Wild meadow");
     await expect(page.getByTestId("preset-modified")).toHaveCount(0);
     await expect(page.getByTestId("preset-save")).toHaveAttribute("aria-disabled", "true");
+
+    // Standard is a style like the others: picked again any time (it was "Default", which could not be reselected)
+    await park.getByTestId("preset-standard").click();
+    await expect(park.getByTestId("preset-standard")).toHaveAttribute("aria-pressed", "true");
+    await expect(park.getByTestId("preset-wild")).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByTestId("preset-bar-name")).toHaveText("Standard");
+    expect(await backend(page, "b.active.id")).toBe("standard");
+    await expect(page.getByTestId("preset-modified")).toHaveCount(0);
+    await park.getByTestId("preset-wild").click();
+    await expect(park.getByTestId("preset-wild")).toHaveAttribute("aria-pressed", "true");
 
     // another type: selected with its defaults, expanded instead
     await pickType(page, "plaza");
@@ -44,7 +54,7 @@ test("browser: categories ▸ types ▸ presets; clicking a preset applies it; t
     expect(await backend(page, "b.active.id")).toBe("civic");
     // undo goes back to the plain plaza
     await page.keyboard.press("Control+z");
-    await expect(page.getByTestId("presets-plaza").getByTestId("preset-default")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("presets-plaza").getByTestId("preset-standard")).toHaveAttribute("aria-pressed", "true");
 
     // a category chip lists its own types
     await page.getByTestId("make-group-shops").click();
@@ -100,7 +110,7 @@ test("browser: search filters categories, types and presets; keyboard moves betw
     await page.keyboard.press("ArrowDown"); // the row below: wrapped categories in a narrow panel, else the types
     if (await page.locator('[data-nav="cat"]:focus').count()) await page.keyboard.press("ArrowDown");
     await expect(page.locator('[data-testid="recipes"] [data-nav="type"]:focus')).toHaveCount(1);
-    await page.getByTestId("preset-default").focus();
+    await page.getByTestId("preset-standard").focus();
     await page.keyboard.press("ArrowRight"); // Formal garden
     await expect(page.getByTestId("preset-formal")).toBeFocused();
     await page.keyboard.press("Enter");

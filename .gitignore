@@ -16,3 +16,6 @@ docs/gallery/index.html
 docs/showcase/
 docs/gallery-*/
 .forensics/
+
+# Road lab renders (regenerate: dotnet run -c Release --project Tests/Placemaker.RoadLab)
+docs/roadlab/*/

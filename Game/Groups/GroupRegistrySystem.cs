@@ -36,6 +36,10 @@ namespace Placemaker.Game.Groups
         private readonly Dictionary<int, List<string>> _missing = new Dictionary<int, List<string>>();
         private readonly List<int> _allIds = new List<int>();
         private readonly Dictionary<int, Entity> _owners = new Dictionary<int, Entity>();
+        private readonly HashSet<int> _ungrouped = new HashSet<int>();
+        /// <summary>Ungrouped builds whose props and trees still share the carrier owner (released next update, ReleasePending).</summary>
+        private readonly HashSet<int> _releasePending = new HashSet<int>();
+        private readonly HashSet<int> _duplicateWarned = new HashSet<int>();
 
         /// <summary>For Harmony patches (static context, main thread only).</summary>
         internal static GroupRegistrySystem Instance { get; private set; }
@@ -117,7 +121,7 @@ namespace Placemaker.Game.Groups
 
         private void ClearCaches()
         {
-            _records.Clear(); _decoded.Clear(); _members.Clear(); _missing.Clear(); _allIds.Clear(); _owners.Clear();
+            _records.Clear(); _decoded.Clear(); _members.Clear(); _missing.Clear(); _allIds.Clear(); _owners.Clear(); _duplicateWarned.Clear();
             _dirty = true;
             _missingCheckedCatalogVersion = -1;
             Bump();
@@ -140,6 +144,7 @@ namespace Placemaker.Game.Groups
                     Bump();
                 }
                 CheckMissingAssets();
+                if (_releasePending.Count > 0) ReleasePending();
             }
             catch (Exception e)
             {
@@ -217,6 +222,108 @@ namespace Placemaker.Game.Groups
             return true;
         }
 
+        /// <summary>The player ungrouped this build: its pieces are picked and bulldozed one by one.</summary>
+        public bool IsUngrouped(int groupId)
+        {
+            EnsureIndex();
+            return _ungrouped.Contains(groupId);
+        }
+
+        /// <summary>
+        /// Ungroup (or group again): clicks on a part pick that part, the bulldozer removes single parts, and the owner lot is
+        /// never hit, so nothing removes the whole build by accident. Kept on the record (ECS flags and receipt) so it survives
+        /// a save. Remove/Edit in Placemaker's panels still work on the whole build.
+        /// </summary>
+        public bool SetUngrouped(int groupId, bool ungrouped)
+        {
+            EnsureIndex();
+            if (!_records.TryGetValue(groupId, out var entity) || !EntityManager.Exists(entity)) return false;
+            if (EntityManager.HasComponent<PlacemakerRemoval>(entity)) return false;
+            var g = EntityManager.GetComponentData<PlacemakerGroup>(entity);
+            int flags = ungrouped ? g.Flags | (int)GroupFlags.Ungrouped : g.Flags & ~(int)GroupFlags.Ungrouped;
+            if (flags == g.Flags) return true;
+            g.Flags = flags;
+            EntityManager.SetComponentData(entity, g);
+            var rec = GetRecord(groupId);
+            if (rec != null)
+            {
+                rec.Flags = ungrouped ? rec.Flags | GroupFlags.Ungrouped : rec.Flags & ~GroupFlags.Ungrouped;
+                WriteRecord(entity, rec);
+            }
+            if (ungrouped) { _ungrouped.Add(groupId); _releasePending.Add(groupId); } else _ungrouped.Remove(groupId);
+            Mod.Log.Info($"Placemaker: group {groupId} {(ungrouped ? "ungrouped (its parts are picked one by one)" : "grouped again")}.");
+            Bump();
+            return true;
+        }
+
+        /// <summary>
+        /// Raycast of an ungrouped build: <paramref name="owner"/> is what the game picked (the top owner of <paramref name="hit"/>).
+        /// True when it must change: the build's owner lot → nothing (<paramref name="pick"/> = Null); its carrier or another
+        /// auxiliary → the member that was hit (walking up from <paramref name="hit"/>), or nothing. False: leave the pick as it is.
+        /// </summary>
+        internal bool TryUngroupedPick(Entity owner, Entity hit, out Entity pick)
+        {
+            pick = Entity.Null;
+            if (owner == Entity.Null || !EntityManager.Exists(owner) || !EntityManager.HasComponent<PlacemakerMember>(owner)) return false;
+            var tag = EntityManager.GetComponentData<PlacemakerMember>(owner);
+            if (!IsUngrouped(tag.GroupId)) return false;
+            if (tag.Role == MemberRole.OwnerArea) return true;
+            if (tag.Kind != MemberKind.Auxiliary) return false;
+            var e = hit;
+            for (int depth = 0; depth < 4 && e != Entity.Null && e != owner && EntityManager.Exists(e); depth++)
+            {
+                if (EntityManager.HasComponent<PlacemakerMember>(e))
+                {
+                    var t = EntityManager.GetComponentData<PlacemakerMember>(e);
+                    if (t.GroupId == tag.GroupId && t.Kind != MemberKind.Auxiliary) { pick = e; return true; }
+                }
+                if (!EntityManager.HasComponent<Owner>(e)) break;
+                e = EntityManager.GetComponentData<Owner>(e).m_Owner;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Ungrouped builds: their props and trees leave the build's bare carrier (the shared owner that keeps the game's
+        /// OverrideSystem from hiding our own pieces against each other) and stand on their own. The bulldozer sends a click on a
+        /// static object with an owner to that owner (BulldozeToolSystem, MainElements), so a carrier-owned bench, bin, lamp or tree
+        /// could be selected but never bulldozed (the user, 22 Oct). Stall markings keep the carrier (their parking lanes need it).
+        /// Runs in ModificationEnd, once the build is applied; the owner's SubObject list is kept in step. Grouping again keeps them
+        /// standalone (the lift to the owner lot does not need the carrier).
+        /// </summary>
+        private void ReleasePending()
+        {
+            EnsureIndex();
+            foreach (var id in new List<int>(_releasePending))
+            {
+                if (!TryGetRecordEntity(id, out var rec) || !_ungrouped.Contains(id) || EntityManager.HasComponent<PlacemakerRemoval>(rec)) { _releasePending.Remove(id); continue; }
+                if (EntityManager.HasComponent<PlacemakerUnderConstruction>(rec)) continue;   // after its build
+                var carrier = EntityManager.GetComponentData<PlacemakerGroup>(rec).Carrier;
+                var free = new HashSet<Entity>();
+                if (carrier != Entity.Null && EntityManager.Exists(carrier) && _members.TryGetValue(id, out var members))
+                    foreach (var e in members)
+                    {
+                        if (!EntityManager.Exists(e) || EntityManager.HasComponent<Temp>(e) || EntityManager.HasComponent<Deleted>(e)) continue;
+                        if (!EntityManager.HasComponent<global::Game.Objects.Object>(e) || !EntityManager.HasComponent<Owner>(e)) continue;
+                        if (EntityManager.GetComponentData<Owner>(e).m_Owner != carrier) continue;
+                        var tag = EntityManager.GetComponentData<PlacemakerMember>(e);
+                        if (tag.Kind == MemberKind.Auxiliary || tag.Role == MemberRole.ParkingBay) continue;
+                        free.Add(e);
+                    }
+                if (free.Count > 0)
+                {
+                    if (EntityManager.HasBuffer<global::Game.Objects.SubObject>(carrier))
+                    {
+                        var subs = EntityManager.GetBuffer<global::Game.Objects.SubObject>(carrier);
+                        for (int i = subs.Length - 1; i >= 0; i--) if (free.Contains(subs[i].m_SubObject)) subs.RemoveAt(i);
+                    }
+                    foreach (var e in free) EntityManager.RemoveComponent<Owner>(e);
+                }
+                _releasePending.Remove(id);
+                Mod.Log.Info($"Placemaker: ungrouped group {id}: {free.Count} prop(s) and tree(s) now stand on their own, so the bulldozer takes them one by one.");
+            }
+        }
+
         public void Rename(int groupId, string name)
         {
             var rec = GetRecord(groupId);
@@ -252,6 +359,7 @@ namespace Placemaker.Game.Groups
                 {
                     var tag = EntityManager.GetComponentData<PlacemakerMember>(e);
                     if (tag.Role == MemberRole.OwnerArea) return false;   // already the owner
+                    if (IsUngrouped(tag.GroupId)) return false;            // ungrouped: the part itself
                     owner = OwnerAreaOf(tag.GroupId);
                     return owner != Entity.Null && owner != hit;
                 }
@@ -278,6 +386,7 @@ namespace Placemaker.Game.Groups
             if (entity == Entity.Null || !EntityManager.Exists(entity) || !EntityManager.HasComponent<PlacemakerMember>(entity)) return false;
             var tag = EntityManager.GetComponentData<PlacemakerMember>(entity);
             if (tag.Role == MemberRole.OwnerArea || tag.Kind == MemberKind.Edge || tag.Kind == MemberKind.Node || tag.Kind == MemberKind.Auxiliary) return false;
+            if (IsUngrouped(tag.GroupId)) return false;   // ungrouped: bulldozing a part removes that part only
             if (!TryGetRecordEntity(tag.GroupId, out var rec) || EntityManager.HasComponent<PlacemakerRemoval>(rec)
                 || EntityManager.HasComponent<PlacemakerUnderConstruction>(rec)) return false;
             if (OwnerAreaOf(tag.GroupId) != Entity.Null) return false;
@@ -342,6 +451,8 @@ namespace Placemaker.Game.Groups
             var g = EntityManager.GetComponentData<PlacemakerGroup>(e);
             g.Flags = (int)rec.Flags;
             EntityManager.SetComponentData(e, g);
+            if ((rec.Flags & GroupFlags.Ungrouped) != 0) { if (_ungrouped.Add(rec.GroupId)) _releasePending.Add(rec.GroupId); }
+            else _ungrouped.Remove(rec.GroupId);
             _decoded[rec.GroupId] = rec;
             Bump();
         }
@@ -405,6 +516,7 @@ namespace Placemaker.Game.Groups
             _members.Clear();
             _allIds.Clear();
             _owners.Clear();
+            _ungrouped.Clear();
             using (var records = _recordQuery.ToEntityArray(Allocator.Temp))
                 for (int i = 0; i < records.Length; i++)
                 {
@@ -412,11 +524,13 @@ namespace Placemaker.Game.Groups
                     if (g.GroupId <= 0) continue;
                     if (_records.ContainsKey(g.GroupId))
                     {
-                        Mod.Log.Warn($"Placemaker: duplicate group id {g.GroupId}; keeping the first record.");
+                        // once per id: the index is rebuilt every frame something changes (issue #6: thousands of lines)
+                        if (_duplicateWarned.Add(g.GroupId)) Mod.Log.Warn($"Placemaker: duplicate group id {g.GroupId}; keeping the first record.");
                         continue;
                     }
                     _records[g.GroupId] = records[i];
                     if (g.Owner != Entity.Null) _owners[g.GroupId] = g.Owner;
+                    if ((g.Flags & (int)GroupFlags.Ungrouped) != 0) _ungrouped.Add(g.GroupId);
                     _allIds.Add(g.GroupId);
                 }
             _allIds.Sort();
@@ -451,6 +565,9 @@ namespace Placemaker.Game.Groups
                     // The player bulldozed the ONE thing (US7): cascade to every member. Removal marks
                     // Deleted in PreTool of the next frame (RESEARCH-NOTES 11–12), never here.
                     if (TryGetRecordEntity(tag.GroupId, out var ownerRec) && !EntityManager.HasComponent<PlacemakerRemoval>(ownerRec)
+                        && !EntityManager.HasComponent<PlacemakerUnderConstruction>(ownerRec) && IsUngrouped(tag.GroupId))
+                        Mod.Log.Warn($"Placemaker: the owner area of ungrouped group {tag.GroupId} was deleted by another tool; its parts stay.");
+                    else if (TryGetRecordEntity(tag.GroupId, out ownerRec) && !EntityManager.HasComponent<PlacemakerRemoval>(ownerRec)
                         && !EntityManager.HasComponent<PlacemakerUnderConstruction>(ownerRec))
                     {
                         Mod.Log.Info($"Placemaker: owner area of group {tag.GroupId} was bulldozed; removing the whole group.");
@@ -587,8 +704,10 @@ namespace Placemaker.Game.Groups
         /// </summary>
         private void PostLoadRepair()
         {
+            DropStaleRecords();
             _dirty = true;
             EnsureIndex();
+            foreach (var id in _ungrouped) _releasePending.Add(id);   // builds ungrouped before their props were released (or in an older build)
             int orphans = 0;
             var orphanEntities = new List<Entity>();
             foreach (var kv in _members)
@@ -645,6 +764,92 @@ namespace Placemaker.Game.Groups
             SyncParkStats();
             Mod.Log.Info($"Placemaker loaded {_records.Count} groups.");
             Bump();
+        }
+
+        /// <summary>
+        /// (GitHub issue #6) A city saved after it was loaded a second time in one game (builds before OwnEntityClearSystem)
+        /// holds two records of each of its groups; one saved after another city was loaded holds that city's records too.
+        /// The copies point at nothing (their owner lot, carrier and companion were the earlier load's) and every member tag
+        /// fits both. Per id the record with live references stays (on a tie, the one whose outline holds more of the
+        /// members); the others go, and so does every record no member carries. Destroyed outright, never removed: a
+        /// removal would take the members with it.
+        /// </summary>
+        private void DropStaleRecords()
+        {
+            var byId = new Dictionary<int, List<Entity>>();
+            using (var records = _recordQuery.ToEntityArray(Allocator.Temp))
+                for (int i = 0; i < records.Length; i++)
+                {
+                    int id = EntityManager.GetComponentData<PlacemakerGroup>(records[i]).GroupId;
+                    if (!byId.TryGetValue(id, out var list)) byId[id] = list = new List<Entity>();
+                    list.Add(records[i]);
+                }
+            if (byId.Count == 0) return;
+            var members = new Dictionary<int, List<Entity>>();
+            using (var entities = _memberQuery.ToEntityArray(Allocator.Temp))
+            using (var tags = _memberQuery.ToComponentDataArray<PlacemakerMember>(Allocator.Temp))
+                for (int i = 0; i < entities.Length; i++)
+                {
+                    if (!members.TryGetValue(tags[i].GroupId, out var list)) members[tags[i].GroupId] = list = new List<Entity>();
+                    list.Add(entities[i]);
+                }
+            var drop = new List<Entity>();
+            int copies = 0, empty = 0;
+            foreach (var kv in byId)
+            {
+                if (!members.TryGetValue(kv.Key, out var own))
+                {
+                    drop.AddRange(kv.Value);
+                    empty += kv.Value.Count;
+                    continue;
+                }
+                if (kv.Value.Count == 1) continue;
+                Entity keep = Entity.Null;
+                int bestRefs = -1, bestInside = -1;
+                foreach (var r in kv.Value)
+                {
+                    int refs = LiveReferences(r), inside = MembersInsideOutline(r, own);
+                    if (refs > bestRefs || (refs == bestRefs && inside > bestInside)) { keep = r; bestRefs = refs; bestInside = inside; }
+                }
+                foreach (var r in kv.Value) if (r != keep) { drop.Add(r); copies++; }
+            }
+            if (drop.Count == 0) return;
+            foreach (var r in drop) EntityManager.DestroyEntity(r);
+            Mod.Log.Warn($"Placemaker load: {copies} duplicate group record(s) and {empty} record(s) of groups this city does not have were dropped "
+                + "(the city was saved after a second load in the same game; GitHub issue #6).");
+        }
+
+        /// <summary>A record's live references: owner lot 4, carrier 2, companion 1.</summary>
+        private int LiveReferences(Entity record)
+        {
+            var g = EntityManager.GetComponentData<PlacemakerGroup>(record);
+            bool Live(Entity e) => e != Entity.Null && EntityManager.Exists(e) && !EntityManager.HasComponent<Deleted>(e);
+            return (Live(g.Owner) && EntityManager.HasComponent<global::Game.Areas.Area>(g.Owner) ? 4 : 0)
+                + (Live(g.Carrier) ? 2 : 0) + (Live(g.Companion) ? 1 : 0);
+        }
+
+        /// <summary>How many of the members (up to 200) stand inside the outline of this record's receipt.</summary>
+        private int MembersInsideOutline(Entity record, List<Entity> members)
+        {
+            if (!EntityManager.HasBuffer<PlacemakerGroupBlob>(record)) return 0;
+            var buffer = EntityManager.GetBuffer<PlacemakerGroupBlob>(record, true);
+            var bytes = new byte[buffer.Length];
+            for (int i = 0; i < bytes.Length; i++) bytes[i] = buffer[i].Value;
+            var ring = ReceiptCodec.Decode(bytes)?.Area?.Ring2D();
+            if (ring == null || ring.Length < 3) return 0;
+            int inside = 0;
+            for (int i = 0; i < members.Count && i < 200; i++)
+            {
+                var m = members[i];
+                Unity.Mathematics.float2 p;
+                if (EntityManager.HasComponent<global::Game.Objects.Transform>(m)) p = EntityManager.GetComponentData<global::Game.Objects.Transform>(m).m_Position.xz;
+                else if (EntityManager.HasComponent<global::Game.Net.Node>(m)) p = EntityManager.GetComponentData<global::Game.Net.Node>(m).m_Position.xz;
+                else if (EntityManager.HasComponent<global::Game.Net.Curve>(m))
+                    p = Colossal.Mathematics.MathUtils.Position(EntityManager.GetComponentData<global::Game.Net.Curve>(m).m_Bezier, 0.5f).xz;
+                else continue;
+                if (Placemaker.Core.Geometry.Poly.Contains(ring, p)) inside++;
+            }
+            return inside;
         }
 
         /// <summary>
@@ -716,7 +921,9 @@ namespace Placemaker.Game.Groups
                 if (rec == null) continue;
                 var missing = new List<string>();
                 foreach (var name in rec.PrefabNames)
-                    if (!string.IsNullOrEmpty(name) && !catalog.PrefabExists(name)) missing.Add(name);
+                    if (!string.IsNullOrEmpty(name) && !catalog.PrefabExists(name)
+                        // (issue #2) see-through decal copies are gone for good: OldDecalCleanupSystem removes them after a load
+                        && !name.StartsWith(Core.Decals.DecalLook.ClonePrefix, StringComparison.Ordinal)) missing.Add(name);
                 bool was = (rec.Flags & GroupFlags.MissingAssets) != 0;
                 if (missing.Count > 0) _missing[kv.Key] = missing;
                 if (was != (missing.Count > 0))

@@ -69,6 +69,10 @@ namespace Placemaker.Core
         public bool IsOneWay;
         /// <summary>Carries bicycles on their own lane: a bike path, a pathway with bike lanes or a road with bike lanes.</summary>
         public bool HasBikeLane;
+        /// <summary>(appended) A road under highway rules (motorways, highway ramps): new roads never join or cross it at grade.</summary>
+        public bool IsHighway;
+        /// <summary>(appended) Speed limit in km/h, 0 = unknown.</summary>
+        public float SpeedLimit;
     }
 
     public enum NetCategory { Road = 0, Pathway = 1, Track = 2, Other = 3 }
@@ -192,6 +196,56 @@ namespace Placemaker.Core
         public int RingSegment;
         public float RingT;
         public float3 Position;
+        /// <summary>
+        /// The player wants a crosswalk where this entrance's path meets the street (Layers/Common/StreetJoins). Recipes,
+        /// receipts and the tool keep it as the kind's <see cref="MarkerVariants.CrosswalkSuffix"/>; Composer.MarkersOn turns
+        /// that into this flag and the plain kind, so layers only ever see the kinds they know.
+        /// </summary>
+        public bool Crosswalk;
+    }
+
+    /// <summary>
+    /// Entrance variants stored in the marker kind (no save format change: an older Placemaker sees an unknown kind and
+    /// leaves the marker out). "pedestrian+crosswalk" = a pedestrian entrance whose path splits the street and gets a crosswalk.
+    /// </summary>
+    public static class MarkerVariants
+    {
+        public const string CrosswalkSuffix = "+crosswalk";
+
+        public static bool HasCrosswalk(string kind) => kind != null && kind.EndsWith(CrosswalkSuffix, StringComparison.Ordinal);
+
+        /// <summary>The kind without its variant.</summary>
+        public static string BaseKind(string kind) => HasCrosswalk(kind) ? kind.Substring(0, kind.Length - CrosswalkSuffix.Length) : kind;
+
+        public static string WithCrosswalk(string kind, bool on) => on ? BaseKind(kind) + CrosswalkSuffix : BaseKind(kind);
+
+        /// <summary>The marker as layers see it: plain kind, <see cref="EdgeMarker.Crosswalk"/> set from the suffix.</summary>
+        public static EdgeMarker Normalize(EdgeMarker m)
+        {
+            if (!HasCrosswalk(m.Kind)) return m;
+            m.Kind = BaseKind(m.Kind);
+            m.Crosswalk = true;
+            return m;
+        }
+
+        /// <summary>
+        /// Entrance kinds people walk in through, whose path can meet a street: the crosswalk choice applies to them.
+        /// "entrance" walks only for the park family (where it is the old pedestrian kind); with car kinds beside it
+        /// (parking, malls, markets) it is the two-way car entrance.
+        /// </summary>
+        public static bool Walks(string kind, IEnumerable<string> stepKinds)
+        {
+            switch (BaseKind(kind))
+            {
+                case "pedestrian": case "bike": case "main": case "footpath": case "access": return true;
+                case "entrance":
+                    if (stepKinds != null)
+                        foreach (var k in stepKinds)
+                            if (k == "entry" || k == "exit" || k == "alley") return false;
+                    return true;
+                default: return false;
+            }
+        }
     }
 
     public sealed class AreaInput
@@ -691,7 +745,20 @@ namespace Placemaker.Core
         /// <summary>(s16) Asset control (ControlSchema.Id) that chose this asset, or null: lets the panel say what "Automatic" became.</summary>
         public string Control;
         public float Scale = 1f;
-        /// <summary>Tree growth stage 0..3 (young..old), -1 = n/a.</summary>
+        /// <summary>
+        /// (Industrial) Height above the ground in metres for a prop standing on another (a container on a container): the
+        /// build raises it this high and gives it the game's object Elevation. 0 = on the ground. Negative: set this deep into
+        /// the ground (a boulder half buried, rubble strewn in the earth), with the game's negative Elevation: it then collides
+        /// with nothing (Underground mask), so it may lie under other props.
+        /// </summary>
+        public float Elevation;
+        /// <summary>(Industrial) Tilt in radians: Roll about the prop's own length (π = on its roof, ±π/2 = on its side), Pitch
+        /// about its width. 0 = upright (every other type). The build turns the prop by yaw, then pitch, then roll.</summary>
+        public float Roll, Pitch;
+        /// <summary>(Industrial) The game's random seed for this prop (its colour variation) when >= 0: boxes of one row share a
+        /// couple of seeds so a row reads as one shipping line's boxes. -1 = the build's own per-object seed.</summary>
+        public int ColorSeed = -1;
+        /// <summary>Tree growth stage 0..3 (young..old), 4 = dead (PlannedAge.Dead), -1 = n/a.</summary>
         public int Age = -1;
         public uint Variation;
         /// <summary>Optional: which planned net this object belongs to (index into AreaPlan.Nets), -1 none.</summary>
@@ -702,6 +769,14 @@ namespace Placemaker.Core
         /// otherwise automatic resolution falls back to "decoration" (FEEDBACK-2 #1: sandwich boards).
         /// </summary>
         public string Category;
+    }
+
+    /// <summary>Tree growth stages for PlannedObject.Age (the build maps them to ObjectDefinition.m_Age, ObjectUtils.InitializeTreeState).</summary>
+    public static class PlannedAge
+    {
+        public const int Young = 0, Teen = 1, Adult = 2, Old = 3;
+        /// <summary>A dead tree (m_Age ≥ 0.95: TreeState.Dead, bare branches).</summary>
+        public const int Dead = 4;
     }
 
     public enum AreaRole { PedestrianArea = 0, Hangaround = 1, Lot = 2 }
@@ -892,6 +967,9 @@ namespace Placemaker.Core
         /// Not persisted.
         /// </summary>
         public Func<float2, float> HeightAfter;
+
+        /// <summary>(zoning speed) Where this layer's planning time went: ms per step, in order (PlanClock). For the log; not persisted.</summary>
+        public List<KeyValuePair<string, double>> Timings = new List<KeyValuePair<string, double>>();
 
         public bool HasErrors
         {

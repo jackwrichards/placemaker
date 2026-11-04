@@ -1,0 +1,35 @@
+@use "../styles/tokens" as *;
+
+// ScrollArea.tsx: the box keeps its own flex place (the wrapper takes it over), the bar sits over its right edge.
+
+.wrap {
+    @include col;
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+}
+
+.track {
+    position: absolute;
+    top: 0;
+    right: 1rem;
+    bottom: 0;
+    width: 7rem;
+    border-radius: 4rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+}
+
+.thumb {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    border-radius: 3rem;
+    background-color: rgba(255, 255, 255, 0.32);
+}
+
+.thumb:hover,
+.thumbOn {
+    background-color: rgba(143, 209, 255, 0.75);
+}
